@@ -53,7 +53,7 @@ class _SelectCryptoState extends State<SelectCrypto> {
                 SizedBox(height: height / 20),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Confirmation());
+                    Get.to(() => const Confirmation());
                   },
                   child: CusttomButton(
                       "assets/images/airtel.jpg",
@@ -66,7 +66,7 @@ class _SelectCryptoState extends State<SelectCrypto> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Confirmation());
+                    Get.to(() => const Confirmation());
                   },
                   child: CusttomButton(
                       "assets/images/Ambuja_logo.png",
@@ -79,7 +79,7 @@ class _SelectCryptoState extends State<SelectCrypto> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Confirmation());
+                    Get.to(() => const Confirmation());
                   },
                   child: CusttomButton(
                       "assets/images/kotok.png",
@@ -92,7 +92,7 @@ class _SelectCryptoState extends State<SelectCrypto> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Confirmation());
+                    Get.to(() => const Confirmation());
                   },
                   child: CusttomButton(
                       "assets/images/icici.png",
@@ -105,7 +105,7 @@ class _SelectCryptoState extends State<SelectCrypto> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Confirmation());
+                    Get.to(() => const Confirmation());
                   },
                   child: CusttomButton(
                       "assets/images/Ambuja_logo.png",
@@ -118,7 +118,7 @@ class _SelectCryptoState extends State<SelectCrypto> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Confirmation());
+                    Get.to(() => const Confirmation());
                   },
                   child: CusttomButton(
                       "assets/images/icici.png",
@@ -131,7 +131,7 @@ class _SelectCryptoState extends State<SelectCrypto> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Confirmation());
+                    Get.to(() => const Confirmation());
                   },
                   child: CusttomButton(
                       "assets/images/Ambuja_logo.png",

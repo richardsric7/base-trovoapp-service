@@ -76,7 +76,7 @@ class _ConfirmationState extends State<Confirmation> {
               SizedBox(height: height / 3.8),
               GestureDetector(
                 onTap: () {
-                  Get.to(const Success());
+                  Get.to(() => const Success());
                 },
                 child: Button(LanguageEn.confirmorder, notifier.getbluecolor,
                     notifier.getwihitecolor),

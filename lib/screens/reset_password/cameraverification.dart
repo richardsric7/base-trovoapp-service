@@ -65,7 +65,7 @@ class _CameraverificationState extends State<Cameraverification> {
               SizedBox(height: height / 4.5),
               GestureDetector(
                   onTap: () {
-                    Get.to(const TermsofService());
+                    Get.to(() => const TermsofService());
                   },
                   child: Button(LanguageEn.continuee, notifier.getbluecolor,
                       notifier.getwihitecolor))

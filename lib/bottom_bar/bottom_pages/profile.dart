@@ -79,7 +79,7 @@ class _ProfileState extends State<Profile> {
               ),
               // GestureDetector(
               //     onTap: () {
-              //       Get.to(const ReferralCode());
+              //       Get.to(() => const ReferralCode());
               //     },
               //     child: referalcode()),
               SizedBox(height: height / 25),
@@ -98,7 +98,7 @@ class _ProfileState extends State<Profile> {
               SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
-                  Get.to(const MyAccount());
+                  Get.to(() => const MyAccount());
                 },
                 child: iteamlist("assets/images/BillingPayment.png", "",
                     LanguageEn.myaccount),
@@ -106,7 +106,7 @@ class _ProfileState extends State<Profile> {
               SizedBox(height: height / 30),
               GestureDetector(
                 onTap: () {
-                  Get.to(const PaymentMethod());
+                  Get.to(() => const PaymentMethod());
                 },
                 child: iteamlist("assets/images/Language.png", "",
                     LanguageEn.billingpayment),
@@ -114,7 +114,7 @@ class _ProfileState extends State<Profile> {
               SizedBox(height: height / 30),
               GestureDetector(
                 onTap: () {
-                  Get.to(const FAQ());
+                  Get.to(() => const FAQ());
                 },
                 child: iteamlist(
                     "assets/images/Settings.png", "", LanguageEn.faqsupport),
@@ -136,7 +136,7 @@ class _ProfileState extends State<Profile> {
               SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
-                  Get.to(const Language());
+                  Get.to(() => const Language());
                 },
                 child:
                     iteamlist("assets/images/FAQ.png", "", LanguageEn.language),
@@ -150,15 +150,15 @@ class _ProfileState extends State<Profile> {
               SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
-                  Get.to(const Login());
+                  Get.to(() => const Login());
                 },
                 child:
-                iteamlist("assets/images/FAQ.png", "", LanguageEn.logout),
+                    iteamlist("assets/images/FAQ.png", "", LanguageEn.logout),
               ),
               SizedBox(height: height / 50),
               // GestureDetector(
               //   onTap: () {
-              //     Get.to(const MessageSupport());
+              //     Get.to(() => const MessageSupport());
               //   },
               //   child: support(
               //       notifier.getbluecolor,
@@ -171,13 +171,13 @@ class _ProfileState extends State<Profile> {
       ),
     );
   }
+
   Future<void> share() async {
     await FlutterShare.share(
         title: 'Example share',
         text: 'Example share text',
         linkUrl: 'https://flutter.dev/',
-        chooserTitle: 'Example Chooser Title'
-    );
+        chooserTitle: 'Example Chooser Title');
   }
 
   Widget invitefriend(colorbutton, buttontext, buttontextcolor) {
@@ -262,7 +262,7 @@ class _ProfileState extends State<Profile> {
   //       const Spacer(),
   //       GestureDetector(
   //         onTap: () {
-  //           Get.to(const MyAccount());
+  //           Get.to(() => const MyAccount());
   //         },
   //         child: Text(
   //           "Edit",

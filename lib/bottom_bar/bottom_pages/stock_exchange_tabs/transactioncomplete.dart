@@ -80,13 +80,13 @@ class _TransactionCompleteState extends State<TransactionComplete> {
               ),
               GestureDetector(
                   onTap: () {
-                    Get.to(const Portfolio());
+                    Get.to(() => const Portfolio());
                   },
                   child: Button("View Portfolio", notifier.getbluecolor,
                       notifier.getwihitecolor)),
               GestureDetector(
                   onTap: () {
-                    Get.to(const BottomHome());
+                    Get.to(() => const BottomHome());
                   },
                   child: Button("Go to Home", notifier.getwihitecolor,
                       notifier.getbluecolor)),

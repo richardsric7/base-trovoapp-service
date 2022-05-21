@@ -29,7 +29,7 @@ class _NotifiState extends State<Notifi> {
           actions: [
             GestureDetector(
                 onTap: () {
-                  Get.to(const SelectStocks());
+                  Get.to(() => const SelectStocks());
                 },
                 child: Icon(Icons.search_rounded,
                     color: notifier.getblck, size: 25.sp)),

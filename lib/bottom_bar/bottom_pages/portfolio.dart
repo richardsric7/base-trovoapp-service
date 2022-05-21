@@ -57,7 +57,7 @@ class _PortfolioState extends State<Portfolio> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Chart());
+                    Get.to(() => const Chart());
                   },
                   child: updownrate("assets/images/Today_Gains.png", "\$2,209",
                       "Today Gains"),
@@ -65,7 +65,7 @@ class _PortfolioState extends State<Portfolio> {
                 const Spacer(),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Chart());
+                    Get.to(() => const Chart());
                   },
                   child: updownrate("assets/images/Overall Loss.png", "\$5,440",
                       "Overall Loss"),
@@ -151,7 +151,7 @@ class _PortfolioState extends State<Portfolio> {
                       SizedBox(height: height / 30),
                       GestureDetector(
                         onTap: () {
-                          Get.to(const Chart());
+                          Get.to(() => const Chart());
                         },
                         child: const CusttomButton(
                             "assets/images/kotok.png",
@@ -164,7 +164,7 @@ class _PortfolioState extends State<Portfolio> {
                       SizedBox(height: height / 30),
                       GestureDetector(
                         onTap: () {
-                          Get.to(const Chart());
+                          Get.to(() => const Chart());
                         },
                         child: const CusttomButton(
                             "assets/images/hdfc.png",
@@ -177,7 +177,7 @@ class _PortfolioState extends State<Portfolio> {
                       SizedBox(height: height / 30),
                       GestureDetector(
                         onTap: () {
-                          Get.to(const Chart());
+                          Get.to(() => const Chart());
                         },
                         child: const CusttomButton(
                             "assets/images/Ambuja_logo.png",
@@ -190,7 +190,7 @@ class _PortfolioState extends State<Portfolio> {
                       SizedBox(height: height / 30),
                       GestureDetector(
                         onTap: () {
-                          Get.to(const Chart());
+                          Get.to(() => const Chart());
                         },
                         child: const CusttomButton(
                             "assets/images/airtel.jpg",
@@ -203,7 +203,7 @@ class _PortfolioState extends State<Portfolio> {
                       SizedBox(height: height / 30),
                       GestureDetector(
                         onTap: () {
-                          Get.to(const Chart());
+                          Get.to(() => const Chart());
                         },
                         child: const CusttomButton(
                             "assets/images/icici.png",

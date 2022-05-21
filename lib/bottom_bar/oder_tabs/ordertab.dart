@@ -53,7 +53,7 @@ class _OrdertabsState extends State<Ordertabs> {
               SizedBox(height: height / 30),
               GestureDetector(
                   onTap: () {
-                    Get.to(const Chart());
+                    Get.to(() => const Chart());
                   },
                   child: buton(notifier.getbluecolor, "View Stocks",
                       notifier.getwihitecolor))

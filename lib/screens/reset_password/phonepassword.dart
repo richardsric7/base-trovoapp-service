@@ -89,7 +89,7 @@ class _PhonePasswordState extends State<PhonePassword> {
               SizedBox(height: height / 4.7),
               GestureDetector(
                   onTap: () {
-                    Get.to(const Emailpassword());
+                    Get.to(() => const Emailpassword());
                   },
                   child: Button(LanguageEn.continuee, notifier.getbluecolor,
                       notifier.getwihitecolor))

@@ -73,7 +73,7 @@ class _SuccessState extends State<Success> {
               SizedBox(height: height / 5.2),
               GestureDetector(
                   onTap: () {
-                    Get.to(const BottomHome());
+                    Get.to(() => const BottomHome());
                   },
                   child: Button(LanguageEn.done, notifier.getbluecolor,
                       notifier.getwihitecolor))

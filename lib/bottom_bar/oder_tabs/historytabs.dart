@@ -59,7 +59,7 @@ class _HistorytabsState extends State<Historytabs> {
             SizedBox(height: height / 15),
             GestureDetector(
               onTap: () {
-                Get.to(const Chart());
+                Get.to(() => const Chart());
               },
               child: const CusttomButton(
                   "assets/images/kotok.png",
@@ -72,7 +72,7 @@ class _HistorytabsState extends State<Historytabs> {
             SizedBox(height: height / 25),
             GestureDetector(
               onTap: () {
-                Get.to(const Chart());
+                Get.to(() => const Chart());
               },
               child: const CusttomButton("assets/images/hdfc.png", "HDFC bank",
                   "HDFC Inc.", "\$326,23", "2,87%", Color(0xffF65556)),
@@ -80,7 +80,7 @@ class _HistorytabsState extends State<Historytabs> {
             SizedBox(height: height / 25),
             GestureDetector(
               onTap: () {
-                Get.to(const Chart());
+                Get.to(() => const Chart());
               },
               child: const CusttomButton(
                   "assets/images/airtel.jpg",
@@ -93,7 +93,7 @@ class _HistorytabsState extends State<Historytabs> {
             SizedBox(height: height / 25),
             GestureDetector(
               onTap: () {
-                Get.to(const Chart());
+                Get.to(() => const Chart());
               },
               child: const CusttomButton(
                   "assets/images/icici.png",

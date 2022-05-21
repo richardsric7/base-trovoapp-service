@@ -90,7 +90,7 @@ class _EmailpasswordState extends State<Emailpassword> {
               SizedBox(height: height / 4.7),
               GestureDetector(
                   onTap: () {
-                    Get.to(const VerifyYourIdentity());
+                    Get.to(() => const VerifyYourIdentity());
                   },
                   child: Button(LanguageEn.continuee, notifier.getbluecolor,
                       notifier.getwihitecolor))

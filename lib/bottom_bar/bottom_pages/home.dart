@@ -41,7 +41,7 @@ class _HomeState extends State<Home> {
             actions: [
               GestureDetector(
                 onTap: () {
-                  Get.to(const SelectStocks());
+                  Get.to(() => const SelectStocks());
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -50,7 +50,7 @@ class _HomeState extends State<Home> {
               ),
               GestureDetector(
                 onTap: () {
-                  Get.to(const Notifi());
+                  Get.to(() => const Notifi());
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -82,7 +82,6 @@ class _HomeState extends State<Home> {
             ),
           ),
         ),
-
       ),
     );
   }

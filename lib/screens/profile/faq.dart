@@ -74,19 +74,19 @@ class _FAQState extends State<FAQ> {
                 children: [
                   GestureDetector(
                       onTap: () {
-                        Get.to(const Pages(""));
+                        Get.to(() => const Pages(""));
                       },
                       child: faqtype(
                           "assets/images/Getting.png", "Getting\nStarted")),
                   GestureDetector(
                       onTap: () {
-                        Get.to(const Pages(""));
+                        Get.to(() => const Pages(""));
                       },
                       child: faqtype(
                           "assets/images/Prices.png", "How to\nInvest")),
                   GestureDetector(
                       onTap: () {
-                        Get.to(const Pages(""));
+                        Get.to(() => const Pages(""));
                       },
                       child: faqtype(
                           "assets/images/Card-payment.png", "Payment\nMethod")),

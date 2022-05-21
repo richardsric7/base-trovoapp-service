@@ -51,7 +51,7 @@ class _ComplateerificationState extends State<Complateerification> {
               SizedBox(height: height / 4.3),
               GestureDetector(
                   onTap: () {
-                    Get.to(const Faceid());
+                    Get.to(() => const Faceid());
                   },
                   child: Button(LanguageEn.done, notifier.getbluecolor,
                       notifier.getwihitecolor))

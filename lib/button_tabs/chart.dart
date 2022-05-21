@@ -55,10 +55,10 @@ class _ChartState extends State<Chart> {
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(width: width/13),
+            SizedBox(width: width / 13),
             GestureDetector(
               onTap: () {
-                Get.to(const SelectCrypto());
+                Get.to(() => const SelectCrypto());
               },
               child: button(LanguageEn.sell, const Color(0xffF05150),
                   notifier.getwihitecolor, Colors.transparent),
@@ -66,7 +66,7 @@ class _ChartState extends State<Chart> {
             SizedBox(width: width / 30),
             GestureDetector(
               onTap: () {
-                Get.to(const SelectCrypto());
+                Get.to(() => const SelectCrypto());
               },
               child: button(LanguageEn.buy, const Color(0xff2873FF),
                   notifier.getwihitecolor, Colors.transparent),
@@ -277,7 +277,6 @@ class _ChartState extends State<Chart> {
                   ),
                 ),
               ),
-
             ],
           ),
         ),

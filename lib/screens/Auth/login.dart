@@ -172,7 +172,7 @@ class _LoginState extends State<Login> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Get.to(const SignUp());
+                      Get.to(() => const SignUp());
                     },
                     child: Text(
                       LanguageEn.signup,
@@ -205,7 +205,7 @@ class _LoginState extends State<Login> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset("assets/images/google.png", height: height / 25),
+            Image.asset("assets/images/airtel.jpg", height: height / 25),
             SizedBox(width: width / 25),
             Text(
               LanguageEn.continuewithgoogle,

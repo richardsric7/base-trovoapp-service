@@ -88,7 +88,7 @@ class _PinState extends State<Pin> {
               SizedBox(height: height / 1.9),
               GestureDetector(
                   onTap: () {
-                    Get.to(const PhonePassword());
+                    Get.to(() => const PhonePassword());
                   },
                   child: Button(LanguageEn.continuee, notifier.getbluecolor,
                       notifier.getwihitecolor))

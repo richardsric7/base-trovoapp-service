@@ -208,14 +208,14 @@ class _CusttomStockGainscardState extends State<CusttomStockGainscard> {
                       SizedBox(width: width / 10),
                       GestureDetector(
                           onTap: () {
-                            Get.to(const StockExchange());
+                            Get.to(() => const StockExchange());
                           },
                           child: cardbutton(
                               "assets/images/deposit.png", LanguageEn.deposit)),
                       SizedBox(width: width / 50),
                       GestureDetector(
                           onTap: () {
-                            Get.to(const StockExchange());
+                            Get.to(() => const StockExchange());
                           },
                           child: cardbutton("assets/images/withdraw.png",
                               LanguageEn.withdraw)),

@@ -93,7 +93,7 @@ class _OrderPreviewState extends State<OrderPreview> {
             SizedBox(height: height / 9.5),
             GestureDetector(
                 onTap: () {
-                  Get.to(const Success());
+                  Get.to(() => const Success());
                 },
                 child: Button(LanguageEn.confirmorder, notifier.getbluecolor,
                     notifier.getwihitecolor))

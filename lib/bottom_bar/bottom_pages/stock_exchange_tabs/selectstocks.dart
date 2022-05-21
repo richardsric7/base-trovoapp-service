@@ -33,7 +33,7 @@ class _SelectStocksState extends State<SelectStocks> {
           preferredSize: Size.fromHeight(70.sp),
           // here the desired height
           child: AppBar(
-            leading:  GestureDetector(
+            leading: GestureDetector(
               onTap: () {
                 Get.back();
               },
@@ -46,7 +46,7 @@ class _SelectStocksState extends State<SelectStocks> {
               // ),
               GestureDetector(
                 onTap: () {
-                  Get.to(const Notifi());
+                  Get.to(() => const Notifi());
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -95,7 +95,7 @@ class _SelectStocksState extends State<SelectStocks> {
                 SizedBox(height: height / 20),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Chart());
+                    Get.to(() => const Chart());
                   },
                   child: CusttomButton(
                       "assets/images/airtel.jpg",
@@ -108,7 +108,7 @@ class _SelectStocksState extends State<SelectStocks> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Chart());
+                    Get.to(() => const Chart());
                   },
                   child: CusttomButton(
                       "assets/images/Ambuja_logo.png",
@@ -121,7 +121,7 @@ class _SelectStocksState extends State<SelectStocks> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Chart());
+                    Get.to(() => const Chart());
                   },
                   child: CusttomButton(
                       "assets/images/kotok.png",
@@ -134,7 +134,7 @@ class _SelectStocksState extends State<SelectStocks> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Chart());
+                    Get.to(() => const Chart());
                   },
                   child: CusttomButton(
                       "assets/images/icici.png",
@@ -147,7 +147,7 @@ class _SelectStocksState extends State<SelectStocks> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Chart());
+                    Get.to(() => const Chart());
                   },
                   child: CusttomButton(
                       "assets/images/Ambuja_logo.png",
@@ -160,7 +160,7 @@ class _SelectStocksState extends State<SelectStocks> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Chart());
+                    Get.to(() => const Chart());
                   },
                   child: CusttomButton(
                       "assets/images/icici.png",
@@ -173,7 +173,7 @@ class _SelectStocksState extends State<SelectStocks> {
                 SizedBox(height: height / 30),
                 GestureDetector(
                   onTap: () {
-                    Get.to(const Chart());
+                    Get.to(() => const Chart());
                   },
                   child: CusttomButton(
                       "assets/images/Ambuja_logo.png",

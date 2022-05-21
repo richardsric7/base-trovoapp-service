@@ -185,7 +185,7 @@ class _SignUpState extends State<SignUp> {
               SizedBox(height: height / 25),
               GestureDetector(
                   onTap: () {
-                    Get.to(const BottomHome());
+                    Get.to(() => const BottomHome());
                   },
                   child: Button(LanguageEn.signup, notifier.getbluecolor,
                       notifier.getwihitecolor)),
@@ -232,7 +232,7 @@ class _SignUpState extends State<SignUp> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Get.to(const Login());
+                      Get.to(() => const Login());
                     },
                     child: Text(
                       LanguageEn.signin,
@@ -256,7 +256,7 @@ class _SignUpState extends State<SignUp> {
               //     // ),
               //     // GestureDetector(
               //     //   onTap: () {
-              //     //     Get.to(const BottomHome());
+              //     //     Get.to(() => const BottomHome());
               //     //   },
               //     //   child: Text(
               //     //     "Login",

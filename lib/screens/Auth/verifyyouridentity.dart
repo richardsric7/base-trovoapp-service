@@ -77,7 +77,7 @@ class _VerifyYourIdentityState extends State<VerifyYourIdentity> {
               SizedBox(height: height / 5),
               GestureDetector(
                   onTap: () {
-                    Get.to(const Cameraverification());
+                    Get.to(() => const Cameraverification());
                   },
                   child: Button(LanguageEn.continuee, notifier.getbluecolor,
                       notifier.getwihitecolor))

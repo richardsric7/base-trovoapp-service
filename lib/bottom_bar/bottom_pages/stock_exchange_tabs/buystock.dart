@@ -64,7 +64,7 @@ class _BuyStockState extends State<BuyStock> {
               SizedBox(height: height / 20),
               GestureDetector(
                   onTap: () {
-                    Get.to(const PaymentMethod());
+                    Get.to(() => const PaymentMethod());
                   },
                   child: Button(
                       "Buy", notifier.getbluecolor, notifier.getwihitecolor))
