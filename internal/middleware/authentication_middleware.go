@@ -62,6 +62,7 @@ func AuthenticationMiddlewareUsingBody() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if os.Getenv("ENABLE_AUTH_MIDDLEWARE") == "0" {
 			c.Next()
+			return
 		}
 		h := c.Request.Header.Get("User-Agent")
 		publicKey := ExtractPublicKey(c)
