@@ -14,9 +14,9 @@ import (
 	"trovo-wallet-api/internal/sms"
 
 	"time"
+	cache "trovo-wallet-api/internal/cache"
 
 	"github.com/gin-gonic/gin"
-	"github.com/knadh/smtppool"
 	"github.com/nyaruka/phonenumbers"
 	"gorm.io/gorm"
 )
@@ -67,7 +67,7 @@ func GeneratePhoneVerificationCode(userInfo *users.User, salt string) string {
 }
 
 //CheckAndSendVerificationCode checks and sends verification code
-func CheckAndSendVerificationCode(userInfo users.UserRegistrationInfo, pool *smtppool.Pool) (bool, string, error) {
+func CheckAndSendVerificationCode(userInfo users.UserRegistrationInfo) (bool, string, error) {
 	//Verification code checks
 	salt := os.Getenv("VERIFICATION_CODE_SALT")
 
@@ -82,9 +82,7 @@ func CheckAndSendVerificationCode(userInfo users.UserRegistrationInfo, pool *smt
 
 		fmt.Printf("Verification code for %s is %s\n", userInfo.Email, expectedVerificationCode)
 
-		//func SendEmailVerificationCode(emailTo []string, name string, verificationCode string, pool *smtppool.Pool) error {
-
-		errSendVerificationCode := tMail.SendEmailVerificationCode(userInfo.Email, userInfo.FirstName, expectedVerificationCode, pool)
+		_, _, errSendVerificationCode := tMail.SendEmailVerificationCode(userInfo.Email, expectedVerificationCode)
 
 		if errSendVerificationCode != nil {
 			return false, expectedVerificationCode, errSendVerificationCode
@@ -106,7 +104,7 @@ func CheckAndSendVerificationCode(userInfo users.UserRegistrationInfo, pool *smt
 }
 
 //UpdatePhoneNumber updates phone number
-func UpdatePhoneNumber(userInfo *users.User, mobile string, db *gorm.DB) error {
+func UpdatePhoneNumber(userInfo *users.User, mobileCountryCode, mobile string, db *gorm.DB, redisCache *cache.RedisCache) error {
 
 	if len(mobile) == 0 {
 
@@ -118,11 +116,15 @@ func UpdatePhoneNumber(userInfo *users.User, mobile string, db *gorm.DB) error {
 
 	}
 	var parsedMobile string
-	geoData, _ := users.GetGeoInfo(userInfo.PublicIP)
-	num, err := phonenumbers.Parse(mobile, geoData.CountryCode)
+	num, err := phonenumbers.Parse(mobile, mobileCountryCode)
 
 	if err != nil {
 		log.Printf("unable to parse mobile number for user %v due to: %v\n", userInfo.Username, err)
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if !phonenumbers.IsValidNumber(num) {
+		log.Printf("unable to determine mobile number for validity for user %v\n", userInfo.Username)
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
@@ -167,6 +169,8 @@ func UpdatePhoneNumber(userInfo *users.User, mobile string, db *gorm.DB) error {
 	userInfo.Mobile = &parsedMobile
 	userInfo.LastUpdatedMobileOn = time.Now()
 	{
+		geoData, _ := users.GetGeoInfo(userInfo.PublicIP)
+
 		userInfo.CountryCode = &geoData.CountryCode
 		userInfo.City = &geoData.City
 		userInfo.PublicIP = geoData.IP
@@ -180,7 +184,7 @@ func UpdatePhoneNumber(userInfo *users.User, mobile string, db *gorm.DB) error {
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	errCode := SendPhoneVerificationCode(userInfo, db)
+	errCode := SendPhoneVerificationCode(userInfo, db, redisCache)
 	if errCode != nil {
 		return &tErrors.CustomError{
 			Param:      "mobile",
@@ -262,7 +266,7 @@ func CheckPhoneVerificationCode(userInfo *users.User, verificationCode string, d
 }
 
 //SendPhoneVerificationCode checks and sends verification code
-func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB) error {
+func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *cache.RedisCache) error {
 	if userInfo.MobileVerified == 1 {
 		//phone already verified. exit with error
 		return &tErrors.CustomError{

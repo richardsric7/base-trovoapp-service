@@ -7,8 +7,6 @@ import (
 	"strings"
 	"sync"
 	"trovo-wallet-api/internal/cache"
-	dbassets "trovo-wallet-api/internal/components/assets/db"
-	assetsmodels "trovo-wallet-api/internal/components/assets/models"
 	merchantServices "trovo-wallet-api/internal/components/merchants/services"
 	userDB "trovo-wallet-api/internal/components/users/db"
 	usermodels "trovo-wallet-api/internal/components/users/models"
@@ -30,11 +28,6 @@ func GetUserBalance(publicKey string, db *gorm.DB, temp bool, dynamicLinkService
 		return balances, err
 	}
 
-	mapCuratedAssets := make(map[string]assetsmodels.CuratedAsset)
-	curatedAssets, _ := dbassets.GetCuratedAssets(false, db)
-	for _, av := range curatedAssets {
-		mapCuratedAssets[av.AssetCode+":"+av.AssetIssuer] = av
-	}
 	//get username for qrcode is exists
 	var user usermodels.User
 	var errUser error
@@ -49,13 +42,6 @@ func GetUserBalance(publicKey string, db *gorm.DB, temp bool, dynamicLinkService
 		wg.Add(1)
 		go func(v horizon.Balance) {
 			defer wg.Done()
-			if v.Issuer != "" {
-				//if asset is not XBN
-				if _, ok := mapCuratedAssets[v.Code+":"+v.Issuer]; !ok {
-					// continue
-					return
-				}
-			}
 
 			amount, _ := strconv.ParseFloat(v.Balance, 64)
 			if (temp && (amount == 0)) || (v.Code == "" && temp) {

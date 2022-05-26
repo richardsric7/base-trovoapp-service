@@ -10,12 +10,11 @@ import (
 	"trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/validators"
 
-	bantupaysdk "github.com/bantublockchain/bantupaysdk-go/security"
 	"github.com/gin-gonic/gin"
 )
 
-func authenticationChecks(body string, c *gin.Context) error {
-	body = strings.TrimSpace(body)
+func authenticationChecks(keyParam string, c *gin.Context) error {
+	keyParam = strings.TrimSpace(keyParam)
 	fullUri := c.Request.URL.RequestURI()
 	// log.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^Full URI:", fullUri)
 	log.Printf("Full Path and query is [%s]\n", fullUri)
@@ -29,7 +28,7 @@ func authenticationChecks(body string, c *gin.Context) error {
 		return &errors.ErrorInvalidAuthenticationPublicKey{PublicKey: publicKey}
 	}
 
-	err := bantupaysdk.VerifyHttpSignature(fullUri, body, signature, publicKey)
+	err := VerifyHttpSignature(fullUri, keyParam, signature, publicKey)
 
 	if err != nil {
 		return err
@@ -39,15 +38,15 @@ func authenticationChecks(body string, c *gin.Context) error {
 
 }
 
-func WebSocketAuthenticationChecks(body, signature, publicKey string) error {
+func WebSocketAuthenticationChecks(body, signature, signerPublicKey string) error {
 
-	publicKeyFormatError := validators.ValidatePublicKeyFormat(publicKey)
+	publicKeyFormatError := validators.ValidatePublicKeyFormat(signerPublicKey)
 
 	if publicKeyFormatError != nil {
-		return &errors.ErrorInvalidAuthenticationPublicKey{PublicKey: publicKey}
+		return &errors.ErrorInvalidAuthenticationPublicKey{PublicKey: signerPublicKey}
 	}
 
-	err := bantupaysdk.VerifyHttpSignature("", body, signature, publicKey)
+	err := VerifyHttpSignature("", body, signature, signerPublicKey)
 
 	if err != nil {
 		return err
@@ -57,7 +56,7 @@ func WebSocketAuthenticationChecks(body, signature, publicKey string) error {
 
 }
 
-func AuthenticationMiddleware() gin.HandlerFunc {
+func AuthenticationMiddlewareUsingBody() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		h := c.Request.Header.Get("User-Agent")
@@ -71,6 +70,34 @@ func AuthenticationMiddleware() gin.HandlerFunc {
 		c.Request.Body = ioutil.NopCloser(&buf)
 		// log.Println("body is:", string(body))
 		authenticationError := authenticationChecks(string(body), c)
+
+		if authenticationError != nil {
+			var ex errors.GenericError
+			var ok bool
+
+			ex, ok = authenticationError.(errors.GenericError)
+			if ok {
+				c.JSON(http.StatusUnauthorized, ex.JSONError())
+			} else {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": authenticationError})
+			}
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	}
+}
+func AuthenticationMiddlewareUsingTimestamp() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		h := c.Request.Header.Get("User-Agent")
+		timestamp := c.Request.Header.Get("X-TW-TIMESTAMP")
+		publicKey := ExtractPublicKey(c)
+
+		log.Printf("[%s] is using [%s]\n", publicKey, h)
+
+		authenticationError := authenticationChecks(publicKey+timestamp, c)
 
 		if authenticationError != nil {
 			var ex errors.GenericError

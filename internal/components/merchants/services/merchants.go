@@ -4,9 +4,10 @@ import (
 	"errors"
 	"log"
 	"strings"
+	"trovo-wallet-api/internal/cache"
 	merchantmodels "trovo-wallet-api/internal/components/merchants/models"
 	conDB "trovo-wallet-api/internal/db"
-	bantupayerrors "trovo-wallet-api/internal/errors"
+	tErrors "trovo-wallet-api/internal/errors"
 
 	"gorm.io/gorm"
 )
@@ -32,11 +33,11 @@ func GetMerchantInfo(mInfo string, db *gorm.DB) (user merchantmodels.Merchant, e
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
-			err = &bantupayerrors.ErrorMerchantDoesNotExist{Username: mInfo}
+			err = &tErrors.ErrorMerchantDoesNotExist{Username: mInfo}
 			return
 		}
 		log.Println("[GetMerchantInfo] error: ", e)
-		err = &bantupayerrors.ErrorTemporaryServerError{}
+		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
@@ -64,11 +65,11 @@ func GetLoginSession(mInfo, walletInfo, loginID string, db *gorm.DB) (loginSessi
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
-			err = &bantupayerrors.ErrorLoginSessionDoesNotExist{Username: walletInfo}
+			err = &tErrors.ErrorLoginSessionDoesNotExist{Username: walletInfo}
 			return
 		}
 		log.Println("[GetLoginSession] error: ", e)
-		err = &bantupayerrors.ErrorTemporaryServerError{}
+		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
@@ -87,11 +88,11 @@ func GetUserAuthorizationData(mInfo, walletInfo, authID string, db *gorm.DB) (au
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
-			err = &bantupayerrors.ErrorAuthorizationDoesNotExist{Username: walletInfo}
+			err = &tErrors.ErrorAuthorizationDoesNotExist{Username: walletInfo}
 			return
 		}
 		log.Println("[GetUserAuthorizationData] error: ", e)
-		err = &bantupayerrors.ErrorTemporaryServerError{}
+		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
@@ -110,7 +111,7 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
-			err = &bantupayerrors.CustomError{
+			err = &tErrors.CustomError{
 				Param:      authID,
 				Err:        "error reward data does not exist",
 				ErrMessage: "Reward/Airdrop is invalid or it has expired.",
@@ -118,7 +119,7 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 			return
 		}
 		log.Println("[GetRewardOnlyAuthorizationData] error: ", e)
-		err = &bantupayerrors.ErrorTemporaryServerError{}
+		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
@@ -126,7 +127,7 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 	if authData.Authorized == 1 {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
-			err = &bantupayerrors.CustomError{
+			err = &tErrors.CustomError{
 				Param:      authID,
 				Err:        "error: reward data has expired",
 				ErrMessage: "Reward/Airdrop has expired.",
@@ -134,7 +135,7 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 			return
 		}
 		log.Println("[GetRewardOnlyAuthorizationData] error: ", e)
-		err = &bantupayerrors.ErrorTemporaryServerError{}
+		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
@@ -153,7 +154,7 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData merc
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
-			err = &bantupayerrors.CustomError{
+			err = &tErrors.CustomError{
 				Param:      authID,
 				Err:        "error: event data does not exist",
 				ErrMessage: "Event registration is either invalid or closed or expired.",
@@ -161,7 +162,7 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData merc
 			return
 		}
 		log.Println("[GetEventAuthorizationData] error: ", e)
-		err = &bantupayerrors.ErrorTemporaryServerError{}
+		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
@@ -169,7 +170,7 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData merc
 	if authData.Authorized == 1 {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
-			err = &bantupayerrors.CustomError{
+			err = &tErrors.CustomError{
 				Param:      authID,
 				Err:        "error: event data has expired",
 				ErrMessage: "Event registration has closed/expired.",
@@ -177,11 +178,28 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData merc
 			return
 		}
 		log.Println("[GetEventAuthorizationData] error: ", e)
-		err = &bantupayerrors.ErrorTemporaryServerError{}
+		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
 
 	return authData, nil
+
+}
+
+//GetUserForMerchants gets user information
+func GetUserForMerchants(ID string, merchant merchantmodels.Merchant, db *gorm.DB, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (userForMerchantInfo merchantmodels.MerchantBudsInfo, err error) {
+	conDB.PrintDBStats("GetUserForMerchants", db)
+
+	// user, err := users.GetUserInfo(ID, db)
+
+	// if err != nil {
+	// 	return userForMerchantInfo, err
+	// }
+	// if user.Suspended == 1 {
+	// 	return userForMerchantInfo, &tErrors.ErrorUsernameIsSuspended{}
+	// }
+
+	return userForMerchantInfo, nil
 
 }

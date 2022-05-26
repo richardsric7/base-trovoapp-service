@@ -6,8 +6,7 @@ import (
 	"strings"
 	"sync"
 	"time"
-	dbassets "trovo-wallet-api/internal/components/assets/db"
-	assetsmodels "trovo-wallet-api/internal/components/assets/models"
+
 	usermodels "trovo-wallet-api/internal/components/users/models"
 	bantudb "trovo-wallet-api/internal/db"
 	bantupayerrors "trovo-wallet-api/internal/errors"
@@ -140,11 +139,7 @@ func GetPaymentHistory(ownerData usermodels.User, accountKey string, limit uint,
 	var payments []PaymentItem
 	var pageCursor string
 	// var parsedRec BantuOperation
-	mapCuratedAssets := make(map[string]assetsmodels.CuratedAsset)
-	curatedAssets, _ := dbassets.GetCuratedAssets(false, db)
-	for _, av := range curatedAssets {
-		mapCuratedAssets[av.AssetCode+":"+av.AssetIssuer] = av
-	}
+
 	var wg sync.WaitGroup
 	if forTransactionHash != "" && !includeHash {
 		for i, v := range unparsedRecs {
@@ -155,7 +150,7 @@ func GetPaymentHistory(ownerData usermodels.User, accountKey string, limit uint,
 			wg.Add(1)
 			//start go routine here
 
-			go processRetrievedPaymentOperation(publicKey, i, v, parsedRecIndexed, parsedRecChan, ownerData, mapCuratedAssets, &wg, db)
+			go processRetrievedPaymentOperation(publicKey, i, v, parsedRecIndexed, parsedRecChan, ownerData, &wg, db)
 
 		}
 	} else if forTransactionHash != "" && includeHash {
@@ -163,7 +158,7 @@ func GetPaymentHistory(ownerData usermodels.User, accountKey string, limit uint,
 			pageCursor = v.PagingToken()
 			wg.Add(1)
 			//start go routine here
-			go processRetrievedPaymentOperation(publicKey, i, v, parsedRecIndexed, parsedRecChan, ownerData, mapCuratedAssets, &wg, db)
+			go processRetrievedPaymentOperation(publicKey, i, v, parsedRecIndexed, parsedRecChan, ownerData, &wg, db)
 			if forTransactionHash == v.GetTransactionHash() {
 				break
 			}
@@ -174,7 +169,7 @@ func GetPaymentHistory(ownerData usermodels.User, accountKey string, limit uint,
 			wg.Add(1)
 			//start go routine here
 
-			go processRetrievedPaymentOperation(publicKey, i, v, parsedRecIndexed, parsedRecChan, ownerData, mapCuratedAssets, &wg, db)
+			go processRetrievedPaymentOperation(publicKey, i, v, parsedRecIndexed, parsedRecChan, ownerData, &wg, db)
 
 		}
 	}

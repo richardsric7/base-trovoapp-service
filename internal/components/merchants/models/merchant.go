@@ -98,7 +98,25 @@ type payload struct {
 	Android         *Android `json:"android,omitempty"`
 	APNS            *APNS    `json:"apns,omitempty"`
 }
-
+//MerchantBudsInfo model for bantu user directory info
+type MerchantBudsInfo struct {
+	CreatedAt             string                 `json:"createdAt"`
+	Username              string                 `json:"username"`
+	PublicKey             string                 `json:"publicKey"`
+	Email                 string                 `json:"email"`
+	LastName              string                 `json:"lastName"`
+	FirstName             string                 `json:"firstName"`
+	MiddleName            string                 `json:"middleName"`
+	Mobile                string                 `json:"mobile"`
+	BantuTalk             string                 `json:"bantuTalk"`
+	ImageThumbnail        string                 `json:"imageThumbnail"`
+	Verified              int                    `json:"verified"`
+	MobileVerified        int                    `json:"mobileVerified"`
+	Suspended             int                    `json:"suspended"`
+	PushNotificationToken string                 `json:"-"`
+	Referrer              string                 `json:"referrer"`
+	Wallet                UserBalanceForMerchant `json:"wallet"`
+}
 func (m *MerchantPushNotificationInput) PushMessage(token string) {
 
 	if os.Getenv("PUSH_NOTIFICATION_SERVICE_MODE") == "redis" {

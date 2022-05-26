@@ -9,7 +9,6 @@ import (
 	"trovo-wallet-api/internal/cache"
 	merchantModels "trovo-wallet-api/internal/components/merchants/models"
 	merchantServices "trovo-wallet-api/internal/components/merchants/services"
-	users "trovo-wallet-api/internal/components/users/services"
 	conDB "trovo-wallet-api/internal/db"
 
 	"fmt"
@@ -113,7 +112,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	}
 
 	//merchant login request
-	router.POST("/v2/merchants/:merchantID/:targetUser/login", middleware.AuthenticationMiddleware(), func(c *gin.Context) {
+	router.POST("/v2/merchants/:merchantID/:targetUser/login", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -153,7 +152,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			c.JSON(statusCode, response)
 			return
 		}
-		// log.Printf("Merchant Infor: %+v\n", mInfo)
+		// log.Printf("Merchant Info: %+v\n", mInfo)
 		if mInfo.LoginPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
@@ -162,7 +161,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		userInfo, err := users.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
+		userInfo, err := merchantServices.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", bantupayUser, "error: ", err)
@@ -235,7 +234,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//user login approval url
-	router.POST("/v2/users/merchants/:targetUser/login/:merchantID/:loginID", middleware.AuthenticationMiddleware(), func(c *gin.Context) {
+	router.POST("/v2/users/merchants/:targetUser/login/:merchantID/:loginID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		merchant := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
@@ -278,7 +277,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		userInfo, err := users.GetUserForMerchants(identifier, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
+		userInfo, err := merchantServices.GetUserForMerchants(identifier, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
@@ -429,7 +428,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//merchant login verify url
-	router.GET("/v2/merchants/:merchantID/:targetUser/login/:loginID", middleware.AuthenticationMiddleware(), func(c *gin.Context) {
+	router.GET("/v2/merchants/:merchantID/:targetUser/login/:loginID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -499,7 +498,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		userInfo, err := users.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
+		userInfo, err := merchantServices.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", bantupayUser, "error: ", err)
@@ -576,7 +575,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//merchant authorization request
-	router.POST("/v2/merchants/:merchantID/:targetUser/authorize", middleware.AuthenticationMiddleware(), func(c *gin.Context) {
+	router.POST("/v2/merchants/:merchantID/:targetUser/authorize", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -626,7 +625,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		userInfo, err := users.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
+		userInfo, err := merchantServices.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", bantupayUser, "error: ", err)
@@ -706,7 +705,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//merchant push notification request
-	router.POST("/v2/merchants/:merchantID/:targetUser/push", middleware.AuthenticationMiddleware(), func(c *gin.Context) {
+	router.POST("/v2/merchants/:merchantID/:targetUser/push", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -751,7 +750,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		userInfo, err := users.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
+		userInfo, err := merchantServices.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", bantupayUser, "error: ", err)
@@ -828,7 +827,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//user authorization approval url
-	router.POST("/v2/users/merchants/:targetUser/authorize/:merchantID/:authID", middleware.AuthenticationMiddleware(), func(c *gin.Context) {
+	router.POST("/v2/users/merchants/:targetUser/authorize/:merchantID/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		merchant := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
@@ -877,7 +876,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		//check if merchant is for an event registration/reward merchant: [2 = registration, 1 = reward, 0 = none]
 		if mInfo.RewardOnly == 2 {
 
-			userInfo, err := users.GetUserForMerchants(middleware.ExtractPublicKey(c), mInfo, db, dynamicLinkServiceUrlChan, redisCache)
+			userInfo, err := merchantServices.GetUserForMerchants(middleware.ExtractPublicKey(c), mInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 			if err != nil {
 				log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
@@ -984,7 +983,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		} else if mInfo.RewardOnly == 1 {
 
-			userInfo, err := users.GetUserForMerchants(middleware.ExtractPublicKey(c), mInfo, db, dynamicLinkServiceUrlChan, redisCache)
+			userInfo, err := merchantServices.GetUserForMerchants(middleware.ExtractPublicKey(c), mInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 			if err != nil {
 				log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
@@ -1091,7 +1090,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		} else {
 
-			userInfo, err := users.GetUserForMerchants(identifier, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
+			userInfo, err := merchantServices.GetUserForMerchants(identifier, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 			if err != nil {
 				log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
@@ -1213,7 +1212,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//merchant authorization verify url
-	router.GET("/v2/merchants/:merchantID/:targetUser/authorize/:authID", middleware.AuthenticationMiddleware(), func(c *gin.Context) {
+	router.GET("/v2/merchants/:merchantID/:targetUser/authorize/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
@@ -1260,7 +1259,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		userInfo, err := users.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
+		userInfo, err := merchantServices.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", bantupayUser, "error: ", err)
@@ -1319,7 +1318,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//merchant payment request
-	router.GET("/v2/merchants/:merchantID/:targetUser/payment", middleware.AuthenticationMiddleware(), func(c *gin.Context) {
+	router.GET("/v2/merchants/:merchantID/:targetUser/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -1387,7 +1386,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		_, err = users.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
+		_, err = merchantServices.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", bantupayUser, "error: ", err)
@@ -1430,7 +1429,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//merchant payment request
-	router.GET("/v2/merchants/:merchantID/:targetUser/userinfo", middleware.AuthenticationMiddleware(), func(c *gin.Context) {
+	router.GET("/v2/merchants/:merchantID/:targetUser/userinfo", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -1491,7 +1490,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		data, err := users.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
+		data, err := merchantServices.GetUserForMerchants(bantupayUser, mInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", bantupayUser, "error: ", err)

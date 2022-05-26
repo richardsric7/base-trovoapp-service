@@ -10,7 +10,7 @@ import (
 func Init(router *gin.Engine) {
 
 	//Returns organisation running this bantupay api instance
-	router.GET("/", middleware.AuthenticationMiddleware(), func(c *gin.Context) {
+	router.GET("/", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		rootInfo := root.GetRootInfo()
 		rootInfo.PublicKey = middleware.ExtractPublicKey(c)

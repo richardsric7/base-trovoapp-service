@@ -2,6 +2,7 @@ package mail
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -10,14 +11,15 @@ import (
 )
 
 func SendEmailVerificationCode(email, verificationCode string) (id, resp string, err error) {
-	var mailgunDomain string = "sandbox33b89314ed134a399cf8df6b684395b7.mailgun.org" // e.g. mg.yourcompany.com
+	// var mailgunDomain string = "sandbox33b89314ed134a399cf8df6b684395b7.mailgun.org" // e.g. mg.yourcompany.com
+	var mailgunDomain string = os.Getenv("MAILGUN_DOMAIN") // e.g. mg.yourcompany.com
 	log.Println("starting mail sending for email", email)
 
 	// Create an instance of the Mailgun Client
 	mg := mailgun.NewMailgun(mailgunDomain, os.Getenv("MAILGUN_PRIVATE_API_KEY"))
 	sender := os.Getenv("MAIL_SENDER")
 	if sender == "" {
-		sender = "Trovotech <noreply@email.bantupay.org>"
+		sender = fmt.Sprintf("Trovotech <noreply@%s>", mailgunDomain)
 	}
 	subject := os.Getenv("EMAIL_VERIFICATION_SUBJECT")
 	if subject == "" {
