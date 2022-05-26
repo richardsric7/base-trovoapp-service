@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/validators"
@@ -57,8 +58,11 @@ func WebSocketAuthenticationChecks(body, signature, signerPublicKey string) erro
 }
 
 func AuthenticationMiddlewareUsingBody() gin.HandlerFunc {
-	return func(c *gin.Context) {
 
+	return func(c *gin.Context) {
+		if os.Getenv("ENABLE_AUTH_MIDDLEWARE") == "0" {
+			c.Next()
+		}
 		h := c.Request.Header.Get("User-Agent")
 		publicKey := ExtractPublicKey(c)
 
@@ -90,7 +94,9 @@ func AuthenticationMiddlewareUsingBody() gin.HandlerFunc {
 }
 func AuthenticationMiddlewareUsingTimestamp() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
+		if os.Getenv("ENABLE_AUTH_MIDDLEWARE") == "0" {
+			c.Next()
+		}
 		h := c.Request.Header.Get("User-Agent")
 		timestamp := c.Request.Header.Get("X-TW-TIMESTAMP")
 		publicKey := ExtractPublicKey(c)
