@@ -21,6 +21,10 @@ type httpResponse struct {
 	Value  interface{}
 }
 
+type cacheResult struct {
+	Value interface{}
+}
+
 // CacheHttpResponse only caches if Enabled.
 func (r *RedisCache) CacheHttpResponseWithParameters(key string, parameters string, status int, response interface{}, expiryInSeconds int) bool {
 	if !r.Enabled {
@@ -51,6 +55,67 @@ func (r *RedisCache) CacheHttpResponseWithParameters(key string, parameters stri
 	}
 
 	return true
+
+}
+
+// StoreResultToCache only caches if Enabled.
+func (r *RedisCache) StoreResultToCache(key string, toCache interface{}, expiryInSeconds int) bool {
+	if !r.Enabled {
+		return false
+	}
+
+	_cacheResult := cacheResult{
+		Value: toCache,
+	}
+
+	bytes, err := json.Marshal(_cacheResult)
+
+	if err != nil {
+		return false
+	}
+	param := "default"
+	if len(os.Getenv("CACHING_PARAMETER")) > 0 {
+		param = os.Getenv("CACHING_PARAMETER")
+	}
+	key = key + param
+	r.Client.HSet(r.Context, key, param, bytes).Result()
+	_, err = r.Client.Expire(r.Context, key, time.Duration(expiryInSeconds)*time.Second).Result()
+
+	if err != nil {
+		log.Printf("[StoreResultToCache] [%v] : %v", key, err)
+		return false
+	}
+
+	return true
+
+}
+
+// GetCachedResult only caches if Enabled.
+func (r *RedisCache) GetCachedResult(key string) (bool, interface{}) {
+	if !r.Enabled {
+		return false, ""
+	}
+	param := "default"
+	if len(os.Getenv("CACHING_PARAMETER")) > 0 {
+		param = os.Getenv("CACHING_PARAMETER")
+	}
+	key = key + param
+	var _cachedResult cacheResult
+
+	p, err := r.Client.HGet(r.Context, key, param).Result()
+
+	if err != nil {
+		return false, ""
+	}
+
+	err = json.Unmarshal([]byte(p), &_cachedResult)
+
+	if err != nil {
+		log.Printf("[GetCachedResult] [%v], %v", key, err)
+		return false, ""
+	}
+
+	return true, _cachedResult.Value
 
 }
 
@@ -103,6 +168,26 @@ func (r *RedisCache) CachedHttpResponse(key string) (bool, int, interface{}) {
 }
 
 func (r *RedisCache) InvalidateCachedHttpResponse(keys ...string) bool {
+	if !r.Enabled {
+		return false
+	}
+	modKeys := make([]string, 0)
+	param := "default"
+	if len(os.Getenv("CACHING_PARAMETER")) > 0 {
+		param = os.Getenv("CACHING_PARAMETER")
+	}
+	for _, i := range keys {
+		modKeys = append(modKeys, i+param)
+	}
+	log.Printf("[InvalidateCachedHttpResponse] [%v]\n", modKeys)
+
+	_, err := r.Client.Del(r.Context, modKeys...).Result()
+
+	return err == nil
+
+}
+
+func (r *RedisCache) DeleteFromCache(keys ...string) bool {
 	if !r.Enabled {
 		return false
 	}

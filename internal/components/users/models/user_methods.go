@@ -25,7 +25,7 @@ import (
 /////User Model convenience Methods
 
 // GetSigners returns user signers
-func (u *User) GetSigners(temp bool) (signers map[string]Signer) {
+func (u *UserWallet) GetSigners(temp bool) (signers map[string]Signer) {
 	account, err := u.GetBlockchainAccountDetail(temp)
 	if err != nil {
 		return signers
@@ -68,7 +68,7 @@ func (u *User) SignerIsValidWA(signerKey string, account *horizon.Account) bool 
 }
 
 //SignerIsValid checks if the signerKey is valid for this user public key
-func (u *User) SignerIsValid(signerKey string, temp bool) bool {
+func (u *UserWallet) SignerIsValid(signerKey string, temp bool) bool {
 	signer, ok := u.GetSigners(temp)[signerKey]
 	if !ok || signer.Weight < 1 {
 		return false
@@ -77,8 +77,23 @@ func (u *User) SignerIsValid(signerKey string, temp bool) bool {
 	return true
 }
 
+//SignerIsValid checks if the signerKey is valid for this user public key
+func (u *User) SignerIsValid(signerKey string, temp bool) bool {
+	for _, w := range u.UserWallets {
+		if w.ID == w.Signer {
+			signer, ok := w.GetSigners(temp)[signerKey]
+			if !ok || signer.Weight < 1 {
+				return false
+			}
+
+			return true
+		}
+	}
+	return false
+}
+
 //GetBalance gets user blockchain balance and return it as a map of assets  [code:issuer]Balance. Naitve key is [:]
-func (u *User) GetBalance(publicKey string, db *gorm.DB, temp bool) (balances map[string]Balance, err error) {
+func (u *UserWallet) GetBalance(publicKey string, db *gorm.DB, temp bool) (balances map[string]Balance, err error) {
 	balances = make(map[string]Balance)
 	account, err := u.GetBlockchainAccountDetail(temp)
 	if err != nil {
@@ -129,7 +144,7 @@ func (u *User) GetBalance(publicKey string, db *gorm.DB, temp bool) (balances ma
 }
 
 // GetAccountThresholds returns user signers
-func (u *User) GetAccountThresholds(temp bool) (thresholds horizon.AccountThresholds) {
+func (u *UserWallet) GetAccountThresholds(temp bool) (thresholds horizon.AccountThresholds) {
 	account, err := u.GetBlockchainAccountDetail(temp)
 	if err != nil {
 		return thresholds
@@ -146,7 +161,7 @@ func (u *User) GetAccountThresholds(temp bool) (thresholds horizon.AccountThresh
 // }
 
 //GetBlockchainAccountDetail fetches the bantu account information using public key
-func (u *User) GetBlockchainAccountDetail(temp bool) (clientAccount horizon.Account, err error) {
+func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizon.Account, err error) {
 	client := network.GetBlockchainClient()
 	var accountRequest horizonclient.AccountRequest
 	if temp {
@@ -159,7 +174,7 @@ func (u *User) GetBlockchainAccountDetail(temp bool) (clientAccount horizon.Acco
 		}
 
 	} else {
-		accountRequest = horizonclient.AccountRequest{AccountID: u.PublicKey}
+		accountRequest = horizonclient.AccountRequest{AccountID: u.ID}
 	}
 
 	clientAccount, err = client.AccountDetail(accountRequest)
@@ -224,7 +239,7 @@ func (u *User) VerifyEmailOnMailgun() (validationResult mailgun.EmailVerificatio
 }
 
 //GetBlockchainAccountDataKey fetches the bantu account information using public key
-func (u *User) GetBlockchainAccountDataKey(temp bool, keys ...string) (dataValues map[string]string) {
+func (u *UserWallet) GetBlockchainAccountDataKey(temp bool, keys ...string) (dataValues map[string]string) {
 	dataValues = make(map[string]string)
 	account, _ := u.GetBlockchainAccountDetail(temp)
 	data, err := u.GetBlockchainAccountData(account)
@@ -249,7 +264,7 @@ func (u *User) GetBlockchainAccountDataKey(temp bool, keys ...string) (dataValue
 	return dataValues
 }
 
-func (u *User) GetBlockchainAccountData(clientAccount horizon.Account) (accountData map[string]string, err error) {
+func (u *UserWallet) GetBlockchainAccountData(clientAccount horizon.Account) (accountData map[string]string, err error) {
 
 	if err != nil {
 		return

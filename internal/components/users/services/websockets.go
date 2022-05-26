@@ -1,14 +1,14 @@
 package users
 
 import (
+	"os"
+	"time"
 	"trovo-wallet-api/internal/cache"
 	announcementServices "trovo-wallet-api/internal/components/announcements/services"
 	bc "trovo-wallet-api/internal/components/users/blockchain"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/middleware"
-	"os"
-	"time"
 
 	"trovo-wallet-api/internal/network"
 
@@ -36,6 +36,12 @@ var upGrader = websocket.Upgrader{
 //StartMessage is models for stream start message
 type StartMessage struct {
 	Stream string `json:"stream"`
+}
+
+type StreamObject struct {
+	PublicKey string
+	Alias     string
+	request   interface{}
 }
 
 //UserWebSocketAPI handles websocket connections
@@ -147,30 +153,49 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 	client := network.GetBlockchainClient()
 	var opsRequest, tempopsRequest horizonclient.OperationRequest
 	var effectsRequest, tempEffectsRequest horizonclient.EffectRequest
-	opsRequest = horizonclient.OperationRequest{
-		ForAccount: user.PublicKey,
-		Cursor:     cursor,
-		Order:      order,
-		Join:       "transactions",
-	}
-	effectsRequest = horizonclient.EffectRequest{
-		ForAccount: user.PublicKey,
-		Cursor:     cursor,
-		Order:      order,
-	}
-	if user.TempPublicKey != nil {
-		tempopsRequest = horizonclient.OperationRequest{
-			ForAccount: *user.TempPublicKey,
+
+	//range through the user wallets
+	//make a map of the public key and temporary key with the alias
+	walletMap := make(map[string]string, 0)
+	var opsRequestListMain, opsRequestListTemp, effectRequestListMain, effectRequestListTemp []StreamObject
+
+	for _, userWallet := range user.UserWallets {
+		walletMap[userWallet.ID] = userWallet.Alias
+		if userWallet.TempPublicKey != nil {
+			walletMap[*userWallet.TempPublicKey] = userWallet.Alias
+		}
+
+		opsRequest = horizonclient.OperationRequest{
+			ForAccount: userWallet.ID,
 			Cursor:     cursor,
 			Order:      order,
 			Join:       "transactions",
 		}
-		tempEffectsRequest = horizonclient.EffectRequest{
-			ForAccount: *user.TempPublicKey,
+		opsRequestListMain = append(opsRequestListMain, StreamObject{userWallet.ID, userWallet.Alias, opsRequest})
+
+		effectsRequest = horizonclient.EffectRequest{
+			ForAccount: userWallet.ID,
 			Cursor:     cursor,
 			Order:      order,
 		}
+		effectRequestListMain = append(effectRequestListMain, StreamObject{userWallet.ID, userWallet.Alias, effectsRequest})
+		if userWallet.TempPublicKey != nil {
+			tempopsRequest = horizonclient.OperationRequest{
+				ForAccount: *userWallet.TempPublicKey,
+				Cursor:     cursor,
+				Order:      order,
+				Join:       "transactions",
+			}
+			opsRequestListTemp = append(opsRequestListTemp, StreamObject{*userWallet.TempPublicKey, userWallet.Alias, tempopsRequest})
 
+			tempEffectsRequest = horizonclient.EffectRequest{
+				ForAccount: *userWallet.TempPublicKey,
+				Cursor:     cursor,
+				Order:      order,
+			}
+			effectRequestListTemp = append(effectRequestListTemp, StreamObject{*userWallet.TempPublicKey, userWallet.Alias, tempEffectsRequest})
+
+		}
 	}
 
 	mainOpsStreamHandler := func(o operations.Operation) {
@@ -178,11 +203,40 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 		// fmt.Println("/////........................Operations Stream received...........////////")
 		// fmt.Println(o.GetType())
 		if o.GetType() == "change_trust" {
-			//invalidate cache
-			cacheKey := fmt.Sprintf("[GET] /v2/users/%v", user.Username)
-			redisCache.InvalidateCachedHttpResponse(cacheKey)
-			cacheKey = fmt.Sprintf("[GET] /v2/users/%v", user.PublicKey)
-			redisCache.InvalidateCachedHttpResponse(cacheKey)
+			obj := interface{}(o).(operations.AccountMerge)
+			{
+				//invalidate cache of Account
+				if v, ok := walletMap[obj.Account]; ok {
+					getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", v)
+					historyCacheKey := fmt.Sprintf("[history] %v", v)
+					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
+
+					redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+
+				}
+
+				getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", obj.Account)
+				historyCacheKey := fmt.Sprintf("[history] %v", obj.Account)
+				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Account)
+				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+			}
+			{
+				//invalidate cache of Account
+				if v, ok := walletMap[obj.Into]; ok {
+					getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", v)
+					historyCacheKey := fmt.Sprintf("[history] %v", v)
+					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
+
+					redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+
+				}
+
+				getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", obj.Into)
+				historyCacheKey := fmt.Sprintf("[history] %v", obj.Into)
+				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Into)
+				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+			}
+
 		}
 		if o.GetType() == "payment" || o.GetType() == "create_account" || strings.Contains(o.GetType(), "path_payment") || o.GetType() == "account_merge" {
 
@@ -240,16 +294,48 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 		// fmt.Println("/////........................Operations Stream received...........////////")
 		// fmt.Println(o.GetType())
 		if o.GetType() == "change_trust" {
+			obj := interface{}(o).(operations.AccountMerge)
+
 			//invalidate cache
-			cacheKey := fmt.Sprintf("[GET] /v2/users/%v", user.Username)
-			redisCache.InvalidateCachedHttpResponse(cacheKey)
-			cacheKey = fmt.Sprintf("[GET] /v2/users/%v", user.TempPublicKey)
-			redisCache.InvalidateCachedHttpResponse(cacheKey)
+			{
+				//invalidate cache of Account
+				if v, ok := walletMap[obj.Account]; ok {
+					getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", v)
+					historyCacheKey := fmt.Sprintf("[history] %v", v)
+					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
+
+					redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+
+				}
+
+				getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", obj.Account)
+				historyCacheKey := fmt.Sprintf("[history] %v", obj.Account)
+				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Account)
+				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+			}
+			{
+				//invalidate cache of Account
+				if v, ok := walletMap[obj.Into]; ok {
+					getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", v)
+					historyCacheKey := fmt.Sprintf("[history] %v", v)
+					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
+
+					redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+
+				}
+
+				getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", obj.Into)
+				historyCacheKey := fmt.Sprintf("[history] %v", obj.Into)
+				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Into)
+				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+			}
+
 		}
 		if o.GetType() == "payment" || o.GetType() == "create_account" || strings.Contains(o.GetType(), "path_payment") || o.GetType() == "account_merge" {
 
 			if o.GetType() != "account_merge" {
-				paymentPg := bc.ProcessStreamPaymentOperation(*user.TempPublicKey, o, user, db)
+				obj := interface{}(o).(operations.AccountMerge)
+				paymentPg := bc.ProcessStreamPaymentOperation(obj.Into, o, user, db)
 				if strings.Contains(o.GetType(), "path_payment") {
 					message := gin.H{"stream": paymentPg, "streamType": "swap"}
 
@@ -292,6 +378,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 			messageChan <- message
 		}
 	}
+
 	effectsStreamHandler := func(o effects.Effect) {
 		if o.GetType() == "change_trust" {
 			//invalidate cache
@@ -317,57 +404,69 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 	}
 
 	streamOperations := func() {
-		wg.Add(1)
-		defer wg.Done()
-		fmt.Printf("Started Streaming OPERATIONS EVENTS for Public Key: %s, Username: %s\n", user.PublicKey, user.Username)
-		message := gin.H{"stream": "Started Operations Stream For Main Account", "streamType": "notice"}
-		messageChan <- message
-		err = client.StreamOperations(ctx, opsRequest, mainOpsStreamHandler)
-		if err != nil {
-			fmt.Println("stream operation error:", err)
-			// return
+		for _, opsRequest := range opsRequestListMain {
+			wg.Add(1)
+			defer wg.Done()
+			fmt.Printf("Started Streaming OPERATIONS EVENTS for Public Key: %s, Username: %s\n", opsRequest.PublicKey, opsRequest.Alias)
+			message := gin.H{"stream": "Started Operations Stream For Main Account", "streamType": "notice"}
+			messageChan <- message
+			obj := (opsRequest.request).(horizonclient.OperationRequest)
+			err = client.StreamOperations(ctx, obj, mainOpsStreamHandler)
+			if err != nil {
+				fmt.Println("stream operation error:", err)
+				// return
+			}
 		}
 
 	}
 	tempStreamOperations := func() {
-		wg.Add(1)
-		defer wg.Done()
-		fmt.Printf("Started Streaming OPERATIONS EVENTS for Public Key: %s, Username: %s\n", *user.TempPublicKey, user.Username)
-		message := gin.H{"stream": "Started Operations Stream For Temp Account", "streamType": "notice"}
-		messageChan <- message
-		err = client.StreamOperations(ctx, tempopsRequest, tempOpsStreamHandler)
-		if err != nil {
-			fmt.Println("stream temp operation error:", err)
-			// return
-		}
+		for _, opsRequest := range opsRequestListTemp {
+			wg.Add(1)
+			defer wg.Done()
+			fmt.Printf("Started Streaming OPERATIONS EVENTS for Public Key: %s, Username: %s\n", opsRequest.PublicKey, opsRequest.Alias)
+			message := gin.H{"stream": "Started Operations Stream For Temp Account", "streamType": "notice"}
+			messageChan <- message
+			obj := (opsRequest.request).(horizonclient.OperationRequest)
 
+			err = client.StreamOperations(ctx, obj, tempOpsStreamHandler)
+			if err != nil {
+				fmt.Println("stream temp operation error:", err)
+				// return
+			}
+		}
 	}
 
 	streamEffects := func() {
-		wg.Add(1)
-		defer wg.Done()
-		fmt.Printf("Started Streaming EFFECTS EVENTS for Public Key: %s, Username: %s\n", user.PublicKey, user.Username)
-		message := gin.H{"stream": "Started Effects Stream For Main Account", "streamType": "notice"}
-		messageChan <- message
-		err = client.StreamEffects(ctx, effectsRequest, effectsStreamHandler)
-		if err != nil {
-			fmt.Println("stream effects error:", err)
-			// return
-		}
+		for _, effectRequest := range effectRequestListMain {
+			wg.Add(1)
+			defer wg.Done()
+			fmt.Printf("Started Streaming EFFECTS EVENTS for Public Key: %s, Username: %s\n", effectRequest.PublicKey, effectRequest.Alias)
+			message := gin.H{"stream": "Started Effects Stream For Main Account", "streamType": "notice"}
+			messageChan <- message
+			obj := (effectRequest.request).(horizonclient.EffectRequest)
 
+			err = client.StreamEffects(ctx, obj, effectsStreamHandler)
+			if err != nil {
+				fmt.Println("stream effects error:", err)
+				// return
+			}
+		}
 	}
 	tempStreamEffects := func() {
-		wg.Add(1)
-		defer wg.Done()
-		fmt.Printf("Started Streaming EFFECTS EVENTS for Public Key: %s, Username: %s\n", *user.TempPublicKey, user.Username)
-		message := gin.H{"stream": "Started Effects Stream For Temp Account", "streamType": "notice"}
-		messageChan <- message
-		err = client.StreamEffects(ctx, tempEffectsRequest, effectsStreamHandler)
-		if err != nil {
-			fmt.Println("stream temp effects error:", err)
-			// return
-		}
+		for _, effectRequest := range effectRequestListTemp {
+			wg.Add(1)
+			defer wg.Done()
+			fmt.Printf("Started Streaming EFFECTS EVENTS for Public Key: %s, Username: %s\n", effectRequest.PublicKey, effectRequest.Alias)
+			message := gin.H{"stream": "Started Effects Stream For Temp Account", "streamType": "notice"}
+			messageChan <- message
+			obj := (effectRequest.request).(horizonclient.EffectRequest)
 
+			err = client.StreamEffects(ctx, obj, effectsStreamHandler)
+			if err != nil {
+				fmt.Println("stream temp effects error:", err)
+				// return
+			}
+		}
 	}
 
 	//try to read from ws and exit if cannot read.
@@ -387,8 +486,10 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 	if strings.Contains(data.Stream, "all") {
 		go streamOperations()
 		go streamEffects()
-		if user.TempPublicKey != nil {
+		if len(opsRequestListTemp) > 0 {
 			go tempStreamOperations()
+		}
+		if len(effectRequestListTemp) > 0 {
 			go tempStreamEffects()
 		}
 
@@ -397,14 +498,16 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 		if data.Stream == "" || strings.Contains(data.Stream, "operations") {
 			go streamOperations()
 			go streamEffects()
-			if user.TempPublicKey != nil {
+			if len(opsRequestListTemp) > 0 {
 				go tempStreamOperations()
-				go streamEffects()
+			}
+			if len(effectRequestListTemp) > 0 {
+				go tempStreamEffects()
 			}
 		}
 		if strings.Contains(data.Stream, "effects") {
 			go streamEffects()
-			if user.TempPublicKey != nil {
+			if len(effectRequestListTemp) > 0 {
 				go tempStreamEffects()
 			}
 		}

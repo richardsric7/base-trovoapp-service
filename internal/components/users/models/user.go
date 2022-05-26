@@ -7,14 +7,14 @@ type User struct {
 	UpdatedAt             time.Time    `json:"updatedAt"`
 	LastUpdatedMobileOn   time.Time    `json:"lastUpdatedMobileOn"`
 	ID                    string       `json:"id"`
-	Username              string       `gorm:"size:16; index:idx_unique_username, unique" json:"username"`
-	Email                 string       `gorm:"size:45; index:idx_unique_email, unique" json:"email"`
+	Username              string       `gorm:"size:16; index:idx_user_unique_username, unique" json:"username"`
+	Email                 string       `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
 	ImageThumbnailURL     *string      `json:"imageThumbnailURL"`
 	FirstName             string       `gorm:"size:50" json:"firstName"`
 	LastName              string       `gorm:"size:50" json:"lastName"`
 	Mobile                *string      `gorm:"size:16" json:"mobile"`
-	PublicKey             string       `gorm:"size:56" json:"publicKey"`
-	TempPublicKey         *string      `gorm:"size:56;index:idx_user_temp_key;null"`
+	PublicKey             string       `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
+	// TempPublicKey         *string      `gorm:"size:56;index:idx_user_temp_public_key;null"`
 	Referrer              *string      `gorm:"size:16" json:"referrer"`
 	ReferralLink          *string      `json:"referralLink"`
 	ReferralQrCode        *string      `json:"referralQrCode"`

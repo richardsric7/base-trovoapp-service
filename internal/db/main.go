@@ -122,6 +122,38 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error migrating User:", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&users.UserWallet{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserWallet: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.UserWalletManagedAccess{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserWalletManagedAccess: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.WalletAccess{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating WalletAccess: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.AccessLevel{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating AccessLevel: ", errMigrate)
+		}
+
+
+		errMigrate = gormDB.AutoMigrate(&users.ReservedName{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ReservedName: ", errMigrate)
+		}
+
+
+		errMigrate = gormDB.AutoMigrate(&users.UserMobilePhoneVerification{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserMobilePhoneVerification: ", errMigrate)
+		}
+
+
+
 		errMigrate = gormDB.AutoMigrate(&merchantModels.Merchant{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating Merchant: ", errMigrate)
