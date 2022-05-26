@@ -24,12 +24,12 @@ func (e *ErrorInvalidAuthenticationSignature) ErrorType() string {
 
 //Data returns data of the error
 func (e *ErrorInvalidAuthenticationSignature) Data() string {
-	return "X-BANTUPAY-SIGNATURE"
+	return "X-TW-SIGNATURE"
 }
 
 //Message returns tring message of error
 func (e *ErrorInvalidAuthenticationSignature) Message() string {
-	return "Authentication Signature Header [X-BANTUPAY-SIGNATURE] is invalid"
+	return "Authentication Signature Header [X-TW-SIGNATURE] is invalid"
 }
 
 //JSONError returns json of the error

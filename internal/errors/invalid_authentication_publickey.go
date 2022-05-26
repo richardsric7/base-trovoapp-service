@@ -26,12 +26,12 @@ func (e *ErrorInvalidAuthenticationPublicKey) ErrorType() string {
 
 //Data returns data of the error
 func (e *ErrorInvalidAuthenticationPublicKey) Data() string {
-	return "X-BANTUPAY-PUBLIC-KEY"
+	return "X-TW-PUBLIC-KEY"
 }
 
 //Message returns tring message of error
 func (e *ErrorInvalidAuthenticationPublicKey) Message() string {
-	return "Invalid Header: [X-BANTUPAY-PUBLIC-KEY= " + e.PublicKey + "]"
+	return "Invalid Header: [X-TW-PUBLIC-KEY= " + e.PublicKey + "]"
 }
 
 //JSONError returns json of the error

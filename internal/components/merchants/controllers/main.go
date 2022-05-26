@@ -946,7 +946,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 					TargetUser string `json:"targetUser"`
 					DeviceID   string `json:"deviceId"`
 				}
-				jsonPayload := payload{AuthID: authData.ID, TargetUser: userInfo.Username, DeviceID: c.GetHeader("X-BANTUPAY-DEVICE-ID")}
+				jsonPayload := payload{AuthID: authData.ID, TargetUser: userInfo.Username, DeviceID: c.GetHeader("X-TW-DEVICE-ID")}
 				/////
 				d := *authData.CallbackURL
 				body, err := json.Marshal(jsonPayload)
@@ -1052,7 +1052,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 					TargetUser string `json:"targetUser"`
 					DeviceID   string `json:"deviceId"`
 				}
-				jsonPayload := payload{AuthID: authData.ID, TargetUser: userInfo.Username, DeviceID: c.GetHeader("X-BANTUPAY-DEVICE-ID")}
+				jsonPayload := payload{AuthID: authData.ID, TargetUser: userInfo.Username, DeviceID: c.GetHeader("X-TW-DEVICE-ID")}
 
 				/////
 				d := *authData.CallbackURL
@@ -1174,7 +1174,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 					TargetUser string `json:"targetUser"`
 					DeviceID   string `json:"deviceId"`
 				}
-				jsonPayload := payload{AuthID: authData.ID, TargetUser: authData.WalletUsername, DeviceID: c.GetHeader("X-BANTUPAY-DEVICE-ID")}
+				jsonPayload := payload{AuthID: authData.ID, TargetUser: authData.WalletUsername, DeviceID: c.GetHeader("X-TW-DEVICE-ID")}
 
 				/////
 				d := *authData.CallbackURL
