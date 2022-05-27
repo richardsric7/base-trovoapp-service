@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:gocrypto/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:gocrypto/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:gocrypto/Custom_BlocObserver/fonts.dart';
 import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
 import 'package:gocrypto/screens/Auth/termsofservice.dart';
 import 'package:gocrypto/utils/enstring.dart';
@@ -46,13 +47,15 @@ class _CameraverificationState extends State<Cameraverification> {
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 23.sp,
-                            fontFamily: 'Gilroy_Bold'),
+                            fontFamily: fontsemibold),
                       ),
                       SizedBox(height: height / 40),
                       Text(
                         LanguageEn.takeaphotooffront,
-                        style:
-                            TextStyle(fontSize: 14.sp, color: notifier.getgrey),
+                        style: TextStyle(
+                            fontSize: 14.sp,
+                            color: notifier.getgrey,
+                            fontFamily: fontbody),
                       ),
                     ],
                   ),

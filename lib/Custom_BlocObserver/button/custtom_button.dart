@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../utils/medeiaqury/medeiaqury.dart';
+import '../fonts.dart';
 import '../notifire_clor.dart';
 
 class Button extends StatefulWidget {
@@ -69,7 +70,7 @@ class _ButtonState extends State<Button> {
                       widget.buttontext!,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          fontFamily: 'Gilroy_Medium',
+                          fontFamily: fontbody,
                           fontSize: 15.sp,
                           color: widget.buttontextcolor),
                     ),

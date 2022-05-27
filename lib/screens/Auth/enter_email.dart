@@ -2,27 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:gocrypto/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
-import 'package:gocrypto/Custom_BlocObserver/button/custtom_button.dart';
-import 'package:gocrypto/Custom_BlocObserver/fonts.dart';
 import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/screens/Auth/verifyyouridentity.dart';
+import 'package:gocrypto/bottom_bar/bottombar.dart';
+import 'package:gocrypto/screens/Auth/signup.dart';
+import 'package:gocrypto/screens/Auth/vericication.dart';
 import 'package:gocrypto/utils/enstring.dart';
-import 'package:gocrypto/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
+import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
+import '../../Custom_BlocObserver/fonts.dart';
+import '../../utils/medeiaqury/medeiaqury.dart';
+import '../reset_password/phone_num_reset_password.dart';
 
-class Emailpassword extends StatefulWidget {
-  const Emailpassword({Key? key}) : super(key: key);
+class EnterEmail extends StatefulWidget {
+  const EnterEmail({Key? key}) : super(key: key);
 
   @override
-  State<Emailpassword> createState() => _EmailpasswordState();
+  State<EnterEmail> createState() => _EnterEmailState();
 }
 
-class _EmailpasswordState extends State<Emailpassword> {
+class _EnterEmailState extends State<EnterEmail> {
   late ColorNotifier notifier;
-
+  bool isChecked = false;
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -39,17 +43,6 @@ class _EmailpasswordState extends State<Emailpassword> {
     getdarkmodepreviousstate();
   }
 
-  String dropdownvalue = '+91';
-
-  // List of items in our dropdown menu
-  var items = [
-    '+61',
-    '+91',
-    '+92',
-    '+152',
-    '+139',
-  ];
-
   @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
@@ -57,38 +50,36 @@ class _EmailpasswordState extends State<Emailpassword> {
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
       builder: () => Scaffold(
+        appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
+            height: height / 15),
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
-          notifier.getwihitecolor,
-          "",
-          notifier.getblck,
-          height: height / 15,
-        ),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 20),
-              Center(
-                  child: Image.asset("assets/images/mailbox.png",
-                      height: height / 3.9)),
-              SizedBox(height: height / 25),
+              SizedBox(height: height / 10.5),
+              Image.asset(
+                "assets/images/mailbox.png",
+                height: height / 4,
+              ),
+              SizedBox(height: height / 50),
               Text(
-                LanguageEn.resetpass,
+                LanguageEn.enteremail,
+                textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getblck,
-                    fontSize: 22.sp,
+                    fontSize: 25.sp,
                     fontFamily: fontsemibold),
               ),
-              SizedBox(height: height / 100),
+              SizedBox(height: height / 30),
               Text(
-                LanguageEn.enteranemailadress,
+                LanguageEn.enteremailgetstarted,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getgrey,
-                    fontSize: 15.sp,
+                    fontSize: 13.sp,
                     fontFamily: fontbody),
               ),
-              SizedBox(height: height / 30),
+              SizedBox(height: height / 40),
               Customtextfild.textField(
                 LanguageEn.emailadress,
                 notifier.getbluecolor,
@@ -100,13 +91,20 @@ class _EmailpasswordState extends State<Emailpassword> {
                 45.sp,
                 300.sp,
               ),
-              SizedBox(height: height / 4.7),
+              SizedBox(height: height / 5),
               GestureDetector(
-                  onTap: () {
-                    Get.to(() => const VerifyYourIdentity());
-                  },
-                  child: Button(LanguageEn.continuee, notifier.getbluecolor,
-                      notifier.getwihitecolor))
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Veryfication(),
+                    ),
+                  );
+                },
+                child: Button(LanguageEn.getstarted, notifier.getbluecolor,
+                    notifier.getwihitecolor),
+              ),
+              SizedBox(height: height / 10),
             ],
           ),
         ),

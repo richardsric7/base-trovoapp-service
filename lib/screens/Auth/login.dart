@@ -2,18 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:gocrypto/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:gocrypto/Custom_BlocObserver/fonts.dart';
 import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
 import 'package:gocrypto/bottom_bar/bottombar.dart';
-import 'package:gocrypto/screens/Auth/signup.dart';
 import 'package:gocrypto/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../Custom_BlocObserver/button/custtom_button.dart';
-import '../../Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../reset_password/phone_num_reset_password.dart';
+import '../reset_password/emailpassword.dart';
+import 'enter_email.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -24,6 +23,7 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   late ColorNotifier notifier;
+  String username = 'kent2cky';
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -54,6 +54,7 @@ class _LoginState extends State<Login> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(height: height / 20),
               Row(
                 children: [
                   SizedBox(width: width / 15),
@@ -65,26 +66,25 @@ class _LoginState extends State<Login> {
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 26.sp,
-                            fontFamily: 'Gilroy_Bold'),
+                            fontFamily: fontsemibold),
+                      ),
+                      SizedBox(height: height / 95),
+                      Text(
+                        username + '!',
+                        style: TextStyle(
+                            color: notifier.getblck,
+                            fontSize: 26.sp,
+                            fontFamily: fontsemibold),
                       ),
                       SizedBox(height: height / 40),
                       Text(
                         LanguageEn.youhavebeenmissed,
-                        style:
-                            TextStyle(fontSize: 16.sp, color: notifier.getgrey),
+                        style: TextStyle(
+                            fontSize: 16.sp,
+                            color: notifier.getgrey,
+                            fontFamily: fontbody),
                       ),
-                      SizedBox(height: height / 30),
-                      Customtextfild.textField(
-                          LanguageEn.emailadress,
-                          notifier.getbluecolor,
-                          Icons.email,
-                          notifier.getgrey,
-                          notifier.getprefixicon,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          45.sp,
-                          300.sp),
-                      SizedBox(height: height / 30),
+                      SizedBox(height: height / 10),
                       Custompasswordtextfild.textField(
                           LanguageEn.password,
                           notifier.getbluecolor,
@@ -103,15 +103,15 @@ class _LoginState extends State<Login> {
                   GestureDetector(
                     onTap: () {
                       Get.to(
-                        const PhoneNumResetPassword(),
+                        () => Emailpassword(),
                       );
                     },
                     child: Text(
                       LanguageEn.forgotpassword,
                       style: TextStyle(
-                          color: notifier.getbluecolor,
+                          color: notifier.getdarkgrey,
                           fontSize: 13.5.sp,
-                          fontFamily: 'Gilroy_Medium'),
+                          fontFamily: fontbody),
                     ),
                   ),
                   SizedBox(width: width / 10),
@@ -127,10 +127,10 @@ class _LoginState extends State<Login> {
                     ),
                   );
                 },
-                child: Button(LanguageEn.signin, notifier.getbluecolor,
-                    notifier.getwihitecolor),
+                child: Button(LanguageEn.signinwithbiometrics,
+                    notifier.getbluecolor, notifier.getwihitecolor),
               ),
-              SizedBox(height: height / 40),
+              // SizedBox(height: height / 90),
               Row(
                 children: <Widget>[
                   Expanded(
@@ -157,33 +157,19 @@ class _LoginState extends State<Login> {
                   ),
                 ],
               ),
-              SizedBox(height: height / 50),
-              googlelogin(),
-              SizedBox(height: height / 6.5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    LanguageEn.donthaveanaccount,
-                    style: TextStyle(
-                        color: notifier.getgrey,
-                        fontSize: 15.sp,
-                        fontFamily: 'Gilroy_Medium'),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Get.to(() => const SignUp());
-                    },
-                    child: Text(
-                      LanguageEn.signup,
-                      style: TextStyle(
-                          color: notifier.getbluecolor,
-                          fontSize: 15.sp,
-                          fontFamily: 'Gilroy_Bold'),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EnterEmail(),
                     ),
-                  ),
-                ],
-              )
+                  );
+                },
+                child: button(LanguageEn.signup, notifier.getwihitecolor,
+                    notifier.getbluecolor),
+              ),
+              SizedBox(height: height / 40),
             ],
           ),
         ),
@@ -191,31 +177,36 @@ class _LoginState extends State<Login> {
     );
   }
 
-  Widget googlelogin() {
-    return Center(
-      child: Container(
-        height: height / 15,
-        width: width / 1.1,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(
-            Radius.circular(15.sp),
-          ),
-          border: Border.all(color: notifier.getgrey),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset("assets/images/airtel.jpg", height: height / 25),
-            SizedBox(width: width / 25),
-            Text(
-              LanguageEn.continuewithgoogle,
-              style: TextStyle(
-                  color: notifier.getblck,
-                  fontSize: 15.sp,
-                  fontFamily: 'Gilroy_Bold'),
-            ),
-          ],
-        ),
+  Widget button(buttontext, colorbutton, buttontextcolor) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          LayoutBuilder(builder: (context, constraints) {
+            return Container(
+              height: height / 15,
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                border: Border.all(color: notifier.getgrey),
+                color: colorbutton,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Center(
+                child: Text(
+                  buttontext,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontFamily: fontbody,
+                      fontSize: 15.sp,
+                      color: buttontextcolor),
+                ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:gocrypto/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:gocrypto/Custom_BlocObserver/fonts.dart';
 import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
 import 'package:gocrypto/screens/reset_password/phonepassword.dart';
 import 'package:gocrypto/utils/enstring.dart';
@@ -61,7 +62,7 @@ class _PinState extends State<Pin> {
                   style: TextStyle(
                       color: notifier.getblck,
                       fontSize: 26.sp,
-                      fontFamily: 'Gilroy_Bold'),
+                      fontFamily: fontsemibold),
                 ),
               ),
               SizedBox(height: height / 40),
@@ -69,7 +70,10 @@ class _PinState extends State<Pin> {
                 child: Text(
                   LanguageEn.addingapin,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14.sp, color: notifier.getgrey),
+                  style: TextStyle(
+                      fontSize: 14.sp,
+                      color: notifier.getgrey,
+                      fontFamily: fontbody),
                 ),
               ),
               SizedBox(height: height / 12),
@@ -118,7 +122,7 @@ class _PinState extends State<Pin> {
           }
         },
         textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 14.sp),
+        style: TextStyle(fontSize: 14.sp, fontFamily: fontbody),
         decoration: const InputDecoration(
           border: InputBorder.none,
         ),

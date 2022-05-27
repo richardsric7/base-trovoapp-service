@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
+import 'package:gocrypto/screens/Auth/enter_email.dart';
 import 'package:gocrypto/screens/page_view/onbonding_two.dart';
 import 'package:gocrypto/screens/page_view/onbondingthree.dart';
 import 'package:gocrypto/screens/page_view/one_onbonding.dart';
 import 'package:gocrypto/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../screens/Auth/login.dart';
+import '../../screens/Auth/signup.dart';
+import '../../utils/enstring.dart';
+import '../button/custtom_button.dart';
+import '../fonts.dart';
 
 class Swiper extends StatefulWidget {
   const Swiper({Key? key}) : super(key: key);
@@ -19,6 +27,7 @@ class _SwiperState extends State<Swiper> {
 
   final PageController _pageController = PageController(initialPage: 0);
   int currentPage = 0;
+  int numPages = 3;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -36,35 +45,37 @@ class _SwiperState extends State<Swiper> {
     getdarkmodepreviousstate();
   }
 
-  // List<Widget> _buildPageIndicator() {
-  //   List<Widget> list = [];
-  //   for (int i = 0; i < _numPages; i++) {
-  //     list.add(i == _currentPage ? _indicator(true) : _indicator(false));
-  //   }
-  //   return list;
-  // }
-  //
-  // Widget _indicator(bool isActive) {
-  //   return AnimatedContainer(
-  //     duration: const Duration(microseconds: 150),
-  //     margin: const EdgeInsets.symmetric(horizontal: 3.0),
-  //     height: 8.0,
-  //     width: isActive ? 8.0 : 8.0,
-  //     decoration: BoxDecoration(
-  //       color: isActive ? Colors.red : Colors.grey,
-  //       borderRadius: const BorderRadius.all(Radius.circular(12)),
-  //     ),
-  //   );
-  // }
+  List<Widget> _buildPageIndicator() {
+    List<Widget> list = [];
+    for (int i = 0; i < numPages; i++) {
+      list.add(i == currentPage ? _indicator(true) : _indicator(false));
+    }
+    return list;
+  }
+
+  Widget _indicator(bool isActive) {
+    return AnimatedContainer(
+      duration: const Duration(microseconds: 150),
+      margin: const EdgeInsets.symmetric(horizontal: 3.0),
+      height: 8.0,
+      width: isActive ? 8.0 : 8.0,
+      decoration: BoxDecoration(
+        color: isActive ? notifier.getbluecolor : Colors.grey,
+        borderRadius: const BorderRadius.all(Radius.circular(12)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     return Scaffold(
+      backgroundColor: notifier.getwihitecolor,
       body: Column(
         children: [
           Container(
             color: Colors.transparent,
-            height: height,
+            height: height / 1.5,
             child: PageView(
               physics: const ClampingScrollPhysics(),
               controller: _pageController,
@@ -76,33 +87,81 @@ class _SwiperState extends State<Swiper> {
               scrollDirection: Axis.horizontal,
               children: const <Widget>[
                 Oneonbonding(),
-                Threeonbonding(),
                 Onbondingtwo(),
+                Threeonbonding(),
               ],
             ),
-            // ),Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: _buildPageIndicator(),
-            // ),
-            // Container(
-            //   height: 50,
-            //   child: PageView(
-            //     physics: const ClampingScrollPhysics(),
-            //     controller: _pageController,
-            //     onPageChanged: (int page) {
-            //       setState(() {
-            //         _currentPage = page;
-            //       });
-            //     },
-            //     scrollDirection: Axis.horizontal,
-            //     children:   <Widget>[
-            //
-            //       oneonbonding(),
-            //       onbondingtwo(),
-            //     ],
-            //
-            //   ),
           ),
+          SizedBox(height: height / 20.5),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: _buildPageIndicator(),
+              ),
+              SizedBox(height: height / 30.5),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EnterEmail(),
+                    ),
+                  );
+                },
+                child: Button(LanguageEn.getstarted, notifier.getbluecolor,
+                    notifier.getwihitecolor),
+              ),
+              SizedBox(height: height / 50.5),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Login(),
+                    ),
+                  );
+                },
+                child: button(LanguageEn.signin, notifier.getwihitecolor,
+                    notifier.getbluecolor),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget button(buttontext, colorbutton, buttontextcolor) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          LayoutBuilder(builder: (context, constraints) {
+            return Container(
+              height: height / 15,
+              width: width / 1.1,
+              decoration: BoxDecoration(
+                border: Border.all(color: notifier.getgrey),
+                color: colorbutton,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Center(
+                child: Text(
+                  buttontext,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontFamily: fontbody,
+                      fontSize: 15.sp,
+                      color: buttontextcolor),
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );

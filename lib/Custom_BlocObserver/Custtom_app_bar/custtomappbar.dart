@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gocrypto/Custom_BlocObserver/fonts.dart';
 
 class CustomAppBar extends PreferredSize {
   final double height;
@@ -27,7 +28,7 @@ class CustomAppBar extends PreferredSize {
             ),
             title: Text(
               txt,
-              style: TextStyle(color: titlecolor, fontFamily: 'Gilroy_Bold'),
+              style: TextStyle(color: titlecolor, fontFamily: fontsemibold),
             ),
           ),
           preferredSize: Size.fromHeight(height),

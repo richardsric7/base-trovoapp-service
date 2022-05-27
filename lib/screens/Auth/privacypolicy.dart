@@ -11,14 +11,14 @@ import 'package:provider/provider.dart';
 
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 
-class TermsofService extends StatefulWidget {
-  const TermsofService({Key? key}) : super(key: key);
+class PrivacyPolicy extends StatefulWidget {
+  const PrivacyPolicy({Key? key}) : super(key: key);
 
   @override
-  State<TermsofService> createState() => _TermsofServiceState();
+  State<PrivacyPolicy> createState() => _PrivacyPolicyState();
 }
 
-class _TermsofServiceState extends State<TermsofService> {
+class _PrivacyPolicyState extends State<PrivacyPolicy> {
   late ColorNotifier notifier;
 
   @override
@@ -31,7 +31,7 @@ class _TermsofServiceState extends State<TermsofService> {
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
           notifier.getwihitecolor,
-          LanguageEn.termsofservice,
+          LanguageEn.privacypolicy,
           notifier.getblck,
           height: height / 15,
         ),

@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
+import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -54,6 +55,7 @@ class _VeryficationState extends State<Veryfication> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(height: height / 30.5),
               Row(
                 children: [
                   SizedBox(width: width / 15),
@@ -65,19 +67,21 @@ class _VeryficationState extends State<Veryfication> {
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 23.sp,
-                            fontFamily: 'Gilroy_Bold'),
+                            fontFamily: fontsemibold),
                       ),
                       SizedBox(height: height / 30),
                       Text(
                         LanguageEn.enterfourdigitnumber,
-                        style:
-                            TextStyle(fontSize: 14.sp, color: notifier.getgrey),
+                        style: TextStyle(
+                            fontSize: 14.sp,
+                            color: notifier.getgrey,
+                            fontFamily: fontbody),
                       ),
                     ],
                   ),
                 ],
               ),
-              SizedBox(height: height / 50),
+              SizedBox(height: height / 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -96,7 +100,7 @@ class _VeryficationState extends State<Veryfication> {
                     style: TextStyle(
                         color: notifier.getblck,
                         fontSize: 13.sp,
-                        fontFamily: 'Gilroy_Medium'),
+                        fontFamily: fontbody),
                   ),
                   SizedBox(width: width / 100),
                   Text(
@@ -104,7 +108,7 @@ class _VeryficationState extends State<Veryfication> {
                     style: TextStyle(
                         color: notifier.getbluecolor,
                         fontSize: 13.sp,
-                        fontFamily: 'Gilroy_Medium'),
+                        fontFamily: fontbody),
                   ),
                 ],
               ),
@@ -142,7 +146,7 @@ class _VeryficationState extends State<Veryfication> {
           }
         },
         textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 25.sp),
+        style: TextStyle(fontSize: 25.sp, fontFamily: fontbody),
         decoration: const InputDecoration(border: InputBorder.none),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gocrypto/Custom_BlocObserver/fonts.dart';
 
 class Custompasswordtextfild {
   static Widget textField(
@@ -11,7 +12,7 @@ class Custompasswordtextfild {
         height: 45.h,
         width: 300.w,
         child: TextField(
-          style: TextStyle(color: textcolor),
+          style: TextStyle(color: textcolor, fontFamily: fontbody),
           onChanged: (value) {},
           obscureText: hidePassword, //show/hide password
           decoration: InputDecoration(

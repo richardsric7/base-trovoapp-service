@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:gocrypto/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:gocrypto/Custom_BlocObserver/fonts.dart';
 import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
 import 'package:gocrypto/screens/Auth/face_id.dart';
+import 'package:gocrypto/screens/Auth/signup.dart';
 import 'package:gocrypto/utils/enstring.dart';
 import 'package:gocrypto/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +39,7 @@ class _ComplateerificationState extends State<Complateerification> {
                 LanguageEn.youreverified,
                 style: TextStyle(
                     color: notifier.getblck,
-                    fontFamily: 'Gilroy_Bold',
+                    fontFamily: fontsemibold,
                     fontSize: 27.sp),
               ),
               SizedBox(height: height / 50),
@@ -46,12 +48,12 @@ class _ComplateerificationState extends State<Complateerification> {
                 style: TextStyle(
                     color: notifier.getgrey,
                     fontSize: 15.sp,
-                    fontFamily: 'Gilroy_Medium'),
+                    fontFamily: fontbody),
               ),
               SizedBox(height: height / 4.3),
               GestureDetector(
                   onTap: () {
-                    Get.to(() => const Faceid());
+                    Get.to(() => const SignUp());
                   },
                   child: Button(LanguageEn.done, notifier.getbluecolor,
                       notifier.getwihitecolor))

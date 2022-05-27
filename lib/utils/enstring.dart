@@ -1,8 +1,9 @@
 class LanguageEn {
-  static String get startedDiscover => "If you’re on a budget or\nsimply looking";
+  static String get startedDiscover =>
+      "If you’re on a budget or\nsimply looking";
 
   static String get starttradingyourmoney =>
-      "Cryptoassets are a highly volatile unregulated\ninvestment product.";
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et \ndolore magna aliqua.";
 
   static String get skip => "Skip";
 
@@ -10,7 +11,8 @@ class LanguageEn {
 
   static String get howeverthe => "However, the main issue\nwe havet";
 
-  static String get nextup => "Next up we have Coinbase\nwhich is potentially one";
+  static String get nextup =>
+      "Next up we have Coinbase\nwhich is potentially one";
 
   static String get next => "Next";
 
@@ -22,20 +24,31 @@ class LanguageEn {
 
   static String get getstarted => "Get Started";
 
-  static String get signup => "Sign Up";
+  static String get enteremail => "Enter Your Email";
+  static String get enteremailgetstarted =>
+      "Please Enter Your Email And Let\'s Get Started";
+
+  static String get signup => "Create Account";
+
+  static String get username => "Username";
+
+  static String get phonenumber => "Phone Number";
+
+  static String get referrer => "Referrer's username";
 
   static String get ittakesaminute =>
       "It only takes a minute to create your account";
 
-  static String get fanme => "First";
+  static String get fanme => "Firstname";
 
-  static String get lname => "Last";
+  static String get lname => "Lastname";
 
   static String get emailadress => "Email address";
 
   static String get password => "Password";
+  static String get confirmPassword => "Confirm Password";
 
-  static String get iagreetothe => "I agree the Cryptoline";
+  static String get iagreetothe => "I agree the Trovo";
 
   static String get termsofservices => "Terms of Service ";
 
@@ -47,15 +60,17 @@ class LanguageEn {
 
   static String get continuewithgoogle => "Continue with Google";
 
-  static String get alreadyregistered => "Already registered?";
+  static String get alreadyregistered => "Already have an account?";
 
   static String get signin => "Sign In";
 
-  static String get welcome => "Welcome back!";
+  static String get signinwithbiometrics => "Sign In With Biometrics";
+
+  static String get welcome => "Welcome back";
 
   static String get youhavebeenmissed => "You have been missed";
 
-  static String get forgotpassword => "Forgot Password";
+  static String get forgotpassword => "Forgot Password?";
 
   static String get setupsecondstep => "Set up 2-step verification";
 
@@ -69,7 +84,7 @@ class LanguageEn {
   static String get enterverification => "Enter Verification Code";
 
   static String get enterfourdigitnumber =>
-      "Enter 4-digit code the we just send to your\nphone number +62 1234567890";
+      "Enter 4-digit code the we just sent to your\nemail address: email@example.com";
 
   static String get resetcode => "Resend Code";
 
@@ -77,23 +92,27 @@ class LanguageEn {
 
   static String get youreverified => "You’re verified!";
 
-  static String get youhavebeensucces => "You have been succes fully verified";
+  static String get youhavebeensucces => "You have been succesfully verified";
 
   static String get done => "Done";
 
   static String get setupfaceid => "Setup Face ID";
 
-  static String get unlockcrypto =>
-      "Unlock Cryptoline with your face ID,\nquick and secured";
+  static String get unlockfaceid =>
+      "Unlock Trovo Wallet with your face ID,\nquick and secured";
 
-  static String get scanmyface => "Scan my face";
+  static String get enablefaceid => "Enable Face ID";
 
   static String get fingerprint => "Fingerprint";
 
   static String get unlockfinger =>
-      "Unlock Cryptoline with your Fingerprint,\nquick and secured";
+      "Unlock Trovo Wallet with fingerprint,\nquick and secured";
 
-  static String get setupfingerprint => "Setup Fingerprint";
+  static String get biometrics => "Biometrics ";
+
+  static String get setupfingerprint => "Enable Fingerprint";
+
+  static String get goahead => "Continue";
 
   static String get createnewpin => "Create New Pin";
 
@@ -228,7 +247,7 @@ class LanguageEn {
   static String get total => "Total";
 
   static String get processedbycryptoline =>
-      "Processed by Cryptoline every purchases";
+      "Processed by Trovo Wallet every purchases";
 
   static String get securedbythe => "secured by the ";
 
@@ -316,7 +335,7 @@ class LanguageEn {
       "You send a payment of \$10.00\$\nfor Ojek Pangkalan";
 
   static String get july => "24 july 2022";
-static String get logout  => "Log Out" ;
+  static String get logout => "Log Out";
 // static String get   =>  ;
 // static String get   =>  ;
 // static String get   =>  ;

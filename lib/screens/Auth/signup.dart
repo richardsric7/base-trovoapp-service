@@ -4,9 +4,13 @@ import 'package:get/get.dart';
 import 'package:gocrypto/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:gocrypto/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:gocrypto/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
+import 'package:gocrypto/Custom_BlocObserver/fonts.dart';
 import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
 import 'package:gocrypto/bottom_bar/bottombar.dart';
+import 'package:gocrypto/screens/Auth/fingerprint.dart';
 import 'package:gocrypto/screens/Auth/login.dart';
+import 'package:gocrypto/screens/Auth/privacypolicy.dart';
+import 'package:gocrypto/screens/Auth/termsofservice.dart';
 import 'package:gocrypto/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -66,45 +70,65 @@ class _SignUpState extends State<SignUp> {
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 26.sp,
-                            fontFamily: 'Gilroy_Bold'),
+                            fontFamily: fontsemibold),
                       ),
                       SizedBox(height: height / 35),
                       Text(
                         LanguageEn.ittakesaminute,
-                        style:
-                            TextStyle(fontSize: 14.sp, color: notifier.getgrey),
-                      ),
-                      SizedBox(height: height / 30),
-                      Row(
-                        children: [
-                          Customtextfild.textField(
-                              LanguageEn.fanme,
-                              notifier.getbluecolor,
-                              Icons.person,
-                              notifier.getgrey,
-                              notifier.getprefixicon,
-                              notifier.getblck,
-                              notifier.getgrey,
-                              45.sp,
-                              145.sp),
-                          SizedBox(width: width / 40),
-                          Customtextfild.textField(
-                              LanguageEn.lname,
-                              notifier.getbluecolor,
-                              Icons.person,
-                              notifier.getgrey,
-                              notifier.getprefixicon,
-                              notifier.getblck,
-                              notifier.getgrey,
-                              45.sp,
-                              145.sp),
-                        ],
+                        style: TextStyle(
+                            fontSize: 14.sp,
+                            color: notifier.getgrey,
+                            fontFamily: fontbody),
                       ),
                       SizedBox(height: height / 30),
                       Customtextfild.textField(
-                          LanguageEn.emailadress,
+                          LanguageEn.fanme,
                           notifier.getbluecolor,
-                          Icons.email,
+                          Icons.person,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          45.sp,
+                          300.sp),
+                      SizedBox(height: height / 30),
+                      Customtextfild.textField(
+                          LanguageEn.lname,
+                          notifier.getbluecolor,
+                          Icons.person,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          45.sp,
+                          300.sp),
+                      SizedBox(height: height / 30),
+                      Customtextfild.textField(
+                          LanguageEn.username,
+                          notifier.getbluecolor,
+                          Icons.person,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          45.sp,
+                          300.sp),
+                      SizedBox(height: height / 30),
+                      Customtextfild.textField(
+                          LanguageEn.phonenumber,
+                          notifier.getbluecolor,
+                          Icons.phone,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          45.sp,
+                          300.sp),
+                      SizedBox(height: height / 30),
+                      Customtextfild.textField(
+                          LanguageEn.referrer,
+                          notifier.getbluecolor,
+                          Icons.link,
                           notifier.getgrey,
                           notifier.getprefixicon,
                           notifier.getblck,
@@ -114,6 +138,14 @@ class _SignUpState extends State<SignUp> {
                       SizedBox(height: height / 30),
                       Custompasswordtextfild.textField(
                           LanguageEn.password,
+                          notifier.getbluecolor,
+                          Icons.lock,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck),
+                      SizedBox(height: height / 30),
+                      Custompasswordtextfild.textField(
+                          LanguageEn.confirmPassword,
                           notifier.getbluecolor,
                           Icons.lock,
                           notifier.getgrey,
@@ -149,30 +181,39 @@ class _SignUpState extends State<SignUp> {
                                     LanguageEn.iagreetothe,
                                     style: TextStyle(
                                         fontSize: height / 55,
-                                        color: notifier.getblck),
+                                        color: notifier.getblck,
+                                        fontFamily: fontbody),
                                   ),
-                                  Text(
-                                    LanguageEn.termsofservices,
-                                    style: TextStyle(
-                                        fontFamily: 'Gilroy_Medium',
-                                        fontSize: height / 55,
-                                        color: notifier.getbluecolor),
+                                  GestureDetector(
+                                    onTap: () =>
+                                        {Get.to(() => const TermsofService())},
+                                    child: Text(
+                                      ' ' + LanguageEn.termsofservices,
+                                      style: TextStyle(
+                                          fontFamily: fontbody,
+                                          fontSize: height / 55,
+                                          color: notifier.getbluecolor),
+                                    ),
                                   ),
                                   Text(
                                     LanguageEn.and,
                                     style: TextStyle(
-                                        fontFamily: 'Gilroy_Medium',
+                                        fontFamily: fontbody,
                                         fontSize: height / 55,
                                         color: notifier.getblck),
                                   ),
                                 ],
                               ),
-                              Text(
-                                LanguageEn.privacypolicy,
-                                style: TextStyle(
-                                    fontFamily: 'Gilroy_Medium',
-                                    fontSize: height / 55,
-                                    color: notifier.getbluecolor),
+                              GestureDetector(
+                                onTap: () =>
+                                    {Get.to(() => const PrivacyPolicy())},
+                                child: Text(
+                                  LanguageEn.privacypolicy,
+                                  style: TextStyle(
+                                      fontFamily: fontbody,
+                                      fontSize: height / 55,
+                                      color: notifier.getbluecolor),
+                                ),
                               ),
                             ],
                           )
@@ -185,41 +226,11 @@ class _SignUpState extends State<SignUp> {
               SizedBox(height: height / 25),
               GestureDetector(
                   onTap: () {
-                    Get.to(() => const BottomHome());
+                    Get.to(() => const FingerPrint());
                   },
                   child: Button(LanguageEn.signup, notifier.getbluecolor,
                       notifier.getwihitecolor)),
-              SizedBox(height: height / 50),
-
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(left: 27.0, right: 27.0),
-                      child: Divider(
-                        color: notifier.getgrey,
-                        height: 50,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    LanguageEn.oR,
-                    style: TextStyle(color: notifier.getgrey),
-                  ),
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(left: 27.0, right: 27.0),
-                      child: Divider(
-                        color: notifier.getgrey,
-                        height: 50,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 80),
-              googlelogin(),
-              SizedBox(height: height / 20),
+              SizedBox(height: height / 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -228,46 +239,23 @@ class _SignUpState extends State<SignUp> {
                     style: TextStyle(
                         color: notifier.getgrey,
                         fontSize: 13.sp,
-                        fontFamily: 'Gilroy_Medium'),
+                        fontFamily: fontbody),
                   ),
                   GestureDetector(
                     onTap: () {
                       Get.to(() => const Login());
                     },
                     child: Text(
-                      LanguageEn.signin,
+                      ' ' + LanguageEn.signin,
                       style: TextStyle(
                           color: notifier.getbluecolor,
                           fontSize: 13.sp,
-                          fontFamily: 'Gilroy_Medium'),
+                          fontFamily: fontbody),
                     ),
-                  )
+                  ),
                 ],
-              )
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.center,
-              //   children: [
-              //     // Text(
-              //     //   "Don’t have an account?",
-              //     //   style: TextStyle(
-              //     //       color: notifier.getgrey,
-              //     //       fontSize: 15.sp,
-              //     //       fontFamily: 'Gilroy_Medium'),
-              //     // ),
-              //     // GestureDetector(
-              //     //   onTap: () {
-              //     //     Get.to(() => const BottomHome());
-              //     //   },
-              //     //   child: Text(
-              //     //     "Login",
-              //     //     style: TextStyle(
-              //     //         color: notifier.getbluecolor,
-              //     //         fontSize: 15.sp,
-              //     //         fontFamily: 'Gilroy_Bold'),
-              //     //   ),
-              //     // ),
-              //   ],
-              // )
+              ),
+              SizedBox(height: height / 20),
             ],
           ),
         ),
@@ -296,7 +284,7 @@ class _SignUpState extends State<SignUp> {
               style: TextStyle(
                   color: notifier.getblck,
                   fontSize: 15.sp,
-                  fontFamily: 'Gilroy_Bold'),
+                  fontFamily: fontbody),
             ),
           ],
         ),

@@ -34,8 +34,9 @@ class _SpashScreenState extends State<SpashScreen> {
     super.initState();
     getdarkmodepreviousstate();
     Timer(
-      const Duration(seconds: 3),
+      const Duration(seconds: 2),
       () => Navigator.push(
+        // () => Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => const Swiper(),
@@ -51,14 +52,21 @@ class _SpashScreenState extends State<SpashScreen> {
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
       builder: () => Scaffold(
-        backgroundColor: notifier.getbluecolor,
+        backgroundColor: notifier.getwihitecolor,
         body: Center(
-            child: Text(
-          "GoCrypto",
-          style: TextStyle(
-              color: notifier.getwihitecolor,
-              fontFamily: 'Gilroy_Bold',
-              fontSize: 35.sp),
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset("assets/images/trovo.png", height: height / 13),
+            SizedBox(height: height / 45),
+            Text(
+              "Trovo Wallet",
+              style: TextStyle(
+                  color: notifier.getdarkgrey,
+                  fontFamily: 'Matahari_Semi_Bold',
+                  fontSize: 35.sp),
+            ),
+          ],
         )),
       ),
     );

@@ -110,17 +110,14 @@ flutter:
     - family: Gilroy-Regular
       fonts:
         - asset: assets/fonts/Gilroy-Regular.otf
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
+    - family: Matahari_Semi_Bold
+      fonts:
+        - asset: assets/fonts/MatahariExtended-600ExtSemBd.ttf
+    - family: Matahari_Regular
+      fonts:
+        - asset: assets/fonts/Matahari-400Regular.ttf
+        
+  
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
