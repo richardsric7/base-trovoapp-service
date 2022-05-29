@@ -12,12 +12,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// Init initializes /v2/assets endpoint
+// Init initializes /v1/assets endpoint
 func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache) {
 
-	router.GET("/v2/announcements", func(c *gin.Context) {
+	router.GET("/v1/announcements", func(c *gin.Context) {
 
-		cacheKey := "[GET] /v2/announcements"
+		cacheKey := "[GET] /v1/announcements"
 
 		ok, status, response := redisCache.CachedHttpResponse(cacheKey)
 
@@ -27,7 +27,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache) {
 			return
 		}
 
-		dbCon.PrintDBStats("GET /v2/announcements", db)
+		dbCon.PrintDBStats("GET /v1/announcements", db)
 
 		announcements, _ := announcementServices.HandleGetAnnouncement(c.ClientIP(), db)
 
@@ -37,9 +37,9 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache) {
 		redisCache.CacheHttpResponse(cacheKey, http.StatusOK, announcements, cacheDurationInSeconds)
 
 	})
-	router.GET("/v2/app-version", func(c *gin.Context) {
+	router.GET("/v1/app-version", func(c *gin.Context) {
 
-		cacheKey := "[GET] /v2/app-version"
+		cacheKey := "[GET] /v1/app-version"
 
 		ok, status, response := redisCache.CachedHttpResponse(cacheKey)
 
@@ -49,7 +49,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache) {
 			return
 		}
 
-		dbCon.PrintDBStats("GET /v2/app-version", db)
+		dbCon.PrintDBStats("GET /v1/app-version", db)
 
 		appVersion := announcementServices.GetAppVersion(db)
 

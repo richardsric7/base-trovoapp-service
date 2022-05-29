@@ -27,7 +27,7 @@ func (e *ErrorAssetNotClaimable) Data() string {
 	return "assetCode"
 }
 
-//Message returns tring message of error
+//Message returns string message of error
 func (e *ErrorAssetNotClaimable) Message() string {
 	return "The asset you are trying to claim cannot be claimed."
 }

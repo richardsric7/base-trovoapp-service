@@ -207,7 +207,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 			{
 				//invalidate cache of Account
 				if v, ok := walletMap[obj.Account]; ok {
-					getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", v)
+					getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", v)
 					historyCacheKey := fmt.Sprintf("[history] %v", v)
 					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
 
@@ -215,7 +215,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 
 				}
 
-				getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", obj.Account)
+				getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", obj.Account)
 				historyCacheKey := fmt.Sprintf("[history] %v", obj.Account)
 				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Account)
 				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
@@ -223,7 +223,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 			{
 				//invalidate cache of Account
 				if v, ok := walletMap[obj.Into]; ok {
-					getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", v)
+					getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", v)
 					historyCacheKey := fmt.Sprintf("[history] %v", v)
 					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
 
@@ -231,7 +231,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 
 				}
 
-				getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", obj.Into)
+				getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", obj.Into)
 				historyCacheKey := fmt.Sprintf("[history] %v", obj.Into)
 				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Into)
 				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
@@ -300,7 +300,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 			{
 				//invalidate cache of Account
 				if v, ok := walletMap[obj.Account]; ok {
-					getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", v)
+					getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", v)
 					historyCacheKey := fmt.Sprintf("[history] %v", v)
 					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
 
@@ -308,7 +308,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 
 				}
 
-				getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", obj.Account)
+				getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", obj.Account)
 				historyCacheKey := fmt.Sprintf("[history] %v", obj.Account)
 				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Account)
 				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
@@ -316,7 +316,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 			{
 				//invalidate cache of Account
 				if v, ok := walletMap[obj.Into]; ok {
-					getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", v)
+					getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", v)
 					historyCacheKey := fmt.Sprintf("[history] %v", v)
 					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
 
@@ -324,7 +324,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 
 				}
 
-				getCacheKey := fmt.Sprintf("[GET] /v2/users/%v", obj.Into)
+				getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", obj.Into)
 				historyCacheKey := fmt.Sprintf("[history] %v", obj.Into)
 				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Into)
 				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
@@ -382,9 +382,9 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 	effectsStreamHandler := func(o effects.Effect) {
 		if o.GetType() == "change_trust" {
 			//invalidate cache
-			cacheKey := fmt.Sprintf("[GET] /v2/users/%v", user.Username)
+			cacheKey := fmt.Sprintf("[GET] /v1/users/%v", user.Username)
 			redisCache.InvalidateCachedHttpResponse(cacheKey)
-			cacheKey = fmt.Sprintf("[GET] /v2/users/%v", user.PublicKey)
+			cacheKey = fmt.Sprintf("[GET] /v1/users/%v", user.PublicKey)
 			redisCache.InvalidateCachedHttpResponse(cacheKey)
 		}
 		txType := o.GetType()

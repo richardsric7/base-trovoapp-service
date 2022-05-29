@@ -2,7 +2,7 @@ FROM golang:alpine AS builder
 
 # Set necessary environmet  variables needed for our image
 ENV GO111MODULE=on \
-    CGO_ENABLED=1 \
+    CGO_ENABLED=0 \
     GOOS=linux \
     GOARCH=amd64
 RUN apk add --no-cache ca-certificates build-base runc curl
@@ -18,7 +18,8 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN go build -buildvcs=false -o main .
+# RUN go build -buildvcs=false -o main .
+RUN go build -o main .
 
 # Move to /dist directory as the place for resulting binary folder
 WORKDIR /dist

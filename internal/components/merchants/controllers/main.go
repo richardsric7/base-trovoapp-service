@@ -26,7 +26,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// Init initializes /v2/merchants endpoint
+// Init initializes /v1/merchants endpoint
 func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamicLinkServiceUrlChan chan string) {
 
 	//retryCallbacks stores failed callbacks
@@ -112,7 +112,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	}
 
 	//merchant login request
-	router.POST("/v2/merchants/:merchantID/:targetUser/login", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/merchants/:merchantID/:targetUser/login", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -121,7 +121,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v2/merchants/%v/%v/login?", identifier, bantupayUser), db)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/merchants/%v/%v/login?", identifier, bantupayUser), db)
 		mInfo, err := merchantServices.GetMerchant(identifier, db)
 
 		if err != nil {
@@ -234,7 +234,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//user login approval url
-	router.POST("/v2/users/merchants/:targetUser/login/:merchantID/:loginID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/users/merchants/:targetUser/login/:merchantID/:loginID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		merchant := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
@@ -244,7 +244,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v2/users/%v/login/%v/%v", identifier, merchant, loginID), db)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/%v/login/%v/%v", identifier, merchant, loginID), db)
 		mInfo, err := merchantServices.GetMerchant(merchant, db)
 
 		if err != nil {
@@ -375,7 +375,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		cacheKey := fmt.Sprintf("[GET] /v2/merchants/%v/%v/login/%v", mInfo.BantupayUsername, userInfo.Username, loginID)
+		cacheKey := fmt.Sprintf("[GET] /v1/merchants/%v/%v/login/%v", mInfo.BantupayUsername, userInfo.Username, loginID)
 		redisCache.InvalidateCachedHttpResponse(cacheKey)
 
 		//return repsonse to user and  not keep them waiting.
@@ -422,13 +422,13 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 			}
 		}
-		cacheKey = fmt.Sprintf("[GET] /v2/merchants/%v/%v/login/%v", mInfo.BantupayUsername, userInfo.Username, loginID)
+		cacheKey = fmt.Sprintf("[GET] /v1/merchants/%v/%v/login/%v", mInfo.BantupayUsername, userInfo.Username, loginID)
 		redisCache.InvalidateCachedHttpResponse(cacheKey)
 
 	})
 
 	//merchant login verify url
-	router.GET("/v2/merchants/:merchantID/:targetUser/login/:loginID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/merchants/:merchantID/:targetUser/login/:loginID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -438,9 +438,9 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("GET /v2/merchants/%v/%v/login/%v", identifier, bantupayUser, loginID), db)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/merchants/%v/%v/login/%v", identifier, bantupayUser, loginID), db)
 
-		cacheKey := fmt.Sprintf("[GET] /v2/merchants/%v/%v/login/%v", identifier, bantupayUser, loginID)
+		cacheKey := fmt.Sprintf("[GET] /v1/merchants/%v/%v/login/%v", identifier, bantupayUser, loginID)
 		{
 			//search cache
 
@@ -575,12 +575,12 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//merchant authorization request
-	router.POST("/v2/merchants/:merchantID/:targetUser/authorize", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/merchants/:merchantID/:targetUser/authorize", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v2/merchants/%v/%v/authorize?", identifier, bantupayUser), db)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/merchants/%v/%v/authorize?", identifier, bantupayUser), db)
 		if bantupayUser == "null" {
 			log.Printf("user cannot be %v\n", bantupayUser)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
@@ -705,12 +705,12 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//merchant push notification request
-	router.POST("/v2/merchants/:merchantID/:targetUser/push", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/merchants/:merchantID/:targetUser/push", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v2/merchants/%v/%v/push?", identifier, bantupayUser), db)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/merchants/%v/%v/push?", identifier, bantupayUser), db)
 		mInfo, err := merchantServices.GetMerchant(identifier, db)
 
 		if err != nil {
@@ -827,13 +827,13 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//user authorization approval url
-	router.POST("/v2/users/merchants/:targetUser/authorize/:merchantID/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/users/merchants/:targetUser/authorize/:merchantID/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		merchant := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		authID := strings.TrimSpace(c.Param("authID"))
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v2/users/merchants/%v/authorize/%v/%v", identifier, merchant, authID), db)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/merchants/%v/authorize/%v/%v", identifier, merchant, authID), db)
 		if identifier == "null" {
 			log.Printf("user cannot be %v\n", identifier)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
@@ -1212,14 +1212,14 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//merchant authorization verify url
-	router.GET("/v2/merchants/:merchantID/:targetUser/authorize/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/merchants/:merchantID/:targetUser/authorize/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		authID := strings.TrimSpace(strings.ToLower(c.Param("authID")))
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v2/merchants/%v/%v/authorize/%v", identifier, bantupayUser, authID), db)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/merchants/%v/%v/authorize/%v", identifier, bantupayUser, authID), db)
 		mInfo, err := merchantServices.GetMerchant(identifier, db)
 
 		if err != nil {
@@ -1318,7 +1318,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//merchant payment request
-	router.GET("/v2/merchants/:merchantID/:targetUser/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/merchants/:merchantID/:targetUser/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -1331,7 +1331,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		amount := strings.TrimSpace(c.Query("amount"))
 		memo := strings.TrimSpace(c.Query("memo"))
 
-		cacheKey := fmt.Sprintf("[GET] /v2/merchants/%v/%v/payment", identifier, bantupayUser)
+		cacheKey := fmt.Sprintf("[GET] /v1/merchants/%v/%v/payment", identifier, bantupayUser)
 		cacheKeyParameters := fmt.Sprintf("%v", c.Request.URL.RawQuery)
 
 		{
@@ -1346,7 +1346,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v2/merchants/%v/%v/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", identifier, bantupayUser, paymentDestination, assetCode, assetIssuer, amount, memo), db)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/merchants/%v/%v/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", identifier, bantupayUser, paymentDestination, assetCode, assetIssuer, amount, memo), db)
 		mInfo, err := merchantServices.GetMerchant(identifier, db)
 
 		if err != nil {
@@ -1429,13 +1429,13 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 	})
 
 	//merchant payment request
-	router.GET("/v2/merchants/:merchantID/:targetUser/userinfo", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/merchants/:merchantID/:targetUser/userinfo", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		bantupayUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		{
 			//do not cache this so that it brings the latest data
-			// cacheKey := fmt.Sprintf("[GET] /v2/merchants/%v/%v/payment", identifier, bantupayUser)
+			// cacheKey := fmt.Sprintf("[GET] /v1/merchants/%v/%v/payment", identifier, bantupayUser)
 			// cacheKeyParameters := fmt.Sprintf("%v", c.Request.URL.RawQuery)
 
 			// {
@@ -1450,7 +1450,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			// 	}
 			// }
 		}
-		conDB.PrintDBStats(fmt.Sprintf("GET /v2/merchants/%v/%v/userinfo", identifier, bantupayUser), db)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/merchants/%v/%v/userinfo", identifier, bantupayUser), db)
 		mInfo, err := merchantServices.GetMerchant(identifier, db)
 
 		if err != nil {

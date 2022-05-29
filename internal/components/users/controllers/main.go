@@ -24,10 +24,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// Init initializes /v2/users endpoint
+// Init initializes /v1/users endpoint
 func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamicLinkServiceUrlChan chan string) {
 	//websocket stream
-	router.GET("/v2/users/:targetUser/ws", func(c *gin.Context) {
+	router.GET("/v1/users/:targetUser/ws", func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		uDec, e := base64.URLEncoding.DecodeString(c.Param("targetUser"))
@@ -53,18 +53,18 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("/v2/users/%v/ws", identifier), db)
+		conDB.PrintDBStats(fmt.Sprintf("/v1/users/%v/ws", identifier), db)
 		log.Printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Websocket connection detected for %v>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", identifier)
 
 		users.UserWebSocketAPI(c, db, redisCache)
 
 	})
 
-	router.GET("/v2/users/:targetUser/payments", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/users/:targetUser/payments", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 	})
 
-	router.GET("/v2/users/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/users/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -91,9 +91,9 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		cacheKey := fmt.Sprintf("[GET] /v2/users/%v", identifier)
+		cacheKey := fmt.Sprintf("[GET] /v1/users/%v", identifier)
 
-		conDB.PrintDBStats(fmt.Sprintf("/v2/users/%v", identifier), db)
+		conDB.PrintDBStats(fmt.Sprintf("/v1/users/%v", identifier), db)
 
 		//check if type is import
 		queryType := strings.ToLower(c.Query("type"))
@@ -122,7 +122,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 	})
 
-	router.POST("/v2/users", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/users", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 		// db, err := conDB.OpenDb()
 		// if err != nil {
@@ -156,7 +156,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		userRegistrationInfo.Username = strings.ToLower(userRegistrationInfo.Username)
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v2/users %v", userRegistrationInfo.Username), db)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users %v", userRegistrationInfo.Username), db)
 
 		var emailSent bool
 
@@ -188,7 +188,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		}
 	})
 
-	router.PUT("/v2/users/:targetUser/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.PUT("/v1/users/:targetUser/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -211,7 +211,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("PUT /v2/users/:identifier/actions/claim-asset %v", identifier), db)
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/users/:identifier/actions/claim-asset %v", identifier), db)
 		if identifier == "null" {
 			log.Printf("user cannot be %v\n", identifier)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
@@ -246,10 +246,10 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		cacheKey := fmt.Sprintf("[GET] /v2/users/%v", identifier)
-		paymentHistoryCacheKey := fmt.Sprintf("[GET] /v2/users/%v/payments", identifier)
-		senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v2/users/%v/payments", identifier)
-		senderCacheKey := fmt.Sprintf("[GET] /v2/users/%v", identifier)
+		cacheKey := fmt.Sprintf("[GET] /v1/users/%v", identifier)
+		paymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", identifier)
+		senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", identifier)
+		senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", identifier)
 
 		redisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
 
@@ -263,7 +263,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 	})
 
-	router.GET("/v2/users/:targetUser/generate/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/users/:targetUser/generate/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -301,7 +301,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		amount := strings.TrimSpace(c.Query("amount"))
 		memo := strings.TrimSpace(c.Query("memo"))
 
-		cacheKey := fmt.Sprintf("[GET] /v2/users/%v/generate/payment", identifier)
+		cacheKey := fmt.Sprintf("[GET] /v1/users/%v/generate/payment", identifier)
 		cacheKeyParameters := fmt.Sprintf("%v", c.Request.URL.RawQuery)
 
 		{
@@ -318,7 +318,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v2/users/%v/generate/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", identifier, paymentDestination, assetCode, assetIssuer, amount, memo), db)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/users/%v/generate/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", identifier, paymentDestination, assetCode, assetIssuer, amount, memo), db)
 
 		_, err = usersDB.GetUserInfo(identifier, db)
 
