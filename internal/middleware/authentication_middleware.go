@@ -17,19 +17,19 @@ import (
 func authenticationChecks(keyParam string, c *gin.Context) error {
 	keyParam = strings.TrimSpace(keyParam)
 	fullUri := c.Request.URL.RequestURI()
-	// log.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^Full URI:", fullUri)
-	log.Printf("Full Path and query is [%s]\n", fullUri)
 
-	publicKey := ExtractPublicKey(c)
+	log.Printf("Full Path With Query:[%s] KeyParam:[%s]\n", fullUri, keyParam)
+
+	signerPublicKey := ExtractSigner(c)
 	signature := ExtractSignature(c)
 
-	publicKeyFormatError := validators.ValidatePublicKeyFormat(publicKey)
+	publicKeyFormatError := validators.ValidatePublicKeyFormat(signerPublicKey)
 
 	if publicKeyFormatError != nil {
-		return &errors.ErrorInvalidAuthenticationPublicKey{PublicKey: publicKey}
+		return &errors.ErrorInvalidAuthenticationPublicKey{PublicKey: signerPublicKey}
 	}
 
-	err := VerifyHttpSignature(fullUri, keyParam, signature, publicKey)
+	err := VerifyHttpSignature(fullUri, keyParam, signature, signerPublicKey)
 
 	if err != nil {
 		return err
@@ -100,12 +100,13 @@ func AuthenticationMiddlewareUsingTimestamp() gin.HandlerFunc {
 			return
 		}
 		h := c.Request.Header.Get("User-Agent")
-		timestamp := c.Request.Header.Get("X-TW-TIMESTAMP")
-		publicKey := ExtractPublicKey(c)
+		timestamp := ExtractTimestamp(c)
+		signerPublicKey := ExtractSigner(c)
 
-		log.Printf("[%s] is using [%s]\n", publicKey, h)
+		log.Printf("[%s] is using [%s]\n", signerPublicKey, h)
+		log.Printf("Timestamp:[%s] signerPublicKey:[%s]\n", timestamp, signerPublicKey)
 
-		authenticationError := authenticationChecks(publicKey+timestamp, c)
+		authenticationError := authenticationChecks(signerPublicKey+timestamp, c)
 
 		if authenticationError != nil {
 			var ex errors.GenericError

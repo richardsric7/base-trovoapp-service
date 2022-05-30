@@ -83,21 +83,22 @@ func SignBase64Txn(secretKey string, base64Txn string, networkPassPhrase string)
 //VerifySignatureString verifies if the signatures match with the one to be generated from toSign. toSign = publicKey+timestamp
 func VerifySignatureString(toSign string, base64Signature string, signerPublicKey string) error {
 	kp, errParsingPublicKey := keypair.ParseAddress(signerPublicKey)
-	toSign = strings.TrimSpace(toSign)
 	if errParsingPublicKey != nil {
 		return &tErrors.ErrorInvalidPublicKey{}
 	}
+	toSign = strings.TrimSpace(toSign)
 
 	providedSignature, errDecoding := base64.StdEncoding.DecodeString(base64Signature)
 
 	if errDecoding != nil {
+		log.Printf("[VerifySignatureString] unable to decode base64 signature: [%s], err:[%v]\n", base64Signature, errDecoding)
 		return &tErrors.ErrorInvalidAuthenticationSignature{}
 	}
 
 	signatureError := kp.Verify([]byte(toSign), providedSignature)
 
 	if signatureError != nil {
-		log.Printf("invalid signature: %s\n", signatureError)
+		log.Printf("[VerifySignatureString]invalid signature: %s\n", signatureError)
 		return &tErrors.ErrorInvalidAuthenticationSignature{}
 	}
 
@@ -105,7 +106,7 @@ func VerifySignatureString(toSign string, base64Signature string, signerPublicKe
 
 }
 
-//VerifyHttpSignature verifies the httpRequest signation retrieved from X-TW-SIGNATURE header. keyParam = publicKey+timestamp
+//VerifyHttpSignature verifies the httpRequest signation retrieved from X-TW-SIGNATURE header. keyParam = signerPublicKey+timestamp
 func VerifyHttpSignature(fullPathWithQuery string, keyParam string, base64Signature string, signerPublicKey string) error {
 	keyParam = strings.TrimSpace(keyParam)
 	fullPathWithQuery = strings.TrimSpace(fullPathWithQuery)

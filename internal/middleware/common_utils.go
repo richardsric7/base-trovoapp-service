@@ -11,9 +11,9 @@ func ExtractPublicKey(c *gin.Context) string {
 
 func ExtractSigner(c *gin.Context) string {
 
-	sig := c.GetHeader("X-TW-SIGNER")
+	signer := c.GetHeader("X-TW-SIGNER")
 
-	return sig
+	return signer
 }
 
 func ExtractSignature(c *gin.Context) string {
@@ -24,16 +24,13 @@ func ExtractSignature(c *gin.Context) string {
 }
 func ExtractTimestamp(c *gin.Context) string {
 
-	sig := c.GetHeader("X-TW-TIMESTAMP")
+	ts := c.GetHeader("X-TW-TIMESTAMP")
 
-	return sig
+	return ts
 }
 func ExtractDeviceID(c *gin.Context) string {
 
-	sig := c.GetHeader("X-TW-DEVICE-ID")
+	deviceID := c.GetHeader("X-TW-DEVICE-ID")
 
-	return sig
+	return deviceID
 }
-
-
-
