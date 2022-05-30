@@ -18,10 +18,9 @@ func authenticationChecks(keyParam string, c *gin.Context) error {
 	keyParam = strings.TrimSpace(keyParam)
 	fullUri := c.Request.URL.RequestURI()
 
-	log.Printf("Full Path With Query:[%s] KeyParam:[%s]\n", fullUri, keyParam)
-
 	signerPublicKey := ExtractSigner(c)
 	signature := ExtractSignature(c)
+	log.Printf("Full Path With Query:[%s] KeyParam:[%s] Signature: [%s]\n", fullUri, keyParam, signature)
 
 	publicKeyFormatError := validators.ValidatePublicKeyFormat(signerPublicKey)
 
