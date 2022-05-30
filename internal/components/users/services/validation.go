@@ -20,8 +20,8 @@ func NormalizeUserRegistrationInfo(user *usermodels.UserRegistrationInfo) {
 	user.Referrer = strings.TrimSpace(strings.ToLower(user.Referrer))
 	user.Mobile = strings.ReplaceAll(strings.TrimSpace(user.Mobile), " ", "")
 	if len(user.Mobile) > 0 {
-		geoData, _ := usermodels.GetGeoInfo(user.PublicIP)
-		num, err := phonenumbers.Parse(user.Mobile, geoData.CountryCode)
+		// geoData, _ := usermodels.GetGeoInfo(user.PublicIP)
+		num, err := phonenumbers.Parse(user.Mobile, user.MobileCountryCode)
 		if err == nil {
 			mobile := fmt.Sprintf("+%v-%v", *num.CountryCode, *num.NationalNumber)
 			user.Mobile = mobile
@@ -44,7 +44,7 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 		}
 		onlyNumbers := true
 		charCount := 0
-		acceptedChars := "abcdefghijklmnopqrstuvwxyz_1234567890"
+		acceptedChars := "abcdefghijklmnopqrstuvwxyz1234567890"
 		acceptedPhoneChars := "+-1234567890"
 		for _, c := range []byte(strings.ToLower(user.Username)) {
 
@@ -69,10 +69,10 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 			return &tErrors.ErrorInvalidUsernameFormat{Username: user.Username, Detail: "username with only numbers are not allowed"}
 
 		}
-		if charCount < 3 {
-			return &tErrors.ErrorInvalidUsernameFormat{Username: user.Username, Detail: "username must contain atleast 3 English alphabets"}
+		// if charCount < 3 {
+		// 	return &tErrors.ErrorInvalidUsernameFormat{Username: user.Username, Detail: "username must contain atleast 3 English alphabets"}
 
-		}
+		// }
 
 		if len(user.PublicKey) == 0 {
 			var x tErrors.ErrorMissingParameter
@@ -88,6 +88,11 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 		if len(user.Mobile) == 0 {
 			var x tErrors.ErrorMissingParameter
 			x.Parameter = "mobile"
+			return &x
+		}
+		if len(user.MobileCountryCode) == 0 {
+			var x tErrors.ErrorMissingParameter
+			x.Parameter = "mobileCountryCode"
 			return &x
 		}
 		if len(user.LastName) == 0 {
@@ -111,14 +116,14 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 
 		//check if first name contains numbers
 		for _, c := range []byte(strings.ToLower(user.FirstName)) {
-			if strings.Contains("1234567890_", string(c)) {
+			if strings.Contains("1234567890_", string(c)) && user.Corporate == 0 {
 				log.Println("[ValidateUserRegistrationInfo] first name validation failed for ", user)
 				return &tErrors.ErrorNameFailedValidation{Detail: fmt.Sprintf("%v not allowed in firstname", string(c))}
 			}
 		}
 		//check if last name contains numbers
 		for _, c := range []byte(strings.ToLower(user.LastName)) {
-			if strings.Contains("1234567890_", string(c)) {
+			if strings.Contains("1234567890_", string(c)) && user.Corporate == 0 {
 				log.Println("[ValidateUserRegistrationInfo] last name validation failed for ", user)
 
 				return &tErrors.ErrorNameFailedValidation{Detail: fmt.Sprintf("%v not allowed in lastname", string(c))}

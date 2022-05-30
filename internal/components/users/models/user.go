@@ -41,14 +41,14 @@ type User struct {
 }
 
 type UserWallet struct {
-	CreatedAt               time.Time               `json:"createdAt"`
-	UpdatedAt               time.Time               `json:"updatedAt"`
-	ID                      string                  `gorm:"size:56" json:"publicKey"`
-	TempPublicKey           *string                 `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
-	Tag                     string                  `gorm:"size:10" json:"tag"`
-	Description             string                  `gorm:"size:100" json:"description"`
-	Link                    *string                 `json:"link"`
-	QrCode                  *string                 `json:"qrCode"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+	ID            string    `gorm:"size:56" json:"publicKey"`
+	TempPublicKey *string   `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
+	Tag           string    `gorm:"size:10" json:"tag"`
+	Description   string    `gorm:"size:100" json:"description"`
+	// Link                    *string                 `json:"link"` //rather generated on the fly since it is tired to Asset
+	// QrCode                  *string                 `json:"qrCode"` //generated on the fly since it is tied to asset
 	Alias                   string                  `gorm:"size:27; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
 	Signer                  string                  `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
 	UserID                  string                  `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`

@@ -160,7 +160,7 @@ func GenerateDynamicLink(link string, dynamicLinkServiceUrlChan chan string, red
 
 		// search cache for link
 
-		ok, _, response := redisCache.CachedHttpResponse(cacheKey)
+		ok, response := redisCache.GetCachedResult(cacheKey)
 
 		if ok {
 			log.Printf("[%v], served from cache\n", cacheKey)
@@ -227,14 +227,10 @@ func GenerateDynamicLink(link string, dynamicLinkServiceUrlChan chan string, red
 		return "", errors.New("no short link generated")
 	}
 	// cache the link
-	redisCache.CacheHttpResponse(cacheKey, 200, sr.DynamicLink, (525960 * 3 * 60))
+	redisCache.StoreResultToCache(cacheKey, sr.DynamicLink, (525960 * 3 * 60))
 
 	return sr.DynamicLink, nil
 
-	// if len(p.ShortLink) == 0 {
-	// 	return "", errors.New("no short link generated")
-	// }
-	// return p.ShortLink, nil
 }
 
 //GenerateLoginData generates Login Data
@@ -286,7 +282,7 @@ func GenerateAuthorizationData(merchant, merchantShortName, description, targetU
 	params.Add("deviceInfo", deviceInfo)
 	params.Add("description", description)
 	params.Add("authId", authID)
-	link := fmt.Sprintf("https://bantupay.org?%v", params.Encode())
+	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
 	// log.Println("[GenerateAuthorizationData]link=", link)
 
 	dynamicLink, err = GenerateDynamicLink(link, dynamicLinkServiceUrlChan, redisCache)
@@ -348,7 +344,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 	params.Add("assetIssuer", assetIssuer)
 	params.Add("amount", amount)
 	params.Add("memo", memo)
-	link := fmt.Sprintf("https://bantupay.org?%v", params.Encode())
+	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
 	// log.Println("[GeneratePaymentData]link=", link)
 
 	dynamicLink, err = GenerateDynamicLink(link, dynamicLinkServiceUrlChan, redisCache)
@@ -385,7 +381,7 @@ func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl st
 	params.Add("action", "register")
 	params.Add("referrer", username)
 
-	link := fmt.Sprintf("https://bantupay.org?%v", params.Encode())
+	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
 
 	dynamicLink, err = GenerateDynamicLinkWithStaticService(link, dynamicLinkServiceUrl, redisCache)
 
@@ -421,7 +417,7 @@ func GenerateReferralLink(username string, dynamicLinkServiceUrlChan chan string
 	params.Add("action", "register")
 	params.Add("referrer", username)
 
-	link := fmt.Sprintf("https://bantupay.org?%v", params.Encode())
+	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
 
 	dynamicLink, err = GenerateDynamicLink(link, dynamicLinkServiceUrlChan, redisCache)
 

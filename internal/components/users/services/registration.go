@@ -31,8 +31,8 @@ func RegisterUser(userInfo usermodels.UserRegistrationInfo, db *gorm.DB, dynamic
 		return userInfo, false, errExists
 	}
 	if len(userInfo.Mobile) > 0 {
-		geoData, _ := usermodels.GetGeoInfo(userInfo.PublicIP)
-		num, err := phonenumbers.Parse(userInfo.Mobile, geoData.CountryCode)
+		// geoData, _ := usermodels.GetGeoInfo(userInfo.PublicIP)
+		num, err := phonenumbers.Parse(userInfo.Mobile, userInfo.MobileCountryCode)
 		if err == nil {
 			mobile := fmt.Sprintf("+%v-%v", *num.CountryCode, *num.NationalNumber)
 			userInfo.Mobile = mobile
@@ -107,7 +107,8 @@ func RegisterUser(userInfo usermodels.UserRegistrationInfo, db *gorm.DB, dynamic
 		user.ReferralLink = &data.DynamicLink
 		user.ReferralQrCode = &data.QRCode
 	}
-
+	// build user wallet
+	user.BuildPrimaryWallet()
 	//save the user
 
 	errCreate := db.Create(user).Error

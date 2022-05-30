@@ -272,3 +272,21 @@ func (u *UserWallet) GetBlockchainAccountData(clientAccount horizon.Account) (ac
 
 	return clientAccount.Data, nil
 }
+
+func (u *User) BuildPrimaryWallet() {
+	tempKP, _ := network.TempAccountKeypair(u.PublicKey)
+	var tempPK string
+	if tempKP != nil {
+		tempPK = tempKP.Address()
+	}
+	userWallet := UserWallet{
+		ID:            u.PublicKey,
+		TempPublicKey: &tempPK,
+		Tag:           u.Username,
+		Description:   "Primary/Default wallet",
+		Alias:         u.Username,
+		Signer:        u.PublicKey,
+		UserID:        u.ID,
+	}
+	u.UserWallets = append(u.UserWallets, userWallet)
+}

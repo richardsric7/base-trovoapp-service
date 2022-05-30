@@ -29,8 +29,8 @@ func UserRegistrationInfoToUser(userInfo usermodels.UserRegistrationInfo, user *
 
 	if len(userInfo.Mobile) > 0 {
 		userInfo.Mobile = strings.TrimSpace(userInfo.Mobile)
-		geoData, _ := user.GetGeoInfo()
-		num, err := phonenumbers.Parse(userInfo.Mobile, geoData.CountryCode)
+		// geoData, _ := user.GetGeoInfo()
+		num, err := phonenumbers.Parse(userInfo.Mobile, userInfo.MobileCountryCode)
 		if err == nil {
 			mobile := fmt.Sprintf("+%v-%v", *num.CountryCode, *num.NationalNumber)
 			user.Mobile = &mobile
@@ -157,8 +157,8 @@ func PublicKeyAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err err
 	// 	discord.WebhookURL = os.Getenv("IMPORT_ERROR_WEBHOOK")
 	// }
 	publicKey = strings.TrimSpace(publicKey)
-	var userInfo usermodels.User
-	if err := db.Where("public_key = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&userInfo).Error; err != nil {
+	var userWallet usermodels.UserWallet
+	if err := db.Where("id = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&userWallet).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return true, &tErrors.ErrorTemporaryServerError{}
 		}
@@ -166,6 +166,6 @@ func PublicKeyAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err err
 	}
 	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
 
-	return true, &tErrors.CustomError{Param: "publicKey", Err: "error-public-key-already-exists", ErrMessage: fmt.Sprintf("Bantu Address [%v] already exists with another active account", userInfo.PublicKey)}
+	return true, &tErrors.CustomError{Param: "publicKey", Err: "error-public-key-already-exists", ErrMessage: fmt.Sprintf("Bantu Address [%v] already exists with another active account", userWallet.ID)}
 
 }

@@ -137,7 +137,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		err = json.Unmarshal(data, &userRegistrationInfo)
 
-		userRegistrationInfo.PublicKey = middleware.ExtractPublicKey(c)
+		userRegistrationInfo.PublicKey = middleware.ExtractSigner(c)
 		userRegistrationInfo.PublicIP = c.ClientIP()
 
 		var invalidJSON tErrors.ErrorInvalidJSON
@@ -154,7 +154,8 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			}
 		}
 
-		userRegistrationInfo.Username = strings.ToLower(userRegistrationInfo.Username)
+		//replace _ and /
+		userRegistrationInfo.Username = strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(userRegistrationInfo.Username), "_", ""), "/", "")
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users %v", userRegistrationInfo.Username), db)
 
