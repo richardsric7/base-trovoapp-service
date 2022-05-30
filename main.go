@@ -177,7 +177,7 @@ func main() {
 	}
 
 	var router *gin.Engine = gin.Default()
-
+	router.SetTrustedProxies(nil)
 	router.Use(middleware.CORSMiddleware())
 
 	root.Init(router)
