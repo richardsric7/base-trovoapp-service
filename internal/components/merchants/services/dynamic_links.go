@@ -258,7 +258,7 @@ func GenerateLoginData(merchant, merchantShortName, targetUser, loginID, deviceI
 		return
 	}
 
-	pngDataURI, err = GenerateQRCode(dynamicLink)
+	pngDataURI, err = GenerateQRCode(dynamicLink, redisCache)
 	if err != nil {
 		log.Printf("[GenerateLoginData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -296,7 +296,7 @@ func GenerateAuthorizationData(merchant, merchantShortName, description, targetU
 		log.Println("[GenerateAuthorizationData] unable to generate dynamic link=", dynamicLink)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink)
+	pngDataURI, err = GenerateQRCode(dynamicLink, redisCache)
 	if err != nil {
 		log.Printf("[GenerateAuthorizationData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -358,7 +358,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 		log.Println("[GeneratePaymentData] unable to generate dynamic link=", dynamicLink)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink)
+	pngDataURI, err = GenerateQRCode(dynamicLink, redisCache)
 	if err != nil {
 		log.Printf("[GeneratePaymentData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -394,7 +394,7 @@ func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl st
 		log.Println("[GenerateReferralLink] unable to generate dynamic link=", dynamicLink, "for username=", username)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink)
+	pngDataURI, err = GenerateQRCode(dynamicLink, redisCache)
 	if err != nil {
 		log.Printf("[GenerateReferralLink] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -430,7 +430,7 @@ func GenerateReferralLink(username string, dynamicLinkServiceUrlChan chan string
 		log.Println("[GenerateReferralLink] unable to generate dynamic link=", dynamicLink, "for username=", username)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink)
+	pngDataURI, err = GenerateQRCode(dynamicLink, redisCache)
 	if err != nil {
 		log.Printf("[GenerateReferralLink] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
