@@ -109,9 +109,17 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 
 			return &tErrors.ErrorInvalidName{Field: "lastname"}
 		}
+		if len(user.LastName) > 50 {
+
+			return &tErrors.ErrorInvalidName{Field: "lastname"}
+		}
 		if len(user.FirstName) > 50 {
 
 			return &tErrors.ErrorInvalidName{Field: "firstname"}
+		}
+		if len(user.MobileCountryCode) > 2 {
+
+			return &tErrors.CustomError{Param: "mobileCountryCode", Err: "error invalid mobileCountryCode", ErrMessage: "mobileCountryCode must be 2 characters, eg NG, US, CA.", Code: 400}
 		}
 
 		//check if first name contains numbers

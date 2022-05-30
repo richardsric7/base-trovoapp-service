@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"time"
+	tErrors "trovo-wallet-api/internal/errors"
 
 	"github.com/mailgun/mailgun-go/v4"
 )
@@ -19,20 +20,21 @@ func SendEmailVerificationCode(email, verificationCode string) (id, resp string,
 	mg := mailgun.NewMailgun(mailgunDomain, os.Getenv("MAILGUN_PRIVATE_API_KEY"))
 	sender := os.Getenv("MAIL_SENDER")
 	if sender == "" {
-		sender = fmt.Sprintf("Trovotech <noreply@%s>", mailgunDomain)
+		sender = fmt.Sprintf("Trovotech <no-reply@%s>", mailgunDomain)
 	}
 	subject := os.Getenv("EMAIL_VERIFICATION_SUBJECT")
 	if subject == "" {
 		subject = "Your Trovo Wallet Email Verification Code"
 	}
-	body := ""
+	// body := ""
+	body := fmt.Sprintf("Your verification code is: %s", verificationCode)
 	recipient := email
 
 	// The message object allows you to add attachments and Bcc recipients
 	message := mg.NewMessage(sender, subject, body, recipient)
 	// message.SetTemplate("bantupay_v2")
-	message.SetTemplate(os.Getenv("EMAIL_VERIFICATION_TEMPLATE"))
-	message.AddTemplateVariable("verification_code", verificationCode)
+	// message.SetTemplate(os.Getenv("EMAIL_VERIFICATION_TEMPLATE"))
+	// message.AddTemplateVariable("verification_code", verificationCode)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
@@ -40,7 +42,11 @@ func SendEmailVerificationCode(email, verificationCode string) (id, resp string,
 	// Send the message with a 10 second timeout
 	resp, id, err = mg.Send(ctx, message)
 	if err != nil {
-		log.Println("failed to send to:\n", email)
+		log.Printf("failed to send to:%s due to %v\n", email, err)
+		err = &tErrors.CustomError{Param: "email",
+			Err:        err.Error(),
+			ErrMessage: "Could not send verification code at this time. Please try again later",
+			Code:       400}
 		return
 	}
 	log.Printf("ID: %s Resp: %s\n", id, resp)
