@@ -4,7 +4,6 @@ import (
 	cache "trovo-wallet-api/internal/cache"
 
 	"context"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -90,14 +89,21 @@ func main() {
 
 	var redisCli *redis.Client = nil
 
+	// if enableCaching {
+	// 	redisCli = redis.NewClient(&redis.Options{
+	// 		Addr:     fmt.Sprintf("%v:%v", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")), // host:port of the redis server
+	// 		Password: os.Getenv("REDIS_PASSWORD"),                                            // no password set
+	// 		DB:       0,                                                                      // use default DB
+	// 		TLSConfig: &tls.Config{
+	// 			InsecureSkipVerify: false,
+	// 		},
+	// 	})
+	// }
 	if enableCaching {
 		redisCli = redis.NewClient(&redis.Options{
 			Addr:     fmt.Sprintf("%v:%v", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")), // host:port of the redis server
 			Password: os.Getenv("REDIS_PASSWORD"),                                            // no password set
 			DB:       0,                                                                      // use default DB
-			TLSConfig: &tls.Config{
-				InsecureSkipVerify: false,
-			},
 		})
 	}
 
