@@ -6,7 +6,6 @@ import (
 	"strings"
 	"sync"
 	"trovo-wallet-api/internal/cache"
-	merchantServices "trovo-wallet-api/internal/components/merchants/services"
 	userDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -59,7 +58,7 @@ func GetUserBalance(publicKey string, db *gorm.DB, temp bool, dynamicLinkService
 				if errUser == nil {
 					key = user.Username
 				}
-				p, e := merchantServices.GeneratePaymentData(key, v.Code, v.Issuer, "", "", dynamicLinkServiceUrlChan, redisCache)
+				p, e := GeneratePaymentData(key, v.Code, v.Issuer, "", "", dynamicLinkServiceUrlChan, redisCache)
 				if e == nil {
 					qrCode = p.QRCode
 				}
