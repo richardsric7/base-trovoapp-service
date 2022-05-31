@@ -3,25 +3,24 @@ package users
 import "time"
 
 type User struct {
-	CreatedAt           time.Time `json:"createdAt"`
-	UpdatedAt           time.Time `json:"updatedAt"`
-	LastUpdatedMobileOn time.Time `json:"lastUpdatedMobileOn"`
-	ID                  string    `json:"id"`
-	Username            string    `gorm:"size:16; index:idx_user_unique_username, unique" json:"username"`
-	Email               string    `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
-	ImageThumbnailURL   *string   `json:"imageThumbnailURL"`
-	FirstName           string    `gorm:"size:50" json:"firstName"`
-	LastName            string    `gorm:"size:50" json:"lastName"`
-	Mobile              *string   `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
-	PublicKey           string    `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
-	// TempPublicKey         *string      `gorm:"size:56;index:idx_user_temp_public_key;null"`
+	CreatedAt             time.Time    `json:"createdAt"`
+	UpdatedAt             time.Time    `json:"updatedAt"`
+	LastUpdatedMobileOn   time.Time    `json:"lastUpdatedMobileOn"`
+	ID                    string       `json:"id"`
+	Username              string       `gorm:"size:16; index:idx_user_unique_username, unique" json:"username"`
+	Email                 string       `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
+	ImageThumbnailURL     *string      `json:"imageThumbnailURL"`
+	FirstName             string       `gorm:"size:50" json:"firstName"`
+	LastName              string       `gorm:"size:50" json:"lastName"`
+	Mobile                *string      `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
+	PublicKey             string       `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
 	Referrer              *string      `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
 	ReferralLink          *string      `json:"referralLink"`
 	ReferralQrCode        *string      `json:"referralQrCode"`
 	PushNotificationToken *string      `json:"pushNotificationToken"`
 	Corporate             uint         `gorm:"type:integer;not null; default:0" json:"corporate"`
 	MobileVerified        uint         `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
-	MemershipType         uint         `gorm:"type:integer;not null; default:0" json:"membershipType"`
+	MembershipType        uint         `gorm:"type:integer;not null; default:0" json:"membershipType"`
 	MembershipExpiry      *time.Time   `json:"membershipExpiry"`
 	KYCVerified           uint         `gorm:"type:integer;not null; default:0" json:"kycVerified"`
 	WalletRecoveryEnabled uint         `gorm:"type:integer;not null; default:0" json:"walletRecoveryEnabled"`
