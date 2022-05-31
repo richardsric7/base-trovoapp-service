@@ -279,8 +279,8 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		cacheKey := fmt.Sprintf("[GET] /v1/users/%v", identifier)
 		paymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", identifier)
-		senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", identifier)
 		senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", identifier)
+		senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", identifier)
 
 		redisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
 
