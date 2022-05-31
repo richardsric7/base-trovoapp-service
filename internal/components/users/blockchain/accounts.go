@@ -4,76 +4,36 @@ import (
 	"log"
 	"sort"
 	"strings"
-	"sync"
 	"trovo-wallet-api/internal/cache"
 	userDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
-	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 
-	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
 	"gorm.io/gorm"
 
 	"github.com/stellar/go/protocols/horizon"
 )
 
-//GetUserBalance gets user blockchain balance
-func GetUserBalance(publicKey string, db *gorm.DB, temp bool, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (balances []userModels.Balance, err error) {
-	unsortedBalances := make(map[string]userModels.Balance)
-	account, err := GetBlockchainAccountDetail(publicKey)
+//GetSortedUserBalance gets user blockchain balance
+func GetSortedUserBalance(publicKey string, db *gorm.DB, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (balances []userModels.Balance, err error) {
+
+	var userWallet userModels.UserWallet
+	userWallet, temp, err := userDB.GetWallet(publicKey, db)
 	if err != nil {
-		return balances, err
+		return
 	}
 
-	//get username for qrcode is exists
-	var user userModels.User
-	var errUser error
-	if !temp {
-		user, errUser = userDB.GetUserInfo(publicKey, db)
+	//GetBalance
+	unsortedBalances, err := userWallet.GetBalance(db, temp, dynamicLinkServiceUrlChan, redisCache)
+	if err != nil {
+		return
 	}
 
-	var wg sync.WaitGroup
-	var m sync.Mutex
 	var keys []string
-	for _, v := range account.Balances {
-		wg.Add(1)
-		go func(v horizon.Balance) {
-			defer wg.Done()
-
-			amount, _ := decimal.NewFromString(v.Balance)
-			if (temp && (amount.IsZero())) || (v.Code == "" && temp) {
-
-				return
-			}
-
-			// buyingLiabilities, _ := decimal.NewFromString(v.BuyingLiabilities)
-			sellingLiabilities, _ := decimal.NewFromString(v.SellingLiabilities)
-			availableBalance := amount.Sub(sellingLiabilities)
-			// availableBalance := decimal.NewFromFloat(availableBalFloat).Truncate(7).String()
-			// usdValue := decimal.NewFromFloat(usdPrice * availableBalFloat).Truncate(2).String()
-			qrCode := ""
-			if !temp {
-				key := publicKey
-				if errUser == nil {
-					key = user.Username
-				}
-				p, e := dl.GeneratePaymentData(key, v.Code, v.Issuer, "", "", dynamicLinkServiceUrlChan, redisCache)
-				if e == nil {
-					qrCode = p.QRCode
-				}
-			}
-
-			balance := userModels.Balance{AssetIssuer: v.Issuer, AssetCode: v.Code,
-				Amount: availableBalance, QRCode: qrCode}
-			m.Lock()
-			keys = append(keys, v.Code+":"+v.Issuer)
-			unsortedBalances[v.Code+":"+v.Issuer] = balance
-			m.Unlock()
-
-		}(v)
-		wg.Wait()
+	for key := range unsortedBalances {
+		keys = append(keys, key)
 	}
 
 	sort.Strings(keys)
@@ -84,6 +44,7 @@ func GetUserBalance(publicKey string, db *gorm.DB, temp bool, dynamicLinkService
 		balances = append(balances, balance)
 
 	}
+
 	return balances, nil
 }
 

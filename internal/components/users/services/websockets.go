@@ -100,7 +100,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 	data.Stream = strings.ToLower(data.Stream)
 	identifier := strings.TrimSpace(strings.ToLower(c.Param("identifier")))
 
-	user, err := usersDB.GetUserInfo(identifier, db)
+	user, err := usersDB.GetUser(identifier, db)
 	if err != nil {
 		auth.Auth = false
 		auth.Message = "user could not be authenticated"

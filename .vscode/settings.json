@@ -4,6 +4,7 @@
         "IPAPI",
         "Keypair",
         "Mailgun",
+        "Preload",
         "qrcode",
         "shopspring",
         "Trovotech",

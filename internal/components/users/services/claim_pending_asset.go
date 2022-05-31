@@ -80,7 +80,7 @@ func ClaimPendingAsset(identifier string, sourcePublicKey string, pendingAssetTo
 }
 
 func generateXdr(horizonClient *horizonclient.Client, identifier string, sourcePublicKey string, db *gorm.DB, pendingAssetToClaim *usermodels.PendingAssetToClaim) (string, error) {
-	user, err := usersdb.GetUserInfo(identifier, db)
+	user, err := usersdb.GetUser(identifier, db)
 
 	if err != nil {
 		return "", err

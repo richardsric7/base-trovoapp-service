@@ -68,7 +68,9 @@ func (r *RedisCache) StoreResultToCache(key string, toCache interface{}, expiryI
 	_cacheResult := cacheResult{
 		Value: toCache,
 	}
-
+	if expiryInSeconds == 0 {
+		expiryInSeconds = 120
+	}
 	bytes, err := json.Marshal(_cacheResult)
 
 	if err != nil {

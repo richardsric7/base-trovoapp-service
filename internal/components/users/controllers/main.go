@@ -4,7 +4,7 @@ import (
 	"trovo-wallet-api/internal/cache"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	usermodels "trovo-wallet-api/internal/components/users/models"
-	users "trovo-wallet-api/internal/components/users/services"
+	userServices "trovo-wallet-api/internal/components/users/services"
 	conDB "trovo-wallet-api/internal/db"
 	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -56,7 +56,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		conDB.PrintDBStats(fmt.Sprintf("/v1/users/%v/ws", identifier), db)
 		log.Printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Websocket connection detected for %v>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", identifier)
 
-		users.UserWebSocketAPI(c, db, redisCache)
+		userServices.UserWebSocketAPI(c, db, redisCache)
 
 	})
 
@@ -120,6 +120,36 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		}
 
+		cacheDurationInSeconds := 1 * 60 //1 minutes
+
+		userInfo, err := userServices.GetUserInfo(identifier, dynamicLinkServiceUrlChan, db, redisCache)
+
+		if err != nil {
+			log.Println("[GET USERINFO] error for user:", identifier, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			redisCache.CacheHttpResponse(cacheKey, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+
+		c.JSON(http.StatusOK, userInfo)
+		redisCache.CacheHttpResponse(cacheKey, http.StatusOK, userInfo, cacheDurationInSeconds)
+
 	})
 
 	router.POST("/v1/users", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
@@ -161,7 +191,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		var emailSent bool
 
-		_, emailSent, err = users.RegisterUser(userRegistrationInfo, db, dynamicLinkServiceUrlChan, redisCache)
+		_, emailSent, err = userServices.RegisterUser(userRegistrationInfo, db, dynamicLinkServiceUrlChan, redisCache)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -232,7 +262,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		returnedPendingAssetToClaim, complete, err := users.ClaimPendingAsset(identifier, middleware.ExtractPublicKey(c), &pendingAssetToClaim, db)
+		returnedPendingAssetToClaim, complete, err := userServices.ClaimPendingAsset(identifier, middleware.ExtractPublicKey(c), &pendingAssetToClaim, db)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -321,7 +351,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		conDB.PrintDBStats(fmt.Sprintf("GET /v1/users/%v/generate/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", identifier, paymentDestination, assetCode, assetIssuer, amount, memo), db)
 
-		_, err = usersDB.GetUserInfo(identifier, db)
+		_, err = usersDB.GetUser(identifier, db)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)

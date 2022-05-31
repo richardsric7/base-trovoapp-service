@@ -25,10 +25,19 @@ type Thresholds struct {
 	HighThreshold   string `json:"high_threshold"`
 }
 
-//Balances holds user balances
-type Balances struct {
-	Claimed   []Balance `json:"claimed"`
-	Unclaimed []Balance `json:"unclaimed"`
+//AssetBalances holds user balances
+type AssetBalances struct {
+	Claimed   map[string]Balance `json:"claimed"`
+	Unclaimed map[string]Balance `json:"unclaimed"`
+}
+
+//NFTBalances holds user NFT balances
+type NFTBalances struct {
+	NFTs []NFT `json:"nfts"`
+}
+type NFT struct {
+	AssetIssuer string `json:"assetIssuer"`
+	AssetCode   string `json:"assetCode"`
 }
 
 //UserBalanceForMerchant holds user balances

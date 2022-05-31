@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	"sort"
 	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
 
@@ -98,6 +99,24 @@ func (u *User) SignerIsValid(signerKey string, temp bool) bool {
 //GetBalance gets user wallet blockchain balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
 func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (balances map[string]Balance, err error) {
 	balances = make(map[string]Balance)
+	cacheKey := fmt.Sprintf("GetBalance_%s", u.ID)
+	if temp {
+		cacheKey = fmt.Sprintf("GetBalance_%s", *u.TempPublicKey)
+
+	}
+	{
+
+		// search cache for balance
+		ok, response := redisCache.GetCachedResult(cacheKey)
+
+		if ok {
+			log.Printf("GetBalance[%v], served from cache\n", cacheKey)
+			balances = response.(map[string]Balance)
+			return
+		}
+
+	}
+
 	account, _, err := u.GetBlockchainAccountDetail(temp)
 	if err != nil {
 		return balances, err
@@ -135,6 +154,33 @@ func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlCha
 
 		}(v)
 		wg.Wait()
+	}
+	//save to cache
+	redisCache.StoreResultToCache(cacheKey, balances, 0)
+	return balances, nil
+}
+
+//GetSortedUserBalance gets user blockchain balance
+func (u *UserWallet) GetSortedUserBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (balances []Balance, err error) {
+
+	//GetBalance
+	unsortedBalances, err := u.GetBalance(db, temp, dynamicLinkServiceUrlChan, redisCache)
+	if err != nil {
+		return
+	}
+
+	var keys []string
+	for key := range unsortedBalances {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
+	// To perform the ops of restoration from sorted keys
+	for _, k := range keys {
+		balance := unsortedBalances[k]
+		balances = append(balances, balance)
+
 	}
 
 	return balances, nil
