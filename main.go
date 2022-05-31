@@ -107,6 +107,22 @@ func main() {
 		Context: context.Background(),
 	}
 
+	if redisCache.Enabled {
+		//test redis connection
+		log.Println("Testing redis connection...")
+		_, err := redisCli.Ping(redisCache.Context).Result()
+		if err != nil {
+			log.Printf("[main]Error connecting to redis %s", err)
+			time.Sleep(time.Second * 5)
+			return
+		}
+		if !redisCache.StoreResultToCache("test", "test", 5) {
+			log.Println("[main] unable to store to redis")
+			time.Sleep(time.Second * 5)
+			return
+		}
+	}
+
 	cas := strings.Split(os.Getenv("FBDL_SERVICE_URLS"), ",")
 	dynamicLinkServiceUrlChan := make(chan string, len(cas))
 

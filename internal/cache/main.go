@@ -25,7 +25,7 @@ type cacheResult struct {
 	Value interface{}
 }
 
-// CacheHttpResponse only caches if Enabled.
+// CacheHttpResponseWithParameters only caches if Enabled.
 func (r *RedisCache) CacheHttpResponseWithParameters(key string, parameters string, status int, response interface{}, expiryInSeconds int) bool {
 	if !r.Enabled {
 		return false
@@ -39,6 +39,7 @@ func (r *RedisCache) CacheHttpResponseWithParameters(key string, parameters stri
 	bytes, err := json.Marshal(_httpResponse)
 
 	if err != nil {
+		log.Printf("[CacheHttpResponseWithParameters] failed to marshal data to bytes due to : %v\n", err)
 		return false
 	}
 	param := "default"
@@ -50,7 +51,7 @@ func (r *RedisCache) CacheHttpResponseWithParameters(key string, parameters stri
 	_, err = r.Client.Expire(r.Context, key, time.Duration(expiryInSeconds)*time.Second).Result()
 
 	if err != nil {
-		log.Printf("[CacheHttpResponse] [%v] : %v", key, err)
+		log.Printf("[CacheHttpResponseWithParameters] failed to store [%v] in cache due to : %v\n", key, err)
 		return false
 	}
 
@@ -71,6 +72,8 @@ func (r *RedisCache) StoreResultToCache(key string, toCache interface{}, expiryI
 	bytes, err := json.Marshal(_cacheResult)
 
 	if err != nil {
+		log.Printf("[StoreResultToCache] failed to marshal data to bytes due to : %v\n", err)
+
 		return false
 	}
 	param := "default"
@@ -82,7 +85,7 @@ func (r *RedisCache) StoreResultToCache(key string, toCache interface{}, expiryI
 	_, err = r.Client.Expire(r.Context, key, time.Duration(expiryInSeconds)*time.Second).Result()
 
 	if err != nil {
-		log.Printf("[StoreResultToCache] [%v] : %v", key, err)
+		log.Printf("[StoreResultToCache] failed to store [%v] in cache due to : %v\n", key, err)
 		return false
 	}
 
@@ -111,7 +114,7 @@ func (r *RedisCache) GetCachedResult(key string) (bool, interface{}) {
 	err = json.Unmarshal([]byte(p), &_cachedResult)
 
 	if err != nil {
-		log.Printf("[GetCachedResult] [%v], %v", key, err)
+		log.Printf("[GetCachedResult] unable to unmarshal cache result for [%v], due to %v\n", key, err)
 		return false, ""
 	}
 
