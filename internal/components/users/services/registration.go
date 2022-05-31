@@ -10,7 +10,7 @@ import (
 	merchants "trovo-wallet-api/internal/components/merchants/services"
 	users "trovo-wallet-api/internal/components/users/db"
 	usermodels "trovo-wallet-api/internal/components/users/models"
-	bantupayErrors "trovo-wallet-api/internal/errors"
+	tErrors "trovo-wallet-api/internal/errors"
 
 	"github.com/ecnepsnai/discord"
 	"github.com/nyaruka/phonenumbers"
@@ -60,7 +60,7 @@ func RegisterUser(userInfo usermodels.UserRegistrationInfo, db *gorm.DB, dynamic
 		validationResult, blockEmail, _ := user.VerifyEmailOnMailgun()
 		if blockEmail {
 			discord.Say(fmt.Sprintf("[RegisterUser] Mailgun Mail Validation failed for user:%v, Result:%+v", userInfo.Username, validationResult))
-			return userInfo, false, &bantupayErrors.ErrorEmailFailedValidation{Email: user.Email, Detail: fmt.Sprintf("Email validation failed for [%v]. Please put valid email and try again later.", userInfo.Email)}
+			return userInfo, false, &tErrors.ErrorEmailFailedValidation{Email: user.Email, Detail: fmt.Sprintf("Email validation failed for [%v]. Please put valid email and try again later.", userInfo.Email)}
 		}
 
 		emailSent, expectedCode, checkAndSendErr := CheckAndSendVerificationCode(userInfo)
@@ -89,7 +89,7 @@ func RegisterUser(userInfo usermodels.UserRegistrationInfo, db *gorm.DB, dynamic
 			if time.Since(createdAt) < (time.Duration(t) * time.Second) {
 				//it is less than 1hr since registration from same IP, reject registration
 				discord.Say(fmt.Sprintf("Too many registration from the IP %+v\n", user))
-				return userInfo, false, &bantupayErrors.CustomError{
+				return userInfo, false, &tErrors.CustomError{
 					Param:      "username",
 					Err:        "error-user-registration-failed-validation",
 					ErrMessage: "Your registration validation failed at this time.",

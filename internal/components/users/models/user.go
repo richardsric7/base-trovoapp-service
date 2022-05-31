@@ -12,7 +12,7 @@ type User struct {
 	ImageThumbnailURL   *string   `json:"imageThumbnailURL"`
 	FirstName           string    `gorm:"size:50" json:"firstName"`
 	LastName            string    `gorm:"size:50" json:"lastName"`
-	Mobile              *string   `gorm:"size:16" json:"mobile"`
+	Mobile              *string   `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
 	PublicKey           string    `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
 	// TempPublicKey         *string      `gorm:"size:56;index:idx_user_temp_public_key;null"`
 	Referrer              *string      `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
