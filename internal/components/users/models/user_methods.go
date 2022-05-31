@@ -429,9 +429,23 @@ func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner *User, err error
 }
 
 //Fetch3rdPartyWallets fetches all 3rd party wallets that the user is assigned to manage
-func (u *User) Fetch3rdPartyWallets(db *gorm.DB) (thirdPartyWallets []ThirdPartyWalletAccess) {
+func (u *User) Fetch3rdPartyWallets(db *gorm.DB, redisCache *cache.RedisCache) (thirdPartyWallets []ThirdPartyWalletAccess) {
 	var walletPermissions []WalletAccess
 	thirdPartyWallets = make([]ThirdPartyWalletAccess, 0)
+	cacheKey := fmt.Sprintf("Fetch3rdPartyWallets_%s", u.ID)
+
+	{
+
+		// search cache for balance
+		ok, response := redisCache.GetCachedResult(cacheKey)
+
+		if ok {
+			log.Printf("Fetch3rdPartyWallets [%v], served from cache\n", cacheKey)
+			thirdPartyWallets = response.([]ThirdPartyWalletAccess)
+			return
+		}
+
+	}
 	e := db.Where("username = ?", u.Username).Find(&walletPermissions).Error
 	if e != nil {
 		return
@@ -461,6 +475,8 @@ func (u *User) Fetch3rdPartyWallets(db *gorm.DB) (thirdPartyWallets []ThirdParty
 		thirdPartyWallets = append(thirdPartyWallets, thirdPartyWallet)
 
 	}
+	//save to cache
+	redisCache.StoreResultToCache(cacheKey, thirdPartyWallets, 4000)
 
 	return
 }
