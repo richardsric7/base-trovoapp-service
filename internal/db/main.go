@@ -140,19 +140,15 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating AccessLevel: ", errMigrate)
 		}
 
-
 		errMigrate = gormDB.AutoMigrate(&users.ReservedName{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ReservedName: ", errMigrate)
 		}
 
-
 		errMigrate = gormDB.AutoMigrate(&users.UserMobilePhoneVerification{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserMobilePhoneVerification: ", errMigrate)
 		}
-
-
 
 		errMigrate = gormDB.AutoMigrate(&merchantModels.Merchant{})
 		if errMigrate != nil {

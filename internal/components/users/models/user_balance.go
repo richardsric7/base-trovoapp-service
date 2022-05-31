@@ -1,11 +1,13 @@
 package users
 
+import "github.com/shopspring/decimal"
+
 //Balance model for user
 type Balance struct {
-	AssetIssuer string `json:"assetIssuer"`
-	AssetCode   string `json:"assetCode"`
-	Amount      string `json:"amount"`
-	QRCode      string `json:"qrCode"`
+	AssetIssuer string          `json:"assetIssuer"`
+	AssetCode   string          `json:"assetCode"`
+	Amount      decimal.Decimal `json:"amount"`
+	QRCode      string          `json:"qrCode"`
 }
 
 //Signer model for user
@@ -22,21 +24,6 @@ type Thresholds struct {
 	MediumThreshold string `json:"medium_threshold"`
 	HighThreshold   string `json:"high_threshold"`
 }
-
-// UsdPrice     string                    `json:"usdPrice"`
-// UsdValue     string                    `json:"usdValue"`
-// CuratedAsset bool                      `json:"curatedAsset"`
-// AssetInfo    assetsmodels.CuratedAsset `json:"assetInfo"`
-// //TempBalance model for user
-// type TempBalance struct {
-// 	AssetIssuer  string                    `json:"assetIssuer"`
-// 	AssetCode    string                    `json:"assetCode"`
-// 	Amount       string                    `json:"amount"`
-// 	UsdPrice     string                    `json:"usdPrice"`
-// 	UsdValue     string                    `json:"usdValue"`
-// 	CuratedAsset bool                      `json:"curatedAsset"`
-// 	AssetInfo    assetsmodels.CuratedAsset `json:"assetInfo"`
-// }
 
 //Balances holds user balances
 type Balances struct {

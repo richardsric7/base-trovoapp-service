@@ -1,4 +1,4 @@
-package users
+package merchants
 
 import "time"
 

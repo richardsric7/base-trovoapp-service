@@ -329,7 +329,7 @@ func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *ca
 		}
 		//send SMS
 		message := fmt.Sprintf("Your BantuPay mobile phone confirmation code is %s. One time use only.", verificationCode)
-		errSMS := sms.SendSMS(userInfo, message, db)
+		errSMS := sms.SendSMS(*userInfo.Mobile, message, db)
 		if errSMS != nil {
 			log.Printf("[SendPhoneVerificationCode] Error sending verification code for user %s. Error: %s\n", userInfo.Username, errSMS.Error())
 
@@ -369,7 +369,7 @@ func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *ca
 	//updated successfully
 	//send SMS
 	message := fmt.Sprintf("Your BantuPay mobile phone confirmation code is %s. One time use only.", verificationCode)
-	errSMS := sms.SendSMS(userInfo, message, db)
+	errSMS := sms.SendSMS(*userInfo.Mobile, message, db)
 	if errSMS != nil {
 		log.Printf("[SendPhoneVerificationCode] Error sending verification code for user %s. Error: %s\n", userInfo.Username, errSMS.Error())
 

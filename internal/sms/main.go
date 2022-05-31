@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	users "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 
 	"github.com/infobip/infobip-api-go-client/v2"
@@ -20,16 +19,9 @@ type SmsProvider struct {
 	Provider    string `json:"provider"`
 }
 
-func SendSMS(userInfo *users.User, messageBody string, db *gorm.DB) error {
-	if userInfo.Mobile == nil {
-		return &tErrors.CustomError{
-			Param:      "mobile",
-			Err:        "invalid mobile number",
-			ErrMessage: "Invalid Mobile Number",
-		}
-	}
+func SendSMS(userMobile, messageBody string, db *gorm.DB) error {
 
-	if len(*userInfo.Mobile) == 0 {
+	if len(userMobile) == 0 {
 		return &tErrors.CustomError{
 			Param:      "mobile",
 			Err:        "invalid mobile number",
@@ -45,8 +37,8 @@ func SendSMS(userInfo *users.User, messageBody string, db *gorm.DB) error {
 		}
 	}
 
-	smsProvider := getSMSProvider(*userInfo.Mobile, db)
-	destNumber := strings.ReplaceAll(strings.ReplaceAll(*userInfo.Mobile, "+", ""), "-", "")
+	smsProvider := getSMSProvider(userMobile, db)
+	destNumber := strings.ReplaceAll(strings.ReplaceAll(userMobile, "+", ""), "-", "")
 
 	if strings.EqualFold(smsProvider, "infobip") {
 		return SendSMSWithInfobip(destNumber, messageBody)

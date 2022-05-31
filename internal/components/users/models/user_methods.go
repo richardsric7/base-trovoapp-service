@@ -2,16 +2,18 @@ package users
 
 import (
 	"encoding/base64"
+	"fmt"
+	"net/http"
 	tErrors "trovo-wallet-api/internal/errors"
 
 	"context"
 	"errors"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
+	"trovo-wallet-api/internal/cache"
 	"trovo-wallet-api/internal/network"
 
 	"github.com/mailgun/mailgun-go/v4"
@@ -26,7 +28,7 @@ import (
 
 // GetSigners returns user signers
 func (u *UserWallet) GetSigners(temp bool) (signers map[string]Signer) {
-	account, err := u.GetBlockchainAccountDetail(temp)
+	account, _, err := u.GetBlockchainAccountDetail(temp)
 	if err != nil {
 		return signers
 	}
@@ -92,10 +94,10 @@ func (u *User) SignerIsValid(signerKey string, temp bool) bool {
 	return false
 }
 
-//GetBalance gets user blockchain balance and return it as a map of assets  [code:issuer]Balance. Naitve key is [:]
-func (u *UserWallet) GetBalance(publicKey string, db *gorm.DB, temp bool) (balances map[string]Balance, err error) {
+//GetBalance gets user wallet blockchain balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
+func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (balances map[string]Balance, err error) {
 	balances = make(map[string]Balance)
-	account, err := u.GetBlockchainAccountDetail(temp)
+	account, _, err := u.GetBlockchainAccountDetail(temp)
 	if err != nil {
 		return balances, err
 	}
@@ -107,29 +109,23 @@ func (u *UserWallet) GetBalance(publicKey string, db *gorm.DB, temp bool) (balan
 		wg.Add(1)
 		go func(v horizon.Balance) {
 			defer wg.Done()
-			amount, _ := strconv.ParseFloat(v.Balance, 64)
-			if (temp && (amount == 0)) || (v.Code == "" && temp) {
-				// continue
-
+			amount, _ := decimal.NewFromString(v.Balance)
+			if (temp && (amount.IsZero())) || (v.Code == "" && temp) {
 				return
 			}
 
-			// askPrice, _ := GetDollarAskPrice(v.Code, v.Issuer)
-			// usdPrice, _ := strconv.ParseFloat(askPrice, 64)
-
-			// buyingLiabilities, _ := strconv.ParseFloat(v.BuyingLiabilities, 64)
-			sellingLiabilities, _ := strconv.ParseFloat(v.SellingLiabilities, 64)
-			availableBalFloat := (amount - sellingLiabilities)
-			availableBalance := decimal.NewFromFloat(availableBalFloat).Truncate(7).String()
-			// usdValue := decimal.NewFromFloat(usdPrice * availableBalFloat).Truncate(2).String()
+			// buyingLiabilities, _ := decimal.NewFromString(v.BuyingLiabilities)
+			sellingLiabilities, _ := decimal.NewFromString(v.SellingLiabilities)
+			availableBalance := amount.Sub(sellingLiabilities)
+			// availableBalance := availableBal.Truncate(7).String()
 			qrCode := ""
-			// if !temp {
+			if !temp {
 
-			// 	p, e := merchantServices.GeneratePaymentData(u.Username, v.Code, v.Issuer, "", "")
-			// 	if e == nil {
-			// 		qrCode = p.QRCode
-			// 	}
-			// }
+				p, e := GeneratePaymentData(u.ID, v.Code, v.Issuer, "", "", dynamicLinkServiceUrlChan, redisCache)
+				if e == nil {
+					qrCode = p.QRCode
+				}
+			}
 			balance := Balance{AssetIssuer: v.Issuer, AssetCode: v.Code,
 				Amount: availableBalance, QRCode: qrCode}
 			m.Lock()
@@ -145,7 +141,7 @@ func (u *UserWallet) GetBalance(publicKey string, db *gorm.DB, temp bool) (balan
 
 // GetAccountThresholds returns user signers
 func (u *UserWallet) GetAccountThresholds(temp bool) (thresholds horizon.AccountThresholds) {
-	account, err := u.GetBlockchainAccountDetail(temp)
+	account, _, err := u.GetBlockchainAccountDetail(temp)
 	if err != nil {
 		return thresholds
 	}
@@ -153,27 +149,24 @@ func (u *UserWallet) GetAccountThresholds(temp bool) (thresholds horizon.Account
 	return account.Thresholds
 }
 
-// // GetAccountThresholds returns user signers
-// func (u *User) PublicKeyBanned(db *gorm.DB, temp bool) (publicKeyBanned bool) {
-
-// 	e := db.Where("public_key = ?", u.PublicKey).First(&BannedPublicKey{}).Error
-// 	return e == nil
-// }
-
 //GetBlockchainAccountDetail fetches the bantu account information using public key
-func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizon.Account, err error) {
+func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizon.Account, destinationAccountExists bool, err error) {
 	client := network.GetBlockchainClient()
 	var accountRequest horizonclient.AccountRequest
 	if temp {
+		//temp account
 		if u.TempPublicKey != nil {
+			//temp account has been generated
 			accountRequest = horizonclient.AccountRequest{AccountID: *u.TempPublicKey}
 
 		} else {
+			//temp account not yet generated
 			err = &tErrors.ErrorBlockchainAccountNotActivated{}
 			return
 		}
 
 	} else {
+		//real account
 		accountRequest = horizonclient.AccountRequest{AccountID: u.ID}
 	}
 
@@ -182,17 +175,24 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizo
 		log.Println("[GetBlockchainAccountDetail]: ", err)
 		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
 			log.Printf("[GetBlockchainAccountDetail Network Failure]: %s\n", "Error Connecting to Expansion Service")
-			return clientAccount, &tErrors.ErrorTemporaryServerError{}
-		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
-
-			err = &tErrors.ErrorBlockchainAccountNotActivated{}
+			return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
 		} else {
+			horizonException, ok := err.(*horizonclient.Error)
 
-			err = &tErrors.ErrorTemporaryServerError{}
+			if ok {
+
+				log.Println("[BlockchainAccountProperties] error is known", horizonException.Problem.Status)
+
+				if horizonException.Problem.Status == http.StatusNotFound {
+					return clientAccount, false, &tErrors.ErrorBlockchainAccountNotActivated{}
+				}
+
+			}
+
 		}
-		return horizon.Account{}, err
+		return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
 	}
-	return clientAccount, nil
+	return clientAccount, true, nil
 }
 
 func (u *User) VerifyEmailOnMailgun() (validationResult mailgun.EmailVerification, blockEmail bool, err error) {
@@ -241,7 +241,10 @@ func (u *User) VerifyEmailOnMailgun() (validationResult mailgun.EmailVerificatio
 //GetBlockchainAccountDataKey fetches the bantu account information using public key
 func (u *UserWallet) GetBlockchainAccountDataKey(temp bool, keys ...string) (dataValues map[string]string) {
 	dataValues = make(map[string]string)
-	account, _ := u.GetBlockchainAccountDetail(temp)
+	account, _, err := u.GetBlockchainAccountDetail(temp)
+	if err != nil {
+		return
+	}
 	data, err := u.GetBlockchainAccountData(account)
 	if err != nil {
 		return
@@ -279,14 +282,41 @@ func (u *User) BuildPrimaryWallet() {
 	if tempKP != nil {
 		tempPK = tempKP.Address()
 	}
+	description := "Primary/Default wallet"
 	userWallet := UserWallet{
 		ID:            u.PublicKey,
 		TempPublicKey: &tempPK,
-		Tag:           u.Username,
-		Description:   "Primary/Default wallet",
+		Description:   &description,
 		Alias:         u.Username,
 		Signer:        u.PublicKey,
 		UserID:        u.ID,
 	}
 	u.UserWallets = append(u.UserWallets, userWallet)
+}
+func (u *User) BuildNewSubWalletWallet(subWalletPublicKey, walletTag, walletDescription string) {
+	{
+		//check to ensure sub-wallet does not already exist
+		for _, wallet := range u.UserWallets {
+			if wallet.ID == subWalletPublicKey {
+				return
+			}
+		}
+	}
+	tempKP, _ := network.TempAccountKeypair(subWalletPublicKey)
+	var tempPK string
+	if tempKP != nil {
+		tempPK = tempKP.Address()
+	}
+	walletTag = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", "")
+	alias := fmt.Sprintf("%s_%s", u.Username, walletTag)
+	userSubWallet := UserWallet{
+		ID:            subWalletPublicKey,
+		TempPublicKey: &tempPK,
+		Tag:           &walletTag,
+		Description:   &walletDescription,
+		Alias:         alias,
+		Signer:        u.PublicKey,
+		UserID:        u.ID,
+	}
+	u.UserWallets = append(u.UserWallets, userSubWallet)
 }

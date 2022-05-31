@@ -3,14 +3,13 @@ package users
 import (
 	"log"
 	"sort"
-	"strconv"
 	"strings"
 	"sync"
 	"trovo-wallet-api/internal/cache"
 	merchantServices "trovo-wallet-api/internal/components/merchants/services"
 	userDB "trovo-wallet-api/internal/components/users/db"
-	usermodels "trovo-wallet-api/internal/components/users/models"
-	bantupayerrors "trovo-wallet-api/internal/errors"
+	userModels "trovo-wallet-api/internal/components/users/models"
+	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 
 	"github.com/shopspring/decimal"
@@ -21,15 +20,15 @@ import (
 )
 
 //GetUserBalance gets user blockchain balance
-func GetUserBalance(publicKey string, db *gorm.DB, temp bool, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (balances []usermodels.Balance, err error) {
-	unsortedBalances := make(map[string]usermodels.Balance)
+func GetUserBalance(publicKey string, db *gorm.DB, temp bool, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (balances []userModels.Balance, err error) {
+	unsortedBalances := make(map[string]userModels.Balance)
 	account, err := GetBlockchainAccountDetail(publicKey)
 	if err != nil {
 		return balances, err
 	}
 
 	//get username for qrcode is exists
-	var user usermodels.User
+	var user userModels.User
 	var errUser error
 	if !temp {
 		user, errUser = userDB.GetUserInfo(publicKey, db)
@@ -43,20 +42,16 @@ func GetUserBalance(publicKey string, db *gorm.DB, temp bool, dynamicLinkService
 		go func(v horizon.Balance) {
 			defer wg.Done()
 
-			amount, _ := strconv.ParseFloat(v.Balance, 64)
-			if (temp && (amount == 0)) || (v.Code == "" && temp) {
-				// continue
+			amount, _ := decimal.NewFromString(v.Balance)
+			if (temp && (amount.IsZero())) || (v.Code == "" && temp) {
 
 				return
 			}
 
-			// askPrice, _ := GetDollarAskPrice(v.Code, v.Issuer)
-			// usdPrice, _ := strconv.ParseFloat(askPrice, 64)
-
-			// buyingLiabilities, _ := strconv.ParseFloat(v.BuyingLiabilities, 64)
-			sellingLiabilities, _ := strconv.ParseFloat(v.SellingLiabilities, 64)
-			availableBalFloat := (amount - sellingLiabilities)
-			availableBalance := decimal.NewFromFloat(availableBalFloat).Truncate(7).String()
+			// buyingLiabilities, _ := decimal.NewFromString(v.BuyingLiabilities)
+			sellingLiabilities, _ := decimal.NewFromString(v.SellingLiabilities)
+			availableBalance := amount.Sub(sellingLiabilities)
+			// availableBalance := decimal.NewFromFloat(availableBalFloat).Truncate(7).String()
 			// usdValue := decimal.NewFromFloat(usdPrice * availableBalFloat).Truncate(2).String()
 			qrCode := ""
 			if !temp {
@@ -70,7 +65,7 @@ func GetUserBalance(publicKey string, db *gorm.DB, temp bool, dynamicLinkService
 				}
 			}
 
-			balance := usermodels.Balance{AssetIssuer: v.Issuer, AssetCode: v.Code,
+			balance := userModels.Balance{AssetIssuer: v.Issuer, AssetCode: v.Code,
 				Amount: availableBalance, QRCode: qrCode}
 			m.Lock()
 			keys = append(keys, v.Code+":"+v.Issuer)
@@ -93,14 +88,14 @@ func GetUserBalance(publicKey string, db *gorm.DB, temp bool, dynamicLinkService
 }
 
 // GetUserSigners returns user signers
-func GetUserSigners(publicKey string) (signers map[string]usermodels.Signer) {
+func GetUserSigners(publicKey string) (signers map[string]userModels.Signer) {
 	account, err := GetBlockchainAccountDetail(publicKey)
 	if err != nil {
 		return signers
 	}
-	signers = make(map[string]usermodels.Signer)
+	signers = make(map[string]userModels.Signer)
 	for _, v := range account.Signers {
-		signers[v.Key] = usermodels.Signer{
+		signers[v.Key] = userModels.Signer{
 			Weight:  int(v.Weight),
 			Key:     v.Key,
 			Type:    v.Type,
@@ -138,13 +133,13 @@ func GetBlockchainAccountDetail(publicKey string) (clientAccount horizon.Account
 		log.Println("[GetBlockchainAccountDetail]: ", err)
 		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
 			log.Printf("[GetBlockchainAccountDetail Network Failure]: %s\n", "Error Connecting to Expansion Service")
-			return clientAccount, &bantupayerrors.ErrorTemporaryServerError{}
+			return clientAccount, &tErrors.ErrorTemporaryServerError{}
 		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
 
-			err = &bantupayerrors.ErrorBlockchainAccountNotActivated{}
+			err = &tErrors.ErrorBlockchainAccountNotActivated{}
 		} else {
 
-			err = &bantupayerrors.ErrorTemporaryServerError{}
+			err = &tErrors.ErrorTemporaryServerError{}
 		}
 		return horizon.Account{}, err
 	}
