@@ -1,4 +1,4 @@
-package merchants
+package dynamiclinks
 
 import (
 	"bytes"

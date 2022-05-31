@@ -2,11 +2,11 @@ package users
 
 import (
 	"trovo-wallet-api/internal/cache"
-	merchantServices "trovo-wallet-api/internal/components/merchants/services"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	usermodels "trovo-wallet-api/internal/components/users/models"
 	users "trovo-wallet-api/internal/components/users/services"
 	conDB "trovo-wallet-api/internal/db"
+	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
 
 	"fmt"
@@ -346,7 +346,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		}
 
 		//generate payment data
-		data, err := merchantServices.GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo, dynamicLinkServiceUrlChan, redisCache)
+		data, err := dl.GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo, dynamicLinkServiceUrlChan, redisCache)
 		if err != nil {
 			//could not create login session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}

@@ -12,11 +12,11 @@ import (
 	"time"
 
 	merchants "trovo-wallet-api/internal/components/merchants/controllers"
-	merchantServices "trovo-wallet-api/internal/components/merchants/services"
 	root "trovo-wallet-api/internal/components/root/controllers"
 	users "trovo-wallet-api/internal/components/users/controllers"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	db "trovo-wallet-api/internal/db"
+	dl "trovo-wallet-api/internal/dynamiclinks"
 	"trovo-wallet-api/internal/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -161,7 +161,7 @@ func main() {
 
 				result := database.Where("referral_link is null AND referral_qr_code is null AND suspended = ?", 0).FindInBatches(&usersWithNoRefLinks, batchSize, func(tx *gorm.DB, batch int) error {
 					for i, u := range usersWithNoRefLinks {
-						rld, errLink := merchantServices.GenerateReferralLinkWithStaticURL(u.Username, dynamicLinkServiceUrl, &redisCache)
+						rld, errLink := dl.GenerateReferralLinkWithStaticURL(u.Username, dynamicLinkServiceUrl, &redisCache)
 						if errLink != nil {
 							continue
 						}

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
 
 	"context"
@@ -121,7 +122,7 @@ func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlCha
 			qrCode := ""
 			if !temp {
 
-				p, e := GeneratePaymentData(u.ID, v.Code, v.Issuer, "", "", dynamicLinkServiceUrlChan, redisCache)
+				p, e := dl.GeneratePaymentData(u.ID, v.Code, v.Issuer, "", "", dynamicLinkServiceUrlChan, redisCache)
 				if e == nil {
 					qrCode = p.QRCode
 				}

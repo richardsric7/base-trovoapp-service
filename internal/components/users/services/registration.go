@@ -7,9 +7,9 @@ import (
 	"os"
 	"time"
 	"trovo-wallet-api/internal/cache"
-	merchants "trovo-wallet-api/internal/components/merchants/services"
 	users "trovo-wallet-api/internal/components/users/db"
 	usermodels "trovo-wallet-api/internal/components/users/models"
+	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
 
 	"github.com/ecnepsnai/discord"
@@ -103,7 +103,7 @@ func RegisterUser(userInfo usermodels.UserRegistrationInfo, db *gorm.DB, dynamic
 	//all checks have passed
 
 	//add referralLink
-	if data, e := merchants.GenerateReferralLink(user.Username, dynamicLinkServiceUrlChan, redisCache); e == nil {
+	if data, e := dl.GenerateReferralLink(user.Username, dynamicLinkServiceUrlChan, redisCache); e == nil {
 		user.ReferralLink = &data.DynamicLink
 		user.ReferralQrCode = &data.QRCode
 	}

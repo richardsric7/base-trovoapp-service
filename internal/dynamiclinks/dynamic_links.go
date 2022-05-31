@@ -1,4 +1,4 @@
-package users
+package dynamiclinks
 
 import (
 	"bytes"

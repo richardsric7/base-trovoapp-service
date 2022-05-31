@@ -10,6 +10,7 @@ import (
 	merchantModels "trovo-wallet-api/internal/components/merchants/models"
 	merchantServices "trovo-wallet-api/internal/components/merchants/services"
 	conDB "trovo-wallet-api/internal/db"
+	dl "trovo-wallet-api/internal/dynamiclinks"
 
 	"fmt"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -221,7 +222,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		}
 
 		//respond with deeplink and QRCode for login
-		data, err := merchantServices.GenerateLoginData(mInfo.BantupayUsername, mInfo.ShortName, userInfo.Username, loginID, merchantRequestInput.DeviceInfo, dynamicLinkServiceUrlChan, redisCache)
+		data, err := dl.GenerateLoginData(mInfo.BantupayUsername, mInfo.ShortName, userInfo.Username, loginID, merchantRequestInput.DeviceInfo, dynamicLinkServiceUrlChan, redisCache)
 		if err != nil {
 			//could not create login session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
@@ -693,7 +694,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		data, err := merchantServices.GenerateAuthorizationData(mInfo.BantupayUsername, mInfo.ShortName, merchantRequestInput.AuthDescription, userInfo.Username, merchantRequestInput.DeviceInfo, authID, dynamicLinkServiceUrlChan, redisCache)
+		data, err := dl.GenerateAuthorizationData(mInfo.BantupayUsername, mInfo.ShortName, merchantRequestInput.AuthDescription, userInfo.Username, merchantRequestInput.DeviceInfo, authID, dynamicLinkServiceUrlChan, redisCache)
 		if err != nil {
 			//could not create authorization session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
@@ -1411,7 +1412,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		}
 
 		//generate payment data
-		data, err := merchantServices.GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo, dynamicLinkServiceUrlChan, redisCache)
+		data, err := dl.GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo, dynamicLinkServiceUrlChan, redisCache)
 		if err != nil {
 			//could not create login session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
