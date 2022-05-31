@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-//GetUser gets user data
+//GetUser gets user data by either wallet id or signer or temporary public key
 func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
@@ -22,15 +22,17 @@ func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 	if len(userInfo) == 56 {
 		//56 char public key is supplied
 
-		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_public_key = ?", &userInfo).Select("user_id")
+		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_public_key = ?", &userInfo).Or("signer = ?", userInfo).Select("user_id")
 		e = db.Preload(clause.Associations).Where("id = (?)", subQuery).First(&user).Error
-	} else if strings.Contains(userInfo, "@") {
-		//email is supplied
-		e = db.Preload(clause.Associations).First(&user, userModels.User{Email: strings.ToLower(userInfo)}).Error
-	} else {
-		//username is supplied
+	} else if strings.Contains(userInfo, "_") {
+		//alias format is supplied
 		subQuery := db.Table("user_wallets").Where("alias = ?", strings.ToLower(userInfo)).Select("user_id")
 		e = db.Preload(clause.Associations).Where("id = (?)", subQuery).First(&user).Error
+
+	} else {
+		//search by ID and phone number, username, email
+
+		e = db.Preload(clause.Associations).Where("id = ?", userInfo).Or("username = ?", strings.ToLower(userInfo)).Or("mobile = ?", &userInfo).Or("email = ?", userInfo).First(&user).Error
 	}
 
 	if e != nil {
@@ -50,7 +52,7 @@ func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 
 }
 
-//GetWallet gets user data
+//GetWallet gets user wallet data by alias or public key or temp public key
 func GetWallet(identifier string, db *gorm.DB) (user userModels.UserWallet, temp bool, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
@@ -74,7 +76,7 @@ func GetWallet(identifier string, db *gorm.DB) (user userModels.UserWallet, temp
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
-			err = &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-does-not-exist", ErrMessage: fmt.Sprintf("%v is not assigned to any wallet holder", identifier)}
+			err = &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-does-not-exist", ErrMessage: fmt.Sprintf("%v is not assigned to any wallet", identifier)}
 			return
 		}
 		log.Println("[GetUserInfo] error: ", e)

@@ -30,6 +30,9 @@ func GetUserInfo(identifier string, dynamicLinkServiceUrlChan chan string, db *g
 	//Get user wallet balances
 	GetUserWalletAssetBalances(&user, dynamicLinkServiceUrlChan, db, redisCache)
 
+	//Get ThirdParty Wallet Access
+	userInfo.ThirdPartyWalletAccess = user.Fetch3rdPartyWallets(db)
+
 	return
 }
 

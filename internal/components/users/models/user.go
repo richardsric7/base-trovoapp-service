@@ -88,3 +88,9 @@ type UserRegistrationInfo struct {
 	VerificationCode      string `json:"verificationCode"`
 	PublicIP              string `json:"-"`
 }
+
+//UserWalletManagedAccessID is type for wallet access id
+type UserWalletManagedAccessID string
+
+//UserWalletID is type for wallet/sub-wallet Public Key
+type UserWalletID string

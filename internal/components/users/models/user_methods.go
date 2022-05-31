@@ -340,7 +340,7 @@ func (u *User) BuildPrimaryWallet() {
 	}
 	u.UserWallets = append(u.UserWallets, userWallet)
 }
-func (u *User) BuildNewSubWalletWallet(subWalletPublicKey, walletTag, walletDescription string) {
+func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string) {
 	{
 		//check to ensure sub-wallet does not already exist
 		for _, wallet := range u.UserWallets {
@@ -366,4 +366,101 @@ func (u *User) BuildNewSubWalletWallet(subWalletPublicKey, walletTag, walletDesc
 		UserID:        u.ID,
 	}
 	u.UserWallets = append(u.UserWallets, userSubWallet)
+}
+func (id UserWalletManagedAccessID) String() string {
+	return string(id)
+}
+func (id UserWalletID) String() string {
+	return string(id)
+}
+
+func (id UserWalletManagedAccessID) GetAccessAssignment(db *gorm.DB) (assignment *UserWalletManagedAccess, err error) {
+	e := db.Where("id = ?", string(id)).First(assignment).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no managed access was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-access-assignment-not-found",
+				ErrMessage: "Access ID not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
+func (id UserWalletID) GetWallet(db *gorm.DB) (wallet *UserWallet, err error) {
+	e := db.Where("id = ?", string(id)).First(wallet).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-wallet-not-found",
+				ErrMessage: "Wallet not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
+func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner *User, err error) {
+	e := db.Where("public_key = ?", string(id)).First(walletOwner).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-account-not-found",
+				ErrMessage: "Account not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
+//Fetch3rdPartyWallets fetches all 3rd party wallets that the user is assigned to manage
+func (u *User) Fetch3rdPartyWallets(db *gorm.DB) (thirdPartyWallets []ThirdPartyWalletAccess) {
+	var walletPermissions []WalletAccess
+	thirdPartyWallets = make([]ThirdPartyWalletAccess, 0)
+	e := db.Where("username = ?", u.Username).Find(&walletPermissions).Error
+	if e != nil {
+		return
+	}
+	for _, assignedPermission := range walletPermissions {
+		//Get the permission assignment
+		managedAccess, err := UserWalletManagedAccessID(assignedPermission.UserWalletManagedAccessID).GetAccessAssignment(db)
+		thirdPartyWallet := ThirdPartyWalletAccess{
+			AccessLevel: assignedPermission.AccessLevel,
+		}
+		if err == nil {
+			//use it to fetch wallet details
+			wallet, err := UserWalletID(managedAccess.UserWalletID).GetWallet(db)
+			if err == nil {
+				thirdPartyWallet.PublicKey = wallet.ID
+				thirdPartyWallet.WalletAlias = wallet.Alias
+				if wallet.Description != nil {
+					thirdPartyWallet.WalletDescription = *wallet.Description
+				}
+			}
+			//use it to fetch wallet owner details
+			owner, err := UserWalletID(managedAccess.UserWalletID).GetWalletOwner(db)
+			if err == nil {
+				thirdPartyWallet.Owner = owner.Username
+			}
+		}
+		thirdPartyWallets = append(thirdPartyWallets, thirdPartyWallet)
+
+	}
+
+	return
 }
