@@ -49,7 +49,7 @@ class _ButtonState extends State<Button> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Center(
+      builder: (context, child) => Center(
         child: Container(
           decoration: BoxDecoration(
             borderRadius: borderRadius,

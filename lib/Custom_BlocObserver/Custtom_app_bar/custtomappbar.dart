@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 
 class CustomAppBar extends PreferredSize {
   final double height;

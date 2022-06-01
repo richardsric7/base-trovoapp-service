@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/screens/Auth/enter_email.dart';
-import 'package:gocrypto/screens/page_view/onbonding_two.dart';
-import 'package:gocrypto/screens/page_view/onbondingthree.dart';
-import 'package:gocrypto/screens/page_view/one_onbonding.dart';
-import 'package:gocrypto/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/screens/Auth/create_password.dart';
+import 'package:trovo_wallet/screens/page_view/onbonding_two.dart';
+import 'package:trovo_wallet/screens/page_view/onbondingthree.dart';
+import 'package:trovo_wallet/screens/page_view/one_onbonding.dart';
+import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../screens/Auth/login.dart';
-import '../../screens/Auth/signup.dart';
 import '../../utils/enstring.dart';
 import '../button/custtom_button.dart';
 import '../fonts.dart';
@@ -106,7 +105,7 @@ class _SwiperState extends State<Swiper> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const EnterEmail(),
+                      builder: (context) => const CreatePassword(),
                     ),
                   );
                 },

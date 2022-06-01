@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/utils/enstring.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -39,7 +39,7 @@ class _OneonbondingState extends State<Oneonbonding> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
           child: Column(
@@ -51,7 +51,7 @@ class _OneonbondingState extends State<Oneonbonding> {
                 padding: EdgeInsets.symmetric(horizontal: width / 40),
                 child: Column(children: [
                   Text(
-                    LanguageEn.startedDiscover,
+                    LanguageEn.welcometotrovowallet,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: notifier.getblck,
@@ -59,14 +59,14 @@ class _OneonbondingState extends State<Oneonbonding> {
                         fontFamily: fontsemibold),
                   ),
                   SizedBox(height: height / 50),
-                  Text(
-                    LanguageEn.starttradingyourmoney,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: notifier.getgrey,
-                        fontSize: 13.sp,
-                        fontFamily: fontbody),
-                  ),
+                  // Text(
+                  //   LanguageEn.starttradingyourmoney,
+                  //   textAlign: TextAlign.center,
+                  //   style: TextStyle(
+                  //       color: notifier.getgrey,
+                  //       fontSize: 13.sp,
+                  //       fontFamily: fontbody),
+                  // ),
                 ]),
               )
             ],

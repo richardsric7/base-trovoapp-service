@@ -1,6 +1,11 @@
 class LanguageEn {
-  static String get startedDiscover =>
-      "If you’re on a budget or\nsimply looking";
+  static String get welcometotrovowallet => "Welcome to Trovo Wallet";
+
+  static String get managetrovowallet =>
+      "Manage your Bantu Digital Assets (including NFTs)";
+
+  static String get domorewithblockchain =>
+      "Do more magic with Blockchain. \nGo beyond limits.";
 
   static String get starttradingyourmoney =>
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et \ndolore magna aliqua.";
@@ -24,9 +29,46 @@ class LanguageEn {
 
   static String get getstarted => "Get Started";
 
-  static String get enteremail => "Enter Your Email";
-  static String get enteremailgetstarted =>
-      "Please Enter Your Email And Let\'s Get Started";
+  static String get enterpassword => "Create Password";
+
+  static String get enteryourpassword =>
+      "Create Password To Secure Your Wallet";
+
+  static String get passwordemptyerror => "Enter a password";
+
+  static String get hinterrorpassword =>
+      "Use 6 characters or more for your password";
+
+  static String get firstnamevalidateempty => "Please enter your first name";
+
+  static String get firstnamevalidatelength =>
+      "First name must be at least 3 characters";
+
+  static String get lastnamevalidateempty => "Please enter your last name";
+
+  static String get lastnamevalidatelength =>
+      "Last name must be at least 3 characters";
+
+  static String get emailvalidateempty => "Please enter an email address";
+
+  static String get emailvalidateinvalid =>
+      "Please enter a valid email address";
+
+  static String get confirmpasswordemptyerror => "Confirm your password";
+
+  static String get passwordmismatcherror =>
+      "Use 6 characters or more for your password";
+
+  static String get usernamevalidateempty => "Choose a username";
+
+  static String get usernamevalidatelength =>
+      "Sorry your username must be between 4 and 16 characters long";
+
+  static String get usernamevalidateinvalid =>
+      "Choose a valid username and try again";
+
+  static String get entervalidmobilenumber =>
+      "Please enter a valid phone number";
 
   static String get signup => "Create Account";
 

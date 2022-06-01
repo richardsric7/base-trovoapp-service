@@ -1,4 +1,4 @@
-package com.example.gocrypto
+package com.trovo.wallet
 
 import io.flutter.embedding.android.FlutterActivity
 

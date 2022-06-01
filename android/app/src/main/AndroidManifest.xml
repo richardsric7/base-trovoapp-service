@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.gocrypto">
+    package="com.trovo.wallet">
    <application
         android:label="Trovo Wallet"
         android:name="${applicationName}"

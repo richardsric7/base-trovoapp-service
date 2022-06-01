@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/bottom_bar/bottom_pages/home.dart';
-import 'package:gocrypto/bottom_bar/bottom_pages/profile.dart';
-import 'package:gocrypto/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
-import 'package:gocrypto/bottom_bar/bottom_pages/stockexchange.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/profile.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stockexchange.dart';
 import 'package:provider/provider.dart';
 
 import '../utils/medeiaqury/medeiaqury.dart';

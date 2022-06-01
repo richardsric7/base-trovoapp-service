@@ -1,21 +1,24 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
-import 'package:gocrypto/Custom_BlocObserver/button/custtom_button.dart';
-import 'package:gocrypto/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
-import 'package:gocrypto/Custom_BlocObserver/fonts.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/bottom_bar/bottombar.dart';
-import 'package:gocrypto/screens/Auth/fingerprint.dart';
-import 'package:gocrypto/screens/Auth/login.dart';
-import 'package:gocrypto/screens/Auth/privacypolicy.dart';
-import 'package:gocrypto/screens/Auth/termsofservice.dart';
-import 'package:gocrypto/utils/enstring.dart';
+import 'package:intl_phone_field/countries.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:intl_phone_field/phone_number.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/screens/Auth/login.dart';
+import 'package:trovo_wallet/screens/Auth/privacypolicy.dart';
+import 'package:trovo_wallet/screens/Auth/termsofservice.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
+import '../../network/requests.dart';
+import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SignUp extends StatefulWidget {
@@ -28,6 +31,15 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   late ColorNotifier notifier;
   bool isChecked = false;
+  final _formKey = GlobalKey<FormState>();
+  late String fName;
+  late String lName;
+  late String email;
+  late String phoneNumber;
+  String countryCode = "NG";
+  late String username;
+  late String referrer;
+  late String password;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -51,7 +63,7 @@ class _SignUpState extends State<SignUp> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
@@ -62,26 +74,28 @@ class _SignUpState extends State<SignUp> {
               Row(
                 children: [
                   SizedBox(width: width / 15),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        LanguageEn.signup,
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 26.sp,
-                            fontFamily: fontsemibold),
-                      ),
-                      SizedBox(height: height / 35),
-                      Text(
-                        LanguageEn.ittakesaminute,
-                        style: TextStyle(
-                            fontSize: 14.sp,
-                            color: notifier.getgrey,
-                            fontFamily: fontbody),
-                      ),
-                      SizedBox(height: height / 30),
-                      Customtextfild.textField(
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          LanguageEn.signup,
+                          style: TextStyle(
+                              color: notifier.getblck,
+                              fontSize: 26.sp,
+                              fontFamily: fontsemibold),
+                        ),
+                        SizedBox(height: height / 35),
+                        Text(
+                          LanguageEn.ittakesaminute,
+                          style: TextStyle(
+                              fontSize: 14.sp,
+                              color: notifier.getgrey,
+                              fontFamily: fontbody),
+                        ),
+                        SizedBox(height: height / 50),
+                        CustomTextFormField.textField(
                           LanguageEn.fanme,
                           notifier.getbluecolor,
                           Icons.person,
@@ -89,10 +103,13 @@ class _SignUpState extends State<SignUp> {
                           notifier.getprefixicon,
                           notifier.getblck,
                           notifier.getgrey,
-                          45.sp,
-                          300.sp),
-                      SizedBox(height: height / 30),
-                      Customtextfild.textField(
+                          70.sp,
+                          300.sp,
+                          validator: validateFName,
+                          onSaved: (value) => fName = value,
+                        ),
+                        SizedBox(height: height / 50),
+                        CustomTextFormField.textField(
                           LanguageEn.lname,
                           notifier.getbluecolor,
                           Icons.person,
@@ -100,10 +117,30 @@ class _SignUpState extends State<SignUp> {
                           notifier.getprefixicon,
                           notifier.getblck,
                           notifier.getgrey,
-                          45.sp,
-                          300.sp),
-                      SizedBox(height: height / 30),
-                      Customtextfild.textField(
+                          70.sp,
+                          300.sp,
+                          validator: validateLName,
+                          onSaved: (value) => lName = value,
+                        ),
+                        SizedBox(height: height / 50),
+                        CustomTextFormField.textField(
+                          LanguageEn.emailadress,
+                          notifier.getbluecolor,
+                          Icons.email,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          70.sp,
+                          300.sp,
+                          validator: validateEmail,
+                          onSaved: (value) {
+                            print('email: $value');
+                            email = value;
+                          },
+                        ),
+                        SizedBox(height: height / 50),
+                        CustomTextFormField.textField(
                           LanguageEn.username,
                           notifier.getbluecolor,
                           Icons.person,
@@ -111,21 +148,28 @@ class _SignUpState extends State<SignUp> {
                           notifier.getprefixicon,
                           notifier.getblck,
                           notifier.getgrey,
-                          45.sp,
-                          300.sp),
-                      SizedBox(height: height / 30),
-                      Customtextfild.textField(
-                          LanguageEn.phonenumber,
-                          notifier.getbluecolor,
-                          Icons.phone,
-                          notifier.getgrey,
-                          notifier.getprefixicon,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          45.sp,
-                          300.sp),
-                      SizedBox(height: height / 30),
-                      Customtextfild.textField(
+                          70.sp,
+                          300.sp,
+                          validator: validateUsername,
+                          onSaved: (value) {
+                            print('username: $value');
+                            username = value;
+                          },
+                        ),
+                        SizedBox(height: height / 50),
+                        phoneFormField(
+                          labletext: LanguageEn.phonenumber,
+                          focuscolor: notifier.getbluecolor,
+                          preicon: Icons.phone,
+                          lablecolor: notifier.getgrey,
+                          iconcolor: notifier.getprefixicon,
+                          textcolor: notifier.getblck,
+                          bordercolor: notifier.getgrey,
+                          h: 70.sp,
+                          w: 300.sp,
+                        ),
+                        SizedBox(height: height / 50),
+                        CustomTextFormField.textField(
                           LanguageEn.referrer,
                           notifier.getbluecolor,
                           Icons.link,
@@ -133,100 +177,90 @@ class _SignUpState extends State<SignUp> {
                           notifier.getprefixicon,
                           notifier.getblck,
                           notifier.getgrey,
-                          45.sp,
-                          300.sp),
-                      SizedBox(height: height / 30),
-                      Custompasswordtextfild.textField(
-                          LanguageEn.password,
-                          notifier.getbluecolor,
-                          Icons.lock,
-                          notifier.getgrey,
-                          notifier.getprefixicon,
-                          notifier.getblck),
-                      SizedBox(height: height / 30),
-                      Custompasswordtextfild.textField(
-                          LanguageEn.confirmPassword,
-                          notifier.getbluecolor,
-                          Icons.lock,
-                          notifier.getgrey,
-                          notifier.getprefixicon,
-                          notifier.getblck),
-                      SizedBox(height: height / 30),
-                      Row(
-                        children: [
-                          Transform.scale(
-                            scale: 1.sp,
-                            child: Checkbox(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(5.sp),
-                                ),
-                              ),
-                              activeColor: notifier.getbluecolor,
-                              side: BorderSide(color: notifier.getbluecolor),
-                              value: isChecked,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  isChecked = value!;
-                                });
-                              },
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    LanguageEn.iagreetothe,
-                                    style: TextStyle(
-                                        fontSize: height / 55,
-                                        color: notifier.getblck,
-                                        fontFamily: fontbody),
+                          70.sp,
+                          300.sp,
+                          validator: validateReferrer,
+                          onSaved: (value) => referrer = value,
+                        ),
+                        SizedBox(height: height / 50),
+                        Row(
+                          children: [
+                            Transform.scale(
+                              scale: 1.sp,
+                              child: Checkbox(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(5.sp),
                                   ),
-                                  GestureDetector(
-                                    onTap: () =>
-                                        {Get.to(() => const TermsofService())},
-                                    child: Text(
-                                      ' ' + LanguageEn.termsofservices,
+                                ),
+                                activeColor: notifier.getbluecolor,
+                                side: BorderSide(color: notifier.getbluecolor),
+                                value: isChecked,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    isChecked = value!;
+                                  });
+                                },
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      LanguageEn.iagreetothe,
+                                      style: TextStyle(
+                                          fontSize: height / 55,
+                                          color: notifier.getblck,
+                                          fontFamily: fontbody),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () => {
+                                        Get.to(() => const TermsofService())
+                                      },
+                                      child: Text(
+                                        ' ' + LanguageEn.termsofservices,
+                                        style: TextStyle(
+                                            fontFamily: fontbody,
+                                            fontSize: height / 55,
+                                            color: notifier.getbluecolor),
+                                      ),
+                                    ),
+                                    Text(
+                                      LanguageEn.and,
                                       style: TextStyle(
                                           fontFamily: fontbody,
                                           fontSize: height / 55,
-                                          color: notifier.getbluecolor),
+                                          color: notifier.getblck),
                                     ),
-                                  ),
-                                  Text(
-                                    LanguageEn.and,
+                                  ],
+                                ),
+                                GestureDetector(
+                                  onTap: () =>
+                                      {Get.to(() => const PrivacyPolicy())},
+                                  child: Text(
+                                    LanguageEn.privacypolicy,
                                     style: TextStyle(
                                         fontFamily: fontbody,
                                         fontSize: height / 55,
-                                        color: notifier.getblck),
+                                        color: notifier.getbluecolor),
                                   ),
-                                ],
-                              ),
-                              GestureDetector(
-                                onTap: () =>
-                                    {Get.to(() => const PrivacyPolicy())},
-                                child: Text(
-                                  LanguageEn.privacypolicy,
-                                  style: TextStyle(
-                                      fontFamily: fontbody,
-                                      fontSize: height / 55,
-                                      color: notifier.getbluecolor),
                                 ),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                    ],
+                              ],
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
               SizedBox(height: height / 25),
               GestureDetector(
-                  onTap: () {
-                    Get.to(() => const FingerPrint());
+                  onTap: () async {
+                    // Get.to(() => const FingerPrint());
+                    _validateAndSave();
                   },
                   child: Button(LanguageEn.signup, notifier.getbluecolor,
                       notifier.getwihitecolor)),
@@ -256,6 +290,9 @@ class _SignUpState extends State<SignUp> {
                 ],
               ),
               SizedBox(height: height / 20),
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom)),
             ],
           ),
         ),
@@ -263,32 +300,169 @@ class _SignUpState extends State<SignUp> {
     );
   }
 
-  Widget googlelogin() {
-    return Center(
-      child: Container(
-        height: height / 15,
-        width: width / 1.1,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(
-            Radius.circular(15.sp),
-          ),
-          border: Border.all(color: notifier.getgrey),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset("assets/images/google.png", height: height / 25),
-            SizedBox(width: width / 25),
-            Text(
-              LanguageEn.continuewithgoogle,
-              style: TextStyle(
-                  color: notifier.getblck,
-                  fontSize: 15.sp,
-                  fontFamily: fontbody),
+  Widget phoneFormField({
+    labletext,
+    focuscolor,
+    preicon,
+    lablecolor,
+    iconcolor,
+    textcolor,
+    bordercolor,
+    h,
+    w,
+  }) {
+    return ScreenUtilInit(
+      builder: (context, child) => Container(
+        color: Colors.transparent,
+        height: h,
+        width: w,
+        child: IntlPhoneField(
+          style: TextStyle(color: textcolor, fontFamily: fontbody),
+          cursorColor: lablecolor,
+          initialCountryCode: countryCode,
+          decoration: InputDecoration(
+            label: Text(labletext),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15.sp),
             ),
-          ],
+            prefixIcon: Icon(preicon, color: iconcolor),
+            labelStyle: TextStyle(color: lablecolor),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15.sp),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: bordercolor, width: 1),
+              borderRadius: BorderRadius.circular(15.sp),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: focuscolor, width: 1),
+              borderRadius: BorderRadius.circular(15.sp),
+            ),
+          ),
+          onChanged: (value) {
+            setState(() {
+              phoneNumber = value.completeNumber;
+            });
+          },
+          onCountryChanged: (value) {
+            print('country: ' + value.code);
+            setState(() {
+              countryCode = value.code;
+            });
+          },
         ),
       ),
     );
+  }
+
+  String? validateEmail(String? value) {
+    String pattern =
+        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+    RegExp regex = new RegExp(pattern);
+
+    if (value!.isEmpty) {
+      return LanguageEn.emailvalidateempty;
+    } else if (!regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+      return LanguageEn.emailvalidateinvalid;
+    }
+    return null;
+  }
+
+  String? validateUsername(String? value) {
+    String pattern = r'^(?!.*\.\.)(?!.*\.$)[^\W][\w]{3,16}$';
+    RegExp regex = new RegExp(pattern);
+    if (value!.isEmpty) {
+      return LanguageEn.usernamevalidateempty;
+    } else if (value.trim().replaceAll(' ', '').length < 3) {
+      return LanguageEn.usernamevalidatelength;
+    } else if (!regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+      return LanguageEn.usernamevalidateinvalid;
+    }
+
+    return null;
+  }
+
+  String? validateReferrer(String? value) {
+    print('referrer: $value');
+    String pattern = r'^(?!.*\.\.)(?!.*\.$)[^\W][\w]{3,16}$';
+    RegExp regex = new RegExp(pattern);
+
+    if (value!.isNotEmpty && value.trim().replaceAll(' ', '').length < 3) {
+      return LanguageEn.usernamevalidatelength;
+    } else if (value.isNotEmpty &&
+        !regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+      return LanguageEn.usernamevalidateinvalid;
+    }
+
+    return null;
+  }
+
+  // String? validateMobile(PhoneNumber? value) {
+  //   print('phone: ${phoneNumber!.completeNumber}');
+  //   if (phoneNumber!.number.isEmpty) {
+  //     return LanguageEn.entervalidmobilenumber;
+  //   }
+  //   return null;
+  // }
+
+  String? validateFName(String? value) {
+    print('fname: $value');
+    if (value!.isEmpty) {
+      return LanguageEn.firstnamevalidateempty;
+    } else if (value.trim().replaceAll(' ', '').length < 2) {
+      return LanguageEn.firstnamevalidatelength;
+    }
+    return null;
+  }
+
+  String? validateLName(String? value) {
+    print('lname: $value');
+    if (value!.isEmpty) {
+      return LanguageEn.lastnamevalidateempty;
+    } else if (value.trim().replaceAll(' ', '').length < 2) {
+      return LanguageEn.lastnamevalidatelength;
+    }
+    return null;
+  }
+
+  // Check if form is valid
+  _validateAndSave() async {
+    final form = _formKey.currentState;
+    if (!form!.validate()) {
+      return;
+    }
+
+    form.save();
+
+    Map map = {
+      'username': username,
+      'email': email,
+      'firstName': fName,
+      'lastName': lName,
+      'mobile': phoneNumber,
+      'mobileCountryCode': countryCode,
+      'referrer': referrer,
+      'pushNotificationToken': '',
+      'corporate': 0,
+      'verificationCode': '',
+    };
+
+    String jsonBody = jsonEncode(map);
+    print(jsonBody);
+
+    var publicKey = await StoreData().storeGetData('publicKey') ?? '';
+    var secretKey = await StoreData().storeGetData('secretKey') ?? '';
+
+    try {
+      Map responseData = await makePostRequest(
+          uri: '/v1/users',
+          body: jsonBody,
+          signer: publicKey,
+          publicKey: publicKey,
+          secretKey: secretKey);
+      print('$responseData');
+    } catch (e) {
+      print(e);
+    }
   }
 }

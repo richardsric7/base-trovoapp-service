@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/Custom_BlocObserver/button/custtom_button.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/bottom_bar/bottom_pages/stock_exchange_tabs/selectcrypto.dart';
-import 'package:gocrypto/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
-import 'package:gocrypto/utils/enstring.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectcrypto.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 
 import '../../../utils/medeiaqury/medeiaqury.dart';
@@ -26,7 +26,7 @@ class _BuyState extends State<Buy> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getfavorites,
         body: Column(
           children: [
@@ -37,13 +37,13 @@ class _BuyState extends State<Buy> {
                 );
               },
               child: Padding(
-                padding: const EdgeInsets.only(left: 13,right: 13),
+                padding: const EdgeInsets.only(left: 13, right: 13),
                 child: exchangestock(),
               ),
             ),
             SizedBox(height: height / 50),
             Padding(
-              padding: const EdgeInsets.only(left: 13,right: 13),
+              padding: const EdgeInsets.only(left: 13, right: 13),
               child: exchangefree(),
             ),
             SizedBox(height: height / 25),
@@ -94,7 +94,8 @@ class _BuyState extends State<Buy> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Card(elevation: 0,
+        Card(
+          elevation: 0,
           color: notifier.getwihitecolor,
           // color: notifier.getfavorites,
           shape: RoundedRectangleBorder(
@@ -136,7 +137,8 @@ class _BuyState extends State<Buy> {
             ),
           ),
         ),
-        Card(elevation: 0,
+        Card(
+          elevation: 0,
           color: notifier.getwihitecolor,
           // color: notifier.getfavorites,
           shape: RoundedRectangleBorder(
@@ -165,7 +167,8 @@ class _BuyState extends State<Buy> {
 
   Widget exchangestock() {
     return Center(
-      child: Card(elevation: 0,
+      child: Card(
+        elevation: 0,
         color: notifier.getwihitecolor,
         // color: notifier.getfavorites,
         child: Container(

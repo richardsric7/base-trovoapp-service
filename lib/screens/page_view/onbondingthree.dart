@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/screens/Auth/login.dart';
-import 'package:gocrypto/screens/page_view/onbonding_two.dart';
-import 'package:gocrypto/utils/enstring.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/screens/Auth/login.dart';
+import 'package:trovo_wallet/screens/page_view/onbonding_two.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,7 +41,7 @@ class _ThreeonbondingState extends State<Threeonbonding> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
           child: Center(
@@ -51,7 +51,7 @@ class _ThreeonbondingState extends State<Threeonbonding> {
                 Image.asset("assets/images/crypto-p2p.png", height: height / 3),
                 SizedBox(height: height / 20),
                 Text(
-                  LanguageEn.startedDiscover,
+                  LanguageEn.domorewithblockchain,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getblck,

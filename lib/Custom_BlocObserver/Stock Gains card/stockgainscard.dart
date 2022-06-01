@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/bottom_bar/bottom_pages/stockexchange.dart';
-import 'package:gocrypto/utils/enstring.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stockexchange.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -53,7 +53,7 @@ class _CusttomStockGainscardState extends State<CusttomStockGainscard> {
     //   'This Hours',
     // ];
     return ScreenUtilInit(
-      builder: () => Column(
+      builder: (context, child) => Column(
         children: [
           Stack(
             children: [
