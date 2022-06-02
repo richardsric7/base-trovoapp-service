@@ -70,6 +70,14 @@ class LanguageEn {
   static String get entervalidmobilenumber =>
       "Please enter a valid phone number";
 
+  static String get error => "Error!";
+
+  static String get individual => "Individual";
+
+  static String get corporate => "Corporate";
+
+  static String get errormessage => "There was an error: ";
+
   static String get signup => "Create Account";
 
   static String get username => "Username";
@@ -126,7 +134,7 @@ class LanguageEn {
   static String get enterverification => "Enter Verification Code";
 
   static String get enterfourdigitnumber =>
-      "Enter 4-digit code the we just sent to your\nemail address: email@example.com";
+      "Enter 6-digit code the we just sent to your\nemail address: ";
 
   static String get resetcode => "Resend Code";
 
