@@ -6,6 +6,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/screens/Auth/login.dart';
+import 'package:trovo_wallet/screens/Auth/signup.dart';
 
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../storage/store.dart';
@@ -61,7 +62,7 @@ class _SpashScreenState extends State<SpashScreen>
       // () => Navigator.push(
       () => Navigator.pushReplacement(
         context,
-        LandingPageRoute(landingPage),
+        LandingPageRoute(Swiper()),
       ),
     );
   }
@@ -74,6 +75,16 @@ class _SpashScreenState extends State<SpashScreen>
     await StoreData().storeDeleteItem('password');
     await StoreData().storeDeleteItem('publicKey');
     await StoreData().storeDeleteItem('secretKey');
+    await StoreData().storeDeleteItem('username');
+    await StoreData().storeDeleteItem('firstname');
+    await StoreData().storeDeleteItem('lastname');
+    await StoreData().storeDeleteItem('email');
+    await StoreData().storeDeleteItem('mobile');
+    await StoreData().storeDeleteItem('mobileCountryCode');
+    await StoreData().storeDeleteItem('referrer');
+    await StoreData().storeDeleteItem('pushNotificationToken');
+    await StoreData().storeDeleteItem('corporate');
+
     String isFirstTime;
     String activeSecret;
 

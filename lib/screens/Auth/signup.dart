@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cool_dropdown/cool_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -14,12 +15,17 @@ import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/screens/Auth/login.dart';
 import 'package:trovo_wallet/screens/Auth/privacypolicy.dart';
 import 'package:trovo_wallet/screens/Auth/termsofservice.dart';
+import 'package:trovo_wallet/screens/Auth/vericication.dart';
+import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
+import '../../Custom_BlocObserver/provider.dart';
 import '../../network/requests.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import '../../widgets/loader.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({Key? key}) : super(key: key);
@@ -30,7 +36,7 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   late ColorNotifier notifier;
-  bool isChecked = false;
+  late DataProvider state;
   final _formKey = GlobalKey<FormState>();
   late String fName;
   late String lName;
@@ -40,6 +46,13 @@ class _SignUpState extends State<SignUp> {
   late String username;
   late String referrer;
   late String password;
+  late int corporate = 0;
+  var accountTypes = [
+    {'label': 'Individual Account', 'value': 0},
+    {'label': 'Corporate Account', 'value': 1},
+  ];
+  bool showError = false;
+  bool hasAgreed = false; // to the terms of services
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -60,6 +73,7 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
+    state = Provider.of<DataProvider>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
@@ -69,7 +83,6 @@ class _SignUpState extends State<SignUp> {
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
@@ -184,6 +197,69 @@ class _SignUpState extends State<SignUp> {
                         ),
                         SizedBox(height: height / 50),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              children: [
+                                Radio(
+                                  value: 0,
+                                  groupValue: corporate,
+                                  activeColor: notifier.getbluecolor,
+                                  onChanged: (int? value) {
+                                    setState(() {
+                                      corporate = 0;
+                                    });
+                                  },
+                                ),
+                                Text(
+                                  LanguageEn.individual,
+                                  style: TextStyle(
+                                      fontSize: height / 55,
+                                      color: notifier.getblck,
+                                      fontFamily: fontbody),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Radio(
+                                  value: 1,
+                                  groupValue: corporate,
+                                  activeColor: notifier.getbluecolor,
+                                  onChanged: (int? value) {
+                                    setState(() {
+                                      corporate = 1;
+                                    });
+                                  },
+                                ),
+                                Text(
+                                  LanguageEn.corporate,
+                                  style: TextStyle(
+                                      fontSize: height / 55,
+                                      color: notifier.getblck,
+                                      fontFamily: fontbody),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        // SizedBox(height: height / 50),
+                        // CoolDropdown(
+                        //   // Initial Value
+                        //   defaultValue: accountTypes[corporate],
+                        //   // Down Arrow Icon
+                        //   // icon: const Icon(Icons.keyboard_arrow_down),
+                        //   // Array list of items
+                        //   dropdownList: accountTypes,
+                        //   // After selecting the desired option,it will
+                        //   // change button value to selected value
+                        //   onChange: (newValue) {
+                        //     print('selected item: ${newValue['value']}');
+                        //     corporate = int.parse(newValue['value']);
+                        //   },
+                        // ),
+                        SizedBox(height: height / 50),
+                        Row(
                           children: [
                             Transform.scale(
                               scale: 1.sp,
@@ -195,10 +271,10 @@ class _SignUpState extends State<SignUp> {
                                 ),
                                 activeColor: notifier.getbluecolor,
                                 side: BorderSide(color: notifier.getbluecolor),
-                                value: isChecked,
+                                value: hasAgreed,
                                 onChanged: (bool? value) {
                                   setState(() {
-                                    isChecked = value!;
+                                    hasAgreed = value!;
                                   });
                                 },
                               ),
@@ -251,6 +327,15 @@ class _SignUpState extends State<SignUp> {
                             )
                           ],
                         ),
+                        if (showError) ...[
+                          Text(
+                            'You need to accept terms',
+                            style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -425,35 +510,63 @@ class _SignUpState extends State<SignUp> {
     return null;
   }
 
+  bool checkTerms() {
+    if (!hasAgreed) {
+      // show error message if the user has not
+      // agreed to terms and conditions
+      setState(() {
+        showError = true;
+      });
+      return false;
+    } else {
+      setState(() {
+        showError = false;
+      });
+      return true;
+    }
+  }
+
   // Check if form is valid
   _validateAndSave() async {
-    final form = _formKey.currentState;
-    if (!form!.validate()) {
-      return;
-    }
-
-    form.save();
-
-    Map map = {
-      'username': username,
-      'email': email,
-      'firstName': fName,
-      'lastName': lName,
-      'mobile': phoneNumber,
-      'mobileCountryCode': countryCode,
-      'referrer': referrer,
-      'pushNotificationToken': '',
-      'corporate': 0,
-      'verificationCode': '',
-    };
-
-    String jsonBody = jsonEncode(map);
-    print(jsonBody);
-
-    var publicKey = await StoreData().storeGetData('publicKey') ?? '';
-    var secretKey = await StoreData().storeGetData('secretKey') ?? '';
-
     try {
+      final form = _formKey.currentState;
+      if (!form!.validate()) {
+        checkTerms();
+        return;
+      }
+
+      // check that terms and conditions has been accepted
+      if (!checkTerms()) return;
+
+      showLoader(context);
+
+      form.save();
+
+      String? token = await StoreData().storeGetData('token');
+
+      if (token == null) {
+        token = await FCM().getPushNotificationToken();
+      }
+
+      Map map = {
+        'username': username,
+        'email': email,
+        'firstName': fName,
+        'lastName': lName,
+        'mobile': phoneNumber,
+        'mobileCountryCode': countryCode,
+        'referrer': referrer,
+        'pushNotificationToken': token,
+        'corporate': corporate,
+        'verificationCode': '',
+      };
+
+      String jsonBody = jsonEncode(map);
+      print(jsonBody);
+
+      var publicKey = await StoreData().storeGetData('publicKey') ?? '';
+      var secretKey = await StoreData().storeGetData('secretKey') ?? '';
+
       Map responseData = await makePostRequest(
           uri: '/v1/users',
           body: jsonBody,
@@ -461,8 +574,48 @@ class _SignUpState extends State<SignUp> {
           publicKey: publicKey,
           secretKey: secretKey);
       print('$responseData');
+      hideLoader(context);
+
+      if (responseData['statusCode'] == 202) {
+        await StoreData().storeInsertData('username', username);
+        await StoreData().storeInsertData('firstname', fName);
+        await StoreData().storeInsertData('lastname', lName);
+        await StoreData().storeInsertData('email', email);
+        await StoreData().storeInsertData('mobile', phoneNumber);
+        await StoreData().storeInsertData('mobileCountryCode', countryCode);
+        await StoreData().storeInsertData('referrer', referrer);
+        await StoreData().storeInsertData('pushNotificationToken', token);
+        await StoreData().storeInsertData('corporate', corporate);
+
+        state.setUser = UserInfo(
+          username: username,
+          firstName: fName,
+          lastName: lName,
+          email: email,
+          phoneNumber: phoneNumber,
+          countryCode: countryCode,
+          referrer: referrer,
+          token: token,
+          corporate: corporate,
+        );
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const Veryfication(),
+          ),
+        );
+      } else {
+        errorPopup(context,
+            title: LanguageEn.error,
+            message: LanguageEn.errormessage + responseData['data']['message']);
+      }
     } catch (e) {
       print(e);
+      hideLoader(context);
+      errorPopup(context,
+          title: LanguageEn.error,
+          message: LanguageEn.errormessage + e.toString());
     }
   }
 }
