@@ -12,6 +12,7 @@ import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import '../../widgets/loader.dart';
 
 class CreatePassword extends StatefulWidget {
   const CreatePassword({Key? key}) : super(key: key);
@@ -160,7 +161,7 @@ class _CreatePassword extends State<CreatePassword> {
     return null;
   }
 
-  bool validateAndSave() {
+  bool validate() {
     final form = _formKey.currentState;
     if (form!.validate()) {
       form.save();
@@ -170,22 +171,29 @@ class _CreatePassword extends State<CreatePassword> {
   }
 
   void saveAndProceed() async {
-    if (validateAndSave()) {
+    if (validate()) {
       // hide keyboard because of the bad effect it has on the
       // next screen. This is just a hack, will work out a better
       // solution later
-      // TODO: Find better way to solve the keyboard overlay issue
-      FocusScope.of(context).requestFocus(FocusNode());
-      var account = TrovoWalletSDK().createAccount();
-      await StoreData().storeInsertData('secretKey', account.secretKey);
-      await StoreData().storeInsertData('publicKey', account.publicKey);
-      await StoreData().storeInsertData('password', password);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const SignUp(),
-        ),
-      );
+      try {
+        showLoader(context);
+        // TODO: Find better way to solve the keyboard overlay issue
+        FocusScope.of(context).requestFocus(FocusNode());
+        var account = TrovoWalletSDK().createAccount();
+        await StoreData().storeInsertData('secretKey', account.secretKey);
+        await StoreData().storeInsertData('publicKey', account.publicKey);
+        await StoreData().storeInsertData('password', password);
+        hideLoader(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const SignUp(),
+          ),
+        );
+      } catch (e) {
+        hideLoader(context);
+        print('we ran into and error $e');
+      }
     }
   }
 }

@@ -422,14 +422,9 @@ class _SignUpState extends State<SignUp> {
               countryCode = value.code;
             });
           },
-          validator: validatePhone,
         ),
       ),
     );
-  }
-
-  FutureOr<String?> validatePhone(PhoneNumber? number) {
-    print('validating phone number ...');
   }
 
   String? validateEmail(String? value) {
