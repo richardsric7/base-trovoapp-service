@@ -100,7 +100,10 @@ class _SwiperState extends State<Swiper> {
                 children: _buildPageIndicator(),
               ),
               SizedBox(height: height / 30.5),
-              GestureDetector(
+              Button(
+                LanguageEn.getstarted,
+                notifier.getbluecolor,
+                notifier.getwihitecolor,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -109,11 +112,12 @@ class _SwiperState extends State<Swiper> {
                     ),
                   );
                 },
-                child: Button(LanguageEn.getstarted, notifier.getbluecolor,
-                    notifier.getwihitecolor),
               ),
               SizedBox(height: height / 50.5),
-              GestureDetector(
+              ButtonCustom(
+                LanguageEn.signin,
+                notifier.getwihitecolor,
+                notifier.getbluecolor,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -122,45 +126,9 @@ class _SwiperState extends State<Swiper> {
                     ),
                   );
                 },
-                child: button(LanguageEn.signin, notifier.getwihitecolor,
-                    notifier.getbluecolor),
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget button(buttontext, colorbutton, buttontextcolor) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          LayoutBuilder(builder: (context, constraints) {
-            return Container(
-              height: height / 15,
-              width: width / 1.1,
-              decoration: BoxDecoration(
-                border: Border.all(color: notifier.getgrey),
-                color: colorbutton,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Center(
-                child: Text(
-                  buttontext,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontFamily: fontbody,
-                      fontSize: 15.sp,
-                      color: buttontextcolor),
-                ),
-              ),
-            );
-          }),
         ],
       ),
     );

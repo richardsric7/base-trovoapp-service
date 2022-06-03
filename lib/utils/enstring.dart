@@ -62,10 +62,13 @@ class LanguageEn {
   static String get usernamevalidateempty => "Choose a username";
 
   static String get usernamevalidatelength =>
-      "Sorry your username must be between 4 and 16 characters long";
+      "Username must be between 3 and 16 characters long";
 
   static String get usernamevalidateinvalid =>
-      "Choose a valid username and try again";
+      "Username cannot contain any special character";
+
+  static String get usernamevalidatenumber =>
+      "Username cannot contain only numbers!";
 
   static String get entervalidmobilenumber =>
       "Please enter a valid phone number";

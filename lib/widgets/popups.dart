@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
-
-import '../Custom_BlocObserver/button/custtom_button.dart';
 import '../Custom_BlocObserver/notifire_clor.dart';
 import '../utils/enstring.dart';
 
@@ -21,8 +18,8 @@ errorPopup(context, {required String title, required String message}) async {
             backgroundColor: Colors.transparent,
             insetPadding: const EdgeInsets.all(20),
             content: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
                 borderRadius: BorderRadius.all(
                   Radius.circular(23),
                 ),
@@ -37,7 +34,9 @@ errorPopup(context, {required String title, required String message}) async {
                       child: Text(
                         title,
                         style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.w500),
+                            color: notifier.getblck,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500),
                       ),
                     ),
                   ),
@@ -63,6 +62,8 @@ errorPopup(context, {required String title, required String message}) async {
                         fixedSize: MaterialStateProperty.all(
                           const Size(300.0, 33.0),
                         ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor),
                         shape:
                             MaterialStateProperty.all<RoundedRectangleBorder>(
                           const RoundedRectangleBorder(
@@ -74,7 +75,7 @@ errorPopup(context, {required String title, required String message}) async {
                       ),
                       child: Text(
                         LanguageEn.continuee,
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(color: notifier.getblck),
                       ),
                     ),
                   ),

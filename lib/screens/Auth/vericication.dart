@@ -2,8 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
-import 'package:otp_text_field/otp_field.dart';
+import 'package:otp_text_field/otp_text_field.dart';
 import 'package:otp_text_field/style.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/provider.dart';
 import 'package:trovo_wallet/screens/Auth/complateverification.dart';
@@ -32,7 +31,7 @@ class Veryfication extends StatefulWidget {
 class _VeryficationState extends State<Veryfication> {
   late ColorNotifier notifier;
   late DataProvider state;
-  late String otp;
+  String otp = '';
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -107,6 +106,9 @@ class _VeryficationState extends State<Veryfication> {
                       TextStyle(color: notifier.getblck, fontFamily: fontbody),
                   textFieldAlignment: MainAxisAlignment.spaceAround,
                   fieldStyle: FieldStyle.box,
+                  otpFieldStyle: OtpFieldStyle(
+                    borderColor: Colors.red,
+                  ),
                   onChanged: (pin) {
                     print("Changed: " + pin);
                   },
@@ -139,14 +141,16 @@ class _VeryficationState extends State<Veryfication> {
                 ],
               ),
               SizedBox(height: height / 15),
-              GestureDetector(
-                  onTap: () {
-                    if (otp.length == 6) {
-                      completeRegistration();
-                    }
-                  },
-                  child: Button(LanguageEn.verify, notifier.getbluecolor,
-                      notifier.getwihitecolor))
+              Button(
+                LanguageEn.verify,
+                notifier.getbluecolor,
+                notifier.getwihitecolor,
+                onTap: () {
+                  if (otp.length == 6) {
+                    completeRegistration();
+                  }
+                },
+              )
             ],
           ),
         ),

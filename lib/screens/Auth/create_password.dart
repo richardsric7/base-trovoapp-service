@@ -113,13 +113,14 @@ class _CreatePassword extends State<CreatePassword> {
                   onSaved: (value) => password = value,
                 ),
                 SizedBox(height: height / 10),
-                GestureDetector(
-                  onTap: () async {
-                    saveAndProceed();
-                  },
-                  child: Button(LanguageEn.continuee, notifier.getbluecolor,
-                      notifier.getwihitecolor),
+                Button(
+                  LanguageEn.continuee,
+                  notifier.getbluecolor,
+                  notifier.getwihitecolor,
+                  onTap: saveAndProceed,
                 ),
+                // ButtonCustom(LanguageEn.continuee, notifier.getbluecolor,
+                //     notifier.getwihitecolor, saveAndProceed),
                 SizedBox(height: height / 10),
                 Padding(
                     padding: EdgeInsets.only(

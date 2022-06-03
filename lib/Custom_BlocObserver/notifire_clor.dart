@@ -20,6 +20,8 @@ class ColorNotifier with ChangeNotifier {
 
   get getdarkgrey => darkgrey;
 
+  get getsplashgrey => splashgrey;
+
   get getgreencolor => green;
 
   get getblck => isDark ? blck : darkblck;

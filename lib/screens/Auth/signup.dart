@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:cool_dropdown/cool_dropdown.dart';
@@ -7,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:intl_phone_field/countries.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:intl_phone_field/phone_number.dart';
+import 'package:toggle_switch/toggle_switch.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
@@ -108,6 +110,48 @@ class _SignUpState extends State<SignUp> {
                               fontFamily: fontbody),
                         ),
                         SizedBox(height: height / 50),
+                        Text(
+                          'Account Type',
+                          style: TextStyle(
+                              fontSize: height / 55,
+                              color: notifier.getblck,
+                              fontFamily: fontbody),
+                        ),
+                        SizedBox(height: height / 70),
+                        ToggleSwitch(
+                          minHeight: height / 16,
+                          customWidths: [
+                            width / 2.4,
+                            width / 2.4,
+                          ],
+                          customTextStyles: [
+                            TextStyle(
+                                fontSize: height / 55,
+                                color: notifier.getblck,
+                                fontFamily: fontbody),
+                            TextStyle(
+                                fontSize: height / 55,
+                                color: notifier.getblck,
+                                fontFamily: fontbody),
+                          ],
+                          fontSize: 16.0,
+                          initialLabelIndex: corporate,
+                          activeBgColor: [notifier.getbluecolor],
+                          activeFgColor: notifier.getwihitecolor,
+                          inactiveBgColor: notifier.getsplashgrey,
+                          inactiveFgColor: notifier.getblck,
+                          totalSwitches: 2,
+                          labels: ['Individual', 'Corporate'],
+                          onToggle: (index) {
+                            print('switched to: $index');
+
+                            setState(() {
+                              corporate = index!;
+                            });
+                            print('switched to: $corporate');
+                          },
+                        ),
+                        SizedBox(height: height / 50),
                         CustomTextFormField.textField(
                           LanguageEn.fanme,
                           notifier.getbluecolor,
@@ -197,69 +241,6 @@ class _SignUpState extends State<SignUp> {
                         ),
                         SizedBox(height: height / 50),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Row(
-                              children: [
-                                Radio(
-                                  value: 0,
-                                  groupValue: corporate,
-                                  activeColor: notifier.getbluecolor,
-                                  onChanged: (int? value) {
-                                    setState(() {
-                                      corporate = 0;
-                                    });
-                                  },
-                                ),
-                                Text(
-                                  LanguageEn.individual,
-                                  style: TextStyle(
-                                      fontSize: height / 55,
-                                      color: notifier.getblck,
-                                      fontFamily: fontbody),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Radio(
-                                  value: 1,
-                                  groupValue: corporate,
-                                  activeColor: notifier.getbluecolor,
-                                  onChanged: (int? value) {
-                                    setState(() {
-                                      corporate = 1;
-                                    });
-                                  },
-                                ),
-                                Text(
-                                  LanguageEn.corporate,
-                                  style: TextStyle(
-                                      fontSize: height / 55,
-                                      color: notifier.getblck,
-                                      fontFamily: fontbody),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        // SizedBox(height: height / 50),
-                        // CoolDropdown(
-                        //   // Initial Value
-                        //   defaultValue: accountTypes[corporate],
-                        //   // Down Arrow Icon
-                        //   // icon: const Icon(Icons.keyboard_arrow_down),
-                        //   // Array list of items
-                        //   dropdownList: accountTypes,
-                        //   // After selecting the desired option,it will
-                        //   // change button value to selected value
-                        //   onChange: (newValue) {
-                        //     print('selected item: ${newValue['value']}');
-                        //     corporate = int.parse(newValue['value']);
-                        //   },
-                        // ),
-                        SizedBox(height: height / 50),
-                        Row(
                           children: [
                             Transform.scale(
                               scale: 1.sp,
@@ -342,13 +323,12 @@ class _SignUpState extends State<SignUp> {
                 ],
               ),
               SizedBox(height: height / 25),
-              GestureDetector(
-                  onTap: () async {
-                    // Get.to(() => const FingerPrint());
-                    _validateAndSave();
-                  },
-                  child: Button(LanguageEn.signup, notifier.getbluecolor,
-                      notifier.getwihitecolor)),
+              Button(
+                LanguageEn.signup,
+                notifier.getbluecolor,
+                notifier.getwihitecolor,
+                onTap: () => _validateAndSave(),
+              ),
               SizedBox(height: height / 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -402,9 +382,16 @@ class _SignUpState extends State<SignUp> {
         height: h,
         width: w,
         child: IntlPhoneField(
+          autovalidateMode: AutovalidateMode.disabled,
           style: TextStyle(color: textcolor, fontFamily: fontbody),
           cursorColor: lablecolor,
           initialCountryCode: countryCode,
+          dropdownIcon: Icon(
+            Icons.arrow_drop_down,
+            color: textcolor,
+          ),
+          dropdownTextStyle:
+              TextStyle(color: textcolor, fontSize: 16, fontFamily: fontbody),
           decoration: InputDecoration(
             label: Text(labletext),
             disabledBorder: OutlineInputBorder(
@@ -435,9 +422,14 @@ class _SignUpState extends State<SignUp> {
               countryCode = value.code;
             });
           },
+          validator: validatePhone,
         ),
       ),
     );
+  }
+
+  FutureOr<String?> validatePhone(PhoneNumber? number) {
+    print('validating phone number ...');
   }
 
   String? validateEmail(String? value) {
@@ -454,13 +446,24 @@ class _SignUpState extends State<SignUp> {
   }
 
   String? validateUsername(String? value) {
-    String pattern = r'^(?!.*\.\.)(?!.*\.$)[^\W][\w]{3,16}$';
-    RegExp regex = new RegExp(pattern);
     if (value!.isEmpty) {
       return LanguageEn.usernamevalidateempty;
-    } else if (value.trim().replaceAll(' ', '').length < 3) {
+    }
+
+    if (value.trim().replaceAll(' ', '').length < 3 ||
+        value.trim().replaceAll(' ', '').length > 16) {
       return LanguageEn.usernamevalidatelength;
-    } else if (!regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+    }
+
+    if (num.tryParse(value.trim().replaceAll(' ', '')) != null) {
+      return LanguageEn.usernamevalidatenumber;
+    }
+
+    String pattern = r'^(?!.*\.\.)(?!.*\.$)[^\W][\w]{2,16}$';
+    RegExp regex = new RegExp(pattern);
+
+    if (!regex.hasMatch(value.trim().replaceAll(' ', '')) ||
+        value.contains('_')) {
       return LanguageEn.usernamevalidateinvalid;
     }
 
@@ -469,10 +472,11 @@ class _SignUpState extends State<SignUp> {
 
   String? validateReferrer(String? value) {
     print('referrer: $value');
-    String pattern = r'^(?!.*\.\.)(?!.*\.$)[^\W][\w]{3,16}$';
+    String pattern = r'^(?!.*\.\.)(?!.*\.$)[^\W][\w]{2,16}$';
     RegExp regex = new RegExp(pattern);
 
-    if (value!.isNotEmpty && value.trim().replaceAll(' ', '').length < 3) {
+    if (value!.isNotEmpty && value.trim().replaceAll(' ', '').length < 3 ||
+        value.trim().replaceAll(' ', '').length > 16) {
       return LanguageEn.usernamevalidatelength;
     } else if (value.isNotEmpty &&
         !regex.hasMatch(value.trim().replaceAll(' ', ''))) {
