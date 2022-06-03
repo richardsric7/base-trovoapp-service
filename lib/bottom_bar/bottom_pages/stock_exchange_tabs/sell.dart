@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/Custom_BlocObserver/button/custtom_button.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
-import 'package:gocrypto/screens/Payment%20Method/paymentmethod.dart';
-import 'package:gocrypto/utils/enstring.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
+import 'package:trovo_wallet/screens/Payment%20Method/paymentmethod.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 
 import '../../../utils/medeiaqury/medeiaqury.dart';
@@ -25,11 +25,10 @@ class _SellState extends State<Sell> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getfavorites,
         body: Column(
           children: [
-
             GestureDetector(
               onTap: () {
                 Get.to(
@@ -88,7 +87,8 @@ class _SellState extends State<Sell> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Card(elevation: 0,
+        Card(
+          elevation: 0,
           color: notifier.getwihitecolor,
           // color: notifier.getfavorites,
           shape: RoundedRectangleBorder(
@@ -130,7 +130,8 @@ class _SellState extends State<Sell> {
             ),
           ),
         ),
-        Card(elevation: 0,
+        Card(
+          elevation: 0,
           color: notifier.getwihitecolor,
           // color: notifier.getfavorites,
           shape: RoundedRectangleBorder(
@@ -159,7 +160,8 @@ class _SellState extends State<Sell> {
 
   Widget exchangestock() {
     return Center(
-      child: Card(elevation: 0,
+      child: Card(
+        elevation: 0,
         color: notifier.getwihitecolor,
         child: Container(
           color: Colors.transparent,

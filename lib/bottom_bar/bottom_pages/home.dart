@@ -2,13 +2,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/Custom_BlocObserver/Custtom_stoc/custtomstoc.dart';
-import 'package:gocrypto/Custom_BlocObserver/Stock%20Gains%20card/stockgainscard.dart';
-import 'package:gocrypto/Custom_BlocObserver/custtom_slock_list/custtom_slock_list.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
-import 'package:gocrypto/button_tabs/chart.dart';
-import 'package:gocrypto/utils/enstring.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_stoc/custtomstoc.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Stock%20Gains%20card/stockgainscard.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/custtom_slock_list/custtom_slock_list.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
+import 'package:trovo_wallet/button_tabs/chart.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -32,7 +32,7 @@ class _HomeState extends State<Home> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(70.sp),

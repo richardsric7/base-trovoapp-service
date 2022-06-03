@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/screens/Auth/pin.dart';
-import 'package:gocrypto/utils/enstring.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/screens/Auth/face_id.dart';
+import 'package:trovo_wallet/screens/Auth/pin.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,7 +44,7 @@ class _FingerPrintState extends State<FingerPrint> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
@@ -56,7 +59,7 @@ class _FingerPrintState extends State<FingerPrint> {
                   style: TextStyle(
                       color: notifier.getblck,
                       fontSize: 26.sp,
-                      fontFamily: 'Gilroy_Bold'),
+                      fontFamily: fontsemibold),
                 ),
               ),
               SizedBox(height: height / 45),
@@ -64,26 +67,68 @@ class _FingerPrintState extends State<FingerPrint> {
                 child: Text(
                   LanguageEn.unlockfinger,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16.sp, color: notifier.getgrey),
+                  style: TextStyle(
+                      fontSize: 16.sp,
+                      color: notifier.getgrey,
+                      fontFamily: fontbody),
                 ),
               ),
               SizedBox(height: height / 20),
               Center(
-                child: Image.asset("assets/images/finger.png",
-                    height: height / 3.1),
+                child: Icon(
+                  Icons.fingerprint,
+                  color: notifier.getbluecolor,
+                  size: 200.sp,
+                ),
               ),
-              SizedBox(height: height / 4),
+              SizedBox(height: height / 20),
+              Row(
+                children: [
+                  SizedBox(width: width / 25),
+                  Icon(
+                    Icons.fingerprint,
+                    color: notifier.getbluecolor,
+                    size: 20.sp,
+                  ),
+                  SizedBox(width: width / 40),
+                  Text(
+                    LanguageEn.setupfingerprint,
+                    style: TextStyle(
+                        color: notifier.getblck,
+                        fontSize: 15.sp,
+                        fontFamily: fontbody),
+                  ),
+                  const Spacer(),
+                  SizedBox(width: width / 100),
+                  Transform.scale(
+                    scale: 0.7,
+                    child: CupertinoSwitch(
+                      activeColor: notifier.getbluecolor,
+                      value: notifier.getIsDark,
+                      onChanged: (val) async {
+                        final prefs = await SharedPreferences.getInstance();
+                        setState(() {
+                          notifier.setIsDark = val;
+                          prefs.setBool("setIsDark", val);
+                        });
+                      },
+                    ),
+                  ),
+                  SizedBox(width: width / 15),
+                ],
+              ),
+              SizedBox(height: height / 20),
               GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const Pin(),
+                        builder: (context) => const Faceid(),
                       ),
                     );
                   },
-                  child: Button(LanguageEn.setupfingerprint,
-                      notifier.getbluecolor, notifier.getwihitecolor))
+                  child: Button(LanguageEn.goahead, notifier.getbluecolor,
+                      notifier.getwihitecolor))
             ],
           ),
         ),

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
-import 'package:gocrypto/Custom_BlocObserver/button/custtom_button.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/screens/reset_password/cameraverification.dart';
-import 'package:gocrypto/utils/enstring.dart';
-import 'package:gocrypto/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/screens/reset_password/cameraverification.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 
 class VerifyYourIdentity extends StatefulWidget {
@@ -25,7 +26,7 @@ class _VerifyYourIdentityState extends State<VerifyYourIdentity> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
           notifier.getwihitecolor,
@@ -47,19 +48,23 @@ class _VerifyYourIdentityState extends State<VerifyYourIdentity> {
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 23.sp,
-                            fontFamily: 'Gilroy_Bold'),
+                            fontFamily: fontsemibold),
                       ),
                       SizedBox(height: height / 30),
                       Text(
                         LanguageEn.chooseyourdocument,
-                        style:
-                            TextStyle(fontSize: 14.sp, color: notifier.getgrey),
+                        style: TextStyle(
+                            fontSize: 14.sp,
+                            color: notifier.getgrey,
+                            fontFamily: fontbody),
                       ),
                       SizedBox(height: height / 8),
                       Text(
                         LanguageEn.methodofverification,
-                        style:
-                            TextStyle(fontSize: 14.sp, color: notifier.getgrey),
+                        style: TextStyle(
+                            fontSize: 14.sp,
+                            color: notifier.getgrey,
+                            fontFamily: fontbody),
                       ),
                       SizedBox(height: height / 50),
                       methodverification(
@@ -109,7 +114,7 @@ class _VerifyYourIdentityState extends State<VerifyYourIdentity> {
             verificationname,
             style: TextStyle(
                 color: notifier.getblck,
-                fontFamily: 'Gilroy_Bold',
+                fontFamily: fontsemibold,
                 fontSize: 16.sp),
           ),
           const Spacer(),

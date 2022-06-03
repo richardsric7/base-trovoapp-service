@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/bottom_bar/bottom_pages/stock_exchange_tabs/buy.dart';
-import 'package:gocrypto/utils/enstring.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/buy.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 
 import '../../Custom_BlocObserver/notifire_clor.dart';
@@ -27,7 +27,7 @@ class _StockExchangeState extends State<StockExchange>
     width = MediaQuery.of(context).size.width;
 
     return ScreenUtilInit(
-      builder: () => DefaultTabController(
+      builder: (context, child) => DefaultTabController(
         length: 2,
         child: Scaffold(
           backgroundColor: notifier.getwihitecolor,
@@ -50,7 +50,8 @@ class _StockExchangeState extends State<StockExchange>
               preferredSize: Size.fromHeight(80.sp),
               child: Padding(
                 padding: const EdgeInsets.only(left: 13, right: 13),
-                child: Card(elevation: 0,
+                child: Card(
+                  elevation: 0,
                   color: notifier.getwihitecolor,
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
@@ -59,8 +60,7 @@ class _StockExchangeState extends State<StockExchange>
                       padding: EdgeInsets.all(8.sp),
                       child: TabBar(
                           padding: EdgeInsets.zero,
-                          unselectedLabelColor:
-                             notifier.getgrey,
+                          unselectedLabelColor: notifier.getgrey,
                           indicator: BoxDecoration(
                               borderRadius: BorderRadius.circular(5.sp),
                               color: notifier.getbluecolor),
@@ -74,10 +74,10 @@ class _StockExchangeState extends State<StockExchange>
                               ),
                             ),
                             Tab(
-                              child: Align(
-                                alignment: Alignment.center,
-                                child: Text(
-                                  LanguageEn.sell,
+                                child: Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                LanguageEn.sell,
                               ),
                             )),
                           ]),
@@ -87,9 +87,7 @@ class _StockExchangeState extends State<StockExchange>
               ),
             ),
           ),
-          body: const TabBarView(
-
-              children: [Buy(), Sell()]),
+          body: const TabBarView(children: [Buy(), Sell()]),
         ),
       ),
     );

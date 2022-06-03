@@ -6,7 +6,7 @@ import '../utils/medeiaqury/medeiaqury.dart';
 Widget paymenttype(
     image, cardname, disc, cardnamecolor, disccolor, imagecolor, imagehight) {
   return ScreenUtilInit(
-    builder: () => Padding(
+    builder: (context, child) => Padding(
       padding: EdgeInsets.only(left: width / 50, right: width / 50),
       child: Container(
         height: height / 12,

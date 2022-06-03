@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/bottom_bar/bottombar.dart';
-import 'package:gocrypto/utils/enstring.dart';
-import 'package:gocrypto/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/bottom_bar/bottombar.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
+
+import '../../Custom_BlocObserver/button/custtom_button.dart';
 
 class TermsofService extends StatefulWidget {
   const TermsofService({Key? key}) : super(key: key);
@@ -24,7 +27,7 @@ class _TermsofServiceState extends State<TermsofService> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
           notifier.getwihitecolor,
@@ -50,7 +53,7 @@ class _TermsofServiceState extends State<TermsofService> {
                             style: TextStyle(
                                 color: notifier.getgrey,
                                 fontSize: 15.sp,
-                                fontFamily: 'Gilroy_Medium'),
+                                fontFamily: fontbody),
                           )
                         ],
                       ),
@@ -63,7 +66,7 @@ class _TermsofServiceState extends State<TermsofService> {
                             style: TextStyle(
                                 color: notifier.getblck,
                                 fontSize: 19.sp,
-                                fontFamily: 'Gilroy_Bold'),
+                                fontFamily: fontsemibold),
                           )
                         ],
                       ),
@@ -76,7 +79,7 @@ class _TermsofServiceState extends State<TermsofService> {
                           style: TextStyle(
                               color: notifier.getgrey,
                               fontSize: 15.sp,
-                              fontFamily: 'Gilroy_Medium'),
+                              fontFamily: fontbody),
                         ),
                       ),
                       SizedBox(height: height / 25),
@@ -88,7 +91,7 @@ class _TermsofServiceState extends State<TermsofService> {
                             style: TextStyle(
                                 color: notifier.getblck,
                                 fontSize: 19.sp,
-                                fontFamily: 'Gilroy_Bold'),
+                                fontFamily: fontsemibold),
                           )
                         ],
                       ),
@@ -101,7 +104,7 @@ class _TermsofServiceState extends State<TermsofService> {
                           style: TextStyle(
                               color: notifier.getgrey,
                               fontSize: 15.sp,
-                              fontFamily: 'Gilroy_Medium'),
+                              fontFamily: fontbody),
                         ),
                       ),
                       Padding(
@@ -112,7 +115,7 @@ class _TermsofServiceState extends State<TermsofService> {
                           style: TextStyle(
                               color: notifier.getgrey,
                               fontSize: 15.sp,
-                              fontFamily: 'Gilroy_Medium'),
+                              fontFamily: fontbody),
                         ),
                       ),
                     ],
@@ -120,69 +123,15 @@ class _TermsofServiceState extends State<TermsofService> {
                 ),
               ),
               SizedBox(height: height / 15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                      onTap: () {
-                        Get.back();
-                      },
-                      child: button(
-                          LanguageEn.declined,
-                          notifier.getwihitecolor,
-                          notifier.getbluecolor,
-                          notifier.getgrey)),
-                  SizedBox(width: width / 50),
-                  GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const BottomHome(),
-                          ),
-                        );
-                      },
-                      child: button(LanguageEn.accept, notifier.getbluecolor,
-                          notifier.getwihitecolor, notifier.getbluecolor)),
-                ],
-              ),
+              GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Button(LanguageEn.done, notifier.getbluecolor,
+                      notifier.getwihitecolor)),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget button(buttontext, colorbutton, buttontextcolor, bordercolor) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          LayoutBuilder(builder: (context, constraints) {
-            return Container(
-              height: height / 15,
-              width: width / 2.4,
-              decoration: BoxDecoration(
-                border: Border.all(color: bordercolor),
-                color: colorbutton,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Center(
-                child: Text(
-                  buttontext,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontFamily: 'Gilroy_Medium',
-                      fontSize: 15.sp,
-                      color: buttontextcolor),
-                ),
-              ),
-            );
-          }),
-        ],
       ),
     );
   }

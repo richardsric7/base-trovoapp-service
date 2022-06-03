@@ -49,7 +49,7 @@ class _CusttomButtonState extends State<CusttomButton> {
     width = MediaQuery.of(context).size.width;
 
     return ScreenUtilInit(
-      builder: () => Center(
+      builder: (context, child) => Center(
         child: Container(
           color: Colors.transparent,
           height: height / 17,

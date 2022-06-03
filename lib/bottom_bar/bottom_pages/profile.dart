@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/screens/Auth/login.dart';
-import 'package:gocrypto/screens/Payment%20Method/paymentmethod.dart';
-import 'package:gocrypto/screens/profile/faq.dart';
-import 'package:gocrypto/screens/profile/language.dart';
-import 'package:gocrypto/screens/profile/myaccount.dart';
-import 'package:gocrypto/utils/enstring.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/screens/Auth/login.dart';
+import 'package:trovo_wallet/screens/Payment%20Method/paymentmethod.dart';
+import 'package:trovo_wallet/screens/profile/faq.dart';
+import 'package:trovo_wallet/screens/profile/language.dart';
+import 'package:trovo_wallet/screens/profile/myaccount.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -47,7 +47,7 @@ class _ProfileState extends State<Profile> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),

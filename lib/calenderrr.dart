@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 Widget calender(
     bgcolor, bgcolortwo, textcolor, bgcolorthree, stcolor, sttwocolor) {
   return ScreenUtilInit(
-    builder: () => Center(
+    builder: (context, child) => Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[

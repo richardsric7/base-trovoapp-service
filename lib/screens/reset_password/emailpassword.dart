@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
-import 'package:gocrypto/Custom_BlocObserver/button/custtom_button.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/screens/Auth/verifyyouridentity.dart';
-import 'package:gocrypto/utils/enstring.dart';
-import 'package:gocrypto/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/screens/Auth/verifyyouridentity.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 
 class Emailpassword extends StatefulWidget {
   const Emailpassword({Key? key}) : super(key: key);
@@ -53,7 +56,7 @@ class _EmailpasswordState extends State<Emailpassword> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
           notifier.getwihitecolor,
@@ -66,7 +69,7 @@ class _EmailpasswordState extends State<Emailpassword> {
             children: [
               SizedBox(height: height / 20),
               Center(
-                  child: Image.asset("assets/images/lock.png",
+                  child: Image.asset("assets/images/mailbox.png",
                       height: height / 3.9)),
               SizedBox(height: height / 25),
               Text(
@@ -74,7 +77,7 @@ class _EmailpasswordState extends State<Emailpassword> {
                 style: TextStyle(
                     color: notifier.getblck,
                     fontSize: 22.sp,
-                    fontFamily: 'Gilroy_Bold'),
+                    fontFamily: fontsemibold),
               ),
               SizedBox(height: height / 100),
               Text(
@@ -83,10 +86,20 @@ class _EmailpasswordState extends State<Emailpassword> {
                 style: TextStyle(
                     color: notifier.getgrey,
                     fontSize: 15.sp,
-                    fontFamily: 'Gilroy_Medium'),
+                    fontFamily: fontbody),
               ),
               SizedBox(height: height / 30),
-              verification(),
+              Customtextfild.textField(
+                LanguageEn.emailadress,
+                notifier.getbluecolor,
+                Icons.email,
+                notifier.getgrey,
+                notifier.getprefixicon,
+                notifier.getblck,
+                notifier.getgrey,
+                45.sp,
+                300.sp,
+              ),
               SizedBox(height: height / 4.7),
               GestureDetector(
                   onTap: () {
@@ -97,75 +110,6 @@ class _EmailpasswordState extends State<Emailpassword> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget verification() {
-    return Container(
-      height: height / 15,
-      width: width / 1.2,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(
-          Radius.circular(15.sp),
-        ),
-        border: Border.all(
-          color: notifier.getbluecolor,
-        ),
-      ),
-      child: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 10),
-            child: DropdownButton(
-              dropdownColor: notifier.getwihitecolor,
-              underline: const SizedBox(),
-              // Initial Value
-              value: dropdownvalue,
-
-              // Down Arrow Icon
-              icon: Icon(
-                Icons.arrow_drop_down,
-                color: notifier.getblck,
-              ),
-
-              // Array list of items
-              items: items.map((String items) {
-                return DropdownMenuItem(
-                  value: items,
-                  child: Text(
-                    items,
-                    style: TextStyle(color: notifier.getblck),
-                  ),
-                );
-              }).toList(),
-              // After selecting the desired option,it will
-              // change button value to selected value
-              onChanged: (String? newValue) {
-                setState(() {
-                  dropdownvalue = newValue!;
-                });
-              },
-            ),
-          ),
-          SizedBox(width: width / 100),
-          Container(
-            height: height / 22,
-            width: width / 250,
-            color: notifier.getgrey,
-          ),
-          SizedBox(width: width / 22),
-          Container(
-            color: Colors.transparent,
-            height: 25.h,
-            width: 200.w,
-            child: TextField(
-              style: TextStyle(color: notifier.getblck),
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(border: InputBorder.none),
-            ),
-          )
-        ],
       ),
     );
   }

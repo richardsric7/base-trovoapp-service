@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:gocrypto/Custom_BlocObserver/notifire_clor.dart';
-import 'package:gocrypto/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
-import 'package:gocrypto/utils/enstring.dart';
-import 'package:gocrypto/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 
 class Notifi extends StatefulWidget {
@@ -23,7 +23,7 @@ class _NotifiState extends State<Notifi> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
-      builder: () => Scaffold(
+      builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: AppBar(
           actions: [
