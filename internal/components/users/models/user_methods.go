@@ -463,7 +463,18 @@ func (u *User) Fetch3rdPartyWallets(db *gorm.DB, redisCache *cache.RedisCache) (
 
 		if ok {
 			log.Printf("Fetch3rdPartyWallets [%v], served from cache\n", cacheKey)
-			thirdPartyWallets = response.([]ThirdPartyWalletAccess)
+			w3rp := response.([]interface{})
+			for _, w3 := range w3rp {
+				w3i := w3.(map[string]interface{})
+				thirdPartyWallets = append(thirdPartyWallets, ThirdPartyWalletAccess{
+					Owner:             w3i["owner"].(string),
+					PublicKey:         w3i["publicKey"].(string),
+					AccessLevel:       w3i["accessLevel"].(string),
+					WalletAlias:       w3i["walletAlias"].(string),
+					WalletDescription: w3i["walletDescription"].(string),
+				})
+			}
+
 			return
 		}
 
@@ -520,7 +531,7 @@ func (u *User) GetDefaultAssets(db *gorm.DB, redisCache *cache.RedisCache) (defa
 			da := response.([]interface{})
 			for _, v := range da {
 				vals := v.(map[string]interface{})
-				log.Printf("VALS: [%+v]\n", vals)
+				// log.Printf("VALS: [%+v]\n", vals)
 				defaultAssets = append(defaultAssets, DefaultAsset{
 					AssetCode:   vals["assetCode"].(string),
 					AssetIssuer: vals["assetIssuer"].(string),
