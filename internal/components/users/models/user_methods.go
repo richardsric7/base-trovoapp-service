@@ -494,3 +494,28 @@ func (u *User) Fetch3rdPartyWallets(db *gorm.DB, redisCache *cache.RedisCache) (
 
 	return
 }
+
+func (u *User) GetDefaultAssets(db *gorm.DB, redisCache *cache.RedisCache) (defaultAssets []DefaultAsset) {
+	cacheKey := "GetDefaultAssets"
+
+	{
+
+		// search cache for balance
+		ok, response := redisCache.GetCachedResult(cacheKey)
+
+		if ok {
+			log.Printf("GetDefaultAssets [%v], served from cache\n", cacheKey)
+			defaultAssets = response.([]DefaultAsset)
+			return
+		}
+
+	}
+	e := db.Find(&defaultAssets).Error
+	if e != nil {
+		log.Printf("[User.GetDefaultAssets] Error pulling default Assets, Error: %v", e)
+	}
+	//save to cache
+	redisCache.StoreResultToCache(cacheKey, defaultAssets, 4000)
+	return defaultAssets
+
+}

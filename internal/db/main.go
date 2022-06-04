@@ -84,7 +84,7 @@ func OpenDb() (*gorm.DB, error) {
 			QueryFields: true,
 		})
 		if err != nil {
-			log.Println(fmt.Sprintf("[OpenDb]failed to connect database, %s", err))
+			log.Printf("[OpenDb]failed to connect database, %s\n", err)
 			return nil, err
 		}
 
@@ -108,7 +108,7 @@ func OpenSqliteDB() (*gorm.DB, error) {
 	})
 
 	if errDB != nil {
-		log.Println(fmt.Sprintf("[OpenDb]failed to connect database, %s", errDB))
+		log.Printf("[OpenDb]failed to connect database, %s\n", errDB)
 		return nil, errDB
 	}
 
@@ -166,6 +166,11 @@ func MigrateDB(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&SMS.SmsProvider{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating SmsProvider: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.DefaultAsset{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating DefaultAsset: ", errMigrate)
 		}
 		// errMigrate = UserTriggers(gormDB)
 		// if errMigrate != nil {

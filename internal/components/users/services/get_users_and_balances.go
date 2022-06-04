@@ -44,6 +44,8 @@ func GetUserInfo(identifier string, dynamicLinkServiceUrlChan chan string, db *g
 
 	userInfo.ThirdPartyWalletAccess = user.Fetch3rdPartyWallets(db, redisCache)
 
+	userInfo.DefaultAssets = user.GetDefaultAssets(db, redisCache)
+
 	return
 }
 
