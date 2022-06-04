@@ -1,7 +1,6 @@
 package users
 
 import (
-	"log"
 	"sync"
 	"trovo-wallet-api/internal/cache"
 	usersDB "trovo-wallet-api/internal/components/users/db"
@@ -27,9 +26,9 @@ func GetUserInfo(identifier string, dynamicLinkServiceUrlChan chan string, db *g
 		}
 	}
 	//set userInfo
-	log.Printf("[GetUserInfo] retrieved User record:[%+v]\n", user)
+	// log.Printf("[GetUserInfo] retrieved User record:[%+v]\n", user)
 	userData := user.ToJSON()
-	log.Printf("[GetUserInfo] userData:[%+v]\n", userData)
+	// log.Printf("[GetUserInfo] userData:[%+v]\n", userData)
 	userInfo.UserData = userData
 
 	//Get user wallet balances
@@ -38,7 +37,7 @@ func GetUserInfo(identifier string, dynamicLinkServiceUrlChan chan string, db *g
 	if err == nil {
 		userInfo.AssetBalances = assetBalances
 	}
-	log.Println("[GetUserWalletAssetBalances] finished user wallets json")
+	// log.Println("[GetUserWalletAssetBalances] finished user wallets json")
 
 	userInfo.ThirdPartyWalletAccess = make([]userModels.ThirdPartyWalletAccess, 0)
 	//Get ThirdParty Wallet Access
@@ -89,7 +88,7 @@ func GetUserWalletAssetBalances(user *userModels.User, dynamicLinkServiceUrlChan
 				ml.Unlock()
 			} else {
 				//get default xbn balance
-				log.Println("returning zero balance for ", vg2.ID)
+				// log.Println("returning zero balance for ", vg2.ID)
 				ml.Lock()
 				//set Default XBN balance
 				assetBalances.Claimed[":"] = userModels.Balance{
@@ -102,15 +101,15 @@ func GetUserWalletAssetBalances(user *userModels.User, dynamicLinkServiceUrlChan
 
 		}(wallet, &wg, &m)
 		wg.Wait()
-		log.Printf("[GetUserWalletAssetBalances] finished user wallet balance:[%+v]\n", assetBalances)
+		// log.Printf("[GetUserWalletAssetBalances] finished user wallet balance:[%+v]\n", assetBalances)
 		m.Lock()
 		userWalletBalances[wallet.ID] = assetBalances
 		m.Unlock()
 
-		log.Println("exited inner wait")
+		// log.Println("exited inner wait")
 
 	}
-	log.Println("done...")
+	// log.Println("done...")
 
 	return
 }
