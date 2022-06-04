@@ -119,6 +119,16 @@ func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlCha
 
 	account, _, err := u.GetBlockchainAccountDetail(temp)
 	if err != nil {
+		if !temp {
+			balances[":"] = Balance{
+				AssetIssuer: "",
+				AssetCode:   "",
+				Amount:      decimal.Zero,
+			}
+			//save to cache
+			redisCache.StoreResultToCache(cacheKey, balances, 0)
+		}
+
 		return balances, err
 	}
 
@@ -219,7 +229,7 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizo
 
 	clientAccount, err = client.AccountDetail(accountRequest)
 	if err != nil {
-		log.Println("[GetBlockchainAccountDetail]: ", err)
+		log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
 		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
 			log.Printf("[GetBlockchainAccountDetail Network Failure]: %s\n", "Error Connecting to Expansion Service")
 			return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
@@ -448,6 +458,10 @@ func (u *User) Fetch3rdPartyWallets(db *gorm.DB, redisCache *cache.RedisCache) (
 	}
 	e := db.Where("username = ?", u.Username).Find(&walletPermissions).Error
 	if e != nil {
+		return
+	}
+	if len(walletPermissions) == 0 {
+		log.Println("[Fetch3rdPartyWallets] no wallet permissions found")
 		return
 	}
 	for _, assignedPermission := range walletPermissions {

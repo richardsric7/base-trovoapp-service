@@ -27,17 +27,17 @@ type UserJSON struct {
 }
 
 type UserWalletJSON struct {
-	CreatedAt               time.Time                   `json:"createdAt"`
-	ID                      string                      `json:"publicKey"`
-	TempPublicKey           string                      `json:"-"`
-	Tag                     string                      `json:"tag"`
-	Description             string                      `json:"description"`
-	Alias                   string                      `json:"alias"`  //primaryUsername_tag for sub wallets
-	Signer                  string                      `json:"signer"` //if ID is same as signer, then it is a primary wallet
-	UserID                  string                      `json:"userId"`
-	ManagedAccessEnabled    uint                        `json:"managedAccessEnabled"`
-	PrimaryWallet           uint                        `json:"primaryWallet"`
-	UserWalletManagedAccess UserWalletManagedAccessJSON `json:"userWalletManagedAccess"`
+	CreatedAt               time.Time                    `json:"createdAt"`
+	ID                      string                       `json:"publicKey"`
+	TempPublicKey           string                       `json:"-"`
+	Tag                     string                       `json:"tag"`
+	Description             string                       `json:"description"`
+	Alias                   string                       `json:"alias"`  //primaryUsername_tag for sub wallets
+	Signer                  string                       `json:"signer"` //if ID is same as signer, then it is a primary wallet
+	UserID                  string                       `json:"userId"`
+	ManagedAccessEnabled    uint                         `json:"managedAccessEnabled"`
+	PrimaryWallet           uint                         `json:"primaryWallet"`
+	UserWalletManagedAccess *UserWalletManagedAccessJSON `json:"userWalletManagedAccess,omitempty"`
 }
 
 type UserWalletManagedAccessJSON struct {

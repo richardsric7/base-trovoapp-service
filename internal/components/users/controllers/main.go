@@ -3,7 +3,7 @@ package users
 import (
 	"trovo-wallet-api/internal/cache"
 	usersDB "trovo-wallet-api/internal/components/users/db"
-	usermodels "trovo-wallet-api/internal/components/users/models"
+	userModels "trovo-wallet-api/internal/components/users/models"
 	userServices "trovo-wallet-api/internal/components/users/services"
 	conDB "trovo-wallet-api/internal/db"
 	dl "trovo-wallet-api/internal/dynamiclinks"
@@ -154,13 +154,8 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 	router.POST("/v1/users", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
-		// db, err := conDB.OpenDb()
-		// if err != nil {
-		// 	log.Println("--------------------DB error in POST USERS ENDPOINT:", err)
-		// 	return
-		// }
 
-		var userRegistrationInfo usermodels.UserRegistrationInfo
+		var userRegistrationInfo userModels.UserRegistrationInfo
 		// var err error
 
 		data, _ := ioutil.ReadAll(c.Request.Body)
@@ -215,7 +210,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			//registration completed
 
 			//return response
-			c.JSON(http.StatusOK, gin.H{"publicKey": userRegistrationInfo.PublicKey})
+			c.JSON(http.StatusOK, gin.H{"message": userRegistrationInfo.PublicKey})
 		}
 	})
 
@@ -248,7 +243,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		var pendingAssetToClaim usermodels.PendingAssetToClaim
+		var pendingAssetToClaim userModels.PendingAssetToClaim
 		// var err error
 
 		data, _ := ioutil.ReadAll(c.Request.Body)

@@ -1,5 +1,7 @@
 package users
 
+import "log"
+
 func (u *User) ToJSON() (jsonObj UserJSON) {
 	jsonObj.ID = u.ID
 	jsonObj.Username = u.Username
@@ -14,7 +16,7 @@ func (u *User) ToJSON() (jsonObj UserJSON) {
 	jsonObj.WalletRecoveryEnabled = u.WalletRecoveryEnabled
 	jsonObj.Verified = u.Verified
 	jsonObj.Suspended = u.Suspended
-
+	log.Println("[UserToJSON] set basic params")
 	//nullable
 	{
 		if u.ImageThumbnailURL != nil {
@@ -40,11 +42,19 @@ func (u *User) ToJSON() (jsonObj UserJSON) {
 		}
 
 	}
-	for _, uw := range u.UserWallets {
-		jsonObj.UserWallets = append(jsonObj.UserWallets, uw.ToJSON())
-	}
+	if u.UserWallets != nil {
+		log.Println("[UserToJSON] started user wallets json")
 
-	return
+		for _, uw := range u.UserWallets {
+			uwJson := uw.ToJSON()
+			log.Printf("[UserToJSON] added user wallet [%+v]\n", uwJson)
+			jsonObj.UserWallets = append(jsonObj.UserWallets, uwJson)
+
+		}
+
+	}
+	log.Println("[UserToJSON] ended user wallets json and returning data")
+	return jsonObj
 }
 
 func (uw *UserWallet) ToJSON() (jsonObj UserWalletJSON) {
@@ -54,7 +64,11 @@ func (uw *UserWallet) ToJSON() (jsonObj UserWalletJSON) {
 	jsonObj.Signer = uw.Signer
 	jsonObj.UserID = uw.UserID
 	jsonObj.ManagedAccessEnabled = uw.ManagedAccessEnabled
-	jsonObj.UserWalletManagedAccess = uw.UserWalletManagedAccess.ToJSON()
+	if uw.ManagedAccessEnabled == 1 {
+		majson := uw.UserWalletManagedAccess.ToJSON()
+		jsonObj.UserWalletManagedAccess = &majson
+	}
+
 	//nullable
 	{
 		if uw.TempPublicKey != nil {
