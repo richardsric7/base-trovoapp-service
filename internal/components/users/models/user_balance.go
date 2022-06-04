@@ -27,8 +27,8 @@ type Thresholds struct {
 
 //AssetBalances holds user balances
 type AssetBalances struct {
-	Claimed   map[string]Balance `json:"claimed"`
-	Unclaimed map[string]Balance `json:"unclaimed"`
+	Claimed   []Balance `json:"claimed"`
+	Unclaimed []Balance `json:"unclaimed"`
 }
 
 //NFTBalances holds user NFT balances
@@ -44,3 +44,5 @@ type NFT struct {
 type UserBalanceForMerchant struct {
 	Balances []Balance `json:"balances"`
 }
+
+type MappedBalance map[string]Balance

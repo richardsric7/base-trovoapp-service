@@ -111,7 +111,11 @@ func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlCha
 
 		if ok {
 			log.Printf("GetBalance[%v], served from cache\n", cacheKey)
-			balances = response.(map[string]Balance)
+			b := response.(map[string]interface{})
+			for k, v := range b {
+				balances[k] = v.(Balance)
+
+			}
 			return
 		}
 
@@ -119,14 +123,16 @@ func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlCha
 
 	account, _, err := u.GetBlockchainAccountDetail(temp)
 	if err != nil {
-		if !temp {
-			balances[":"] = Balance{
-				AssetIssuer: "",
-				AssetCode:   "",
-				Amount:      decimal.Zero,
-			}
+		balances[":"] = Balance{
+			AssetIssuer: "",
+			AssetCode:   "",
+			Amount:      decimal.Zero,
+		}
+		if !temp && err.Error() == "error-blockchain-account-not-activated" {
+
 			//save to cache
 			redisCache.StoreResultToCache(cacheKey, balances, 0)
+			return balances, nil
 		}
 
 		return balances, err
@@ -505,7 +511,15 @@ func (u *User) GetDefaultAssets(db *gorm.DB, redisCache *cache.RedisCache) (defa
 
 		if ok {
 			log.Printf("GetDefaultAssets [%v], served from cache\n", cacheKey)
-			defaultAssets = response.([]DefaultAsset)
+			da := response.([]interface{})
+			for _, v := range da {
+				vals := v.(map[string]interface{})
+				log.Printf("VALS: [%+v]\n", vals)
+				defaultAssets = append(defaultAssets, DefaultAsset{
+					AssetCode:   vals["assetCode"].(string),
+					AssetIssuer: vals["assetIssuer"].(string),
+				})
+			}
 			return
 		}
 

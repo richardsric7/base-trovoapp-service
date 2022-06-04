@@ -8,6 +8,7 @@
         "qrcode",
         "shopspring",
         "Trovotech",
-        "txnbuild"
+        "txnbuild",
+        "vals"
     ]
 }

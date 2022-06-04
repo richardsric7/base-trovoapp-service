@@ -41,6 +41,7 @@ type UserInfo struct {
 	AssetBalances          map[string]AssetBalances `json:"assetBalances"`          //map of wallet public key and the asset balances
 	NFTBalances            map[string]NFTBalances   `json:"nftBalances"`            //map of nft wallet and nftBalances
 	ThirdPartyWalletAccess []ThirdPartyWalletAccess `json:"thirdPartyWalletAccess"` //shows all the third party access granted to this user
+	DefaultAssets          []DefaultAsset           `json:"defaultAssets"`
 }
 type UserJSON struct {
 	ID                    string           `json:"-"`
@@ -129,8 +130,8 @@ type Thresholds struct {
 
 //AssetBalances holds user balances
 type AssetBalances struct {
-	Claimed   map[string]Balance `json:"claimed"`
-	Unclaimed map[string]Balance `json:"unclaimed"`
+	Claimed   []Balance `json:"claimed"`
+	Unclaimed []Balance `json:"unclaimed"`
 }
 
 //NFTBalances holds user NFT balances
@@ -140,6 +141,11 @@ type NFTBalances struct {
 type NFT struct {
 	AssetIssuer string `json:"assetIssuer"`
 	AssetCode   string `json:"assetCode"`
+}
+type DefaultAsset struct {
+	ID          uint64
+	AssetCode   string `gorm:"size:12" json:"assetCode"`
+	AssetIssuer string `gorm:"size:56" json:"assetIssuer"`
 }
 
 // func TestAccountRegistration(t *testing.T) {

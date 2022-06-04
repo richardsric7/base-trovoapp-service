@@ -1,6 +1,7 @@
 package users
 
 import (
+	"log"
 	"sync"
 	"trovo-wallet-api/internal/cache"
 	usersDB "trovo-wallet-api/internal/components/users/db"
@@ -8,7 +9,6 @@ import (
 
 	tErrors "trovo-wallet-api/internal/errors"
 
-	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 )
 
@@ -60,15 +60,15 @@ func GetUserWalletAssetBalances(user *userModels.User, dynamicLinkServiceUrlChan
 		//use go routine to fetch
 
 		var assetBalances userModels.AssetBalances
-		assetBalances.Unclaimed = make(map[string]userModels.Balance)
-		// assetBalances.Unclaimed = make([]userModels.Balance, 0)
-		assetBalances.Claimed = make(map[string]userModels.Balance)
-		// assetBalances.Claimed = make([]userModels.Balance, 0)
+		// assetBalances.Unclaimed = make(map[string]userModels.Balance)
+		assetBalances.Unclaimed = make([]userModels.Balance, 0)
+		// assetBalances.Claimed = make(map[string]userModels.Balance)
+		assetBalances.Claimed = make([]userModels.Balance, 0)
 
 		wg.Add(1)
 		go func(vg1 userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 			defer w.Done()
-			unclaimedBalance, errR1 := vg1.GetBalance(db, true, dynamicLinkServiceUrlChan, redisCache)
+			unclaimedBalance, errR1 := vg1.GetSortedUserBalance(db, true, dynamicLinkServiceUrlChan, redisCache)
 
 			if errR1 == nil {
 				//Unclaimed Assets
@@ -81,25 +81,17 @@ func GetUserWalletAssetBalances(user *userModels.User, dynamicLinkServiceUrlChan
 		wg.Add(1)
 		go func(vg2 userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 			defer w.Done()
-			claimedWalletBalance, errR1 := vg2.GetBalance(db, false, dynamicLinkServiceUrlChan, redisCache)
+			claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(db, false, dynamicLinkServiceUrlChan, redisCache)
 
-			if errR1 == nil {
-				//Claimed Assets
-				ml.Lock()
-				assetBalances.Claimed = claimedWalletBalance
-				ml.Unlock()
-			} else {
-				//get default xbn balance
-				// log.Println("returning zero balance for ", vg2.ID)
-				ml.Lock()
-				//set Default XBN balance
-				assetBalances.Claimed[":"] = userModels.Balance{
-					AssetIssuer: "",
-					AssetCode:   "",
-					Amount:      decimal.Zero,
-				}
-				ml.Unlock()
+			if errR1 != nil {
+				//log server error
+				log.Printf("[GetUserWalletAssetBalances] error getting claimed wallet balance for user:[%s] wallet:[%s] error:[%+v]\n", user.Username, vg2.ID, errR1)
+
 			}
+			//Claimed Assets
+			ml.Lock()
+			assetBalances.Claimed = claimedWalletBalance
+			ml.Unlock()
 
 		}(wallet, &wg, &m)
 		wg.Wait()
