@@ -113,7 +113,13 @@ func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlCha
 			log.Printf("GetBalance[%v], served from cache\n", cacheKey)
 			b := response.(map[string]interface{})
 			for k, v := range b {
-				balances[k] = v.(Balance)
+				mi := v.(map[string]interface{})
+				balances[k] = Balance{
+					AssetIssuer: mi["assetIssuer"].(string),
+					AssetCode:   mi["assetCode"].(string),
+					Amount:      decimal.RequireFromString(mi["amount"].(string)),
+					QRCode:      mi["qrCode"].(string),
+				}
 
 			}
 			return
