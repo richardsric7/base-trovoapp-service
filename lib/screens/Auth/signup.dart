@@ -1,13 +1,8 @@
-import 'dart:async';
 import 'dart:convert';
-
-import 'package:cool_dropdown/cool_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:intl_phone_field/countries.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:intl_phone_field/phone_number.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
@@ -16,18 +11,19 @@ import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/screens/Auth/login.dart';
 import 'package:trovo_wallet/screens/Auth/privacypolicy.dart';
-import 'package:trovo_wallet/screens/Auth/termsofservice.dart';
 import 'package:trovo_wallet/screens/Auth/vericication.dart';
 import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import '../../Custom_BlocObserver/constants.dart';
 import '../../Custom_BlocObserver/provider.dart';
 import '../../network/requests.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
+import '../page_view/web_view.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({Key? key}) : super(key: key);
@@ -51,7 +47,6 @@ class _SignUpState extends State<SignUp> {
   late int corporate = 0;
   bool showError = false;
   bool hasAgreed = false; // to the terms of services
-
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -170,7 +165,8 @@ class _SignUpState extends State<SignUp> {
                           300.sp,
                           maxLength: 50,
                           validator: validateFName,
-                          onSaved: (value) => fName = value,
+                          onSaved: (value) =>
+                              fName = value.trim().replaceAll(' ', ''),
                         ),
                         SizedBox(height: height / 50),
                         // Lastname
@@ -186,7 +182,8 @@ class _SignUpState extends State<SignUp> {
                           300.sp,
                           maxLength: 50,
                           validator: validateLName,
-                          onSaved: (value) => lName = value,
+                          onSaved: (value) =>
+                              lName = value.trim().replaceAll(' ', ''),
                         ),
                         SizedBox(height: height / 50),
                         // Email address
@@ -203,7 +200,7 @@ class _SignUpState extends State<SignUp> {
                           validator: validateEmail,
                           onSaved: (value) {
                             print('email: $value');
-                            email = value;
+                            email = value.trim().replaceAll(' ', '');
                           },
                           keyboardtype: TextInputType.emailAddress,
                         ),
@@ -223,7 +220,7 @@ class _SignUpState extends State<SignUp> {
                           validator: validateUsername,
                           onSaved: (value) {
                             print('username: $value');
-                            username = value;
+                            username = value.trim().replaceAll(' ', '');
                           },
                         ),
                         SizedBox(height: height / 50),
@@ -252,7 +249,8 @@ class _SignUpState extends State<SignUp> {
                           70.sp,
                           300.sp,
                           validator: validateReferrer,
-                          onSaved: (value) => referrer = value,
+                          onSaved: (value) =>
+                              referrer = value.trim().replaceAll(' ', ''),
                           maxLength: 16,
                         ),
                         SizedBox(height: height / 50),
@@ -353,7 +351,8 @@ class _SignUpState extends State<SignUp> {
                       fontFamily: fontbody),
                 ),
                 GestureDetector(
-                  onTap: () => {Get.to(() => const TermsofService())},
+                  onTap: () =>
+                      Get.to(() => TrovoWebView(url: termsOfServiceUrl)),
                   child: Text(
                     ' ' + LanguageEn.termsofservices,
                     style: TextStyle(
@@ -372,7 +371,7 @@ class _SignUpState extends State<SignUp> {
               ],
             ),
             GestureDetector(
-              onTap: () => {Get.to(() => const PrivacyPolicy())},
+              onTap: () => Get.to(() => TrovoWebView(url: privacyPolicyUrl)),
               child: Text(
                 LanguageEn.privacypolicy,
                 style: TextStyle(
@@ -587,10 +586,6 @@ class _SignUpState extends State<SignUp> {
       // check that terms and conditions has been accepted
       if (!checkTerms()) return;
 
-      // hide keyboard because of its effect on the next
-      // view. Will fix later
-      // TODO: Find better way to solve the keyboard overlay issue
-      FocusScope.of(context).requestFocus(FocusNode());
       showLoader(context);
 
       form.save();

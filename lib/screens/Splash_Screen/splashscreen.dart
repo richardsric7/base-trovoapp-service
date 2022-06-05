@@ -62,7 +62,7 @@ class _SpashScreenState extends State<SpashScreen>
       // () => Navigator.push(
       () => Navigator.pushReplacement(
         context,
-        LandingPageRoute(Swiper()),
+        LandingPageRoute(landingPage),
       ),
     );
   }
@@ -72,19 +72,6 @@ class _SpashScreenState extends State<SpashScreen>
   }
 
   getVal() async {
-    await StoreData().storeDeleteItem('password');
-    await StoreData().storeDeleteItem('publicKey');
-    await StoreData().storeDeleteItem('secretKey');
-    await StoreData().storeDeleteItem('username');
-    await StoreData().storeDeleteItem('firstname');
-    await StoreData().storeDeleteItem('lastname');
-    await StoreData().storeDeleteItem('email');
-    await StoreData().storeDeleteItem('mobile');
-    await StoreData().storeDeleteItem('mobileCountryCode');
-    await StoreData().storeDeleteItem('referrer');
-    await StoreData().storeDeleteItem('pushNotificationToken');
-    await StoreData().storeDeleteItem('corporate');
-
     String isFirstTime;
     String activeSecret;
 

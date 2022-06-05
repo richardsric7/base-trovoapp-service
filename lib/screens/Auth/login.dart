@@ -10,7 +10,10 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
+import '../../network/requests.dart';
+import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import '../../widgets/loader.dart';
 import '../reset_password/emailpassword.dart';
 import 'create_password.dart';
 
@@ -69,12 +72,15 @@ class _LoginState extends State<Login> {
                             fontFamily: fontsemibold),
                       ),
                       SizedBox(height: height / 95),
-                      Text(
-                        username + '!',
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 26.sp,
-                            fontFamily: fontsemibold),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: width / 1.1),
+                        child: Text(
+                          username + '!',
+                          style: TextStyle(
+                              color: notifier.getblck,
+                              fontSize: 10.sp,
+                              fontFamily: fontsemibold),
+                        ),
                       ),
                       SizedBox(height: height / 40),
                       Text(
@@ -120,12 +126,13 @@ class _LoginState extends State<Login> {
               SizedBox(height: height / 20),
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const BottomHome(),
-                    ),
-                  );
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => const BottomHome(),
+                  //   ),
+                  // );
+                  request();
                 },
                 child: Button(LanguageEn.signinwithbiometrics,
                     notifier.getbluecolor, notifier.getwihitecolor),
@@ -209,5 +216,25 @@ class _LoginState extends State<Login> {
         ],
       ),
     );
+  }
+
+  request() async {
+    showLoader(context);
+
+    var publicKey = await StoreData().storeGetData('publicKey') ?? '';
+    var secretKey = await StoreData().storeGetData('secretKey') ?? '';
+    username = await StoreData().storeGetData('username') ?? '';
+
+    Map responseData = await makeGetRequest(
+        uri: '/v1/users/${username.trim().replaceAll(' ', '')}',
+        signer: publicKey,
+        publicKey: publicKey,
+        secretKey: secretKey);
+    print('$responseData');
+    setState(() {
+      username = '';
+      username = responseData['data'].toString();
+    });
+    hideLoader(context);
   }
 }

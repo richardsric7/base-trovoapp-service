@@ -7,6 +7,7 @@ import 'package:otp_text_field/otp_text_field.dart';
 import 'package:otp_text_field/style.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/provider.dart';
 import 'package:trovo_wallet/screens/Auth/complateverification.dart';
+import 'package:trovo_wallet/screens/Auth/fingerprint.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -64,6 +65,7 @@ class _VeryficationState extends State<Veryfication> {
     // final seconds = strDigits(myDuration.inSeconds.remainder(60));
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
           notifier.getwihitecolor,
@@ -193,6 +195,7 @@ class _VeryficationState extends State<Veryfication> {
       hideLoader(context);
       popup(context,
           title: LanguageEn.error,
+          // TODO: Show somethingwentwrongerror for internal error
           // message: LanguageEn.somethingwentwrong);
           message: LanguageEn.errormessage + e.toString());
     }
@@ -205,7 +208,7 @@ class _VeryficationState extends State<Veryfication> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const Complateerification(),
+          builder: (context) => const FingerPrint(),
         ),
       );
     } else {
