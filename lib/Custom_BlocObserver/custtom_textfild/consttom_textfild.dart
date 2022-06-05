@@ -51,6 +51,7 @@ class CustomTextFormField {
     bordercolor,
     h,
     w, {
+    maxLength,
     validator,
     onSaved,
     keyboardtype,
@@ -61,6 +62,7 @@ class CustomTextFormField {
         height: h,
         width: w,
         child: TextFormField(
+          maxLength: maxLength,
           style: TextStyle(color: textcolor, fontFamily: fontbody),
           cursorColor: lablecolor,
           onChanged: (value) {},

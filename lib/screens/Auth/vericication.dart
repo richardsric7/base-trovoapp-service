@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -31,6 +32,8 @@ class Veryfication extends StatefulWidget {
 class _VeryficationState extends State<Veryfication> {
   late ColorNotifier notifier;
   late DataProvider state;
+  // Timer? countdownTimer;
+  // Duration myDuration = Duration(seconds: 10);
   String otp = '';
 
   getdarkmodepreviousstate() async {
@@ -47,6 +50,7 @@ class _VeryficationState extends State<Veryfication> {
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
+    // startTimer();
   }
 
   @override
@@ -55,6 +59,9 @@ class _VeryficationState extends State<Veryfication> {
     state = Provider.of<DataProvider>(context, listen: false);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    // String strDigits(int n) => n.toString().padLeft(2, '0');
+    // final minutes = strDigits(myDuration.inMinutes.remainder(60));
+    // final seconds = strDigits(myDuration.inSeconds.remainder(60));
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
@@ -107,40 +114,18 @@ class _VeryficationState extends State<Veryfication> {
                   textFieldAlignment: MainAxisAlignment.spaceAround,
                   fieldStyle: FieldStyle.box,
                   otpFieldStyle: OtpFieldStyle(
-                    borderColor: Colors.red,
+                    borderColor: Colors.black38,
                   ),
                   onChanged: (pin) {
-                    print("Changed: " + pin);
+                    otp = pin;
                   },
                   onCompleted: (pin) {
-                    print("Completed: " + pin);
                     otp = pin;
                     completeRegistration();
                   },
                 ),
               ),
-              SizedBox(height: height / 40),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    LanguageEn.resetcode,
-                    style: TextStyle(
-                        color: notifier.getblck,
-                        fontSize: 13.sp,
-                        fontFamily: fontbody),
-                  ),
-                  SizedBox(width: width / 100),
-                  Text(
-                    "29:58",
-                    style: TextStyle(
-                        color: notifier.getbluecolor,
-                        fontSize: 13.sp,
-                        fontFamily: fontbody),
-                  ),
-                ],
-              ),
-              SizedBox(height: height / 15),
+              SizedBox(height: height / 10),
               Button(
                 LanguageEn.verify,
                 notifier.getbluecolor,
@@ -148,9 +133,13 @@ class _VeryficationState extends State<Veryfication> {
                 onTap: () {
                   if (otp.length == 6) {
                     completeRegistration();
+                  } else {
+                    popup(context,
+                        title: LanguageEn.alert,
+                        message: LanguageEn.enterverification);
                   }
                 },
-              )
+              ),
             ],
           ),
         ),
@@ -158,7 +147,7 @@ class _VeryficationState extends State<Veryfication> {
     );
   }
 
-  completeRegistration() async {
+  Future sendRequest() async {
     try {
       showLoader(context);
 
@@ -198,25 +187,93 @@ class _VeryficationState extends State<Veryfication> {
       print('$responseData');
       hideLoader(context);
 
-      if (responseData['statusCode'] == 200) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const Complateerification(),
-          ),
-        );
-      } else {
-        errorPopup(context,
-            title: LanguageEn.error,
-            message: LanguageEn.errormessage + responseData['data']['message']);
-      }
+      return responseData;
     } catch (e) {
       print(e);
       hideLoader(context);
-      errorPopup(context,
+      popup(context,
           title: LanguageEn.error,
+          // message: LanguageEn.somethingwentwrong);
           message: LanguageEn.errormessage + e.toString());
     }
+  }
+
+  void completeRegistration() async {
+    Map responseData = await sendRequest();
+
+    if (responseData['statusCode'] == 200) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const Complateerification(),
+        ),
+      );
+    } else {
+      popup(context,
+          title: LanguageEn.error,
+          message: LanguageEn.errormessage + responseData['data']['message']);
+    }
+  }
+
+  // void resendOTP() async {
+  //   Map responseData = await sendRequest();
+
+  //   if (responseData['statusCode'] == 200) {
+  //     popup(context,
+  //         title: LanguageEn.success,
+  //         message: LanguageEn.errormessage + responseData['data']['message']);
+  //   } else {
+  //     popup(context,
+  //         title: LanguageEn.error,
+  //         message: LanguageEn.errormessage + responseData['data']['message']);
+  //   }
+
+  //   resetTimer();
+  //   startTimer();
+  // }
+
+//   void startTimer() {
+//     countdownTimer =
+//         Timer.periodic(Duration(seconds: 1), (_) => setCountDown());
+//   }
+
+// // Step 4
+//   void stopTimer() {
+//     setState(() {
+//       countdownTimer!.cancel();
+//       countdownTimer = null;
+//     });
+//   }
+
+// // Step 5
+//   void resetTimer() {
+//     stopTimer();
+//     setState(() => myDuration = Duration(seconds: 10));
+//   }
+
+// // Step 6
+//   void setCountDown() {
+//     final reduceSecondsBy = 1;
+//     setState(() {
+//       final seconds = myDuration.inSeconds - reduceSecondsBy;
+//       if (seconds < 0) {
+//         print('stopping...');
+//         countdownTimer!.cancel();
+//         print('stopped!');
+//       } else {
+//         myDuration = Duration(seconds: seconds);
+//       }
+//     });
+//   }
+
+  @override
+  void dispose() {
+    print('disposing...');
+    // countdownTimer!.cancel();
+    // countdownTimer = null;
+    print('disposed');
+    // TODO: implement dispose
+    super.dispose();
   }
 }
 

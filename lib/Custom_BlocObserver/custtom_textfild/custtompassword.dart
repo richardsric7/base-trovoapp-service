@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart';
@@ -41,26 +42,60 @@ class Custompasswordtextfild {
   }
 }
 
-class CustomPasswordFormField {
-  static Widget textField(
-      labletext, focuscolor, preicon, lablecolor, iconcolor, textcolor, h, w,
-      {onChanged, validator, onSaved}) {
-    bool hidePassword = true;
+class CustomPasswordFormField extends StatefulWidget {
+  String? labelText;
+  Color? focusColor;
+  IconData? preIcon;
+  Color? labelColor;
+  Color? iconColor;
+  Color? textColor;
+  double? height;
+  double? width;
+  final void Function(String?)? onChanged;
+  final String? Function(String?)? validator;
+  final void Function(String?)? onSaved;
+
+  CustomPasswordFormField(this.labelText, this.focusColor, this.preIcon,
+      this.labelColor, this.iconColor, this.textColor, this.height, this.width,
+      {Key? key, this.onChanged, this.validator, this.onSaved})
+      : super(key: key);
+
+  @override
+  State<CustomPasswordFormField> createState() =>
+      _CustomPasswordFormFieldState();
+}
+
+class _CustomPasswordFormFieldState extends State<CustomPasswordFormField> {
+  bool hidePassword = true;
+
+  @override
+  Widget build(BuildContext context) {
     return ScreenUtilInit(
       builder: (context, child) => Container(
         color: Colors.transparent,
-        height: h,
-        width: w,
+        height: widget.height,
+        width: widget.width,
         child: TextFormField(
-          style: TextStyle(color: textcolor, fontFamily: fontbody),
+          style: TextStyle(color: widget.textColor, fontFamily: fontbody),
           obscureText: hidePassword, //show/hide password
           decoration: InputDecoration(
-            label: Text(labletext),
+            label: Text(widget.labelText!),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15.sp),
             ),
-            prefixIcon: Icon(preicon, color: iconcolor),
-            labelStyle: TextStyle(color: lablecolor),
+            prefixIcon: Icon(widget.preIcon, color: widget.iconColor),
+            suffixIcon: IconButton(
+                onPressed: () {
+                  setState(() {
+                    hidePassword = !hidePassword;
+                  });
+                },
+                icon: Icon(
+                  getSuffixIcon(),
+                  color: Colors.black,
+                  size: 20.0,
+                )),
+            labelStyle: TextStyle(color: widget.labelColor),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15.sp),
             ),
@@ -69,15 +104,18 @@ class CustomPasswordFormField {
               borderRadius: BorderRadius.circular(15.sp),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: focuscolor, width: 1.0),
+              borderSide: BorderSide(color: widget.focusColor!, width: 1.0),
               borderRadius: BorderRadius.circular(15.sp),
             ),
           ),
-          onChanged: onChanged,
-          validator: validator,
-          onSaved: onSaved,
+          onChanged: widget.onChanged,
+          validator: widget.validator,
+          onSaved: widget.onSaved,
         ),
       ),
     );
   }
+
+  IconData getSuffixIcon() =>
+      hidePassword ? CupertinoIcons.eye : CupertinoIcons.eye_slash;
 }

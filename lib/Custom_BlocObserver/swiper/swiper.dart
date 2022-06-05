@@ -114,7 +114,7 @@ class _SwiperState extends State<Swiper> {
                 },
               ),
               SizedBox(height: height / 50.5),
-              ButtonCustom(
+              ButtonOutlined(
                 LanguageEn.signin,
                 notifier.getwihitecolor,
                 notifier.getbluecolor,

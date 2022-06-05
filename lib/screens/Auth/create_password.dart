@@ -25,7 +25,7 @@ class _CreatePassword extends State<CreatePassword> {
   late ColorNotifier notifier;
   bool isChecked = false;
   final _formKey = GlobalKey<FormState>();
-  late String password;
+  String password = '';
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -83,21 +83,8 @@ class _CreatePassword extends State<CreatePassword> {
                 ),
                 SizedBox(height: height / 40),
                 SizedBox(height: height / 50),
-                CustomPasswordFormField.textField(
+                CustomPasswordFormField(
                   LanguageEn.password,
-                  notifier.getbluecolor,
-                  Icons.lock,
-                  notifier.getgrey,
-                  notifier.getprefixicon,
-                  notifier.getblck,
-                  70.sp,
-                  300.sp,
-                  validator: validatePassword,
-                  onSaved: (value) => password = value,
-                ),
-                SizedBox(height: height / 50),
-                CustomPasswordFormField.textField(
-                  LanguageEn.confirmPassword,
                   notifier.getbluecolor,
                   Icons.lock,
                   notifier.getgrey,
@@ -107,11 +94,22 @@ class _CreatePassword extends State<CreatePassword> {
                   300.sp,
                   onChanged: (value) {
                     setState(() {
-                      password = value.trim().replaceAll(' ', '');
+                      password = value!.trim().replaceAll(' ', '');
                     });
                   },
+                  validator: validatePassword,
+                ),
+                SizedBox(height: height / 50),
+                CustomPasswordFormField(
+                  LanguageEn.confirmPassword,
+                  notifier.getbluecolor,
+                  Icons.lock,
+                  notifier.getgrey,
+                  notifier.getprefixicon,
+                  notifier.getblck,
+                  70.sp,
+                  300.sp,
                   validator: validateConfirmPassword,
-                  onSaved: (value) => password = value,
                 ),
                 SizedBox(height: height / 10),
                 Button(
@@ -120,8 +118,6 @@ class _CreatePassword extends State<CreatePassword> {
                   notifier.getwihitecolor,
                   onTap: saveAndProceed,
                 ),
-                // ButtonCustom(LanguageEn.continuee, notifier.getbluecolor,
-                //     notifier.getwihitecolor, saveAndProceed),
                 SizedBox(height: height / 10),
                 Padding(
                     padding: EdgeInsets.only(
@@ -139,25 +135,33 @@ class _CreatePassword extends State<CreatePassword> {
     if (value.isEmpty) {
       //return "Enter a password";
       return LanguageEn.passwordemptyerror;
-    } else if (value.trim().replaceAll(' ', '').length < 6) {
+    }
+
+    if (value.trim().replaceAll(' ', '').length < 6) {
       //return 'Use 6 characters or more for your password';
       return LanguageEn.hinterrorpassword;
     }
+
     return null;
   }
 
   String? validateConfirmPassword(value) {
-    print('confirm password: $value');
+    print('confirm password: ${value.trim().replaceAll(' ', '')} & $password');
     if (value.isEmpty) {
       // return "Confirm your password";
       return LanguageEn.confirmpasswordemptyerror;
-    } else if (value.trim().replaceAll(' ', '').length < 6) {
+    }
+
+    if (value.trim().replaceAll(' ', '').length < 6) {
       // return 'Use 6 characters or more for your password';
       return LanguageEn.hinterrorpassword;
-    } else if (password != value.trim().replaceAll(' ', '')) {
+    }
+
+    if (password != value.trim().replaceAll(' ', '')) {
       //  return 'Those passwords didn\’t match. Try again.';
       return LanguageEn.passwordmismatcherror;
     }
+
     return null;
   }
 
@@ -172,11 +176,11 @@ class _CreatePassword extends State<CreatePassword> {
 
   void saveAndProceed() async {
     if (validate()) {
-      // hide keyboard because of the bad effect it has on the
-      // next screen. This is just a hack, will work out a better
-      // solution later
       try {
         showLoader(context);
+        // hide keyboard because of the bad effect it has on the
+        // next screen. This is just a hack, will work out a better
+        // solution later
         // TODO: Find better way to solve the keyboard overlay issue
         FocusScope.of(context).requestFocus(FocusNode());
         var account = TrovoWalletSDK().createAccount();

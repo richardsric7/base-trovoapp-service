@@ -100,21 +100,21 @@ class _ButtonState extends State<Button> {
   }
 }
 
-class ButtonCustom extends StatefulWidget {
+class ButtonOutlined extends StatefulWidget {
   final String? buttontext;
   final Color? colorbutton;
   final Color? buttontextcolor;
   final void Function()? onTap;
 
-  const ButtonCustom(this.buttontext, this.colorbutton, this.buttontextcolor,
+  const ButtonOutlined(this.buttontext, this.colorbutton, this.buttontextcolor,
       {Key? key, this.onTap})
       : super(key: key);
 
   @override
-  State<ButtonCustom> createState() => _ButtonCustomState();
+  State<ButtonOutlined> createState() => _ButtonOutlinedState();
 }
 
-class _ButtonCustomState extends State<ButtonCustom> {
+class _ButtonOutlinedState extends State<ButtonOutlined> {
   get borderRadius => BorderRadius.circular(15);
 
   late ColorNotifier notifier;

@@ -49,6 +49,9 @@ class LanguageEn {
   static String get lastnamevalidatelength =>
       "Last name must be at least 3 characters";
 
+  static String get invalidname =>
+      "Name cannot contain numbers or special characters";
+
   static String get emailvalidateempty => "Please enter an email address";
 
   static String get emailvalidateinvalid =>
@@ -57,7 +60,7 @@ class LanguageEn {
   static String get confirmpasswordemptyerror => "Confirm your password";
 
   static String get passwordmismatcherror =>
-      "Use 6 characters or more for your password";
+      "Those passwords didn\’t match. Try again.";
 
   static String get usernamevalidateempty => "Choose a username";
 
@@ -75,17 +78,26 @@ class LanguageEn {
 
   static String get error => "Error!";
 
+  static String get alert => "Alert!";
+
+  static String get accounttype => "Account Type";
+
   static String get individual => "Individual";
 
   static String get corporate => "Corporate";
 
-  static String get errormessage => "There was an error: ";
+  static String get errormessage => "Message: ";
+
+  static String get somethingwentwrong =>
+      "Sorry, something went wrong. Please try again. ";
 
   static String get signup => "Create Account";
 
   static String get username => "Username";
 
-  static String get phonenumber => "Phone Number";
+  static String get phonenumber => "Phone number";
+
+  static String get termsofserviceerror => "You need to accept terms";
 
   static String get referrer => "Referrer's username";
 
@@ -142,6 +154,11 @@ class LanguageEn {
   static String get resetcode => "Resend Code";
 
   static String get verify => "Verify";
+
+  static String get resendverificationmail => "Resend verification code";
+
+  static String get resendverficationmailsuccess =>
+      "Verification mail sent successfully";
 
   static String get youreverified => "You’re verified!";
 

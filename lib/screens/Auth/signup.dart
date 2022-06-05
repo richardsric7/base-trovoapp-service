@@ -49,10 +49,6 @@ class _SignUpState extends State<SignUp> {
   late String referrer;
   late String password;
   late int corporate = 0;
-  var accountTypes = [
-    {'label': 'Individual Account', 'value': 0},
-    {'label': 'Corporate Account', 'value': 1},
-  ];
   bool showError = false;
   bool hasAgreed = false; // to the terms of services
 
@@ -94,6 +90,7 @@ class _SignUpState extends State<SignUp> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Create Account
                         Text(
                           LanguageEn.signup,
                           style: TextStyle(
@@ -102,6 +99,8 @@ class _SignUpState extends State<SignUp> {
                               fontFamily: fontsemibold),
                         ),
                         SizedBox(height: height / 35),
+                        // It only takes a minute to create your
+                        // account
                         Text(
                           LanguageEn.ittakesaminute,
                           style: TextStyle(
@@ -110,11 +109,12 @@ class _SignUpState extends State<SignUp> {
                               fontFamily: fontbody),
                         ),
                         SizedBox(height: height / 50),
+                        // Account Type
                         Text(
-                          'Account Type',
+                          LanguageEn.accounttype,
                           style: TextStyle(
                               fontSize: height / 55,
-                              color: notifier.getblck,
+                              color: notifier.getgrey,
                               fontFamily: fontbody),
                         ),
                         SizedBox(height: height / 70),
@@ -127,17 +127,22 @@ class _SignUpState extends State<SignUp> {
                           customTextStyles: [
                             TextStyle(
                                 fontSize: height / 55,
-                                color: notifier.getblck,
+                                color: corporate == 0
+                                    ? notifier.getwihitecolor
+                                    : notifier.getblck,
                                 fontFamily: fontbody),
                             TextStyle(
                                 fontSize: height / 55,
-                                color: notifier.getblck,
+                                color: corporate == 1
+                                    ? notifier.getwihitecolor
+                                    : notifier.getblck,
                                 fontFamily: fontbody),
                           ],
                           fontSize: 16.0,
                           initialLabelIndex: corporate,
                           activeBgColor: [notifier.getbluecolor],
-                          activeFgColor: notifier.getwihitecolor,
+                          activeFgColor: Colors.red,
+                          // activeFgColor: notifier.getwihitecolor,
                           inactiveBgColor: notifier.getsplashgrey,
                           inactiveFgColor: notifier.getblck,
                           totalSwitches: 2,
@@ -152,6 +157,7 @@ class _SignUpState extends State<SignUp> {
                           },
                         ),
                         SizedBox(height: height / 50),
+                        // Firstname
                         CustomTextFormField.textField(
                           LanguageEn.fanme,
                           notifier.getbluecolor,
@@ -162,10 +168,12 @@ class _SignUpState extends State<SignUp> {
                           notifier.getgrey,
                           70.sp,
                           300.sp,
+                          maxLength: 50,
                           validator: validateFName,
                           onSaved: (value) => fName = value,
                         ),
                         SizedBox(height: height / 50),
+                        // Lastname
                         CustomTextFormField.textField(
                           LanguageEn.lname,
                           notifier.getbluecolor,
@@ -176,10 +184,12 @@ class _SignUpState extends State<SignUp> {
                           notifier.getgrey,
                           70.sp,
                           300.sp,
+                          maxLength: 50,
                           validator: validateLName,
                           onSaved: (value) => lName = value,
                         ),
                         SizedBox(height: height / 50),
+                        // Email address
                         CustomTextFormField.textField(
                           LanguageEn.emailadress,
                           notifier.getbluecolor,
@@ -195,8 +205,10 @@ class _SignUpState extends State<SignUp> {
                             print('email: $value');
                             email = value;
                           },
+                          keyboardtype: TextInputType.emailAddress,
                         ),
                         SizedBox(height: height / 50),
+                        // Username
                         CustomTextFormField.textField(
                           LanguageEn.username,
                           notifier.getbluecolor,
@@ -207,6 +219,7 @@ class _SignUpState extends State<SignUp> {
                           notifier.getgrey,
                           70.sp,
                           300.sp,
+                          maxLength: 16,
                           validator: validateUsername,
                           onSaved: (value) {
                             print('username: $value');
@@ -214,6 +227,7 @@ class _SignUpState extends State<SignUp> {
                           },
                         ),
                         SizedBox(height: height / 50),
+                        // Phone Number
                         phoneFormField(
                           labletext: LanguageEn.phonenumber,
                           focuscolor: notifier.getbluecolor,
@@ -226,6 +240,7 @@ class _SignUpState extends State<SignUp> {
                           w: 300.sp,
                         ),
                         SizedBox(height: height / 50),
+                        // Referrer's Username
                         CustomTextFormField.textField(
                           LanguageEn.referrer,
                           notifier.getbluecolor,
@@ -238,83 +253,21 @@ class _SignUpState extends State<SignUp> {
                           300.sp,
                           validator: validateReferrer,
                           onSaved: (value) => referrer = value,
+                          maxLength: 16,
                         ),
                         SizedBox(height: height / 50),
-                        Row(
-                          children: [
-                            Transform.scale(
-                              scale: 1.sp,
-                              child: Checkbox(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(5.sp),
-                                  ),
-                                ),
-                                activeColor: notifier.getbluecolor,
-                                side: BorderSide(color: notifier.getbluecolor),
-                                value: hasAgreed,
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    hasAgreed = value!;
-                                  });
-                                },
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      LanguageEn.iagreetothe,
-                                      style: TextStyle(
-                                          fontSize: height / 55,
-                                          color: notifier.getblck,
-                                          fontFamily: fontbody),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () => {
-                                        Get.to(() => const TermsofService())
-                                      },
-                                      child: Text(
-                                        ' ' + LanguageEn.termsofservices,
-                                        style: TextStyle(
-                                            fontFamily: fontbody,
-                                            fontSize: height / 55,
-                                            color: notifier.getbluecolor),
-                                      ),
-                                    ),
-                                    Text(
-                                      LanguageEn.and,
-                                      style: TextStyle(
-                                          fontFamily: fontbody,
-                                          fontSize: height / 55,
-                                          color: notifier.getblck),
-                                    ),
-                                  ],
-                                ),
-                                GestureDetector(
-                                  onTap: () =>
-                                      {Get.to(() => const PrivacyPolicy())},
-                                  child: Text(
-                                    LanguageEn.privacypolicy,
-                                    style: TextStyle(
-                                        fontFamily: fontbody,
-                                        fontSize: height / 55,
-                                        color: notifier.getbluecolor),
-                                  ),
-                                ),
-                              ],
-                            )
-                          ],
-                        ),
+                        termsOfService(),
+                        // You need to accept terms
                         if (showError) ...[
-                          Text(
-                            'You need to accept terms',
-                            style: TextStyle(
-                                color: Colors.red,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w400),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(10.0, 0, 0, 0),
+                            child: Text(
+                              LanguageEn.termsofserviceerror,
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400),
+                            ),
                           ),
                         ],
                       ],
@@ -322,6 +275,7 @@ class _SignUpState extends State<SignUp> {
                   ),
                 ],
               ),
+              // Create Account
               SizedBox(height: height / 25),
               Button(
                 LanguageEn.signup,
@@ -362,6 +316,74 @@ class _SignUpState extends State<SignUp> {
           ),
         ),
       ),
+    );
+  }
+
+  Row termsOfService() {
+    return Row(
+      children: [
+        Transform.scale(
+          scale: 1.sp,
+          child: Checkbox(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(5.sp),
+              ),
+            ),
+            activeColor: notifier.getbluecolor,
+            side: BorderSide(color: notifier.getbluecolor),
+            value: hasAgreed,
+            onChanged: (bool? value) {
+              setState(() {
+                hasAgreed = value!;
+              });
+            },
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  LanguageEn.iagreetothe,
+                  style: TextStyle(
+                      fontSize: height / 55,
+                      color: notifier.getblck,
+                      fontFamily: fontbody),
+                ),
+                GestureDetector(
+                  onTap: () => {Get.to(() => const TermsofService())},
+                  child: Text(
+                    ' ' + LanguageEn.termsofservices,
+                    style: TextStyle(
+                        fontFamily: fontbody,
+                        fontSize: height / 55,
+                        color: notifier.getbluecolor),
+                  ),
+                ),
+                Text(
+                  LanguageEn.and,
+                  style: TextStyle(
+                      fontFamily: fontbody,
+                      fontSize: height / 55,
+                      color: notifier.getblck),
+                ),
+              ],
+            ),
+            GestureDetector(
+              onTap: () => {Get.to(() => const PrivacyPolicy())},
+              child: Text(
+                LanguageEn.privacypolicy,
+                style: TextStyle(
+                    fontFamily: fontbody,
+                    fontSize: height / 55,
+                    color: notifier.getbluecolor),
+              ),
+            ),
+          ],
+        )
+      ],
     );
   }
 
@@ -432,16 +454,19 @@ class _SignUpState extends State<SignUp> {
         r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
     RegExp regex = new RegExp(pattern);
 
-    if (value!.isEmpty) {
+    if (value!.trim().replaceAll(' ', '').isEmpty) {
       return LanguageEn.emailvalidateempty;
-    } else if (!regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+    }
+
+    if (!regex.hasMatch(value.trim().replaceAll(' ', ''))) {
       return LanguageEn.emailvalidateinvalid;
     }
+
     return null;
   }
 
   String? validateUsername(String? value) {
-    if (value!.isEmpty) {
+    if (value!.trim().replaceAll(' ', '').isEmpty) {
       return LanguageEn.usernamevalidateempty;
     }
 
@@ -473,8 +498,13 @@ class _SignUpState extends State<SignUp> {
     if (value!.isNotEmpty && value.trim().replaceAll(' ', '').length < 3 ||
         value.trim().replaceAll(' ', '').length > 16) {
       return LanguageEn.usernamevalidatelength;
-    } else if (value.isNotEmpty &&
-        !regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+    }
+
+    if (value.isNotEmpty && !regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+      return LanguageEn.usernamevalidateinvalid;
+    }
+
+    if (value.contains('_')) {
       return LanguageEn.usernamevalidateinvalid;
     }
 
@@ -490,22 +520,42 @@ class _SignUpState extends State<SignUp> {
   // }
 
   String? validateFName(String? value) {
+    String pattern = r'(?:\d+[a-z]|[a-z]+\d)[a-z\d]*';
+    RegExp regex = new RegExp(pattern);
+
     print('fname: $value');
-    if (value!.isEmpty) {
+    if (value!.trim().replaceAll(' ', '').isEmpty) {
       return LanguageEn.firstnamevalidateempty;
-    } else if (value.trim().replaceAll(' ', '').length < 2) {
+    }
+
+    if (value.trim().replaceAll(' ', '').length < 3) {
       return LanguageEn.firstnamevalidatelength;
     }
+
+    if (corporate == 0 && regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+      return LanguageEn.invalidname;
+    }
+
     return null;
   }
 
   String? validateLName(String? value) {
+    String pattern = r'(?:\d+[a-z]|[a-z]+\d)[a-z\d]*';
+    RegExp regex = new RegExp(pattern);
+
     print('lname: $value');
     if (value!.isEmpty) {
       return LanguageEn.lastnamevalidateempty;
-    } else if (value.trim().replaceAll(' ', '').length < 2) {
+    }
+
+    if (value.trim().replaceAll(' ', '').length < 2) {
       return LanguageEn.lastnamevalidatelength;
     }
+
+    if (corporate == 0 && regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+      return LanguageEn.invalidname;
+    }
+
     return null;
   }
 
@@ -537,6 +587,10 @@ class _SignUpState extends State<SignUp> {
       // check that terms and conditions has been accepted
       if (!checkTerms()) return;
 
+      // hide keyboard because of its effect on the next
+      // view. Will fix later
+      // TODO: Find better way to solve the keyboard overlay issue
+      FocusScope.of(context).requestFocus(FocusNode());
       showLoader(context);
 
       form.save();
@@ -605,14 +659,14 @@ class _SignUpState extends State<SignUp> {
           ),
         );
       } else {
-        errorPopup(context,
+        popup(context,
             title: LanguageEn.error,
             message: LanguageEn.errormessage + responseData['data']['message']);
       }
     } catch (e) {
       print(e);
       hideLoader(context);
-      errorPopup(context,
+      popup(context,
           title: LanguageEn.error,
           message: LanguageEn.errormessage + e.toString());
     }
