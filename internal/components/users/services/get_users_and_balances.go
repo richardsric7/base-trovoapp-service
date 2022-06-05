@@ -6,14 +6,16 @@ import (
 	"trovo-wallet-api/internal/cache"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
+	"trovo-wallet-api/internal/middleware"
 
 	tErrors "trovo-wallet-api/internal/errors"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 //GetUserInfo gets the user Information
-func GetUserInfo(identifier string, dynamicLinkServiceUrlChan chan string, db *gorm.DB, redisCache *cache.RedisCache) (userInfo userModels.UserInfo, err error) {
+func GetUserInfo(identifier string, dynamicLinkServiceUrlChan chan string, db *gorm.DB, redisCache *cache.RedisCache, c *gin.Context) (userInfo userModels.UserInfo, err error) {
 
 	//get user from DB
 	user, err := usersDB.GetUser(identifier, db)
@@ -25,26 +27,43 @@ func GetUserInfo(identifier string, dynamicLinkServiceUrlChan chan string, db *g
 			Username: user.Username,
 		}
 	}
+	var owner bool
+	for _, wallet := range user.UserWallets {
+		if wallet.Tag == nil {
+			//primary wallet
+			owner = wallet.Signer == middleware.ExtractSigner(c)
+		}
+	}
+
 	//set userInfo
 	// log.Printf("[GetUserInfo] retrieved User record:[%+v]\n", user)
 	userData := user.ToJSON()
 	// log.Printf("[GetUserInfo] userData:[%+v]\n", userData)
 	userInfo.UserData = userData
 
-	//Get user wallet balances
-	userInfo.AssetBalances = make(map[string]userModels.AssetBalances)
-	assetBalances, err := GetUserWalletAssetBalances(&user, dynamicLinkServiceUrlChan, db, redisCache)
-	if err == nil {
-		userInfo.AssetBalances = assetBalances
+	if !owner {
+		userInfo.UserData.UserWallets = nil
+		userInfo.AssetBalances = nil
+		userInfo.ThirdPartyWalletAccess = nil
+		userInfo.DefaultAssets = nil
 	}
-	// log.Println("[GetUserWalletAssetBalances] finished user wallets json")
 
-	userInfo.ThirdPartyWalletAccess = make([]userModels.ThirdPartyWalletAccess, 0)
-	//Get ThirdParty Wallet Access
+	//Get user wallet balances
+	if owner {
+		userInfo.AssetBalances = make(map[string]userModels.AssetBalances)
+		assetBalances, err := GetUserWalletAssetBalances(&user, dynamicLinkServiceUrlChan, db, redisCache)
+		if err == nil {
+			userInfo.AssetBalances = assetBalances
+		}
+		// log.Println("[GetUserWalletAssetBalances] finished user wallets json")
 
-	userInfo.ThirdPartyWalletAccess = user.Fetch3rdPartyWallets(db, redisCache)
+		userInfo.ThirdPartyWalletAccess = make([]userModels.ThirdPartyWalletAccess, 0)
+		//Get ThirdParty Wallet Access
 
-	userInfo.DefaultAssets = user.GetDefaultAssets(db, redisCache)
+		userInfo.ThirdPartyWalletAccess = user.Fetch3rdPartyWallets(db, redisCache)
+
+		userInfo.DefaultAssets = user.GetDefaultAssets(db, redisCache)
+	}
 
 	return
 }

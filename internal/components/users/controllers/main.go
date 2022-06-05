@@ -97,15 +97,6 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		//check if type is import
 		queryType := strings.ToLower(c.Query("type"))
-		if queryType == "import" {
-			redisCache.InvalidateCachedHttpResponse(cacheKey)
-
-			log.Println("BUDS wallet import request received from:", identifier, "for:", middleware.ExtractPublicKey(c), "........")
-			//perform import specific tasks
-
-			return
-
-		}
 
 		if queryType != "import" {
 			//let's do some caching here too.
@@ -122,7 +113,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		cacheDurationInSeconds := 1 * 60 //1 minutes
 
-		userInfo, err := userServices.GetUserInfo(identifier, dynamicLinkServiceUrlChan, db, redisCache)
+		userInfo, err := userServices.GetUserInfo(identifier, dynamicLinkServiceUrlChan, db, redisCache, c)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", identifier, "error: ", err)
@@ -145,6 +136,30 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			c.JSON(statusCode, response)
 			redisCache.CacheHttpResponse(cacheKey, statusCode, response, cacheDurationInSeconds)
 			return
+		}
+
+		if queryType == "import" {
+			redisCache.InvalidateCachedHttpResponse(cacheKey)
+
+			log.Println("Wallet import request received from:", identifier, "for:", middleware.ExtractPublicKey(c), "........")
+			//perform import specific tasks
+			{
+				//check if the owner is the one importing it
+				for _, v := range userInfo.UserData.UserWallets {
+					if v.PrimaryWallet == 1 {
+						if v.Signer != middleware.ExtractSigner(c) {
+							te := &tErrors.ErrorInvalidAuthorization{}
+
+							log.Println("[Wallet import] Invalid signer for user:", identifier, "error: ", err)
+							c.JSON(te.HTTPCode(), te.JSONError())
+							return
+						}
+					}
+				}
+			}
+
+			return
+
 		}
 
 		c.JSON(http.StatusOK, userInfo)

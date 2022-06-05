@@ -13,6 +13,9 @@ import (
 	"github.com/stellar/go/keypair"
 )
 
+const devURL = "http://localhost:8080"
+const prodURL = "https://api.trovotechnologies.com"
+
 type ErrorResponse struct {
 	Error   string `json:"error"`
 	Data    string `json:"data"`
@@ -160,13 +163,13 @@ type DefaultAsset struct {
 // 		MobileCountryCode: "NG",
 // 		Referrer:          "",
 // 		Corporate:         0,
-// 		VerificationCode:  "310422",
+// 		VerificationCode:  "417936",
 // 	}
 // 	pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 // 	secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
 // 	kp := keypair.MustParseFull(secretKey)
 // 	// log.Println(kp.Address())
-// 	baseURL := "http://localhost:8080"
+// 	baseURL := prodURL
 // 	fullPath := "/v1/users"
 // 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 // 	ts := time.Now().Unix() / 1000
@@ -212,7 +215,8 @@ func TestGetUserInfo(t *testing.T) {
 	secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := "http://localhost:8080"
+	// baseURL := "http://localhost:8080"
+	baseURL := prodURL
 	fullPath := fmt.Sprintf("/v1/users/%s", "ric")
 	ts := time.Now().Unix() / 1000
 
