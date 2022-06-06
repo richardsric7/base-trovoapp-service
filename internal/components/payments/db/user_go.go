@@ -8,6 +8,8 @@ import (
 	"time"
 	conDB "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
+	pns "trovo-wallet-api/internal/pns"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -201,5 +203,15 @@ func PublicKeyAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err err
 	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
 
 	return true, &tErrors.CustomError{Param: "publicKey", Err: "error-public-key-already-exists", ErrMessage: fmt.Sprintf("Bantu Address [%v] already exists with another active account", userWallet.ID)}
+
+}
+func (u *User) SendPushMessage(title, body, imageURI string, gc *sharedconfig.GlobalConfig) {
+	//Send push notification to user
+
+	if u.PushNotificationToken == nil {
+		return
+	}
+
+	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, gc.PushNotificationClient, gc.PNSContext)
 
 }

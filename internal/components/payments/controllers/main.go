@@ -294,7 +294,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				return
 			}
 		}
-		paymentInfoReturned, destinationUser, paymentError := payments.Pay(&owner, &userWallet, &paymentInfo, gc.DB)
+		paymentInfoReturned, returnedDestination, paymentError := payments.Pay(&owner, &userWallet, &paymentInfo, gc.DB)
 		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
@@ -326,18 +326,18 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 			//log user current location
 			owner.PublicIP = c.ClientIP()
-			
+
 			payments.UpdateAndLogUserPaymentGeoInformation(&owner, paymentInfoReturned, gc.DB)
-			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v2/users/%v/payments", primaryAccountAlias)
-			senderCacheKey := fmt.Sprintf("[GET] /v2/users/%v", primaryAccountAlias)
+			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", primaryAccountAlias)
+			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", primaryAccountAlias)
 
 			gc.RedisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
 			gc.RedisCache.InvalidateCachedHttpResponse(senderPaymentHistoryCacheKey)
-			if destinationUser != nil {
+			if returnedDestination != nil {
 				destinationUsername := strings.TrimSpace(strings.ToLower(destinationUser.Username))
 
-				receiverCacheKey := fmt.Sprintf("[GET] /v2/users/%v", destinationUsername)
-				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v2/users/%v/payments", destinationUsername)
+				receiverCacheKey := fmt.Sprintf("[GET] /v1/users/%v", destinationUsername)
+				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", destinationUsername)
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverCacheKey, receiverPaymentHistoryCacheKey)
 			}
 			c.JSON(http.StatusOK, paymentInfoReturned)
@@ -346,7 +346,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 				//start callback process here
 
-				//TODO: make callback request if callback is availble
+				//TODO: make callback request if callback is available
 
 				if d, ok := paymentInfoReturned.CallbackURLS["orderPaymentCallbackUrl"]; ok && len(d) > 5 {
 					log.Printf("[paymentNotification] found notification callbackUrl: [%v]\n\n", d)
@@ -399,10 +399,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				if assetCode == "" {
 					assetCode = "XBN"
 				}
-				if destinationUser != nil {
-					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v", paymentInfo.Amount, assetCode, userDB.Username), "", gc)
+				if getDestinationWalletError == nil {
+					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, userWallet.Alias, destinationWallet.Alias), "", gc)
 				}
-				userDB.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v to %v", paymentInfo.Amount, assetCode, paymentInfo.Destination), "", gc)
+				owner.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", gc)
 
 			}
 

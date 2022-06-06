@@ -14,6 +14,7 @@ import (
 	"time"
 
 	merchants "trovo-wallet-api/internal/components/merchants/controllers"
+	payments "trovo-wallet-api/internal/components/payments/controllers"
 	root "trovo-wallet-api/internal/components/root/controllers"
 	users "trovo-wallet-api/internal/components/users/controllers"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -224,6 +225,8 @@ func main() {
 	log.Println("##root services initialized##")
 	users.Init(router, &globalConfig)
 	log.Println("##users services initialized##")
+	payments.Init(router, &globalConfig)
+	log.Println("##payments services initialized##")
 
 	merchants.Init(router, &globalConfig)
 	log.Println("##merchants services initialized##")
