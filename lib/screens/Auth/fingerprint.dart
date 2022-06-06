@@ -1,17 +1,23 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/screens/Auth/face_id.dart';
-import 'package:trovo_wallet/screens/Auth/pin.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
+import '../../bottom_bar/bottombar.dart';
+import '../../storage/state.dart';
+import '../../storage/store.dart';
+import '../../utils/local_auth.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
 
 class FingerPrint extends StatefulWidget {
   const FingerPrint({Key? key}) : super(key: key);
@@ -22,6 +28,10 @@ class FingerPrint extends StatefulWidget {
 
 class _FingerPrintState extends State<FingerPrint> {
   late ColorNotifier notifier;
+  bool isSwitched = false;
+  late DataProvider appState;
+  final Authenticator _authenticator = Authenticator();
+
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -43,9 +53,11 @@ class _FingerPrintState extends State<FingerPrint> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
+        resizeToAvoidBottomInset: false,
         appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
@@ -84,7 +96,7 @@ class _FingerPrintState extends State<FingerPrint> {
               SizedBox(height: height / 20),
               Row(
                 children: [
-                  SizedBox(width: width / 25),
+                  SizedBox(width: width / 10),
                   Icon(
                     Icons.fingerprint,
                     color: notifier.getbluecolor,
@@ -103,36 +115,174 @@ class _FingerPrintState extends State<FingerPrint> {
                   Transform.scale(
                     scale: 0.7,
                     child: CupertinoSwitch(
-                      activeColor: notifier.getbluecolor,
-                      value: notifier.getIsDark,
-                      onChanged: (val) async {
-                        final prefs = await SharedPreferences.getInstance();
-                        setState(() {
-                          notifier.setIsDark = val;
-                          prefs.setBool("setIsDark", val);
-                        });
-                      },
-                    ),
+                        activeColor: notifier.getbluecolor,
+                        value: isSwitched,
+                        onChanged: _toggleSwitch),
                   ),
                   SizedBox(width: width / 15),
                 ],
               ),
               SizedBox(height: height / 20),
-              GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const Faceid(),
-                      ),
-                    );
-                  },
-                  child: Button(LanguageEn.goahead, notifier.getbluecolor,
-                      notifier.getwihitecolor))
+              Button(
+                LanguageEn.goahead,
+                notifier.getbluecolor,
+                notifier.getwihitecolor,
+                onTap: _handleSubmit,
+              )
             ],
           ),
         ),
       ),
     );
+  }
+
+  void _toggleSwitch(bool value) async {
+    try {
+      bool result = await _authenticator.authenticateMe();
+      if (result) {
+        setState(() {
+          isSwitched = !isSwitched;
+        });
+      }
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notEnrolled ||
+          e.code == auth_error.notAvailable) {
+        biometricsErrorAlert(context);
+      }
+    }
+  }
+
+  void _handleSubmit() {
+    if (!isSwitched) {
+      showSkipBiometricsDialog(context);
+    } else {
+      _submit();
+    }
+  }
+
+  void _submit() {
+    appState.biometricEnabled = isSwitched;
+    _persistBiometricState();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (BuildContext context) => BottomHome()),
+      ModalRoute.withName('/'),
+    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => const BottomHome(),
+    //   ),
+    // );
+  }
+
+  void _persistBiometricState() async =>
+      await StoreData().storeInsertData('biometricsEnabled', isSwitched);
+
+  void showSkipBiometricsDialog(context) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(20),
+              content: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                height: 230,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          LanguageEn.important,
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10.0, horizontal: 5.0),
+                      child: Text(
+                        LanguageEn.skipBiometricsMessage,
+                        style: TextStyle(
+                            color: notifier.getblck,
+                            fontSize: 15.sp,
+                            fontFamily: fontbody),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Column(
+                        children: [
+                          ElevatedButton(
+                            onPressed: () => {
+                              _submit(),
+                            },
+                            style: ButtonStyle(
+                              fixedSize: MaterialStateProperty.all(
+                                Size(width / 1.5, height / 20),
+                              ),
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  notifier.getbluecolor),
+                              shape: MaterialStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              LanguageEn.skipBiometrics,
+                              style: TextStyle(
+                                  color: notifier.getwihitecolor,
+                                  fontFamily: fontbody),
+                            ),
+                          ),
+                          OutlinedButton(
+                            onPressed: () =>
+                                Navigator.of(context).pop(), // dismiss dialog,
+                            child: Text(
+                              LanguageEn.cancel,
+                              style: TextStyle(
+                                  color: notifier.getbluecolor,
+                                  fontFamily: fontbody),
+                            ),
+                            style: ButtonStyle(
+                              fixedSize: MaterialStateProperty.all(
+                                Size(width / 1.5, height / 20),
+                              ),
+                              side: MaterialStateProperty.all(
+                                BorderSide(
+                                    color: notifier.getgrey,
+                                    width: 1,
+                                    style: BorderStyle.solid),
+                              ),
+                              shape: MaterialStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ));
+        });
   }
 }

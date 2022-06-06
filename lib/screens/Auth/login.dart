@@ -78,7 +78,7 @@ class _LoginState extends State<Login> {
                           username + '!',
                           style: TextStyle(
                               color: notifier.getblck,
-                              fontSize: 10.sp,
+                              fontSize: 26.sp,
                               fontFamily: fontsemibold),
                         ),
                       ),
@@ -126,13 +126,12 @@ class _LoginState extends State<Login> {
               SizedBox(height: height / 20),
               GestureDetector(
                 onTap: () {
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => const BottomHome(),
-                  //   ),
-                  // );
-                  request();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BottomHome(),
+                    ),
+                  );
                 },
                 child: Button(LanguageEn.signinwithbiometrics,
                     notifier.getbluecolor, notifier.getwihitecolor),

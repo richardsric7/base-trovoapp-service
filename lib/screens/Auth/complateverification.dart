@@ -5,6 +5,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/screens/Auth/face_id.dart';
+import 'package:trovo_wallet/screens/Auth/fingerprint.dart';
 import 'package:trovo_wallet/screens/Auth/signup.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
@@ -51,12 +52,19 @@ class _ComplateerificationState extends State<Complateerification> {
                     fontFamily: fontbody),
               ),
               SizedBox(height: height / 4.3),
-              GestureDetector(
-                  onTap: () {
-                    Get.to(() => const SignUp());
-                  },
-                  child: Button(LanguageEn.done, notifier.getbluecolor,
-                      notifier.getwihitecolor))
+              Button(
+                LanguageEn.continuee,
+                notifier.getbluecolor,
+                notifier.getwihitecolor,
+                onTap: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const FingerPrint(),
+                    ),
+                  );
+                },
+              )
             ],
           ),
         ),

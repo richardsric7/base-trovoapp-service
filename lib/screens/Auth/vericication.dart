@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otp_text_field/otp_text_field.dart';
 import 'package:otp_text_field/style.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/provider.dart';
+import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/screens/Auth/complateverification.dart';
 import 'package:trovo_wallet/screens/Auth/fingerprint.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
@@ -208,7 +208,7 @@ class _VeryficationState extends State<Veryfication> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const FingerPrint(),
+          builder: (context) => const Complateerification(),
         ),
       );
     } else {

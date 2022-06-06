@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/provider.dart';
+import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'Custom_BlocObserver/notifire_clor.dart';
 import 'config/app_settings.config.dart';

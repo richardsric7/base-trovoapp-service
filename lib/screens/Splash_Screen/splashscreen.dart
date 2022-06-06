@@ -6,8 +6,6 @@ import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/screens/Auth/login.dart';
-import 'package:trovo_wallet/screens/Auth/signup.dart';
-
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';

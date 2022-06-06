@@ -1,3 +1,4 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
@@ -104,5 +105,59 @@ popup(context,
                 ],
               ),
             ));
+      });
+}
+
+Future<bool?> biometricsErrorAlert(BuildContext context) {
+  return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(LanguageEn.fingerprintrequired),
+          actions: [
+            TextButton(
+              child: Text(
+                LanguageEn.cancel,
+                style: TextStyle(
+                    fontSize: 14.0,
+                    fontFamily: fontbody,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal),
+              ),
+              onPressed: () => Navigator.of(
+                context,
+                rootNavigator: true,
+              ).pop(false),
+            ),
+            TextButton(
+                child: Text(
+                  LanguageEn.gotosettings,
+                  style: TextStyle(
+                      fontSize: 14.0,
+                      fontFamily: fontbody,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal),
+                ),
+                onPressed: () async {
+                  await AppSettings.openSecuritySettings();
+                }),
+          ],
+          content: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(
+                Radius.circular(30),
+              ),
+            ),
+            child: Text(
+              LanguageEn.fingerprintnotenabled,
+              style: TextStyle(
+                fontFamily: fontbody,
+                fontSize: 15.0,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+        );
       });
 }

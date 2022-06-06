@@ -182,6 +182,22 @@ class LanguageEn {
 
   static String get setupfingerprint => "Enable Fingerprint";
 
+  static String get fingerprintnotenabled =>
+      'Fingerprint is not set up on your device. Go to \'Settings > Security\' to add your fingerprint';
+
+  static String get gotosettings => 'Go to settings';
+
+  static String get cancel => 'Cancel';
+
+  static String get fingerprintrequired => 'Fingerprint required';
+
+  static String get important => 'Important';
+
+  static String get skipBiometricsMessage =>
+      'Are you sure you don\'t want to enable biometrics authentication?';
+
+  static String get skipBiometrics => 'Skip Biometrics';
+
   static String get goahead => "Continue";
 
   static String get createnewpin => "Create New Pin";
