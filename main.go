@@ -2,6 +2,8 @@ package main
 
 import (
 	cache "trovo-wallet-api/internal/cache"
+	pns "trovo-wallet-api/internal/pns"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"context"
 	"errors"
@@ -56,7 +58,9 @@ func main() {
 			"MNEMONIC_TEMP_ACCOUNTS", "BLOCKCHAIN_BASE_RESERVE", "MAILGUN_PRIVATE_API_KEY",
 			"IPAPI_KEY", "IPAPI_HOST", "VERIFICATION_CODE_SALT", "ENABLE_EMAIL_VALIDATION", "ENABLE_CACHING",
 			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_API_KEY", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
-			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "FBDL_SERVICE_URLS", "MAILGUN_DOMAIN"}
+			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "FBDL_SERVICE_URLS", "MAILGUN_DOMAIN",
+			"GC",
+		}
 
 		for _, requiredEnvironmentVariable := range requiredEnvironmentVariables {
 			if len(os.Getenv(requiredEnvironmentVariable)) == 0 {
@@ -192,6 +196,20 @@ func main() {
 		}()
 
 	}
+
+	//global config
+	pnsContext := context.TODO()
+	pnsClient, _, err := pns.GetFirebaseMessagingClient(pnsContext)
+	if err != nil {
+		log.Fatalln("Unable to initialize Firebase Messaging client:", err)
+	}
+	var globalConfig = sharedconfig.GlobalConfig{
+		DynamicLinkServiceURLChan: dynamicLinkServiceUrlChan,
+		PNSContext:                pnsContext,
+		RedisCache:                &redisCache,
+		DB:                        database,
+		PushNotificationClient:    pnsClient,
+	}
 	//setup router
 
 	if os.Getenv("GIN_MODE") == "release" {
@@ -204,10 +222,10 @@ func main() {
 
 	root.Init(router)
 	log.Println("##root services initialized##")
-	users.Init(router, database, &redisCache, dynamicLinkServiceUrlChan)
+	users.Init(router, &globalConfig)
 	log.Println("##users services initialized##")
 
-	merchants.Init(router, database, &redisCache, dynamicLinkServiceUrlChan)
+	merchants.Init(router, &globalConfig)
 	log.Println("##merchants services initialized##")
 
 	//run app

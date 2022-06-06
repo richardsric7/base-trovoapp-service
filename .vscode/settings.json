@@ -3,11 +3,14 @@
         "horizonclient",
         "IPAPI",
         "Keypair",
+        "loginsession",
         "Mailgun",
         "Preload",
         "qrcode",
+        "sharedconfig",
         "shopspring",
         "Trovotech",
+        "trovowallet",
         "txnbuild",
         "vals"
     ]

@@ -3,12 +3,12 @@ package users
 import (
 	"os"
 	"time"
-	"trovo-wallet-api/internal/cache"
 	announcementServices "trovo-wallet-api/internal/components/announcements/services"
 	bc "trovo-wallet-api/internal/components/users/blockchain"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/middleware"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"trovo-wallet-api/internal/network"
 
@@ -24,7 +24,6 @@ import (
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/protocols/horizon/effects"
 	"github.com/stellar/go/protocols/horizon/operations"
-	"gorm.io/gorm"
 )
 
 var upGrader = websocket.Upgrader{
@@ -45,7 +44,7 @@ type StreamObject struct {
 }
 
 //UserWebSocketAPI handles websocket connections
-func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache) {
+func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
 	var order = horizonclient.OrderAsc
 	var wg sync.WaitGroup
@@ -100,7 +99,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 	data.Stream = strings.ToLower(data.Stream)
 	identifier := strings.TrimSpace(strings.ToLower(c.Param("identifier")))
 
-	user, err := usersDB.GetUser(identifier, db)
+	user, err := usersDB.GetUser(identifier, gc.DB)
 	if err != nil {
 		auth.Auth = false
 		auth.Message = "user could not be authenticated"
@@ -131,7 +130,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 	auth.Message = "success"
 	message := gin.H{"stream": auth, "streamType": "auth"}
 	ws.WriteJSON(message)
-	announcements, err := announcementServices.HandleGetAnnouncement(c.ClientIP(), db)
+	announcements, err := announcementServices.HandleGetAnnouncement(c.ClientIP(), gc.DB)
 	if err == nil {
 		message := gin.H{"stream": announcements, "streamType": "announcements"}
 		ws.WriteJSON(message)
@@ -211,14 +210,14 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 					historyCacheKey := fmt.Sprintf("[history] %v", v)
 					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
 
-					redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+					gc.RedisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
 
 				}
 
 				getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", obj.Account)
 				historyCacheKey := fmt.Sprintf("[history] %v", obj.Account)
 				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Account)
-				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+				gc.RedisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
 			}
 			{
 				//invalidate cache of Account
@@ -227,14 +226,14 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 					historyCacheKey := fmt.Sprintf("[history] %v", v)
 					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
 
-					redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+					gc.RedisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
 
 				}
 
 				getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", obj.Into)
 				historyCacheKey := fmt.Sprintf("[history] %v", obj.Into)
 				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Into)
-				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+				gc.RedisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
 			}
 
 		}
@@ -243,7 +242,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 			if o.GetType() != "account_merge" {
 				// mesg := gin.H{"stream": o, "streamType": "payment"}
 				// messageChan <- mesg
-				paymentPg := bc.ProcessStreamPaymentOperation(user.PublicKey, o, user, db)
+				paymentPg := bc.ProcessStreamPaymentOperation(user.PublicKey, o, user, gc.DB)
 				if strings.Contains(o.GetType(), "path_payment") {
 					message := gin.H{"stream": paymentPg, "streamType": "swap"}
 
@@ -304,14 +303,14 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 					historyCacheKey := fmt.Sprintf("[history] %v", v)
 					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
 
-					redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+					gc.RedisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
 
 				}
 
 				getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", obj.Account)
 				historyCacheKey := fmt.Sprintf("[history] %v", obj.Account)
 				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Account)
-				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+				gc.RedisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
 			}
 			{
 				//invalidate cache of Account
@@ -320,14 +319,14 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 					historyCacheKey := fmt.Sprintf("[history] %v", v)
 					balancesCacheKey := fmt.Sprintf("[balances] %v", v)
 
-					redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+					gc.RedisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
 
 				}
 
 				getCacheKey := fmt.Sprintf("[GET] /v1/users/%v", obj.Into)
 				historyCacheKey := fmt.Sprintf("[history] %v", obj.Into)
 				balancesCacheKey := fmt.Sprintf("[balances] %v", obj.Into)
-				redisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
+				gc.RedisCache.DeleteFromCache(getCacheKey, historyCacheKey, balancesCacheKey)
 			}
 
 		}
@@ -335,7 +334,7 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 
 			if o.GetType() != "account_merge" {
 				obj := interface{}(o).(operations.AccountMerge)
-				paymentPg := bc.ProcessStreamPaymentOperation(obj.Into, o, user, db)
+				paymentPg := bc.ProcessStreamPaymentOperation(obj.Into, o, user, gc.DB)
 				if strings.Contains(o.GetType(), "path_payment") {
 					message := gin.H{"stream": paymentPg, "streamType": "swap"}
 
@@ -383,9 +382,9 @@ func UserWebSocketAPI(c *gin.Context, db *gorm.DB, redisCache *cache.RedisCache)
 		if o.GetType() == "change_trust" {
 			//invalidate cache
 			cacheKey := fmt.Sprintf("[GET] /v1/users/%v", user.Username)
-			redisCache.InvalidateCachedHttpResponse(cacheKey)
+			gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
 			cacheKey = fmt.Sprintf("[GET] /v1/users/%v", user.PublicKey)
-			redisCache.InvalidateCachedHttpResponse(cacheKey)
+			gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
 		}
 		txType := o.GetType()
 		if o.GetType() == "payment" || o.GetType() == "create_account" || strings.Contains(o.GetType(), "path_payment") {

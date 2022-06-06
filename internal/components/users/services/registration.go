@@ -6,32 +6,31 @@ import (
 	"log"
 	"os"
 	"time"
-	"trovo-wallet-api/internal/cache"
 	users "trovo-wallet-api/internal/components/users/db"
-	usermodels "trovo-wallet-api/internal/components/users/models"
+	userModels "trovo-wallet-api/internal/components/users/models"
 	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/ecnepsnai/discord"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/shopspring/decimal"
-	"gorm.io/gorm"
 )
 
 //RegisterUser registers user information
-func RegisterUser(userInfo usermodels.UserRegistrationInfo, db *gorm.DB, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (usermodels.UserRegistrationInfo, bool, error) {
+func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.GlobalConfig) (userModels.UserRegistrationInfo, bool, error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("REGISTRATION_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("REGISTRATION_ERROR_WEBHOOK")
 	}
-	// if banned, errBanned := users.PublicKeyIsBanned(userInfo.PublicKey, db); banned {
+	// if banned, errBanned := users.PublicKeyIsBanned(userInfo.PublicKey, gc.DB); banned {
 	// 	return userInfo, false, errBanned
 	// }
-	if _, errExists := users.PublicKeyAlreadyExists(userInfo.PublicKey, db); errExists != nil {
+	if _, errExists := users.PublicKeyAlreadyExists(userInfo.PublicKey, gc.DB); errExists != nil {
 		return userInfo, false, errExists
 	}
 	if len(userInfo.Mobile) > 0 {
-		// geoData, _ := usermodels.GetGeoInfo(userInfo.PublicIP)
+		// geoData, _ := userModels.GetGeoInfo(userInfo.PublicIP)
 		num, err := phonenumbers.Parse(userInfo.Mobile, userInfo.MobileCountryCode)
 		if err == nil {
 			mobile := fmt.Sprintf("+%v-%v", *num.CountryCode, *num.NationalNumber)
@@ -47,7 +46,7 @@ func RegisterUser(userInfo usermodels.UserRegistrationInfo, db *gorm.DB, dynamic
 		return userInfo, false, errValidation
 	}
 
-	user, dbErrors := users.UserRegistrationDbChecks(userInfo, db)
+	user, dbErrors := users.UserRegistrationDbChecks(userInfo, gc.DB)
 
 	if dbErrors != nil {
 		discord.Say(fmt.Sprintf("[RegisterUser] Registration DB check failed for user:%v, Error:%v", userInfo.Username, dbErrors))
@@ -82,7 +81,7 @@ func RegisterUser(userInfo usermodels.UserRegistrationInfo, db *gorm.DB, dynamic
 		//check if same IP dat registered a user is up to 1hr
 		var createdAt time.Time
 		qry := "select created_at from users where public_ip = ? order by created_at DESC limit 1"
-		e := db.Raw(qry, user.PublicIP).Scan(&createdAt).Error
+		e := gc.DB.Raw(qry, user.PublicIP).Scan(&createdAt).Error
 		if e == nil {
 			//record was found...check the time
 			t := decimal.RequireFromString(os.Getenv("REGISTRATION_THROTTLE_PER_IP")).IntPart()
@@ -103,7 +102,7 @@ func RegisterUser(userInfo usermodels.UserRegistrationInfo, db *gorm.DB, dynamic
 	//all checks have passed
 
 	//add referralLink
-	if data, e := dl.GenerateReferralLink(user.Username, dynamicLinkServiceUrlChan, redisCache); e == nil {
+	if data, e := dl.GenerateReferralLink(user.Username, gc); e == nil {
 		user.ReferralLink = &data.DynamicLink
 		user.ReferralQrCode = &data.QRCode
 	}
@@ -111,7 +110,7 @@ func RegisterUser(userInfo usermodels.UserRegistrationInfo, db *gorm.DB, dynamic
 	user.BuildPrimaryWallet()
 	//save the user
 
-	errCreate := db.Create(user).Error
+	errCreate := gc.DB.Create(user).Error
 	if errCreate != nil {
 
 		discord.Say(fmt.Sprintf("[RegisterUser] user creation failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", userInfo.Username, errCreate, userInfo))

@@ -12,6 +12,7 @@ import (
 	"os"
 	"time"
 	"trovo-wallet-api/internal/cache"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/shopspring/decimal"
 )
@@ -52,11 +53,11 @@ type DynamicLinkError struct {
 	Message string `json:"message"`
 }
 
-type PayWithBantupayData struct {
+type PayWithTrovoWalletData struct {
 	DynamicLink string `json:"dynamicLink"`
 	QRCode      string `json:"qrCode"`
 }
-type RefferalLinkData struct {
+type ReferralLinkData struct {
 	DynamicLink string `json:"dynamicLink"`
 	QRCode      string `json:"qrCode"`
 }
@@ -70,13 +71,13 @@ type FBDL struct {
 type FBDLResponse struct {
 	DynamicLink string `json:"dynamicLink"`
 }
-type LoginWithBantupayData struct {
+type LoginWithTrovoWalletData struct {
 	DynamicLink string `json:"dynamicLink"`
 	QRCode      string `json:"qrCode"`
 	LoginID     string `json:"loginId"`
 }
 
-type BantupayAuthorizationData struct {
+type TrovoWalletAuthorizationData struct {
 	DynamicLink string `json:"dynamicLink"`
 	QRCode      string `json:"qrCode"`
 	AuthID      string `json:"authId"`
@@ -153,14 +154,14 @@ func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl str
 
 }
 
-func GenerateDynamicLink(link string, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (dynamicLink string, err error) {
+func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLink string, err error) {
 
 	cacheKey := link
 	{
 
 		// search cache for link
 
-		ok, response := redisCache.GetCachedResult(cacheKey)
+		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 
 		if ok {
 			log.Printf("[%v], served from cache\n", cacheKey)
@@ -170,11 +171,11 @@ func GenerateDynamicLink(link string, dynamicLinkServiceUrlChan chan string, red
 
 	}
 
-	baseUrl := <-dynamicLinkServiceUrlChan
+	baseUrl := <-gc.DynamicLinkServiceURLChan
 	defer func() {
 		time.Sleep(200 * time.Millisecond) // wait for 200ms before sending next request. enough time to achieve 5 requests per ip
 		//return the link to waiting list
-		dynamicLinkServiceUrlChan <- baseUrl
+		gc.DynamicLinkServiceURLChan <- baseUrl
 	}()
 	if len(link) == 0 {
 		err = errors.New("no link submitted for QRCode")
@@ -227,14 +228,14 @@ func GenerateDynamicLink(link string, dynamicLinkServiceUrlChan chan string, red
 		return "", errors.New("no short link generated")
 	}
 	// cache the link
-	redisCache.StoreResultToCache(cacheKey, sr.DynamicLink, (525960 * 3 * 60))
+	gc.RedisCache.StoreResultToCache(cacheKey, sr.DynamicLink, (525960 * 3 * 60))
 
 	return sr.DynamicLink, nil
 
 }
 
 //GenerateLoginData generates Login Data
-func GenerateLoginData(merchant, merchantShortName, targetUser, loginID, deviceInfo string, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (p LoginWithBantupayData, err error) {
+func GenerateLoginData(merchant, merchantShortName, targetUser, loginID, deviceInfo string, gc *sharedconfig.GlobalConfig) (p LoginWithTrovoWalletData, err error) {
 
 	var dynamicLink, pngDataURI string
 	params := url.Values{}
@@ -247,10 +248,10 @@ func GenerateLoginData(merchant, merchantShortName, targetUser, loginID, deviceI
 	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
 	// log.Println("[GenerateLoginData]link=", link)
 
-	dynamicLink, err = GenerateDynamicLink(link, dynamicLinkServiceUrlChan, redisCache)
+	dynamicLink, err = GenerateDynamicLink(link, gc)
 
 	if err != nil {
-		log.Printf("[GenerateLoginData]could not generate dynamiclink for [%v]. error: %v\n", link, err)
+		log.Printf("[GenerateLoginData]could not generate dynamicLink for [%v]. error: %v\n", link, err)
 		return
 	}
 	if len(dynamicLink) == 0 {
@@ -258,7 +259,7 @@ func GenerateLoginData(merchant, merchantShortName, targetUser, loginID, deviceI
 		return
 	}
 
-	pngDataURI, err = GenerateQRCode(dynamicLink, redisCache)
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc.RedisCache)
 	if err != nil {
 		log.Printf("[GenerateLoginData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -271,7 +272,7 @@ func GenerateLoginData(merchant, merchantShortName, targetUser, loginID, deviceI
 }
 
 //GenerateAuthorizationData generates authorization Data
-func GenerateAuthorizationData(merchant, merchantShortName, description, targetUser, deviceInfo, authID string, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (p BantupayAuthorizationData, err error) {
+func GenerateAuthorizationData(merchant, merchantShortName, description, targetUser, deviceInfo, authID string, gc *sharedconfig.GlobalConfig) (p TrovoWalletAuthorizationData, err error) {
 
 	var dynamicLink, pngDataURI string
 	params := url.Values{}
@@ -285,10 +286,10 @@ func GenerateAuthorizationData(merchant, merchantShortName, description, targetU
 	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
 	// log.Println("[GenerateAuthorizationData]link=", link)
 
-	dynamicLink, err = GenerateDynamicLink(link, dynamicLinkServiceUrlChan, redisCache)
+	dynamicLink, err = GenerateDynamicLink(link, gc)
 
 	if err != nil {
-		log.Printf("[GenerateAuthorizationData]could not generate dynamiclink for [%v]. error: %v\n", link, err)
+		log.Printf("[GenerateAuthorizationData]could not generate dynamic-link for [%v]. error: %v\n", link, err)
 		return
 	}
 	// log.Println("[GenerateAuthorizationData] generated dynamic link=", dynamicLink)
@@ -296,7 +297,7 @@ func GenerateAuthorizationData(merchant, merchantShortName, description, targetU
 		log.Println("[GenerateAuthorizationData] unable to generate dynamic link=", dynamicLink)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink, redisCache)
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc.RedisCache)
 	if err != nil {
 		log.Printf("[GenerateAuthorizationData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -309,7 +310,7 @@ func GenerateAuthorizationData(merchant, merchantShortName, description, targetU
 }
 
 //GeneratePaymentData generates payment Data
-func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo string, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (p PayWithBantupayData, err error) {
+func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo string, gc *sharedconfig.GlobalConfig) (p PayWithTrovoWalletData, err error) {
 	if len(paymentDestination) == 0 {
 		err = errors.New("no payment destination")
 		return
@@ -347,10 +348,10 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
 	// log.Println("[GeneratePaymentData]link=", link)
 
-	dynamicLink, err = GenerateDynamicLink(link, dynamicLinkServiceUrlChan, redisCache)
+	dynamicLink, err = GenerateDynamicLink(link, gc)
 
 	if err != nil {
-		log.Printf("[GeneratePaymentData]could not generate dynamiclink for [%v]. error: %v\n", link, err)
+		log.Printf("[GeneratePaymentData]could not generate dynamic-link for [%v]. error: %v\n", link, err)
 		return
 	}
 	// log.Println("[GenerateLoginData] generated dynamic link=", dynamicLink)
@@ -358,7 +359,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 		log.Println("[GeneratePaymentData] unable to generate dynamic link=", dynamicLink)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink, redisCache)
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc.RedisCache)
 	if err != nil {
 		log.Printf("[GeneratePaymentData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -370,7 +371,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 }
 
 //GenerateReferralLinkWithStaticURL generates payment Data
-func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl string, redisCache *cache.RedisCache) (p RefferalLinkData, err error) {
+func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl string, redisCache *cache.RedisCache) (p ReferralLinkData, err error) {
 	if len(username) == 0 {
 		err = errors.New("no username")
 		return
@@ -386,7 +387,7 @@ func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl st
 	dynamicLink, err = GenerateDynamicLinkWithStaticService(link, dynamicLinkServiceUrl, redisCache)
 
 	if err != nil {
-		log.Printf("[GenerateReferralLink]could not generate dynamiclink for [%v]. error: %v\n", username, err)
+		log.Printf("[GenerateReferralLink]could not generate dynamic-link for [%v]. error: %v\n", username, err)
 		return
 	}
 	// log.Println("[GenerateLoginData] generated dynamic link=", dynamicLink)
@@ -406,7 +407,7 @@ func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl st
 }
 
 //GenerateReferralLink generates payment Data
-func GenerateReferralLink(username string, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (p RefferalLinkData, err error) {
+func GenerateReferralLink(username string, gc *sharedconfig.GlobalConfig) (p ReferralLinkData, err error) {
 	if len(username) == 0 {
 		err = errors.New("no username")
 		return
@@ -419,7 +420,7 @@ func GenerateReferralLink(username string, dynamicLinkServiceUrlChan chan string
 
 	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
 
-	dynamicLink, err = GenerateDynamicLink(link, dynamicLinkServiceUrlChan, redisCache)
+	dynamicLink, err = GenerateDynamicLink(link, gc)
 
 	if err != nil {
 		log.Printf("[GenerateReferralLink]could not generate dynamiclink for [%v]. error: %v\n", username, err)
@@ -430,7 +431,7 @@ func GenerateReferralLink(username string, dynamicLinkServiceUrlChan chan string
 		log.Println("[GenerateReferralLink] unable to generate dynamic link=", dynamicLink, "for username=", username)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink, redisCache)
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc.RedisCache)
 	if err != nil {
 		log.Printf("[GenerateReferralLink] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return

@@ -1,7 +1,6 @@
 package users
 
 import (
-	"trovo-wallet-api/internal/cache"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	userServices "trovo-wallet-api/internal/components/users/services"
@@ -19,13 +18,13 @@ import (
 	"net/url"
 	"strings"
 	"trovo-wallet-api/internal/middleware"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 // Init initializes /v1/users endpoint
-func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamicLinkServiceUrlChan chan string) {
+func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	//websocket stream
 	router.GET("/v1/users/:targetUser/ws", func(c *gin.Context) {
 
@@ -53,10 +52,10 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("/v1/users/%v/ws", identifier), db)
+		conDB.PrintDBStats(fmt.Sprintf("/v1/users/%v/ws", identifier), gc.DB)
 		log.Printf("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<Websocket connection detected for %v>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", identifier)
 
-		userServices.UserWebSocketAPI(c, db, redisCache)
+		userServices.UserWebSocketAPI(c, gc)
 
 	})
 
@@ -93,7 +92,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		}
 		cacheKey := fmt.Sprintf("[GET] /v1/users/%v", identifier)
 
-		conDB.PrintDBStats(fmt.Sprintf("/v1/users/%v", identifier), db)
+		conDB.PrintDBStats(fmt.Sprintf("/v1/users/%v", identifier), gc.DB)
 
 		//check if type is import
 		queryType := strings.ToLower(c.Query("type"))
@@ -101,7 +100,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		if queryType != "import" {
 			//let's do some caching here too.
 
-			ok, status, response := redisCache.CachedHttpResponse(cacheKey)
+			ok, status, response := gc.RedisCache.CachedHttpResponse(cacheKey)
 
 			if ok {
 				log.Printf("[%v], served from cache\n", cacheKey)
@@ -113,7 +112,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		cacheDurationInSeconds := 1 * 60 //1 minutes
 
-		userInfo, err := userServices.GetUserInfo(identifier, dynamicLinkServiceUrlChan, db, redisCache, c)
+		userInfo, err := userServices.GetUserInfo(identifier, gc, c)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", identifier, "error: ", err)
@@ -134,12 +133,12 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			}
 
 			c.JSON(statusCode, response)
-			redisCache.CacheHttpResponse(cacheKey, statusCode, response, cacheDurationInSeconds)
+			gc.RedisCache.CacheHttpResponse(cacheKey, statusCode, response, cacheDurationInSeconds)
 			return
 		}
 
 		if queryType == "import" {
-			redisCache.InvalidateCachedHttpResponse(cacheKey)
+			gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
 
 			log.Println("Wallet import request received from:", identifier, "for:", middleware.ExtractPublicKey(c), "........")
 			//perform import specific tasks
@@ -163,7 +162,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		}
 
 		c.JSON(http.StatusOK, userInfo)
-		redisCache.CacheHttpResponse(cacheKey, http.StatusOK, userInfo, cacheDurationInSeconds)
+		gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, userInfo, cacheDurationInSeconds)
 
 	})
 
@@ -197,11 +196,11 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		//replace _ and /
 		userRegistrationInfo.Username = strings.ReplaceAll(strings.ReplaceAll(strings.ToLower(userRegistrationInfo.Username), "_", ""), "/", "")
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users %v", userRegistrationInfo.Username), db)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users %v", userRegistrationInfo.Username), gc.DB)
 
 		var emailSent bool
 
-		_, emailSent, err = userServices.RegisterUser(userRegistrationInfo, db, dynamicLinkServiceUrlChan, redisCache)
+		_, emailSent, err = userServices.RegisterUser(userRegistrationInfo, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -252,7 +251,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/users/:identifier/actions/claim-asset %v", identifier), db)
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/users/:identifier/actions/claim-asset %v", identifier), gc.DB)
 		if identifier == "null" {
 			log.Printf("user cannot be %v\n", identifier)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
@@ -272,7 +271,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			return
 		}
 
-		returnedPendingAssetToClaim, complete, err := userServices.ClaimPendingAsset(identifier, middleware.ExtractPublicKey(c), &pendingAssetToClaim, db)
+		returnedPendingAssetToClaim, complete, err := userServices.ClaimPendingAsset(identifier, middleware.ExtractPublicKey(c), &pendingAssetToClaim, gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -292,9 +291,9 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", identifier)
 		senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", identifier)
 
-		redisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
+		gc.RedisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
 
-		redisCache.InvalidateCachedHttpResponse(cacheKey, paymentHistoryCacheKey)
+		gc.RedisCache.InvalidateCachedHttpResponse(cacheKey, paymentHistoryCacheKey)
 
 		if complete {
 			c.JSON(http.StatusOK, returnedPendingAssetToClaim)
@@ -350,7 +349,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 
 			// cacheKeyParameters := fmt.Sprintf("limit=%v&order=%v&cursor=%v&forTransactionHash=%v&includeHash=%v&temp=%v", limit, orderStr, cursor, forTransactionHash, includeHash, temp)
 
-			ok, status, response := redisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
+			ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
 
 			if ok {
 				log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
@@ -359,9 +358,9 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/users/%v/generate/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", identifier, paymentDestination, assetCode, assetIssuer, amount, memo), db)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/users/%v/generate/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", identifier, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
 
-		_, err = usersDB.GetUser(identifier, db)
+		_, err = usersDB.GetUser(identifier, gc.DB)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
@@ -386,7 +385,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		}
 
 		//generate payment data
-		data, err := dl.GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo, dynamicLinkServiceUrlChan, redisCache)
+		data, err := dl.GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo, gc)
 		if err != nil {
 			//could not create login session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
@@ -397,7 +396,7 @@ func Init(router *gin.Engine, db *gorm.DB, redisCache *cache.RedisCache, dynamic
 		{
 			cacheDurationInSeconds := 525600 * 3 * 60 //3yrs
 
-			redisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, data, cacheDurationInSeconds)
+			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, data, cacheDurationInSeconds)
 		}
 		c.JSON(http.StatusOK, data)
 

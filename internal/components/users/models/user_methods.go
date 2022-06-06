@@ -7,6 +7,8 @@ import (
 	"sort"
 	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
+	pns "trovo-wallet-api/internal/pns"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"context"
 	"errors"
@@ -15,7 +17,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"trovo-wallet-api/internal/cache"
 	"trovo-wallet-api/internal/network"
 
 	"github.com/mailgun/mailgun-go/v4"
@@ -97,7 +98,7 @@ func (u *User) SignerIsValid(signerKey string, temp bool) bool {
 }
 
 //GetBalance gets user wallet blockchain balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
-func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (balances map[string]Balance, err error) {
+func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances map[string]Balance, err error) {
 	balances = make(map[string]Balance)
 	cacheKey := fmt.Sprintf("GetBalance_%s", u.ID)
 	if temp {
@@ -107,7 +108,7 @@ func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlCha
 	{
 
 		// search cache for balance
-		ok, response := redisCache.GetCachedResult(cacheKey)
+		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 
 		if ok {
 			log.Printf("GetBalance[%v], served from cache\n", cacheKey)
@@ -137,7 +138,7 @@ func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlCha
 		if !temp && err.Error() == "error-blockchain-account-not-activated" {
 
 			//save to cache
-			redisCache.StoreResultToCache(cacheKey, balances, 0)
+			gc.RedisCache.StoreResultToCache(cacheKey, balances, 0)
 			return balances, nil
 		}
 
@@ -163,7 +164,7 @@ func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlCha
 			qrCode := ""
 			if !temp {
 
-				p, e := dl.GeneratePaymentData(u.ID, v.Code, v.Issuer, "", "", dynamicLinkServiceUrlChan, redisCache)
+				p, e := dl.GeneratePaymentData(u.ID, v.Code, v.Issuer, "", "", gc)
 				if e == nil {
 					qrCode = p.QRCode
 				}
@@ -178,15 +179,15 @@ func (u *UserWallet) GetBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlCha
 		wg.Wait()
 	}
 	//save to cache
-	redisCache.StoreResultToCache(cacheKey, balances, 0)
+	gc.RedisCache.StoreResultToCache(cacheKey, balances, 0)
 	return balances, nil
 }
 
 //GetSortedUserBalance gets user blockchain balance
-func (u *UserWallet) GetSortedUserBalance(db *gorm.DB, temp bool, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (balances []Balance, err error) {
+func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances []Balance, err error) {
 
 	//GetBalance
-	unsortedBalances, err := u.GetBalance(db, temp, dynamicLinkServiceUrlChan, redisCache)
+	unsortedBalances, err := u.GetBalance(temp, gc)
 	if err != nil {
 		return
 	}
@@ -451,7 +452,7 @@ func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner *User, err error
 }
 
 //Fetch3rdPartyWallets fetches all 3rd party wallets that the user is assigned to manage
-func (u *User) Fetch3rdPartyWallets(db *gorm.DB, redisCache *cache.RedisCache) (thirdPartyWallets []ThirdPartyWalletAccess) {
+func (u *User) Fetch3rdPartyWallets(gc *sharedconfig.GlobalConfig) (thirdPartyWallets []ThirdPartyWalletAccess) {
 	var walletPermissions []WalletAccess
 	thirdPartyWallets = make([]ThirdPartyWalletAccess, 0)
 	cacheKey := fmt.Sprintf("Fetch3rdPartyWallets_%s", u.ID)
@@ -459,7 +460,7 @@ func (u *User) Fetch3rdPartyWallets(db *gorm.DB, redisCache *cache.RedisCache) (
 	{
 
 		// search cache for balance
-		ok, response := redisCache.GetCachedResult(cacheKey)
+		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 
 		if ok {
 			log.Printf("Fetch3rdPartyWallets [%v], served from cache\n", cacheKey)
@@ -479,7 +480,7 @@ func (u *User) Fetch3rdPartyWallets(db *gorm.DB, redisCache *cache.RedisCache) (
 		}
 
 	}
-	e := db.Where("username = ?", u.Username).Find(&walletPermissions).Error
+	e := gc.DB.Where("username = ?", u.Username).Find(&walletPermissions).Error
 	if e != nil {
 		return
 	}
@@ -489,13 +490,13 @@ func (u *User) Fetch3rdPartyWallets(db *gorm.DB, redisCache *cache.RedisCache) (
 	}
 	for _, assignedPermission := range walletPermissions {
 		//Get the permission assignment
-		managedAccess, err := UserWalletManagedAccessID(assignedPermission.UserWalletManagedAccessID).GetAccessAssignment(db)
+		managedAccess, err := UserWalletManagedAccessID(assignedPermission.UserWalletManagedAccessID).GetAccessAssignment(gc.DB)
 		thirdPartyWallet := ThirdPartyWalletAccess{
 			AccessLevel: assignedPermission.AccessLevel,
 		}
 		if err == nil {
 			//use it to fetch wallet details
-			wallet, err := UserWalletID(managedAccess.UserWalletID).GetWallet(db)
+			wallet, err := UserWalletID(managedAccess.UserWalletID).GetWallet(gc.DB)
 			if err == nil {
 				thirdPartyWallet.PublicKey = wallet.ID
 				thirdPartyWallet.WalletAlias = wallet.Alias
@@ -504,7 +505,7 @@ func (u *User) Fetch3rdPartyWallets(db *gorm.DB, redisCache *cache.RedisCache) (
 				}
 			}
 			//use it to fetch wallet owner details
-			owner, err := UserWalletID(managedAccess.UserWalletID).GetWalletOwner(db)
+			owner, err := UserWalletID(managedAccess.UserWalletID).GetWalletOwner(gc.DB)
 			if err == nil {
 				thirdPartyWallet.Owner = owner.Username
 			}
@@ -513,18 +514,18 @@ func (u *User) Fetch3rdPartyWallets(db *gorm.DB, redisCache *cache.RedisCache) (
 
 	}
 	//save to cache
-	redisCache.StoreResultToCache(cacheKey, thirdPartyWallets, 4000)
+	gc.RedisCache.StoreResultToCache(cacheKey, thirdPartyWallets, 4000)
 
 	return
 }
 
-func (u *User) GetDefaultAssets(db *gorm.DB, redisCache *cache.RedisCache) (defaultAssets []DefaultAsset) {
+func (u *User) GetDefaultAssets(gc *sharedconfig.GlobalConfig) (defaultAssets []DefaultAsset) {
 	cacheKey := "GetDefaultAssets"
 
 	{
 
 		// search cache for balance
-		ok, response := redisCache.GetCachedResult(cacheKey)
+		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 
 		if ok {
 			log.Printf("GetDefaultAssets [%v], served from cache\n", cacheKey)
@@ -541,12 +542,24 @@ func (u *User) GetDefaultAssets(db *gorm.DB, redisCache *cache.RedisCache) (defa
 		}
 
 	}
-	e := db.Find(&defaultAssets).Error
+	e := gc.DB.Find(&defaultAssets).Error
 	if e != nil {
 		log.Printf("[User.GetDefaultAssets] Error pulling default Assets, Error: %v", e)
 	}
 	//save to cache
-	redisCache.StoreResultToCache(cacheKey, defaultAssets, 4000)
+	gc.RedisCache.StoreResultToCache(cacheKey, defaultAssets, 4000)
 	return defaultAssets
+
+}
+
+func (u *User) SendPushMessage(title, body, imageURI string, gc *sharedconfig.GlobalConfig) {
+	//Send push notification to user
+	// log.Println(title, body)
+
+	if u.PushNotificationToken == nil {
+		return
+	}
+
+	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, gc.PushNotificationClient, gc.PNSContext)
 
 }

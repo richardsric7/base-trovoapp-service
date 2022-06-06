@@ -4,10 +4,10 @@ import (
 	"errors"
 	"log"
 	"strings"
-	"trovo-wallet-api/internal/cache"
 	merchantmodels "trovo-wallet-api/internal/components/merchants/models"
 	conDB "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"gorm.io/gorm"
 )
@@ -27,7 +27,7 @@ func GetMerchantInfo(mInfo string, db *gorm.DB) (user merchantmodels.Merchant, e
 		e = db.First(&user, merchantmodels.Merchant{Email: strings.ToLower(mInfo)}).Error
 	} else {
 		//username is supplied
-		e = db.First(&user, merchantmodels.Merchant{BantupayUsername: strings.ToLower(mInfo)}).Error
+		e = db.First(&user, merchantmodels.Merchant{TrovoWalletUsername: strings.ToLower(mInfo)}).Error
 	}
 
 	if e != nil {
@@ -188,8 +188,8 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData merc
 }
 
 //GetUserForMerchants gets user information
-func GetUserForMerchants(ID string, merchant merchantmodels.Merchant, db *gorm.DB, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (userForMerchantInfo merchantmodels.MerchantBudsInfo, err error) {
-	conDB.PrintDBStats("GetUserForMerchants", db)
+func GetUserForMerchants(ID string, merchant merchantmodels.Merchant, gc *sharedconfig.GlobalConfig) (userForMerchantInfo merchantmodels.MerchantBudsInfo, err error) {
+	conDB.PrintDBStats("GetUserForMerchants", gc.DB)
 
 	// user, err := users.GetUserInfo(ID, db)
 

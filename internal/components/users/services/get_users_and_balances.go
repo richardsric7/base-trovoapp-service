@@ -3,22 +3,21 @@ package users
 import (
 	"log"
 	"sync"
-	"trovo-wallet-api/internal/cache"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	"trovo-wallet-api/internal/middleware"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	tErrors "trovo-wallet-api/internal/errors"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 //GetUserInfo gets the user Information
-func GetUserInfo(identifier string, dynamicLinkServiceUrlChan chan string, db *gorm.DB, redisCache *cache.RedisCache, c *gin.Context) (userInfo userModels.UserInfo, err error) {
+func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Context) (userInfo userModels.UserInfo, err error) {
 
 	//get user from DB
-	user, err := usersDB.GetUser(identifier, db)
+	user, err := usersDB.GetUser(identifier, gc.DB)
 	if err != nil {
 		return userModels.UserInfo{}, err
 	}
@@ -51,7 +50,7 @@ func GetUserInfo(identifier string, dynamicLinkServiceUrlChan chan string, db *g
 	//Get user wallet balances
 	if owner {
 		userInfo.AssetBalances = make(map[string]userModels.AssetBalances)
-		assetBalances, err := GetUserWalletAssetBalances(&user, dynamicLinkServiceUrlChan, db, redisCache)
+		assetBalances, err := GetUserWalletAssetBalances(&user, gc)
 		if err == nil {
 			userInfo.AssetBalances = assetBalances
 		}
@@ -60,15 +59,15 @@ func GetUserInfo(identifier string, dynamicLinkServiceUrlChan chan string, db *g
 		userInfo.ThirdPartyWalletAccess = make([]userModels.ThirdPartyWalletAccess, 0)
 		//Get ThirdParty Wallet Access
 
-		userInfo.ThirdPartyWalletAccess = user.Fetch3rdPartyWallets(db, redisCache)
+		userInfo.ThirdPartyWalletAccess = user.Fetch3rdPartyWallets(gc)
 
-		userInfo.DefaultAssets = user.GetDefaultAssets(db, redisCache)
+		userInfo.DefaultAssets = user.GetDefaultAssets(gc)
 	}
 
 	return
 }
 
-func GetUserWalletAssetBalances(user *userModels.User, dynamicLinkServiceUrlChan chan string, db *gorm.DB, redisCache *cache.RedisCache) (userWalletBalances map[string]userModels.AssetBalances, err error) {
+func GetUserWalletAssetBalances(user *userModels.User, gc *sharedconfig.GlobalConfig) (userWalletBalances map[string]userModels.AssetBalances, err error) {
 
 	// userWalletBalances = make(map[string]userModels.AssetBalances)
 	userWalletBalances = make(map[string]userModels.AssetBalances)
@@ -87,7 +86,7 @@ func GetUserWalletAssetBalances(user *userModels.User, dynamicLinkServiceUrlChan
 		wg.Add(1)
 		go func(vg1 userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 			defer w.Done()
-			unclaimedBalance, errR1 := vg1.GetSortedUserBalance(db, true, dynamicLinkServiceUrlChan, redisCache)
+			unclaimedBalance, errR1 := vg1.GetSortedUserBalance(true, gc)
 
 			if errR1 == nil {
 				//Unclaimed Assets
@@ -100,7 +99,7 @@ func GetUserWalletAssetBalances(user *userModels.User, dynamicLinkServiceUrlChan
 		wg.Add(1)
 		go func(vg2 userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
 			defer w.Done()
-			claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(db, false, dynamicLinkServiceUrlChan, redisCache)
+			claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(false, gc)
 
 			if errR1 != nil {
 				//log server error

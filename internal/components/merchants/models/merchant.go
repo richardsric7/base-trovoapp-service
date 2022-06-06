@@ -18,7 +18,7 @@ type Merchant struct {
 	ID                         string    `json:"-" gorm:"size:100"`
 	CreatedAt                  time.Time `json:"-"`
 	UpdatedAt                  time.Time `json:"-"`
-	BantupayUsername           string    `json:"bantupayUsername" gorm:"size:100;index:idx_bantupay_username,unique;not null;check:,length(bantupay_username) > 2"`
+	TrovoWalletUsername        string    `json:"TrovoUsername" gorm:"size:100;index:idx_trovowallet_username,unique;not null;check:,length(trovo_wallet_username) > 2"`
 	Email                      string    `json:"email" gorm:"not null;index:idx_merchant_email,unique"`
 	PublicKey                  string    `json:"publicKey" gorm:"size:56;index:idx_merchant_user_public_key;not null;"`
 	ShortName                  string    `json:"shortName" gorm:"size:20;index:idx_merchant_shortname,unique;not null;"`
@@ -98,6 +98,7 @@ type payload struct {
 	Android         *Android `json:"android,omitempty"`
 	APNS            *APNS    `json:"apns,omitempty"`
 }
+
 //MerchantBudsInfo model for bantu user directory info
 type MerchantBudsInfo struct {
 	CreatedAt             string                 `json:"createdAt"`
@@ -117,6 +118,7 @@ type MerchantBudsInfo struct {
 	Referrer              string                 `json:"referrer"`
 	Wallet                UserBalanceForMerchant `json:"wallet"`
 }
+
 func (m *MerchantPushNotificationInput) PushMessage(token string) {
 
 	if os.Getenv("PUSH_NOTIFICATION_SERVICE_MODE") == "redis" {

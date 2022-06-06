@@ -4,29 +4,28 @@ import (
 	"log"
 	"sort"
 	"strings"
-	"trovo-wallet-api/internal/cache"
 	userDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/stellar/go/clients/horizonclient"
-	"gorm.io/gorm"
 
 	"github.com/stellar/go/protocols/horizon"
 )
 
 //GetSortedUserBalance gets user blockchain balance
-func GetSortedUserBalance(publicKey string, db *gorm.DB, dynamicLinkServiceUrlChan chan string, redisCache *cache.RedisCache) (balances []userModels.Balance, err error) {
+func GetSortedUserBalance(publicKey string, gc *sharedconfig.GlobalConfig) (balances []userModels.Balance, err error) {
 
 	var userWallet userModels.UserWallet
-	userWallet, temp, err := userDB.GetWallet(publicKey, db)
+	userWallet, temp, err := userDB.GetWallet(publicKey, gc.DB)
 	if err != nil {
 		return
 	}
 
 	//GetBalance
-	unsortedBalances, err := userWallet.GetBalance(db, temp, dynamicLinkServiceUrlChan, redisCache)
+	unsortedBalances, err := userWallet.GetBalance(temp, gc)
 	if err != nil {
 		return
 	}

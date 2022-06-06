@@ -1,16 +1,14 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"testing"
 	"time"
 
-	"trovo-wallet-api/internal/middleware"
+	fb "trovo-wallet-api/internal/pns"
 
-	"github.com/dghubble/sling"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/keypair"
 )
 
 const devURL = "http://localhost:8080"
@@ -209,48 +207,88 @@ type DefaultAsset struct {
 
 // }
 
-func TestGetUserInfo(t *testing.T) {
+// func TestGetUserInfo(t *testing.T) {
 
-	pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
-	secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-	kp := keypair.MustParseFull(secretKey)
-	// log.Println(kp.Address())
-	// baseURL := "http://localhost:8080"
-	baseURL := prodURL
-	fullPath := fmt.Sprintf("/v1/users/%s", "ric")
-	ts := time.Now().Unix() / 1000
+// 	pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
+// 	secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
+// 	kp := keypair.MustParseFull(secretKey)
+// 	// log.Println(kp.Address())
+// 	// baseURL := "http://localhost:8080"
+// 	baseURL := prodURL
+// 	fullPath := fmt.Sprintf("/v1/users/%s", "ric")
+// 	ts := time.Now().Unix() / 1000
 
-	tsString := fmt.Sprintf("%v", ts)
-	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
-	if err != nil {
-		t.Errorf(err.Error())
-		return
+// 	tsString := fmt.Sprintf("%v", ts)
+// 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+// 	if err != nil {
+// 		t.Errorf(err.Error())
+// 		return
 
-	}
+// 	}
 
-	errorResponse := new(ErrorResponse)
-	resultResponse := new(UserInfo)
+// 	errorResponse := new(ErrorResponse)
+// 	resultResponse := new(UserInfo)
 
-	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-		Set("X-TW-PUBLIC-KEY", kp.Address()).
-		Set("X-TW-SIGNER", kp.Address()).
-		Set("X-TW-SIGNATURE", signedHttpHeader).
-		Set("X-TW-TIMESTAMP", tsString).
-		Base(baseURL).
-		Get(fullPath).Receive(resultResponse, errorResponse)
-	//get payload string
-	if len(errorResponse.Error) > 0 {
-		log.Println("[TestGetUserInfo] server response error:", *errorResponse)
-		return
+// 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+// 		Set("X-TW-PUBLIC-KEY", kp.Address()).
+// 		Set("X-TW-SIGNER", kp.Address()).
+// 		Set("X-TW-SIGNATURE", signedHttpHeader).
+// 		Set("X-TW-TIMESTAMP", tsString).
+// 		Base(baseURL).
+// 		Get(fullPath).Receive(resultResponse, errorResponse)
+// 	//get payload string
+// 	if len(errorResponse.Error) > 0 {
+// 		log.Println("[TestGetUserInfo] server response error:", *errorResponse)
+// 		return
 
-	}
+// 	}
+// 	if err != nil {
+// 		log.Println("[TestGetUserInfo]request error:", err)
+// 		t.Errorf(err.Error())
+
+// 		return
+// 	}
+
+// 	log.Printf("Result:[%+v]\n", resultResponse)
+
+// }
+func TestSendPushNotificationMessage(t *testing.T) {
+	ric := "dqmlIz2eT-CTEX1cesc3za:APA91bGDuSBPzGSZAjYfFMU12eV_gpMw7JdF7gxhhsaPc0XGmgYu9RokVyLfEpH6_Yfg9mYrmuhYlcLRScvolUbfRVftR3QK4d6psgVOY0382fNW3Q1BND8kTbPAThBOXe60DHSXO9hD"
+	// kennis := "eNCa_XRaTr2NnXX4pnzhN3:APA91bF9OfBO9IEFJcPOtO-83Qu41_7zZ3ef7qC3i5ySPvT8arcQ1gwnRXYnSZ5uJ9mT4uOW7rgPp5F0hTsqvoqQL9oR02fQtiCyco2DVsNBT6JIgqgVHO1ZTPod7ypm-MpSzA95MRRZ"
+	title := "TROVO: Testing Push Notification Service"
+	body := `This is a test message to ascertain how the push notification appears`
+	imageURL := "https://trovotech.io/img/Trovotech-colored.png"
+	ctx := context.TODO()
+	client, _, err := fb.GetFirebaseMessagingClient(ctx)
 	if err != nil {
 		log.Println("[TestGetUserInfo]request error:", err)
 		t.Errorf(err.Error())
-
 		return
 	}
+	response, _ := fb.SendFirebaseMessage(ric, title, body, imageURL, client, ctx)
 
-	log.Printf("Result:[%+v]\n", resultResponse)
+	log.Printf("Result:[%+v]\n", response)
 
 }
+
+// func TestSendPushNotificationBroadcast(t *testing.T) {
+
+// ric := "dqmlIz2eT-CTEX1cesc3za:APA91bGDuSBPzGSZAjYfFMU12eV_gpMw7JdF7gxhhsaPc0XGmgYu9RokVyLfEpH6_Yfg9mYrmuhYlcLRScvolUbfRVftR3QK4d6psgVOY0382fNW3Q1BND8kTbPAThBOXe60DHSXO9hD"
+// kennis := "eNCa_XRaTr2NnXX4pnzhN3:APA91bF9OfBO9IEFJcPOtO-83Qu41_7zZ3ef7qC3i5ySPvT8arcQ1gwnRXYnSZ5uJ9mT4uOW7rgPp5F0hTsqvoqQL9oR02fQtiCyco2DVsNBT6JIgqgVHO1ZTPod7ypm-MpSzA95MRRZ"
+
+// receipients := []string{godswill, tunde, onoja, cryptoking, ric, mavol}
+// 	title := "TESTING THE PUSH NOTIFICATION BROADCAST"
+// 	body := `This is a test message to ascertain how the push notification appears`
+// 	imageURL := "https://trovotech.io/img/Trovotech-colored.png"
+// 	ctx := context.TODO()
+// 	client, _, err := fb.GetFirebaseMessagingClient(ctx)
+// 	if err != nil {
+// 		log.Println("[TestGetUserInfo]request error:", err)
+// 		t.Errorf(err.Error())
+// 		return
+// 	}
+// 	response, _ := fb.SendFirebaseBroadcast(receipients, title, body, imageURL, client, ctx)
+
+// 	log.Printf("Result:[%+v]\n", response)
+
+// }
