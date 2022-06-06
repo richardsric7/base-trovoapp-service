@@ -107,15 +107,15 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 		}
 		if len(user.LastName) > 50 {
 
-			return &tErrors.ErrorInvalidName{Field: "lastname"}
+			return &tErrors.ErrorInvalidName{Field: "lastName"}
 		}
 		if len(user.LastName) > 50 {
 
-			return &tErrors.ErrorInvalidName{Field: "lastname"}
+			return &tErrors.ErrorInvalidName{Field: "lastName"}
 		}
 		if len(user.FirstName) > 50 {
 
-			return &tErrors.ErrorInvalidName{Field: "firstname"}
+			return &tErrors.ErrorInvalidName{Field: "firstName"}
 		}
 		if len(user.MobileCountryCode) > 2 {
 

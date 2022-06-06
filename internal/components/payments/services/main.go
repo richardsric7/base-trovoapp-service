@@ -13,6 +13,7 @@ import (
 
 	"log"
 	"strconv"
+	paymentsDB "trovo-wallet-api/internal/components/payments/db"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 
@@ -27,11 +28,11 @@ import (
 )
 
 //Pay function sends a payment from user to another user
-func Pay(owner *users.User, senderPublicKey string, paymentInfo *payments.PaymentInfo, db *gorm.DB) (*payments.PaymentInfo, *users.User, error) {
+func Pay(owner *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *payments.PaymentInfo, db *gorm.DB) (*payments.PaymentInfo, *paymentsDB.User, error) {
 
 	client := network.GetBlockchainClient()
 	var xdrBase64 string
-	var destinationUser *users.User
+	var destinationUser *paymentsDB.User
 	var err error
 
 	//check if destination is a wallet with memo
@@ -44,18 +45,6 @@ func Pay(owner *users.User, senderPublicKey string, paymentInfo *payments.Paymen
 					Param:      "memo",
 					Err:        "error invalid memo",
 					ErrMessage: "Bittrex Global Deposits require 28 character memo. If you do not put exact memo, your funds will be lost. Please carefully provide the memo for your Bittrex Global wallet.",
-				}
-
-			}
-			if paymentInfo.Destination == w {
-				//check how many sers have send to this memo before
-				var totalUniqueSent uint
-				db.Raw("SELECT count(DISTINCT tx_from_public_key) as total FROM monitored_account_transactions WHERE tx_memo = ? AND tx_to_public_key = ? AND tx_from_public_key != ? GROUP BY tx_memo", paymentInfo.Memo, paymentInfo.Destination, senderPublicKey).Scan(&totalUniqueSent)
-
-				if totalUniqueSent > 4 {
-					//Put memo into banned memos
-					db.Exec("insert into banned_memos(memo, reason) values(?, ?) on conflict (memo) do nothing", paymentInfo.Memo, "suspicious activity")
-
 				}
 
 			}
@@ -72,18 +61,7 @@ func Pay(owner *users.User, senderPublicKey string, paymentInfo *payments.Paymen
 				}
 
 			}
-			if paymentInfo.Destination == w {
-				//check how many users have send to this memo before
-				var totalUniqueSent uint
-				db.Raw("SELECT count(DISTINCT tx_from_public_key) as total FROM monitored_account_transactions WHERE tx_memo = ? AND tx_to_public_key = ? AND tx_from_public_key != ? GROUP BY tx_memo", paymentInfo.Memo, paymentInfo.Destination, senderPublicKey).Scan(&totalUniqueSent)
 
-				if totalUniqueSent > 4 {
-					//Put memo into banned memos
-					db.Exec("insert into banned_memos(memo, reason) values(?, ?) on conflict (memo) do nothing", paymentInfo.Memo, "suspicious activity")
-
-				}
-
-			}
 		}
 
 		memoWalletSlicesVariablebyte := strings.Split(os.Getenv("WALLETS_REQUIRE_VARIABLE_BYTE_MEMO"), ",")
@@ -98,35 +76,21 @@ func Pay(owner *users.User, senderPublicKey string, paymentInfo *payments.Paymen
 
 			}
 		}
-		for _, w := range memoWalletSlicesVariablebyte {
 
-			if paymentInfo.Destination == w {
-				//check how many users have send to this memo before
-				var totalUniqueSent uint
-				db.Raw("SELECT count(DISTINCT tx_from_public_key) as total FROM monitored_account_transactions WHERE tx_memo = ? AND tx_to_public_key = ? AND tx_from_public_key != ? GROUP BY tx_memo", paymentInfo.Memo, paymentInfo.Destination, senderPublicKey).Scan(&totalUniqueSent)
-
-				if totalUniqueSent > 4 {
-					//Put memo into banned memos
-					db.Exec("insert into banned_memos(memo, reason) values(?, ?) on conflict (memo) do nothing", paymentInfo.Memo, "suspicious activity")
-
-				}
-
-			}
-		}
 	}
 
 	if len(paymentInfo.ChannelAccount) == 56 {
 		//payment is with channel account
-		xdrBase64, destinationUser, err = generatePaymentXdrWithChannelAccountPK(client, senderPublicKey, owner, paymentInfo, db)
+		xdrBase64, destinationUser, err = generatePaymentXdrWithChannelAccountPK(client, owner, destinationUser, wallet, paymentInfo, db)
 
 		if err != nil {
-			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdrWithChannelAccountPK error:[%v] \n", senderPublicKey, paymentInfo.Destination, err)
+			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdrWithChannelAccountPK error:[%v] \n", wallet.Alias, paymentInfo.Destination, err)
 		}
 	} else {
 
-		xdrBase64, destinationUser, err = generatePaymentXdr(client, senderPublicKey, owner, paymentInfo, db)
+		xdrBase64, destinationUser, err = generatePaymentXdr(client, owner, destinationUser, wallet, paymentInfo, db)
 		if err != nil {
-			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdr error:[%v] \n", senderPublicKey, paymentInfo.Destination, err)
+			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdr error:[%v] \n", wallet.ID, paymentInfo.Destination, err)
 		}
 	}
 	oldTransaction := paymentInfo.Transaction
@@ -144,21 +108,30 @@ func Pay(owner *users.User, senderPublicKey string, paymentInfo *payments.Paymen
 	if len(paymentInfo.ChannelAccountSignature) == 0 && len(paymentInfo.ChannelAccount) == 56 {
 		return paymentInfo, nil, &tPayErrors.ErrorTransactionMismatch{Detail: "signature for channel account does not validate"}
 	}
-	var txnHash string
-	if len(paymentInfo.ChannelAccountSignature) > 0 && len(paymentInfo.ChannelAccount) == 56 {
-		txnHash, err = network.SubmitXdrWithSignatureChannelAccounts(client, senderPublicKey, paymentInfo.ChannelAccount, xdrBase64, paymentInfo.TransactionSignature, paymentInfo.ChannelAccountSignature)
-		if err != nil {
-			log.Println("#############################submit with channel account throws error:", err)
 
+	if wallet.ManagedAccessEnabled == 0 {
+		//maker checker not enabled. submit to network is possible
+		var txnHash string
+		if len(paymentInfo.ChannelAccountSignature) > 0 && len(paymentInfo.ChannelAccount) == 56 {
+			txnHash, err = network.SubmitXdrWithSignatureChannelAccounts(client, wallet.Signer, paymentInfo.ChannelAccount, xdrBase64, paymentInfo.TransactionSignature, paymentInfo.ChannelAccountSignature)
+			if err != nil {
+				log.Println("#############################submit with channel account throws error:", err)
+
+			}
+		} else {
+			txnHash, err = network.SubmitXdrWithSignature(client, wallet.Signer, xdrBase64, paymentInfo.TransactionSignature)
+			if err != nil {
+				log.Printf("[Pay] from [%v] to [%v] SubmitXdrWithSignature error:[%v] \n", wallet.Alias, paymentInfo.Destination, err)
+			}
 		}
+		paymentInfo.TransactionID = txnHash
+		return paymentInfo, destinationUser, err
 	} else {
-		txnHash, err = network.SubmitXdrWithSignature(client, senderPublicKey, xdrBase64, paymentInfo.TransactionSignature)
-		if err != nil {
-			log.Printf("[Pay] from [%v] to [%v] SubmitXdrWithSignature error:[%v] \n", senderPublicKey, paymentInfo.Destination, err)
-		}
+		//put routine for managed access > 0
+		log.Printf("managed access enabled for %v \n", wallet.Alias)
 	}
-	paymentInfo.TransactionID = txnHash
 	return paymentInfo, destinationUser, err
+
 }
 
 //PayWithChannelAccount function sends a payment from user to another user using channel accounts
@@ -191,10 +164,10 @@ func PayWithChannelAccount(senderPublicKey string, paymentInfo *payments.Payment
 	paymentInfo.TransactionID = txnHash
 	return paymentInfo, err
 }
-func generatePaymentXdr(client *horizonclient.Client, senderPublicKey string, owner *users.User, paymentInfo *payments.PaymentInfo, db *gorm.DB) (string, *users.User, error) {
+func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, destinationUser *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *payments.PaymentInfo, db *gorm.DB) (string, *paymentsDB.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	// var messages []string
-	//check if it is publc key payment
+	//check if it is public key payment
 	publicKeyPayment := len(paymentInfo.Destination) == 56
 	var err error
 	paymentInfo, err = ValidatePaymentInfo(paymentInfo)
@@ -286,7 +259,7 @@ func generatePaymentXdr(client *horizonclient.Client, senderPublicKey string, ow
 	}
 
 	// paymentInfo.Messages = messages
-	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, senderPublicKey, asset)
+	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.Signer, asset)
 
 	if sourceAccountErr != nil {
 		return "", nil, sourceAccountErr
@@ -300,14 +273,6 @@ func generatePaymentXdr(client *horizonclient.Client, senderPublicKey string, ow
 
 		return "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
-	rid, e := ProcessBailArrestedAccount(client, owner, sourceAccount, db)
-	if e != nil {
-		//  error while releasing from prison
-		log.Println("[generatePaymentXdr] error:", e)
-	} else {
-		//account freed from prison
-		log.Println("[generatePaymentXdr] account freeded from prison", senderPublicKey, "hash:", rid)
-	}
 
 	log.Printf("[generatePaymentXdr]obtained sourced account info \n")
 
@@ -315,7 +280,7 @@ func generatePaymentXdr(client *horizonclient.Client, senderPublicKey string, ow
 
 	amountToSendDec := decimal.NewFromFloat(amountToSend)
 
-	if senderPublicKey != asset.GetIssuer() {
+	if wallet.ID != asset.GetIssuer() {
 
 		if asset.IsNative() {
 			if sourceAccountNativeBalance.LessThan(amountToSendDec) {
@@ -361,7 +326,7 @@ func generatePaymentXdr(client *horizonclient.Client, senderPublicKey string, ow
 	} else {
 		//custom asset
 
-		// claimable assets are for bantupay customers only. it would return error above when destination does not trust asset
+		// claimable assets are for trovo wallet customers only. it would return error above when destination does not trust asset
 
 		if !destinationAccountExists {
 			ops = append(ops, &txnbuild.CreateAccount{
@@ -424,15 +389,10 @@ func generatePaymentXdr(client *horizonclient.Client, senderPublicKey string, ow
 	}
 	var xdrBase64 string
 
-	prisonXDR, goingToPrison := ProcessArrestAccount(client, owner, sourceAccount, db)
-	if goingToPrison {
-		xdrBase64 = prisonXDR
-	} else {
-		xdrBase64, err = tx.Base64()
-		if err != nil {
-			log.Println("[generatePaymentXdr] error getting txn base64", err)
-			return "", nil, err
-		}
+	xdrBase64, err = tx.Base64()
+	if err != nil {
+		log.Println("[generatePaymentXdr] error getting txn base64", err)
+		return "", nil, err
 	}
 
 	if destinationBlockchainAccount != nil {
@@ -440,7 +400,7 @@ func generatePaymentXdr(client *horizonclient.Client, senderPublicKey string, ow
 
 	}
 
-	return xdrBase64, &destinationInfo, nil
+	return xdrBase64, destinationUser, nil
 }
 
 func generatePaymentXdrWithChannelAccount(client *horizonclient.Client, senderPublicKey string, paymentInfo *payments.PaymentInfo, channelAccount *keypair.Full, db *gorm.DB) (string, error) {
@@ -682,7 +642,7 @@ func generatePaymentXdrWithChannelAccount(client *horizonclient.Client, senderPu
 	return xdrBase64, nil
 }
 
-func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, senderPublicKey string, owner *users.User, paymentInfo *payments.PaymentInfo, db *gorm.DB) (string, *users.User, error) {
+func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner, destinationUser *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *payments.PaymentInfo, db *gorm.DB) (string, *paymentsDB.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	// var messages []string
 	//check if it is public key payment
@@ -707,17 +667,14 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, sender
 		asset = txnbuild.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
 	}
 
-	destinationInfo, getDestinationError := usersdb.GetUser(paymentInfo.Destination, db)
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
-	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
-		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
-	}
+
 	if !publicKeyPayment {
-		paymentInfo.DestinationFirstName = destinationInfo.FirstName
-		paymentInfo.DestinationLastName = destinationInfo.LastName
-		paymentInfo.DestinationVerified = destinationInfo.Verified
-		if destinationInfo.ImageThumbnailURL != nil {
-			paymentInfo.DestinationThumbnail = *destinationInfo.ImageThumbnailURL
+		paymentInfo.DestinationFirstName = destinationUser.FirstName
+		paymentInfo.DestinationLastName = destinationUser.LastName
+		paymentInfo.DestinationVerified = destinationUser.Verified
+		if destinationUser.ImageThumbnailURL != nil {
+			paymentInfo.DestinationThumbnail = *destinationUser.ImageThumbnailURL
 		}
 	} else {
 		//parse public key
@@ -735,9 +692,9 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, sender
 	if publicKeyPayment {
 		destinationPublicKey = paymentInfo.Destination
 	} else {
-		destinationPublicKey = destinationInfo.PublicKey
+		destinationPublicKey = destinationUser.PublicKey
 	}
-	//perform ths checks of determining messages to be appended. if destination account property is not checked here, information would be returned without messages set.
+	//perform ths checks to determine messages to be appended. if destination account property is not checked here, information would be returned without messages set.
 	destinationAccountExists, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr :=
 		network.BlockchainAccountProperties(client, destinationPublicKey, asset)
 	//set base charge to be used in all places it is needed
@@ -752,7 +709,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, sender
 			//custom asset
 			if !destinationAccountExists {
 
-				message := fmt.Sprintf("Important: The account of %v is unfunded. %v XBN will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationInfo.Username, charge, destinationInfo.Username, destinationInfo.Username)
+				message := fmt.Sprintf("Important: The account of %v is unfunded. %v XBN will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationUser.Username, charge, destinationUser.Username, destinationUser.Username)
 
 				paymentInfo.Messages = append(paymentInfo.Messages, message)
 				// log.Printf("[generatePaymentXdr]message[0]: %v\n", message)
@@ -760,7 +717,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, sender
 			}
 
 			if !destinationAccountTrustsAsset {
-				message := fmt.Sprintf("Important: %v has not yet activated the asset (%v) you are trying to send. %v XBN will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationInfo.Username, paymentInfo.AssetCode, charge, destinationInfo.Username, paymentInfo.AssetCode)
+				message := fmt.Sprintf("Important: %v has not yet activated the asset (%v), that you are trying to send. %v XBN will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationUser.Username, paymentInfo.AssetCode, charge, destinationUser.Username, paymentInfo.AssetCode)
 
 				paymentInfo.Messages = append(paymentInfo.Messages, message)
 				// log.Printf("[generatePaymentXdr]message[1]: %v\n", message)
@@ -770,7 +727,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, sender
 	}
 
 	// paymentInfo.Messages = messages
-	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, senderPublicKey, asset)
+	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, asset)
 	channelSourceAccountExists, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(client, paymentInfo.ChannelAccount, txnbuild.NativeAsset{})
 
 	if channelSourceAccountErr != nil {
@@ -799,14 +756,14 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, sender
 		return "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
-	rid, e := ProcessBailArrestedAccount(client, owner, sourceAccount, db)
-	if e != nil {
-		//  error while releasing from prison
-		log.Println("[generatePaymentXdr] error:", e)
-	} else {
-		//account freed from prison
-		log.Println("[generatePaymentXdr] account freed from prison", senderPublicKey, "hash:", rid)
-	}
+	// rid, e := ProcessBailArrestedAccount(client, owner, sourceAccount, db)
+	// if e != nil {
+	// 	//  error while releasing from prison
+	// 	log.Println("[generatePaymentXdr] error:", e)
+	// } else {
+	// 	//account freed from prison
+	// 	log.Println("[generatePaymentXdr] account freed from prison", senderPublicKey, "hash:", rid)
+	// }
 
 	log.Printf("[generatePaymentXdrWithChannelAccountPK]obtained sourced account info \n")
 
@@ -814,7 +771,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, sender
 
 	amountToSendDec := decimal.NewFromFloat(amountToSend)
 
-	if senderPublicKey != asset.GetIssuer() {
+	if wallet.ID != asset.GetIssuer() {
 
 		if asset.IsNative() {
 			if sourceAccountNativeBalance.LessThan(amountToSendDec) {
@@ -847,14 +804,14 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, sender
 			ops = append(ops, &txnbuild.CreateAccount{
 				Destination:   destinationPublicKey,
 				Amount:        newAmountToSend,
-				SourceAccount: senderPublicKey,
+				SourceAccount: wallet.ID,
 			})
 		} else {
 			ops = append(ops, &txnbuild.Payment{
 				Destination:   destinationPublicKey,
 				Amount:        newAmountToSend,
 				Asset:         asset,
-				SourceAccount: senderPublicKey,
+				SourceAccount: wallet.ID,
 			})
 		}
 	} else {
@@ -866,7 +823,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, sender
 			ops = append(ops, &txnbuild.CreateAccount{
 				Destination:   destinationPublicKey,
 				Amount:        charge,
-				SourceAccount: senderPublicKey,
+				SourceAccount: wallet.ID,
 			})
 		}
 
@@ -888,7 +845,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, sender
 				Destination:   destinationPublicKey,
 				Amount:        newAmountToSend,
 				Asset:         asset,
-				SourceAccount: senderPublicKey,
+				SourceAccount: wallet.ID,
 			})
 		}
 
@@ -924,22 +881,17 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, sender
 
 	var xdrBase64 string
 
-	prisonXDR, goingToPrison := ProcessArrestAccount(client, owner, sourceAccount, db)
-	if goingToPrison {
-		xdrBase64 = prisonXDR
-	} else {
-		xdrBase64, err = tx.Base64()
-		if err != nil {
-			log.Println("[generatePaymentXdrWithChannelAccountPK] error getting txn base64", err)
-			return "", nil, err
-		}
+	xdrBase64, err = tx.Base64()
+	if err != nil {
+		log.Println("[generatePaymentXdrWithChannelAccountPK] error getting txn base64", err)
+		return "", nil, err
 	}
 
 	if destinationBlockchainAccount != nil {
 		paymentInfo.CallbackURLS = GetBlockchainAccountDataKey(*destinationBlockchainAccount, "orderPaymentCallbackUrl")
 
 	}
-	return xdrBase64, &destinationInfo, nil
+	return xdrBase64, destinationUser, nil
 }
 
 func ProcessArrestAccount(client *horizonclient.Client, owner *users.User, sourceAccount *horizon.Account, db *gorm.DB) (xdrBase64 string, goinToPrison bool) {

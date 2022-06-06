@@ -222,7 +222,7 @@ func SubmitXdrWithSignature(client *horizonclient.Client, ownerPublicKey string,
 
 }
 
-func SubmitXdrWithSignatureChannelAccounts(client *horizonclient.Client, senderPublicKey, channelAccountPK string, xdrBase64 string, txSignature, chanSignature string) (string, error) {
+func SubmitXdrWithSignatureChannelAccounts(client *horizonclient.Client, signerPublicKey, channelAccountPK string, xdrBase64 string, txSignature, chanSignature string) (string, error) {
 
 	gTxn, err := txnbuild.TransactionFromXDR(xdrBase64)
 
@@ -244,10 +244,10 @@ func SubmitXdrWithSignatureChannelAccounts(client *horizonclient.Client, senderP
 		// log.Printf("<<<<<Decorated signatures>>>>>>>>>>>>>>>>>>>>>>>>\n\n%+v\n\n", chtxn.Signatures())
 		return "", err
 	}
-	txn, err = txn.AddSignatureBase64(GetBlockchainNetworkPassPhrase(), senderPublicKey, txSignature)
+	txn, err = txn.AddSignatureBase64(GetBlockchainNetworkPassPhrase(), signerPublicKey, txSignature)
 
 	if err != nil {
-		log.Println("Failed to verify signature with sender public key on [", GetBlockchainNetworkPassPhrase(), "] and [", txSignature, "] for [", xdrBase64, "] and public key ", senderPublicKey)
+		log.Println("Failed to verify signature with sender public key on [", GetBlockchainNetworkPassPhrase(), "] and [", txSignature, "] for [", xdrBase64, "] and singer public key ", signerPublicKey)
 
 		return "", err
 	}

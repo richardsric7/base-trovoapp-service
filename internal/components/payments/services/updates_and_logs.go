@@ -7,8 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-//UpdateAndLogUserPaymentGeoInfomation logs payment information and updates user location inforamtion
-func UpdateAndLogUserPaymentGeoInfomation(userInfo *userModels.User, paymentInfoReturned *payments.PaymentInfo, db *gorm.DB) {
+//UpdateAndLogUserPaymentGeoInformation logs payment information and updates user location information
+func UpdateAndLogUserPaymentGeoInformation(userInfo *userModels.User, paymentInfoReturned *payments.PaymentInfo, db *gorm.DB) {
 
 	// updatedUser:= &userInfo -m''
 	userInfo.AppendGeoInfo()

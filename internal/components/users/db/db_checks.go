@@ -134,7 +134,7 @@ func UserRegistrationDbChecks(userInfo usermodels.UserRegistrationInfo, db *gorm
 
 }
 
-//UserUpdateDbChecks checks validaty of user data
+//UserUpdateDbChecks checks validity of user data
 
 //UsernameIsReserved check is name is reserved. Status = 0 means not available (reserved). Status = 1 means available
 func UsernameIsReserved(username string, db *gorm.DB) (reserved bool, err error) {

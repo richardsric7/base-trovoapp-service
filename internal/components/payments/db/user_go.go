@@ -1,0 +1,205 @@
+package payments
+
+import (
+	"errors"
+	"fmt"
+	"log"
+	"strings"
+	"time"
+	conDB "trovo-wallet-api/internal/db"
+	tErrors "trovo-wallet-api/internal/errors"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+)
+
+type User struct {
+	CreatedAt             time.Time    `json:"createdAt"`
+	UpdatedAt             time.Time    `json:"updatedAt"`
+	LastUpdatedMobileOn   time.Time    `json:"lastUpdatedMobileOn"`
+	ID                    string       `json:"id"`
+	Username              string       `gorm:"size:16; index:idx_user_unique_username, unique" json:"username"`
+	Email                 string       `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
+	ImageThumbnailURL     *string      `json:"imageThumbnailURL"`
+	FirstName             string       `gorm:"size:50" json:"firstName"`
+	LastName              string       `gorm:"size:50" json:"lastName"`
+	Mobile                *string      `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
+	PublicKey             string       `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
+	Referrer              *string      `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
+	ReferralLink          *string      `json:"referralLink"`
+	ReferralQrCode        *string      `json:"referralQrCode"`
+	PushNotificationToken *string      `json:"pushNotificationToken"`
+	Corporate             uint         `gorm:"type:integer;not null; default:0" json:"corporate"`
+	MobileVerified        uint         `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
+	MembershipType        uint         `gorm:"type:integer;not null; default:0" json:"membershipType"`
+	MembershipExpiry      *time.Time   `json:"membershipExpiry"`
+	KYCVerified           uint         `gorm:"type:integer;not null; default:0" json:"kycVerified"`
+	WalletRecoveryEnabled uint         `gorm:"type:integer;not null; default:0" json:"walletRecoveryEnabled"`
+	UserWallets           []UserWallet `json:"userWallets"`
+	PublicIP              string       `gorm:"size:45" json:"publicIP"`
+	CountryCode           *string      `gorm:"size:2;null"`
+	Latitude              *float64     `gorm:"null"`
+	Longitude             *float64     `gorm:"null"`
+	City                  *string      `gorm:"null;size:100"`
+	Region                *string      `gorm:"null;size:100"`
+	RegionName            *string      `gorm:"null;size:100"`
+	TimeZone              *string      `gorm:"null;size:100"`
+	ISP                   *string      `gorm:"null;size:150"`
+	Verified              int          `gorm:"type:integer;not null;default:0" json:"verified"`
+	Suspended             int          `gorm:"type:integer;not null;default:0" json:"suspended"`
+	SuspensionReason      *string      `gorm:"null" json:"suspensionReason"`
+}
+
+type UserWallet struct {
+	CreatedAt               time.Time               `json:"createdAt"`
+	UpdatedAt               time.Time               `json:"updatedAt"`
+	ID                      string                  `gorm:"size:56" json:"publicKey"`
+	TempPublicKey           *string                 `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
+	Tag                     *string                 `gorm:"null;size:16" json:"tag"`
+	Description             *string                 `gorm:"null;size:100" json:"description"`
+	Alias                   string                  `gorm:"size:27; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
+	Signer                  string                  `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
+	UserID                  string                  `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
+	ManagedAccessEnabled    uint                    `gorm:"type:integer;not null; default:0" json:"managedAccessEnabled"`
+	UserWalletManagedAccess UserWalletManagedAccess `json:"userWalletManagedAccess"`
+}
+
+type UserWalletManagedAccess struct {
+	CreatedAt           time.Time      `json:"createdAt"`
+	UpdatedAt           time.Time      `json:"updatedAt"`
+	ID                  string         `gorm:"" json:"accessId"`
+	UserWalletID        string         `gorm:"size:56; index:idx_manage_access_user_wallet_id" json:"publicKey"`
+	NumberOfAuthorizers uint           `gorm:"type:integer; default:1" json:"numberOfAuthorizers"`
+	AccessList          []WalletAccess `json:"accessList"`
+}
+type WalletAccess struct {
+	CreatedAt                 time.Time `json:"createdAt"`
+	UpdatedAt                 time.Time `json:"updatedAt"`
+	Username                  string    `gorm:"size:16; primaryKey" json:"username"`
+	AccessLevel               string    `gorm:"size:10" json:"accessLevel"`
+	UserWalletManagedAccessID string    `gorm:"index:idx_wallet_access_wallet_access_id" json:"userWalletManagedAccessId"`
+}
+
+type AccessLevel struct {
+	ID          uint64
+	AccessLevel string `gorm:"size:text" json:"accessList"`
+}
+
+//ReservedName holds model struct for ReservedName table
+type ReservedName struct {
+	ID           uint64 `gorm:"primaryKey"`
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	ReservedName *string `gorm:"size:50;not null;index:unique_reserved_name, unique;index:idx_reserved_status"`
+	Status       *uint64 `gorm:"default:0;index:idx_reserved_status"`
+}
+
+//GetUser gets user data by either wallet id or signer or temporary public key
+func GetUser(userInfo string, db *gorm.DB) (user User, err error) {
+	conDB.PrintDBStats("GetUserInfo", db)
+
+	//e returns execution errors
+	var e error
+	if len(userInfo) == 56 {
+		//56 char public key is supplied
+
+		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_public_key = ?", &userInfo).Or("signer = ?", userInfo).Select("user_id")
+		e = db.Preload(clause.Associations).Where("id = (?)", subQuery).First(&user).Error
+	} else if strings.Contains(userInfo, "_") {
+		//alias format is supplied
+		subQuery := db.Table("user_wallets").Where("alias = ?", strings.ToLower(userInfo)).Select("user_id")
+		e = db.Preload(clause.Associations).Where("id = (?)", subQuery).First(&user).Error
+
+	} else {
+		//search by ID and phone number, username, email
+
+		e = db.Preload(clause.Associations).Where("id = ?", userInfo).Or("username = ?", strings.ToLower(userInfo)).Or("mobile = ?", &userInfo).Or("email = ?", userInfo).First(&user).Error
+	}
+
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no user was found
+			err = &tErrors.ErrorUserDoesNotExist{Username: userInfo}
+			return
+		}
+		log.Println("[GetUserInfo] error: ", e)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+
+	}
+
+	// log.Printf("user for %v is %v\n", userInfo, user)
+	return user, nil
+
+}
+
+//GetWallet gets user wallet data by alias or public key or temp public key
+func GetWallet(identifier string, db *gorm.DB) (userWallet UserWallet, temp bool, err error) {
+	conDB.PrintDBStats("GetWallet", db)
+
+	//e returns execution errors
+	var e error
+	if len(identifier) == 56 {
+		//56 char public key is supplied
+		e = db.Preload(clause.Associations).Where("id = ?", identifier).Or("temp_public_key = ?", &identifier).First(&userWallet).Error
+		if e == nil {
+			if identifier == *userWallet.TempPublicKey {
+				temp = true
+			}
+			return
+		}
+	} else {
+		//username is supplied
+		e = db.Preload(clause.Associations).Where("alias = ?", strings.ToLower(identifier)).First(&userWallet).Error
+
+	}
+
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no user was found
+			err = &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-does-not-exist", ErrMessage: fmt.Sprintf("%v is not assigned to any wallet", identifier)}
+			return
+		}
+		log.Println("[GetUserInfo] error: ", e)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+
+	}
+
+	// log.Printf("user for %v is %v\n", userInfo, user)
+	return userWallet, temp, nil
+
+}
+
+//UsernameIsReserved check is name is reserved. Status = 0 means not available (reserved). Status = 1 means available
+func UsernameIsReserved(username string, db *gorm.DB) (reserved bool, err error) {
+
+	username = strings.TrimSpace(username)
+	var reservedName ReservedName
+	if err := db.Where("reserved_name = ? AND status = 0", strings.ToLower(strings.ReplaceAll(username, " ", ""))).First(&reservedName).Error; err != nil {
+
+		return false, nil
+	}
+
+	return true, &tErrors.ErrorUsernameIsReserved{}
+}
+
+//PublicKeyIAlreadyExists check if public key already exists
+func PublicKeyAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err error) {
+	// discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
+	// if len(os.Getenv("IMPORT_ERROR_WEBHOOK")) > 50 {
+	// 	discord.WebhookURL = os.Getenv("IMPORT_ERROR_WEBHOOK")
+	// }
+	publicKey = strings.TrimSpace(publicKey)
+	var userWallet UserWallet
+	if err := db.Where("id = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&userWallet).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return true, &tErrors.ErrorTemporaryServerError{}
+		}
+		return false, nil
+	}
+	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
+
+	return true, &tErrors.CustomError{Param: "publicKey", Err: "error-public-key-already-exists", ErrMessage: fmt.Sprintf("Bantu Address [%v] already exists with another active account", userWallet.ID)}
+
+}
