@@ -29,6 +29,8 @@ class LanguageEn {
 
   static String get getstarted => "Get Started";
 
+  static String get importwallet => "Import Wallet";
+
   static String get enterpassword => "Create Password";
 
   static String get enteryourpassword =>

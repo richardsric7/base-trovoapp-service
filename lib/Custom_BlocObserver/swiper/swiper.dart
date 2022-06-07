@@ -115,7 +115,7 @@ class _SwiperState extends State<Swiper> {
               ),
               SizedBox(height: height / 50.5),
               ButtonOutlined(
-                LanguageEn.signin,
+                LanguageEn.importwallet,
                 notifier.getwihitecolor,
                 notifier.getbluecolor,
                 onTap: () {

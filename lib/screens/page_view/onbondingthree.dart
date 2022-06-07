@@ -48,7 +48,7 @@ class _ThreeonbondingState extends State<Threeonbonding> {
             child: Column(
               children: [
                 SizedBox(height: height / 10.5),
-                Image.asset("assets/images/crypto-p2p.png", height: height / 3),
+                Image.asset("assets/images/wallet.png", height: height / 2.5),
                 SizedBox(height: height / 20),
                 Text(
                   LanguageEn.domorewithblockchain,
@@ -57,15 +57,6 @@ class _ThreeonbondingState extends State<Threeonbonding> {
                       color: notifier.getblck,
                       fontSize: 25.sp,
                       fontFamily: fontsemibold),
-                ),
-                SizedBox(height: height / 50),
-                Text(
-                  LanguageEn.starttradingyourmoney,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 13.sp,
-                      fontFamily: fontbody),
                 ),
               ],
             ),

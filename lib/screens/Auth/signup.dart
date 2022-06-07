@@ -18,6 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/constants.dart';
+import '../../Models/User.dart';
 import '../../storage/state.dart';
 import '../../network/requests.dart';
 import '../../storage/store.dart';

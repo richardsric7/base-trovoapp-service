@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:trovo_wallet/screens/Auth/vericication.dart';
+import '../Models/User.dart';
 
 class DataProvider with ChangeNotifier {
   UserInfo? userInfo;

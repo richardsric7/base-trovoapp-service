@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
@@ -58,10 +59,13 @@ class _CreatePassword extends State<CreatePassword> {
             key: _formKey,
             child: Column(
               children: [
-                SizedBox(height: height / 10.5),
-                Image.asset(
-                  "assets/images/mailbox.png",
-                  height: height / 4,
+                SizedBox(height: height / 15.5),
+                Center(
+                  child: Icon(
+                    CupertinoIcons.lock,
+                    color: notifier.getbluecolor,
+                    size: 200.sp,
+                  ),
                 ),
                 SizedBox(height: height / 50),
                 Text(
@@ -81,7 +85,6 @@ class _CreatePassword extends State<CreatePassword> {
                       fontSize: 13.sp,
                       fontFamily: fontbody),
                 ),
-                SizedBox(height: height / 40),
                 SizedBox(height: height / 50),
                 CustomPasswordFormField(
                   LanguageEn.password,
@@ -111,7 +114,7 @@ class _CreatePassword extends State<CreatePassword> {
                   300.sp,
                   validator: validateConfirmPassword,
                 ),
-                SizedBox(height: height / 10),
+                SizedBox(height: height / 20),
                 Button(
                   LanguageEn.continuee,
                   notifier.getbluecolor,

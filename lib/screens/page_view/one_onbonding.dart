@@ -44,9 +44,9 @@ class _OneonbondingState extends State<Oneonbonding> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 50.5),
-              Image.asset("assets/images/wallet.png"),
-              SizedBox(height: height / 95),
+              SizedBox(height: height / 10.5),
+              Image.asset("assets/images/crypto-p2p.png", height: height / 2.5),
+              SizedBox(height: height / 20),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: width / 40),
                 child: Column(children: [
@@ -58,15 +58,6 @@ class _OneonbondingState extends State<Oneonbonding> {
                         fontSize: 25.sp,
                         fontFamily: fontsemibold),
                   ),
-                  SizedBox(height: height / 50),
-                  // Text(
-                  //   LanguageEn.starttradingyourmoney,
-                  //   textAlign: TextAlign.center,
-                  //   style: TextStyle(
-                  //       color: notifier.getgrey,
-                  //       fontSize: 13.sp,
-                  //       fontFamily: fontbody),
-                  // ),
                 ]),
               )
             ],

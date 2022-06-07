@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,7 +7,9 @@ import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/screens/Auth/login.dart';
+import 'package:trovo_wallet/storage/state.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
+import '../../Models/User.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -20,6 +23,7 @@ class SpashScreen extends StatefulWidget {
 class _SpashScreenState extends State<SpashScreen>
     with SingleTickerProviderStateMixin {
   late ColorNotifier notifier;
+  late DataProvider appState;
   late AnimationController controller;
   Widget landingPage = Login();
 
@@ -47,17 +51,16 @@ class _SpashScreenState extends State<SpashScreen>
 
     controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 1000),
+      duration: Duration(milliseconds: 11000),
     );
 
     controller.addListener(() {
       setState(() {});
     });
 
-    controller.forward();
+    controller.repeat();
     Timer(
       const Duration(seconds: 4),
-      // () => Navigator.push(
       () => Navigator.pushReplacement(
         context,
         LandingPageRoute(landingPage),
@@ -87,6 +90,35 @@ class _SpashScreenState extends State<SpashScreen>
           landingPage = Swiper();
         });
       } else {
+        var username = await StoreData().storeGetData('username');
+        var firstName = await StoreData().storeGetData(
+          'firstname',
+        );
+        var lastName = await StoreData().storeGetData(
+          'lastname',
+        );
+        var email = await StoreData().storeGetData(
+          'email',
+        );
+        var phoneNumber = await StoreData().storeGetData('mobile');
+        var countryCode = await StoreData().storeGetData('mobileCountryCode');
+        var referrer = await StoreData().storeGetData('referrer');
+        var token = await StoreData().storeGetData('pushNotificationToken');
+        var corporate = await StoreData().storeGetData('corporate');
+        print(
+            'data: ${firstName + lastName + email + phoneNumber + countryCode}');
+        appState.setUser = UserInfo(
+          username: username,
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          phoneNumber: phoneNumber,
+          countryCode: countryCode,
+          referrer: referrer,
+          token: token,
+          corporate: corporate,
+        );
+
         setState(() {
           landingPage = Login();
         });
@@ -101,6 +133,7 @@ class _SpashScreenState extends State<SpashScreen>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
@@ -108,35 +141,51 @@ class _SpashScreenState extends State<SpashScreen>
             child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Stack(
-              children: [
-                // RotationTransition(
-                //     turns: Tween(
-                //       begin: 0.0,
-                //       end: 2 * pi,
-                //     ).animate(controller),
-                //     child: Image.asset("assets/images/trovo.png",
-                //         height: height / 13)),
-                Column(
-                  children: [
-                    Center(
-                        child: Image.asset("assets/images/trovo.png",
-                            height: height / 13)),
-                    SizedBox(height: height / 45),
-                    Text(
-                      "Trovo Wallet",
-                      style: TextStyle(
-                          color: notifier.getdarkgrey,
-                          fontFamily: 'Matahari_Semi_Bold',
-                          fontSize: 35.sp),
-                    ),
-                  ],
-                ),
-                Center(
-                    child: AnimatedBuilder(
-                        animation: controller, builder: _blurAnimationBuilder))
-              ],
+            RotationTransition(
+              turns: Tween(
+                begin: 0.0,
+                end: 2 * pi,
+              ).animate(controller),
+              child:
+                  Image.asset("assets/images/trovo.png", height: height / 13),
             ),
+            SizedBox(height: height / 45),
+            Text(
+              "Trovo Wallet",
+              style: TextStyle(
+                  color: notifier.getdarkgrey,
+                  fontFamily: 'Matahari_Semi_Bold',
+                  fontSize: 35.sp),
+            ),
+            // ElevatedButton(
+            //   onPressed: () => {
+            //     if (controller.isCompleted) {controller.reset()},
+            //     controller.forward(),
+            //   },
+            //   child: Text('again'),
+            // ),
+            // Stack(
+            //   children: [
+            //     Column(
+            //       children: [
+            //         Center(
+            //             child: Image.asset("assets/images/trovo.png",
+            //                 height: height / 13)),
+            //         SizedBox(height: height / 45),
+            //         Text(
+            //           "Trovo Wallet",
+            //           style: TextStyle(
+            //               color: notifier.getdarkgrey,
+            //               fontFamily: 'Matahari_Semi_Bold',
+            //               fontSize: 35.sp),
+            //         ),
+            //       ],
+            //     ),
+            //     Center(
+            //         child: AnimatedBuilder(
+            //             animation: controller, builder: _blurAnimationBuilder))
+            //   ],
+            // ),
           ],
         )),
       ),
