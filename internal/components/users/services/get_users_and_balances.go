@@ -56,6 +56,8 @@ func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Contex
 		}
 		// log.Println("[GetUserWalletAssetBalances] finished user wallets json")
 
+		userInfo.NFTBalances = make(map[string]userModels.NFTBalances)
+
 		userInfo.ThirdPartyWalletAccess = make([]userModels.ThirdPartyWalletAccess, 0)
 		//Get ThirdParty Wallet Access
 
