@@ -141,7 +141,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			gc.RedisCache.StoreResultToCache(cacheKey, balances, 0)
 			return balances, nil
 		}
-
+		log.Printf("[GetBalance] get blockchain account detail error: %v\n", err)
 		return balances, err
 	}
 
