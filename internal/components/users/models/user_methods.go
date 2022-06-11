@@ -142,6 +142,9 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			return balances, nil
 		}
 		log.Printf("[GetBalance] get blockchain account detail error: %v\n", err)
+		if !temp {
+			return balances, nil
+		}
 		return balances, err
 	}
 
