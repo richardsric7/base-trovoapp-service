@@ -130,10 +130,19 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 	account, _, err := u.GetBlockchainAccountDetail(temp)
 	if err != nil {
+		qrCode := ""
+		if !temp {
+
+			p, e := dl.GeneratePaymentData(u.ID, "", "", "", "", gc)
+			if e == nil {
+				qrCode = p.QRCode
+			}
+		}
 		balances[":"] = Balance{
 			AssetIssuer: "",
 			AssetCode:   "",
 			Amount:      decimal.Zero,
+			QRCode:      qrCode,
 		}
 		if !temp && err.Error() == "error-blockchain-account-not-activated" {
 
