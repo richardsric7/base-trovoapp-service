@@ -93,7 +93,7 @@ func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl str
 		ok, _, response := redisCache.CachedHttpResponse(cacheKey)
 
 		if ok {
-			log.Printf("[%v], served from cache\n", cacheKey)
+			log.Printf("[GenerateDynamicLinkWithStaticService][%v], served from cache\n", cacheKey)
 			dynamicLink = response.(string)
 			return
 		}
@@ -109,7 +109,7 @@ func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl str
 	// p := new(ShortLinkResponse)
 	// e := new(ErrorResponse)
 
-	//apiKey holds the dlink service authentication  API key
+	//apiKey holds the d-link service authentication  API key
 	apiKey := os.Getenv("FBDL_SERVICE_API_KEY")
 
 	// Get service URL to use for dynamic links
@@ -184,7 +184,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 	// p := new(ShortLinkResponse)
 	// e := new(ErrorResponse)
 
-	//apiKey holds the dlink service authentication  API key
+	//apiKey holds the d-link service authentication  API key
 	apiKey := os.Getenv("FBDL_SERVICE_API_KEY")
 
 	// Get service URL to use for dynamic links
@@ -346,7 +346,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 	params.Add("amount", amount)
 	params.Add("memo", memo)
 	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
-	// log.Println("[GeneratePaymentData]link=", link)
+	log.Println("[GeneratePaymentData]link=", link)
 
 	dynamicLink, err = GenerateDynamicLink(link, gc)
 
