@@ -388,13 +388,13 @@ class _ImportWalletState extends State<ImportWallet> {
         print('response: ${responseData}');
 
         if (responseData['statusCode'] == 200) {
-          storeUserInfo(responseData['data'], creds.secretKey);
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => const FingerPrint(),
-          //   ),
-          // );
+          storeUserInfo(responseData['data'], creds);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const FingerPrint(),
+            ),
+          );
         } else if (responseData['statusCode'] == 404) {
           popup(context,
               title: LanguageEn.error,
@@ -417,33 +417,27 @@ class _ImportWalletState extends State<ImportWallet> {
     }
   }
 
-  storeUserInfo(userInfoMap, secretKey) async {
+  storeUserInfo(userInfoMap, creds) async {
     print('this is userinfo map: ${userInfoMap}');
     var userInfo = userInfoMap['userData'] ?? {};
-    print('userInfo $userInfo');
-
     var assetBalances = userInfoMap['assetBalances'] ?? {};
-    print('assetBalances $assetBalances');
-
     var nftBalances = userInfoMap['nftBalances'] ?? {};
-    print('nftBalances $nftBalances');
-
     var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
-    print('thirdPartyWalletAccess $thirdPartyWalletAccess');
-
     var defaultAssets = userInfoMap['defaultAssets'] ?? [];
-    print('defaultAssets $defaultAssets');
 
-    // await StoreData().storeDeleteData();
+    // delete all user data already stored on the app
+    await StoreData().storeDeleteData();
 
-    // await StoreData().storeInsertData('userInfo', userInfo);
-    // await StoreData().storeInsertData('assetBalances', assetBalances);
-    // await StoreData().storeInsertData('nftBalances', nftBalances);
-    // await StoreData()
-    //     .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
-    // await StoreData().storeInsertData('defaultAssets', defaultAssets);
-    // await StoreData().storeInsertData('password', password);
-    // await StoreData().storeInsertData('secretKey', secretKey);
+    await StoreData().storeInsertData('userInfo', userInfo);
+    await StoreData().storeInsertData('assetBalances', assetBalances);
+    await StoreData().storeInsertData('nftBalances', nftBalances);
+    await StoreData()
+        .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
+    await StoreData().storeInsertData('defaultAssets', defaultAssets);
+    await StoreData().storeInsertData('password', password);
+    await StoreData().storeInsertData('publicKey', creds.publicKey);
+    await StoreData().storeInsertData('secretKey', creds.secretKey);
+    await StoreData().storeInsertData('isFirstTime', false);
   }
 
   String? validatePassword(value) {
@@ -519,7 +513,8 @@ class _ImportWalletState extends State<ImportWallet> {
 
   Account? parseKey(String secretKey) {
     try {
-      Account account = TrovoWalletSDK().parseSecretKey(secretKey);
+      Account account =
+          TrovoWalletSDK().parseSecretKey(secretKey.toUpperCase());
       print(account);
       return account;
     } catch (e) {
