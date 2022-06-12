@@ -31,6 +31,20 @@ class LanguageEn {
 
   static String get importwallet => "Import Wallet";
 
+  static String get enterpassphraseempty => 'Please enter your pass phrase';
+
+  static String get entersecretkeyempty => 'Please enter your secret key';
+
+  static String get usernameoremailempty =>
+      'Please enter your email or username';
+
+  static String get usernameoremailinvalid =>
+      'Please enter a valid username or email';
+
+  static String get secretkeyinvalid => 'Secret key must be 56 characters long';
+
+  static String get invalidcredentials => 'Your credential is invalid';
+
   static String get enterpassword => "Create Password";
 
   static String get enteryourpassword =>
@@ -110,12 +124,25 @@ class LanguageEn {
 
   static String get lname => "Lastname";
 
+  static String get entityname => "Entity Name";
+
+  static String get entitygrade => "Entity Grade";
+
   static String get emailadress => "Email address";
 
+  static String get usernameoremail => "Username or Email address";
+
+  static String get secretkey => "Secret Key";
+
+  static String get passphrase => "Enter pass phrase";
+
+  static String get enterpassphrase => "Enter pass phrase instead";
+
   static String get password => "Password";
+
   static String get confirmPassword => "Confirm Password";
 
-  static String get iagreetothe => "I agree the Trovo";
+  static String get iagreetothe => "I agree to the Trovo";
 
   static String get termsofservices => "Terms of Service ";
 

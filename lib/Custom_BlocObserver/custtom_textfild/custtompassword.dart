@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:stellar_flutter_sdk/stellar_flutter_sdk.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 
 class Custompasswordtextfild {
   static Widget textField(
@@ -51,13 +52,20 @@ class CustomPasswordFormField extends StatefulWidget {
   Color? textColor;
   double? height;
   double? width;
+  int? maxLength;
   final void Function(String?)? onChanged;
   final String? Function(String?)? validator;
   final void Function(String?)? onSaved;
+  FocusNode? focusNode;
 
   CustomPasswordFormField(this.labelText, this.focusColor, this.preIcon,
       this.labelColor, this.iconColor, this.textColor, this.height, this.width,
-      {Key? key, this.onChanged, this.validator, this.onSaved})
+      {Key? key,
+      this.maxLength,
+      this.onChanged,
+      this.validator,
+      this.onSaved,
+      this.focusNode})
       : super(key: key);
 
   @override
@@ -76,6 +84,8 @@ class _CustomPasswordFormFieldState extends State<CustomPasswordFormField> {
         height: widget.height,
         width: widget.width,
         child: TextFormField(
+          focusNode: widget.focusNode,
+          maxLength: widget.maxLength,
           style: TextStyle(color: widget.textColor, fontFamily: fontbody),
           obscureText: hidePassword, //show/hide password
           decoration: InputDecoration(
@@ -92,8 +102,8 @@ class _CustomPasswordFormFieldState extends State<CustomPasswordFormField> {
                 },
                 icon: Icon(
                   getSuffixIcon(),
-                  color: Colors.black,
-                  size: 20.0,
+                  color: widget.textColor,
+                  size: height / 50,
                 )),
             labelStyle: TextStyle(color: widget.labelColor),
             border: OutlineInputBorder(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/screens/Auth/create_password.dart';
+import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/screens/page_view/onbonding_two.dart';
 import 'package:trovo_wallet/screens/page_view/onbondingthree.dart';
 import 'package:trovo_wallet/screens/page_view/one_onbonding.dart';
@@ -122,7 +123,7 @@ class _SwiperState extends State<Swiper> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const Login(),
+                      builder: (context) => const ImportWallet(),
                     ),
                   );
                 },
