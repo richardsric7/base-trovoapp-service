@@ -98,18 +98,18 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//check if type is import
 		queryType := strings.ToLower(c.Query("type"))
 
-		if queryType != "import" {
-			//let's do some caching here too.
+		// if queryType != "import" {
+		// 	//let's do some caching here too.
 
-			ok, status, response := gc.RedisCache.CachedHttpResponse(cacheKey)
+		// 	ok, status, response := gc.RedisCache.CachedHttpResponse(cacheKey)
 
-			if ok {
-				log.Printf("[%v], served from cache\n", cacheKey)
-				c.JSON(status, response)
-				return
-			}
+		// 	if ok {
+		// 		log.Printf("[%v], served from cache\n", cacheKey)
+		// 		c.JSON(status, response)
+		// 		return
+		// 	}
 
-		}
+		// }
 
 		cacheDurationInSeconds := 1 * 60 //1 minutes
 
