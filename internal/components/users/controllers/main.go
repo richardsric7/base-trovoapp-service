@@ -158,8 +158,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				}
 			}
 
-			return
-
 		}
 
 		c.JSON(http.StatusOK, userInfo)
