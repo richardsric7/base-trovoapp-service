@@ -130,20 +130,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 			log.Println("Wallet import request received from:", identifier, "for:", middleware.ExtractPublicKey(c), "........")
 			//perform import specific tasks
-			{
-				//check if the owner is the one importing it
-				for _, v := range userInfo.UserData.UserWallets {
-					if v.PrimaryWallet == 1 {
-						if v.Signer != middleware.ExtractSigner(c) {
-							te := &tErrors.ErrorInvalidAuthorization{}
 
-							log.Println("[Wallet import] Invalid signer for user:", identifier, "error: ", err)
-							c.JSON(te.HTTPCode(), te.JSONError())
-							return
-						}
-					}
-				}
-			}
 			//check if username key matches with import credential
 			if userInfo.AssetBalances == nil && userInfo.DefaultAssets == nil && userInfo.UserData.UserWallets == nil {
 				te := &tErrors.CustomError{Param: "username",
@@ -154,6 +141,18 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				log.Println("[Wallet import] Invalid import-credential for user:", identifier, "error: ", err)
 				c.JSON(te.HTTPCode(), te.JSONError())
 				return
+			}
+			//check if the owner is the one importing it
+			for _, v := range userInfo.UserData.UserWallets {
+				if v.PrimaryWallet == 1 {
+					if v.Signer != middleware.ExtractSigner(c) {
+						te := &tErrors.ErrorInvalidAuthorization{}
+
+						log.Println("[Wallet import] Invalid signer for user:", identifier, "error: ", err)
+						c.JSON(te.HTTPCode(), te.JSONError())
+						return
+					}
+				}
 			}
 
 		}
