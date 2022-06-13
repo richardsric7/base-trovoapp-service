@@ -564,7 +564,7 @@ func (u *User) GetDefaultAssets(gc *sharedconfig.GlobalConfig) (defaultAssets []
 
 }
 
-func (u *User) SendPushMessage(title, body, imageURI string, gc *sharedconfig.GlobalConfig) {
+func (u *User) SendPushMessage(title, body, imageURI string, dataPayload map[string]string, gc *sharedconfig.GlobalConfig) {
 	//Send push notification to user
 	// log.Println(title, body)
 
@@ -572,6 +572,6 @@ func (u *User) SendPushMessage(title, body, imageURI string, gc *sharedconfig.Gl
 		return
 	}
 
-	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, gc.PushNotificationClient, gc.PNSContext)
+	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 }

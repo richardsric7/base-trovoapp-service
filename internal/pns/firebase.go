@@ -33,7 +33,7 @@ func GetFirebaseMessagingClient(ctx context.Context) (fcmClient *messaging.Clien
 
 }
 
-func SendFirebaseMessage(recipient, title, body, imageURI string, fcmClient *messaging.Client, ctx context.Context) (response string, err error) {
+func SendFirebaseMessage(recipient, title, body, imageURI string, dataPayload map[string]string, fcmClient *messaging.Client, ctx context.Context) (response string, err error) {
 	if fcmClient == nil {
 		fcmClient, ctx, err = GetFirebaseMessagingClient(ctx)
 		if err != nil {
@@ -41,6 +41,7 @@ func SendFirebaseMessage(recipient, title, body, imageURI string, fcmClient *mes
 			return
 		}
 	}
+	// defer ctx.Done()
 	response, err = fcmClient.Send(ctx, &messaging.Message{
 		Notification: &messaging.Notification{
 			Title:    title,
@@ -48,13 +49,14 @@ func SendFirebaseMessage(recipient, title, body, imageURI string, fcmClient *mes
 			ImageURL: imageURI,
 		},
 		Token: recipient,
+		Data:  dataPayload,
 	})
 	log.Printf("[SendFirebaseMessage] response: %v, error: %v\n", response, err)
 	return response, err
 
 }
 
-func SendFirebaseBroadcast(recipients []string, title, body, imageURI string, fcmClient *messaging.Client, ctx context.Context) (*messaging.BatchResponse, error) {
+func SendFirebaseBroadcast(recipients []string, title, body, imageURI string, dataPayload map[string]string, fcmClient *messaging.Client, ctx context.Context) (*messaging.BatchResponse, error) {
 
 	response, err := fcmClient.SendMulticast(ctx, &messaging.MulticastMessage{
 		Notification: &messaging.Notification{
@@ -63,6 +65,7 @@ func SendFirebaseBroadcast(recipients []string, title, body, imageURI string, fc
 			ImageURL: imageURI,
 		},
 		Tokens: recipients,
+		Data:   dataPayload,
 	})
 	log.Printf("[SendFirebaseBroadcast] response: %+v, error: %v\n", response, err)
 	return response, err

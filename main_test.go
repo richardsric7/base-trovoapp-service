@@ -253,11 +253,14 @@ type DefaultAsset struct {
 
 // }
 func TestSendPushNotificationMessage(t *testing.T) {
-	ric := "f5ynuubHS_uR8eHkcedSdC:APA91bG-K9uxgKl4kaVLSbL3tc1FyBcJi_B8ZOkW0O-Jn1FQTnqxlB168pPDlN_Eg4lTcRLAStcrDRtqnsF1uAtsSIOJaYNg6FeCvb3zscXuevb-zV85JfktQGHgnP_lic9UXMZzTYZG"
+	ric := "dWLRIQWuSm-sqAKA-ABwhS:APA91bGJt8PE4KBS0OPIJOVp4JsWbpiJMK1DrIJIhZM7hlOVeLo6OUGlN5PbbsttT3Oq0YNXZZ8P0zDEcVD6wQkdoFOfrTSFq0q9A1XZU605ZhTpaLLfqwqONniRQKoj4I-YdMgxXoJc"
 	// kennis := "eNCa_XRaTr2NnXX4pnzhN3:APA91bF9OfBO9IEFJcPOtO-83Qu41_7zZ3ef7qC3i5ySPvT8arcQ1gwnRXYnSZ5uJ9mT4uOW7rgPp5F0hTsqvoqQL9oR02fQtiCyco2DVsNBT6JIgqgVHO1ZTPod7ypm-MpSzA95MRRZ"
 	title := "TROVO: Testing Push Notification Service"
 	body := `This is a test message to ascertain how the push notification appears`
 	imageURL := "https://trovotech.io/img/Trovotech-colored.png"
+	dataPayload := make(map[string]string)
+	dataPayload["route"] = "announcements"
+	dataPayload["openLink"] = "https://trovowallet.page.link"
 	ctx := context.Background()
 	client, _, err := fb.GetFirebaseMessagingClient(ctx)
 	if err != nil {
@@ -265,7 +268,8 @@ func TestSendPushNotificationMessage(t *testing.T) {
 		t.Errorf(err.Error())
 		return
 	}
-	response, _ := fb.SendFirebaseMessage(ric, title, body, imageURL, client, ctx)
+	response, _ := fb.SendFirebaseMessage(ric, title, body, imageURL, dataPayload, client, ctx)
+	// response, _ := fb.SendFirebaseMessage(ric, title, body, imageURL, nil, nil)
 
 	log.Printf("Result:[%+v]\n", response)
 

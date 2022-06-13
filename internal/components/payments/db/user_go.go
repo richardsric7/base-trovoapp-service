@@ -205,13 +205,14 @@ func PublicKeyAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err err
 	return true, &tErrors.CustomError{Param: "publicKey", Err: "error-public-key-already-exists", ErrMessage: fmt.Sprintf("Bantu Address [%v] already exists with another active account", userWallet.ID)}
 
 }
-func (u *User) SendPushMessage(title, body, imageURI string, gc *sharedconfig.GlobalConfig) {
+func (u *User) SendPushMessage(title, body, imageURI string, dataPayload map[string]string, gc *sharedconfig.GlobalConfig) {
 	//Send push notification to user
+	// log.Println(title, body)
 
 	if u.PushNotificationToken == nil {
 		return
 	}
 
-	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, gc.PushNotificationClient, gc.PNSContext)
+	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 }
