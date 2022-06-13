@@ -144,6 +144,17 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					}
 				}
 			}
+			//check if username key matches with import credential
+			if userInfo.AssetBalances == nil && userInfo.DefaultAssets == nil && userInfo.UserData.UserWallets == nil {
+				te := &tErrors.CustomError{Param: "username",
+					Err:        "error-wallet-does-not-belong-to-username",
+					ErrMessage: fmt.Sprintf("The wallet you are importing does not belong to %s", identifier),
+					Code:       http.StatusBadRequest}
+
+				log.Println("[Wallet import] Invalid import credential for user:", identifier, "error: ", err)
+				c.JSON(te.HTTPCode(), te.JSONError())
+				return
+			}
 
 		}
 
