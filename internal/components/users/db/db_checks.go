@@ -22,7 +22,10 @@ func UserRegistrationInfoToUser(userInfo usermodels.UserRegistrationInfo, user *
 	user.Email = strings.TrimSpace(strings.ToLower(userInfo.Email))
 	user.ID = uuid.NewString()
 	user.FirstName = strings.TrimSpace(strings.ToUpper(userInfo.FirstName))
-	user.LastName = strings.TrimSpace(strings.ToUpper(userInfo.LastName))
+	if len(userInfo.LastName) > 0 {
+		ln := strings.TrimSpace(strings.ToUpper(userInfo.LastName))
+		user.LastName = &ln
+	}
 	if len(userInfo.PushNotificationToken) > 0 {
 		user.PushNotificationToken = &userInfo.PushNotificationToken
 	}

@@ -95,7 +95,7 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 			x.Parameter = "mobileCountryCode"
 			return &x
 		}
-		if len(user.LastName) == 0 {
+		if len(user.LastName) == 0 && user.Corporate == 0 {
 			var x tErrors.ErrorMissingParameter
 			x.Parameter = "lastname"
 			return &x
@@ -130,20 +130,15 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 			}
 		}
 		//check if last name contains numbers
-		for _, c := range []byte(strings.ToLower(user.LastName)) {
-			if strings.Contains("1234567890_", string(c)) && user.Corporate == 0 {
-				log.Println("[ValidateUserRegistrationInfo] last name validation failed for ", user)
+		if len(user.LastName) > 0 {
+			for _, c := range []byte(strings.ToLower(user.LastName)) {
+				if strings.Contains("1234567890_", string(c)) && user.Corporate == 0 {
+					log.Println("[ValidateUserRegistrationInfo] last name validation failed for ", user)
 
-				return &tErrors.ErrorNameFailedValidation{Detail: fmt.Sprintf("%v not allowed in lastname", string(c))}
+					return &tErrors.ErrorNameFailedValidation{Detail: fmt.Sprintf("%v not allowed in lastname", string(c))}
+				}
 			}
 		}
-		// if len(user.Gender) != 0 {
-
-		// 	if !strings.Contains("FM", user.Gender) || len(user.Gender) != 1 {
-
-		// 		return &tErrors.ErrorInvalidGender{}
-		// 	}
-		// }
 		if !strings.Contains(user.Email, "@") {
 			return &tErrors.ErrorEmailFailedValidation{Email: user.Email, Detail: fmt.Sprintf("%v is not an email", user.Email)}
 

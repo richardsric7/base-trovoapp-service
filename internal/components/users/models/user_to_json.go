@@ -7,7 +7,6 @@ func (u *User) ToJSON() (jsonObj UserJSON) {
 	jsonObj.Username = u.Username
 	jsonObj.Email = u.Email
 	jsonObj.FirstName = u.FirstName
-	jsonObj.LastName = u.LastName
 	jsonObj.PublicKey = u.PublicKey
 	jsonObj.Corporate = u.Corporate
 	jsonObj.MobileVerified = u.MobileVerified
@@ -19,6 +18,9 @@ func (u *User) ToJSON() (jsonObj UserJSON) {
 	log.Println("[UserToJSON] set basic params")
 	//nullable
 	{
+		if u.LastName != nil {
+			jsonObj.LastName = *u.LastName
+		}
 		if u.ImageThumbnailURL != nil {
 			jsonObj.ImageThumbnailURL = *u.ImageThumbnailURL
 		}

@@ -203,7 +203,10 @@ func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, de
 	// }
 	if !publicKeyPayment {
 		paymentInfo.DestinationFirstName = destinationInfo.FirstName
-		paymentInfo.DestinationLastName = destinationInfo.LastName
+		if destinationInfo.LastName != nil {
+			paymentInfo.DestinationLastName = *destinationInfo.LastName
+		}
+
 		paymentInfo.DestinationVerified = destinationInfo.Verified
 
 		if destinationInfo.ImageThumbnailURL != nil {
@@ -435,7 +438,10 @@ func generatePaymentXdrWithChannelAccount(client *horizonclient.Client, senderPu
 	}
 	if !publicKeyPayment {
 		paymentInfo.DestinationFirstName = destinationInfo.FirstName
-		paymentInfo.DestinationLastName = destinationInfo.LastName
+		if destinationInfo.LastName != nil {
+			paymentInfo.DestinationLastName = *destinationInfo.LastName
+		}
+
 		if destinationInfo.ImageThumbnailURL != nil {
 			paymentInfo.DestinationThumbnail = *destinationInfo.ImageThumbnailURL
 		}
