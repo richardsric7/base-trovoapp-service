@@ -151,7 +151,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					ErrMessage: fmt.Sprintf("The wallet you are importing does not belong to %s", identifier),
 					Code:       http.StatusBadRequest}
 
-				log.Println("[Wallet import] Invalid import credential for user:", identifier, "error: ", err)
+				log.Println("[Wallet import] Invalid import-credential for user:", identifier, "error: ", err)
 				c.JSON(te.HTTPCode(), te.JSONError())
 				return
 			}
