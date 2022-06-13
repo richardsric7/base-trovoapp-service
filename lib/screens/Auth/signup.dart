@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -17,13 +18,13 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Models/User.dart';
-import '../../functions/trovo-sdk.dart';
 import '../../storage/state.dart';
 import '../../network/requests.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/termsOfService.dart';
+import 'package:cool_dropdown/cool_dropdown.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({Key? key}) : super(key: key);
@@ -38,6 +39,7 @@ class _SignUpState extends State<SignUp> {
   final _formKey = GlobalKey<FormState>();
   String fName = '';
   String lName = '';
+  String entityGrade = "Limited";
   late String email;
   late String phoneNumber;
   String countryCode = "NG";
@@ -176,7 +178,7 @@ class _SignUpState extends State<SignUp> {
                         SizedBox(height: height / 50),
                         // Username
                         CustomTextFormField.textField(
-                          LanguageEn.username,
+                          LanguageEn.accountalias,
                           notifier.getbluecolor,
                           Icons.person,
                           notifier.getgrey,
@@ -283,6 +285,14 @@ class _SignUpState extends State<SignUp> {
   }
 
   Widget getNameFields() {
+    List dropdownItemList = [
+      {'label': 'apple', 'value': 'apple'}, // label is required and unique
+      {'label': 'banana', 'value': 'banana'},
+      {'label': 'grape', 'value': 'grape'},
+      {'label': 'pineapple', 'value': 'pineapple'},
+      {'label': 'grape fruit', 'value': 'grape fruit'},
+      {'label': 'kiwi', 'value': 'kiwi'},
+    ];
     if (corporate == 0) {
       return Column(
         children: [
@@ -345,41 +355,46 @@ class _SignUpState extends State<SignUp> {
           ),
           SizedBox(height: height / 50),
           // EntityGrade
-          CustomTextFormField.textField(
-            LanguageEn.entitygrade,
-            notifier.getbluecolor,
-            Icons.person,
-            notifier.getgrey,
-            notifier.getprefixicon,
-            notifier.getblck,
-            notifier.getgrey,
-            70.sp,
-            300.sp,
-            maxLength: 50,
-            validator: validateLName,
-            onChanged: (value) {
-              setState(() {
-                lName = value;
-              });
-            },
-            onSaved: (value) => lName = value.trim().replaceAll(' ', ''),
+          Container(
+            height: 70.sp,
+            width: 300.sp,
+            child: DropdownButtonFormField(
+                decoration: InputDecoration(
+                  prefixIcon: Icon(CupertinoIcons.square_list),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: notifier.getgrey, width: 1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: notifier.getgrey, width: 1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  filled: true,
+                  fillColor: notifier.getwihitecolor,
+                ),
+                dropdownColor: notifier.getwihitecolor,
+                value: entityGrade,
+                onChanged: (newValue) {
+                  setState(() {
+                    entityGrade = newValue!.toString();
+                    lName = newValue.toString();
+                  });
+                },
+                items: dropdownItems),
           ),
-          if (fName.isNotEmpty || lName.isNotEmpty) ...[
-            ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: width / 1.4),
-              child: Text(
-                getEntityFullName(),
-                style: TextStyle(
-                    color: notifier.getgreencolor,
-                    fontSize: 12,
-                    fontFamily: fontbody,
-                    fontWeight: FontWeight.w400),
-              ),
-            ),
-          ]
+          SizedBox(height: height / 70),
         ],
       );
     }
+  }
+
+  List<DropdownMenuItem<String>> get dropdownItems {
+    List<DropdownMenuItem<String>> menuItems = [
+      DropdownMenuItem(child: Text("Limited"), value: "Limited"),
+      DropdownMenuItem(child: Text("Incorporated"), value: "Incorporated"),
+      DropdownMenuItem(child: Text("Enterprises"), value: "Enterprises"),
+    ];
+    return menuItems;
   }
 
   String getEntityFullName() => '${fName} ${lName}';
@@ -610,22 +625,20 @@ class _SignUpState extends State<SignUp> {
       String jsonBody = jsonEncode(map);
       print(jsonBody);
 
-      var account = TrovoWalletSDK().createAccount();
-      print('account: $account');
+      var publicKey = await StoreData().storeGetData('publicKey') ?? '';
+      var secretKey = await StoreData().storeGetData('secretKey') ?? '';
+      print('public: $publicKey, secret: $secretKey');
 
       Map responseData = await makePostRequest(
           uri: '/v1/users',
           body: jsonBody,
-          signer: account.publicKey,
-          publicKey: account.publicKey,
-          secretKey: account.secretKey);
+          signer: publicKey,
+          publicKey: publicKey,
+          secretKey: secretKey);
       print('$responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
-        await StoreData().storeInsertData('publicKey', account.publicKey);
-        await StoreData().storeInsertData('secretKey', account.secretKey);
-
         state.setUser = UserInfo(
           username: username,
           firstName: fName,

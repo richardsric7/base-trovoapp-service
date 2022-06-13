@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/bottom_bar/bottombar.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -34,8 +33,7 @@ class _ImportWalletState extends State<ImportWallet> {
   late FocusNode passPhraseFocusNode;
   late FocusNode secretKeyFocusNode;
   final _formKey = GlobalKey<FormState>();
-  String? email;
-  String? username;
+  String? accountAlias;
   String? passPhrase;
   String? secretKey;
   String? password;
@@ -92,7 +90,7 @@ class _ImportWalletState extends State<ImportWallet> {
                         SizedBox(height: height / 10),
                         // Email address
                         CustomTextFormField.textField(
-                          LanguageEn.usernameoremail,
+                          LanguageEn.accountaliasoremail,
                           notifier.getbluecolor,
                           Icons.email,
                           notifier.getgrey,
@@ -104,11 +102,11 @@ class _ImportWalletState extends State<ImportWallet> {
                           validator: (value) {
                             var trimmedVal = value!.trim().replaceAll(' ', '');
                             if (trimmedVal.isEmpty) {
-                              return LanguageEn.usernameoremailempty;
+                              return LanguageEn.accountaliasoremailempty;
                             }
 
                             if (trimmedVal.length < 3) {
-                              return LanguageEn.usernameoremailinvalid;
+                              return LanguageEn.accountaliasoremailinvalid;
                             }
                           },
                           onSaved: storeUsernameOrEmail,
@@ -339,23 +337,8 @@ class _ImportWalletState extends State<ImportWallet> {
       return LanguageEn.emailvalidateempty;
     }
 
-    String pattern =
-        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-    RegExp regex = new RegExp(pattern);
-
-    if (regex.hasMatch(currValue)) {
-      print('probably an email address');
-      setState(() {
-        email = currValue;
-        username = null;
-      });
-      return null;
-    }
-
-    print('probably a username');
     setState(() {
-      username = currValue;
-      email = null;
+      accountAlias = currValue;
     });
     return null;
   }
@@ -380,15 +363,22 @@ class _ImportWalletState extends State<ImportWallet> {
           : parseKey(secretKey!)!;
 
       if (creds != null) {
+        // store these credentials and the password before making request
+        // to get userinfo from the server. This way we can use these stored data
+        // to create new user account if the provided user account does not exist
+        await StoreData().storeInsertData('publicKey', creds.publicKey);
+        await StoreData().storeInsertData('secretKey', creds.secretKey);
+        await StoreData().storeInsertData('password', password);
+
         Map responseData = await makeGetRequest(
-            uri: '/v1/users/${username ?? email}',
+            uri: '/v1/users/${accountAlias}?type=import',
             signer: creds.publicKey,
             publicKey: creds.publicKey,
             secretKey: creds.secretKey);
         print('response: ${responseData}');
 
         if (responseData['statusCode'] == 200) {
-          storeUserInfo(responseData['data'], creds);
+          storeUserInfo(responseData['data']);
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -396,10 +386,7 @@ class _ImportWalletState extends State<ImportWallet> {
             ),
           );
         } else if (responseData['statusCode'] == 404) {
-          popup(context,
-              title: LanguageEn.error,
-              message:
-                  LanguageEn.errormessage + responseData['data']['message']);
+          accountNotFoundPopup(context);
         } else {
           // must be some sort of server error
           // let's throw it
@@ -417,7 +404,7 @@ class _ImportWalletState extends State<ImportWallet> {
     }
   }
 
-  storeUserInfo(userInfoMap, creds) async {
+  storeUserInfo(userInfoMap) async {
     print('this is userinfo map: ${userInfoMap}');
     var userInfo = userInfoMap['userData'] ?? {};
     var assetBalances = userInfoMap['assetBalances'] ?? {};
@@ -434,9 +421,6 @@ class _ImportWalletState extends State<ImportWallet> {
     await StoreData()
         .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
-    await StoreData().storeInsertData('password', password);
-    await StoreData().storeInsertData('publicKey', creds.publicKey);
-    await StoreData().storeInsertData('secretKey', creds.secretKey);
     await StoreData().storeInsertData('isFirstTime', false);
   }
 

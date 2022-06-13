@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../Custom_BlocObserver/fonts.dart';
+import '../../functions/trovo-sdk.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
 
@@ -180,7 +181,12 @@ class _CreatePassword extends State<CreatePassword> {
     if (validate()) {
       try {
         showLoader(context);
+        var account = TrovoWalletSDK().createAccount();
+        print('account: $account');
         await StoreData().storeInsertData('password', password);
+        await StoreData().storeInsertData('publicKey', account.publicKey);
+        await StoreData().storeInsertData('secretKey', account.secretKey);
+
         hideLoader(context);
         Navigator.pushReplacement(
           context,

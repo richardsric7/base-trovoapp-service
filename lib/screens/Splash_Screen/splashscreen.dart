@@ -76,7 +76,7 @@ class _SpashScreenState extends State<SpashScreen>
     bool isFirstTime;
 
     try {
-      isFirstTime = await StoreData().storeGetData('isFirstTimsdfse') ?? true;
+      isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
       // isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
 
       print('first time here: $isFirstTime');

@@ -29,17 +29,23 @@ class LanguageEn {
 
   static String get getstarted => "Get Started";
 
+  static String get createcustomwallet => "Create Custom Wallet";
+
+  static String get customwalletname => "Wallet name";
+
+  static String get customwalletaddress => "Wallet address";
+
   static String get importwallet => "Import Wallet";
 
   static String get enterpassphraseempty => 'Please enter your pass phrase';
 
   static String get entersecretkeyempty => 'Please enter your secret key';
 
-  static String get usernameoremailempty =>
-      'Please enter your email or username';
+  static String get accountaliasoremailempty =>
+      'Please enter your email or account alias';
 
-  static String get usernameoremailinvalid =>
-      'Please enter a valid username or email';
+  static String get accountaliasoremailinvalid =>
+      'Please enter a valid email or account alias';
 
   static String get secretkeyinvalid => 'Secret key must be 56 characters long';
 
@@ -92,6 +98,11 @@ class LanguageEn {
   static String get entervalidmobilenumber =>
       "Please enter a valid phone number";
 
+  static String get usernamenotfound =>
+      "Username not found. Do you want to create an account with the provided secret key?";
+
+  static String get oops => "Oops!";
+
   static String get error => "Error!";
 
   static String get alert => "Alert!";
@@ -109,13 +120,13 @@ class LanguageEn {
 
   static String get signup => "Create Account";
 
-  static String get username => "Username";
+  static String get accountalias => "Account alias";
 
   static String get phonenumber => "Phone number";
 
   static String get termsofserviceerror => "You need to accept terms";
 
-  static String get referrer => "Referrer's username";
+  static String get referrer => "Referrer's alias";
 
   static String get ittakesaminute =>
       "It only takes a minute to create your account";
@@ -130,7 +141,7 @@ class LanguageEn {
 
   static String get emailadress => "Email address";
 
-  static String get usernameoremail => "Username or Email address";
+  static String get accountaliasoremail => "Account alias or Email address";
 
   static String get secretkey => "Secret Key";
 
