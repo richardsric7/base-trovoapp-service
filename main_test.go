@@ -253,12 +253,12 @@ type DefaultAsset struct {
 
 // }
 func TestSendPushNotificationMessage(t *testing.T) {
-	ric := "dqmlIz2eT-CTEX1cesc3za:APA91bGDuSBPzGSZAjYfFMU12eV_gpMw7JdF7gxhhsaPc0XGmgYu9RokVyLfEpH6_Yfg9mYrmuhYlcLRScvolUbfRVftR3QK4d6psgVOY0382fNW3Q1BND8kTbPAThBOXe60DHSXO9hD"
+	ric := "f5ynuubHS_uR8eHkcedSdC:APA91bG-K9uxgKl4kaVLSbL3tc1FyBcJi_B8ZOkW0O-Jn1FQTnqxlB168pPDlN_Eg4lTcRLAStcrDRtqnsF1uAtsSIOJaYNg6FeCvb3zscXuevb-zV85JfktQGHgnP_lic9UXMZzTYZG"
 	// kennis := "eNCa_XRaTr2NnXX4pnzhN3:APA91bF9OfBO9IEFJcPOtO-83Qu41_7zZ3ef7qC3i5ySPvT8arcQ1gwnRXYnSZ5uJ9mT4uOW7rgPp5F0hTsqvoqQL9oR02fQtiCyco2DVsNBT6JIgqgVHO1ZTPod7ypm-MpSzA95MRRZ"
 	title := "TROVO: Testing Push Notification Service"
 	body := `This is a test message to ascertain how the push notification appears`
 	imageURL := "https://trovotech.io/img/Trovotech-colored.png"
-	ctx := context.TODO()
+	ctx := context.Background()
 	client, _, err := fb.GetFirebaseMessagingClient(ctx)
 	if err != nil {
 		log.Println("[TestGetUserInfo]request error:", err)

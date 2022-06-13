@@ -199,7 +199,7 @@ func main() {
 	}
 
 	//global config
-	pnsContext := context.TODO()
+	pnsContext := context.Background()
 	pnsClient, _, err := pns.GetFirebaseMessagingClient(pnsContext)
 	if err != nil {
 		log.Fatalln("Unable to initialize Firebase Messaging client:", err)
