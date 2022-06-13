@@ -213,20 +213,19 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		//At this point, there was no error.
 		//But either the email was sent or not.
-
 		if emailSent {
 			c.JSON(http.StatusAccepted, gin.H{"message": "Verification code sent to your email"})
 			//send push notificationMessage
 			if len(userRegistrationInfo.PushNotificationToken) > 50 {
 
-				pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Verification code sent to your email", "Please check your email to get the verification code. It is only valid today.", "", gc.PushNotificationClient, gc.PNSContext)
+				pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Verification code sent to your email", "Please check your email to get the verification code. It is only valid today.", "", nil, nil)
 			}
 		} else {
 			//registration completed
 
 			//return response
 			c.JSON(http.StatusOK, gin.H{"message": userRegistrationInfo.PublicKey})
-			pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Registration completed!", fmt.Sprintf("Congratulations! Your trovo wallet account has successfully been created. To receive payment, you can share your primary account alias %s to your friends or you can use your public key for payments outside of Trovo Ecosystem. Please take the very important step to backup your wallet or use the available option to enable Account Recovery (Terms and Conditions apply). Thank you!", userRegistrationInfo.Username), "", gc.PushNotificationClient, gc.PNSContext)
+			pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Registration completed!", fmt.Sprintf("Congratulations! Your trovo wallet account has successfully been created. To receive payment, you can share your primary account alias %s to your friends or you can use your public key for payments outside of Trovo Ecosystem. Please take the very important step to backup your wallet or use the available option to enable Account Recovery (Terms and Conditions apply). Thank you!", userRegistrationInfo.Username), "", nil, nil)
 
 		}
 	})
