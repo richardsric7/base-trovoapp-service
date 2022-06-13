@@ -15,7 +15,7 @@ func GetFirebaseMessagingClient(ctx context.Context) (fcmClient *messaging.Clien
 
 	opts := []option.ClientOption{option.WithCredentialsJSON(getDecodedFireBaseKey())}
 	if ctx == nil {
-		ctx = context.TODO()
+		ctx = context.Background()
 
 	}
 	app, err := firebase.NewApp(ctx, nil, opts...)
@@ -24,7 +24,7 @@ func GetFirebaseMessagingClient(ctx context.Context) (fcmClient *messaging.Clien
 		return nil, ctx, err
 	}
 
-	fcmClient, err = app.Messaging(context.TODO())
+	fcmClient, err = app.Messaging(ctx)
 	if err != nil {
 		log.Printf("[GetFirebaseMessagingClient] error getting messaging client: %s", err)
 		return nil, ctx, err
@@ -33,7 +33,7 @@ func GetFirebaseMessagingClient(ctx context.Context) (fcmClient *messaging.Clien
 
 }
 
-func SendFirebaseMessage(receipient, title, body, imageURI string, fcmClient *messaging.Client, ctx context.Context) (response string, err error) {
+func SendFirebaseMessage(recipient, title, body, imageURI string, fcmClient *messaging.Client, ctx context.Context) (response string, err error) {
 	if fcmClient == nil {
 		fcmClient, ctx, err = GetFirebaseMessagingClient(ctx)
 		if err != nil {
@@ -43,26 +43,26 @@ func SendFirebaseMessage(receipient, title, body, imageURI string, fcmClient *me
 	}
 	response, err = fcmClient.Send(ctx, &messaging.Message{
 		Notification: &messaging.Notification{
-			Title: title,
-			Body:  body,
+			Title:    title,
+			Body:     body,
 			ImageURL: imageURI,
 		},
-		Token: receipient,
+		Token: recipient,
 	})
 	log.Printf("[SendFirebaseMessage] response: %v, error: %v\n", response, err)
 	return response, err
 
 }
 
-func SendFirebaseBroadcast(receipients []string, title, body, imageURI string, fcmClient *messaging.Client, ctx context.Context) (*messaging.BatchResponse, error) {
+func SendFirebaseBroadcast(recipients []string, title, body, imageURI string, fcmClient *messaging.Client, ctx context.Context) (*messaging.BatchResponse, error) {
 
 	response, err := fcmClient.SendMulticast(ctx, &messaging.MulticastMessage{
 		Notification: &messaging.Notification{
-			Title: title,
-			Body:  body,
+			Title:    title,
+			Body:     body,
 			ImageURL: imageURI,
 		},
-		Tokens: receipients,
+		Tokens: recipients,
 	})
 	log.Printf("[SendFirebaseBroadcast] response: %+v, error: %v\n", response, err)
 	return response, err
