@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -10,21 +11,20 @@ import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textf
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/screens/Auth/login.dart';
-import 'package:trovo_wallet/screens/Auth/privacypolicy.dart';
 import 'package:trovo_wallet/screens/Auth/vericication.dart';
 import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-import '../../Custom_BlocObserver/constants.dart';
 import '../../Models/User.dart';
 import '../../storage/state.dart';
 import '../../network/requests.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
-import '../page_view/web_view.dart';
+import '../../widgets/termsOfService.dart';
+import 'package:cool_dropdown/cool_dropdown.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({Key? key}) : super(key: key);
@@ -37,8 +37,9 @@ class _SignUpState extends State<SignUp> {
   late ColorNotifier notifier;
   late DataProvider state;
   final _formKey = GlobalKey<FormState>();
-  late String fName;
-  late String lName;
+  String fName = '';
+  String lName = '';
+  String entityGrade = "Limited";
   late String email;
   late String phoneNumber;
   String countryCode = "NG";
@@ -73,6 +74,7 @@ class _SignUpState extends State<SignUp> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
+        resizeToAvoidBottomInset: false,
         appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
@@ -153,39 +155,7 @@ class _SignUpState extends State<SignUp> {
                           },
                         ),
                         SizedBox(height: height / 50),
-                        // Firstname
-                        CustomTextFormField.textField(
-                          LanguageEn.fanme,
-                          notifier.getbluecolor,
-                          Icons.person,
-                          notifier.getgrey,
-                          notifier.getprefixicon,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          70.sp,
-                          300.sp,
-                          maxLength: 50,
-                          validator: validateFName,
-                          onSaved: (value) =>
-                              fName = value.trim().replaceAll(' ', ''),
-                        ),
-                        SizedBox(height: height / 50),
-                        // Lastname
-                        CustomTextFormField.textField(
-                          LanguageEn.lname,
-                          notifier.getbluecolor,
-                          Icons.person,
-                          notifier.getgrey,
-                          notifier.getprefixicon,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          70.sp,
-                          300.sp,
-                          maxLength: 50,
-                          validator: validateLName,
-                          onSaved: (value) =>
-                              lName = value.trim().replaceAll(' ', ''),
-                        ),
+                        getNameFields(),
                         SizedBox(height: height / 50),
                         // Email address
                         CustomTextFormField.textField(
@@ -208,7 +178,7 @@ class _SignUpState extends State<SignUp> {
                         SizedBox(height: height / 50),
                         // Username
                         CustomTextFormField.textField(
-                          LanguageEn.username,
+                          LanguageEn.accountalias,
                           notifier.getbluecolor,
                           Icons.person,
                           notifier.getgrey,
@@ -255,20 +225,16 @@ class _SignUpState extends State<SignUp> {
                           maxLength: 16,
                         ),
                         SizedBox(height: height / 50),
-                        termsOfService(),
-                        // You need to accept terms
-                        if (showError) ...[
-                          Padding(
-                            padding: EdgeInsets.fromLTRB(10.0, 0, 0, 0),
-                            child: Text(
-                              LanguageEn.termsofserviceerror,
-                              style: TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400),
-                            ),
-                          ),
-                        ],
+                        // Terms of Service
+                        TermsOfService(
+                          value: hasAgreed,
+                          showError: showError,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              hasAgreed = value!;
+                            });
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -318,74 +284,120 @@ class _SignUpState extends State<SignUp> {
     );
   }
 
-  Row termsOfService() {
-    return Row(
-      children: [
-        Transform.scale(
-          scale: 1.sp,
-          child: Checkbox(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(5.sp),
-              ),
-            ),
-            activeColor: notifier.getbluecolor,
-            side: BorderSide(color: notifier.getbluecolor),
-            value: hasAgreed,
-            onChanged: (bool? value) {
+  Widget getNameFields() {
+    List dropdownItemList = [
+      {'label': 'apple', 'value': 'apple'}, // label is required and unique
+      {'label': 'banana', 'value': 'banana'},
+      {'label': 'grape', 'value': 'grape'},
+      {'label': 'pineapple', 'value': 'pineapple'},
+      {'label': 'grape fruit', 'value': 'grape fruit'},
+      {'label': 'kiwi', 'value': 'kiwi'},
+    ];
+    if (corporate == 0) {
+      return Column(
+        children: [
+          // Firstname
+          CustomTextFormField.textField(
+            LanguageEn.fanme,
+            notifier.getbluecolor,
+            Icons.person,
+            notifier.getgrey,
+            notifier.getprefixicon,
+            notifier.getblck,
+            notifier.getgrey,
+            70.sp,
+            300.sp,
+            maxLength: 50,
+            validator: validateFName,
+            onSaved: (value) => fName = value.trim().replaceAll(' ', ''),
+          ),
+          SizedBox(height: height / 50),
+          // Lastname
+          CustomTextFormField.textField(
+            LanguageEn.lname,
+            notifier.getbluecolor,
+            Icons.person,
+            notifier.getgrey,
+            notifier.getprefixicon,
+            notifier.getblck,
+            notifier.getgrey,
+            70.sp,
+            300.sp,
+            maxLength: 50,
+            validator: validateLName,
+            onSaved: (value) => lName = value.trim().replaceAll(' ', ''),
+          ),
+        ],
+      );
+    } else {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // EntityName
+          CustomTextFormField.textField(
+            LanguageEn.entityname,
+            notifier.getbluecolor,
+            Icons.person,
+            notifier.getgrey,
+            notifier.getprefixicon,
+            notifier.getblck,
+            notifier.getgrey,
+            70.sp,
+            300.sp,
+            maxLength: 50,
+            validator: validateFName,
+            onChanged: (value) {
               setState(() {
-                hasAgreed = value!;
+                fName = value;
               });
             },
+            onSaved: (value) => fName = value.trim().replaceAll(' ', ''),
           ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  LanguageEn.iagreetothe,
-                  style: TextStyle(
-                      fontSize: height / 55,
-                      color: notifier.getblck,
-                      fontFamily: fontbody),
-                ),
-                GestureDetector(
-                  onTap: () =>
-                      Get.to(() => TrovoWebView(url: termsOfServiceUrl)),
-                  child: Text(
-                    ' ' + LanguageEn.termsofservices,
-                    style: TextStyle(
-                        fontFamily: fontbody,
-                        fontSize: height / 55,
-                        color: notifier.getbluecolor),
+          SizedBox(height: height / 50),
+          // EntityGrade
+          Container(
+            height: 70.sp,
+            width: 300.sp,
+            child: DropdownButtonFormField(
+                decoration: InputDecoration(
+                  prefixIcon: Icon(CupertinoIcons.square_list),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: notifier.getgrey, width: 1),
+                    borderRadius: BorderRadius.circular(20),
                   ),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: notifier.getgrey, width: 1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  filled: true,
+                  fillColor: notifier.getwihitecolor,
                 ),
-                Text(
-                  LanguageEn.and,
-                  style: TextStyle(
-                      fontFamily: fontbody,
-                      fontSize: height / 55,
-                      color: notifier.getblck),
-                ),
-              ],
-            ),
-            GestureDetector(
-              onTap: () => Get.to(() => TrovoWebView(url: privacyPolicyUrl)),
-              child: Text(
-                LanguageEn.privacypolicy,
-                style: TextStyle(
-                    fontFamily: fontbody,
-                    fontSize: height / 55,
-                    color: notifier.getbluecolor),
-              ),
-            ),
-          ],
-        )
-      ],
-    );
+                dropdownColor: notifier.getwihitecolor,
+                value: entityGrade,
+                onChanged: (newValue) {
+                  setState(() {
+                    entityGrade = newValue!.toString();
+                    lName = newValue.toString();
+                  });
+                },
+                items: dropdownItems),
+          ),
+          SizedBox(height: height / 70),
+        ],
+      );
+    }
   }
+
+  List<DropdownMenuItem<String>> get dropdownItems {
+    List<DropdownMenuItem<String>> menuItems = [
+      DropdownMenuItem(child: Text("Limited"), value: "Limited"),
+      DropdownMenuItem(child: Text("Incorporated"), value: "Incorporated"),
+      DropdownMenuItem(child: Text("Enterprises"), value: "Enterprises"),
+    ];
+    return menuItems;
+  }
+
+  String getEntityFullName() => '${fName} ${lName}';
 
   Widget phoneFormField({
     labletext,
@@ -615,6 +627,7 @@ class _SignUpState extends State<SignUp> {
 
       var publicKey = await StoreData().storeGetData('publicKey') ?? '';
       var secretKey = await StoreData().storeGetData('secretKey') ?? '';
+      print('public: $publicKey, secret: $secretKey');
 
       Map responseData = await makePostRequest(
           uri: '/v1/users',
@@ -626,27 +639,19 @@ class _SignUpState extends State<SignUp> {
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
-        await StoreData().storeInsertData('username', username);
-        await StoreData().storeInsertData('firstname', fName);
-        await StoreData().storeInsertData('lastname', lName);
-        await StoreData().storeInsertData('email', email);
-        await StoreData().storeInsertData('mobile', phoneNumber);
-        await StoreData().storeInsertData('mobileCountryCode', countryCode);
-        await StoreData().storeInsertData('referrer', referrer);
-        await StoreData().storeInsertData('pushNotificationToken', token);
-        await StoreData().storeInsertData('corporate', corporate);
-
         state.setUser = UserInfo(
           username: username,
           firstName: fName,
           lastName: lName,
           email: email,
-          phoneNumber: phoneNumber,
+          mobile: phoneNumber,
           countryCode: countryCode,
           referrer: referrer,
-          token: token,
+          pushNotificationToken: token,
           corporate: corporate,
         );
+
+        print('userInfo: ${state.userInfo}');
 
         Navigator.push(
           context,

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/screens/Auth/signup.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
@@ -12,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../Custom_BlocObserver/fonts.dart';
+import '../../functions/trovo-sdk.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
 
@@ -181,15 +181,12 @@ class _CreatePassword extends State<CreatePassword> {
     if (validate()) {
       try {
         showLoader(context);
-        // hide keyboard because of the bad effect it has on the
-        // next screen. This is just a hack, will work out a better
-        // solution later
-        // TODO: Find better way to solve the keyboard overlay issue
-        FocusScope.of(context).requestFocus(FocusNode());
         var account = TrovoWalletSDK().createAccount();
-        await StoreData().storeInsertData('secretKey', account.secretKey);
-        await StoreData().storeInsertData('publicKey', account.publicKey);
+        print('account: $account');
         await StoreData().storeInsertData('password', password);
+        await StoreData().storeInsertData('publicKey', account.publicKey);
+        await StoreData().storeInsertData('secretKey', account.secretKey);
+
         hideLoader(context);
         Navigator.pushReplacement(
           context,

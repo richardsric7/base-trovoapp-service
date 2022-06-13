@@ -16,6 +16,7 @@ import '../../Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
+import '../../Models/User.dart';
 import '../../network/requests.dart';
 import '../../services/push_fcm_service.dart';
 import '../../storage/store.dart';
@@ -149,7 +150,7 @@ class _VeryficationState extends State<Veryfication> {
     );
   }
 
-  Future sendRequest() async {
+  Future postUserInfo() async {
     try {
       showLoader(context);
 
@@ -164,10 +165,10 @@ class _VeryficationState extends State<Veryfication> {
         'email': state.userInfo!.email,
         'firstName': state.userInfo!.firstName,
         'lastName': state.userInfo!.lastName,
-        'mobile': state.userInfo!.phoneNumber,
+        'mobile': state.userInfo!.mobile,
         'mobileCountryCode': state.userInfo!.countryCode,
         'referrer': state.userInfo!.referrer,
-        'pushNotificationToken': state.userInfo!.token,
+        'pushNotificationToken': state.userInfo!.pushNotificationToken,
         'corporate': state.userInfo!.corporate,
         'verificationCode': otp,
       };
@@ -202,9 +203,11 @@ class _VeryficationState extends State<Veryfication> {
   }
 
   void completeRegistration() async {
-    Map responseData = await sendRequest();
+    Map responseData = await postUserInfo();
 
     if (responseData['statusCode'] == 200) {
+      getUserInfo();
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -218,8 +221,53 @@ class _VeryficationState extends State<Veryfication> {
     }
   }
 
+  getUserInfo() async {
+    var publicKey = await StoreData().storeGetData('publicKey') ?? '';
+    var secretKey = await StoreData().storeGetData('secretKey') ?? '';
+
+    Map responseData = await makeGetRequest(
+        uri:
+            '/v1/users/${state.userInfo!.username!.trim().replaceAll(' ', '')}',
+        signer: publicKey,
+        publicKey: publicKey,
+        secretKey: secretKey);
+
+    print('response: ${responseData}');
+
+    if (responseData['statusCode'] == 200) {
+      storeUserInfo(responseData['data']);
+    } else if (responseData['statusCode'] == 404) {
+      popup(context,
+          title: LanguageEn.error,
+          message: LanguageEn.errormessage + responseData['data']['message']);
+    } else {
+      // must be some sort of server error
+      // let's throw it
+      popup(context,
+          title: LanguageEn.error,
+          message: LanguageEn.errormessage + responseData['data']['message']);
+    }
+  }
+
+  storeUserInfo(userInfoMap) async {
+    print('this is userinfo map: ${userInfoMap}');
+    var userInfo = userInfoMap['userData'] ?? {};
+    var assetBalances = userInfoMap['assetBalances'] ?? {};
+    var nftBalances = userInfoMap['nftBalances'] ?? {};
+    var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
+    var defaultAssets = userInfoMap['defaultAssets'] ?? [];
+
+    await StoreData().storeInsertData('userInfo', userInfo);
+    await StoreData().storeInsertData('assetBalances', assetBalances);
+    await StoreData().storeInsertData('nftBalances', nftBalances);
+    await StoreData()
+        .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
+    await StoreData().storeInsertData('defaultAssets', defaultAssets);
+    await StoreData().storeInsertData('isFirstTime', false);
+  }
+
   // void resendOTP() async {
-  //   Map responseData = await sendRequest();
+  //   Map responseData = await postUserInfo();
 
   //   if (responseData['statusCode'] == 200) {
   //     popup(context,

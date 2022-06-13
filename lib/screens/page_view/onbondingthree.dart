@@ -48,7 +48,7 @@ class _ThreeonbondingState extends State<Threeonbonding> {
             child: Column(
               children: [
                 SizedBox(height: height / 10.5),
-                Image.asset("assets/images/wallet.png", height: height / 2.5),
+                Image.asset("assets/images/transfer.png", height: height / 2.5),
                 SizedBox(height: height / 20),
                 Text(
                   LanguageEn.domorewithblockchain,

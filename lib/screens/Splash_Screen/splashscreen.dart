@@ -73,20 +73,17 @@ class _SpashScreenState extends State<SpashScreen>
   }
 
   getVal() async {
-    String isFirstTime;
-    String activeSecret;
+    bool isFirstTime;
 
     try {
-      isFirstTime = await StoreData().storeGetData('password') ?? '';
-      activeSecret = await StoreData().storeGetData('secretKey') ?? '';
+      isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
+      // isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
 
-      print('first time here: ' + isFirstTime);
-      print('first time here: ' + activeSecret);
+      print('first time here: $isFirstTime');
 
-      if (isFirstTime.isEmpty || activeSecret.isEmpty) {
+      if (isFirstTime) {
         setState(() {
-          print('first time here indeed: ' + isFirstTime);
-          print('first time here deedin: ' + activeSecret);
+          print('first time here indeed: $isFirstTime');
           landingPage = Swiper();
         });
       } else {
@@ -112,10 +109,10 @@ class _SpashScreenState extends State<SpashScreen>
           firstName: firstName,
           lastName: lastName,
           email: email,
-          phoneNumber: phoneNumber,
+          mobile: phoneNumber,
           countryCode: countryCode,
           referrer: referrer,
-          token: token,
+          pushNotificationToken: token,
           corporate: corporate,
         );
 

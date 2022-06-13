@@ -6,13 +6,17 @@ import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/bottom_bar/bottombar.dart';
+import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
+import '../../network/requests.dart';
+import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import '../../widgets/loader.dart';
 import '../reset_password/emailpassword.dart';
 import 'create_password.dart';
 
@@ -77,7 +81,7 @@ class _LoginState extends State<Login> {
                       ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: width / 1.1),
                         child: Text(
-                          userInfo?.username ?? "Kent2cky" + '!',
+                          userInfo?.username ?? "",
                           style: TextStyle(
                               color: notifier.getblck,
                               fontSize: 26.sp,
@@ -119,7 +123,7 @@ class _LoginState extends State<Login> {
                   GestureDetector(
                     onTap: () {
                       Get.to(
-                        () => Emailpassword(),
+                        () => ImportWallet(),
                       );
                     },
                     child: Text(
@@ -226,24 +230,4 @@ class _LoginState extends State<Login> {
       ),
     );
   }
-
-  // request() async {
-  //   showLoader(context);
-
-  //   var publicKey = await StoreData().storeGetData('publicKey') ?? '';
-  //   var secretKey = await StoreData().storeGetData('secretKey') ?? '';
-  //   username = await StoreData().storeGetData('username') ?? '';
-
-  //   Map responseData = await makeGetRequest(
-  //       uri: '/v1/users/${username.trim().replaceAll(' ', '')}',
-  //       signer: publicKey,
-  //       publicKey: publicKey,
-  //       secretKey: secretKey);
-  //   print('$responseData');
-  //   setState(() {
-  //     username = '';
-  //     username = responseData['data'].toString();
-  //   });
-  //   hideLoader(context);
-  // }
 }

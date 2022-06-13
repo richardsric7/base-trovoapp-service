@@ -79,6 +79,30 @@ class TrovoWalletSDK {
       return '';
     }
   }
+
+  Future<String> generateCredentialsFromPassPhrase() async {
+    String mnemonic = await Wallet.generate24WordsMnemonic();
+    print('generating credentials from mnemonic');
+    print(mnemonic);
+    Wallet wallet = await Wallet.from(mnemonic);
+    KeyPair keyPair = await wallet.getKeyPair(index: 1);
+    // publickey: keypair.accountId, secretKey: keypair.secretSeed
+    Account(keyPair.accountId, keyPair.secretSeed);
+    return mnemonic;
+  }
+
+  Future<Account> retrieveCredentialsFromPassPhrase(String passPhrase) async {
+    Wallet wallet = await Wallet.from(passPhrase);
+    KeyPair keyPair = await wallet.getKeyPair(index: 1);
+    // publickey: keypair.accountId, secretKey: keypair.secretSeed
+    return Account(keyPair.accountId, keyPair.secretSeed);
+  }
+
+  Account parseSecretKey(secretKey) {
+    KeyPair keyPair = KeyPair.fromSecretSeed(secretKey);
+    // publickey: keypair.accountId, secretKey: keypair.secretSeed
+    return Account(keyPair.accountId, keyPair.secretSeed);
+  }
 }
 
 class Account {
@@ -92,6 +116,6 @@ class Account {
 
   @override
   String toString() {
-    return "Public-Key: " + this.publicKey + "Secret-Key: " + this.secretKey;
+    return "Public-Key: " + this.publicKey + " Secret-Key: " + this.secretKey;
   }
 }

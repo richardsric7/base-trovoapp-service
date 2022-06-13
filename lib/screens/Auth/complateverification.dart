@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/screens/Auth/face_id.dart';
 import 'package:trovo_wallet/screens/Auth/fingerprint.dart';
-import 'package:trovo_wallet/screens/Auth/signup.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +23,7 @@ class _ComplateerificationState extends State<Complateerification> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
           child: Column(
