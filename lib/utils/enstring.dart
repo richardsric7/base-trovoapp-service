@@ -41,11 +41,11 @@ class LanguageEn {
 
   static String get entersecretkeyempty => 'Please enter your secret key';
 
-  static String get accountaliasoremailempty =>
-      'Please enter your email or account alias';
+  static String get usernameoremailempty =>
+      'Please enter your email or username';
 
-  static String get accountaliasoremailinvalid =>
-      'Please enter a valid email or account alias';
+  static String get usernameoremailinvalid =>
+      'Please enter a valid email or username';
 
   static String get secretkeyinvalid => 'Secret key must be 56 characters long';
 
@@ -63,13 +63,11 @@ class LanguageEn {
 
   static String get firstnamevalidateempty => "Please enter your first name";
 
-  static String get firstnamevalidatelength =>
-      "First name must be at least 3 characters";
-
   static String get lastnamevalidateempty => "Please enter your last name";
 
-  static String get lastnamevalidatelength =>
-      "Last name must be at least 3 characters";
+  static String get entitynamevalidateempty => "Please enter entity name";
+
+  static String get namevalidatelength => "Name must be at least 3 characters";
 
   static String get invalidname =>
       "Name cannot contain numbers or special characters";
@@ -120,13 +118,13 @@ class LanguageEn {
 
   static String get signup => "Create Account";
 
-  static String get accountalias => "Account alias";
+  static String get username => "Username";
 
   static String get phonenumber => "Phone number";
 
   static String get termsofserviceerror => "You need to accept terms";
 
-  static String get referrer => "Referrer's alias";
+  static String get referrer => "Referrer's username";
 
   static String get ittakesaminute =>
       "It only takes a minute to create your account";
@@ -141,7 +139,7 @@ class LanguageEn {
 
   static String get emailadress => "Email address";
 
-  static String get accountaliasoremail => "Account alias or Email address";
+  static String get usernameoremail => "Username or Email address";
 
   static String get secretkey => "Secret Key";
 

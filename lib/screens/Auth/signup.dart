@@ -24,7 +24,6 @@ import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/termsOfService.dart';
-import 'package:cool_dropdown/cool_dropdown.dart';
 
 class SignUp extends StatefulWidget {
   const SignUp({Key? key}) : super(key: key);
@@ -39,7 +38,6 @@ class _SignUpState extends State<SignUp> {
   final _formKey = GlobalKey<FormState>();
   String fName = '';
   String lName = '';
-  String entityGrade = "Limited";
   late String email;
   late String phoneNumber;
   String countryCode = "NG";
@@ -49,6 +47,7 @@ class _SignUpState extends State<SignUp> {
   late int corporate = 0;
   bool showError = false;
   bool hasAgreed = false; // to the terms of services
+
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -178,7 +177,7 @@ class _SignUpState extends State<SignUp> {
                         SizedBox(height: height / 50),
                         // Username
                         CustomTextFormField.textField(
-                          LanguageEn.accountalias,
+                          LanguageEn.username,
                           notifier.getbluecolor,
                           Icons.person,
                           notifier.getgrey,
@@ -285,14 +284,6 @@ class _SignUpState extends State<SignUp> {
   }
 
   Widget getNameFields() {
-    List dropdownItemList = [
-      {'label': 'apple', 'value': 'apple'}, // label is required and unique
-      {'label': 'banana', 'value': 'banana'},
-      {'label': 'grape', 'value': 'grape'},
-      {'label': 'pineapple', 'value': 'pineapple'},
-      {'label': 'grape fruit', 'value': 'grape fruit'},
-      {'label': 'kiwi', 'value': 'kiwi'},
-    ];
     if (corporate == 0) {
       return Column(
         children: [
@@ -345,56 +336,17 @@ class _SignUpState extends State<SignUp> {
             70.sp,
             300.sp,
             maxLength: 50,
-            validator: validateFName,
+            validator: validateEntityName,
             onChanged: (value) {
               setState(() {
                 fName = value;
               });
             },
-            onSaved: (value) => fName = value.trim().replaceAll(' ', ''),
+            onSaved: (value) => fName = value.toString().trimLeft().trimRight(),
           ),
-          SizedBox(height: height / 50),
-          // EntityGrade
-          Container(
-            height: 70.sp,
-            width: 300.sp,
-            child: DropdownButtonFormField(
-                decoration: InputDecoration(
-                  prefixIcon: Icon(CupertinoIcons.square_list),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: notifier.getgrey, width: 1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: notifier.getgrey, width: 1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  filled: true,
-                  fillColor: notifier.getwihitecolor,
-                ),
-                dropdownColor: notifier.getwihitecolor,
-                value: entityGrade,
-                onChanged: (newValue) {
-                  setState(() {
-                    entityGrade = newValue!.toString();
-                    lName = newValue.toString();
-                  });
-                },
-                items: dropdownItems),
-          ),
-          SizedBox(height: height / 70),
         ],
       );
     }
-  }
-
-  List<DropdownMenuItem<String>> get dropdownItems {
-    List<DropdownMenuItem<String>> menuItems = [
-      DropdownMenuItem(child: Text("Limited"), value: "Limited"),
-      DropdownMenuItem(child: Text("Incorporated"), value: "Incorporated"),
-      DropdownMenuItem(child: Text("Enterprises"), value: "Enterprises"),
-    ];
-    return menuItems;
   }
 
   String getEntityFullName() => '${fName} ${lName}';
@@ -541,10 +493,31 @@ class _SignUpState extends State<SignUp> {
     }
 
     if (value.trim().replaceAll(' ', '').length < 3) {
-      return LanguageEn.firstnamevalidatelength;
+      return LanguageEn.namevalidatelength;
     }
 
     if (corporate == 0 && regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+      return LanguageEn.invalidname;
+    }
+
+    return null;
+  }
+
+  String? validateEntityName(String? value) {
+    String pattern = r'(?:\d+[a-z]|[a-z]+\d)[a-z\d]*';
+    RegExp regex = new RegExp(pattern);
+    var trimmedValue = value!.trimLeft().trimRight();
+
+    print('Entityname: $value');
+    if (trimmedValue.isEmpty) {
+      return LanguageEn.entitynamevalidateempty;
+    }
+
+    if (trimmedValue.length < 3) {
+      return LanguageEn.namevalidatelength;
+    }
+
+    if (regex.hasMatch(trimmedValue)) {
       return LanguageEn.invalidname;
     }
 
@@ -560,8 +533,8 @@ class _SignUpState extends State<SignUp> {
       return LanguageEn.lastnamevalidateempty;
     }
 
-    if (value.trim().replaceAll(' ', '').length < 2) {
-      return LanguageEn.lastnamevalidatelength;
+    if (value.trim().replaceAll(' ', '').length < 3) {
+      return LanguageEn.namevalidatelength;
     }
 
     if (corporate == 0 && regex.hasMatch(value.trim().replaceAll(' ', ''))) {
@@ -661,15 +634,12 @@ class _SignUpState extends State<SignUp> {
         );
       } else {
         popup(context,
-            title: LanguageEn.error,
-            message: LanguageEn.errormessage + responseData['data']['message']);
+            title: LanguageEn.error, message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
       hideLoader(context);
-      popup(context,
-          title: LanguageEn.error,
-          message: LanguageEn.errormessage + e.toString());
+      popup(context, title: LanguageEn.error, message: e.toString());
     }
   }
 }
