@@ -70,6 +70,7 @@ dependencies:
   local_auth: ^2.1.0
   app_settings: ^4.1.6
   flutter_svg: ^1.0.3
+  flutter_local_notifications: ^9.6.0
 
 dev_dependencies:
   flutter_test:

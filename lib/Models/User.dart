@@ -4,7 +4,7 @@ class UserInfo {
   String? lastName;
   String? email;
   String? mobile;
-  String? mobileVerified;
+  int? mobileVerified;
   String? countryCode;
   String? referrer;
   String? referralLink;
@@ -13,7 +13,7 @@ class UserInfo {
   int? corporate;
   String? pushNotificationToken;
   String? imageThumbNail;
-  String? membershipType;
+  int? membershipType;
   DateTime? membershipExpiry;
   int? kycVerified;
   int? walletRecoveryEnabled;

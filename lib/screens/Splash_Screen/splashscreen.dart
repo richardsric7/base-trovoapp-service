@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
 import 'package:provider/provider.dart';
@@ -10,8 +12,10 @@ import 'package:trovo_wallet/screens/Auth/login.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/User.dart';
+import '../../services/push_fcm_service.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import '../notifications/firebase_notifications.dart';
 
 class SpashScreen extends StatefulWidget {
   const SpashScreen({Key? key}) : super(key: key);
@@ -42,6 +46,7 @@ class _SpashScreenState extends State<SpashScreen>
     super.initState();
     getdarkmodepreviousstate();
     runAsync();
+    initMessaging();
     // FCM firebaseMessaging = FCM();
     // firebaseMessaging.setNotifications();
     // firebaseMessaging.streamCtlr.stream.listen((msgData) {
@@ -87,35 +92,9 @@ class _SpashScreenState extends State<SpashScreen>
           landingPage = Swiper();
         });
       } else {
-        var username = await StoreData().storeGetData('username');
-        var firstName = await StoreData().storeGetData(
-          'firstname',
-        );
-        var lastName = await StoreData().storeGetData(
-          'lastname',
-        );
-        var email = await StoreData().storeGetData(
-          'email',
-        );
-        var phoneNumber = await StoreData().storeGetData('mobile');
-        var countryCode = await StoreData().storeGetData('mobileCountryCode');
-        var referrer = await StoreData().storeGetData('referrer');
-        var token = await StoreData().storeGetData('pushNotificationToken');
-        var corporate = await StoreData().storeGetData('corporate');
-        print(
-            'data: ${firstName + lastName + email + phoneNumber + countryCode}');
-        appState.setUser = UserInfo(
-          username: username,
-          firstName: firstName,
-          lastName: lastName,
-          email: email,
-          mobile: phoneNumber,
-          countryCode: countryCode,
-          referrer: referrer,
-          pushNotificationToken: token,
-          corporate: corporate,
-        );
-
+        var data = await StoreData().storeGetData('userInfo');
+        print('data: $data');
+        appState.setUser = UserInfo().deserializeJson(data);
         setState(() {
           landingPage = Login();
         });
@@ -189,16 +168,16 @@ class _SpashScreenState extends State<SpashScreen>
     );
   }
 
-  Widget _blurAnimationBuilder(context, child) {
-    double startValue = 10.0;
-    return BackdropFilter(
-      filter: ImageFilter.blur(
-        sigmaX: startValue - controller.value * 10,
-        sigmaY: startValue - controller.value * 10,
-      ),
-      child: Container(color: Colors.transparent),
-    );
-  }
+  // Widget _blurAnimationBuilder(context, child) {
+  //   double startValue = 10.0;
+  //   return BackdropFilter(
+  //     filter: ImageFilter.blur(
+  //       sigmaX: startValue - controller.value * 10,
+  //       sigmaY: startValue - controller.value * 10,
+  //     ),
+  //     child: Container(color: Colors.transparent),
+  //   );
+  // }
 
   @override
   void dispose() {
