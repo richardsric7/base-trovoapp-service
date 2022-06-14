@@ -2,10 +2,8 @@ import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
-import 'package:trovo_wallet/screens/Auth/create_password.dart';
 import 'package:trovo_wallet/screens/Auth/signup.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
-import '../Custom_BlocObserver/button/custtom_button.dart';
 import '../Custom_BlocObserver/notifire_clor.dart';
 import '../utils/enstring.dart';
 
@@ -232,6 +230,7 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                         horizontal: 10.0, vertical: 5.0),
                     child: ElevatedButton(
                       onPressed: () {
+                        Navigator.of(context).pop();
                         Navigator.push(
                           context,
                           MaterialPageRoute(

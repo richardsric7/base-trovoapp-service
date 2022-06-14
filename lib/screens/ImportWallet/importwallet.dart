@@ -33,7 +33,7 @@ class _ImportWalletState extends State<ImportWallet> {
   late FocusNode passPhraseFocusNode;
   late FocusNode secretKeyFocusNode;
   final _formKey = GlobalKey<FormState>();
-  String? accountAlias;
+  String? username;
   String? passPhrase;
   String? secretKey;
   String? password;
@@ -90,7 +90,7 @@ class _ImportWalletState extends State<ImportWallet> {
                         SizedBox(height: height / 10),
                         // Email address
                         CustomTextFormField.textField(
-                          LanguageEn.accountaliasoremail,
+                          LanguageEn.usernameoremail,
                           notifier.getbluecolor,
                           Icons.email,
                           notifier.getgrey,
@@ -102,11 +102,11 @@ class _ImportWalletState extends State<ImportWallet> {
                           validator: (value) {
                             var trimmedVal = value!.trim().replaceAll(' ', '');
                             if (trimmedVal.isEmpty) {
-                              return LanguageEn.accountaliasoremailempty;
+                              return LanguageEn.usernameoremailempty;
                             }
 
                             if (trimmedVal.length < 3) {
-                              return LanguageEn.accountaliasoremailinvalid;
+                              return LanguageEn.usernameoremailinvalid;
                             }
                           },
                           onSaved: storeUsernameOrEmail,
@@ -338,7 +338,7 @@ class _ImportWalletState extends State<ImportWallet> {
     }
 
     setState(() {
-      accountAlias = currValue;
+      username = currValue;
     });
     return null;
   }
@@ -371,7 +371,7 @@ class _ImportWalletState extends State<ImportWallet> {
         await StoreData().storeInsertData('password', password);
 
         Map responseData = await makeGetRequest(
-            uri: '/v1/users/${accountAlias}?type=import',
+            uri: '/v1/users/${username}?type=import',
             signer: creds.publicKey,
             publicKey: creds.publicKey,
             secretKey: creds.secretKey);
@@ -392,8 +392,7 @@ class _ImportWalletState extends State<ImportWallet> {
           // let's throw it
           popup(context,
               title: LanguageEn.error,
-              message:
-                  LanguageEn.errormessage + responseData['data']['message']);
+              message: responseData['data']['message']);
         }
       }
       hideLoader(context);
@@ -489,8 +488,7 @@ class _ImportWalletState extends State<ImportWallet> {
       // must be some sort of server error
       // let's throw it
       popup(context,
-          title: LanguageEn.error,
-          message: LanguageEn.errormessage + LanguageEn.invalidcredentials);
+          title: LanguageEn.error, message: LanguageEn.invalidcredentials);
       return null;
     }
   }
@@ -507,8 +505,7 @@ class _ImportWalletState extends State<ImportWallet> {
       // must be some sort of server error
       // let's throw it
       popup(context,
-          title: LanguageEn.error,
-          message: LanguageEn.errormessage + LanguageEn.invalidcredentials);
+          title: LanguageEn.error, message: LanguageEn.invalidcredentials);
       return null;
     }
   }

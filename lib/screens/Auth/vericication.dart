@@ -198,7 +198,7 @@ class _VeryficationState extends State<Veryfication> {
           title: LanguageEn.error,
           // TODO: Show somethingwentwrongerror for internal error
           // message: LanguageEn.somethingwentwrong);
-          message: LanguageEn.errormessage + e.toString());
+          message: e.toString());
     }
   }
 
@@ -216,8 +216,7 @@ class _VeryficationState extends State<Veryfication> {
       );
     } else {
       popup(context,
-          title: LanguageEn.error,
-          message: LanguageEn.errormessage + responseData['data']['message']);
+          title: LanguageEn.error, message: responseData['data']['message']);
     }
   }
 
@@ -238,14 +237,12 @@ class _VeryficationState extends State<Veryfication> {
       storeUserInfo(responseData['data']);
     } else if (responseData['statusCode'] == 404) {
       popup(context,
-          title: LanguageEn.error,
-          message: LanguageEn.errormessage + responseData['data']['message']);
+          title: LanguageEn.error, message: responseData['data']['message']);
     } else {
       // must be some sort of server error
       // let's throw it
       popup(context,
-          title: LanguageEn.error,
-          message: LanguageEn.errormessage + responseData['data']['message']);
+          title: LanguageEn.error, message: responseData['data']['message']);
     }
   }
 
