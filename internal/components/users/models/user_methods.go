@@ -375,12 +375,16 @@ func (u *User) BuildPrimaryWallet() {
 	}
 	u.UserWallets = append(u.UserWallets, userWallet)
 }
-func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string) {
+func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string) error {
 	{
 		//check to ensure sub-wallet does not already exist
 		for _, wallet := range u.UserWallets {
 			if wallet.ID == subWalletPublicKey {
-				return
+				return &tErrors.CustomError{
+					Param:      "id",
+					Err:        "error-sub-wallet-already-exists-in-your-account",
+					ErrMessage: "Sub-wallet already exists in your account",
+				}
 			}
 		}
 	}
@@ -401,6 +405,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		UserID:        u.ID,
 	}
 	u.UserWallets = append(u.UserWallets, userSubWallet)
+	return nil
 }
 func (id UserWalletManagedAccessID) String() string {
 	return string(id)

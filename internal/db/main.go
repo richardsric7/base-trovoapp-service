@@ -11,6 +11,7 @@ import (
 	"time"
 	merchantModels "trovo-wallet-api/internal/components/merchants/models"
 
+	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	users "trovo-wallet-api/internal/components/users/models"
 	SMS "trovo-wallet-api/internal/sms"
 
@@ -171,6 +172,11 @@ func MigrateDB(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&users.DefaultAsset{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating DefaultAsset: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&paymentModels.PaymentHistory{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating PaymentHistory: ", errMigrate)
 		}
 		// errMigrate = UserTriggers(gormDB)
 		// if errMigrate != nil {

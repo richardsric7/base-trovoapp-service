@@ -51,6 +51,7 @@ type UserWallet struct {
 	UserID                  string                  `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
 	ManagedAccessEnabled    uint                    `gorm:"type:integer;not null; default:0" json:"managedAccessEnabled"`
 	UserWalletManagedAccess UserWalletManagedAccess `json:"userWalletManagedAccess"`
+	Tracked                 int                     `gorm:"type:integer;not null;default:0" json:"-"`
 }
 
 type UserWalletManagedAccess struct {

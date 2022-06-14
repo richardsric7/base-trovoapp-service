@@ -1,14 +1,18 @@
 package main
 
 import (
-	"context"
+	"encoding/base64"
+	"fmt"
 	"log"
+	"strings"
 	"testing"
 	"time"
 
-	fb "trovo-wallet-api/internal/pns"
+	"trovo-wallet-api/internal/middleware"
 
+	"github.com/dghubble/sling"
 	"github.com/shopspring/decimal"
+	"github.com/stellar/go/keypair"
 )
 
 const devURL = "http://localhost:8080"
@@ -35,6 +39,25 @@ type UserRegistrationInfo struct {
 	PushNotificationToken string `json:"pushNotificationToken,omitempty"`
 	Corporate             uint   `json:"corporate"`
 	VerificationCode      string `json:"verificationCode,omitempty"`
+}
+type PaymentInfo struct {
+	Destination             string            `json:"destination"`
+	Memo                    string            `json:"memo"`
+	AssetIssuer             string            `json:"assetIssuer"`
+	AssetCode               string            `json:"assetCode"`
+	Amount                  string            `json:"amount"`
+	Transaction             string            `json:"transaction"`
+	TransactionSignature    string            `json:"transactionSignature"`
+	TransactionID           string            `json:"transactionId"`
+	NetworkPassPhrase       string            `json:"networkPassPhrase"`
+	DestinationFirstName    string            `json:"destinationFirstName"`
+	DestinationLastName     string            `json:"destinationLastName"`
+	DestinationThumbnail    string            `json:"destinationThumbnail"`
+	DestinationVerified     int               `json:"destinationVerified"`
+	ChannelAccount          string            `json:"channelAccount"`
+	ChannelAccountSignature string            `json:"channelAccountSignature"`
+	Messages                []string          `json:"messages"`
+	CallbackURLS            map[string]string `json:"-"`
 }
 
 type UserInfo struct {
@@ -252,28 +275,28 @@ type DefaultAsset struct {
 // 	log.Printf("Result:[%+v]\n", resultResponse)
 
 // }
-func TestSendPushNotificationMessage(t *testing.T) {
-	ric := "dWLRIQWuSm-sqAKA-ABwhS:APA91bGJt8PE4KBS0OPIJOVp4JsWbpiJMK1DrIJIhZM7hlOVeLo6OUGlN5PbbsttT3Oq0YNXZZ8P0zDEcVD6wQkdoFOfrTSFq0q9A1XZU605ZhTpaLLfqwqONniRQKoj4I-YdMgxXoJc"
-	// kennis := "eNCa_XRaTr2NnXX4pnzhN3:APA91bF9OfBO9IEFJcPOtO-83Qu41_7zZ3ef7qC3i5ySPvT8arcQ1gwnRXYnSZ5uJ9mT4uOW7rgPp5F0hTsqvoqQL9oR02fQtiCyco2DVsNBT6JIgqgVHO1ZTPod7ypm-MpSzA95MRRZ"
-	title := "TROVO: Testing Push Notification Service"
-	body := `This is a test message to ascertain how the push notification appears`
-	imageURL := "https://trovotech.io/img/Trovotech-colored.png"
-	dataPayload := make(map[string]string)
-	dataPayload["route"] = "announcements"
-	dataPayload["openLink"] = "https://trovowallet.page.link"
-	ctx := context.Background()
-	client, _, err := fb.GetFirebaseMessagingClient(ctx)
-	if err != nil {
-		log.Println("[TestGetUserInfo]request error:", err)
-		t.Errorf(err.Error())
-		return
-	}
-	response, _ := fb.SendFirebaseMessage(ric, title, body, imageURL, dataPayload, client, ctx)
-	// response, _ := fb.SendFirebaseMessage(ric, title, body, imageURL, nil, nil)
+// func TestSendPushNotificationMessage(t *testing.T) {
+// 	ric := "dWLRIQWuSm-sqAKA-ABwhS:APA91bGJt8PE4KBS0OPIJOVp4JsWbpiJMK1DrIJIhZM7hlOVeLo6OUGlN5PbbsttT3Oq0YNXZZ8P0zDEcVD6wQkdoFOfrTSFq0q9A1XZU605ZhTpaLLfqwqONniRQKoj4I-YdMgxXoJc"
+// 	// kennis := "eNCa_XRaTr2NnXX4pnzhN3:APA91bF9OfBO9IEFJcPOtO-83Qu41_7zZ3ef7qC3i5ySPvT8arcQ1gwnRXYnSZ5uJ9mT4uOW7rgPp5F0hTsqvoqQL9oR02fQtiCyco2DVsNBT6JIgqgVHO1ZTPod7ypm-MpSzA95MRRZ"
+// 	title := "TROVO: Testing Push Notification Service"
+// 	body := `This is a test message to ascertain how the push notification appears`
+// 	imageURL := "https://trovotech.io/img/Trovotech-colored.png"
+// 	dataPayload := make(map[string]string)
+// 	dataPayload["route"] = "announcements"
+// 	dataPayload["openLink"] = "https://trovowallet.page.link"
+// 	ctx := context.Background()
+// 	client, _, err := fb.GetFirebaseMessagingClient(ctx)
+// 	if err != nil {
+// 		log.Println("[TestGetUserInfo]request error:", err)
+// 		t.Errorf(err.Error())
+// 		return
+// 	}
+// 	response, _ := fb.SendFirebaseMessage(ric, title, body, imageURL, dataPayload, client, ctx)
+// 	// response, _ := fb.SendFirebaseMessage(ric, title, body, imageURL, nil, nil)
 
-	log.Printf("Result:[%+v]\n", response)
+// 	log.Printf("Result:[%+v]\n", response)
 
-}
+// }
 
 // func TestSendPushNotificationBroadcast(t *testing.T) {
 
@@ -296,3 +319,117 @@ func TestSendPushNotificationMessage(t *testing.T) {
 // 	log.Printf("Result:[%+v]\n", response)
 
 // }
+
+func TestSendPaymentMultiAccessDisabled(t *testing.T) {
+
+	pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	secretKey := "SDBLGMM6HVLYSUUR2TIKC6E7GZHQA5VJUUGBVOGDC5KQHTJVC2KK3EXK"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
+	channelAccountSK := ""
+	ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	baseURL := prodURL
+	var sEnc string
+	if strings.Contains(ownerUsername, "/") {
+		sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	} else {
+		sEnc = ownerUsername
+	}
+	fullPath := fmt.Sprintf("/v1/users/%v/payments", sEnc)
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	paymentPayload := PaymentInfo{
+		Destination: "kenmaddy",
+		Memo:        "Test XBN Payment",
+		Amount:      "500000",
+	}
+	errorResponse := new(ErrorResponse)
+	payResponse := new(PaymentInfo)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(paymentPayload).Receive(payResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestSendPaymentMultiAccessDisabled] server response error:", *errorResponse)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Payment Response:[%+v]\n", payResponse)
+
+	// if payResponse != nil {
+	{
+		//run the payment signing and submission
+		p := *payResponse
+		//sign transaction
+		if len(p.ChannelAccount) == 56 {
+			ckp := keypair.MustParseFull(channelAccountSK)
+
+			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
+			if err != nil {
+				log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
+				t.Errorf(err.Error())
+
+				return
+			}
+			p.ChannelAccountSignature = dsigned
+
+		}
+		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
+		if err != nil {
+			log.Println("[TestSendPaymentMultiAccessDisabled] makePayment error:", err)
+			t.Errorf(err.Error())
+
+			return
+		}
+
+		p.TransactionSignature = signedBase64
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", kp.Address()).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+
+		log.Printf("Make Payment Response:[%+v]\n", payResponse)
+	}
+	// }
+
+}
