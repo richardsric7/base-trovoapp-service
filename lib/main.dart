@@ -5,13 +5,12 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'Custom_BlocObserver/notifire_clor.dart';
-import 'config/app_settings.config.dart';
 import 'screens/Splash_Screen/splashscreen.dart';
 
 void main() async {
   await GetStorage.init();
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   BlocOverrides.runZoned(
     () => runApp(const App()),
