@@ -117,18 +117,18 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 		return userInfo, false, errors.New("unable to create user due to error in information")
 	}
 
-	// {
-	// 	//send to monitoring service
-	// 	trackPublicKey := userModels.TrackedPublicKey{
-	// 		PublicKey: user.PublicKey,
-	// 	}
-	// 	errTrack := gc.RoachDB.Create(&trackPublicKey).Error
-	// 	if errTrack != nil {
-	// 		//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
-	// 		discord.Say(fmt.Sprintf("[RegisterUser] tracking public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", userInfo.Username, errTrack, userInfo))
+	{
+		//send to monitoring service
+		trackPublicKey := userModels.TrackedPublicKey{
+			PublicKey: user.PublicKey,
+		}
+		errTrack := gc.RoachDB.Create(&trackPublicKey).Error
+		if errTrack != nil {
+			//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
+			discord.Say(fmt.Sprintf("[RegisterUser] tracking public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", userInfo.Username, errTrack, userInfo))
 
-	// 	}
-	// }
+		}
+	}
 	return userInfo, false, nil
 
 }
