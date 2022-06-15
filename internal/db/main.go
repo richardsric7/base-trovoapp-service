@@ -28,7 +28,7 @@ import (
 // https://golang.org/pkg/database/sql/#Open
 // The returned DB is safe for concurrent use by multiple goroutines and maintains its own pool of idle connections.
 // Thus, the Open function should be called just once. It is rarely necessary to close a DB.
-var gormDB *gorm.DB
+var gormDB, roachDB *gorm.DB
 var sqlDB *sql.DB // Set package-wide, but not exported
 var once sync.Once
 
@@ -91,6 +91,19 @@ func OpenDb() (*gorm.DB, error) {
 
 	}
 	return gormDB, nil
+}
+
+func OpenRoachDB() (*gorm.DB, error) {
+	var err error
+
+	roachDB, err = gorm.Open(postgres.Open(os.Getenv("CDB_CONNECTION_STRING")), &gorm.Config{
+		Logger:      logger.Default.LogMode(logger.Silent),
+		QueryFields: true,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return roachDB, nil
 }
 
 //OpenSqliteDB opens ecnrypted SQlite connection

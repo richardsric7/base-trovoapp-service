@@ -14,4 +14,5 @@ type GlobalConfig struct {
 	PNSContext                context.Context
 	RedisCache                *cache.RedisCache
 	DB                        *gorm.DB
+	RoachDB                   *gorm.DB
 }

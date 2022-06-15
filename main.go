@@ -15,6 +15,7 @@ import (
 
 	merchants "trovo-wallet-api/internal/components/merchants/controllers"
 	payments "trovo-wallet-api/internal/components/payments/controllers"
+	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	root "trovo-wallet-api/internal/components/root/controllers"
 	users "trovo-wallet-api/internal/components/users/controllers"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -39,7 +40,7 @@ func main() {
 
 	//setup DB
 
-	var database *gorm.DB
+	var database, roachDB *gorm.DB
 	{
 
 		var err error
@@ -50,13 +51,23 @@ func main() {
 			return
 		}
 	}
+	{
+
+		var err error
+		roachDB, err = db.OpenRoachDB()
+
+		if err != nil {
+			log.Fatalf("[main]Error opening RoachDB %s", err)
+			return
+		}
+	}
 
 	//check other required environment variables.
 
 	{
 		exit := false
 		requiredEnvironmentVariables := []string{"EXPANSION_URL", "BLOCKCHAIN_NETWORK_PASSPHRASE",
-			"MNEMONIC_TEMP_ACCOUNTS", "BLOCKCHAIN_BASE_RESERVE", "MAILGUN_PRIVATE_API_KEY",
+			"MNEMONIC_TEMP_ACCOUNTS", "BLOCKCHAIN_BASE_RESERVE", "MAILGUN_PRIVATE_API_KEY", "CDB_CONNECTION_STRING",
 			"IPAPI_KEY", "IPAPI_HOST", "VERIFICATION_CODE_SALT", "ENABLE_EMAIL_VALIDATION", "ENABLE_CACHING",
 			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_API_KEY", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
 			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "FBDL_SERVICE_URLS", "MAILGUN_DOMAIN",
@@ -83,6 +94,19 @@ func main() {
 
 	//migrate DB models if any
 	db.MigrateDB(database)
+
+	errMigrate := roachDB.AutoMigrate(&paymentModels.TrackedWallet{})
+	if errMigrate != nil {
+		if !strings.Contains(errMigrate.Error(), "constraint") {
+			log.Fatalf("Error migrating TrackedWallet model, error: %v", errMigrate)
+		}
+	}
+	errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedPublicKey{})
+	if errMigrate != nil {
+		if !strings.Contains(errMigrate.Error(), "constraint") {
+			log.Fatalf("Error migrating TrackedPublicKey model, error: %v", errMigrate)
+		}
+	}
 
 	//setup redis
 
@@ -210,6 +234,7 @@ func main() {
 		RedisCache:                &redisCache,
 		DB:                        database,
 		PushNotificationClient:    pnsClient,
+		RoachDB:                   roachDB,
 	}
 	//setup router
 

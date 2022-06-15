@@ -1,6 +1,10 @@
 package users
 
-import "time"
+import (
+	"time"
+
+	"github.com/gofrs/uuid"
+)
 
 type User struct {
 	CreatedAt             time.Time    `json:"createdAt"`
@@ -95,3 +99,14 @@ type UserWalletManagedAccessID string
 
 //UserWalletID is type for wallet/sub-wallet Public Key
 type UserWalletID string
+
+type TrackedWallet struct {
+	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
+	PublicKey string    `gorm:"index:idx_tracked_wallet_public_key,unique"`
+	Alias     string    `gorm:"index:idx_tracked_wallet_alias"`
+	Name      string    `gorm:"index:idx_tracked_wallet_name"`
+}
+
+type TrackedPublicKey struct {
+	PublicKey string `gorm:"primaryKey"`
+}
