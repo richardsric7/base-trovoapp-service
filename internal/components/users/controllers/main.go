@@ -65,7 +65,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		// var err error
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
-		targetPublicKeyForHistory := strings.TrimSpace(strings.ToLower(c.Param("targetPublicKeyForHistory")))
+		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
 		uDec, e := base64.URLEncoding.DecodeString(c.Param("targetUser"))
 		if e == nil {
 			//check if the decoded contains any non-english character
