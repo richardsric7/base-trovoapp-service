@@ -159,7 +159,7 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 		return
 	}
 
-	historiesJSON := make([]paymentModels.PaymentHistoryJSON, len(paymentHistories))
+	historiesJSON := make([]paymentModels.PaymentHistoryJSON, 0)
 
 	for _, v := range paymentHistories {
 

@@ -305,7 +305,7 @@ func TestGetPaymentHistory(t *testing.T) {
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
-	baseURL := devURL
+	baseURL := prodURL
 	// baseURL := prodURL
 	fullPath := fmt.Sprintf("/v1/users/%s/payments/%v", "ric", kp.Address())
 	ts := time.Now().Unix() / 1000
