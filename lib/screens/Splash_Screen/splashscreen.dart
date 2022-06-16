@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import 'dart:ui';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
 import 'package:provider/provider.dart';
@@ -12,10 +9,8 @@ import 'package:trovo_wallet/screens/Auth/login.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/User.dart';
-import '../../services/push_fcm_service.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../notifications/firebase_notifications.dart';
 
 class SpashScreen extends StatefulWidget {
   const SpashScreen({Key? key}) : super(key: key);
@@ -46,13 +41,6 @@ class _SpashScreenState extends State<SpashScreen>
     super.initState();
     getdarkmodepreviousstate();
     runAsync();
-    initMessaging();
-    // FCM firebaseMessaging = FCM();
-    // firebaseMessaging.setNotifications();
-    // firebaseMessaging.streamCtlr.stream.listen((msgData) {
-    //   print('The Firebase data notification message is: $msgData');
-    //   updateAllCache();
-    // });
 
     controller = AnimationController(
       vsync: this,

@@ -1,10 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/screens/notifications/firebase_notifications.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'Custom_BlocObserver/notifire_clor.dart';
 import 'screens/Splash_Screen/splashscreen.dart';
 
@@ -28,6 +31,7 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
+    initAppNotification(context);
   }
 
   @override
