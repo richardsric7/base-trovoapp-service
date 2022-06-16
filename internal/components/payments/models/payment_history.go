@@ -35,3 +35,39 @@ type PaymentHistoryJSON struct {
 	Amount          string    `json:"amount"`
 	TransactionID   string    `json:"transactionId"`
 }
+
+type PaginatedPaymentHistory struct {
+	Pages        int                  `json:"pages"`
+	CurrentPage  int                  `json:"currentPage"`
+	TotalRecords int                  `json:"totalRecords"`
+	Limit        int                  `json:"limit"`
+	Records      []PaymentHistoryJSON `json:"records"`
+}
+
+func (ph *PaymentHistory) ToJSON() (json PaymentHistoryJSON) {
+	if ph == nil {
+		return
+	}
+	json = PaymentHistoryJSON{
+		TransactionDate: ph.TransactionDate,
+		TransactionType: ph.TransactionType,
+		FromPublicKey:   ph.FromPublicKey,
+		ToPublicKey:     ph.ToPublicKey,
+		AssetCode:       ph.AssetCode,
+		Amount:          ph.Amount,
+		TransactionID:   ph.TransactionID,
+	}
+	if ph.From != nil {
+		json.From = *ph.From
+	}
+	if ph.To != nil {
+		json.To = *ph.To
+	}
+	if ph.AssetIssuer != nil {
+		json.AssetIssuer = *ph.AssetIssuer
+	}
+	if ph.Memo != nil {
+		json.Memo = *ph.Memo
+	}
+	return
+}
