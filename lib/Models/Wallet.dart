@@ -1,29 +1,29 @@
 class Wallet {
-  DateTime createdAt;
-  String publicKey;
-  String tag;
-  String description;
-  String alias;
-  String signer;
-  String userId;
-  int managedAccessEnabled;
-  int primaryWallet;
+  DateTime? createdAt;
+  String? publicKey;
+  String? tag;
+  String? description;
+  String? alias;
+  String? signer;
+  String? userId;
+  int? managedAccessEnabled;
+  int? primaryWallet;
 
   Wallet({
-    required this.createdAt,
-    required this.publicKey,
-    required this.tag,
-    required this.description,
-    required this.alias,
-    required this.signer,
-    required this.userId,
-    required this.managedAccessEnabled,
-    required this.primaryWallet,
+    this.createdAt,
+    this.publicKey,
+    this.tag,
+    this.description,
+    this.alias,
+    this.signer,
+    this.userId,
+    this.managedAccessEnabled,
+    this.primaryWallet,
   });
 
   toJSONEncodable() {
     return <String, dynamic>{
-      "createdAt": createdAt.toIso8601String(),
+      "createdAt": createdAt!.toIso8601String(),
       "publicKey": publicKey,
       "tag": tag,
       "description": description,

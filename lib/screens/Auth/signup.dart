@@ -607,7 +607,7 @@ class _SignUpState extends State<SignUp> {
           body: jsonBody,
           signer: publicKey,
           publicKey: publicKey,
-          secretKey: secretKey);
+          secretKey: secretKey[0]);
       print('$responseData');
       hideLoader(context);
 

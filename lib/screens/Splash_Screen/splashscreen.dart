@@ -11,6 +11,7 @@ import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/User.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import '../Backup/congratulation.dart';
 
 class SpashScreen extends StatefulWidget {
   const SpashScreen({Key? key}) : super(key: key);
@@ -56,6 +57,7 @@ class _SpashScreenState extends State<SpashScreen>
       const Duration(seconds: 4),
       () => Navigator.pushReplacement(
         context,
+        // LandingPageRoute(Congratulations()),
         LandingPageRoute(landingPage),
       ),
     );
@@ -83,6 +85,7 @@ class _SpashScreenState extends State<SpashScreen>
         var data = await StoreData().storeGetData('userInfo');
         print('data: $data');
         appState.setUser = UserInfo().deserializeJson(data);
+        appState.setSecretKeys = await StoreData().storeGetData('secretKey');
         setState(() {
           landingPage = Login();
         });
