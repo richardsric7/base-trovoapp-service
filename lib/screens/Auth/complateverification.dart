@@ -8,6 +8,8 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 
+import '../Backup/congratulation.dart';
+
 class Complateerification extends StatefulWidget {
   const Complateerification({Key? key}) : super(key: key);
 
@@ -58,7 +60,7 @@ class _ComplateerificationState extends State<Complateerification> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const FingerPrint(),
+                      builder: (context) => Congratulations(),
                     ),
                   );
                 },

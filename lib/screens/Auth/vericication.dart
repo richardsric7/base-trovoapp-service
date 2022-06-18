@@ -23,6 +23,7 @@ import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/popups.dart';
+import '../Backup/congratulation.dart';
 
 class Veryfication extends StatefulWidget {
   const Veryfication({Key? key}) : super(key: key);
@@ -184,7 +185,7 @@ class _VeryficationState extends State<Veryfication> {
         body: jsonBody,
         signer: publicKey,
         publicKey: publicKey,
-        secretKey: secretKey,
+        secretKey: secretKey[0],
       );
 
       print('$responseData');
@@ -211,7 +212,7 @@ class _VeryficationState extends State<Veryfication> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const Complateerification(),
+          builder: (context) => Congratulations(),
         ),
       );
     } else {
@@ -229,7 +230,7 @@ class _VeryficationState extends State<Veryfication> {
             '/v1/users/${state.userInfo!.username!.trim().replaceAll(' ', '')}',
         signer: publicKey,
         publicKey: publicKey,
-        secretKey: secretKey);
+        secretKey: secretKey[0]);
 
     print('response: ${responseData}');
 

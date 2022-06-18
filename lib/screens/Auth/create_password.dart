@@ -12,6 +12,7 @@ import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../functions/trovo-sdk.dart';
+import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
 
@@ -26,6 +27,7 @@ class _CreatePassword extends State<CreatePassword> {
   late ColorNotifier notifier;
   bool isChecked = false;
   final _formKey = GlobalKey<FormState>();
+  late DataProvider appState;
   String password = '';
 
   getdarkmodepreviousstate() async {
@@ -49,6 +51,7 @@ class _CreatePassword extends State<CreatePassword> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
@@ -185,7 +188,11 @@ class _CreatePassword extends State<CreatePassword> {
         print('account: $account');
         await StoreData().storeInsertData('password', password);
         await StoreData().storeInsertData('publicKey', account.publicKey);
-        await StoreData().storeInsertData('secretKey', account.secretKey);
+        await StoreData()
+            .storeInsertData('secretKey', <String>[account.secretKey]);
+
+        // save secrets to appstate
+        appState.setSecretKeys = await StoreData().storeGetData('secretKey');
 
         hideLoader(context);
         Navigator.pushReplacement(

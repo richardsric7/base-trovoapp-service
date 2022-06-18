@@ -1,3 +1,5 @@
+import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
+
 class LanguageEn {
   static String get welcometotrovowallet => "Welcome to Trovo Wallet";
 
@@ -201,6 +203,45 @@ class LanguageEn {
   static String get youreverified => "You’re verified!";
 
   static String get youhavebeensucces => "You have been succesfully verified";
+
+  static String get congratulations => "Congratulations ";
+
+  static String get walletcreatesuccess =>
+      "Your wallet has been successfully created. \n\n\nWe strongly recommend that you backup your wallet before proceeding.\n\n\nBacking up your wallet is the only way to restore your wallet if you lose your device";
+
+  static String get backup => "Backup";
+
+  static String get ensureprivacybackup =>
+      "Ensure no one is looking while you back up your wallet. Anyone with your secret key can access your Trovo wallet.";
+
+  static String get ensureAll => "Please tick all the boxes above!";
+
+  static String get warnskipbackup =>
+      "We strongly recommend that you backup your wallet secret key. Are you sure you want to skip?";
+
+  static String get iensuredprivacy =>
+      "I have ensured that no one is looking and I understand that I should never share my secret key with anyone.";
+
+  static String get iunderstandimportanceofsecretkey =>
+      "I understand that I need to securely store my secret key and that if this app is deleted or moved to another device, I can only restore my wallet with the secret key.";
+
+  static String get iunderstandliability =>
+      "I understand that if I lose my secret key. Trovo is not liable to any loss and that my funds are securely held and controlled on this device not by Trovo.";
+
+  static String get youysecrethasbeengenerated =>
+      "Your secret key has been generated and is 56 characters long.";
+
+  static String get writeitdown =>
+      "Write it down correctly and store in a safe place.";
+
+  static String get writeitasfollows =>
+      "You can write down your secret key as follows:";
+
+  static String get taptorevealsecretkeys => "Tap to reveal all Secrets";
+
+  static String get taptohidesecretkeys => "Tap to hide all Secrets";
+
+  static String get copysecretkey => "Copy secret key";
 
   static String get done => "Done";
 

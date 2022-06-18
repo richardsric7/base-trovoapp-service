@@ -11,6 +11,7 @@ import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../network/requests.dart';
+import '../../storage/state.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
@@ -37,6 +38,7 @@ class _ImportWalletState extends State<ImportWallet> {
   String? passPhrase;
   String? secretKey;
   String? password;
+  late DataProvider appState;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -61,6 +63,7 @@ class _ImportWalletState extends State<ImportWallet> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -367,7 +370,8 @@ class _ImportWalletState extends State<ImportWallet> {
         // to get userinfo from the server. This way we can use these stored data
         // to create new user account if the provided user account does not exist
         await StoreData().storeInsertData('publicKey', creds.publicKey);
-        await StoreData().storeInsertData('secretKey', creds.secretKey);
+        await StoreData()
+            .storeInsertData('secretKey', <String>[creds.secretKey]);
         await StoreData().storeInsertData('password', password);
 
         Map responseData = await makeGetRequest(
@@ -421,6 +425,9 @@ class _ImportWalletState extends State<ImportWallet> {
         .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('isFirstTime', false);
+
+    // save secrets to appstate
+    appState.setSecretKeys = await StoreData().storeGetData('secretKey');
   }
 
   String? validatePassword(value) {

@@ -1,3 +1,5 @@
+import 'Wallet.dart';
+
 class UserInfo {
   String? username;
   String? firstName;
@@ -19,6 +21,7 @@ class UserInfo {
   int? walletRecoveryEnabled;
   int? verified;
   int? suspended;
+  List<Wallet>? wallets;
 
   UserInfo({
     this.username,
@@ -41,6 +44,7 @@ class UserInfo {
     this.walletRecoveryEnabled,
     this.verified,
     this.suspended,
+    this.wallets,
   });
 
   toJSONEncodable() {
@@ -69,6 +73,14 @@ class UserInfo {
   }
 
   deserializeJson(Map<String, dynamic> m) {
+    var userWallets = m['userWallets'];
+    var wallets = <Wallet>[];
+    if (userWallets != null) {
+      print('runtime type: ${userWallets.runtimeType}');
+      for (var i = 0; i < userWallets.length; i++) {
+        wallets.add(Wallet().deserializeJson(userWallets[i]));
+      }
+    }
     return UserInfo(
       username: m['username'],
       firstName: m['firstName'],
@@ -90,6 +102,7 @@ class UserInfo {
       walletRecoveryEnabled: m['walletRecoveryEnabled'],
       verified: m['verified'],
       suspended: m['suspended'],
+      wallets: wallets,
     );
   }
 }
