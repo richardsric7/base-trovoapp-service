@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
-import 'package:trovo_wallet/bottom_bar/bottombar.dart';
 import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
@@ -13,12 +12,12 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
-import '../../network/requests.dart';
-import '../../storage/store.dart';
+import '../../bottom_bar/bottombar.dart';
+import '../../utils/local_auth.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../../widgets/loader.dart';
-import '../reset_password/emailpassword.dart';
+import '../../widgets/popups.dart';
 import 'create_password.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -29,8 +28,13 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   late ColorNotifier notifier;
-  DataProvider? appState;
-  UserInfo? userInfo;
+  late DataProvider appState;
+  late UserInfo userInfo;
+  String password = '';
+  final _formKey = GlobalKey<FormState>();
+
+  final Authenticator _authenticator = Authenticator();
+
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -51,7 +55,7 @@ class _LoginState extends State<Login> {
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState!.userInfo;
+    userInfo = appState.userInfo!;
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
@@ -81,7 +85,7 @@ class _LoginState extends State<Login> {
                       ConstrainedBox(
                         constraints: BoxConstraints(maxWidth: width / 1.1),
                         child: Text(
-                          userInfo?.username ?? "",
+                          userInfo.username ?? "",
                           style: TextStyle(
                               color: notifier.getblck,
                               fontSize: 26.sp,
@@ -97,21 +101,24 @@ class _LoginState extends State<Login> {
                             fontFamily: fontbody),
                       ),
                       SizedBox(height: height / 10),
-                      CustomPasswordFormField(
-                        LanguageEn.password,
-                        notifier.getbluecolor,
-                        Icons.lock,
-                        notifier.getgrey,
-                        notifier.getprefixicon,
-                        notifier.getblck,
-                        70.sp,
-                        300.sp,
-                        onChanged: (value) {
-                          setState(() {
-                            // password = value!.trim().replaceAll(' ', '');
-                          });
-                        },
-                        // validator: validatePassword,
+                      Form(
+                        key: _formKey,
+                        child: CustomPasswordFormField(
+                          LanguageEn.password,
+                          notifier.getbluecolor,
+                          Icons.lock,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          70.sp,
+                          300.sp,
+                          validator: validateInput,
+                          onChanged: (value) {
+                            setState(() {
+                              password = value!.trim().replaceAll(' ', '');
+                            });
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -138,18 +145,22 @@ class _LoginState extends State<Login> {
                 ],
               ),
               SizedBox(height: height / 20),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const BottomHome(),
-                    ),
-                  );
-                },
-                child: Button(LanguageEn.signinwithbiometrics,
-                    notifier.getbluecolor, notifier.getwihitecolor),
-              ),
+              if (appState.biometricEnabled && password.isEmpty) ...[
+                Button(
+                  LanguageEn.signinwithbiometrics,
+                  notifier.getbluecolor,
+                  notifier.getwihitecolor,
+                  onTap: toggleSwitch,
+                ),
+              ] else ...[
+                Button(
+                  LanguageEn.signin,
+                  notifier.getbluecolor,
+                  notifier.getwihitecolor,
+                  onTap: handleSignin,
+                ),
+              ],
+
               // SizedBox(height: height / 90),
               Row(
                 children: <Widget>[
@@ -177,7 +188,10 @@ class _LoginState extends State<Login> {
                   ),
                 ],
               ),
-              GestureDetector(
+              ButtonOutlined(
+                LanguageEn.signup,
+                notifier.getwihitecolor,
+                notifier.getbluecolor,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -186,8 +200,6 @@ class _LoginState extends State<Login> {
                     ),
                   );
                 },
-                child: button(LanguageEn.signup, notifier.getwihitecolor,
-                    notifier.getbluecolor),
               ),
               SizedBox(height: height / 40),
             ],
@@ -197,37 +209,49 @@ class _LoginState extends State<Login> {
     );
   }
 
-  Widget button(buttontext, colorbutton, buttontextcolor) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          LayoutBuilder(builder: (context, constraints) {
-            return Container(
-              height: height / 15,
-              width: width / 1.1,
-              decoration: BoxDecoration(
-                border: Border.all(color: notifier.getgrey),
-                color: colorbutton,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Center(
-                child: Text(
-                  buttontext,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontFamily: fontbody,
-                      fontSize: 15.sp,
-                      color: buttontextcolor),
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
+  void toggleSwitch() async {
+    try {
+      bool result = await _authenticator.authenticateMe();
+      if (result) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const BottomHome(),
+          ),
+        );
+      }
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notEnrolled ||
+          e.code == auth_error.notAvailable) {
+        biometricsErrorAlert(context);
+      }
+    }
+  }
+
+  String? validateInput(String? value) {
+    if (value!.isEmpty) return 'Enter your password';
+
+    if (value.length < 6) return 'Use 6 characters or more for your password';
+
+    return null;
+  }
+
+  void handleSignin() {
+    print('handling signin $password ${appState.password!}');
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (password == appState.password!) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const BottomHome(),
+        ),
+      );
+    } else {
+      popup(context,
+          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+    }
   }
 }

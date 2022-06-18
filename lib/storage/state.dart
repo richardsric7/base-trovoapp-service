@@ -6,6 +6,12 @@ class DataProvider with ChangeNotifier {
   List<String> secretKeys = [];
   bool isDark = false;
   bool biometricEnabled = false;
+  String? password;
+
+  set setPassword(pswd) {
+    password = pswd;
+    notifyListeners();
+  }
 
   set setUser(info) {
     print('setting user...');
@@ -14,8 +20,11 @@ class DataProvider with ChangeNotifier {
   }
 
   set setSecretKeys(secrets) {
-    for (var i = 0; i < secrets.length; i++) {
-      secretKeys.add(secrets[i]);
+    if (secrets != null) {
+      for (var i = 0; i < secrets.length; i++) {
+        secretKeys.add(secrets[i]);
+        notifyListeners();
+      }
     }
   }
 }

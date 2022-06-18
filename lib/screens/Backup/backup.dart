@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Models/User.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
+import '../../Models/Wallet.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -97,7 +99,9 @@ class _BackupState extends State<Backup> {
               //     ),
               //   ),
               // ),
-              for (var secret in secrets) ...[Secret(user.username!, secret)],
+              for (var wallet in getUserWallets()) ...[
+                Secret(wallet.alias!, wallet.secretKey!)
+              ],
 
               SizedBox(height: height / 20),
               Button(
@@ -120,47 +124,16 @@ class _BackupState extends State<Backup> {
     );
   }
 
-  // Widget walletSecret(alias, secret, hiddenText, isHidden) {
-  //   return Card(
-  //     margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-  //     elevation: 5,
-  //     child: ListTile(
-  //       title: Padding(
-  //         padding: const EdgeInsets.symmetric(vertical: 8.0),
-  //         child: Text(
-  //           alias,
-  //           style: TextStyle(
-  //             fontFamily: fontbody,
-  //           ),
-  //         ),
-  //       ),
-  //       subtitle: Padding(
-  //         padding: const EdgeInsets.symmetric(vertical: 8.0),
-  //         child: Text(
-  //           isHidden ? hiddenText : secret,
-  //           style: TextStyle(
-  //             fontFamily: fontbody,
-  //           ),
-  //         ),
-  //       ),
-  //       trailing: Row(
-  //         mainAxisSize: MainAxisSize.min,
-  //         children: [
-  //           IconButton(
-  //               onPressed: () => {
-  //                     Clipboard.setData(
-  //                       ClipboardData(text: secret),
-  //                     ),
-  //                     showSnackBar('Secret', context),
-  //                   },
-  //               icon: Icon(Icons.copy)),
-  //           IconButton(
-  //               onPressed: () {},
-  //               icon: Icon(
-  //                   isHidden ? CupertinoIcons.eye_slash : CupertinoIcons.eye)),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
+  List<Wallet> getUserWallets() {
+    var wallets = <Wallet>[];
+    secrets.forEach((secret) {
+      print(secret);
+      Account account = TrovoWalletSDK().parseSecretKey(secret);
+      var wlt = user.wallets!
+          .firstWhere((wallet) => wallet.publicKey == account.publicKey);
+      wlt.secretKey = secret;
+      wallets.add(wlt);
+    });
+    return wallets;
+  }
 }

@@ -248,7 +248,6 @@ class _VeryficationState extends State<Veryfication> {
   }
 
   storeUserInfo(userInfoMap) async {
-    print('this is userinfo map: ${userInfoMap}');
     var userInfo = userInfoMap['userData'] ?? {};
     var assetBalances = userInfoMap['assetBalances'] ?? {};
     var nftBalances = userInfoMap['nftBalances'] ?? {};
@@ -262,6 +261,12 @@ class _VeryficationState extends State<Veryfication> {
         .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('isFirstTime', false);
+
+    // save useInfo to appstate
+    state.setUser = UserInfo().deserializeJson(userInfo);
+    // save secrets to appstate
+    state.setSecretKeys = await StoreData()
+        .storeGetData(await StoreData().storeGetData('secretKey'));
   }
 
   // void resendOTP() async {

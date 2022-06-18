@@ -1,6 +1,7 @@
 class Wallet {
   DateTime? createdAt;
   String? publicKey;
+  String? secretKey;
   String? tag;
   String? description;
   String? alias;
@@ -12,6 +13,7 @@ class Wallet {
   Wallet({
     this.createdAt,
     this.publicKey,
+    this.secretKey,
     this.tag,
     this.description,
     this.alias,
@@ -25,6 +27,7 @@ class Wallet {
     return <String, dynamic>{
       "createdAt": createdAt!.toIso8601String(),
       "publicKey": publicKey,
+      "secretKey": secretKey,
       "tag": tag,
       "description": description,
       "alias": alias,
@@ -39,6 +42,7 @@ class Wallet {
     return Wallet(
       createdAt: DateTime.parse(m["createdAt"]),
       publicKey: m["publicKey"],
+      secretKey: m["secretKey"],
       tag: m["tag"],
       description: m["description"],
       alias: m["alias"],

@@ -83,9 +83,12 @@ class _SpashScreenState extends State<SpashScreen>
         });
       } else {
         var data = await StoreData().storeGetData('userInfo');
-        print('data: $data');
         appState.setUser = UserInfo().deserializeJson(data);
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');
+        appState.setPassword = await StoreData().storeGetData('password');
+        appState.biometricEnabled =
+            await StoreData().storeGetData('biometricsEnabled');
+
         setState(() {
           landingPage = Login();
         });

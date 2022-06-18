@@ -10,6 +10,7 @@ import '../../Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
+import '../../Models/User.dart';
 import '../../network/requests.dart';
 import '../../storage/state.dart';
 import '../../storage/store.dart';
@@ -426,6 +427,8 @@ class _ImportWalletState extends State<ImportWallet> {
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('isFirstTime', false);
 
+    // save useInfo to appstate
+    appState.setUser = UserInfo().deserializeJson(userInfo);
     // save secrets to appstate
     appState.setSecretKeys = await StoreData().storeGetData('secretKey');
   }

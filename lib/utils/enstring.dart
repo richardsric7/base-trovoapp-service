@@ -103,6 +103,8 @@ class LanguageEn {
 
   static String get oops => "Oops!";
 
+  static String get invalidpassword => "Password is invalid, try again.";
+
   static String get error => "Error!";
 
   static String get alert => "Alert!";
