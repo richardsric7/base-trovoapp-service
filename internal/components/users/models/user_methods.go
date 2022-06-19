@@ -166,12 +166,18 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			defer wg.Done()
 			amount, _ := decimal.NewFromString(v.Balance)
 			if (temp && (amount.IsZero())) || (v.Code == "" && temp) {
+				//if nft or if it has NFT we ski
 				return
 			}
-
-			// buyingLiabilities, _ := decimal.NewFromString(v.BuyingLiabilities)
+			if !temp || (strings.HasSuffix(strings.ToLower(v.Code), "nft")) {
+				//if nft skip in balance
+				return
+			}
+			//liability when u hv placed a BUY
+			buyingLiabilities, _ := decimal.NewFromString(v.BuyingLiabilities)
 			sellingLiabilities, _ := decimal.NewFromString(v.SellingLiabilities)
-			availableBalance := amount.Sub(sellingLiabilities)
+			// availableBalance := amount.Sub(sellingLiabilities)
+			availableBalance := amount.Sub(sellingLiabilities.Add(buyingLiabilities))
 			// availableBalance := availableBal.Truncate(7).String()
 			qrCode := ""
 			if !temp {
@@ -193,6 +199,80 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 	//save to cache
 	gc.RedisCache.StoreResultToCache(cacheKey, balances, 0)
 	return balances, nil
+}
+
+//GetNFTs gets user wallet blockchain NFT balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
+func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []NFT, err error) {
+	nfts = make([]NFT, 0)
+	cacheKey := fmt.Sprintf("GetNFTs_%s", u.ID)
+	if temp {
+		cacheKey = fmt.Sprintf("GetNFTs_%s", *u.TempPublicKey)
+
+	}
+	{
+
+		// search cache for balance
+		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
+
+		if ok {
+			log.Printf("GetNFTBalance[%v], served from cache\n", cacheKey)
+
+			miSlices := response.([]interface{})
+			for _, v1 := range miSlices {
+				mi := v1.(NFT)
+				nfts = append(nfts, mi)
+			}
+
+			return nfts, nil
+		}
+
+	}
+
+	account, _, err := u.GetBlockchainAccountDetail(temp)
+	if err != nil {
+
+		if !temp && err.Error() == "error-blockchain-account-not-activated" {
+
+			//save to cache
+			gc.RedisCache.StoreResultToCache(cacheKey, nfts, 0)
+			return nil, nil
+		}
+		log.Printf("[GetNFTs] get blockchain account detail error: %v\n", err)
+
+		return nil, err
+	}
+
+	var wg sync.WaitGroup
+	// var keys []string
+	for _, v := range account.Balances {
+		wg.Add(1)
+		go func(v horizon.Balance) {
+			defer wg.Done()
+			amount, _ := decimal.NewFromString(v.Balance)
+			if (temp && (amount.IsZero())) || (v.Code == "" && temp) {
+				//if nft or if it has NFT we ski
+				return
+			}
+			if !temp || !(strings.HasSuffix(strings.ToLower(v.Code), "nft")) {
+				//if not nft skip
+				return
+			}
+			//get name, description and image URI
+			var nftName, nftDescription, nftImageURI string
+			{ //TODO fetch NFT names and description and image URL
+
+			}
+
+			nft := NFT{AssetIssuer: v.Issuer, AssetCode: v.Code,
+				NFTName: nftName, NFTDescription: nftDescription, NFTImageURI: nftImageURI}
+			nfts = append(nfts, nft)
+
+		}(v)
+		wg.Wait()
+	}
+	//save to cache
+	gc.RedisCache.StoreResultToCache(cacheKey, nfts, 0)
+	return nfts, nil
 }
 
 //GetSortedUserBalance gets user blockchain balance

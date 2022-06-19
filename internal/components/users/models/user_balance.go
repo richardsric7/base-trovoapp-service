@@ -10,6 +10,14 @@ type Balance struct {
 	QRCode      string          `json:"qrCode"`
 }
 
+type NFT struct {
+	AssetIssuer    string `json:"assetIssuer"`
+	AssetCode      string `json:"assetCode"`
+	NFTName        string `json:"nftName"`
+	NFTDescription string `json:"nftDescription"`
+	NFTImageURI    string `json:"nftImageURI"`
+}
+
 //Signer model for user
 type Signer struct {
 	Weight  int    `json:"weight"`
@@ -31,14 +39,8 @@ type AssetBalances struct {
 	Unclaimed []Balance `json:"unclaimed"`
 }
 
-//NFTBalances holds user NFT balances
-type NFTBalances struct {
-	NFTs []NFT `json:"nfts"`
-}
-type NFT struct {
-	AssetIssuer string `json:"assetIssuer"`
-	AssetCode   string `json:"assetCode"`
-}
+//MappedNFTBalance holds user NFTs per mapped public key
+type MappedNFTBalance map[string][]NFT
 
 //UserBalanceForMerchant holds user balances
 type UserBalanceForMerchant struct {

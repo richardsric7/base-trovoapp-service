@@ -56,7 +56,12 @@ func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Contex
 		}
 		// log.Println("[GetUserWalletAssetBalances] finished user wallets json")
 
-		userInfo.NFTBalances = make(map[string]userModels.NFTBalances)
+		userInfo.NFTs = make(map[string][]userModels.NFT)
+
+		userNFTs, err := GetUserNFTs(&user, gc)
+		if err == nil {
+			userInfo.NFTs = userNFTs
+		}
 
 		userInfo.ThirdPartyWalletAccess = make([]userModels.ThirdPartyWalletAccess, 0)
 		//Get ThirdParty Wallet Access
@@ -65,6 +70,42 @@ func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Contex
 
 		userInfo.DefaultAssets = user.GetDefaultAssets(gc)
 	}
+
+	return
+}
+
+func GetUserNFTs(user *userModels.User, gc *sharedconfig.GlobalConfig) (userNFTs map[string][]userModels.NFT, err error) {
+
+	userNFTs = make(map[string][]userModels.NFT)
+	for _, wallet := range user.UserWallets {
+
+		var wg sync.WaitGroup
+		var m sync.Mutex
+		//use go routine to fetch
+
+		wg.Add(1)
+		go func(vg2 userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
+			defer w.Done()
+			//get only the NFTs in the main wallet
+			nfts, errR1 := vg2.GetNFTs(false, gc)
+
+			if errR1 != nil {
+				//log server error
+				log.Printf("[GetUserWalletAssetBalances] error getting claimed wallet balance for user:[%s] wallet:[%s] error:[%+v]\n", user.Username, vg2.ID, errR1)
+
+			}
+			//Claimed Assets
+			ml.Lock()
+			userNFTs[vg2.ID] = nfts
+			ml.Unlock()
+
+		}(wallet, &wg, &m)
+		wg.Wait()
+
+		// log.Println("exited inner wait")
+
+	}
+	// log.Println("done...")
 
 	return
 }

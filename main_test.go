@@ -62,7 +62,7 @@ type PaymentInfo struct {
 type UserInfo struct {
 	UserData               UserJSON                 `json:"userData"`
 	AssetBalances          map[string]AssetBalances `json:"assetBalances"`          //map of wallet public key and the asset balances
-	NFTBalances            map[string]NFTBalances   `json:"nftBalances"`            //map of nft wallet and nftBalances
+	NFTs                   map[string][]NFT         `json:"nfts"`                   //map of nft wallet and nftBalances
 	ThirdPartyWalletAccess []ThirdPartyWalletAccess `json:"thirdPartyWalletAccess"` //shows all the third party access granted to this user
 	DefaultAssets          []DefaultAsset           `json:"defaultAssets"`
 }
@@ -162,8 +162,11 @@ type NFTBalances struct {
 	NFTs []NFT `json:"nfts"`
 }
 type NFT struct {
-	AssetIssuer string `json:"assetIssuer"`
-	AssetCode   string `json:"assetCode"`
+	AssetIssuer    string `json:"assetIssuer"`
+	AssetCode      string `json:"assetCode"`
+	NFTName        string `json:"nftName"`
+	NFTDescription string `json:"nftDescription"`
+	NFTImageURI    string `json:"nftImageURI"`
 }
 type DefaultAsset struct {
 	AssetCode   string `gorm:"size:12" json:"assetCode"`
