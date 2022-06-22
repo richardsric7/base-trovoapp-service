@@ -434,6 +434,7 @@ class _ImportWalletState extends State<ImportWallet> {
     appState.setUser = UserInfo().deserializeJson(userInfo);
     // save secrets to appstate
     appState.setSecretKeys = await StoreData().storeGetData('secretKey');
+    appState.setPassword = appState.tempPassword;
   }
 
   String? validatePassword(value) {

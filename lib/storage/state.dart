@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import '../Models/User.dart';
+import '../router/PageActions.dart';
 
 class DataProvider with ChangeNotifier {
   UserInfo? userInfo;
@@ -7,6 +8,17 @@ class DataProvider with ChangeNotifier {
   bool isDark = false;
   bool biometricEnabled = false;
   String? password;
+
+  PageAction _currentAction = PageAction();
+  PageAction get currentAction => _currentAction;
+  set currentAction(PageAction action) {
+    _currentAction = action;
+    notifyListeners();
+  }
+
+  void resetCurrentAction() {
+    _currentAction = PageAction();
+  }
 
   set setPassword(pswd) {
     password = pswd;

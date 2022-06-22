@@ -274,6 +274,7 @@ class _VeryficationState extends State<Veryfication> {
 
     // save secrets to appstate
     state.setSecretKeys = await StoreData().storeGetData('secretKey');
+    state.setPassword = state.tempPassword;
 
     print('secretkey from state ${state.secretKeys}');
   }
