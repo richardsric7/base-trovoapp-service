@@ -57,8 +57,8 @@ class _SpashScreenState extends State<SpashScreen>
       const Duration(seconds: 4),
       () => Navigator.pushReplacement(
         context,
-        LandingPageRoute(Congratulations()),
-        // LandingPageRoute(landingPage),
+        // LandingPageRoute(Congratulations()),
+        LandingPageRoute(landingPage),
       ),
     );
   }
