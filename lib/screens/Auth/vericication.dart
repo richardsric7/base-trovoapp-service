@@ -177,15 +177,15 @@ class _VeryficationState extends State<Veryfication> {
       String jsonBody = jsonEncode(map);
       print(jsonBody);
 
-      var publicKey = await StoreData().storeGetData('publicKey') ?? '';
-      var secretKey = await StoreData().storeGetData('secretKey') ?? '';
+      var publicKey = state.tempPublicKey;
+      var secretKey = state.tempSecretKey;
 
       Map responseData = await makePostRequest(
         uri: '/v1/users',
         body: jsonBody,
         signer: publicKey,
         publicKey: publicKey,
-        secretKey: secretKey[0],
+        secretKey: secretKey,
       );
 
       print('$responseData');
@@ -222,15 +222,15 @@ class _VeryficationState extends State<Veryfication> {
   }
 
   getUserInfo() async {
-    var publicKey = await StoreData().storeGetData('publicKey') ?? '';
-    var secretKey = await StoreData().storeGetData('secretKey') ?? '';
+    var publicKey = state.tempPublicKey;
+    var secretKey = state.tempSecretKey;
 
     Map responseData = await makeGetRequest(
         uri:
             '/v1/users/${state.userInfo!.username!.trim().replaceAll(' ', '')}',
         signer: publicKey,
         publicKey: publicKey,
-        secretKey: secretKey[0]);
+        secretKey: secretKey);
 
     print('response: ${responseData}');
 
@@ -248,11 +248,14 @@ class _VeryficationState extends State<Veryfication> {
   }
 
   storeUserInfo(userInfoMap) async {
+    print('userInfoMap: ${userInfoMap['userData']}');
     var userInfo = userInfoMap['userData'] ?? {};
     var assetBalances = userInfoMap['assetBalances'] ?? {};
     var nftBalances = userInfoMap['nftBalances'] ?? {};
     var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
     var defaultAssets = userInfoMap['defaultAssets'] ?? [];
+
+    await StoreData().storeDeleteData();
 
     await StoreData().storeInsertData('userInfo', userInfo);
     await StoreData().storeInsertData('assetBalances', assetBalances);
@@ -261,12 +264,18 @@ class _VeryficationState extends State<Veryfication> {
         .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('isFirstTime', false);
+    await StoreData().storeInsertData('password', state.tempPassword);
+    await StoreData().storeInsertData('publicKey', state.tempPublicKey);
+    await StoreData()
+        .storeInsertData('secretKey', <String>[state.tempSecretKey]);
 
     // save useInfo to appstate
     state.setUser = UserInfo().deserializeJson(userInfo);
+
     // save secrets to appstate
-    state.setSecretKeys = await StoreData()
-        .storeGetData(await StoreData().storeGetData('secretKey'));
+    state.setSecretKeys = await StoreData().storeGetData('secretKey');
+
+    print('secretkey from state ${state.secretKeys}');
   }
 
   // void resendOTP() async {

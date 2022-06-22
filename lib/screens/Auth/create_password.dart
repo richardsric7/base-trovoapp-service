@@ -186,13 +186,9 @@ class _CreatePassword extends State<CreatePassword> {
         showLoader(context);
         var account = TrovoWalletSDK().createAccount();
         print('account: $account');
-        await StoreData().storeInsertData('password', password);
-        await StoreData().storeInsertData('publicKey', account.publicKey);
-        await StoreData()
-            .storeInsertData('secretKey', <String>[account.secretKey]);
-
-        // save secrets to appstate
-        appState.setSecretKeys = await StoreData().storeGetData('secretKey');
+        appState.setTempPassword = password;
+        appState.setTempPublicKey = account.publicKey;
+        appState.setTempSecretKey = account.secretKey;
 
         hideLoader(context);
         Navigator.pushReplacement(

@@ -47,13 +47,16 @@ class _OnbondingtwoState extends State<Onbondingtwo> {
                 SizedBox(height: height / 10.5),
                 Image.asset("assets/images/wallet.png", height: height / 2.5),
                 SizedBox(height: height / 20),
-                Text(
-                  LanguageEn.managetrovowallet,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: notifier.getblck,
-                      fontSize: 25.sp,
-                      fontFamily: fontsemibold),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: width / 10),
+                  child: Text(
+                    LanguageEn.managetrovowallet,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: notifier.getblck,
+                        fontSize: 25.sp,
+                        fontFamily: fontsemibold),
+                  ),
                 ),
               ],
             ),

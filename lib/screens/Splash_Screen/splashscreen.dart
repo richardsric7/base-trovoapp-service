@@ -57,8 +57,8 @@ class _SpashScreenState extends State<SpashScreen>
       const Duration(seconds: 4),
       () => Navigator.pushReplacement(
         context,
-        // LandingPageRoute(Congratulations()),
-        LandingPageRoute(landingPage),
+        LandingPageRoute(Congratulations()),
+        // LandingPageRoute(landingPage),
       ),
     );
   }
@@ -87,7 +87,7 @@ class _SpashScreenState extends State<SpashScreen>
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');
         appState.setPassword = await StoreData().storeGetData('password');
         appState.biometricEnabled =
-            await StoreData().storeGetData('biometricsEnabled');
+            await StoreData().storeGetData('biometricsEnabled') ?? false;
 
         setState(() {
           landingPage = Login();

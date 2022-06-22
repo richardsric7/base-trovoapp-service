@@ -61,8 +61,7 @@ class _LoginState extends State<Login> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
-        // appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
-        //     height: height / 15),
+        resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,8 +126,8 @@ class _LoginState extends State<Login> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  GestureDetector(
-                    onTap: () {
+                  TextButton(
+                    onPressed: () {
                       Get.to(
                         () => ImportWallet(),
                       );
@@ -201,7 +200,10 @@ class _LoginState extends State<Login> {
                   );
                 },
               ),
-              SizedBox(height: height / 40),
+              SizedBox(height: height / 20),
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom)),
             ],
           ),
         ),

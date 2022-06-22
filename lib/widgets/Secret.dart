@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 
 import '../Custom_BlocObserver/fonts.dart';
@@ -26,6 +27,8 @@ class _SecretState extends State<Secret> {
   @override
   Widget build(BuildContext context) {
     return Card(
+      shadowColor: notifier.getblck,
+      color: notifier.getwihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       elevation: 5,
       child: ListTile(
@@ -35,6 +38,7 @@ class _SecretState extends State<Secret> {
             widget.alias,
             style: TextStyle(
               fontFamily: fontbody,
+              color: notifier.getblck,
             ),
           ),
         ),
@@ -44,6 +48,7 @@ class _SecretState extends State<Secret> {
             getSecretText(),
             style: TextStyle(
               fontFamily: fontbody,
+              color: notifier.getblck,
             ),
           ),
         ),
@@ -51,21 +56,24 @@ class _SecretState extends State<Secret> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-                onPressed: () => {
-                      Clipboard.setData(
-                        ClipboardData(text: widget.secret),
-                      ),
-                      showSnackBar('Secret', context),
-                    },
-                icon: Icon(Icons.copy)),
+              onPressed: () => {
+                Clipboard.setData(
+                  ClipboardData(text: widget.secret),
+                ),
+                showSnackBar('Secret', context),
+              },
+              icon: Icon(Icons.copy),
+              color: notifier.getblck,
+            ),
             IconButton(
-                onPressed: () {
-                  setState(() {
-                    show = !show;
-                  });
-                },
-                icon:
-                    Icon(show ? CupertinoIcons.eye_slash : CupertinoIcons.eye)),
+              onPressed: () {
+                setState(() {
+                  show = !show;
+                });
+              },
+              icon: Icon(show ? CupertinoIcons.eye_slash : CupertinoIcons.eye),
+              color: notifier.getblck,
+            ),
           ],
         ),
       ),

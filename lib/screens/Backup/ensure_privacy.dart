@@ -19,9 +19,7 @@ class EnsurePrivacy extends StatefulWidget {
 }
 
 class _EnsurePrivacyState extends State<EnsurePrivacy> {
-  bool isNotLooking = false;
-  bool isSecurelyStored = false;
-  bool isLiable = false;
+  bool hasAccepted = false;
   @override
   Widget build(BuildContext context) {
     var notifier = Provider.of<ColorNotifier>(context, listen: true);
@@ -41,117 +39,54 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
                     fontSize: 27.sp),
               ),
               SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Transform.scale(
-                    scale: 1.sp,
-                    child: Checkbox(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5.sp),
-                        ),
-                      ),
-                      activeColor: notifier.getbluecolor,
-                      side: BorderSide(color: notifier.getbluecolor),
-                      value: isNotLooking,
-                      onChanged: (value) => setState(() {
-                        isNotLooking = value!;
-                      }),
-                    ),
-                  ),
-                  Column(
-                    children: [
-                      Container(
-                        width: width / 1.2,
-                        child: Text(
-                          LanguageEn.iensuredprivacy,
-                          style: TextStyle(
-                              color: notifier.getgrey,
-                              fontSize: 15.sp,
-                              fontFamily: fontbody),
-                        ),
-                      ),
-                    ],
-                  )
-                ],
+              Container(
+                width: width / 1.2,
+                child: Text(
+                  LanguageEn.iensuredprivacy,
+                  style: TextStyle(
+                      color: notifier.getgrey,
+                      fontSize: 15.sp,
+                      fontFamily: fontbody),
+                ),
               ),
               SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Transform.scale(
-                    scale: 1.sp,
-                    child: Checkbox(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5.sp),
-                        ),
-                      ),
-                      activeColor: notifier.getbluecolor,
-                      side: BorderSide(color: notifier.getbluecolor),
-                      value: isSecurelyStored,
-                      onChanged: (value) => setState(() {
-                        isSecurelyStored = value!;
-                      }),
-                    ),
-                  ),
-                  Column(
-                    children: [
-                      Container(
-                        width: width / 1.2,
-                        child: Text(
-                          LanguageEn.iunderstandimportanceofsecretkey,
-                          style: TextStyle(
-                              color: notifier.getgrey,
-                              fontSize: 15.sp,
-                              fontFamily: fontbody),
-                        ),
-                      ),
-                    ],
-                  )
-                ],
+              Container(
+                width: width / 1.2,
+                child: Text(
+                  LanguageEn.iunderstandimportanceofsecretkey,
+                  style: TextStyle(
+                      color: notifier.getgrey,
+                      fontSize: 15.sp,
+                      fontFamily: fontbody),
+                ),
               ),
               SizedBox(height: height / 50),
-              Row(
-                children: [
-                  Transform.scale(
-                    scale: 1.sp,
-                    child: Checkbox(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5.sp),
-                        ),
-                      ),
-                      activeColor: notifier.getbluecolor,
-                      side: BorderSide(color: notifier.getbluecolor),
-                      value: isLiable,
-                      onChanged: (value) => setState(() {
-                        isLiable = value!;
-                      }),
-                    ),
-                  ),
-                  Column(
-                    children: [
-                      Container(
-                        width: width / 1.2,
-                        child: Text(
-                          LanguageEn.iunderstandliability,
-                          style: TextStyle(
-                              color: notifier.getgrey,
-                              fontSize: 15.sp,
-                              fontFamily: fontbody),
-                        ),
-                      ),
-                    ],
-                  )
-                ],
+              Container(
+                width: width / 1.2,
+                child: Text(
+                  LanguageEn.iunderstandliability,
+                  style: TextStyle(
+                      color: notifier.getgrey,
+                      fontSize: 15.sp,
+                      fontFamily: fontbody),
+                ),
               ),
+              SizedBox(height: height / 50),
+              acceptAll(
+                  hasAccepted,
+                  (value) => {
+                        print('hasAccepted $hasAccepted'),
+                        setState(() {
+                          hasAccepted = !hasAccepted;
+                        }),
+                      }),
               SizedBox(height: height / 4.3),
               Button(
                 LanguageEn.continuee,
                 notifier.getbluecolor,
                 notifier.getwihitecolor,
                 onTap: () {
-                  if (isNotLooking && isLiable && isSecurelyStored) {
+                  if (hasAccepted) {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
@@ -161,7 +96,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
                   } else {
                     popup(context,
                         title: LanguageEn.important,
-                        message: LanguageEn.ensureAll);
+                        message: LanguageEn.ensureaccepted);
                   }
                 },
               ),
@@ -169,6 +104,47 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget acceptAll(
+    value,
+    onChanged,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Transform.scale(
+          scale: 1.sp,
+          child: Checkbox(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(5.sp),
+              ),
+            ),
+            activeColor: notifier.getbluecolor,
+            side: BorderSide(color: notifier.getbluecolor),
+            value: value,
+            onChanged: onChanged,
+          ),
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              width: width / 1.2,
+              child: Text(
+                LanguageEn.iunderstandall,
+                style: TextStyle(
+                    fontSize: height / 55,
+                    color: notifier.getgrey,
+                    fontFamily: fontbody),
+              ),
+            ),
+          ],
+        )
+      ],
     );
   }
 }

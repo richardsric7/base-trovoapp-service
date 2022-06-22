@@ -31,6 +31,7 @@ class _BottomHomeState extends State<BottomHome> {
         return Future.value(false);
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: notifire.getwihitecolor,
           unselectedItemColor: notifire.getgrey.withOpacity(.80),

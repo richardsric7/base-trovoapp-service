@@ -30,6 +30,7 @@ class _StockExchangeState extends State<StockExchange>
       builder: (context, child) => DefaultTabController(
         length: 2,
         child: Scaffold(
+          resizeToAvoidBottomInset: false,
           backgroundColor: notifier.getwihitecolor,
           appBar: AppBar(
             centerTitle: true,

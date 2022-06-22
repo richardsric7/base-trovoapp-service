@@ -598,8 +598,9 @@ class _SignUpState extends State<SignUp> {
       String jsonBody = jsonEncode(map);
       print(jsonBody);
 
-      var publicKey = await StoreData().storeGetData('publicKey') ?? '';
-      var secretKey = await StoreData().storeGetData('secretKey') ?? '';
+      var publicKey = state.tempPublicKey;
+      var secretKey = state.tempSecretKey;
+
       print('public: $publicKey, secret: $secretKey');
 
       Map responseData = await makePostRequest(
@@ -607,7 +608,7 @@ class _SignUpState extends State<SignUp> {
           body: jsonBody,
           signer: publicKey,
           publicKey: publicKey,
-          secretKey: secretKey[0]);
+          secretKey: secretKey);
       print('$responseData');
       hideLoader(context);
 

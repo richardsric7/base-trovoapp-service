@@ -48,6 +48,7 @@ class _ProfileState extends State<Profile> {
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),

@@ -13,6 +13,24 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  String tempPassword = '';
+  set setTempPassword(value) {
+    tempPassword = value;
+    notifyListeners();
+  }
+
+  String tempPublicKey = '';
+  set setTempPublicKey(value) {
+    tempPublicKey = value;
+    notifyListeners();
+  }
+
+  String tempSecretKey = '';
+  set setTempSecretKey(value) {
+    tempSecretKey = value;
+    notifyListeners();
+  }
+
   set setUser(info) {
     print('setting user...');
     userInfo = info;
@@ -20,11 +38,19 @@ class DataProvider with ChangeNotifier {
   }
 
   set setSecretKeys(secrets) {
+    secretKeys.clear();
     if (secrets != null) {
       for (var i = 0; i < secrets.length; i++) {
         secretKeys.add(secrets[i]);
-        notifyListeners();
       }
     }
+    notifyListeners();
+  }
+
+  void addSecrets(List<String> secrets) {
+    for (var i = 0; i < secrets.length; i++) {
+      secretKeys.add(secrets[i]);
+    }
+    notifyListeners();
   }
 }

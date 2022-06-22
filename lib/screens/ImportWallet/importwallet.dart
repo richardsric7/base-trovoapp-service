@@ -370,10 +370,9 @@ class _ImportWalletState extends State<ImportWallet> {
         // store these credentials and the password before making request
         // to get userinfo from the server. This way we can use these stored data
         // to create new user account if the provided user account does not exist
-        await StoreData().storeInsertData('publicKey', creds.publicKey);
-        await StoreData()
-            .storeInsertData('secretKey', <String>[creds.secretKey]);
-        await StoreData().storeInsertData('password', password);
+        appState.setTempPassword = password;
+        appState.setTempPublicKey = creds.publicKey;
+        appState.setTempSecretKey = creds.secretKey;
 
         Map responseData = await makeGetRequest(
             uri: '/v1/users/${username}?type=import',
@@ -426,6 +425,10 @@ class _ImportWalletState extends State<ImportWallet> {
         .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('isFirstTime', false);
+    await StoreData().storeInsertData('password', appState.tempPassword);
+    await StoreData().storeInsertData('publicKey', appState.tempPublicKey);
+    await StoreData()
+        .storeInsertData('secretKey', <String>[appState.tempSecretKey]);
 
     // save useInfo to appstate
     appState.setUser = UserInfo().deserializeJson(userInfo);

@@ -157,6 +157,9 @@ class LanguageEn {
 
   static String get iagreetothe => "I agree to the Trovo";
 
+  static String get iunderstandall =>
+      "I have read and understood all the above.";
+
   static String get termsofservices => "Terms of Service ";
 
   static String get and => "and";
@@ -216,7 +219,8 @@ class LanguageEn {
   static String get ensureprivacybackup =>
       "Ensure no one is looking while you back up your wallet. Anyone with your secret key can access your Trovo wallet.";
 
-  static String get ensureAll => "Please tick all the boxes above!";
+  static String get ensureaccepted =>
+      "Please read the all the statements and tick the box above!";
 
   static String get warnskipbackup =>
       "We strongly recommend that you backup your wallet secret key. Are you sure you want to skip?";

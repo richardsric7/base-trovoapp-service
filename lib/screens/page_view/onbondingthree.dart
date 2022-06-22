@@ -50,13 +50,16 @@ class _ThreeonbondingState extends State<Threeonbonding> {
                 SizedBox(height: height / 10.5),
                 Image.asset("assets/images/transfer.png", height: height / 2.5),
                 SizedBox(height: height / 20),
-                Text(
-                  LanguageEn.domorewithblockchain,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: notifier.getblck,
-                      fontSize: 25.sp,
-                      fontFamily: fontsemibold),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: width / 10),
+                  child: Text(
+                    LanguageEn.domorewithblockchain,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: notifier.getblck,
+                        fontSize: 25.sp,
+                        fontFamily: fontsemibold),
+                  ),
                 ),
               ],
             ),

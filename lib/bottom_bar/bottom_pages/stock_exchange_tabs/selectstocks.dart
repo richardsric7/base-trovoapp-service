@@ -28,6 +28,7 @@ class _SelectStocksState extends State<SelectStocks> {
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(70.sp),
