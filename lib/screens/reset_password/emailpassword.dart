@@ -59,6 +59,7 @@ class _EmailpasswordState extends State<Emailpassword> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
+          context,
           notifier.getwihitecolor,
           "",
           notifier.getblck,

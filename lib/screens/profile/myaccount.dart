@@ -46,7 +46,8 @@ class _MyAccountState extends State<MyAccount> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
+        appBar: CustomAppBar(
+            context, notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
       ),
     );

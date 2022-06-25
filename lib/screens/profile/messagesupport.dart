@@ -40,8 +40,8 @@ class _MessageSupportState extends State<MessageSupport> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
-            notifier.getwihitecolor, "Message Support", notifier.getblck,
+        appBar: CustomAppBar(context, notifier.getwihitecolor,
+            "Message Support", notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(

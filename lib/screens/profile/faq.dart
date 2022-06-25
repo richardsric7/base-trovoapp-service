@@ -50,7 +50,8 @@ class _FAQState extends State<FAQ> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(notifier.getwihitecolor, "FAQ", notifier.getblck,
+        appBar: CustomAppBar(
+            context, notifier.getwihitecolor, "FAQ", notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(

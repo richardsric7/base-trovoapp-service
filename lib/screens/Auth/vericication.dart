@@ -18,6 +18,8 @@ import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/User.dart';
 import '../../network/requests.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../services/push_fcm_service.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -70,6 +72,7 @@ class _VeryficationState extends State<Veryfication> {
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
+          context,
           notifier.getwihitecolor,
           "",
           notifier.getblck,
@@ -209,12 +212,8 @@ class _VeryficationState extends State<Veryfication> {
     if (responseData['statusCode'] == 200) {
       getUserInfo();
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Congratulations(),
-        ),
-      );
+      state.currentAction =
+          PageAction(state: PageState.addPage, page: CongratulationsPageConfig);
     } else {
       popup(context,
           title: LanguageEn.error, message: responseData['data']['message']);

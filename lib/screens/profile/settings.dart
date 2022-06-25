@@ -48,7 +48,7 @@ class _SettingsState extends State<Settings> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-            notifier.getwihitecolor, "Settings", notifier.getblck,
+            context, notifier.getwihitecolor, "Settings", notifier.getblck,
             height: height / 15),
       ),
     );

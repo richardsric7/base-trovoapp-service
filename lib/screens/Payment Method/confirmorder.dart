@@ -45,7 +45,7 @@ class _ConfirmOrderState extends State<ConfirmOrder> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-            notifier.getwihitecolor, "Confirm Order", notifier.getblck,
+            context, notifier.getwihitecolor, "Confirm Order", notifier.getblck,
             height: height / 15),
       ),
     );

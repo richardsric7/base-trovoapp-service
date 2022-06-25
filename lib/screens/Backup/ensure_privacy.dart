@@ -6,6 +6,9 @@ import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
+import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../Auth/fingerprint.dart';
@@ -20,9 +23,11 @@ class EnsurePrivacy extends StatefulWidget {
 
 class _EnsurePrivacyState extends State<EnsurePrivacy> {
   bool hasAccepted = false;
+  late DataProvider appState;
   @override
   Widget build(BuildContext context) {
     var notifier = Provider.of<ColorNotifier>(context, listen: true);
+    appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -87,12 +92,8 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
                 notifier.getwihitecolor,
                 onTap: () {
                   if (hasAccepted) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const Backup(),
-                      ),
-                    );
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage, page: BackupPageConfig);
                   } else {
                     popup(context,
                         title: LanguageEn.important,

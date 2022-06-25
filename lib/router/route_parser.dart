@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'ui_pages.dart';
 
-class FakeBantuPayRouteParser
-    extends RouteInformationParser<PageConfiguration> {
+class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
   @override
   Future<PageConfiguration> parseRouteInformation(
       RouteInformation routeInformation) async {
@@ -10,51 +9,30 @@ class FakeBantuPayRouteParser
     if (uri.pathSegments.isEmpty) {
       return SplashPageConfig;
     }
-
     final path = '/' + uri.pathSegments[0];
     switch (path) {
       case SplashPath:
         return SplashPageConfig;
       case LoginPath:
         return LoginPageConfig;
-      case CreateAccountPath:
-        return CreateAccountPageConfig;
-      case AgreementsPath:
-        return AgreementsPageConfig;
-      case ImportWalletPath:
-        return ImportWalletPageConfig;
-      case MyQRViewPath:
-        return MyQRViewPageConfig;
-      case ScanResultViewPath:
-        return ScanResultPageConfig;
-      case ConfirmTransactionPath:
-        return ConfirmTransactionPageConfig;
-      case ConfirmSwapPath:
-        return ConfirmSwapPageConfig;
-      case TransactionSuccessPath:
-        return TransactionSuccessPageConfig;
-      case SwapSuccessPath:
-        return SwapSuccessPageConfig;
-      case DashboardPath:
-        return DashboardPageConfig;
-      case TransactionDetailPath:
-        return TransactionDetailPageConfig;
-      case RecieveAssetPath:
-        return RecieveAssetPageConfig;
-      case ReceiveSpecificAmountPath:
-        return ReceiveSpecificAmountPageConfig;
-      case RequestSpecificAmountConfirmPath:
-        return RequestSpecificAmountConfirmPageConfig;
-      case AccountInfoPath:
-        return AccountInfoPageConfig;
       case OnboardingPath:
         return OnboardingPageConfig;
-      case UserProfilePath:
-        return UserProfilePageConfig;
-      case EditProfilePath:
-        return EditProfilePageConfig;
-      case EnableBiometricsPath:
-        return EnableBiometricsPageConfig;
+      case SignupPath:
+        return SignupPageConfig;
+      case CreatePasswordPath:
+        return CreatePasswordPageConfig;
+      case ImportWalletPath:
+        return ImportWalletPageConfig;
+      case EnsurePrivacyPath:
+        return EnsurePrivacyPageConfig;
+      case CongratulationsPath:
+        return CongratulationsPageConfig;
+      case FingerprintPath:
+        return FingerprintPageConfig;
+      case BottomHomePath:
+        return BottomHomePageConfig;
+      case WebViewPath:
+        return WebViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -67,42 +45,26 @@ class FakeBantuPayRouteParser
         return const RouteInformation(location: SplashPath);
       case Pages.Login:
         return const RouteInformation(location: LoginPath);
-      case Pages.CreateAccount:
-        return const RouteInformation(location: CreateAccountPath);
-      case Pages.Agreements:
-        return const RouteInformation(location: AgreementsPath);
-      case Pages.ImportWallet:
-        return const RouteInformation(location: ImportWalletPath);
-      case Pages.MyQRView:
-        return const RouteInformation(location: MyQRViewPath);
-      case Pages.ScanResultPage:
-        return const RouteInformation(location: ScanResultViewPath);
-      case Pages.ConfirmTransaction:
-        return const RouteInformation(location: ConfirmTransactionPath);
-      case Pages.ConfirmSwap:
-        return const RouteInformation(location: ConfirmSwapPath);
-      case Pages.TransactionSuccess:
-        return const RouteInformation(location: TransactionSuccessPath);
-      case Pages.SwapSuccess:
-        return const RouteInformation(location: SwapSuccessPath);
-      case Pages.Dashboard:
-        return const RouteInformation(location: DashboardPath);
-      case Pages.TransactionDetail:
-        return const RouteInformation(location: TransactionDetailPath);
-      case Pages.RecieveAsset:
-        return const RouteInformation(location: RecieveAssetPath);
-      case Pages.ReceiveSpecificAmount:
-        return const RouteInformation(location: ReceiveSpecificAmountPath);
-      case Pages.AccountInfo:
-        return const RouteInformation(location: AccountInfoPath);
       case Pages.Onboarding:
         return const RouteInformation(location: OnboardingPath);
-      case Pages.UserProfile:
-        return const RouteInformation(location: UserProfilePath);
-      case Pages.EditProfile:
-        return const RouteInformation(location: EditProfilePath);
-      case Pages.EnableBiometrics:
-        return const RouteInformation(location: EnableBiometricsPath);
+      case Pages.Signup:
+        return const RouteInformation(location: SignupPath);
+      case Pages.CreatePassword:
+        return const RouteInformation(location: CreatePasswordPath);
+      case Pages.ImportWallet:
+        return const RouteInformation(location: ImportWalletPath);
+      case Pages.Verification:
+        return const RouteInformation(location: VerificationPath);
+      case Pages.EnsurePrivacy:
+        return const RouteInformation(location: EnsurePrivacyPath);
+      case Pages.Congratulations:
+        return const RouteInformation(location: CongratulationsPath);
+      case Pages.Fingerprint:
+        return const RouteInformation(location: FingerprintPath);
+      case Pages.BottomHome:
+        return const RouteInformation(location: BottomHomePath);
+      case Pages.WebView:
+        return const RouteInformation(location: WebViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

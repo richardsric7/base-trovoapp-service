@@ -12,6 +12,8 @@ import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../functions/trovo-sdk.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
@@ -54,7 +56,8 @@ class _CreatePassword extends State<CreatePassword> {
     appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
-        appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
+        appBar: CustomAppBar(
+            context, notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
@@ -191,12 +194,8 @@ class _CreatePassword extends State<CreatePassword> {
         appState.setTempSecretKey = account.secretKey;
 
         hideLoader(context);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const SignUp(),
-          ),
-        );
+        appState.currentAction =
+            PageAction(state: PageState.addPage, page: SignupPageConfig);
       } catch (e) {
         hideLoader(context);
         print('we ran into and error $e');

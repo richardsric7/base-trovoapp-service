@@ -74,8 +74,8 @@ class _ChartState extends State<Chart> {
           ],
         ),
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
-            notifier.getwihitecolor, LanguageEn.ltcusd, notifier.getblck,
+        appBar: CustomAppBar(context, notifier.getwihitecolor,
+            LanguageEn.ltcusd, notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(

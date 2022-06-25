@@ -7,6 +7,8 @@ import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/Wallet.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -109,12 +111,8 @@ class _BackupState extends State<Backup> {
                 notifier.getbluecolor,
                 notifier.getwihitecolor,
                 onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const FingerPrint(),
-                    ),
-                  );
+                  state.currentAction = PageAction(
+                      state: PageState.addPage, page: FingerprintPageConfig);
                 },
               ),
             ],

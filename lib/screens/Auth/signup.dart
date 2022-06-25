@@ -10,6 +10,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/screens/Auth/login.dart';
 import 'package:trovo_wallet/screens/Auth/vericication.dart';
 import 'package:trovo_wallet/services/push_fcm_service.dart';
@@ -18,6 +19,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Models/User.dart';
+import '../../router/PageActions.dart';
 import '../../storage/state.dart';
 import '../../network/requests.dart';
 import '../../storage/store.dart';
@@ -74,7 +76,8 @@ class _SignUpState extends State<SignUp> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         resizeToAvoidBottomInset: false,
-        appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
+        appBar: CustomAppBar(
+            context, notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(
@@ -626,13 +629,8 @@ class _SignUpState extends State<SignUp> {
         );
 
         print('userInfo: ${state.userInfo}');
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const Veryfication(),
-          ),
-        );
+        state.currentAction =
+            PageAction(state: PageState.addPage, page: VerificationPageConfig);
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);

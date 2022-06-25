@@ -30,6 +30,7 @@ class _TermsofServiceState extends State<TermsofService> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
+          context,
           notifier.getwihitecolor,
           LanguageEn.termsofservice,
           notifier.getblck,

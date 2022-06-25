@@ -5,6 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/router/back_dispatcher.dart';
+import 'package:trovo_wallet/router/route_parser.dart';
+import 'package:trovo_wallet/router/router_delegate.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/screens/notifications/firebase_notifications.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -28,6 +32,17 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
+  TrovoWalletBackButtonDispatcher? backButtonDispatcher;
+  final appState = DataProvider();
+  TrovoWalletRouterDelegate? delegate;
+  final parser = TrovoWalletRouteParser();
+
+  _AppState() {
+    delegate = TrovoWalletRouterDelegate(appState);
+    delegate?.setNewRoutePath(SplashPageConfig);
+    backButtonDispatcher = TrovoWalletBackButtonDispatcher(delegate!);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -38,12 +53,14 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ColorNotifier()),
-        ChangeNotifierProvider(create: (_) => DataProvider())
+        ChangeNotifierProvider<ColorNotifier>(create: (_) => ColorNotifier()),
+        ChangeNotifierProvider<DataProvider>(create: (_) => appState)
       ],
-      child: const GetMaterialApp(
+      child: MaterialApp.router(
+        routerDelegate: delegate!,
+        routeInformationParser: parser,
+        backButtonDispatcher: backButtonDispatcher,
         debugShowCheckedModeBanner: false,
-        home: SpashScreen(),
       ),
     );
   }

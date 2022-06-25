@@ -12,6 +12,8 @@ import '../../Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../Models/User.dart';
 import '../../network/requests.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -69,7 +71,8 @@ class _ImportWalletState extends State<ImportWallet> {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
+        appBar: CustomAppBar(
+            context, notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(
@@ -383,12 +386,8 @@ class _ImportWalletState extends State<ImportWallet> {
 
         if (responseData['statusCode'] == 200) {
           storeUserInfo(responseData['data']);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const FingerPrint(),
-            ),
-          );
+          appState.currentAction =
+              PageAction(state: PageState.addPage, page: FingerprintPageConfig);
         } else if (responseData['statusCode'] == 404) {
           accountNotFoundPopup(context);
         } else {

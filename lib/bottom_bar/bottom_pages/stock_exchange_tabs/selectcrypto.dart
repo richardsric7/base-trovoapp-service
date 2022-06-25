@@ -28,8 +28,8 @@ class _SelectCryptoState extends State<SelectCrypto> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
-            notifier.getwihitecolor, LanguageEn.selectcrypto, notifier.getblck,
+        appBar: CustomAppBar(context, notifier.getwihitecolor,
+            LanguageEn.selectcrypto, notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Padding(

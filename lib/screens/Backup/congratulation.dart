@@ -5,6 +5,8 @@ import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -65,12 +67,9 @@ class Congratulations extends StatelessWidget {
                     context,
                     () {
                       Navigator.of(context).pop();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EnsurePrivacy(),
-                        ),
-                      );
+                      appState.currentAction = PageAction(
+                          state: PageState.replace,
+                          page: EnsurePrivacyPageConfig);
                     },
                   );
                 },

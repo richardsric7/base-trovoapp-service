@@ -8,6 +8,9 @@ import 'package:trovo_wallet/screens/Auth/signup.dart';
 import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import '../Custom_BlocObserver/notifire_clor.dart';
+import '../router/PageActions.dart';
+import '../router/ui_pages.dart';
+import '../storage/state.dart';
 import '../utils/enstring.dart';
 
 late ColorNotifier notifier;
@@ -168,6 +171,7 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
 
 Future<bool?> accountNotFoundPopup(BuildContext context) {
   notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var appState = Provider.of<DataProvider>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
@@ -234,12 +238,8 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignUp(),
-                          ),
-                        );
+                        appState.currentAction = PageAction(
+                            state: PageState.addPage, page: SignupPageConfig);
                       },
                       style: ButtonStyle(
                         fixedSize: MaterialStateProperty.all(
@@ -441,6 +441,7 @@ void ensureBackupPrivacyDialog(context, action) {
 
 void warnSkipBackupDialog(context) {
   notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var appState = Provider.of<DataProvider>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
@@ -535,12 +536,9 @@ void warnSkipBackupDialog(context) {
                     child: OutlinedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const FingerPrint(),
-                          ),
-                        );
+                        appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: FingerprintPageConfig);
                       },
                       style: ButtonStyle(
                         fixedSize: MaterialStateProperty.all(

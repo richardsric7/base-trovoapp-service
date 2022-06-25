@@ -28,6 +28,7 @@ class _BuyStockState extends State<BuyStock> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
+          context,
           notifier.getwihitecolor,
           "Buy Stock",
           notifier.getblck,

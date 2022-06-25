@@ -6,6 +6,7 @@ import '../Custom_BlocObserver/constants.dart';
 import '../Custom_BlocObserver/fonts.dart';
 import '../Custom_BlocObserver/notifire_clor.dart';
 import '../screens/page_view/web_view.dart';
+import '../storage/state.dart';
 import '../utils/enstring.dart';
 import '../utils/medeiaqury/medeiaqury.dart';
 
@@ -27,12 +28,14 @@ class TermsOfService extends StatefulWidget {
 
 class _TermsOfServiceState extends State<TermsOfService> {
   late ColorNotifier notifier;
+  late DataProvider appState;
 
   @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: false);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    appState = Provider.of<DataProvider>(context, listen: true);
     return termsOfService();
   }
 
@@ -69,8 +72,9 @@ class _TermsOfServiceState extends State<TermsOfService> {
                           fontFamily: fontbody),
                     ),
                     GestureDetector(
-                      onTap: () =>
-                          Get.to(() => TrovoWebView(url: termsOfServiceUrl)),
+                      onTap: () {
+                        appState.goToWebView(termsOfServiceUrl);
+                      },
                       child: Text(
                         ' ' + LanguageEn.termsofservices,
                         style: TextStyle(
@@ -94,8 +98,9 @@ class _TermsOfServiceState extends State<TermsOfService> {
                       width: 5,
                     ),
                     GestureDetector(
-                      onTap: () =>
-                          Get.to(() => TrovoWebView(url: privacyPolicyUrl)),
+                      onTap: () {
+                        appState.goToWebView(privacyPolicyUrl);
+                      },
                       child: Text(
                         LanguageEn.privacypolicy,
                         style: TextStyle(
