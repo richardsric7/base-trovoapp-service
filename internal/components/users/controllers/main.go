@@ -124,10 +124,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		{
 			gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
 
-			//check if the owner is the one importing it
+			//check if the owner is the one accessing it or if the one accessing it has access to access it.
 			for _, v := range userInfo.UserData.UserWallets {
 				if v.PrimaryWallet == 1 {
-					if v.Signer != middleware.ExtractSigner(c) {
+					if v.Signer != middleware.ExtractSigner(c) && !userServices.HasAccessToPublicKey(userInfo.UserData.PublicKey, targetPublicKeyForHistory, gc) {
 						te := &tErrors.ErrorInvalidAuthorization{}
 
 						log.Println("[GET HISTORY] Invalid signer for user:", identifier, "error: ", err)
@@ -312,6 +312,66 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			pns.SendFirebaseMessage(userRegistrationInfo.PushNotificationToken, "Registration completed!", fmt.Sprintf("Congratulations! Your trovo wallet account has successfully been created. To receive payment, you can share your primary account username  %s (also known as your alias) to your friends or you can use your public key for payments outside of Trovo Ecosystem. Please take the very important step to backup your wallet or use the available option to enable Account Recovery (Terms and Conditions apply). Thank you!", userRegistrationInfo.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 		}
+	})
+
+	router.POST("/v1/users/subwallet", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		var subWalletInfo userModels.SubWalletInfo
+		// var err error
+
+		data, _ := ioutil.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &subWalletInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		user, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/subwallet %v", user.Username), gc.DB)
+
+		returnedSubwalletInfo, err := userServices.CreateNewSubWallet(&user, &subWalletInfo, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		if user.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*user.PushNotificationToken, "New Sub-wallet Added!", "You have successfully added a new sub wallet.", "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, returnedSubwalletInfo)
 	})
 
 	router.PUT("/v1/users/:targetUser/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"testing"
 	"time"
 
@@ -253,64 +252,15 @@ type PaginatedPaymentHistory struct {
 
 // }
 
-// func TestGetUserInfo(t *testing.T) {
+func TestGetUserInfo(t *testing.T) {
 
-// 	pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
-// 	secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-// 	kp := keypair.MustParseFull(secretKey)
-// 	// log.Println(kp.Address())
-// 	// baseURL := "http://localhost:8080"
-// 	baseURL := prodURL
-// 	fullPath := fmt.Sprintf("/v1/users/%s", "ric")
-// 	ts := time.Now().Unix() / 1000
-
-// 	tsString := fmt.Sprintf("%v", ts)
-// 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
-// 	if err != nil {
-// 		t.Errorf(err.Error())
-// 		return
-
-// 	}
-
-// 	errorResponse := new(ErrorResponse)
-// 	resultResponse := new(UserInfo)
-
-// 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-// 		Set("X-TW-PUBLIC-KEY", kp.Address()).
-// 		Set("X-TW-SIGNER", kp.Address()).
-// 		Set("X-TW-SIGNATURE", signedHttpHeader).
-// 		Set("X-TW-TIMESTAMP", tsString).
-// 		Base(baseURL).
-// 		Get(fullPath).Receive(resultResponse, errorResponse)
-// 	//get payload string
-// 	if len(errorResponse.Error) > 0 {
-// 		log.Println("[TestGetUserInfo] server response error:", *errorResponse)
-// 		return
-
-// 	}
-// 	if err != nil {
-// 		log.Println("[TestGetUserInfo]request error:", err)
-// 		t.Errorf(err.Error())
-
-// 		return
-// 	}
-
-// 	log.Printf("Result:[%+v]\n", resultResponse)
-
-// }
-
-func TestGetPaymentHistory(t *testing.T) {
-
-	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
-	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-	pk := os.Getenv("RICPK")
-	secretKey := os.Getenv("RICSC")
+	pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
+	secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
-	baseURL := prodURL
-	// baseURL := prodURL
-	fullPath := fmt.Sprintf("/v1/users/%s/payments/%v", "ric", kp.Address())
+	baseURL := devURL
+	fullPath := fmt.Sprintf("/v1/users/%s", "ric")
 	ts := time.Now().Unix() / 1000
 
 	tsString := fmt.Sprintf("%v", ts)
@@ -322,7 +272,7 @@ func TestGetPaymentHistory(t *testing.T) {
 	}
 
 	errorResponse := new(ErrorResponse)
-	resultResponse := new(PaginatedPaymentHistory)
+	resultResponse := new(UserInfo)
 
 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
 		Set("X-TW-PUBLIC-KEY", kp.Address()).
@@ -347,6 +297,55 @@ func TestGetPaymentHistory(t *testing.T) {
 	log.Printf("Result:[%+v]\n", resultResponse)
 
 }
+
+// func TestGetPaymentHistory(t *testing.T) {
+
+// 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
+// 	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
+// 	pk := os.Getenv("RICPK")
+// 	secretKey := os.Getenv("RICSC")
+// 	kp := keypair.MustParseFull(secretKey)
+// 	// log.Println(kp.Address())
+// 	// baseURL := "http://localhost:8080"
+// 	baseURL := prodURL
+// 	// baseURL := prodURL
+// 	fullPath := fmt.Sprintf("/v1/users/%s/payments/%v", "ric", kp.Address())
+// 	ts := time.Now().Unix() / 1000
+
+// 	tsString := fmt.Sprintf("%v", ts)
+// 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+// 	if err != nil {
+// 		t.Errorf(err.Error())
+// 		return
+
+// 	}
+
+// 	errorResponse := new(ErrorResponse)
+// 	resultResponse := new(PaginatedPaymentHistory)
+
+// 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+// 		Set("X-TW-PUBLIC-KEY", kp.Address()).
+// 		Set("X-TW-SIGNER", kp.Address()).
+// 		Set("X-TW-SIGNATURE", signedHttpHeader).
+// 		Set("X-TW-TIMESTAMP", tsString).
+// 		Base(baseURL).
+// 		Get(fullPath).Receive(resultResponse, errorResponse)
+// 	//get payload string
+// 	if len(errorResponse.Error) > 0 {
+// 		log.Println("[TestGetUserInfo] server response error:", *errorResponse)
+// 		return
+
+// 	}
+// 	if err != nil {
+// 		log.Println("[TestGetUserInfo]request error:", err)
+// 		t.Errorf(err.Error())
+
+// 		return
+// 	}
+
+// 	log.Printf("Result:[%+v]\n", resultResponse)
+
+// }
 
 // func TestSendPushNotificationMessage(t *testing.T) {
 // 	ric := "dWLRIQWuSm-sqAKA-ABwhS:APA91bGJt8PE4KBS0OPIJOVp4JsWbpiJMK1DrIJIhZM7hlOVeLo6OUGlN5PbbsttT3Oq0YNXZZ8P0zDEcVD6wQkdoFOfrTSFq0q9A1XZU605ZhTpaLLfqwqONniRQKoj4I-YdMgxXoJc"

@@ -455,12 +455,23 @@ func (u *User) BuildPrimaryWallet() {
 	}
 	u.UserWallets = append(u.UserWallets, userWallet)
 }
-func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string) error {
+func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+	walletTag = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", ""), "%", "")
+	walletDescription = strings.TrimSpace(walletDescription)
+
+	if len(subWalletPublicKey) != 56 || len(walletTag) == 0 || len(walletDescription) == 0 {
+		return userWallet, &tErrors.CustomError{
+			Param:      "id",
+			Err:        "error-sub-wallet-parameters-invalid",
+			ErrMessage: "Sub-wallet parameters are invalid. Ensure public key is 56 characters long and tag and description are not empty",
+		}
+	}
+
 	{
 		//check to ensure sub-wallet does not already exist
 		for _, wallet := range u.UserWallets {
 			if wallet.ID == subWalletPublicKey {
-				return &tErrors.CustomError{
+				return userWallet, &tErrors.CustomError{
 					Param:      "id",
 					Err:        "error-sub-wallet-already-exists-in-your-account",
 					ErrMessage: "Sub-wallet already exists in your account",
@@ -468,12 +479,36 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 			}
 		}
 	}
-	tempKP, _ := network.TempAccountKeypair(subWalletPublicKey)
+	{
+		//check if wallet already exists in wallets
+		_, errWallet := u.GetWalletByPublicKey(subWalletPublicKey, gc.DB)
+		if errWallet != nil {
+			if errWallet.Error() != "error-wallet-not-found" {
+				return userWallet, errWallet
+			}
+
+		} else {
+			//wallet already exists.
+			return userWallet, &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-sub-wallet-already-exists-with-another-account",
+				ErrMessage: "Sub-wallet already exists with another account",
+			}
+		}
+	}
+	tempKP, pErr := network.TempAccountKeypair(subWalletPublicKey)
 	var tempPK string
+	if pErr != nil {
+		return userWallet, &tErrors.CustomError{
+			Param:      "id",
+			Err:        "error-sub-wallet-public-key-invalid",
+			ErrMessage: "Sub-wallet public key is invalid",
+		}
+	}
 	if tempKP != nil {
 		tempPK = tempKP.Address()
 	}
-	walletTag = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", "")
+
 	alias := fmt.Sprintf("%s_%s", u.Username, walletTag)
 	userSubWallet := UserWallet{
 		ID:            subWalletPublicKey,
@@ -484,8 +519,8 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		Signer:        u.PublicKey,
 		UserID:        u.ID,
 	}
-	u.UserWallets = append(u.UserWallets, userSubWallet)
-	return nil
+	// u.UserWallets = append(u.UserWallets, userSubWallet)
+	return userSubWallet, nil
 }
 func (id UserWalletManagedAccessID) String() string {
 	return string(id)
@@ -530,6 +565,24 @@ func (id UserWalletID) GetWallet(db *gorm.DB) (wallet *UserWallet, err error) {
 	return
 }
 
+func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet *UserWallet, err error) {
+	e := db.Where("id = ?", string(publicKey)).First(wallet).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "publicKey",
+				Err:        "error-wallet-not-found",
+				ErrMessage: "Wallet not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
 func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner *User, err error) {
 	e := db.Where("public_key = ?", string(id)).First(walletOwner).Error
 	if e != nil {
@@ -546,6 +599,20 @@ func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner *User, err error
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
 	return
+}
+
+func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+	walletPermissions := u.Fetch3rdPartyWallets(gc)
+	if len(walletPermissions) == 0 {
+		return false
+	}
+	for _, walletAccess := range walletPermissions {
+		if walletAccess.PublicKey == publicKey {
+			return true
+		}
+	}
+
+	return false
 }
 
 //Fetch3rdPartyWallets fetches all 3rd party wallets that the user is assigned to manage
