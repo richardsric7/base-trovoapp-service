@@ -366,7 +366,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if user.PushNotificationToken != nil && len(returnedSubwalletInfo.TransactionID) > 0 && returnedSubwalletInfo.TransactionID != "PENDING_AUTH" {
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = ""
-			pns.SendFirebaseMessage(*user.PushNotificationToken, "New Sub-wallet Added!", "You have successfully added a new sub wallet.", "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			pns.SendFirebaseMessage(*user.PushNotificationToken, "New Sub-wallet Added!", fmt.Sprintf("You have successfully added a new sub wallet tagged [%v].", returnedSubwalletInfo.WalletTag), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 
 		//At this point, there was no error.

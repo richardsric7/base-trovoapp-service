@@ -456,7 +456,7 @@ func (u *User) BuildPrimaryWallet() {
 	u.UserWallets = append(u.UserWallets, userWallet)
 }
 func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
-	walletTag = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", ""), "%", "")
+	walletTag = strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", ""), "%", ""))
 	walletDescription = strings.TrimSpace(walletDescription)
 
 	if len(subWalletPublicKey) != 56 || len(walletTag) == 0 || len(walletDescription) == 0 {
