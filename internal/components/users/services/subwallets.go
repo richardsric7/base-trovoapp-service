@@ -95,6 +95,19 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 		}
 		subWalletInfo.TransactionID = txnHash
 		dbTX.Commit()
+
+		{
+			//send to monitoring service
+			trackPublicKey := userModels.TrackedPublicKey{
+				PublicKey: subWalletInfo.PublicKey,
+			}
+			errTrack := gc.RoachDB.Create(&trackPublicKey).Error
+			if errTrack != nil {
+				//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
+				discord.Say(fmt.Sprintf("[CreateNewSubWallet] tracking public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", user.Username, errTrack, subWalletInfo))
+
+			}
+		}
 	} else {
 		txnHash, err := SubmitSubWalletXdrWithSignature(client, user.PublicKey, subWalletInfo.PublicKey, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature)
 		if err != nil {
@@ -103,6 +116,18 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 		}
 		subWalletInfo.TransactionID = txnHash
 		dbTX.Commit()
+		{
+			//send to monitoring service
+			trackPublicKey := userModels.TrackedPublicKey{
+				PublicKey: subWalletInfo.PublicKey,
+			}
+			errTrack := gc.RoachDB.Create(&trackPublicKey).Error
+			if errTrack != nil {
+				//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
+				discord.Say(fmt.Sprintf("[CreateNewSubWallet] tracking public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", user.Username, errTrack, subWalletInfo))
+
+			}
+		}
 
 	}
 	{
@@ -206,7 +231,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
 
 	}
-		if subWalletAccountExists && (subWalletAccountNativeBalance.GreaterThanOrEqual(minBalance)) {
+	if subWalletAccountExists && (subWalletAccountNativeBalance.GreaterThanOrEqual(minBalance)) {
 		//account exists and native balance is less than needed. add 3 native token to the wallet
 		ops = append(ops, &txnbuild.Payment{
 			Destination:   subWalletInfo.PublicKey,
