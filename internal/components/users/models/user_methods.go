@@ -473,7 +473,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		//check to ensure sub-wallet does not already exist
 		for _, wallet := range u.UserWallets {
 			if wallet.ID == subWalletPublicKey {
-				log.Println("[BuildNewSubWallet] wallet already exists")
+				log.Printf("[BuildNewSubWallet] wallet [%v] already exists in your account\n", subWalletPublicKey)
 				return userWallet, &tErrors.CustomError{
 					Param:      "id",
 					Err:        "error-sub-wallet-already-exists-in-your-account",
@@ -488,13 +488,15 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		_, errWallet := u.GetWalletByPublicKey(subWalletPublicKey, gc.DB)
 		if errWallet != nil {
 			if errWallet.Error() != "error-wallet-not-found" {
-				log.Println("[BuildNewSubWallet] subwallet does not exist...")
+				log.Println("[BuildNewSubWallet] subwallet does not exist...", errWallet)
 
 				return userWallet, errWallet
 			}
 
 		} else {
 			//wallet already exists.
+			log.Printf("[BuildNewSubWallet] wallet [%v] found in another account\n", subWalletPublicKey)
+
 			return userWallet, &tErrors.CustomError{
 				Param:      "id",
 				Err:        "error-sub-wallet-already-exists-with-another-account",
@@ -537,8 +539,8 @@ func (id UserWalletID) String() string {
 	return string(id)
 }
 
-func (id UserWalletManagedAccessID) GetAccessAssignment(db *gorm.DB) (assignment *UserWalletManagedAccess, err error) {
-	e := db.Where("id = ?", string(id)).First(assignment).Error
+func (id UserWalletManagedAccessID) GetAccessAssignment(db *gorm.DB) (assignment UserWalletManagedAccess, err error) {
+	e := db.Where("id = ?", string(id)).First(&assignment).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no managed access was found
@@ -555,8 +557,8 @@ func (id UserWalletManagedAccessID) GetAccessAssignment(db *gorm.DB) (assignment
 	return
 }
 
-func (id UserWalletID) GetWallet(db *gorm.DB) (wallet *UserWallet, err error) {
-	e := db.Where("id = ?", string(id)).First(wallet).Error
+func (id UserWalletID) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
+	e := db.Where("id = ?", string(id)).First(&wallet).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
@@ -573,8 +575,8 @@ func (id UserWalletID) GetWallet(db *gorm.DB) (wallet *UserWallet, err error) {
 	return
 }
 
-func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet *UserWallet, err error) {
-	e := db.Where("id = ?", string(publicKey)).First(wallet).Error
+func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet UserWallet, err error) {
+	e := db.Where("id = ?", publicKey).First(&wallet).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
@@ -586,14 +588,14 @@ func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet *User
 			}
 			return
 		}
-		log.Printf("[GetWalletByPublicKey] error: %s", e)
+		log.Printf("[GetWalletByPublicKey] error: %s\n", e)
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
 	return wallet, nil
 }
 
-func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner *User, err error) {
-	e := db.Where("public_key = ?", string(id)).First(walletOwner).Error
+func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner User, err error) {
+	e := db.Where("public_key = ?", string(id)).First(&walletOwner).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found

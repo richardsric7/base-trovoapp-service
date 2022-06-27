@@ -206,6 +206,29 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
 
 	}
+		if subWalletAccountExists && (subWalletAccountNativeBalance.GreaterThanOrEqual(minBalance)) {
+		//account exists and native balance is less than needed. add 3 native token to the wallet
+		ops = append(ops, &txnbuild.Payment{
+			Destination:   subWalletInfo.PublicKey,
+			Amount:        minBalance.String(),
+			Asset:         nativeAsset,
+			SourceAccount: user.PublicKey,
+		})
+
+		//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
+		if !user.SignerIsValidWA(user.PublicKey, subWalletAccountObject) {
+
+			ops = append(ops, &txnbuild.SetOptions{
+				Signer: &txnbuild.Signer{
+					Address: user.PublicKey,
+					Weight:  1,
+				},
+				SourceAccount: subWalletInfo.PublicKey,
+			})
+		}
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
+
+	}
 	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
 
 	// Construct the transaction that holds the operations to execute on the network

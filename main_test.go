@@ -529,6 +529,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	// primaryKP := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
+	// baseURL := devURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
