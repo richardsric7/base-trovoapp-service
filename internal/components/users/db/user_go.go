@@ -23,7 +23,7 @@ func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 		//56 char public key is supplied
 
 		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_public_key = ?", &userInfo).Or("signer = ?", userInfo).Select("user_id")
-		e = db.Preload(clause.Associations).Where("id = (?)", subQuery).First(&user).Error
+		e = db.Preload(clause.Associations).Where("id IN (?)", subQuery).First(&user).Error
 	} else if strings.Contains(userInfo, "_") {
 		//alias format is supplied
 		subQuery := db.Table("user_wallets").Where("alias = ?", strings.ToLower(userInfo)).Select("user_id")

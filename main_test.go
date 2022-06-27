@@ -529,8 +529,8 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	// subKP := keypair.MustParseFull(subSecretKey)
 	// primaryKP := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
-	baseURL := prodURL
-	// baseURL := devURL
+	// baseURL := prodURL
+	baseURL := devURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -633,6 +633,12 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 			Base(baseURL).
 			Post(fullPath).BodyJSON(p).Receive(subWalletResponse, errorResponse)
 		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		if len(subWalletResponse.TransactionID) == 0 {
+			log.Println("[TestCreateSubWalletMultiAccessDisabled]no transaction ID")
 			t.Errorf(err.Error())
 			return
 
