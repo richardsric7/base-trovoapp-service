@@ -204,7 +204,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 			SourceAccount: subWalletInfo.PublicKey,
 		})
 
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to activate the sub-wallet.", activationAmount.String()))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to activate the sub-wallet.", activationAmount.String()))
 
 	}
 
@@ -230,7 +230,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		} else {
 			subWalletInfo.SubWalletMustSign = 0
 		}
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
 
 	}
 	if subWalletAccountExists && (subWalletAccountNativeBalance.GreaterThanOrEqual(minBalance)) {
@@ -255,7 +255,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		} else {
 			subWalletInfo.SubWalletMustSign = 0
 		}
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
 
 	}
 	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
@@ -356,7 +356,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 			SourceAccount: subWalletInfo.PublicKey,
 		})
 
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to activate the sub-wallet.", activationAmount.String()))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to activate the sub-wallet.", activationAmount.String()))
 
 	}
 
@@ -382,7 +382,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		} else {
 			subWalletInfo.SubWalletMustSign = 0
 		}
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
 
 	}
 
@@ -408,7 +408,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		} else {
 			subWalletInfo.SubWalletMustSign = 0
 		}
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
 
 	}
 	channelSourceAccountExists, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(client, subWalletInfo.ChannelAccount, txnbuild.NativeAsset{})
