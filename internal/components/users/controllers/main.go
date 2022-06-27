@@ -363,7 +363,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		if user.PushNotificationToken != nil {
+		if user.PushNotificationToken != nil && len(returnedSubwalletInfo.Transaction) > 0 {
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = ""
 			pns.SendFirebaseMessage(*user.PushNotificationToken, "New Sub-wallet Added!", "You have successfully added a new sub wallet.", "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
