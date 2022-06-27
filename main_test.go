@@ -575,8 +575,14 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
 		return
 	}
+	if len(subWalletResponse.Transaction) == 0 {
+		log.Println("[TestCreateSubWalletMultiAccessDisabled]no transaction generated")
+		t.Errorf(err.Error())
 
-	log.Printf("[TestCreateSubWalletMultiAccessDisabled] Confirmation Subwallet Response:[%+v]\n", subWalletResponse)
+		return
+	}
+
+	log.Printf("[TestCreateSubWalletMultiAccessDisabled] Request Subwallet Response:[%+v]\n", subWalletResponse)
 	log.Println("==========waiting for 15seconds to before confirmation==============")
 	time.Sleep(time.Second * 15)
 	log.Println("==========Confirming Subwallet creation==============")

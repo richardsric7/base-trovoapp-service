@@ -460,10 +460,12 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 	walletDescription = strings.TrimSpace(walletDescription)
 
 	if len(subWalletPublicKey) != 56 || len(walletTag) == 0 || len(walletDescription) == 0 {
+		log.Println("[BuildNewSubWallet] invalid parameters")
 		return userWallet, &tErrors.CustomError{
 			Param:      "id",
 			Err:        "error-sub-wallet-parameters-invalid",
 			ErrMessage: "Sub-wallet parameters are invalid. Ensure public key is 56 characters long and tag and description are not empty",
+			Code:       http.StatusBadRequest,
 		}
 	}
 
@@ -471,10 +473,12 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		//check to ensure sub-wallet does not already exist
 		for _, wallet := range u.UserWallets {
 			if wallet.ID == subWalletPublicKey {
+				log.Println("[BuildNewSubWallet] wallet already exists")
 				return userWallet, &tErrors.CustomError{
 					Param:      "id",
 					Err:        "error-sub-wallet-already-exists-in-your-account",
 					ErrMessage: "Sub-wallet already exists in your account",
+					Code:       http.StatusConflict,
 				}
 			}
 		}
@@ -484,6 +488,8 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		_, errWallet := u.GetWalletByPublicKey(subWalletPublicKey, gc.DB)
 		if errWallet != nil {
 			if errWallet.Error() != "error-wallet-not-found" {
+				log.Println("[BuildNewSubWallet] subwallet does not exist...")
+
 				return userWallet, errWallet
 			}
 
@@ -493,6 +499,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 				Param:      "id",
 				Err:        "error-sub-wallet-already-exists-with-another-account",
 				ErrMessage: "Sub-wallet already exists with another account",
+				Code:       http.StatusConflict,
 			}
 		}
 	}
@@ -503,6 +510,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 			Param:      "id",
 			Err:        "error-sub-wallet-public-key-invalid",
 			ErrMessage: "Sub-wallet public key is invalid",
+			Code:       http.StatusBadRequest,
 		}
 	}
 	if tempKP != nil {
@@ -578,9 +586,10 @@ func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet *User
 			}
 			return
 		}
+		log.Printf("[GetWalletByPublicKey] error: %s", e)
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
-	return
+	return wallet, nil
 }
 
 func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner *User, err error) {
