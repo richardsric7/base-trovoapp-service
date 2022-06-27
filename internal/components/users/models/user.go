@@ -116,7 +116,8 @@ type SubWalletInfo struct {
 	WalletTag               string   `json:"walletTag"`
 	WalletDescription       string   `json:"walletDescription"`
 	Transaction             string   `json:"transaction"`
-	TransactionSignature    string   `json:"transactionSignature"`
+	PrimarySignature        string   `json:"primarySignature"`
+	SubWalletSignature      string   `json:"subWalletSignature"`
 	TransactionID           string   `json:"transactionId"`
 	NetworkPassPhrase       string   `json:"networkPassPhrase"`
 	ChannelAccount          string   `json:"channelAccount"`

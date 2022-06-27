@@ -80,6 +80,50 @@ func SignBase64Txn(secretKey string, base64Txn string, networkPassPhrase string)
 
 }
 
+//SignBase64Txn signs the transaction hash from base64Txn string using the secret key
+func SignSubwalletBase64Txn(primarySecretKey, subWalletSecretKey string, base64Txn string, networkPassPhrase string) (primarySignature, subWalletSignature string, err error) {
+
+	primaryKP, keyPairError := keypair.ParseFull(primarySecretKey)
+	if keyPairError != nil {
+		return "", "", keyPairError
+	}
+	subWalletKP, keyPairError := keypair.ParseFull(subWalletSecretKey)
+	if keyPairError != nil {
+		return "", "", keyPairError
+	}
+
+	tx, err := txnbuild.TransactionFromXDR(base64Txn)
+	if err != nil {
+		return "", "", err
+	}
+
+	txn, b := tx.Transaction()
+
+	if !b {
+		return "", "", errors.New("not a txn")
+	}
+
+	bytes, err := txn.Hash(networkPassPhrase)
+
+	if err != nil {
+		return "", "", errors.New("could not hash txn")
+	}
+
+	primarySignature, err = primaryKP.SignBase64(bytes[:])
+
+	if err != nil {
+		return "", "", err
+	}
+	subWalletSignature, err = subWalletKP.SignBase64(bytes[:])
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return primarySignature, subWalletSignature, nil
+
+}
+
 //VerifySignatureString verifies if the signatures match with the one to be generated from toSign. toSign = publicKey+timestamp
 func VerifySignatureString(toSign string, base64Signature string, signerPublicKey string) error {
 	kp, errParsingPublicKey := keypair.ParseAddress(signerPublicKey)
