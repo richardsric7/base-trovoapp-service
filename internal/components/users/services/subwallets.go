@@ -31,11 +31,13 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 		xdrBase64, subWalletObj, err = generateSubWalletXdrWithChannelAccount(user, subWalletInfo, gc, client)
 		if err != nil {
 			log.Printf("[CreateNewSubWallet] create sub [%v] for [%v] generateSubWalletXdrWithChannelAccount error:[%v] \n", subWalletInfo.PublicKey, user.Username, err)
+			return subWalletInfo, err
 		}
 	} else {
 		xdrBase64, subWalletObj, err = generateSubWalletXdr(user, subWalletInfo, gc, client)
 		if err != nil {
 			log.Printf("[CreateNewSubWallet] create sub [%v] for [%v] generateSubWalletXdr error:[%v] \n", subWalletInfo.PublicKey, user.Username, err)
+			return subWalletInfo, err
 		}
 	}
 
@@ -75,6 +77,8 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 	errDBTX := dbTX.Create(&subWalletObj).Error
 	if errDBTX != nil {
 		//unable to save sub wallet. abort
+		log.Printf("[CreateNewSubWallet] by [%v] for [%v] Error saving subwallet error:[%v] \n", user.Username, subWalletInfo.PublicKey, errDBTX)
+
 		err = &tErrors.CustomError{
 			Param:      "publicKey",
 			Err:        "error-saving-subwallet",
@@ -125,6 +129,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		//check if the sub-wallet passes the validation
 		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, gc)
 		if err != nil {
+			log.Printf("[generateSubWalletXdr] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
 			return "", subWalletObj, err
 		}
 
@@ -138,9 +143,13 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	primaryAccountExists, _, primaryAccountNativeBalance, _, primarySourceAccount, errAct := network.BlockchainAccountProperties(client, user.PublicKey, nativeAsset)
 	if errAct != nil {
+		log.Printf("[generateSubWalletXdr] by [%v] for [%v] Primary Account Properties error:[%v] \n", user.Username, subWalletInfo.PublicKey, errAct)
+
 		return "", subWalletObj, errAct
 	}
 	if !primaryAccountExists || (primaryAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
+		log.Printf("[generateSubWalletXdr] by [%v] for [%v] PrimaryAccount underfunded \n", user.Username, subWalletInfo.PublicKey)
+
 		err = &tErrors.CustomError{
 			Param:      "publicKey",
 			Err:        "error-primary-account-underfunded",
@@ -213,7 +222,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		},
 	)
 	if err != nil {
-		log.Println("[CreateNewSubWallet] error constructing transaction ", err)
+		log.Println("[generateSubWalletXdr] error constructing transaction ", err)
 		return "", subWalletObj, err
 	}
 
@@ -221,7 +230,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 
 	xdrBase64, err = tx.Base64()
 	if err != nil {
-		log.Println("[CreateNewSubWallet] error getting txn base64", err)
+		log.Println("[generateSubWalletXdr] error getting txn base64", err)
 		return "", subWalletObj, err
 	}
 
@@ -244,6 +253,8 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		//check if the sub-wallet passes the validation
 		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, gc)
 		if err != nil {
+			log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
+
 			return "", subWalletObj, err
 		}
 
@@ -257,9 +268,13 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	primaryAccountExists, _, primaryAccountNativeBalance, _, _, errAct := network.BlockchainAccountProperties(client, user.PublicKey, nativeAsset)
 	if errAct != nil {
+		log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] Primary Account Error error:[%v] \n", user.Username, subWalletInfo.PublicKey, errAct)
+
 		return "", subWalletObj, errAct
 	}
 	if !primaryAccountExists || (primaryAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
+		log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] Primary Account Underfunded\n", user.Username, subWalletInfo.PublicKey)
+
 		err = &tErrors.CustomError{
 			Param:      "publicKey",
 			Err:        "error-primary-account-underfunded",
@@ -318,6 +333,8 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 	}
 	channelSourceAccountExists, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(client, subWalletInfo.ChannelAccount, txnbuild.NativeAsset{})
 	if !channelSourceAccountExists || channelSourceAccountErr != nil || (channelSourceAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
+		log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] Channel Account underfunded.\n", user.Username, subWalletInfo.PublicKey)
+
 		err = &tErrors.CustomError{
 			Param:      "channelAccount",
 			Err:        "error-channel-account-underfunded",
@@ -342,7 +359,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		},
 	)
 	if err != nil {
-		log.Println("[CreateNewSubWallet] error constructing transaction ", err)
+		log.Println("[generateSubWalletXdrWithChannelAccount] error constructing transaction ", err)
 		return "", subWalletObj, err
 	}
 
@@ -350,7 +367,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 
 	xdrBase64, err = tx.Base64()
 	if err != nil {
-		log.Println("[CreateNewSubWallet] error getting txn base64", err)
+		log.Println("[generateSubWalletXdrWithChannelAccount] error getting txn base64", err)
 		return "", subWalletObj, err
 	}
 
