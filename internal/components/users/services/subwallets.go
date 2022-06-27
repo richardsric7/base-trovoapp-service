@@ -25,7 +25,7 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 	var subWalletObj userModels.UserWallet
 
 	subWalletInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
-
+	subWalletInfo.SubWalletMustSign = 1
 	if len(subWalletInfo.ChannelAccount) == 56 {
 		//generate xdr for channel account
 		xdrBase64, subWalletObj, err = generateSubWalletXdrWithChannelAccount(user, subWalletInfo, gc, client)
@@ -88,7 +88,7 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 	}
 
 	if len(subWalletInfo.ChannelAccountSignature) > 0 && len(subWalletInfo.ChannelAccount) == 56 {
-		txnHash, err := SubmitSubWalletXdrForChannelAccountWithSignature(client, user.PublicKey, subWalletInfo.PublicKey, subWalletInfo.ChannelAccount, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.ChannelAccountSignature)
+		txnHash, err := SubmitSubWalletXdrForChannelAccountWithSignature(client, user.PublicKey, subWalletInfo.PublicKey, subWalletInfo.ChannelAccount, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.ChannelAccountSignature, subWalletInfo.SubWalletMustSign)
 		if err != nil {
 			log.Printf("[CreateNewSubWallet] by [%v] for [%v] SubmitSubWalletXdrForChannelAccountWithSignature error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
 			return subWalletInfo, err
@@ -109,7 +109,7 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 			}
 		}
 	} else {
-		txnHash, err := SubmitSubWalletXdrWithSignature(client, user.PublicKey, subWalletInfo.PublicKey, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature)
+		txnHash, err := SubmitSubWalletXdrWithSignature(client, user.PublicKey, subWalletInfo.PublicKey, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.SubWalletMustSign)
 		if err != nil {
 			log.Printf("[CreateNewSubWallet] by [%v] for [%v] SubmitSubwalletXdrWithSignature error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
 			return subWalletInfo, err
@@ -227,6 +227,8 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 				},
 				SourceAccount: subWalletInfo.PublicKey,
 			})
+		} else {
+			subWalletInfo.SubWalletMustSign = 0
 		}
 		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
 
@@ -250,6 +252,8 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 				},
 				SourceAccount: subWalletInfo.PublicKey,
 			})
+		} else {
+			subWalletInfo.SubWalletMustSign = 0
 		}
 		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
 
@@ -375,6 +379,34 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 				},
 				SourceAccount: subWalletInfo.PublicKey,
 			})
+		} else {
+			subWalletInfo.SubWalletMustSign = 0
+		}
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
+
+	}
+
+	if subWalletAccountExists && (subWalletAccountNativeBalance.GreaterThanOrEqual(minBalance)) {
+		//account exists and native balance is less than needed. add 3 native token to the wallet
+		ops = append(ops, &txnbuild.Payment{
+			Destination:   subWalletInfo.PublicKey,
+			Amount:        minBalance.String(),
+			Asset:         nativeAsset,
+			SourceAccount: user.PublicKey,
+		})
+
+		//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
+		if !user.SignerIsValidWA(user.PublicKey, subWalletAccountObject) {
+
+			ops = append(ops, &txnbuild.SetOptions{
+				Signer: &txnbuild.Signer{
+					Address: user.PublicKey,
+					Weight:  1,
+				},
+				SourceAccount: subWalletInfo.PublicKey,
+			})
+		} else {
+			subWalletInfo.SubWalletMustSign = 0
 		}
 		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
 
@@ -423,7 +455,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 
 }
 
-func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, ownerPublicKey, subWalletPublicKey string, xdrBase64 string, primarySignature, subWalletSignature string) (string, error) {
+func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, ownerPublicKey, subWalletPublicKey string, xdrBase64 string, primarySignature, subWalletSignature string, subWalletMustSign int) (string, error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
@@ -450,11 +482,13 @@ func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, ownerPublicKe
 		}
 
 		//add signature of the subWallet to the new transaction Instance
-		txn, err = txn.AddSignatureBase64(network.GetBlockchainNetworkPassPhrase(), subWalletPublicKey, subWalletSignature)
-		if err != nil {
-			log.Println("[SubmitSubwalletXdrWithSignature] Failed to verify signature of subwallet on [", network.GetBlockchainNetworkPassPhrase(), "] and [", subWalletSignature, "] for [", xdrBase64, "] and public key ", subWalletPublicKey, ", error [", err, "]")
+		if subWalletMustSign == 1 {
+			txn, err = txn.AddSignatureBase64(network.GetBlockchainNetworkPassPhrase(), subWalletPublicKey, subWalletSignature)
+			if err != nil {
+				log.Println("[SubmitSubwalletXdrWithSignature] Failed to verify signature of subwallet on [", network.GetBlockchainNetworkPassPhrase(), "] and [", subWalletSignature, "] for [", xdrBase64, "] and public key ", subWalletPublicKey, ", error [", err, "]")
 
-			return "", err
+				return "", err
+			}
 		}
 	}
 
@@ -509,7 +543,7 @@ func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, ownerPublicKe
 
 }
 
-func SubmitSubWalletXdrForChannelAccountWithSignature(client *horizonclient.Client, ownerPublicKey, subWalletPublicKey, channelPK string, xdrBase64 string, primarySignature, subWalletSignature, channelAccountSignature string) (string, error) {
+func SubmitSubWalletXdrForChannelAccountWithSignature(client *horizonclient.Client, ownerPublicKey, subWalletPublicKey, channelPK string, xdrBase64 string, primarySignature, subWalletSignature, channelAccountSignature string, subWalletMustSign int) (string, error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
@@ -542,12 +576,15 @@ func SubmitSubWalletXdrForChannelAccountWithSignature(client *horizonclient.Clie
 
 			return "", err
 		}
-		//add signature of the channelAccount to the new transaction Instance
-		txn, err = txn.AddSignatureBase64(network.GetBlockchainNetworkPassPhrase(), subWalletPublicKey, channelAccountSignature)
-		if err != nil {
-			log.Println("[SubmitSubwalletXdrWithSignature] Failed to verify signature of channelAccount on [", network.GetBlockchainNetworkPassPhrase(), "] and [", channelAccountSignature, "] for [", xdrBase64, "] and public key ", channelPK, ", error [", err, "]")
+		if subWalletMustSign == 1 {
 
-			return "", err
+			//add signature of the channelAccount to the new transaction Instance
+			txn, err = txn.AddSignatureBase64(network.GetBlockchainNetworkPassPhrase(), subWalletPublicKey, channelAccountSignature)
+			if err != nil {
+				log.Println("[SubmitSubwalletXdrWithSignature] Failed to verify signature of channelAccount on [", network.GetBlockchainNetworkPassPhrase(), "] and [", channelAccountSignature, "] for [", xdrBase64, "] and public key ", channelPK, ", error [", err, "]")
+
+				return "", err
+			}
 		}
 	}
 

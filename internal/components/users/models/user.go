@@ -122,5 +122,6 @@ type SubWalletInfo struct {
 	NetworkPassPhrase       string   `json:"networkPassPhrase"`
 	ChannelAccount          string   `json:"channelAccount"`
 	ChannelAccountSignature string   `json:"channelAccountSignature"`
+	SubWalletMustSign       int      `json:"subWalletMustSign"`
 	Messages                []string `json:"messages"`
 }
