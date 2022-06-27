@@ -554,8 +554,8 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
 	subwalletPayload := SubWalletInfo{
 		PublicKey:         subPK,
-		WalletTag:         "sub1",
-		WalletDescription: "Sub wallet one",
+		WalletTag:         "sub2",
+		WalletDescription: "Sub wallet Two",
 	}
 	errorResponse := new(ErrorResponse)
 	subWalletResponse := new(SubWalletInfo)
