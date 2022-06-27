@@ -577,6 +577,9 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	}
 
 	log.Printf("[TestCreateSubWalletMultiAccessDisabled] Confirmation Subwallet Response:[%+v]\n", subWalletResponse)
+	log.Println("==========waiting for 15seconds to before confirmation==============")
+	time.Sleep(time.Second * 15)
+	log.Println("==========Confirming Subwallet creation==============")
 
 	{
 		//run the subwallet signing and submission
@@ -595,15 +598,15 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 			p.ChannelAccountSignature = dsigned
 
 		}
-		primarySingature, subwalletSignature, err := middleware.SignSubwalletBase64Txn(primarySecretKey, subSecretKey, p.Transaction, p.NetworkPassPhrase)
+		primarySignature, subwalletSignature, err := middleware.SignSubwalletBase64Txn(primarySecretKey, subSecretKey, p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
-			log.Println("[TestCreateSubWalletMultiAccessDisabled] create subwallet error:", err)
+			log.Println("[TestCreateSubWalletMultiAccessDisabled] sub transactions error:", err)
 			t.Errorf(err.Error())
 
 			return
 		}
 
-		p.PrimarySignature = primarySingature
+		p.PrimarySignature = primarySignature
 		p.SubWalletSignature = subwalletSignature
 
 		ts := time.Now().Unix() / 1000
@@ -627,7 +630,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
 		}
 
-		log.Printf("Make Payment Response:[%+v]\n", subWalletResponse)
+		log.Printf("Create Subwallet Response:[%+v]\n", subWalletResponse)
 	}
 
 }

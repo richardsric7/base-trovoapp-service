@@ -101,6 +101,11 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 		dbTX.Commit()
 
 	}
+	{
+		cacheKey1 := fmt.Sprintf("GetBalance_%s", user.PublicKey)
+		cacheKey2 := fmt.Sprintf("GetBalance_%s", subWalletInfo.PublicKey)
+		gc.RedisCache.DeleteFromCache(cacheKey1, cacheKey2)
+	}
 
 	return subWalletInfo, nil
 }
