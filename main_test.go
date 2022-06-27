@@ -57,7 +57,18 @@ type PaymentInfo struct {
 	Messages                []string          `json:"messages"`
 	CallbackURLS            map[string]string `json:"-"`
 }
-
+type SubWalletInfo struct {
+	PublicKey               string   `json:"publicKey"`
+	WalletTag               string   `json:"walletTag"`
+	WalletDescription       string   `json:"walletDescription"`
+	Transaction             string   `json:"transaction"`
+	TransactionSignature    string   `json:"transactionSignature"`
+	TransactionID           string   `json:"transactionId"`
+	NetworkPassPhrase       string   `json:"networkPassPhrase"`
+	ChannelAccount          string   `json:"channelAccount"`
+	ChannelAccountSignature string   `json:"channelAccountSignature"`
+	Messages                []string `json:"messages"`
+}
 type UserInfo struct {
 	UserData               UserJSON                 `json:"userData"`
 	AssetBalances          map[string]AssetBalances `json:"assetBalances"`          //map of wallet public key and the asset balances

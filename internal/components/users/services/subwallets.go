@@ -224,11 +224,14 @@ func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, ownerPublicKe
 	if err != nil {
 		return "", err
 	}
-
+	useDecoratedSignature := false
+	if os.Getenv("USE_DECORATED_SIGNATURE") == "1" {
+		useDecoratedSignature = true
+	}
 	sTxn, errS := txnbuild.TransactionFromXDR(signature)
 
 	if errS != nil {
-		return "", err
+		return "", errS
 	}
 
 	txn, ok := gTxn.Transaction()
@@ -243,25 +246,39 @@ func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, ownerPublicKe
 		return "", &tErrors.ErrorInvalidTransaction{}
 	}
 	sSignatures := txnS.Signatures()
-	txn, err = txn.AddSignatureDecorated(sSignatures...)
 
-	// txn, err = txn.AddSignatureBase64(network.GetBlockchainNetworkPassPhrase(), ownerPublicKey, signature)
+	if useDecoratedSignature {
+		txn, err = txn.AddSignatureDecorated(sSignatures...)
 
-	if err != nil {
-		log.Printf("[SubmitSubwalletXdrWithSignature] Failed to verify signature on [%v] and [%+v] for [%v] for public key: [%v] and subwallet:[%v], error: [%v]\n", network.GetBlockchainNetworkPassPhrase(), sSignatures, xdrBase64, ownerPublicKey, subWalletPublicKey, err)
+		if err != nil {
+			log.Printf("[SubmitSubwalletXdrWithSignature] Failed to verify signature on [%v] and [%+v] for [%v] for public key: [%v] and subwallet:[%v], error: [%v]\n", network.GetBlockchainNetworkPassPhrase(), sSignatures, xdrBase64, ownerPublicKey, subWalletPublicKey, err)
 
-		return "", err
+			return "", err
+		}
 	}
-	// 	if err != nil {
-	// 	log.Println("[SubmitSubwalletXdrWithSignature] Failed to verify signature on [", network.GetBlockchainNetworkPassPhrase(), "] and [", signature, "] for [", xdrBase64, "] and public key ", ownerPublicKey, ", error [", err, "]")
 
-	// 	return "", err
-	// }
+	if !useDecoratedSignature {
+		//add signature of the primaryWallet to the new transaction Instance
+		txn, err = txn.AddSignatureBase64(network.GetBlockchainNetworkPassPhrase(), ownerPublicKey, signature)
+		if err != nil {
+			log.Println("[SubmitSubwalletXdrWithSignature] Failed to verify signature of primaryWallet on [", network.GetBlockchainNetworkPassPhrase(), "] and [", signature, "] for [", xdrBase64, "] and public key ", ownerPublicKey, ", error [", err, "]")
+
+			return "", err
+		}
+
+		//add signature of the subWallet to the new transaction Instance
+		txn, err = txn.AddSignatureBase64(network.GetBlockchainNetworkPassPhrase(), subWalletPublicKey, signature)
+		if err != nil {
+			log.Println("[SubmitSubwalletXdrWithSignature] Failed to verify signature of subwallet on [", network.GetBlockchainNetworkPassPhrase(), "] and [", signature, "] for [", xdrBase64, "] and public key ", subWalletPublicKey, ", error [", err, "]")
+
+			return "", err
+		}
+	}
 
 	xdrBase64, err = txn.Base64()
 
 	if err != nil {
-		log.Println(err)
+		log.Printf("[SubmitSubwalletXdrWithSignature] error converting transaction to base64: %v\n", err)
 		return "", err
 	}
 
@@ -288,8 +305,8 @@ func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, ownerPublicKe
 			resultCodes, errRes := horizonException.ResultCodes()
 			if errRes == nil {
 				for key, val := range resultCodes.OperationCodes {
-					log.Printf("[SubmitSubwalletXdrWithSignature] Result code: %v is %v\nOwner publickey: %v\n", key, val, ownerPublicKey)
-					// logDiscordFailedPayment(fmt.Sprintf("[SubmitSubwalletXdrWithSignature] Result code: %v is %v\nOwner publickey: %v\n", key, val, ownerPublicKey))
+					log.Printf("[SubmitSubwalletXdrWithSignature] Result code: %v is %v\nOwner publicKey: %v\nSubWalletPublicKey: %v\n", key, val, ownerPublicKey, subWalletPublicKey)
+					// logDiscordFailedPayment(fmt.Sprintf("[SubmitSubwalletXdrWithSignature]Result code: %v is %v\nOwner publicKey: %v\nSubWalletPublicKey: %v\n", key, val, ownerPublicKey, subWalletPublicKey))
 
 				}
 			} else {
@@ -301,7 +318,7 @@ func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, ownerPublicKe
 
 		}
 
-		return "", &tErrors.CustomError{Param: "destination", Err: "error payment failed", ErrMessage: "Payment Failed", Code: 500}
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error subwallet activation failed", ErrMessage: "SubWallet Failed", Code: 500}
 
 	}
 
