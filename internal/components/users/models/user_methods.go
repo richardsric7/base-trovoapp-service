@@ -481,6 +481,15 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 					Code:       http.StatusConflict,
 				}
 			}
+			if *wallet.Tag == walletTag {
+				log.Printf("[BuildNewSubWallet] wallet tag [%v] already exists in your account\n", walletTag)
+				return userWallet, &tErrors.CustomError{
+					Param:      "id",
+					Err:        "error-wallet-tag-already-exists-in-your-account",
+					ErrMessage: fmt.Sprintf("Sub-wallet tag [%v] already exists in your account", walletTag),
+					Code:       http.StatusConflict,
+				}
+			}
 		}
 	}
 	{
