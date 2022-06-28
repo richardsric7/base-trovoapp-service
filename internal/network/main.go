@@ -123,7 +123,7 @@ func BlockchainAccountProperties(client *horizonclient.Client, destinationPublic
 
 	amountToSubtractFromNativeAccountBalance := (subEntryCount.Add(decimal.NewFromInt(4))).Mul(subEntryCountMultiplier)
 
-	log.Printf("[BlockchainAccountProperties] amount to substract is %v\n", amountToSubtractFromNativeAccountBalance.String())
+	log.Printf("[BlockchainAccountProperties] amount to subtract is %v\n", amountToSubtractFromNativeAccountBalance.String())
 
 	for _, balance := range balances {
 		_asset := balance.Asset
@@ -145,7 +145,7 @@ func BlockchainAccountProperties(client *horizonclient.Client, destinationPublic
 	return destinationAccountExists, destinationAccountTrustsAsset, nativeAccountBalance, customAssetAccountBalance, &destinationAccountDetail, nil
 }
 
-func SubmitXdrWithSignature(client *horizonclient.Client, ownerPublicKey string, xdrBase64 string, signature string) (string, error) {
+func SubmitXdrWithSignature(client *horizonclient.Client, signerPublicKey string, xdrBase64 string, signature string) (string, error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
@@ -162,10 +162,10 @@ func SubmitXdrWithSignature(client *horizonclient.Client, ownerPublicKey string,
 		return "", &tErrors.ErrorInvalidTransaction{}
 	}
 
-	txn, err = txn.AddSignatureBase64(GetBlockchainNetworkPassPhrase(), ownerPublicKey, signature)
+	txn, err = txn.AddSignatureBase64(GetBlockchainNetworkPassPhrase(), signerPublicKey, signature)
 
 	if err != nil {
-		log.Println("[SubmitXdrWithSignature] Failed to verify signature on [", GetBlockchainNetworkPassPhrase(), "] and [", signature, "] for [", xdrBase64, "] and public key ", ownerPublicKey, ", error [", err, "]")
+		log.Println("[SubmitXdrWithSignature] Failed to verify signature on [", GetBlockchainNetworkPassPhrase(), "] and [", signature, "] for [", xdrBase64, "] and public key ", signerPublicKey, ", error [", err, "]")
 
 		return "", err
 	}
@@ -193,16 +193,16 @@ func SubmitXdrWithSignature(client *horizonclient.Client, ownerPublicKey string,
 			extraErrors := horizonException.Problem.Extras
 
 			for key, val := range extraErrors {
-				log.Printf("[SubmitXdrWithSignature] Extras: %v is %v\nOwner publickey: %v\n", key, val, ownerPublicKey)
-				logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignature] Extras: %v is %v\nOwner publickey: %v\n", key, val, ownerPublicKey))
+				log.Printf("[SubmitXdrWithSignature] Extras: %v is %v\nOwner publicKey: %v\n", key, val, signerPublicKey)
+				logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignature] Extras: %v is %v\nSigner publicKey: %v\n", key, val, signerPublicKey))
 
 			}
 
 			resultCodes, errRes := horizonException.ResultCodes()
 			if errRes == nil {
 				for key, val := range resultCodes.OperationCodes {
-					log.Printf("[SubmitXdrWithSignature] Result code: %v is %v\nOwner publickey: %v\n", key, val, ownerPublicKey)
-					logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignature] Result code: %v is %v\nOwner publickey: %v\n", key, val, ownerPublicKey))
+					log.Printf("[SubmitXdrWithSignature] Result code: %v is %v\nSigner publicKey: %v\n", key, val, signerPublicKey)
+					logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignature] Result code: %v is %v\nSigner publicKey: %v\n", key, val, signerPublicKey))
 
 				}
 			} else {
@@ -214,7 +214,7 @@ func SubmitXdrWithSignature(client *horizonclient.Client, ownerPublicKey string,
 
 		}
 
-		return "", &tErrors.CustomError{Param: "destination", Err: "error payment failed", ErrMessage: "Payment Failed", Code: 500}
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error operation failed", ErrMessage: "Operation Failed", Code: 500}
 
 	}
 

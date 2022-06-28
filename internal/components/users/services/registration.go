@@ -29,6 +29,9 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 	if _, errExists := users.PublicKeyAlreadyExists(userInfo.PublicKey, gc.DB); errExists != nil {
 		return userInfo, false, errExists
 	}
+	if _, errExists := users.PrimarySignerAlreadyExists(userInfo.PublicKey, gc.DB); errExists != nil {
+		return userInfo, false, errExists
+	}
 	if len(userInfo.Mobile) > 0 {
 		// geoData, _ := userModels.GetGeoInfo(userInfo.PublicIP)
 		num, err := phonenumbers.Parse(userInfo.Mobile, userInfo.MobileCountryCode)

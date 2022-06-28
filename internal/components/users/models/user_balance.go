@@ -8,6 +8,7 @@ type Balance struct {
 	AssetCode   string          `json:"assetCode"`
 	Amount      decimal.Decimal `json:"amount"`
 	QRCode      string          `json:"qrCode"`
+	ImageURL    string          `json:"imageUrl"`
 }
 
 type NFT struct {

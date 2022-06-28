@@ -2,6 +2,7 @@ package main
 
 import (
 	cache "trovo-wallet-api/internal/cache"
+	"trovo-wallet-api/internal/network"
 	pns "trovo-wallet-api/internal/pns"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -68,9 +69,9 @@ func main() {
 		exit := false
 		requiredEnvironmentVariables := []string{"EXPANSION_URL", "BLOCKCHAIN_NETWORK_PASSPHRASE",
 			"MNEMONIC_TEMP_ACCOUNTS", "BLOCKCHAIN_BASE_RESERVE", "MAILGUN_PRIVATE_API_KEY", "CDB_CONNECTION_STRING",
-			"IPAPI_KEY", "IPAPI_HOST", "VERIFICATION_CODE_SALT", "ENABLE_EMAIL_VALIDATION", "ENABLE_CACHING",
+			"IPAPI_KEY", "IPAPI_HOST", "VERIFICATION_CODE_SALT", "ENABLE_EMAIL_VALIDATION", "ENABLE_CACHING", "DEFAULT_ASSET_IMAGE_URL",
 			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_API_KEY", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
-			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "FBDL_SERVICE_URLS", "MAILGUN_DOMAIN",
+			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "FBDL_SERVICE_URLS", "MAILGUN_DOMAIN", "XBN_ASSET_IMAGE_URL",
 			"GC",
 		}
 
@@ -235,6 +236,8 @@ func main() {
 		DB:                        database,
 		PushNotificationClient:    pnsClient,
 		RoachDB:                   roachDB,
+		BantuExpansionClient:      network.GetBlockchainClient(),
+		BantuNetworkPassphrase:    network.GetBlockchainNetworkPassPhrase(),
 	}
 	//setup router
 

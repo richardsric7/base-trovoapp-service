@@ -374,6 +374,182 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, returnedSubwalletInfo)
 	})
 
+	router.POST("/v1/users/trust-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		var trustLineInfo userModels.Trustline
+		// var err error
+
+		data, _ := ioutil.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &trustLineInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		signerUser, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/trust-asset %v", wallet.Alias), gc.DB)
+
+		returnedTrustLineInfo, err := userServices.TrustAsset(&signerUser, &wallet, &trustLineInfo, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		if walletOwner.PushNotificationToken != nil && len(returnedTrustLineInfo.TransactionID) > 0 && returnedTrustLineInfo.TransactionID != "PENDING_AUTH" {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Asset %v Accepted on %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully added the asset [%v] to the list of your trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, returnedTrustLineInfo)
+	})
+
+	router.POST("/v1/users/remove-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		var trustLineInfo userModels.Trustline
+		// var err error
+
+		data, _ := ioutil.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &trustLineInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		signerUser, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/remove-asset %v", wallet.Alias), gc.DB)
+
+		returnedTrustLineInfo, err := userServices.RemoveAssetTrust(&signerUser, &wallet, &trustLineInfo, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		if walletOwner.PushNotificationToken != nil && len(returnedTrustLineInfo.TransactionID) > 0 && returnedTrustLineInfo.TransactionID != "PENDING_AUTH" {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Asset %v Removed on %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully removed the asset [%v] to the list of your trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, returnedTrustLineInfo)
+	})
+
 	router.PUT("/v1/users/:targetUser/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 

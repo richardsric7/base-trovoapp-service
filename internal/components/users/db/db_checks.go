@@ -18,6 +18,7 @@ import (
 //UserRegistrationInfoToUser populates user information with registration information
 func UserRegistrationInfoToUser(userInfo usermodels.UserRegistrationInfo, user *usermodels.User) {
 	user.PublicKey = strings.TrimSpace(strings.ToUpper(userInfo.PublicKey))
+	user.PrimarySigner = strings.TrimSpace(strings.ToUpper(userInfo.PublicKey))
 	user.Username = strings.TrimSpace(strings.ToLower(userInfo.Username))
 	user.Email = strings.TrimSpace(strings.ToLower(userInfo.Email))
 	user.ID = uuid.NewString()
@@ -86,7 +87,15 @@ func UserRegistrationDbChecks(userInfo usermodels.UserRegistrationInfo, db *gorm
 	err = db.Where("username = ?", strings.ToLower(userInfo.Username)).Or("email = ?", strings.ToLower(userInfo.Email)).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-
+			//check if primarySigner already exists.
+			// errPrimarySigner := db.Where("primary_signer = ?", strings.ToLower(userInfo.PublicKey)).First(&user).Error
+			// if errPrimarySigner != nil {
+			// 	if !errors.Is(err, gorm.ErrRecordNotFound) {
+			// 		return nil, &tErrors.ErrorTemporaryServerError{}
+			// 	}
+			// } else {
+			// 	return nil, &tErrors.CustomError{Param: "publicKey", Err: "error-public-key-already-exists-as-primary-signer", ErrMessage: "Public Key already exists as a primary signer in another account", Code: http.StatusConflict}
+			// }
 			if len(userInfo.Referrer) > 2 {
 				//Check if referrer exists
 				var referrer usermodels.User
@@ -172,6 +181,26 @@ func PublicKeyAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err err
 	}
 	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
 
-	return true, &tErrors.CustomError{Param: "publicKey", Err: "error-public-key-already-exists", ErrMessage: fmt.Sprintf("Bantu Address [%v] already exists with another active account", userWallet.ID)}
+	return true, &tErrors.CustomError{Param: "publicKey", Err: "error-public-key-already-exists", ErrMessage: fmt.Sprintf("Bantu Address [%v] already exists with another active account", publicKey)}
+
+}
+
+//PrimarySignerAlreadyExists check if public key already exists
+func PrimarySignerAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err error) {
+	// discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
+	// if len(os.Getenv("IMPORT_ERROR_WEBHOOK")) > 50 {
+	// 	discord.WebhookURL = os.Getenv("IMPORT_ERROR_WEBHOOK")
+	// }
+	publicKey = strings.TrimSpace(publicKey)
+	var user usermodels.User
+	if err := db.Where("primary_signer = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&user).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return true, &tErrors.ErrorTemporaryServerError{}
+		}
+		return false, nil
+	}
+	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
+
+	return true, &tErrors.CustomError{Param: "publicKey", Err: "error-primary-signer-already-exists", ErrMessage: fmt.Sprintf("Bantu Address [%v] already exists as a primary signer with another active account", publicKey)}
 
 }

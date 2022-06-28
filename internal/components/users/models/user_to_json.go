@@ -8,6 +8,7 @@ func (u *User) ToJSON() (jsonObj UserJSON) {
 	jsonObj.Email = u.Email
 	jsonObj.FirstName = u.FirstName
 	jsonObj.PublicKey = u.PublicKey
+	jsonObj.PrimarySigner = u.PrimarySigner
 	jsonObj.Corporate = u.Corporate
 	jsonObj.MobileVerified = u.MobileVerified
 	jsonObj.MembershipType = u.MembershipType

@@ -18,6 +18,7 @@ type User struct {
 	LastName              *string      `gorm:"size:50" json:"lastName"`
 	Mobile                *string      `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
 	PublicKey             string       `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
+	PrimarySigner         string       `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
 	Referrer              *string      `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
 	ReferralLink          *string      `json:"referralLink"`
 	ReferralQrCode        *string      `json:"referralQrCode"`

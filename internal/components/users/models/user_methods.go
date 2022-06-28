@@ -120,6 +120,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					AssetCode:   mi["assetCode"].(string),
 					Amount:      decimal.RequireFromString(mi["amount"].(string)),
 					QRCode:      mi["qrCode"].(string),
+					ImageURL:    mi["imageUrl"].(string),
 				}
 
 			}
@@ -143,6 +144,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			AssetCode:   "",
 			Amount:      decimal.Zero,
 			QRCode:      qrCode,
+			ImageURL:    os.Getenv("XBN_ASSET_IMAGE_URL"),
 		}
 		if !temp && err.Error() == "error-blockchain-account-not-activated" {
 
@@ -165,8 +167,8 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 		go func(v horizon.Balance) {
 			defer wg.Done()
 			amount, _ := decimal.NewFromString(v.Balance)
-			if (temp && (amount.IsZero())) || (v.Code == "" && temp) {
-				//if nft or if it has NFT we ski
+			if (temp && (amount.IsZero())) || (v.Code == "" && temp) || strings.Contains(strings.ToLower(v.Code), "nft") {
+				//if nft or if it has NFT we skip
 				return
 			}
 			if !temp || (strings.HasSuffix(strings.ToLower(v.Code), "nft")) {
@@ -187,8 +189,9 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					qrCode = p.QRCode
 				}
 			}
+			imageUrl := BantuAsset{AssetCode: v.Code, AssetIssuer: v.Issuer}.GetAssetImageFromIssuer(gc)
 			balance := Balance{AssetIssuer: v.Issuer, AssetCode: v.Code,
-				Amount: availableBalance, QRCode: qrCode}
+				Amount: availableBalance, QRCode: qrCode, ImageURL: imageUrl}
 			m.Lock()
 			balances[v.Code+":"+v.Issuer] = balance
 			m.Unlock()

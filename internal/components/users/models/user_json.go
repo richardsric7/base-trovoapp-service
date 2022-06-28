@@ -11,6 +11,7 @@ type UserJSON struct {
 	LastName              string           `json:"lastName"`
 	Mobile                string           `json:"mobile"`
 	PublicKey             string           `json:"publicKey"`
+	PrimarySigner         string           `json:"primarySigner"`
 	Referrer              string           `json:"referrer"`
 	ReferralLink          string           `json:"referralLink"`
 	ReferralQrCode        string           `json:"referralQrCode"`
