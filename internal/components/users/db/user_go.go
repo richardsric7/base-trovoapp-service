@@ -89,3 +89,15 @@ func GetWallet(identifier string, db *gorm.DB) (user userModels.UserWallet, temp
 	return user, temp, nil
 
 }
+
+func UpdatePushNotificationToken(identifier string, pnt *string, db *gorm.DB) {
+	user, _ := GetUser(identifier, db)
+
+	if user.PushNotificationToken != pnt {
+		user.PushNotificationToken = pnt
+		err := db.Save(&user).Error
+		if err != nil {
+			log.Printf("[UpdatePushNotificationToken] unable to update push notification token for user [%v], due to:[%v]", user.Username, err)
+		}
+	}
+}

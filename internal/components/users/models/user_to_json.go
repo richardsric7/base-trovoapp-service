@@ -1,7 +1,5 @@
 package users
 
-import "log"
-
 func (u *User) ToJSON() (jsonObj UserJSON) {
 	jsonObj.ID = u.ID
 	jsonObj.Username = u.Username
@@ -16,7 +14,7 @@ func (u *User) ToJSON() (jsonObj UserJSON) {
 	jsonObj.WalletRecoveryEnabled = u.WalletRecoveryEnabled
 	jsonObj.Verified = u.Verified
 	jsonObj.Suspended = u.Suspended
-	log.Println("[UserToJSON] set basic params")
+	// log.Println("[UserToJSON] set basic params")
 	//nullable
 	{
 		if u.LastName != nil {
@@ -46,17 +44,17 @@ func (u *User) ToJSON() (jsonObj UserJSON) {
 
 	}
 	if u.UserWallets != nil {
-		log.Println("[UserToJSON] started user wallets json")
+		// log.Println("[UserToJSON] started user wallets json")
 
 		for _, uw := range u.UserWallets {
 			uwJson := uw.ToJSON()
-			log.Printf("[UserToJSON] added user wallet [%+v]\n", uwJson)
+			// log.Printf("[UserToJSON] added user wallet [%+v]\n", uwJson)
 			jsonObj.UserWallets = append(jsonObj.UserWallets, uwJson)
 
 		}
 
 	}
-	log.Println("[UserToJSON] ended user wallets json and returning data")
+	// log.Println("[UserToJSON] ended user wallets json and returning data")
 	return jsonObj
 }
 

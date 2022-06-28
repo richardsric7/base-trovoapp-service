@@ -179,6 +179,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		//check if type is import
 		queryType := strings.ToLower(c.Query("type"))
+		pnt := strings.ToLower(c.Query("pnt"))
 
 		cacheDurationInSeconds := 1 * 60 //1 minutes
 
@@ -233,6 +234,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 						log.Println("[Wallet import] Invalid signer for user:", identifier, "error: ", err)
 						c.JSON(te.HTTPCode(), te.JSONError())
 						return
+					}
+					//update the push notification token, if it is different
+					if len(pnt) > 10 {
+						usersDB.UpdatePushNotificationToken(v.ID, &pnt, gc.DB)
+
 					}
 				}
 			}

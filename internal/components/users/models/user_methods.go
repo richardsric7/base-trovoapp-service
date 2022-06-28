@@ -146,13 +146,14 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			QRCode:      qrCode,
 			ImageURL:    os.Getenv("XBN_ASSET_IMAGE_URL"),
 		}
+
 		if !temp && err.Error() == "error-blockchain-account-not-activated" {
 
+			log.Printf("[GetBalance] get blockchain account detail error: %v\n", err)
 			//save to cache
-			gc.RedisCache.StoreResultToCache(cacheKey, balances, 0)
+			gc.RedisCache.StoreResultToCache(cacheKey, balances, 60)
 			return balances, nil
 		}
-		log.Printf("[GetBalance] get blockchain account detail error: %v\n", err)
 		if !temp {
 			return balances, nil
 		}
@@ -164,36 +165,40 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 	// var keys []string
 	for _, v := range account.Balances {
 		wg.Add(1)
-		go func(v horizon.Balance) {
+		go func(bal horizon.Balance) {
+			// log.Printf("[BALANCE]%+v\n", v)
 			defer wg.Done()
-			amount, _ := decimal.NewFromString(v.Balance)
-			if (temp && (amount.IsZero())) || (v.Code == "" && temp) || strings.Contains(strings.ToLower(v.Code), "nft") {
+			amount, _ := decimal.NewFromString(bal.Balance)
+			if (temp && (amount.IsZero())) || (bal.Code == "" && temp) {
 				//if nft or if it has NFT we skip
 				return
 			}
-			if !temp || (strings.HasSuffix(strings.ToLower(v.Code), "nft")) {
+			if !temp && (strings.HasSuffix(strings.ToLower(bal.Code), "nft")) {
 				//if nft skip in balance
 				return
 			}
+
 			//liability when u hv placed a BUY
-			buyingLiabilities, _ := decimal.NewFromString(v.BuyingLiabilities)
-			sellingLiabilities, _ := decimal.NewFromString(v.SellingLiabilities)
+			buyingLiabilities, _ := decimal.NewFromString(bal.BuyingLiabilities)
+			sellingLiabilities, _ := decimal.NewFromString(bal.SellingLiabilities)
 			// availableBalance := amount.Sub(sellingLiabilities)
 			availableBalance := amount.Sub(sellingLiabilities.Add(buyingLiabilities))
 			// availableBalance := availableBal.Truncate(7).String()
 			qrCode := ""
 			if !temp {
 
-				p, e := dl.GeneratePaymentData(u.ID, v.Code, v.Issuer, "", "", gc)
+				p, e := dl.GeneratePaymentData(u.ID, bal.Code, bal.Issuer, "", "", gc)
 				if e == nil {
 					qrCode = p.QRCode
 				}
 			}
-			imageUrl := BantuAsset{AssetCode: v.Code, AssetIssuer: v.Issuer}.GetAssetImageFromIssuer(gc)
-			balance := Balance{AssetIssuer: v.Issuer, AssetCode: v.Code,
+			imageUrl := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}.GetAssetImageFromIssuer(gc)
+			balance := Balance{AssetIssuer: bal.Issuer, AssetCode: bal.Code,
 				Amount: availableBalance, QRCode: qrCode, ImageURL: imageUrl}
+			// log.Printf("[BALANCE] balance: %+v\n", bal)
+
 			m.Lock()
-			balances[v.Code+":"+v.Issuer] = balance
+			balances[bal.Code+":"+bal.Issuer] = balance
 			m.Unlock()
 
 		}(v)
@@ -252,11 +257,11 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 		go func(v horizon.Balance) {
 			defer wg.Done()
 			amount, _ := decimal.NewFromString(v.Balance)
-			if (temp && (amount.IsZero())) || (v.Code == "" && temp) {
-				//if nft or if it has NFT we ski
+			if amount.IsZero() {
+				//if amount is zero, skip
 				return
 			}
-			if !temp || !(strings.HasSuffix(strings.ToLower(v.Code), "nft")) {
+			if !(strings.HasSuffix(strings.ToLower(v.Code), "nft")) {
 				//if not nft skip
 				return
 			}
@@ -286,6 +291,7 @@ func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConf
 	if err != nil {
 		return
 	}
+	// log.Printf("unsorted balance for [%v]:[%+v]", u.ID, unsortedBalances)
 
 	var keys []string
 	for key := range unsortedBalances {
@@ -337,7 +343,7 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizo
 
 	clientAccount, err = client.AccountDetail(accountRequest)
 	if err != nil {
-		log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
+		// log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
 		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
 			log.Printf("[GetBlockchainAccountDetail Network Failure]: %s\n", "Error Connecting to Expansion Service")
 			return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
@@ -346,12 +352,10 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizo
 
 			if ok {
 
-				log.Println("[BlockchainAccountProperties] error is known", horizonException.Problem.Status)
-
 				if horizonException.Problem.Status == http.StatusNotFound {
 					return clientAccount, false, &tErrors.ErrorBlockchainAccountNotActivated{}
 				}
-
+				log.Println("[BlockchainAccountProperties] error is known", horizonException.Problem.Status)
 			}
 
 		}
