@@ -238,6 +238,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					//update the push notification token, if it is different
 					if len(pnt) > 10 {
 						usersDB.UpdatePushNotificationToken(v.ID, &pnt, gc.DB)
+						userInfo.UserData.PushNotificationToken = pnt
 
 					}
 				}
