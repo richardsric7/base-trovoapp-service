@@ -142,7 +142,7 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWalletInfo, gc *sharedconfig.GlobalConfig, client *horizonclient.Client) (xdrbase64 string, subWalletObj userModels.UserWallet, err error) {
 	ops := make([]txnbuild.Operation, 0)
 	subWalletInfo.Messages = make([]string, 0)
-	var activationAmount = decimal.NewFromFloat(3.0)
+	var activationAmount = decimal.NewFromFloat(6)
 	var minBalance = decimal.NewFromFloat(3.0)
 	if len(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT")) > 0 {
 		activationAmount = decimal.RequireFromString(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT"))
@@ -237,7 +237,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		//account exists and native balance is less than needed. add 3 native token to the wallet
 		ops = append(ops, &txnbuild.Payment{
 			Destination:   subWalletInfo.PublicKey,
-			Amount:        minBalance.String(),
+			Amount:        activationAmount.String(),
 			Asset:         nativeAsset,
 			SourceAccount: user.PublicKey,
 		})
@@ -293,7 +293,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo *userModels.SubWalletInfo, gc *sharedconfig.GlobalConfig, client *horizonclient.Client) (xdrbase64 string, subWalletObj userModels.UserWallet, err error) {
 	ops := make([]txnbuild.Operation, 0)
 	subWalletInfo.Messages = make([]string, 0)
-	var activationAmount = decimal.NewFromFloat(3.0)
+	var activationAmount = decimal.NewFromFloat(6.0)
 	var minBalance = decimal.NewFromFloat(3.0)
 	if len(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT")) > 0 {
 		activationAmount = decimal.RequireFromString(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT"))
@@ -364,7 +364,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		//account exists and native balance is less than needed. add 3 native token to the wallet
 		ops = append(ops, &txnbuild.Payment{
 			Destination:   subWalletInfo.PublicKey,
-			Amount:        minBalance.String(),
+			Amount:        activationAmount.String(),
 			Asset:         nativeAsset,
 			SourceAccount: user.PublicKey,
 		})
@@ -390,7 +390,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		//account exists and native balance is less than needed. add 3 native token to the wallet
 		ops = append(ops, &txnbuild.Payment{
 			Destination:   subWalletInfo.PublicKey,
-			Amount:        minBalance.String(),
+			Amount:        activationAmount.String(),
 			Asset:         nativeAsset,
 			SourceAccount: user.PublicKey,
 		})

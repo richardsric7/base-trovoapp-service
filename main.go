@@ -92,7 +92,7 @@ func main() {
 		}
 
 	}
-
+	log.Println("starting migration")
 	//migrate DB models if any
 	db.MigrateDB(database)
 
@@ -102,15 +102,17 @@ func main() {
 			log.Fatalf("Error migrating TrackedWallet model, error: %v", errMigrate)
 		}
 	}
+	log.Println("migrating tracked wallet done...")
 	errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedPublicKey{})
 	if errMigrate != nil {
 		if !strings.Contains(errMigrate.Error(), "constraint") {
 			log.Fatalf("Error migrating TrackedPublicKey model, error: %v", errMigrate)
 		}
 	}
+	log.Println("migrating tracked public key done...")
 
 	//setup redis
-
+	log.Println("migration done...")
 	enableCaching := false
 
 	if os.Getenv("ENABLE_CACHING") == "1" {

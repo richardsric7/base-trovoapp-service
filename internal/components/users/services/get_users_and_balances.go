@@ -91,7 +91,7 @@ func GetUserNFTs(user *userModels.User, gc *sharedconfig.GlobalConfig) (userNFTs
 
 			if errR1 != nil {
 				//log server error
-				log.Printf("[GetUserWalletAssetBalances] error getting claimed wallet balance for user:[%s] wallet:[%s] error:[%+v]\n", user.Username, vg2.ID, errR1)
+				log.Printf("[GetUserNFTs] error getting NFT asset for user:[%s] wallet:[%s] error:[%+v]\n", user.Username, vg2.ID, errR1)
 
 			}
 			//Claimed Assets

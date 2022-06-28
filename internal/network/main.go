@@ -121,7 +121,7 @@ func BlockchainAccountProperties(client *horizonclient.Client, destinationPublic
 	subEntryCount := decimal.NewFromInt32(destinationAccountDetail.SubentryCount)
 	subEntryCountMultiplier := GetBlockchainBaseReserve()
 
-	amountToSubtractFromNativeAccountBalance := (subEntryCount.Add(decimal.NewFromInt(4))).Mul(subEntryCountMultiplier)
+	amountToSubtractFromNativeAccountBalance := (subEntryCount).Mul(subEntryCountMultiplier)
 
 	log.Printf("[BlockchainAccountProperties] amount to subtract is %v\n", amountToSubtractFromNativeAccountBalance.String())
 

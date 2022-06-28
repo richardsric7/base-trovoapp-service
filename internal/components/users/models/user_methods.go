@@ -710,7 +710,7 @@ func (u *User) Fetch3rdPartyWallets(gc *sharedconfig.GlobalConfig) (thirdPartyWa
 }
 
 func (u *User) GetDefaultAssets(gc *sharedconfig.GlobalConfig) (defaultAssets []DefaultAsset) {
-	cacheKey := "GetDefaultAssets"
+	cacheKey := "GetDefaultAssets_"
 
 	{
 
@@ -726,6 +726,7 @@ func (u *User) GetDefaultAssets(gc *sharedconfig.GlobalConfig) (defaultAssets []
 				defaultAssets = append(defaultAssets, DefaultAsset{
 					AssetCode:   vals["assetCode"].(string),
 					AssetIssuer: vals["assetIssuer"].(string),
+					ImageURL:    vals["imageUrl"].(string),
 				})
 			}
 			return
@@ -737,7 +738,7 @@ func (u *User) GetDefaultAssets(gc *sharedconfig.GlobalConfig) (defaultAssets []
 		log.Printf("[User.GetDefaultAssets] Error pulling default Assets, Error: %v", e)
 	}
 	//save to cache
-	gc.RedisCache.StoreResultToCache(cacheKey, defaultAssets, 4000)
+	gc.RedisCache.StoreResultToCache(cacheKey, defaultAssets, 200)
 	return defaultAssets
 
 }
