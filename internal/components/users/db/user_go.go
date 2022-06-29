@@ -53,23 +53,23 @@ func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 }
 
 //GetWallet gets user wallet data by alias or public key or temp public key
-func GetWallet(identifier string, db *gorm.DB) (user userModels.UserWallet, temp bool, err error) {
+func GetWallet(identifier string, db *gorm.DB) (userWallet userModels.UserWallet, temp bool, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
 	//e returns execution errors
 	var e error
 	if len(identifier) == 56 {
 		//56 char public key is supplied
-		e = db.Preload(clause.Associations).Where("id = ?", identifier).Or("temp_public_key = ?", &identifier).First(&user).Error
+		e = db.Preload(clause.Associations).Where("id = ?", identifier).Or("temp_public_key = ?", &identifier).First(&userWallet).Error
 		if e == nil {
-			if identifier == *user.TempPublicKey {
+			if identifier == *userWallet.TempPublicKey {
 				temp = true
 			}
 			return
 		}
 	} else {
 		//username is supplied
-		e = db.Preload(clause.Associations).Where("alias = ?", strings.ToLower(identifier)).First(&user).Error
+		e = db.Preload(clause.Associations).Where("alias = ?", strings.ToLower(identifier)).First(&userWallet).Error
 
 	}
 
@@ -86,7 +86,7 @@ func GetWallet(identifier string, db *gorm.DB) (user userModels.UserWallet, temp
 	}
 
 	// log.Printf("user for %v is %v\n", userInfo, user)
-	return user, temp, nil
+	return userWallet, temp, nil
 
 }
 

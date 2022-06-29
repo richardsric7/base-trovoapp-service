@@ -549,7 +549,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if walletOwner.PushNotificationToken != nil && len(returnedTrustLineInfo.TransactionID) > 0 && returnedTrustLineInfo.TransactionID != "PENDING_AUTH" {
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = ""
-			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Asset %v Removed on %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully removed the asset [%v] to the list of your trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Asset %v Removed from %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully removed the asset [%v] from the list of your trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 
 		//At this point, there was no error.

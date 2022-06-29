@@ -31,7 +31,7 @@ func SignString(toSign string, secretKey string) (string, error) {
 	return signature, nil
 }
 
-//SignHttp returns a signed base64 encoded string of fullPathWithQuery+keyParam. keyParam = publicKey+timestamp
+//SignHttp returns a signed base64 encoded string of fullPathWithQuery+keyParam. keyParam = signerPublicKey+timestamp
 func SignHttp(fullPathWithQuery string, keyParam string, secretKey string) (string, error) {
 	// log.Printf("path + string:[%v]\n", fullPathWithQuery+body)
 	keyParam = strings.TrimSpace(keyParam)

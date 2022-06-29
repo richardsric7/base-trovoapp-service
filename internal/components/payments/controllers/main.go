@@ -160,11 +160,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		if temp || userWallet.Tag != nil {
+		if temp {
 			errAccountIsTemp := &tErrors.CustomError{
 				Param:      "Username",
 				Err:        "error-account-not-primary-account-alias",
-				ErrMessage: "only sender primary accounts are allowed for payment requests",
+				ErrMessage: "only primary/subwallets are allowed for payment requests",
 				Code:       http.StatusForbidden,
 			}
 
@@ -214,7 +214,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		}
 
-		primaryAccountSigner := owner.PublicKey
+		primaryAccountSigner := owner.PrimarySigner
 
 		if primaryAccountSigner != middleware.ExtractSigner(c) {
 			log.Printf("[FAILED PAYMENT] INVALID PAYMENT SIGNER IN HEADER from [%v], error: [%v]\n", primaryAccountAlias, err)
@@ -402,7 +402,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
 				if getDestinationWalletError == nil {
-					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, userWallet.Alias, destinationWallet.Alias), "", dataPayload, gc)
+					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 				}
 				owner.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 

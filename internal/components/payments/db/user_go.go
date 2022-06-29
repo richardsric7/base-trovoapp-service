@@ -24,9 +24,10 @@ type User struct {
 	Email                 string       `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
 	ImageThumbnailURL     *string      `json:"imageThumbnailURL"`
 	FirstName             string       `gorm:"size:50" json:"firstName"`
-	LastName              string       `gorm:"size:50" json:"lastName"`
+	LastName              *string      `gorm:"size:50" json:"lastName"`
 	Mobile                *string      `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
 	PublicKey             string       `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
+	PrimarySigner         string       `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
 	Referrer              *string      `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
 	ReferralLink          *string      `json:"referralLink"`
 	ReferralQrCode        *string      `json:"referralQrCode"`
@@ -96,7 +97,6 @@ type ReservedName struct {
 	Status       *uint64 `gorm:"default:0;index:idx_reserved_status"`
 }
 
-//GetUser gets user data by either wallet id or signer or temporary public key
 func GetUser(userInfo string, db *gorm.DB) (user User, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
@@ -106,7 +106,7 @@ func GetUser(userInfo string, db *gorm.DB) (user User, err error) {
 		//56 char public key is supplied
 
 		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_public_key = ?", &userInfo).Or("signer = ?", userInfo).Select("user_id")
-		e = db.Preload(clause.Associations).Where("id = (?)", subQuery).First(&user).Error
+		e = db.Preload(clause.Associations).Where("id IN (?)", subQuery).First(&user).Error
 	} else if strings.Contains(userInfo, "_") {
 		//alias format is supplied
 		subQuery := db.Table("user_wallets").Where("alias = ?", strings.ToLower(userInfo)).Select("user_id")
@@ -137,7 +137,7 @@ func GetUser(userInfo string, db *gorm.DB) (user User, err error) {
 
 //GetWallet gets user wallet data by alias or public key or temp public key
 func GetWallet(identifier string, db *gorm.DB) (userWallet UserWallet, temp bool, err error) {
-	conDB.PrintDBStats("GetWallet", db)
+	conDB.PrintDBStats("[payments]GetUserInfo", db)
 
 	//e returns execution errors
 	var e error
@@ -162,7 +162,7 @@ func GetWallet(identifier string, db *gorm.DB) (userWallet UserWallet, temp bool
 			err = &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-does-not-exist", ErrMessage: fmt.Sprintf("%v is not assigned to any wallet", identifier)}
 			return
 		}
-		log.Println("[GetUserInfo] error: ", e)
+		log.Println("[payments]GetUserInfo error: ", e)
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
