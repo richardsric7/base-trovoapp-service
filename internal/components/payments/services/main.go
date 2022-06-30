@@ -190,6 +190,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, de
 	}
 
 	destinationInfo, getDestinationError := usersdb.GetUser(paymentInfo.Destination, db)
+	destinationWallet, _, _ := usersdb.GetWallet(paymentInfo.Destination, db)
 
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
@@ -228,7 +229,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, de
 	if publicKeyPayment {
 		destinationPublicKey = paymentInfo.Destination
 	} else {
-		destinationPublicKey = destinationInfo.PublicKey
+		destinationPublicKey = destinationWallet.ID
 	}
 	//perform ths checks of determining messages to be appended. if destination account property is not checked here, information would be returned without messages set.
 	destinationAccountExists, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr :=
@@ -329,7 +330,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, de
 	} else {
 		//custom asset
 
-		// claimable assets are for trovo wallet customers only. it would return error above when destination does not trust asset
+		// claimable assets are for trovo wallet users only. it would return error above when destination does not trust asset
 
 		if !destinationAccountExists {
 			ops = append(ops, &txnbuild.CreateAccount{
@@ -432,6 +433,7 @@ func generatePaymentXdrWithChannelAccount(client *horizonclient.Client, senderPu
 	}
 
 	destinationInfo, getDestinationError := usersdb.GetUser(paymentInfo.Destination, db)
+	destinationWallet, _, _ := usersdb.GetWallet(paymentInfo.Destination, db)
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
 		return "", &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
@@ -461,7 +463,7 @@ func generatePaymentXdrWithChannelAccount(client *horizonclient.Client, senderPu
 	if publicKeyPayment {
 		destinationPublicKey = paymentInfo.Destination
 	} else {
-		destinationPublicKey = destinationInfo.PublicKey
+		destinationPublicKey = destinationWallet.ID
 	}
 	//perform ths checks of determining messages to be appended. if destination account property is not checked here, information would be returned without messages set.
 	destinationAccountExists, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr :=
@@ -564,7 +566,7 @@ func generatePaymentXdrWithChannelAccount(client *horizonclient.Client, senderPu
 	} else {
 		//custom asset
 
-		// claimable assets are for bantupay customers only. it would return error above when destination does not trust asset
+		// claimable assets are for trovowallet users only. it would return error above when destination does not trust asset
 
 		if !destinationAccountExists {
 			ops = append(ops, &txnbuild.CreateAccount{

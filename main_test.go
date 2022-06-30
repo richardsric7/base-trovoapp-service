@@ -341,54 +341,57 @@ type SwapSendInfo struct {
 
 // }
 
-// func TestGetPaymentHistory(t *testing.T) {
+/**
+2022/06/30 18:40:23 Full Path With Query:[/v1/users/payments/GCWNKFHXYJ7XW6ZL3UFTKXBSRFK7EKBLXXRZQR6PIK3N2KBKQ74I3RIC] KeyParam:[GCWNKFHXYJ7XW6ZL3UFTKXBSRFK7EKBLXXRZQR6PIK3N2KBKQ74I3RIC1656614] Signature: [dBVVuSejU7jfc7QPLU4pMuAuDa00S/3EPyasS+ime9gGFFOONwogY1otWVduUu0VnirdTIj1jXCLzsmblH3qBA==]
+**/
+func TestGetPaymentHistory(t *testing.T) {
 
-// 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
-// 	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-// 	pk := os.Getenv("RICPK")
-// 	secretKey := os.Getenv("RICSC")
-// 	kp := keypair.MustParseFull(secretKey)
-// 	// log.Println(kp.Address())
-// 	// baseURL := "http://localhost:8080"
-// 	baseURL := prodURL
-// 	// baseURL := prodURL
-// 	fullPath := fmt.Sprintf("/v1/users/%s/payments/%v", "ric", kp.Address())
-// 	ts := time.Now().Unix() / 1000
+	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
+	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
+	pk := os.Getenv("RICPK")
+	secretKey := os.Getenv("RICSC")
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	// baseURL := "http://localhost:8080"
+	baseURL := prodURL
+	// baseURL := prodURL
+	fullPath := fmt.Sprintf("/v1/users/payments/%v", kp.Address())
+	ts := time.Now().Unix() / 1000
 
-// 	tsString := fmt.Sprintf("%v", ts)
-// 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
-// 	if err != nil {
-// 		t.Errorf(err.Error())
-// 		return
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
 
-// 	}
+	}
 
-// 	errorResponse := new(ErrorResponse)
-// 	resultResponse := new(PaginatedPaymentHistory)
+	errorResponse := new(ErrorResponse)
+	resultResponse := new(PaginatedPaymentHistory)
 
-// 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-// 		Set("X-TW-PUBLIC-KEY", kp.Address()).
-// 		Set("X-TW-SIGNER", kp.Address()).
-// 		Set("X-TW-SIGNATURE", signedHttpHeader).
-// 		Set("X-TW-TIMESTAMP", tsString).
-// 		Base(baseURL).
-// 		Get(fullPath).Receive(resultResponse, errorResponse)
-// 	//get payload string
-// 	if len(errorResponse.Error) > 0 {
-// 		log.Println("[TestGetUserInfo] server response error:", *errorResponse)
-// 		return
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Get(fullPath).Receive(resultResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestGetUserInfo] server response error:", *errorResponse)
+		return
 
-// 	}
-// 	if err != nil {
-// 		log.Println("[TestGetUserInfo]request error:", err)
-// 		t.Errorf(err.Error())
+	}
+	if err != nil {
+		log.Println("[TestGetUserInfo]request error:", err)
+		t.Errorf(err.Error())
 
-// 		return
-// 	}
+		return
+	}
 
-// 	log.Printf("Result:[%+v]\n", resultResponse)
+	log.Printf("Result:[%+v]\n", resultResponse)
 
-// }
+}
 
 // func TestSendPushNotificationMessage(t *testing.T) {
 // 	ric := "dWLRIQWuSm-sqAKA-ABwhS:APA91bGJt8PE4KBS0OPIJOVp4JsWbpiJMK1DrIJIhZM7hlOVeLo6OUGlN5PbbsttT3Oq0YNXZZ8P0zDEcVD6wQkdoFOfrTSFq0q9A1XZU605ZhTpaLLfqwqONniRQKoj4I-YdMgxXoJc"
@@ -435,120 +438,125 @@ type SwapSendInfo struct {
 
 // }
 
-//TestSendPaymentMultiAccessDisabled sends payment from primary wallet
-// func TestSendPaymentMultiAccessDisabled(t *testing.T) {
+/**
+2022/06/30 18:37:43 Full Path With Query:[/v1/users/payment] KeyParam:[GCWNKFHXYJ7XW6ZL3UFTKXBSRFK7EKBLXXRZQR6PIK3N2KBKQ74I3RIC1656614] Signature: [WnEUUYVAjhVRSvqJ/ndOf8TMlIil45Gua2Cn2PGmZULrb5RGVcZuOxYskp0BiHWqGKpRpRi+6Kfhf/DA4jrpCA==]
+**/
 
-// 	// pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
-// 	// secretKey := "SDBLGMM6HVLYSUUR2TIKC6E7GZHQA5VJUUGBVOGDC5KQHTJVC2KK3EXK"
-// 	pk := os.Getenv("RICPK")
-// 	secretKey := os.Getenv("RICSC")
-// 	channelAccountSK := ""
-// 	ownerUsername := "ric"
-// 	kp := keypair.MustParseFull(secretKey)
-// 	// log.Println(kp.Address())
-// 	baseURL := prodURL
-// 	var sEnc string
-// 	if strings.Contains(ownerUsername, "/") {
-// 		sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+// TestSendPaymentMultiAccessDisabled sends payment from primary wallet
+func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 
-// 	} else {
-// 		sEnc = ownerUsername
-// 	}
-// 	fullPath := "/v1/users/payment"
-// 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
-// 	ts := time.Now().Unix() / 1000
-// 	tsString := fmt.Sprintf("%v", ts)
-// 	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
-// 	if err != nil {
-// 		t.Errorf(err.Error())
-// 		return
+	// pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	// secretKey := "SDBLGMM6HVLYSUUR2TIKC6E7GZHQA5VJUUGBVOGDC5KQHTJVC2KK3EXK"
+	pk := os.Getenv("RICPK")
+	secretKey := os.Getenv("RICSC")
+	channelAccountSK := ""
+	// ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	baseURL := prodURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
 
-// 	}
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/users/payment"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
 
-// 	paymentPayload := PaymentInfo{
-// 		Destination: "ric_sub2",
-// 		Memo:        "Test XBN Payment",
-// 		Amount:      "500000",
-// 	}
-// 	errorResponse := new(ErrorResponse)
-// 	payResponse := new(PaymentInfo)
+	}
 
-// 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-// 		Set("X-TW-PUBLIC-KEY", kp.Address()).
-// 		Set("X-TW-SIGNER", kp.Address()).
-// 		Set("X-TW-SIGNATURE", signedHttpHeader).
-// 		Set("X-TW-TIMESTAMP", tsString).
-// 		Base(baseURL).
-// 		Post(fullPath).BodyJSON(paymentPayload).Receive(payResponse, errorResponse)
-// 	//get payload string
-// 	if len(errorResponse.Error) > 0 {
-// 		log.Println("[TestSendPaymentMultiAccessDisabled] server response error:", *errorResponse)
-// 		return
+	paymentPayload := PaymentInfo{
+		Destination: "ric_sub2",
+		Memo:        "Test XBN Payment",
+		Amount:      "5000",
+	}
+	errorResponse := new(ErrorResponse)
+	payResponse := new(PaymentInfo)
 
-// 	}
-// 	if err != nil {
-// 		log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
-// 		t.Errorf(err.Error())
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(paymentPayload).Receive(payResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestSendPaymentMultiAccessDisabled] server response error:", *errorResponse)
+		return
 
-// 		return
-// 	}
+	}
+	if err != nil {
+		log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
+		t.Errorf(err.Error())
 
-// 	log.Printf("Confirmation Payment Response:[%+v]\n", payResponse)
+		return
+	}
 
-// 	{
-// 		//run the payment signing and submission
-// 		p := *payResponse
-// 		//sign transaction
-// 		if len(p.ChannelAccount) == 56 {
-// 			ckp := keypair.MustParseFull(channelAccountSK)
+	log.Printf("Confirmation Payment Response:[%+v]\n", payResponse)
 
-// 			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
-// 			if err != nil {
-// 				log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
-// 				t.Errorf(err.Error())
+	{
+		//run the payment signing and submission
+		p := *payResponse
+		//sign transaction
+		if len(p.ChannelAccount) == 56 {
+			ckp := keypair.MustParseFull(channelAccountSK)
 
-// 				return
-// 			}
-// 			p.ChannelAccountSignature = dsigned
+			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
+			if err != nil {
+				log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
+				t.Errorf(err.Error())
 
-// 		}
-// 		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
-// 		if err != nil {
-// 			log.Println("[TestSendPaymentMultiAccessDisabled] makePayment error:", err)
-// 			t.Errorf(err.Error())
+				return
+			}
+			p.ChannelAccountSignature = dsigned
 
-// 			return
-// 		}
+		}
+		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
+		if err != nil {
+			log.Println("[TestSendPaymentMultiAccessDisabled] makePayment error:", err)
+			t.Errorf(err.Error())
 
-// 		p.TransactionSignature = signedBase64
+			return
+		}
 
-// 		ts := time.Now().Unix() / 1000
-// 		tsString := fmt.Sprintf("%v", ts)
-// 		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
-// 		if err != nil {
-// 			t.Errorf(err.Error())
-// 			return
+		p.TransactionSignature = signedBase64
 
-// 		}
-// 		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-// 			Set("X-TW-PUBLIC-KEY", kp.Address()).
-// 			Set("X-TW-SIGNER", kp.Address()).
-// 			Set("X-TW-SIGNATURE", signedHttpHeader).
-// 			Set("X-TW-TIMESTAMP", tsString).
-// 			Base(baseURL).
-// 			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
-// 		if err != nil {
-// 			t.Errorf(err.Error())
-// 			return
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
 
-// 		}
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", kp.Address()).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
 
-// 		log.Printf("Make Payment Response:[%+v]\n", payResponse)
-// 	}
-// 	log.Println("[TestSendPaymentMultiAccessDisabled] completed")
-// 	time.Sleep(time.Second * 50)
+		}
 
-// }
+		log.Printf("Make Payment Response:[%+v]\n", payResponse)
+	}
+	log.Println("[TestSendPaymentMultiAccessDisabled] completed")
+	time.Sleep(time.Second * 10)
+
+}
+
 //TestSendPaymentMultiAccessDisabled sends payment from primary account
 func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 

@@ -304,7 +304,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			accountSignerUser.PublicIP = c.ClientIP()
 
 			payments.UpdateAndLogUserPaymentGeoInformation(&accountSignerUser, paymentInfoReturned, gc.DB)
-			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", primaryAccountAlias)
+			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
 			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", primaryAccountAlias)
 
 			gc.RedisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
@@ -313,7 +313,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				destinationUsername := strings.TrimSpace(strings.ToLower(destinationUser.Username))
 
 				receiverCacheKey := fmt.Sprintf("[GET] /v1/users/%v", destinationUsername)
-				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", destinationUsername)
+				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverCacheKey, receiverPaymentHistoryCacheKey)
 			}
 			c.JSON(http.StatusOK, paymentInfoReturned)
@@ -343,9 +343,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					if paymentInfoReturned.AssetIssuer == "" {
 						assetCode = "XBN"
 					}
+					senderWallet, _, _ := paymentsDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 					jsonPayload := payload{
 						Destination:     paymentInfoReturned.Destination,
-						Sender:          primaryAccountAlias,
+						Sender:          senderWallet.Alias,
 						Amount:          paymentInfoReturned.Amount,
 						AssetCode:       assetCode,
 						AssetIssuer:     paymentInfoReturned.AssetIssuer,
