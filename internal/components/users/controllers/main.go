@@ -66,9 +66,20 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
 		cacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", targetPublicKeyForHistory)
+		cacheKeyParameters := c.Request.URL.RequestURI()
+		{
+			// check cache
+			ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
 
+			if ok {
+				log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+				c.JSON(status, response)
+				return
+			}
+
+		}
 		// cacheDurationInSeconds := 1 * 60 //1 minutes
-		cacheDurationInSeconds := 10 //1 minutes
+		cacheDurationInSeconds := 60 //1 minutes
 		conDB.PrintDBStats(fmt.Sprintf("/v1/users/payments/%v", targetPublicKeyForHistory), gc.DB)
 
 		signerUser, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
@@ -92,12 +103,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 
 			c.JSON(statusCode, response)
-			gc.RedisCache.CacheHttpResponse(cacheKey, statusCode, response, cacheDurationInSeconds)
+			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
 
 		{
-			gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
+			// gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
 
 			//check if the owner is the one accessing it or if the one accessing it has access to access it.
 
