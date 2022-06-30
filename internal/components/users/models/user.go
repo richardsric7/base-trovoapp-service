@@ -116,6 +116,7 @@ type SubWalletInfo struct {
 	PublicKey               string   `json:"publicKey"`
 	WalletTag               string   `json:"walletTag"`
 	WalletDescription       string   `json:"walletDescription"`
+	Alias                   string   `json:"alias"`
 	Transaction             string   `json:"transaction"`
 	PrimarySignature        string   `json:"primarySignature"`
 	SubWalletSignature      string   `json:"subWalletSignature"`

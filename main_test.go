@@ -219,6 +219,21 @@ type Trustline struct {
 	NetworkPassPhrase    string `json:"networkPassPhrase"`
 }
 
+type SwapSendInfo struct {
+	DestinationAssetCode   string   `json:"destinationAssetCode"`
+	DestinationAssetIssuer string   `json:"destinationAssetIssuer"`
+	SwappedEstimate        string   `json:"swappedEstimate"`
+	SourceAssetCode        string   `json:"sourceAssetCode"`
+	SourceAssetIssuer      string   `json:"sourceAssetIssuer"`
+	SourceAmount           string   `json:"sourceAmount" `
+	Transaction            string   `json:"transaction"`
+	TransactionSignature   string   `json:"transactionSignature"`
+	TransactionID          string   `json:"transactionId"`
+	NetworkPassPhrase      string   `json:"networkPassPhrase"`
+	Messages               []string `json:"messages"`
+	Memo                   string   `json:"memo"`
+}
+
 // func TestAccountRegistration(t *testing.T) {
 // 	/*
 // 		{"username":"username","email":"richardsric7@gmail.com","firstName":"Kenny","lastName":"Maduka","mobile":"+2347062685682","mobileCountryCode":"NG","referrer":"","pushNotificationToken":"","corporate":0,"verificationCode":""}
@@ -439,7 +454,7 @@ type Trustline struct {
 // 	} else {
 // 		sEnc = ownerUsername
 // 	}
-// 	fullPath := fmt.Sprintf("/v1/users/%v/payments", sEnc)
+// 	fullPath := "/v1/users/payment"
 // 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 // 	ts := time.Now().Unix() / 1000
 // 	tsString := fmt.Sprintf("%v", ts)
@@ -646,6 +661,111 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 		log.Printf("Make Payment Response:[%+v]\n", payResponse)
 	}
 	log.Println("[TestSendPaymentFromSubWalletMultiAccessDisabled] completed")
+	time.Sleep(time.Second * 10)
+
+}
+func TestSwapFromSubWalletMultiAccessDisabled(t *testing.T) {
+
+	// pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	// secretKey := "SDBLGMM6HVLYSUUR2TIKC6E7GZHQA5VJUUGBVOGDC5KQHTJVC2KK3EXK"
+	// pk := os.Getenv("RICPK")
+	fromWallet := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	signerSecretKey := os.Getenv("RICSC")
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	signerKP := keypair.MustParseFull(signerSecretKey)
+	// log.Println(kp.Address())
+	baseURL := prodURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	// fullPath := fmt.Sprintf("/v1/users/swap", sEnc)
+	fullPath := "/v1/users/swap"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, signerKP.Address()+tsString, signerKP.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	swapPayload := SwapSendInfo{
+		DestinationAssetCode:   "YAM",
+		DestinationAssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
+		SourceAssetCode:        "",
+		SourceAssetIssuer:      "",
+		SourceAmount:           "1700",
+	}
+	errorResponse := new(ErrorResponse)
+	swapResponse := new(SwapSendInfo)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", fromWallet).
+		Set("X-TW-SIGNER", signerKP.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(swapPayload).Receive(swapResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestSwapFromSubWalletMultiAccessDisabled] server response error:", *errorResponse)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestSwapFromSubWalletMultiAccessDisabled]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("[TestSwapFromSubWalletMultiAccessDisabled]Confirmation SWAP Response:[%+v]\n", swapResponse)
+
+	{
+		//run the payment signing and submission
+		p := *swapResponse
+		//sign transaction
+
+		signedBase64, err := middleware.SignBase64Txn(signerKP.Seed(), p.Transaction, p.NetworkPassPhrase)
+		if err != nil {
+			log.Println("[TestSwapFromSubWalletMultiAccessDisabled] makePayment error:", err)
+			t.Errorf(err.Error())
+
+			return
+		}
+
+		p.TransactionSignature = signedBase64
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, signerKP.Address()+tsString, signerKP.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", fromWallet).
+			Set("X-TW-SIGNER", signerKP.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Post(fullPath).BodyJSON(p).Receive(swapResponse, errorResponse)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+
+		log.Printf("DO SWAP Response:[%+v]\n", swapResponse)
+	}
+	log.Println("[TestSwapFromSubWalletMultiAccessDisabled] completed")
 	time.Sleep(time.Second * 10)
 
 }

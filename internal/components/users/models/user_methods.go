@@ -466,14 +466,17 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 	walletTag = strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", ""), "%", ""))
 	walletDescription = strings.TrimSpace(walletDescription)
 
-	if len(subWalletPublicKey) != 56 || len(walletTag) == 0 || len(walletDescription) == 0 {
+	if len(subWalletPublicKey) != 56 || len(walletTag) == 0 {
 		log.Println("[BuildNewSubWallet] invalid parameters")
 		return userWallet, &tErrors.CustomError{
 			Param:      "id",
 			Err:        "error-sub-wallet-parameters-invalid",
-			ErrMessage: "Sub-wallet parameters are invalid. Ensure public key is 56 characters long and tag and description are not empty",
+			ErrMessage: "Sub-wallet parameters are invalid. Ensure public key is 56 characters long and tag is not empty",
 			Code:       http.StatusBadRequest,
 		}
+	}
+	if len(walletDescription) == 0 {
+		walletDescription = walletTag
 	}
 
 	{
@@ -614,7 +617,7 @@ func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet UserW
 }
 
 func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner User, err error) {
-	e := db.Where("public_key = ?", string(id)).First(&walletOwner).Error
+	e := db.Where("id = (SELECT user_id FROM user_wallets WHERE id = ?)", string(id)).First(&walletOwner).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found

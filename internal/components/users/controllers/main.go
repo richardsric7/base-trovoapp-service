@@ -28,7 +28,7 @@ import (
 // Init initializes /v1/users endpoint
 func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	//websocket stream
-	router.GET("/v1/users/:targetUser/ws", func(c *gin.Context) {
+	router.GET("/v1/stream/ws/:targetUser", func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		uDec, e := base64.URLEncoding.DecodeString(c.Param("targetUser"))
@@ -61,45 +61,20 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	router.GET("/v1/users/:targetUser/payments/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/users/payments/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 
-		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
-		uDec, e := base64.URLEncoding.DecodeString(c.Param("targetUser"))
-		if e == nil {
-			//check if the decoded contains any non-english character
-			invalidChars := 0
-
-			acceptedChars := "abcdefghijklmnopqrstuvwxyz_1234567890/"
-			for _, c := range uDec {
-
-				if !strings.Contains(acceptedChars, strings.TrimSpace(strings.ToLower(string(c)))) {
-					invalidChars++
-				}
-
-			}
-			if invalidChars == 0 {
-				identifier = string(uDec)
-			}
-
-		}
-		if identifier == "null" {
-			log.Printf("[GET PAYMENTS HISTORY] user cannot be %v\n", identifier)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
-			return
-		}
-		cacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments/%v", identifier, targetPublicKeyForHistory)
-
-		conDB.PrintDBStats(fmt.Sprintf(" /v1/users/%v/payments/%v", identifier, targetPublicKeyForHistory), gc.DB)
+		cacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", targetPublicKeyForHistory)
 
 		// cacheDurationInSeconds := 1 * 60 //1 minutes
 		cacheDurationInSeconds := 10 //1 minutes
+		conDB.PrintDBStats(fmt.Sprintf("/v1/users/payments/%v", targetPublicKeyForHistory), gc.DB)
 
-		userInfo, err := userServices.GetUserInfo(identifier, gc, c)
+		signerUser, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET USERINFO] error for user:", identifier, "error: ", err)
+			log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -125,16 +100,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
 
 			//check if the owner is the one accessing it or if the one accessing it has access to access it.
-			for _, v := range userInfo.UserData.UserWallets {
-				if v.PrimaryWallet == 1 {
-					if v.Signer != middleware.ExtractSigner(c) && !userServices.HasAccessToPublicKey(userInfo.UserData.PublicKey, targetPublicKeyForHistory, gc) {
-						te := &tErrors.ErrorInvalidAuthorization{}
 
-						log.Println("[GET HISTORY] Invalid signer for user:", identifier, "error: ", err)
-						c.JSON(te.HTTPCode(), te.JSONError())
-						return
-					}
-				}
+			if signerUser.PrimarySigner != middleware.ExtractSigner(c) && !userServices.HasAccessToPublicKey(signerUser.PublicKey, targetPublicKeyForHistory, gc) {
+				te := &tErrors.ErrorInvalidAuthorization{}
+
+				log.Println("[GET HISTORY] Invalid signer for user:", signerUser.Username, "error: ", err)
+				c.JSON(te.HTTPCode(), te.JSONError())
+				return
 			}
 
 		}

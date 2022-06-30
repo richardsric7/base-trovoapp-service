@@ -13,7 +13,6 @@ import (
 	conDB "trovo-wallet-api/internal/db"
 	"trovo-wallet-api/internal/sharedconfig"
 
-	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -95,33 +94,79 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	}(callBackRetryChan)
 
-	router.POST("/v1/users/:primaryAccountAlias/payments", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/users/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
-		primaryAccountAlias := strings.TrimSpace(strings.ToLower(c.Param("primaryAccountAlias")))
-		uDec, e := base64.URLEncoding.DecodeString(c.Param("primaryAccountAlias"))
-		if e == nil {
-			//check if the decoded contains any non-english character
-			invalidChars := 0
+		//get user DB record
+		accountSignerUser, getUserError := paymentsDB.GetUser(middleware.ExtractSigner(c), gc.DB)
 
-			acceptedChars := "abcdefghijklmnopqrstuvwxyz_1234567890/"
-			for _, c := range uDec {
+		if getUserError != nil {
+			log.Printf("[FAILED PAYMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-				if !strings.Contains(acceptedChars, strings.TrimSpace(strings.ToLower(string(c)))) {
-					invalidChars++
-				}
+			var ex tErrors.GenericError
+			var ok bool
 
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
 			}
-			if invalidChars == 0 {
-				primaryAccountAlias = string(uDec)
-			}
-
-		}
-		if primaryAccountAlias == "null" {
-			log.Printf("[POST PAYMENTS]user cannot be %v\n", primaryAccountAlias)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
+		primaryAccountAlias := accountSignerUser.Username
+		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+			log.Printf("[CUSTOM LOG] %v error:%v\n", primaryAccountAlias, getUserError)
+		}
+		if accountSignerUser.Suspended == 1 {
+			getUserError = &tErrors.CustomError{
+				Param:      "Username",
+				Err:        "error-account-suspended",
+				ErrMessage: "Your account is currently suspended. Please contact support (support@trovotech.io) for more information.",
+				Code:       http.StatusForbidden,
+			}
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+			}
+			return
+
+		}
+
+		primaryAccountSigner := accountSignerUser.PrimarySigner
+
+		if primaryAccountSigner != middleware.ExtractSigner(c) {
+			log.Printf("[FAILED PAYMENT] INVALID PAYMENT SIGNER IN HEADER from [%v], error: [%v]\n", primaryAccountAlias, err)
+			c.JSON(http.StatusBadRequest, (&tPayErrors.ErrorInvalidPaymentSender{}).JSONError())
+			return
+		}
+
+		var paymentInfo paymentModels.PaymentInfo
+		// var err error
+
+		data, _ := ioutil.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &paymentInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Printf("[FAILED PAYMENT] UNMARSHAL FAIL from [%v], error: [%v]\n", primaryAccountAlias, err)
+
+			log.Print(err)
+			c.JSON(invalidJSON.HTTPCode(), invalidJSON.JSONError())
+			return
+		}
+		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+			log.Printf("[CUSTOM LOG] paymentInfo %+v\n", paymentInfo)
+		}
+
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/%v/payments %v", c.Param("primaryAccountAlias"), primaryAccountAlias), gc.DB)
 
 		//check if username is reserved. Reserved usernames should not send payments.
@@ -171,75 +216,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
 			return
 
-		}
-
-		//get user DB record
-		owner, getUserError := paymentsDB.GetUser(primaryAccountAlias, gc.DB)
-		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
-			log.Printf("[CUSTOM LOG] %v error:%v\n", primaryAccountAlias, getUserError)
-		}
-		if getUserError != nil {
-			log.Printf("[FAILED PAYMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", primaryAccountAlias, getUserError)
-
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = getUserError.(tErrors.GenericError)
-			if ok {
-				c.JSON(ex.HTTPCode(), ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
-			}
-			return
-		}
-
-		if owner.Suspended == 1 {
-			getUserError = &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-suspended",
-				ErrMessage: "Your account is currently suspended. Please contact support (support@trovotech.io) for more information.",
-				Code:       http.StatusForbidden,
-			}
-
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = getUserError.(tErrors.GenericError)
-			if ok {
-				c.JSON(ex.HTTPCode(), ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
-			}
-			return
-
-		}
-
-		primaryAccountSigner := owner.PrimarySigner
-
-		if primaryAccountSigner != middleware.ExtractSigner(c) {
-			log.Printf("[FAILED PAYMENT] INVALID PAYMENT SIGNER IN HEADER from [%v], error: [%v]\n", primaryAccountAlias, err)
-			c.JSON(http.StatusBadRequest, (&tPayErrors.ErrorInvalidPaymentSender{}).JSONError())
-			return
-		}
-
-		var paymentInfo paymentModels.PaymentInfo
-		// var err error
-
-		data, _ := ioutil.ReadAll(c.Request.Body)
-
-		err = json.Unmarshal(data, &paymentInfo)
-
-		var invalidJSON tErrors.ErrorInvalidJSON
-
-		if err != nil {
-			log.Printf("[FAILED PAYMENT] UNMARSHAL FAIL from [%v], error: [%v]\n", primaryAccountAlias, err)
-
-			log.Print(err)
-			c.JSON(invalidJSON.HTTPCode(), invalidJSON.JSONError())
-			return
-		}
-		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
-			log.Printf("[CUSTOM LOG] paymentInfo %+v\n", paymentInfo)
 		}
 
 		var destinationUser paymentsDB.User
@@ -294,7 +270,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				return
 			}
 		}
-		paymentInfoReturned, returnedDestination, paymentError := payments.Pay(&owner, &userWallet, &paymentInfo, gc.DB)
+		paymentInfoReturned, returnedDestination, paymentError := payments.Pay(&accountSignerUser, &userWallet, &paymentInfo, gc.DB)
 		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
@@ -325,9 +301,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		} else {
 
 			//log user current location
-			owner.PublicIP = c.ClientIP()
+			accountSignerUser.PublicIP = c.ClientIP()
 
-			payments.UpdateAndLogUserPaymentGeoInformation(&owner, paymentInfoReturned, gc.DB)
+			payments.UpdateAndLogUserPaymentGeoInformation(&accountSignerUser, paymentInfoReturned, gc.DB)
 			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", primaryAccountAlias)
 			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", primaryAccountAlias)
 
@@ -404,7 +380,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				if getDestinationWalletError == nil {
 					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 				}
-				owner.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+				accountSignerUser.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 
 			}
 

@@ -158,6 +158,9 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 			return "", subWalletObj, err
 		}
 
+		//set the subwallet suggested alias
+		subWalletInfo.Alias = subWalletObj.Alias
+
 	}
 
 	//check if it is first call to create sub-wallet
@@ -309,6 +312,8 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 
 			return "", subWalletObj, err
 		}
+		//set the subwallet suggested alias
+		subWalletInfo.Alias = subWalletObj.Alias
 
 	}
 
