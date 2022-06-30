@@ -331,6 +331,24 @@ class LanguageEn {
 
   static String get accept => "Accept";
 
+  static String get goodevening => "Good evening,";
+
+  static String get totalbalance => 'Total Balance   ';
+
+  static String get placeqrcode => 'Please place the QRcode inside the frame';
+
+  static String get nopendingassets => "You do not have any pending assets.";
+
+  static String get noassets => "You do not have any assets yet.";
+
+  static String get noNFTs => "You do not have any NFTs yet.";
+
+  static String get assets => "ASSETS";
+
+  static String get pendingassets => "PENDING";
+
+  static String get nfts => "NFTS";
+
   static String get gocrypto => "GoCrypto";
 
   static String get buildingtrustinthecrypto => "Building trust in the Crypto";
@@ -338,6 +356,8 @@ class LanguageEn {
   static String get favorites => "Favorites";
 
   static String get seeall => "See All";
+
+  static String get search => "Search";
 
   static String get btc => "BTC";
 
@@ -487,6 +507,8 @@ class LanguageEn {
   static String get portofolio => "Portofolio";
 
   static String get notication => "Notification";
+
+  static String get news => "News";
 
   static String get offers => "Offers";
 

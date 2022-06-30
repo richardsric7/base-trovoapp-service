@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/profile.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stockexchange.dart';
 import 'package:provider/provider.dart';
-
 import '../utils/medeiaqury/medeiaqury.dart';
 
 class BottomHome extends StatefulWidget {
@@ -45,34 +45,42 @@ class _BottomHomeState extends State<BottomHome> {
           items: [
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: Image.asset("assets/images/Home-Filled.png",
+                icon: SvgPicture.asset("assets/images/home.svg",
                     color: _selectedIndex == 0
                         ? notifire.getbluecolor
-                        : notifire.getgrey,
+                        : notifire.getblck,
                     height: height / 35),
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: Image.asset("assets/images/Portfolio-outline.png",
+                icon: SvgPicture.asset("assets/images/wallets.svg",
                     color: _selectedIndex == 1
                         ? notifire.getbluecolor
-                        : notifire.getgrey,
+                        : notifire.getblck,
                     height: height / 35),
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: Image.asset("assets/images/exchange.png",
+                icon: SvgPicture.asset("assets/images/history.svg",
                     color: _selectedIndex == 2
                         ? notifire.getbluecolor
-                        : notifire.getgrey,
+                        : notifire.getblck,
+                    height: height / 35),
+                label: ''),
+            BottomNavigationBarItem(
+                backgroundColor: notifire.getwihitecolor,
+                icon: SvgPicture.asset("assets/images/swap.svg",
+                    color: _selectedIndex == 3
+                        ? notifire.getbluecolor
+                        : notifire.getblck,
                     height: height / 35),
                 label: ''),
             BottomNavigationBarItem(
               backgroundColor: notifire.getwihitecolor,
-              icon: Image.asset("assets/images/User-outline.png",
-                  color: _selectedIndex == 3
+              icon: SvgPicture.asset("assets/images/settings.svg",
+                  color: _selectedIndex == 4
                       ? notifire.getbluecolor
-                      : notifire.getgrey,
+                      : notifire.getblck,
                   height: height / 35),
               label: '',
             ),
@@ -89,6 +97,7 @@ class _BottomHomeState extends State<BottomHome> {
             _buildOffstageNavigator(1),
             _buildOffstageNavigator(2),
             _buildOffstageNavigator(3),
+            _buildOffstageNavigator(4),
           ],
         ),
       ),
@@ -101,6 +110,7 @@ class _BottomHomeState extends State<BottomHome> {
         return [
           const Home(),
           const SelectStocks(),
+          const StockExchange(),
           const StockExchange(),
           const Profile(),
         ].elementAt(index);

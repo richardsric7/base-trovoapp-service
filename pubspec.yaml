@@ -72,6 +72,12 @@ dependencies:
   flutter_svg: ^1.0.3
   flutter_local_notifications: ^9.6.0
   firebase_analytics: ^9.1.9
+  carousel_slider: ^4.1.1
+  carousel_extended: ^1.1.0
+  scan:
+  qr_code_scanner: ^1.0.0
+  image_picker: ^0.8.4+10
+
 
 dev_dependencies:
   flutter_test:

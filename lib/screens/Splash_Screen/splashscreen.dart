@@ -62,6 +62,9 @@ class _SplashScreenState extends State<SplashScreen>
     });
   }
 
+  // one way to await an async functions inside
+  // initState is to place and await the async function from inside
+  // another function which will not be awaited in initState
   runAsync() async {
     await getVal();
   }
@@ -86,6 +89,9 @@ class _SplashScreenState extends State<SplashScreen>
         appState.setPassword = await StoreData().storeGetData('password');
         appState.biometricEnabled =
             await StoreData().storeGetData('biometricsEnabled') ?? false;
+        appState.assetBalances =
+            await StoreData().storeGetData('assetBalances');
+        appState.setNFTs = await StoreData().storeGetData('nfts');
         landingPage =
             PageAction(state: PageState.replaceAll, page: LoginPageConfig);
       }

@@ -13,6 +13,9 @@ const String BackupPath = '/backup';
 const String FingerprintPath = '/fingerprint';
 const String BottomHomePath = '/home';
 const String WebViewPath = '/webview';
+const String QrScannerPath = '/qrScanner';
+const String SearchViewPath = '/searchview';
+const String NotificationsViewPath = '/notificationsview';
 
 enum Pages {
   Splash,
@@ -28,6 +31,9 @@ enum Pages {
   Fingerprint,
   BottomHome,
   WebView,
+  QrScanner,
+  SearchView,
+  NotificationsView,
 }
 
 class PageConfiguration {
@@ -107,4 +113,19 @@ PageConfiguration WebViewPageConfig = PageConfiguration(
     key: 'WebView',
     path: WebViewPath,
     uiPage: Pages.WebView,
+    currentPageAction: null);
+PageConfiguration QrScannerPageConfig = PageConfiguration(
+    key: 'QrScanner',
+    path: QrScannerPath,
+    uiPage: Pages.QrScanner,
+    currentPageAction: null);
+PageConfiguration SearchViewPageConfig = PageConfiguration(
+    key: 'SearchView',
+    path: SearchViewPath,
+    uiPage: Pages.SearchView,
+    currentPageAction: null);
+PageConfiguration NotificationsViewPageConfig = PageConfiguration(
+    key: 'NotificationsView',
+    path: NotificationsViewPath,
+    uiPage: Pages.NotificationsView,
     currentPageAction: null);

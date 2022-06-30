@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/notificationsView.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/searchview.dart';
 import 'package:trovo_wallet/bottom_bar/bottombar.dart';
 import 'package:trovo_wallet/screens/Auth/create_password.dart';
 import 'package:trovo_wallet/screens/Auth/signup.dart';
@@ -14,6 +16,7 @@ import '../screens/Auth/fingerprint.dart';
 import '../screens/Auth/login.dart';
 import '../screens/Backup/backup.dart';
 import '../screens/Splash_Screen/splashscreen.dart';
+import '../screens/qr_scanner_view.dart';
 import 'PageActions.dart';
 import 'back_dispatcher.dart';
 import 'ui_pages.dart';
@@ -150,6 +153,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.WebView:
           _addPageData(TrovoWebView(), WebViewPageConfig);
           break;
+        case Pages.QrScanner:
+          _addPageData(QrScanner(), QrScannerPageConfig);
+          break;
+        case Pages.SearchView:
+          _addPageData(SearchView(), SearchViewPageConfig);
+          break;
+        case Pages.NotificationsView:
+          _addPageData(NotificationsView(), NotificationsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -239,6 +251,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.WebView:
         WebViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.QrScanner:
+        QrScannerPageConfig.currentPageAction = action;
+        break;
+      case Pages.SearchView:
+        SearchViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.NotificationsView:
+        NotificationsViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -360,6 +381,21 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case 'webview':
           setPath([
             _createPage(TrovoWebView(), WebViewPageConfig),
+          ]);
+          break;
+        case 'qrscanner':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
+        case 'searchview':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
+        case 'notificationsview':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
           ]);
           break;
         default:

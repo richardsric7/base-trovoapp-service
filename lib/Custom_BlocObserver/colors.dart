@@ -4,6 +4,7 @@ Color wihitecolor = Colors.white;
 Color darkwihitecolor = const Color(0xff10192d);
 
 Color blue = Color(0xFF007CDF);
+Color trovoblue = Color(0xFF004988);
 Color darkblue = const Color(0xFF007CDF);
 
 Color green = const Color(0xff00a859);

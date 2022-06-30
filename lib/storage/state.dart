@@ -9,6 +9,8 @@ class DataProvider with ChangeNotifier {
   bool isDark = false;
   bool biometricEnabled = false;
   String? password;
+  var assetBalances;
+  var nfts;
 
   bool _splashFinished = false;
   bool get splashFinished => _splashFinished;
@@ -54,6 +56,16 @@ class DataProvider with ChangeNotifier {
 
   set setUser(info) {
     userInfo = info;
+    notifyListeners();
+  }
+
+  set setassetBalances(balances) {
+    assetBalances = balances;
+    notifyListeners();
+  }
+
+  set setNFTs(newNfts) {
+    nfts = newNfts;
     notifyListeners();
   }
 

@@ -14,7 +14,9 @@ class ColorNotifier with ChangeNotifier {
 
   get getwihitecolor => isDark ? darkwihitecolor : wihitecolor;
 
-  get getbluecolor => isDark ? blue : darkblue;
+  get getbluecolor => isDark ? blue : trovoblue;
+
+  // get getbluecolor => isDark ? blue : darkblue;
 
   get getgrey => isDark ? grey : darkgrey;
 
