@@ -270,7 +270,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           child: SingleChildScrollView(
                             child: Column(
                               children: [
-                                if (nfts[activeWallet].length > 0) ...[
+                                if (nfts[activeWallet] != null &&
+                                    nfts[activeWallet].length > 0) ...[
                                   gridView(),
                                   SizedBox(height: 600),
                                 ] else ...[
