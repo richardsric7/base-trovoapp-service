@@ -1,11 +1,9 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
@@ -566,18 +564,18 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 	fromWallet := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
 	signerSecretKey := os.Getenv("RICSC")
 	channelAccountSK := ""
-	ownerUsername := "ric"
+	// ownerUsername := "ric"
 	signerKP := keypair.MustParseFull(signerSecretKey)
 	// log.Println(kp.Address())
 	baseURL := prodURL
-	var sEnc string
-	if strings.Contains(ownerUsername, "/") {
-		sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
 
-	} else {
-		sEnc = ownerUsername
-	}
-	fullPath := fmt.Sprintf("/v1/users/%v/payments", sEnc)
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/users/payment"
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
 	tsString := fmt.Sprintf("%v", ts)
@@ -589,7 +587,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 	}
 
 	paymentPayload := PaymentInfo{
-		Destination: "kenmaddy_sub2",
+		Destination: "kenmaddy_ken",
 		Memo:        "Test XBN Payment",
 		Amount:      "50",
 	}
@@ -778,145 +776,147 @@ func TestSwapFromSubWalletMultiAccessDisabled(t *testing.T) {
 
 }
 
-// func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
+func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
-// 	// subPK := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
-// 	// subSecretKey := "SDBLGMM6HVLYSUUR2TIKC6E7GZHQA5VJUUGBVOGDC5KQHTJVC2KK3EXK"
-// 	// subPK := "GDW6UKK6RI2LBTGHTDKKXYZKCGPDFBRFDTYSZKGGGE6SC5TCSG3MMJST"
-// 	// subSecretKey := "SBOMXAYMOQ64KJSYGIMLLDJBC5DOVGCOWUDVC6ENB4Z642MJNSQQP5HY"
-// 	subPK := "GAFR2PQHE6GBGCTWN7AAC6WBVOICBZFE35DKRYJKQUHDZFEODRAGRAU4"
-// 	subSecretKey := "SDOSD4PD6RE7PG2TSGIGVRUXCSLQBTSJH3FBBLODPHEQNTBNFR3CIF2F"
+	// subPK := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	// subSecretKey := "SDBLGMM6HVLYSUUR2TIKC6E7GZHQA5VJUUGBVOGDC5KQHTJVC2KK3EXK"
+	// subPK := "GDW6UKK6RI2LBTGHTDKKXYZKCGPDFBRFDTYSZKGGGE6SC5TCSG3MMJST"
+	// subSecretKey := "SBOMXAYMOQ64KJSYGIMLLDJBC5DOVGCOWUDVC6ENB4Z642MJNSQQP5HY"
+	// subPK := "GAFR2PQHE6GBGCTWN7AAC6WBVOICBZFE35DKRYJKQUHDZFEODRAGRAU4"
+	// subSecretKey := "SDOSD4PD6RE7PG2TSGIGVRUXCSLQBTSJH3FBBLODPHEQNTBNFR3CIF2F"
+	subPK := "GBDC4XVY2BVLHOCCRC5A6PJO4GFZ3JT4K3QD65HJQM655QTQ6UHU2GSP"
+	subSecretKey := "SAHXHVXR63DS3LDOYXBO3ENXDK7AFL67NDBYDXHXLMZQ5DHSVQ75C5HU"
 
-// 	// primaryPK := os.Getenv("RICPK")
-// 	// primarySecretKey := os.Getenv("RICSC")
-// 	primaryPK := "GD36GHMT65T2O5YOSFE57TLF4VTSI67IAQXSUT4L5SNBKPNMV5R5R6VV"
-// 	primarySecretKey := "SAWWK6BIPRALRRHVHELHI2Q3U66KBZLTLOPE7DVGJYRKZYFZGBCZZALY"
-// 	channelAccountSK := ""
-// 	// ownerUsername := "ric"
-// 	// subKP := keypair.MustParseFull(subSecretKey)
-// 	// primaryKP := keypair.MustParseFull(primarySecretKey)
-// 	// log.Println(kp.Address())
-// 	baseURL := prodURL
-// 	// baseURL := devURL
-// 	// var sEnc string
-// 	// if strings.Contains(ownerUsername, "/") {
-// 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+	primaryPK := os.Getenv("RICPK")
+	primarySecretKey := os.Getenv("RICSC")
+	// primaryPK := "GD36GHMT65T2O5YOSFE57TLF4VTSI67IAQXSUT4L5SNBKPNMV5R5R6VV"
+	// primarySecretKey := "SAWWK6BIPRALRRHVHELHI2Q3U66KBZLTLOPE7DVGJYRKZYFZGBCZZALY"
+	channelAccountSK := ""
+	// ownerUsername := "ric"
+	// subKP := keypair.MustParseFull(subSecretKey)
+	// primaryKP := keypair.MustParseFull(primarySecretKey)
+	// log.Println(kp.Address())
+	baseURL := prodURL
+	// baseURL := devURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
 
-// 	// } else {
-// 	// 	sEnc = ownerUsername
-// 	// }
-// 	fullPath := "/v1/users/subwallet"
-// 	// fullPath := fmt.Sprintf("/v1/users/%v/payments", sEnc)
-// 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
-// 	ts := time.Now().Unix() / 1000
-// 	tsString := fmt.Sprintf("%v", ts)
-// 	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, primarySecretKey)
-// 	if err != nil {
-// 		t.Errorf(err.Error())
-// 		return
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/users/subwallet"
+	// fullPath := fmt.Sprintf("/v1/users/%v/payments", sEnc)
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, primarySecretKey)
+	if err != nil {
+		t.Errorf(err.Error())
+		return
 
-// 	}
+	}
 
-// 	subwalletPayload := SubWalletInfo{
-// 		PublicKey:         subPK,
-// 		WalletTag:         "sub1",
-// 		WalletDescription: "Sub wallet One",
-// 	}
-// 	errorResponse := new(ErrorResponse)
-// 	subWalletResponse := new(SubWalletInfo)
+	subwalletPayload := SubWalletInfo{
+		PublicKey:         subPK,
+		WalletTag:         "sub3",
+		WalletDescription: "Sub wallet Three",
+	}
+	errorResponse := new(ErrorResponse)
+	subWalletResponse := new(SubWalletInfo)
 
-// 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-// 		Set("X-TW-PUBLIC-KEY", primaryPK).
-// 		Set("X-TW-SIGNER", primaryPK).
-// 		Set("X-TW-SIGNATURE", signedHttpHeader).
-// 		Set("X-TW-TIMESTAMP", tsString).
-// 		Base(baseURL).
-// 		Post(fullPath).BodyJSON(subwalletPayload).Receive(subWalletResponse, errorResponse)
-// 	//get payload string
-// 	if len(errorResponse.Error) > 0 {
-// 		log.Println("[TestCreateSubWalletMultiAccessDisabled] server response error:", *errorResponse)
-// 		return
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", primaryPK).
+		Set("X-TW-SIGNER", primaryPK).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(subwalletPayload).Receive(subWalletResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestCreateSubWalletMultiAccessDisabled] server response error:", *errorResponse)
+		return
 
-// 	}
-// 	if err != nil {
-// 		log.Println("[TestCreateSubWalletMultiAccessDisabled]request error:", err)
-// 		t.Errorf(err.Error())
+	}
+	if err != nil {
+		log.Println("[TestCreateSubWalletMultiAccessDisabled]request error:", err)
+		t.Errorf(err.Error())
 
-// 		return
-// 	}
-// 	if len(subWalletResponse.Transaction) == 0 {
-// 		log.Println("[TestCreateSubWalletMultiAccessDisabled]no transaction generated")
-// 		t.Errorf(err.Error())
+		return
+	}
+	if len(subWalletResponse.Transaction) == 0 {
+		log.Println("[TestCreateSubWalletMultiAccessDisabled]no transaction generated")
+		t.Errorf(err.Error())
 
-// 		return
-// 	}
+		return
+	}
 
-// 	log.Printf("[TestCreateSubWalletMultiAccessDisabled] Request Subwallet Response:[%+v]\n", subWalletResponse)
-// 	log.Println("==========waiting for 15seconds to before confirmation==============")
-// 	time.Sleep(time.Second * 15)
-// 	log.Println("==========Confirming Subwallet creation==============")
+	log.Printf("[TestCreateSubWalletMultiAccessDisabled] Request Subwallet Response:[%+v]\n", subWalletResponse)
+	log.Println("==========waiting for 15seconds to before confirmation==============")
+	time.Sleep(time.Second * 15)
+	log.Println("==========Confirming Subwallet creation==============")
 
-// 	{
-// 		//run the subwallet signing and submission
-// 		p := *subWalletResponse
-// 		//sign transaction
-// 		if len(p.ChannelAccount) == 56 {
-// 			ckp := keypair.MustParseFull(channelAccountSK)
+	{
+		//run the subwallet signing and submission
+		p := *subWalletResponse
+		//sign transaction
+		if len(p.ChannelAccount) == 56 {
+			ckp := keypair.MustParseFull(channelAccountSK)
 
-// 			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
-// 			if err != nil {
-// 				log.Println("[TestCreateSubWalletMultiAccessDisabled]request error:", err)
-// 				t.Errorf(err.Error())
+			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
+			if err != nil {
+				log.Println("[TestCreateSubWalletMultiAccessDisabled]request error:", err)
+				t.Errorf(err.Error())
 
-// 				return
-// 			}
-// 			p.ChannelAccountSignature = dsigned
+				return
+			}
+			p.ChannelAccountSignature = dsigned
 
-// 		}
-// 		primarySignature, subwalletSignature, err := middleware.SignSubwalletBase64Txn(primarySecretKey, subSecretKey, p.Transaction, p.NetworkPassPhrase)
-// 		if err != nil {
-// 			log.Println("[TestCreateSubWalletMultiAccessDisabled] sub transactions error:", err)
-// 			t.Errorf(err.Error())
+		}
+		primarySignature, subwalletSignature, err := middleware.SignSubwalletBase64Txn(primarySecretKey, subSecretKey, p.Transaction, p.NetworkPassPhrase)
+		if err != nil {
+			log.Println("[TestCreateSubWalletMultiAccessDisabled] sub transactions error:", err)
+			t.Errorf(err.Error())
 
-// 			return
-// 		}
+			return
+		}
 
-// 		p.PrimarySignature = primarySignature
-// 		p.SubWalletSignature = subwalletSignature
+		p.PrimarySignature = primarySignature
+		p.SubWalletSignature = subwalletSignature
 
-// 		ts := time.Now().Unix() / 1000
-// 		tsString := fmt.Sprintf("%v", ts)
-// 		signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, primarySecretKey)
-// 		if err != nil {
-// 			t.Errorf(err.Error())
-// 			return
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, primarySecretKey)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
 
-// 		}
-// 		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-// 			Set("X-TW-PUBLIC-KEY", primaryPK).
-// 			Set("X-TW-SIGNER", primaryPK).
-// 			Set("X-TW-SIGNATURE", signedHttpHeader).
-// 			Set("X-TW-TIMESTAMP", tsString).
-// 			Base(baseURL).
-// 			Post(fullPath).BodyJSON(p).Receive(subWalletResponse, errorResponse)
-// 		if err != nil {
-// 			t.Errorf(err.Error())
-// 			return
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", primaryPK).
+			Set("X-TW-SIGNER", primaryPK).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Post(fullPath).BodyJSON(p).Receive(subWalletResponse, errorResponse)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
 
-// 		}
-// 		if len(subWalletResponse.TransactionID) == 0 {
-// 			log.Println("[TestCreateSubWalletMultiAccessDisabled]no transaction ID")
-// 			t.Errorf(err.Error())
-// 			return
+		}
+		if len(subWalletResponse.TransactionID) == 0 {
+			log.Println("[TestCreateSubWalletMultiAccessDisabled]no transaction ID")
+			t.Errorf(err.Error())
+			return
 
-// 		}
+		}
 
-// 		log.Printf("Create Subwallet Response:[%+v]\n", subWalletResponse)
-// 	}
-// 	log.Println("COMPLETED TEST: TestCreateSubWalletMultiAccessDisabled")
-// 	time.Sleep(time.Second * 50)
+		log.Printf("Create Subwallet Response:[%+v]\n", subWalletResponse)
+	}
+	log.Println("COMPLETED TEST: TestCreateSubWalletMultiAccessDisabled")
+	time.Sleep(time.Second * 10)
 
-// }
+}
 
 // func TestTrustAssetMultiAccessDisabled(t *testing.T) {
 

@@ -162,7 +162,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		//check if type is import
 		queryType := strings.ToLower(c.Query("type"))
-		pnt := strings.ToLower(c.Query("pnt"))
+		pnt := c.Query("pnt")
 
 		cacheDurationInSeconds := 1 * 60 //1 minutes
 

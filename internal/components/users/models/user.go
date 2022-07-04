@@ -67,12 +67,18 @@ type UserWalletManagedAccess struct {
 	NumberOfAuthorizers uint           `gorm:"type:integer; default:1" json:"numberOfAuthorizers"`
 	AccessList          []WalletAccess `json:"accessList"`
 }
+type UserWalletManagedAccessInfo struct {
+	UserWalletManagedAccessID string         `json:"userWalletManagedAccessId"`
+	PublicKey                 string         `json:"publicKey"`
+	AccessList                []WalletAccess `json:"accessList"`
+}
 type WalletAccess struct {
 	CreatedAt                 time.Time `json:"createdAt"`
 	UpdatedAt                 time.Time `json:"updatedAt"`
-	Username                  string    `gorm:"size:16; primaryKey" json:"username"`
-	AccessLevel               string    `gorm:"size:10" json:"accessLevel"`
-	UserWalletManagedAccessID string    `gorm:"index:idx_wallet_access_wallet_access_id" json:"userWalletManagedAccessId"`
+	ID                        string
+	Username                  string `gorm:"size:16; primaryKey" json:"username"`
+	AccessLevel               string `gorm:"size:10" json:"accessLevel"`
+	UserWalletManagedAccessID string `gorm:"index:idx_wallet_access_wallet_access_id" json:"userWalletManagedAccessId"`
 }
 
 type AccessLevel struct {
