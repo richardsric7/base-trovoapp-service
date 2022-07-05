@@ -6,6 +6,30 @@ class LanguageEn {
   static String get managetrovowallet =>
       "Manage your Bantu Digital Assets (including NFTs)";
 
+  static String get createnewwallet => 'Create new wallet';
+
+  static String get importexistingwallet => 'Import existing wallet';
+
+  static String get chooseamethod => 'Choose a method';
+
+  static String get abouttocreatesubwallet =>
+      'You are about to add a subwallet to your Trovo Wallet account';
+
+  static String get requesttocreatesubwallet =>
+      'You have requested to create a subwallet with these details:';
+
+  static String get method => 'Method';
+
+  static String get publickey => 'Public Key';
+
+  static String get authorizewithbiometrics => 'Authorize With Biometrics';
+
+  static String get authorize => 'Authorize';
+
+  static String get addsubwallet => 'Add Subwallet';
+
+  static String get tag => 'Tag';
+
   static String get domorewithblockchain =>
       "Do more magic with Blockchain. \nGo beyond limits.";
 
@@ -209,6 +233,11 @@ class LanguageEn {
 
   static String get youhavebeensucces => "You have been succesfully verified";
 
+  static String get createsuccess => "Success!";
+
+  static String get youhavecreatedsuccessfully =>
+      "Subwallet successfully added!";
+
   static String get congratulations => "Congratulations ";
 
   static String get walletcreatesuccess =>
@@ -224,6 +253,9 @@ class LanguageEn {
 
   static String get warnskipbackup =>
       "We strongly recommend that you backup your wallet secret key. Are you sure you want to skip?";
+
+  static String get warncost =>
+      "This action will cost you 3450 TROV to complete.";
 
   static String get iensuredprivacy =>
       "I have ensured that no one is looking and I understand that I should never share my secret key with anyone.";
@@ -273,6 +305,8 @@ class LanguageEn {
   static String get gotosettings => 'Go to settings';
 
   static String get cancel => 'Cancel';
+
+  static String get back => 'Back';
 
   static String get fingerprintrequired => 'Fingerprint required';
 
@@ -407,6 +441,8 @@ class LanguageEn {
   static String get buy => "Buy";
 
   static String get exchange => "Exchange";
+
+  static String get wallets => "Wallets";
 
   static String get yousend => "You Send";
 

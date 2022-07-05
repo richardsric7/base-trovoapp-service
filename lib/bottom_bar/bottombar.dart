@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/profile.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stockexchange.dart';
 import 'package:provider/provider.dart';
 import '../utils/medeiaqury/medeiaqury.dart';
+import 'bottom_pages/wallets.dart';
 
 class BottomHome extends StatefulWidget {
   const BottomHome({Key? key}) : super(key: key);
@@ -109,7 +111,7 @@ class _BottomHomeState extends State<BottomHome> {
       '/': (context) {
         return [
           const Home(),
-          const SelectStocks(),
+          const Wallets(),
           const StockExchange(),
           const StockExchange(),
           const Profile(),

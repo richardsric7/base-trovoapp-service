@@ -32,7 +32,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   String? activeWallet;
   var claimedAssets;
   var unclaimedAssets;
-  int tabLength = 3;
+  int tabLength = 2;
   int touchedIndex = -1;
 
   @override
@@ -78,18 +78,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 height: height / 50,
               ),
               walletSlides(wallets!),
-              TextButton(
-                  onPressed: () => {
-                        setState(() {
-                          tabLength = tabLength == 3 ? 2 : 3;
-                          _tabController =
-                              TabController(length: tabLength, vsync: this);
-                        })
-                      },
-                  child: Text(tabLength == 3 ? 'hide' : 'show')),
-              // SizedBox(
-              //   height: height / 30,
-              // ),
+              SizedBox(
+                height: height / 30,
+              ),
               assetsTabs(),
             ],
           ),
@@ -320,8 +311,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               children: [
                 Padding(
                   padding: EdgeInsets.fromLTRB(width / 18, 0, 0, 0),
-                  child: Image.asset(
-                    "assets/images/obi.png",
+                  child: SvgPicture.asset(
+                    "assets/images/default.svg",
                     width: width / 6,
                   ),
                 ),
@@ -403,7 +394,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 // child: Image.asset("assets/images/notifications.png",
                 //     color: notifier.getbluecolor),
                 child: SvgPicture.asset(
-                  "assets/images/notifications.svg",
+                  "assets/images/notifications-active.svg",
                   color: notifier.getbluecolor,
                   height: height / 40,
                 ),

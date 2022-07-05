@@ -40,4 +40,6 @@ class ColorNotifier with ChangeNotifier {
   get getidentyfiymethod => isDark ? darkidentyfiymethod : identyfiymethod;
 
   get getfavorites => isDark ? darkfavorites : favorites;
+
+  get getaddsubwalletgrey => addsubwalletgrey;
 }

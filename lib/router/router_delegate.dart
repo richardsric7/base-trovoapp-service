@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/subwalletCreateSuccess.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/notificationsView.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/searchview.dart';
 import 'package:trovo_wallet/bottom_bar/bottombar.dart';
@@ -162,6 +163,10 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.NotificationsView:
           _addPageData(NotificationsView(), NotificationsViewPageConfig);
           break;
+        case Pages.CreateSubWalletSuccessView:
+          _addPageData(CreateSubWalletSuccessView(),
+              CreateSubWalletSuccessViewPageConfig);
+          break;
         default:
           break;
       }
@@ -260,6 +265,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.NotificationsView:
         NotificationsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.CreateSubWalletSuccessView:
+        CreateSubWalletSuccessViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -394,6 +402,11 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           ]);
           break;
         case 'notificationsview':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
+        case 'createSubWalletSuccessView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
           ]);

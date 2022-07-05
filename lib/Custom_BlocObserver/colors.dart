@@ -12,6 +12,7 @@ Color green = const Color(0xff00a859);
 Color grey = const Color(0xff9EA3AE);
 Color darkgrey = Color(0xFF5B5E61);
 Color splashgrey = Color(0xFFC3C6CC);
+Color addsubwalletgrey = Color(0xFFE8ECF4);
 
 Color blck = Colors.white;
 Color darkblck = Colors.black;
