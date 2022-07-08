@@ -17,6 +17,7 @@ const String QrScannerPath = '/qrScanner';
 const String SearchViewPath = '/searchview';
 const String NotificationsViewPath = '/notificationsview';
 const String CreateSubWalletSuccessViewPath = '/createSubWalletSuccessView';
+const String WalletDetailsViewPath = '/WalletDetailsView';
 
 enum Pages {
   Splash,
@@ -36,6 +37,7 @@ enum Pages {
   SearchView,
   NotificationsView,
   CreateSubWalletSuccessView,
+  WalletDetailsView
 }
 
 class PageConfiguration {
@@ -135,4 +137,9 @@ PageConfiguration CreateSubWalletSuccessViewPageConfig = PageConfiguration(
     key: 'CreateSubWalletSuccessView',
     path: CreateSubWalletSuccessViewPath,
     uiPage: Pages.CreateSubWalletSuccessView,
+    currentPageAction: null);
+PageConfiguration WalletDetailsViewPageConfig = PageConfiguration(
+    key: 'WalletDetailsView',
+    path: WalletDetailsViewPath,
+    uiPage: Pages.WalletDetailsView,
     currentPageAction: null);

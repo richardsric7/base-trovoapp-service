@@ -16,6 +16,7 @@ import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
@@ -54,7 +55,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   var assetBalances;
   var nfts;
   List<Wallet>? wallets;
-  String? activeWallet;
+  Wallet? mainWallet;
   var claimedAssets;
   var unclaimedAssets;
   final _formKey = GlobalKey<FormState>();
@@ -70,7 +71,10 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     appState = Provider.of<DataProvider>(context, listen: true);
     userInfo = appState.userInfo!;
     assetBalances = appState.assetBalances;
-    wallets = userInfo.wallets!;
+    wallets =
+        userInfo.wallets!.where((wallet) => wallet.primaryWallet == 0).toList();
+    mainWallet =
+        userInfo.wallets!.firstWhere((wallet) => wallet.primaryWallet == 1);
     nfts = appState.nfts;
 
     return ScreenUtilInit(
@@ -119,8 +123,16 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   height: height / 40,
                 )
               ],
-              walletListItem(
-                  'Main Wallet', '4,500 TROV', '4,014', notifier.getbluecolor),
+              GestureDetector(
+                onTap: () {
+                  appState.setActiveWallet = mainWallet;
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: WalletDetailsViewPageConfig);
+                },
+                child: walletListItem(mainWallet!.alias!.capitalizeFirst,
+                    '4,500 TROV', '4,014', notifier.getbluecolor),
+              ),
               SizedBox(
                 height: height / 50,
               ),
@@ -183,26 +195,31 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   Widget gridView() {
     return Container(
       height: height / 2,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
-        child: GridView.count(
-          primary: true,
-          padding: const EdgeInsets.fromLTRB(0, 0, 0, 70),
-          crossAxisCount: 2,
-          mainAxisSpacing: 20,
-          crossAxisSpacing: 20,
-          childAspectRatio: 1.05,
-          children: [
-            for (var i = 0; i < wallets!.length; i++) ...[
-              walletTile(
-                "Main Wallet",
+      child: GridView.count(
+        primary: true,
+        padding: const EdgeInsets.fromLTRB(15, 20, 15, 70),
+        crossAxisCount: 2,
+        mainAxisSpacing: 20,
+        crossAxisSpacing: 20,
+        childAspectRatio: 1.05,
+        children: [
+          for (var i = 0; i < wallets!.length; i++) ...[
+            GestureDetector(
+              onTap: () {
+                appState.setActiveWallet = wallets![i];
+                appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: WalletDetailsViewPageConfig);
+              },
+              child: walletTile(
+                wallets![i].alias!.capitalizeFirst!,
                 '4,500 TROV',
                 '4,014 USD',
                 Colors.blue,
               ),
-            ]
-          ],
-        ),
+            ),
+          ]
+        ],
       ),
     );
   }
@@ -235,26 +252,14 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                 SizedBox(
                   height: height / 50,
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      walletName,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: fontbody,
-                        color: notifier.getwihitecolor,
-                      ),
-                    ),
-                    SizedBox(
-                      width: width / 50,
-                    ),
-                    Icon(
-                      CupertinoIcons.eye_slash,
-                      color: notifier.getwihitecolor,
-                    ),
-                  ],
+                Text(
+                  walletName,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: fontbody,
+                    color: notifier.getwihitecolor,
+                  ),
                 ),
                 Padding(
                   padding:
@@ -281,6 +286,10 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     ),
                   ),
                 ),
+                Icon(
+                  CupertinoIcons.eye_slash,
+                  color: notifier.getwihitecolor,
+                ),
               ],
             ),
           ),
@@ -293,12 +302,22 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     return Column(
       children: [
         for (var i = 0; i < wallets!.length; i++) ...[
-          walletListItem(wallets![i].alias!.capitalizeFirst!, '4,500 TROV',
-              '4,014', Colors.blue),
+          GestureDetector(
+            onTap: () {
+              appState.setActiveWallet = wallets![i];
+              appState.currentAction = PageAction(
+                  state: PageState.addPage, page: WalletDetailsViewPageConfig);
+            },
+            child: walletListItem(wallets![i].alias!.capitalizeFirst!,
+                '4,500 TROV', '4,014', Colors.blue),
+          ),
           SizedBox(
             height: height / 50,
           ),
-        ]
+        ],
+        SizedBox(
+          height: height / 15,
+        ),
       ],
     );
   }
@@ -521,6 +540,11 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             70.sp,
             300.sp,
             initialValue: tag,
+            onChanged: (value) {
+              setState(() {
+                tag = value.trim().replaceAll(' ', '');
+              });
+            },
             onSaved: (value) {
               print('tag: $value');
               tag = value.trim().replaceAll(' ', '');
@@ -528,6 +552,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             keyboardtype: TextInputType.text,
             maxLength: 6,
             validator: validateTag,
+            helperText: tag == null || tag!.isEmpty
+                ? ''
+                : "eg: ${appState.userInfo!.username}_$tag",
           ),
           SizedBox(height: height / 50),
           CustomTextFormField.textField(
@@ -636,7 +663,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     ),
                   ),
                   Text(
-                    tag!,
+                    "${userInfo.username!}_$tag",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -683,8 +710,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   ),
                   Text(
                     action == WalletAction.import
-                        ? 'Import existing wallet'
-                        : 'Create new wallet',
+                        ? LanguageEn.importsubwallet
+                        : LanguageEn.createnewsubwallet,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -706,14 +733,17 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       color: notifier.getbluecolor,
                     ),
                   ),
-                  Text(
-                    newSubWalletKeyPair.publicKey,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: Text(
+                      newSubWalletKeyPair.publicKey,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: fontbody,
+                        color: notifier.getbluecolor,
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -843,14 +873,11 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   }
 
   void handleAuthorization() {
-    print('handling signin $password ${appState.password!}');
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     if (password == appState.password!) {
-      // appState.currentAction =
-      //     PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
       sendDataToServer();
     } else {
       popup(context,
@@ -882,17 +909,16 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       );
 
       print('response: $responseData');
+      hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        responseData['data']['messages'].add('one');
-        responseData['data']['messages'].add('two');
-        responseData['data']['messages'].add('three');
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
 
         print('new dialog $messageLength');
         print('messagecount $messageShown');
-        postProcessData(messageShown, messageLength, responseData['data']);
+        await postProcessData(
+            messageShown, messageLength, responseData['data']);
         // print('sending full data to server.........');
       } else {
         popup(context,
@@ -902,12 +928,14 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       print(e);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
-
-    hideLoader(context);
   }
 
   postProcessData(messageShown, messageLength, data) {
     print('messageShown: $messageShown messageLength $messageLength');
+    // we would like to display all messages returned from the initial
+    // request to server using a popup. In order to achieve that we
+    // employ the use of a little recursion here. Please recursive
+    // functions can turn into a nightmare fast so be carefull here.
     if (messageShown <= messageLength - 1) {
       warnCreateWalletDialog(
           context,
@@ -927,13 +955,15 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
 
   void sendFullDataToServer(responseBody) async {
     try {
-      // generate keypair for the new subwallet
+      showLoader(context);
+      // get primary signature
       var primarySignature = TrovoWalletSDK().signBase64Txn(
         primaryWalletKeyPair.secretKey,
         responseBody['transaction'],
         responseBody['networkPassPhrase'],
       );
 
+      // get secondary signature
       var subWalletSignature = TrovoWalletSDK().signBase64Txn(
         newSubWalletKeyPair.secretKey,
         responseBody['transaction'],
@@ -942,9 +972,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
 
       print('this is primary sign: $primarySignature');
       print('this is subwallet sign: $subWalletSignature');
-
-      // make initial request to the server using the
-      // following credentials
 
       Map map = {
         "publickey": responseBody['publicKey'],
@@ -974,10 +1001,13 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
 
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        appState.currentAction = PageAction(
-            state: PageState.replaceAll,
-            page: CreateSubWalletSuccessViewPageConfig);
-        resetForm();
+        // add the secret key of this new subwallet to
+        // the existing list of secrets
+        appState.secretKeys.add(newSubWalletKeyPair.secretKey);
+        // store back the list of secret keys but this time it
+        // contains the secret key of the newly created subwallet
+        await StoreData().storeInsertData('secretKey', appState.secretKeys);
+        await updateUserInfo();
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
@@ -986,6 +1016,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       print(e);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
+
+    hideLoader(context);
   }
 
   void resetForm() {
@@ -993,5 +1025,49 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     description = '';
     secretKey = '';
     walletView = WalletView.listWallets;
+  }
+
+  Future<void> updateUserInfo() async {
+    var keyPair =
+        TrovoWalletSDK().parseSecretKey(primaryWalletKeyPair.secretKey);
+    Map responseData = await makeGetRequest(
+        uri: '/v1/users/${userInfo!.username!.trim().replaceAll(' ', '')}',
+        signer: keyPair.publicKey,
+        publicKey: keyPair.publicKey,
+        secretKey: keyPair.secretKey);
+
+    print('response: ${responseData}');
+
+    if (responseData['statusCode'] == 200) {
+      await storeUserInfo(responseData['data']);
+    }
+  }
+
+  Future<void> storeUserInfo(userInfoMap) async {
+    print('userInfoMap: ${userInfoMap['userData']}');
+    var userInfo = userInfoMap['userData'] ?? {};
+    var assetBalances = userInfoMap['assetBalances'] ?? {};
+    var nfts = userInfoMap['nfts'] ?? {};
+    var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
+    var defaultAssets = userInfoMap['defaultAssets'] ?? [];
+
+    await StoreData().storeInsertData('userInfo', userInfo);
+    await StoreData().storeInsertData('assetBalances', assetBalances);
+    await StoreData().storeInsertData('nftBalances', nfts);
+    await StoreData()
+        .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
+    await StoreData().storeInsertData('defaultAssets', defaultAssets);
+
+    // save useInfo to appstate
+    appState.setUser = UserInfo().deserializeJson(userInfo);
+    appState.setNFTs = nfts;
+    appState.setassetBalances = assetBalances;
+    appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
+        (wallet) => wallet.publicKey == newSubWalletKeyPair.publicKey);
+    appState.activeWallet!.secretKey = newSubWalletKeyPair.secretKey;
+    appState.currentAction = PageAction(
+        state: PageState.replaceAll, page: CongratulationsPageConfig);
+    resetForm();
+    print('stored new user data.................');
   }
 }

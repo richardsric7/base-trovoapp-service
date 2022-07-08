@@ -20,6 +20,10 @@ class LanguageEn {
 
   static String get method => 'Method';
 
+  static String get createnewsubwallet => 'Create new wallet';
+
+  static String get importsubwallet => 'Import existing wallet';
+
   static String get publickey => 'Public Key';
 
   static String get authorizewithbiometrics => 'Authorize With Biometrics';
@@ -245,6 +249,8 @@ class LanguageEn {
 
   static String get backup => "Backup";
 
+  static String get backupwallet => "Backup Wallet";
+
   static String get ensureprivacybackup =>
       "Ensure no one is looking while you back up your wallet. Anyone with your secret key can access your Trovo wallet.";
 
@@ -266,11 +272,11 @@ class LanguageEn {
   static String get iunderstandliability =>
       "I understand that if I lose my secret key. Trovo is not liable to any loss and that my funds are securely held and controlled on this device not by Trovo.";
 
-  static String get youysecrethasbeengenerated =>
-      "Your secret key has been generated and is 56 characters long.";
+  static String get maynotbedisplayedagain =>
+      "This wallet's secret key will only be available while this app in not yet unistalled from this device.";
 
   static String get writeitdown =>
-      "Write it down correctly and store in a safe place.";
+      "Please write down the following details correctly and store in a safe place.";
 
   static String get writeitasfollows =>
       "You can write down your secret key as follows:";

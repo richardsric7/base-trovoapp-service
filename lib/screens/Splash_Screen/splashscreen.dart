@@ -55,7 +55,8 @@ class _SplashScreenState extends State<SplashScreen>
 
     controller.repeat();
     Timer(const Duration(seconds: 4), () {
-      // appState.currentAction = PageAction(
+      // appState.currentAction =
+      // PageAction(
       //     state: PageState.replaceAll, page: CongratulationsPageConfig);
       appState.currentAction = landingPage;
       appState.setSplashFinished();
@@ -94,6 +95,7 @@ class _SplashScreenState extends State<SplashScreen>
         appState.setNFTs = await StoreData().storeGetData('nfts');
         landingPage =
             PageAction(state: PageState.replaceAll, page: LoginPageConfig);
+        print('....................this is nfts: ${appState.nfts}');
       }
     } catch (e) {
       print('[getVal]getVal exception:' + e.toString());

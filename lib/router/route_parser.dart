@@ -39,6 +39,10 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return SearchViewPageConfig;
       case NotificationsViewPath:
         return NotificationsViewPageConfig;
+      case CreateSubWalletSuccessViewPath:
+        return CreateSubWalletSuccessViewPageConfig;
+      case WalletDetailsViewPath:
+        return WalletDetailsViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -77,6 +81,10 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: SearchViewPath);
       case Pages.NotificationsView:
         return const RouteInformation(location: NotificationsViewPath);
+      case Pages.CreateSubWalletSuccessView:
+        return const RouteInformation(location: CreateSubWalletSuccessViewPath);
+      case Pages.WalletDetailsView:
+        return const RouteInformation(location: WalletDetailsViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

@@ -1,5 +1,9 @@
 import 'package:flutter/cupertino.dart';
+import 'package:trovo_wallet/Models/Wallet.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import '../Models/User.dart';
 import '../router/PageActions.dart';
 
@@ -36,6 +40,12 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Wallet? activeWallet;
+  set setActiveWallet(value) {
+    activeWallet = value;
+    notifyListeners();
+  }
+
   String tempPassword = '';
   set setTempPassword(value) {
     tempPassword = value;
@@ -66,6 +76,12 @@ class DataProvider with ChangeNotifier {
 
   set setNFTs(newNfts) {
     nfts = newNfts;
+    notifyListeners();
+  }
+
+  String secretToBackup = '';
+  set setSecretToBackup(secret) {
+    secretToBackup = secret;
     notifyListeners();
   }
 

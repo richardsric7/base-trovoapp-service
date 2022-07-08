@@ -166,6 +166,7 @@ class _FingerPrintState extends State<FingerPrint> {
   void _submit() {
     appState.biometricEnabled = isSwitched;
     _persistBiometricState();
+    StoreData().storeInsertData('isFirstTime', false);
     appState.currentAction =
         PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
   }

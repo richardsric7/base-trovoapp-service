@@ -233,7 +233,7 @@ class _LoginState extends State<Login> {
   }
 
   void handleSignin() {
-    print('handling signin $password ${appState.password!}');
+    print('handling signin...');
     if (!_formKey.currentState!.validate()) {
       return;
     }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
@@ -14,22 +15,22 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+class WalletDetails extends StatefulWidget {
+  const WalletDetails({Key? key}) : super(key: key);
 
   @override
-  State<Home> createState() => _HomeState();
+  State<WalletDetails> createState() => _WalletDetailsState();
 }
 
-class _HomeState extends State<Home> with TickerProviderStateMixin {
+class _WalletDetailsState extends State<WalletDetails>
+    with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late TabController _tabController;
   late DataProvider appState;
   late UserInfo userInfo;
   var assetBalances;
   var nfts;
-  List<Wallet>? wallets;
-  String? activeWallet;
+  Wallet? activeWallet;
   var claimedAssets;
   var unclaimedAssets;
   int tabLength = 2;
@@ -48,15 +49,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState.userInfo!;
     assetBalances = appState.assetBalances;
-    wallets = userInfo.wallets!;
     nfts = appState.nfts;
-    if (activeWallet == null && wallets!.length > 0) {
-      activeWallet = wallets![0].publicKey;
-    }
-    claimedAssets = assetBalances[activeWallet]['claimed'];
-    unclaimedAssets = assetBalances[activeWallet]['unclaimed'];
+    activeWallet = appState.activeWallet;
+    claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
+    unclaimedAssets = assetBalances[activeWallet!.publicKey]['unclaimed'];
     if (unclaimedAssets.length > 0) {
       setState(() {
         tabLength = 3;
@@ -67,17 +64,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 15,
-              ),
-              firstRow(),
-              SizedBox(
-                height: height / 50,
-              ),
-              walletSlides(wallets!),
+              walletSlides(),
               SizedBox(
                 height: height / 30,
               ),
@@ -91,7 +88,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Widget assetsTabs() {
     return Container(
-      height: height / 1.9,
+      height: height / 1.5,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -305,128 +302,55 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget firstRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(width / 18, 0, 0, 0),
-                  child: SvgPicture.asset(
-                    "assets/images/default.svg",
-                    width: width / 6,
-                  ),
-                ),
-                SizedBox(
-                  width: width / 70,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      LanguageEn.goodevening,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: notifier.getblck,
-                        fontSize: 14.sp,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Text(
-                      userInfo.firstName!.capitalizeFirst!,
-                      style: TextStyle(
-                        color: notifier.getbluecolor,
-                        fontSize: 17.sp,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage, page: SearchViewPageConfig);
-              },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-                child: SvgPicture.asset(
-                  "assets/images/search.svg",
-                  color: notifier.getbluecolor,
-                  height: height / 40,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage, page: QrScannerPageConfig);
-              },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-                child: SvgPicture.asset(
-                  "assets/images/scan.svg",
-                  color: notifier.getbluecolor,
-                  height: height / 40,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: NotificationsViewPageConfig);
-              },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-                // child: Image.asset("assets/images/notifications.png",
-                //     color: notifier.getbluecolor),
-                child: SvgPicture.asset(
-                  "assets/images/notifications-active.svg",
-                  color: notifier.getbluecolor,
-                  height: height / 40,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: height / 50,
-            ),
-          ],
-        )
-      ],
-    );
-  }
-
   Widget gridView() {
     return Container(
-      height: height / 2,
+      height: height / 1.6,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
+        padding: const EdgeInsets.fromLTRB(0, 28.0, 0, 0),
         child: GridView(
-          padding: const EdgeInsets.fromLTRB(0, 0, 0, 70),
+          padding: const EdgeInsets.fromLTRB(15, 0, 15, 70),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 20,
               crossAxisSpacing: 20,
               childAspectRatio: 1.05),
           children: [
+            nftCard(
+              "assets/images/awka-paws.svg",
+              'AWKA PAWS',
+              'GBCVE....UJKKGA',
+              Colors.blue,
+            ),
+            nftCard(
+              "assets/images/warri-wolves.svg",
+              'WARRI WOLVES',
+              'GBCVE....UJKKGA',
+              Colors.green,
+            ),
+            nftCard(
+              "assets/images/accra-goats.svg",
+              'ACCRA GOATS',
+              'GBCVE....UJKKGA',
+              Colors.red,
+            ),
+            nftCard(
+              "assets/images/awka-paws.svg",
+              'AWKA PAWS',
+              'GBCVE....UJKKGA',
+              Colors.blue,
+            ),
+            nftCard(
+              "assets/images/warri-wolves.svg",
+              'WARRI WOLVES',
+              'GBCVE....UJKKGA',
+              Colors.green,
+            ),
+            nftCard(
+              "assets/images/accra-goats.svg",
+              'ACCRA GOATS',
+              'GBCVE....UJKKGA',
+              Colors.red,
+            ),
             nftCard(
               "assets/images/awka-paws.svg",
               'AWKA PAWS',
@@ -497,109 +421,84 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget walletSlides(List<Wallet> wallets) {
-    // var thiswallets = [1, 2, 3];
+  Widget walletSlides() {
     var colors = [notifier.getbluecolor, Colors.red, Colors.green];
-    return CarouselSlider(
-      options: CarouselOptions(
-        onPageChanged: ((index, reason) => {
-              setState(
-                () => {
-                  activeWallet = wallets[index].publicKey,
-                  claimedAssets = assetBalances[activeWallet]['claimed'],
-                  unclaimedAssets = assetBalances[activeWallet]['unclaimed'],
-                },
-              )
-            }),
-        height: height / 4.7,
-        padEnds: false,
-        enableInfiniteScroll: false,
-        clipBehavior: Clip.antiAlias,
-        viewportFraction: wallets.length > 1 ? 0.9 : 1,
-      ),
-      items: wallets.map((wallet) {
-        return Builder(
-          builder: (BuildContext context) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                  color: colors[0],
-                  // color: colors[i - 1],
-                ),
-                child: Stack(children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 35.0, horizontal: 20),
-                        child: Image.asset('assets/images/trovo_white.png'),
-                      ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 35.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          wallet.alias!.capitalizeFirst!,
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: notifier.getwihitecolor,
-                              fontFamily: fontsemibold),
-                        ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              LanguageEn.totalbalance,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w400,
-                                color: notifier.getwihitecolor,
-                                fontFamily: fontbody,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: height / 98.0,
-                        ),
-                        Text(
-                          '2,082,898 NGN',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontsemibold,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          '4,014 USD',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w300,
-                            fontSize: 13,
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontbody,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ]),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+          color: colors[0],
+          // color: colors[i - 1],
+        ),
+        child: Stack(children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 35.0, horizontal: 20),
+                child: Image.asset('assets/images/trovo_white.png'),
               ),
-            );
-          },
-        );
-      }).toList(),
+            ],
+          ),
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  activeWallet!.alias!.capitalizeFirst!,
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: notifier.getwihitecolor,
+                      fontFamily: fontsemibold),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      LanguageEn.totalbalance,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: notifier.getwihitecolor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 98.0,
+                ),
+                Text(
+                  '2,082,898 NGN',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: notifier.getwihitecolor,
+                    fontFamily: fontsemibold,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  '4,014 USD',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w300,
+                    fontSize: 13,
+                    color: notifier.getwihitecolor,
+                    fontFamily: fontbody,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ]),
+      ),
     );
   }
 

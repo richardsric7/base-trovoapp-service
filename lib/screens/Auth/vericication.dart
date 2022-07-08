@@ -211,9 +211,6 @@ class _VeryficationState extends State<Veryfication> {
 
     if (responseData['statusCode'] == 200) {
       getUserInfo();
-
-      state.currentAction =
-          PageAction(state: PageState.addPage, page: CongratulationsPageConfig);
     } else {
       popup(context,
           title: LanguageEn.error, message: responseData['data']['message']);
@@ -221,6 +218,8 @@ class _VeryficationState extends State<Veryfication> {
   }
 
   getUserInfo() async {
+    showLoader(context);
+
     var publicKey = state.tempPublicKey;
     var secretKey = state.tempSecretKey;
 
@@ -234,11 +233,14 @@ class _VeryficationState extends State<Veryfication> {
     print('response: ${responseData}');
 
     if (responseData['statusCode'] == 200) {
-      storeUserInfo(responseData['data']);
+      await storeUserInfo(responseData['data']);
+      hideLoader(context);
     } else if (responseData['statusCode'] == 404) {
+      hideLoader(context);
       popup(context,
           title: LanguageEn.error, message: responseData['data']['message']);
     } else {
+      hideLoader(context);
       // must be some sort of server error
       // let's throw it
       popup(context,
@@ -262,7 +264,6 @@ class _VeryficationState extends State<Veryfication> {
     await StoreData()
         .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
-    await StoreData().storeInsertData('isFirstTime', false);
     await StoreData().storeInsertData('password', state.tempPassword);
     await StoreData().storeInsertData('publicKey', state.tempPublicKey);
     await StoreData()
@@ -272,10 +273,14 @@ class _VeryficationState extends State<Veryfication> {
     state.setUser = UserInfo().deserializeJson(userInfo);
     state.setNFTs = nfts;
     state.setassetBalances = assetBalances;
-
+    state.activeWallet = state.userInfo!.wallets!
+        .firstWhere((wallet) => wallet.publicKey == state.tempPublicKey);
+    state.activeWallet!.secretKey = state.tempSecretKey;
     // save secrets to appstate
     state.setSecretKeys = await StoreData().storeGetData('secretKey');
     state.setPassword = state.tempPassword;
+    state.currentAction =
+        PageAction(state: PageState.addPage, page: CongratulationsPageConfig);
 
     print('secretkey from state ${state.secretKeys}');
   }

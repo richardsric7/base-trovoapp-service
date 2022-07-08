@@ -57,6 +57,7 @@ class CustomTextFormField {
     validator,
     onSaved,
     keyboardtype,
+    helperText,
   }) {
     return ScreenUtilInit(
       builder: (context, child) => Container(
@@ -70,6 +71,17 @@ class CustomTextFormField {
           cursorColor: lablecolor,
           onChanged: onChanged,
           decoration: InputDecoration(
+            counterStyle: TextStyle(
+              fontFamily: fontbody,
+            ),
+            errorStyle: TextStyle(
+              fontFamily: fontbody,
+            ),
+            helperText: helperText,
+            helperStyle: TextStyle(
+              fontSize: 12,
+              fontFamily: fontbody,
+            ),
             label: Text(labletext),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15.sp),

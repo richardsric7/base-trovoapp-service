@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
@@ -42,22 +43,11 @@ class _BackupState extends State<Backup> {
             children: [
               SizedBox(height: height / 6),
               Text(
-                LanguageEn.secretkey,
+                LanguageEn.backupwallet,
                 style: TextStyle(
                     color: notifier.getblck,
                     fontFamily: fontsemibold,
                     fontSize: 27.sp),
-              ),
-              SizedBox(height: height / 50),
-              Container(
-                width: width / 1.2,
-                child: Text(
-                  LanguageEn.youysecrethasbeengenerated,
-                  style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 15.sp,
-                      fontFamily: fontbody),
-                ),
               ),
               SizedBox(height: height / 50),
               Container(
@@ -70,6 +60,20 @@ class _BackupState extends State<Backup> {
                       fontFamily: fontbody),
                 ),
               ),
+              // display only for subwallets
+              if (state.activeWallet!.primaryWallet == 0) ...[
+                SizedBox(height: height / 50),
+                Container(
+                  width: width / 1.2,
+                  child: Text(
+                    LanguageEn.maynotbedisplayedagain,
+                    style: TextStyle(
+                        color: notifier.getgrey,
+                        fontSize: 15.sp,
+                        fontFamily: fontbody),
+                  ),
+                ),
+              ],
               // SizedBox(height: height / 50),
               // Container(
               //   width: width / 1.2,
@@ -101,9 +105,16 @@ class _BackupState extends State<Backup> {
               //     ),
               //   ),
               // ),
-              for (var wallet in getUserWallets()) ...[
-                Secret(wallet.alias!, wallet.secretKey!)
-              ],
+              // for (var wallet in getUserWallets()) ...[
+              //   Secret(wallet.alias!, wallet.secretKey!)
+              // ],
+
+              Secret(state.activeWallet!.alias!, state.activeWallet!.secretKey!,
+                  state.activeWallet!.publicKey!),
+              // Secret(
+              //     'Kenmaddy_kennis',
+              //     'SAV232SDWDS4SRFVXGHYUIOLJY653DRT67HN8JMKIU654EDFRTGV56Y',
+              //     'SAV232SDWDS4SRFVXGHYUIOLJY653DRT67HN8JMKIU654EDFRTGV56Y'),
 
               SizedBox(height: height / 20),
               Button(
@@ -111,8 +122,7 @@ class _BackupState extends State<Backup> {
                 notifier.getbluecolor,
                 notifier.getwihitecolor,
                 onTap: () {
-                  state.currentAction = PageAction(
-                      state: PageState.addPage, page: FingerprintPageConfig);
+                  gotoNext();
                 },
               ),
             ],
@@ -122,16 +132,27 @@ class _BackupState extends State<Backup> {
     );
   }
 
-  List<Wallet> getUserWallets() {
-    var wallets = <Wallet>[];
-    secrets.forEach((secret) {
-      print(secret);
-      Account account = TrovoWalletSDK().parseSecretKey(secret);
-      var wlt = user.wallets!
-          .firstWhere((wallet) => wallet.publicKey == account.publicKey);
-      wlt.secretKey = secret;
-      wallets.add(wlt);
-    });
-    return wallets;
+  // List<Wallet> getUserWallets() {
+  //   var wallets = <Wallet>[];
+  //   secrets.forEach((secret) {
+  //     print(secret);
+  //     Account account = TrovoWalletSDK().parseSecretKey(secret);
+  //     var wlt = user.wallets!
+  //         .firstWhere((wallet) => wallet.publicKey == account.publicKey);
+  //     wlt.secretKey = secret;
+  //     wallets.add(wlt);
+  //   });
+  //   return wallets;
+  // }
+
+  gotoNext() async {
+    var isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
+    if (isFirstTime) {
+      state.currentAction =
+          PageAction(state: PageState.addPage, page: FingerprintPageConfig);
+    } else {
+      state.currentAction =
+          PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+    }
   }
 }

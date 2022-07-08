@@ -439,7 +439,7 @@ void ensureBackupPrivacyDialog(context, action) {
       });
 }
 
-void warnSkipBackupDialog(context) {
+void warnSkipBackupDialog(context, onSkip) {
   notifier = Provider.of<ColorNotifier>(context, listen: false);
   var appState = Provider.of<DataProvider>(context, listen: false);
   height = MediaQuery.of(context).size.height;
@@ -536,9 +536,7 @@ void warnSkipBackupDialog(context) {
                     child: OutlinedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
-                        appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: FingerprintPageConfig);
+                        onSkip();
                       },
                       style: ButtonStyle(
                         fixedSize: MaterialStateProperty.all(

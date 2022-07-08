@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
@@ -80,7 +81,7 @@ class Congratulations extends StatelessWidget {
                 notifier.getwihitecolor,
                 notifier.getbluecolor,
                 onTap: () {
-                  warnSkipBackupDialog(context);
+                  warnSkipBackupDialog(context, gotoNext);
                 },
               ),
             ],
@@ -88,5 +89,16 @@ class Congratulations extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  gotoNext() async {
+    var isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
+    if (isFirstTime) {
+      appState.currentAction =
+          PageAction(state: PageState.addPage, page: EnsurePrivacyPageConfig);
+    } else {
+      appState.currentAction =
+          PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+    }
   }
 }
