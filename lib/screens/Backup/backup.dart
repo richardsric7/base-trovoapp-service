@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/storage/store.dart';
@@ -38,10 +39,17 @@ class _BackupState extends State<Backup> {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 6),
+              SizedBox(height: height / 20),
               Text(
                 LanguageEn.backupwallet,
                 style: TextStyle(
@@ -125,6 +133,10 @@ class _BackupState extends State<Backup> {
                   gotoNext();
                 },
               ),
+              SizedBox(height: height / 20),
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom)),
             ],
           ),
         ),

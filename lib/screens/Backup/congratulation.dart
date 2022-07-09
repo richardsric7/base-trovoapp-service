@@ -69,7 +69,7 @@ class Congratulations extends StatelessWidget {
                     () {
                       Navigator.of(context).pop();
                       appState.currentAction = PageAction(
-                          state: PageState.replace,
+                          state: PageState.addPage,
                           page: EnsurePrivacyPageConfig);
                     },
                   );

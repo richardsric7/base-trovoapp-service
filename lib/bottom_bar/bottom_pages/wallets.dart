@@ -1024,6 +1024,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     tag = '';
     description = '';
     secretKey = '';
+    actionIcon = Icons.add_circle_outline_sharp;
+    actionText = LanguageEn.addsubwallet;
     walletView = WalletView.listWallets;
   }
 
@@ -1031,7 +1033,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     var keyPair =
         TrovoWalletSDK().parseSecretKey(primaryWalletKeyPair.secretKey);
     Map responseData = await makeGetRequest(
-        uri: '/v1/users/${userInfo!.username!.trim().replaceAll(' ', '')}',
+        uri: '/v1/users/${userInfo.username!.trim().replaceAll(' ', '')}',
         signer: keyPair.publicKey,
         publicKey: keyPair.publicKey,
         secretKey: keyPair.secretKey);
@@ -1065,8 +1067,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
         (wallet) => wallet.publicKey == newSubWalletKeyPair.publicKey);
     appState.activeWallet!.secretKey = newSubWalletKeyPair.secretKey;
-    appState.currentAction = PageAction(
-        state: PageState.replaceAll, page: CongratulationsPageConfig);
+    appState.currentAction =
+        PageAction(state: PageState.addPage, page: CongratulationsPageConfig);
     resetForm();
     print('stored new user data.................');
   }
