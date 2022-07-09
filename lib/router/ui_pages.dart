@@ -18,6 +18,7 @@ const String SearchViewPath = '/searchview';
 const String NotificationsViewPath = '/notificationsview';
 const String CreateSubWalletSuccessViewPath = '/createSubWalletSuccessView';
 const String WalletDetailsViewPath = '/WalletDetailsView';
+const String AssetDetailsViewPath = '/AssetDetailsView';
 
 enum Pages {
   Splash,
@@ -37,7 +38,8 @@ enum Pages {
   SearchView,
   NotificationsView,
   CreateSubWalletSuccessView,
-  WalletDetailsView
+  WalletDetailsView,
+  AssetDetailsView
 }
 
 class PageConfiguration {
@@ -142,4 +144,9 @@ PageConfiguration WalletDetailsViewPageConfig = PageConfiguration(
     key: 'WalletDetailsView',
     path: WalletDetailsViewPath,
     uiPage: Pages.WalletDetailsView,
+    currentPageAction: null);
+PageConfiguration AssetDetailsViewPageConfig = PageConfiguration(
+    key: 'AssetDetailsView',
+    path: AssetDetailsViewPath,
+    uiPage: Pages.AssetDetailsView,
     currentPageAction: null);

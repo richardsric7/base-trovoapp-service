@@ -169,7 +169,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                 children: [
                                   if (claimedAssets.length > 0) ...[
                                     for (var asset in claimedAssets) ...[
-                                      tiles(asset),
+                                      GestureDetector(
+                                        onTap: () {
+                                          appState.setActiveWallet = wallets!
+                                              .firstWhere((wallet) =>
+                                                  wallet.publicKey ==
+                                                  activeWallet);
+                                          appState.currentAction = PageAction(
+                                            state: PageState.addPage,
+                                            page: AssetDetailsViewPageConfig,
+                                          );
+                                        },
+                                        child: tiles(asset),
+                                      ),
                                     ],
                                   ] else ...[
                                     Container(

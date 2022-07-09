@@ -12,6 +12,7 @@ import 'package:trovo_wallet/screens/Auth/vericication.dart';
 import 'package:trovo_wallet/screens/Backup/congratulation.dart';
 import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
 import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/asset_details.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../screens/Auth/fingerprint.dart';
@@ -171,6 +172,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.WalletDetailsView:
           _addPageData(WalletDetails(), WalletDetailsViewPageConfig);
           break;
+        case Pages.AssetDetailsView:
+          _addPageData(AssetDetails(), AssetDetailsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -275,6 +279,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.WalletDetailsView:
         WalletDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AssetDetailsView:
+        AssetDetailsViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -421,6 +428,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case 'walletDetailsView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
+        case 'assetDetailsView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+            _createPage(const AssetDetails(), AssetDetailsViewPageConfig),
           ]);
           break;
         default:
