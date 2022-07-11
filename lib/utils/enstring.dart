@@ -247,6 +247,9 @@ class LanguageEn {
   static String get walletcreatesuccess =>
       "Your wallet has been successfully created. \n\n\nWe strongly recommend that you backup your wallet before proceeding.\n\n\nBacking up your wallet is the only way to restore your wallet if you lose your device";
 
+  static String get subwalletcreatesuccess =>
+      "You have successfully created a subwallet. \n\n\nWe strongly recommend that you backup this new subwallet before proceeding.\n\n\nIf you do not backup your wallet, you can lose your assets if something happens to your device.\n\n\nBacking up your wallet also allows you to migrate this account to another device if you ever wish to.";
+
   static String get backup => "Backup";
 
   static String get backupwallet => "Backup Wallet";
@@ -387,7 +390,7 @@ class LanguageEn {
 
   static String get pendingassets => "PENDING";
 
-  static String get nfts => "NFTS";
+  static String get nfts => "NFT";
 
   static String get gocrypto => "GoCrypto";
 

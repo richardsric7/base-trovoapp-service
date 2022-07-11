@@ -11,9 +11,6 @@ import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../Auth/fingerprint.dart';
-import '../ImportWallet/importwallet.dart';
-import 'ensure_privacy.dart';
 
 class Congratulations extends StatelessWidget {
   Congratulations({Key? key}) : super(key: key);
@@ -32,7 +29,7 @@ class Congratulations extends StatelessWidget {
             children: [
               SizedBox(height: height / 6),
               Text(
-                LanguageEn.congratulations,
+                '${LanguageEn.congratulations}',
                 style: TextStyle(
                     color: notifier.getblck,
                     fontFamily: fontsemibold,
@@ -49,7 +46,9 @@ class Congratulations extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: Text(
-                  LanguageEn.walletcreatesuccess,
+                  appState.activeWallet!.primaryWallet == 1
+                      ? LanguageEn.walletcreatesuccess
+                      : LanguageEn.subwalletcreatesuccess,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getgrey,
@@ -58,7 +57,7 @@ class Congratulations extends StatelessWidget {
                       fontFamily: fontbody),
                 ),
               ),
-              SizedBox(height: height / 7.3),
+              SizedBox(height: height / 20),
               Button(
                 LanguageEn.backup,
                 notifier.getbluecolor,
@@ -69,7 +68,7 @@ class Congratulations extends StatelessWidget {
                     () {
                       Navigator.of(context).pop();
                       appState.currentAction = PageAction(
-                          state: PageState.replace,
+                          state: PageState.addPage,
                           page: EnsurePrivacyPageConfig);
                     },
                   );
@@ -84,6 +83,7 @@ class Congratulations extends StatelessWidget {
                   warnSkipBackupDialog(context, gotoNext);
                 },
               ),
+              SizedBox(height: height / 7.3),
             ],
           ),
         ),

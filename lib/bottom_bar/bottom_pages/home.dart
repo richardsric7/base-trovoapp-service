@@ -281,25 +281,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                       nfts[activeWallet].length > 0) ...[
                                     gridView(),
                                     SizedBox(height: 600),
+                                  ] else ...[
+                                    showEmptyNFTs(),
                                   ]
                                 ] else ...[
-                                  Container(
-                                    height: height / 3,
-                                    child: Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            10, 28.0, 10, 0),
-                                        child: Center(
-                                          child: Text(
-                                            LanguageEn.noNFTs,
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: fontsemibold,
-                                              color: notifier.getblck,
-                                            ),
-                                          ),
-                                        )),
-                                  ),
+                                  showEmptyNFTs(),
                                 ],
                               ],
                             ),
@@ -314,6 +300,25 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           ),
         ],
       ),
+    );
+  }
+
+  Widget showEmptyNFTs() {
+    return Container(
+      height: height / 3,
+      child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
+          child: Center(
+            child: Text(
+              LanguageEn.noNFTs,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                fontFamily: fontsemibold,
+                color: notifier.getblck,
+              ),
+            ),
+          )),
     );
   }
 
