@@ -554,7 +554,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             validator: validateTag,
             helperText: tag == null || tag!.isEmpty
                 ? ''
-                : "eg: ${appState.userInfo!.username}_$tag",
+                : "${appState.userInfo!.username}_$tag",
           ),
           SizedBox(height: height / 50),
           CustomTextFormField.textField(
