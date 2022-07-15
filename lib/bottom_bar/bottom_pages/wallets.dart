@@ -937,7 +937,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     // employ the use of a little recursion here. Please recursive
     // functions can turn into a nightmare fast so be carefull here.
     if (messageShown <= messageLength - 1) {
-      warnCreateWalletDialog(
+      showResponseMessage(
           context,
           data['messages'][messageShown],
           () => {

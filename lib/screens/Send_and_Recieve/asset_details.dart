@@ -1,9 +1,7 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
@@ -25,22 +23,48 @@ class AssetDetails extends StatefulWidget {
 class _AssetDetailsState extends State<AssetDetails>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
-  late TabController _tabController;
   late DataProvider appState;
   late UserInfo userInfo;
   var assetBalances;
-  var nfts;
+  List<Wallet>? wallets;
   Wallet? activeWallet;
+  String activeAsset = '';
   var claimedAssets;
-  var unclaimedAssets;
-  int tabLength = 2;
-  int touchedIndex = -1;
+
+  dynamic selectedWallet = '';
+  dynamic selectedAsset = '';
+
+  List<DropdownMenuItem<String>> get assetDropdownItems {
+    List<DropdownMenuItem<String>> menuItems = [];
+    for (var asset in claimedAssets) {
+      var value = asset['assetCode'].toString().isEmpty
+          ? "XBN"
+          : asset['assetCode'].toString();
+      menuItems.add(DropdownMenuItem(
+          child: Text(
+            value,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: value));
+    }
+    return menuItems;
+  }
+
+  List<DropdownMenuItem<String>> get walletDropdownItems {
+    return wallets!
+        .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
+            child: Text(
+              wallet.alias!,
+              overflow: TextOverflow.ellipsis,
+            ),
+            value: wallet.publicKey))
+        .toList();
+  }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _tabController = TabController(length: tabLength, vsync: this);
   }
 
   @override
@@ -49,27 +73,129 @@ class _AssetDetailsState extends State<AssetDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    userInfo = appState.userInfo!;
     assetBalances = appState.assetBalances;
-    nfts = appState.nfts;
+    wallets = userInfo.wallets!;
     activeWallet = appState.activeWallet;
+    activeAsset =
+        appState.viewData![AssetDetailsViewPageConfig.key]['assetCode'];
+    selectedAsset =
+        appState.viewData![AssetDetailsViewPageConfig.key]['assetCode'];
+    selectedWallet = activeWallet!.publicKey;
     claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
-    unclaimedAssets = assetBalances[activeWallet!.publicKey]['unclaimed'];
-    if (unclaimedAssets.length > 0) {
-      setState(() {
-        tabLength = 3;
-        _tabController = TabController(length: tabLength, vsync: this);
-      });
-    }
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
-          context,
-          notifier.getwihitecolor,
-          "",
-          notifier.getblck,
-          height: height / 15,
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(height / 15),
+          child: AppBar(
+              centerTitle: true,
+              elevation: 0,
+              backgroundColor: notifier.getwihitecolor,
+              leading: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+                child: Image.asset("assets/images/back.png", scale: 5),
+              ),
+              actions: [
+                Container(
+                  width: width / 1.2,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField(
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 0, horizontal: 20),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            filled: true,
+                            fillColor: notifier.getaddsubwalletgrey,
+                          ),
+                          value: selectedWallet,
+                          icon: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: notifier.getbluecolor,
+                          ),
+                          elevation: 0,
+                          style: TextStyle(
+                              color: notifier.getbluecolor,
+                              fontSize: 15,
+                              fontFamily: fontsemibold,
+                              fontWeight: FontWeight.w500),
+                          onChanged: (newValue) {
+                            setState(() {
+                              selectedWallet = newValue!;
+                              print('this is new value: $newValue');
+                              appState.activeWallet = wallets!.firstWhere(
+                                  (wallet) => wallet.publicKey == newValue);
+                            });
+                          },
+                          items: walletDropdownItems,
+                        ),
+                      ),
+                      SizedBox(
+                        width: width / 20,
+                      ),
+                      Expanded(
+                        child: DropdownButtonFormField(
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 0, horizontal: 20),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              filled: true,
+                              fillColor: notifier.getaddsubwalletgrey,
+                            ),
+                            value: selectedAsset,
+                            icon: Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: notifier.getbluecolor,
+                            ),
+                            style: TextStyle(
+                              color: notifier.getbluecolor,
+                              fontSize: 15,
+                              fontFamily: fontsemibold,
+                            ),
+                            onChanged: (newValue) {
+                              setState(() {
+                                print('changing active asset to: $newValue');
+                                selectedAsset = newValue!;
+                                appState.viewData = {
+                                  AssetDetailsViewPageConfig.key: {
+                                    'assetCode': newValue.toString(),
+                                  }
+                                };
+                              });
+                            },
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(15),
+                            ),
+                            items: assetDropdownItems),
+                      ),
+                      SizedBox(
+                        width: width / 20,
+                      ),
+                    ],
+                  ),
+                )
+              ]),
         ),
         body: SingleChildScrollView(
           child: Column(
@@ -83,7 +209,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     width: 20,
                   ),
                   Text(
-                    'TROV',
+                    activeAsset,
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -98,7 +224,7 @@ class _AssetDetailsState extends State<AssetDetails>
               ),
               assetInfo(),
               SizedBox(
-                height: height / 50,
+                height: height / 20,
               ),
               actionButtons(),
             ],
@@ -112,63 +238,64 @@ class _AssetDetailsState extends State<AssetDetails>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        ElevatedButton(
-          onPressed: () {},
-          child: Container(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 8.0,
-              ),
-              child: Column(
-                children: [
-                  SvgPicture.asset(
-                    "assets/images/send.svg",
-                    width: width / 6,
-                  ),
-                  Text(
-                    'Send',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: notifier.getwihitecolor,
-                      fontFamily: fontsemibold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: () {},
-          child: Container(
-            width: width / 3.9,
-            height: height / 10,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 8.0,
-              ),
-              child: Column(
-                children: [
-                  SvgPicture.asset(
-                    "assets/images/recieve.svg",
-                    width: width / 6,
-                  ),
-                  Text(
-                    'Recieve',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: notifier.getwihitecolor,
-                      fontFamily: fontsemibold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        actionButton("assets/images/send.svg", 'Send', () {
+          appState.viewData![SendAssetViewPageConfig.key] = {
+            'assetCode': activeAsset,
+          };
+
+          print(appState.viewData);
+          appState.currentAction = PageAction(
+            state: PageState.addPage,
+            page: SendAssetViewPageConfig,
+          );
+        }),
+        actionButton("assets/images/recieve.svg", 'Recieve', () {
+          print('fuck you 2');
+        }),
       ],
+    );
+  }
+
+  Widget actionButton(iconUrl, actionText, action) {
+    return ElevatedButton(
+      onPressed: action,
+      style: ButtonStyle(
+        backgroundColor:
+            MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(15),
+            ),
+          ),
+        ),
+      ),
+      child: Container(
+        width: width / 3.9,
+        height: height / 10,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 8.0,
+          ),
+          child: Column(
+            children: [
+              SvgPicture.asset(
+                iconUrl,
+                width: width / 8,
+              ),
+              Text(
+                actionText,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: notifier.getwihitecolor,
+                  fontFamily: fontsemibold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -273,7 +400,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'TROV Token',
+                    '$activeAsset Token',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,

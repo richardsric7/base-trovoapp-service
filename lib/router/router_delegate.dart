@@ -13,6 +13,9 @@ import 'package:trovo_wallet/screens/Backup/congratulation.dart';
 import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
 import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/asset_details.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/confirm_transaction.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/send_asset.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../screens/Auth/fingerprint.dart';
@@ -175,6 +178,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.AssetDetailsView:
           _addPageData(AssetDetails(), AssetDetailsViewPageConfig);
           break;
+        case Pages.SendAssetView:
+          _addPageData(SendAsset(), SendAssetViewPageConfig);
+          break;
+        case Pages.ConfirmTransactionView:
+          _addPageData(ConfirmTransaction(), ConfirmTransactionViewPageConfig);
+          break;
+        case Pages.TransactionSuccessView:
+          _addPageData(TransactionSuccess(), TransactionSuccessViewPageConfig);
+          break;
         default:
           break;
       }
@@ -282,6 +294,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.AssetDetailsView:
         AssetDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SendAssetView:
+        SendAssetViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ConfirmTransactionView:
+        ConfirmTransactionViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.TransactionSuccessView:
+        TransactionSuccessViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -434,6 +455,27 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
             _createPage(const AssetDetails(), AssetDetailsViewPageConfig),
+          ]);
+          break;
+        case 'sendAssetView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+            _createPage(const AssetDetails(), AssetDetailsViewPageConfig),
+            _createPage(const SendAsset(), SendAssetViewPageConfig),
+          ]);
+          break;
+        case 'confirmTransactionView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+            _createPage(const AssetDetails(), AssetDetailsViewPageConfig),
+            _createPage(const SendAsset(), SendAssetViewPageConfig),
+            _createPage(
+                const ConfirmTransaction(), ConfirmTransactionViewPageConfig),
+          ]);
+          break;
+        case 'transactionSuccessView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
           ]);
           break;
         default:

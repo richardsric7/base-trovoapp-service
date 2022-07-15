@@ -58,6 +58,9 @@ class CustomTextFormField {
     onSaved,
     keyboardtype,
     helperText,
+    inputFormatters,
+    controller,
+    buildCounter,
   }) {
     return ScreenUtilInit(
       builder: (context, child) => Container(
@@ -100,9 +103,12 @@ class CustomTextFormField {
               borderRadius: BorderRadius.circular(15.sp),
             ),
           ),
+          inputFormatters: inputFormatters,
           keyboardType: keyboardtype,
           validator: validator,
+          controller: controller,
           onSaved: onSaved,
+          buildCounter: buildCounter,
         ),
       ),
     );

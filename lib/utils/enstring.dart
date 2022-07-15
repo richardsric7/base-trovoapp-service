@@ -204,6 +204,13 @@ class LanguageEn {
 
   static String get signinwithbiometrics => "Sign In With Biometrics";
 
+  static String get send => 'Send';
+
+  static String get yourtransactionwassuccessful =>
+      'Your Transaction\nWas Successful!';
+
+  static String get proceed => 'Proceed';
+
   static String get welcome => "Welcome back";
 
   static String get youhavebeenmissed => "You have been missed";
@@ -474,7 +481,15 @@ class LanguageEn {
 
   static String get confirmation => "Confirmation";
 
-  static String get to => "to";
+  static String get to => "To";
+
+  static String get memo => "Add Memo (optional)";
+
+  static String get confirmyourtransaction => 'Confirm your transaction';
+
+  static String get youareabouttosend => 'You are about to send';
+
+  static String get descriptionmemo => 'Description/Memo';
 
   static String get amount => "Amount";
 

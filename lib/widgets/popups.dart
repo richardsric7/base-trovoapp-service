@@ -576,7 +576,7 @@ void warnSkipBackupDialog(context, onSkip) {
       });
 }
 
-void warnCreateWalletDialog(context, message, successAction) {
+void showResponseMessage(context, message, successAction) {
   notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;

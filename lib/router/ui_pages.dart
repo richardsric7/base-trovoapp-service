@@ -19,6 +19,9 @@ const String NotificationsViewPath = '/notificationsview';
 const String CreateSubWalletSuccessViewPath = '/createSubWalletSuccessView';
 const String WalletDetailsViewPath = '/WalletDetailsView';
 const String AssetDetailsViewPath = '/AssetDetailsView';
+const String SendAssetViewPath = '/sendAssetView';
+const String ConfirmTransactionViewPath = '/confirmTransactionAssetView';
+const String TransactionSuccessViewPath = '/transactionSuccessView';
 
 enum Pages {
   Splash,
@@ -39,7 +42,10 @@ enum Pages {
   NotificationsView,
   CreateSubWalletSuccessView,
   WalletDetailsView,
-  AssetDetailsView
+  AssetDetailsView,
+  SendAssetView,
+  ConfirmTransactionView,
+  TransactionSuccessView,
 }
 
 class PageConfiguration {
@@ -149,4 +155,19 @@ PageConfiguration AssetDetailsViewPageConfig = PageConfiguration(
     key: 'AssetDetailsView',
     path: AssetDetailsViewPath,
     uiPage: Pages.AssetDetailsView,
+    currentPageAction: null);
+PageConfiguration SendAssetViewPageConfig = PageConfiguration(
+    key: 'SendAssetView',
+    path: SendAssetViewPath,
+    uiPage: Pages.SendAssetView,
+    currentPageAction: null);
+PageConfiguration ConfirmTransactionViewPageConfig = PageConfiguration(
+    key: 'ConfirmTransactionView',
+    path: ConfirmTransactionViewPath,
+    uiPage: Pages.ConfirmTransactionView,
+    currentPageAction: null);
+PageConfiguration TransactionSuccessViewPageConfig = PageConfiguration(
+    key: 'TransactionSuccessView',
+    path: TransactionSuccessViewPath,
+    uiPage: Pages.TransactionSuccessView,
     currentPageAction: null);

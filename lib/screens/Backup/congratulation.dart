@@ -95,7 +95,7 @@ class Congratulations extends StatelessWidget {
     var isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
     if (isFirstTime) {
       appState.currentAction =
-          PageAction(state: PageState.addPage, page: EnsurePrivacyPageConfig);
+          PageAction(state: PageState.addPage, page: FingerprintPageConfig);
     } else {
       appState.currentAction =
           PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);

@@ -175,6 +175,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                               .firstWhere((wallet) =>
                                                   wallet.publicKey ==
                                                   activeWallet);
+                                          appState.viewData = {
+                                            AssetDetailsViewPageConfig.key: {
+                                              "assetCode": asset["assetCode"]
+                                                      .toString()
+                                                      .isEmpty
+                                                  ? "XBN"
+                                                  : asset["assetCode"]
+                                                      .toString(),
+                                            },
+                                          };
+                                          print(appState.viewData);
                                           appState.currentAction = PageAction(
                                             state: PageState.addPage,
                                             page: AssetDetailsViewPageConfig,
@@ -332,12 +343,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             Row(
               children: [
                 Padding(
-                  padding: EdgeInsets.fromLTRB(width / 18, 0, 0, 0),
-                  child: SvgPicture.asset(
-                    "assets/images/default.svg",
-                    width: width / 6,
-                  ),
-                ),
+                    padding: EdgeInsets.fromLTRB(width / 18, 0, 0, 0),
+                    child: CircleAvatar(
+                      radius: 30,
+                      backgroundColor: notifier.getwihitecolor,
+                      foregroundImage:
+                          AssetImage("assets/images/default-user.png"),
+                    )),
                 SizedBox(
                   width: width / 70,
                 ),

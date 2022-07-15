@@ -262,8 +262,9 @@ class _WalletDetailsState extends State<WalletDetails>
                                 // some values can be returned as null or empty
                                 // so always null check for such situations
                                 if (nfts != null && nfts != {}) ...[
-                                  if (nfts[activeWallet] != null &&
-                                      nfts[activeWallet].length > 0) ...[
+                                  if (nfts[activeWallet!.publicKey] != null &&
+                                      nfts[activeWallet!.publicKey].length >
+                                          0) ...[
                                     gridView(),
                                     SizedBox(height: 600),
                                   ] else ...[
