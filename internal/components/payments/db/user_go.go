@@ -4,13 +4,17 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 	conDB "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/network"
 	pns "trovo-wallet-api/internal/pns"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/protocols/horizon"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -95,6 +99,158 @@ type ReservedName struct {
 	UpdatedAt    time.Time
 	ReservedName *string `gorm:"size:50;not null;index:unique_reserved_name, unique;index:idx_reserved_status"`
 	Status       *uint64 `gorm:"default:0;index:idx_reserved_status"`
+}
+
+//Signer model for user
+type Signer struct {
+	Weight  int    `json:"weight"`
+	Key     string `json:"key"`
+	Type    string `json:"type"`
+	Sponsor string `json:"sponsor"`
+}
+
+//Signer model for user
+type Thresholds struct {
+	LowThreshold    string `json:"low_threshold"`
+	MediumThreshold string `json:"medium_threshold"`
+	HighThreshold   string `json:"high_threshold"`
+}
+
+//GetBlockchainAccountDetail fetches the bantu account information using public key
+func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizon.Account, destinationAccountExists bool, err error) {
+	client := network.GetBlockchainClient()
+	var accountRequest horizonclient.AccountRequest
+	if temp {
+		//temp account
+		if u.TempPublicKey != nil {
+			//temp account has been generated
+			accountRequest = horizonclient.AccountRequest{AccountID: *u.TempPublicKey}
+
+		} else {
+			//temp account not yet generated
+			err = &tErrors.ErrorBlockchainAccountNotActivated{}
+			return
+		}
+
+	} else {
+		//real account
+		accountRequest = horizonclient.AccountRequest{AccountID: u.ID}
+	}
+
+	clientAccount, err = client.AccountDetail(accountRequest)
+	if err != nil {
+		// log.Printf("[GetBlockchainAccountDetail]: %v, error: [%v]", accountRequest.AccountID, err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetBlockchainAccountDetail Network Failure]: %s\n", "Error Connecting to Expansion Service")
+			return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
+		} else {
+			horizonException, ok := err.(*horizonclient.Error)
+
+			if ok {
+
+				if horizonException.Problem.Status == http.StatusNotFound {
+					return clientAccount, false, &tErrors.ErrorBlockchainAccountNotActivated{}
+				}
+				log.Println("[BlockchainAccountProperties] error is known", horizonException.Problem.Status)
+			}
+
+		}
+		return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
+	}
+	return clientAccount, true, nil
+}
+
+// GetSigners returns user signers
+func (u *UserWallet) GetSigners(temp bool) (signers map[string]Signer) {
+	account, _, err := u.GetBlockchainAccountDetail(temp)
+	if err != nil {
+		return signers
+	}
+	signers = make(map[string]Signer)
+	for _, v := range account.Signers {
+		signers[v.Key] = Signer{
+			Weight:  int(v.Weight),
+			Key:     v.Key,
+			Type:    v.Type,
+			Sponsor: v.Sponsor,
+		}
+	}
+	return
+}
+
+// GetSignersWA returns user signers
+func (u *User) GetSignersWA(account *horizon.Account) (signers map[string]Signer) {
+
+	signers = make(map[string]Signer)
+	for _, v := range account.Signers {
+		signers[v.Key] = Signer{
+			Weight:  int(v.Weight),
+			Key:     v.Key,
+			Type:    v.Type,
+			Sponsor: v.Sponsor,
+		}
+	}
+	return
+}
+
+// GetSignersWA returns user signers
+func (u *UserWallet) GetSignersWA(account *horizon.Account) (signers map[string]Signer) {
+
+	signers = make(map[string]Signer)
+	for _, v := range account.Signers {
+		signers[v.Key] = Signer{
+			Weight:  int(v.Weight),
+			Key:     v.Key,
+			Type:    v.Type,
+			Sponsor: v.Sponsor,
+		}
+	}
+	return
+}
+
+//SignerIsValidWA checks if the signerKey is valid for this user public key
+func (u *User) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
+	signer, ok := u.GetSignersWA(account)[signerKey]
+	if !ok || signer.Weight < 1 {
+		return false
+	}
+
+	return true
+}
+
+//SignerIsValidWA checks if the signerKey is valid for this user public key
+func (u *UserWallet) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
+	signer, ok := u.GetSignersWA(account)[signerKey]
+	if !ok || signer.Weight < 1 {
+		return false
+	}
+
+	return true
+}
+
+//SignerIsValid checks if the signerKey is valid for this user public key
+func (u *UserWallet) SignerIsValid(signerKey string, temp bool) bool {
+	signer, ok := u.GetSigners(temp)[signerKey]
+	if !ok || signer.Weight < 1 {
+		return false
+	}
+
+	return true
+}
+
+//SignerIsValid checks if the signerKey is valid for this user public key
+func (u *User) SignerIsValid(signerKey string, temp bool) bool {
+	for _, w := range u.UserWallets {
+		if w.ID == w.Signer {
+			signer, ok := w.GetSigners(temp)[signerKey]
+			if !ok || signer.Weight < 1 {
+				return false
+			}
+
+			return true
+		}
+	}
+	return false
 }
 
 func GetUser(userInfo string, db *gorm.DB) (user User, err error) {

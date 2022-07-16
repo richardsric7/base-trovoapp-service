@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
@@ -18,7 +17,7 @@ import (
 )
 
 //ClaimPendingAsset claim pending assets
-func ClaimPendingAsset(identifier string, sourcePublicKey string, pendingAssetToClaim *userModels.PendingAssetToClaim, db *gorm.DB) (*userModels.PendingAssetToClaim, bool, error) {
+func ClaimPendingAsset(owner *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, db *gorm.DB) (*userModels.PendingAssetToClaim, bool, error) {
 
 	var err error
 
@@ -40,7 +39,7 @@ func ClaimPendingAsset(identifier string, sourcePublicKey string, pendingAssetTo
 
 	horizonClient := network.GetBlockchainClient()
 
-	xdrBase64, err := generateXdr(horizonClient, identifier, sourcePublicKey, db, pendingAssetToClaim)
+	xdrBase64, err := generateXdr(horizonClient, *owner, wallet, db, pendingAssetToClaim)
 
 	if err != nil {
 		return pendingAssetToClaim, false, err
@@ -69,7 +68,7 @@ func ClaimPendingAsset(identifier string, sourcePublicKey string, pendingAssetTo
 		}
 	}
 
-	txnID, err := network.SubmitXdrWithSignature(horizonClient, sourcePublicKey, xdrBase64, pendingAssetToClaim.TransactionSignature)
+	txnID, err := network.SubmitXdrWithSignature(horizonClient, wallet.Signer, xdrBase64, pendingAssetToClaim.TransactionSignature)
 
 	if err != nil {
 		log.Printf("error submitting txn: %v", err)
@@ -82,23 +81,9 @@ func ClaimPendingAsset(identifier string, sourcePublicKey string, pendingAssetTo
 
 }
 
-func generateXdr(horizonClient *horizonclient.Client, identifier string, sourcePublicKey string, db *gorm.DB, pendingAssetToClaim *userModels.PendingAssetToClaim) (string, error) {
-	user, err := usersDB.GetUser(identifier, db)
+func generateXdr(horizonClient *horizonclient.Client, owner userModels.User, wallet *userModels.UserWallet, db *gorm.DB, pendingAssetToClaim *userModels.PendingAssetToClaim) (string, error) {
 
-	if err != nil {
-		return "", err
-	}
-	if user.Suspended == 1 {
-		return "", &tErrors.ErrorUsernameIsSuspended{}
-	}
-	// if banned, errBanned := usersdb.PublicKeyIsBanned(user.PublicKey, db); banned {
-	// 	return "", errBanned
-	// }
-	if user.PublicKey != sourcePublicKey {
-		return "", &tErrors.ErrorInvalidAuthorization{}
-	}
-
-	tempKeyPair, err := network.TempAccountKeypair(user.PublicKey)
+	tempKeyPair, err := network.TempAccountKeypair(wallet.ID)
 
 	if err != nil {
 		return "", err
@@ -130,7 +115,7 @@ func generateXdr(horizonClient *horizonclient.Client, identifier string, sourceP
 
 	//source account details
 
-	sourceAccountExists, sourceAccountTrustsAsset, _, _, sourceAccount, _ := network.BlockchainAccountProperties(horizonClient, sourcePublicKey, asset)
+	sourceAccountExists, sourceAccountTrustsAsset, _, _, sourceAccount, _ := network.BlockchainAccountProperties(horizonClient, wallet.ID, asset)
 
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
 
@@ -138,13 +123,13 @@ func generateXdr(horizonClient *horizonclient.Client, identifier string, sourceP
 		if !sourceAccountExists {
 			//todo: check if nativeAccount balance > 1
 			ops = append(ops, &txnbuild.CreateAccount{
-				Destination:   sourcePublicKey,
+				Destination:   wallet.ID,
 				Amount:        nativeAccountBalance.Truncate(7).String(),
 				SourceAccount: tempAccount.AccountID,
 			})
 		} else {
 			ops = append(ops, &txnbuild.Payment{
-				Destination:   sourcePublicKey,
+				Destination:   wallet.ID,
 				Amount:        nativeAccountBalance.Truncate(7).String(),
 				Asset:         txnbuild.NativeAsset{},
 				SourceAccount: tempAccount.AccountID,
@@ -162,7 +147,7 @@ func generateXdr(horizonClient *horizonclient.Client, identifier string, sourceP
 
 	if customAccountBalance.GreaterThan(decimal.Zero) {
 		ops = append(ops, &txnbuild.Payment{
-			Destination:   sourcePublicKey,
+			Destination:   wallet.ID,
 			Amount:        customAccountBalance.Truncate(7).String(),
 			Asset:         asset,
 			SourceAccount: tempAccount.AccountID,

@@ -8,7 +8,6 @@ import (
 	"strings"
 	tPayErrors "trovo-wallet-api/internal/components/payments/errors"
 	payments "trovo-wallet-api/internal/components/payments/models"
-	usersdb "trovo-wallet-api/internal/components/users/db"
 	users "trovo-wallet-api/internal/components/users/models"
 
 	"log"
@@ -81,14 +80,14 @@ func Pay(owner *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *pay
 
 	if len(paymentInfo.ChannelAccount) == 56 {
 		//payment is with channel account
-		xdrBase64, destinationUser, err = generatePaymentXdrWithChannelAccountPK(client, owner, destinationUser, wallet, paymentInfo, db)
+		xdrBase64, destinationUser, err = generatePaymentXdrWithChannelAccountPK(client, owner, wallet, paymentInfo, db)
 
 		if err != nil {
 			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdrWithChannelAccountPK error:[%v] \n", wallet.Alias, paymentInfo.Destination, err)
 		}
 	} else {
 
-		xdrBase64, destinationUser, err = generatePaymentXdr(client, owner, destinationUser, wallet, paymentInfo, db)
+		xdrBase64, destinationUser, err = generatePaymentXdr(client, owner, wallet, paymentInfo, db)
 		if err != nil {
 			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdr error:[%v] \n", wallet.ID, paymentInfo.Destination, err)
 		}
@@ -134,7 +133,7 @@ func Pay(owner *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *pay
 
 }
 
-func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, destinationUser *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *payments.PaymentInfo, db *gorm.DB) (string, *paymentsDB.User, error) {
+func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *payments.PaymentInfo, db *gorm.DB) (string, *paymentsDB.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	// var messages []string
 	//check if it is public key payment
@@ -159,8 +158,8 @@ func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, de
 		asset = txnbuild.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
 	}
 
-	destinationInfo, getDestinationError := usersdb.GetUser(paymentInfo.Destination, db)
-	destinationWallet, _, _ := usersdb.GetWallet(paymentInfo.Destination, db)
+	destinationInfo, getDestinationError := paymentsDB.GetUser(paymentInfo.Destination, db)
+	destinationWallet, _, _ := paymentsDB.GetWallet(paymentInfo.Destination, db)
 
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
@@ -169,9 +168,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, de
 	if destinationInfo.Suspended == 1 {
 		return "", nil, &tErrors.ErrorUsernameIsSuspended{}
 	}
-	// if banned, errBanned := usersdb.PublicKeyIsBanned(destinationInfo.PublicKey, db); banned {
-	// 	return "", nil, errBanned
-	// }
+
 	if !publicKeyPayment {
 		paymentInfo.DestinationFirstName = destinationInfo.FirstName
 		if destinationInfo.LastName != nil {
@@ -215,7 +212,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, de
 			//custom asset
 			if !destinationAccountExists {
 
-				message := fmt.Sprintf("Important: The account of %v is unfunded. %v XBN will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationInfo.Username, charge, destinationInfo.Username, destinationInfo.Username)
+				message := fmt.Sprintf("Important: The wallet %v is unfunded. %v XBN will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationWallet.Alias, charge, destinationWallet.Alias, destinationWallet.Alias)
 
 				paymentInfo.Messages = append(paymentInfo.Messages, message)
 				// log.Printf("[generatePaymentXdr]message[0]: %v\n", message)
@@ -223,7 +220,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, de
 			}
 
 			if !destinationAccountTrustsAsset {
-				message := fmt.Sprintf("Important: %v has not yet activated the asset (%v) you are trying to send. %v XBN will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationInfo.Username, paymentInfo.AssetCode, charge, destinationInfo.Username, paymentInfo.AssetCode)
+				message := fmt.Sprintf("Important: %v has not yet activated the asset (%v) you are trying to send. %v XBN will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationWallet.Alias, paymentInfo.AssetCode, charge, destinationWallet.Alias, paymentInfo.AssetCode)
 
 				paymentInfo.Messages = append(paymentInfo.Messages, message)
 				// log.Printf("[generatePaymentXdr]message[1]: %v\n", message)
@@ -312,7 +309,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, de
 
 		if !destinationAccountTrustsAsset {
 			if !publicKeyPayment {
-				ops2, _tempAccountKeyPair, err := processDestinationAssetDoesNotTrustAsset(client, sourceAccount, destinationPublicKey, asset, newAmountToSend, db)
+				ops2, _tempAccountKeyPair, err := processDestinationAssetDoesNotTrustAsset(client, &destinationWallet, sourceAccount, asset, newAmountToSend, db)
 
 				if err != nil {
 					return "", nil, err
@@ -373,11 +370,14 @@ func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, de
 		paymentInfo.CallbackURLS = GetBlockchainAccountDataKey(*destinationBlockchainAccount, "orderPaymentCallbackUrl")
 
 	}
+	if publicKeyPayment {
+		return xdrBase64, nil, nil
+	}
+	return xdrBase64, &destinationInfo, nil
 
-	return xdrBase64, destinationUser, nil
 }
 
-func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner, destinationUser *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *payments.PaymentInfo, db *gorm.DB) (string, *paymentsDB.User, error) {
+func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *payments.PaymentInfo, db *gorm.DB) (string, *paymentsDB.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	// var messages []string
 	//check if it is public key payment
@@ -401,18 +401,28 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner,
 	if len(paymentInfo.AssetCode) != 0 {
 		asset = txnbuild.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
 	}
-
+	destinationInfo, getDestinationError := paymentsDB.GetUser(paymentInfo.Destination, db)
+	destinationWallet, _, _ := paymentsDB.GetWallet(paymentInfo.Destination, db)
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
+	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
+		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
+	}
 
+	var destinationPublicKey string
+	if publicKeyPayment {
+		destinationPublicKey = paymentInfo.Destination
+	} else {
+		destinationPublicKey = destinationWallet.ID
+	}
 	if !publicKeyPayment {
-		paymentInfo.DestinationFirstName = destinationUser.FirstName
-		if destinationUser.LastName != nil {
-			paymentInfo.DestinationLastName = *destinationUser.LastName
+		paymentInfo.DestinationFirstName = destinationInfo.FirstName
+		if destinationInfo.LastName != nil {
+			paymentInfo.DestinationLastName = *destinationInfo.LastName
 		}
 
-		paymentInfo.DestinationVerified = destinationUser.Verified
-		if destinationUser.ImageThumbnailURL != nil {
-			paymentInfo.DestinationThumbnail = *destinationUser.ImageThumbnailURL
+		paymentInfo.DestinationVerified = destinationInfo.Verified
+		if destinationInfo.ImageThumbnailURL != nil {
+			paymentInfo.DestinationThumbnail = *destinationInfo.ImageThumbnailURL
 		}
 	} else {
 		//parse public key
@@ -426,12 +436,12 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner,
 		paymentInfo.Messages = append(paymentInfo.Messages, message)
 		// log.Printf("[generatePaymentXdr]message for public key logged: %v\n", message)
 	}
-	var destinationPublicKey string
-	if publicKeyPayment {
-		destinationPublicKey = paymentInfo.Destination
-	} else {
-		destinationPublicKey = destinationUser.PublicKey
-	}
+	// var destinationPublicKey string
+	// if publicKeyPayment {
+	// 	destinationPublicKey = paymentInfo.Destination
+	// } else {
+	// 	destinationPublicKey = destinationUser.PublicKey
+	// }
 	//perform ths checks to determine messages to be appended. if destination account property is not checked here, information would be returned without messages set.
 	destinationAccountExists, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr :=
 		network.BlockchainAccountProperties(client, destinationPublicKey, asset)
@@ -447,7 +457,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner,
 			//custom asset
 			if !destinationAccountExists {
 
-				message := fmt.Sprintf("Important: The account of %v is unfunded. %v XBN will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationUser.Username, charge, destinationUser.Username, destinationUser.Username)
+				message := fmt.Sprintf("Important: The wallet %v is unfunded. %v XBN will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationWallet.Alias, charge, destinationWallet.Alias, destinationWallet.Alias)
 
 				paymentInfo.Messages = append(paymentInfo.Messages, message)
 				// log.Printf("[generatePaymentXdr]message[0]: %v\n", message)
@@ -455,7 +465,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner,
 			}
 
 			if !destinationAccountTrustsAsset {
-				message := fmt.Sprintf("Important: %v has not yet activated the asset (%v), that you are trying to send. %v XBN will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationUser.Username, paymentInfo.AssetCode, charge, destinationUser.Username, paymentInfo.AssetCode)
+				message := fmt.Sprintf("Important: %v has not yet activated the asset (%v), that you are trying to send. %v XBN will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationWallet.Alias, paymentInfo.AssetCode, charge, destinationWallet.Alias, paymentInfo.AssetCode)
 
 				paymentInfo.Messages = append(paymentInfo.Messages, message)
 				// log.Printf("[generatePaymentXdr]message[1]: %v\n", message)
@@ -493,15 +503,6 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner,
 
 		return "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
-
-	// rid, e := ProcessBailArrestedAccount(client, owner, sourceAccount, db)
-	// if e != nil {
-	// 	//  error while releasing from prison
-	// 	log.Println("[generatePaymentXdr] error:", e)
-	// } else {
-	// 	//account freed from prison
-	// 	log.Println("[generatePaymentXdr] account freed from prison", senderPublicKey, "hash:", rid)
-	// }
 
 	log.Printf("[generatePaymentXdrWithChannelAccountPK]obtained sourced account info \n")
 
@@ -555,7 +556,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner,
 	} else {
 		//custom asset
 
-		// claimable assets are for bantupay customers only. it would return error above when destination does not trust asset
+		// claimable assets are for trovotech customers only. it would return error above when destination does not trust asset
 
 		if !destinationAccountExists {
 			ops = append(ops, &txnbuild.CreateAccount{
@@ -567,7 +568,8 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner,
 
 		if !destinationAccountTrustsAsset {
 			if !publicKeyPayment {
-				ops2, _tempAccountKeyPair, err := processDestinationAssetDoesNotTrustAsset(client, sourceAccount, destinationPublicKey, asset, newAmountToSend, db)
+
+				ops2, _tempAccountKeyPair, err := processDestinationAssetDoesNotTrustAsset(client, &destinationWallet, sourceAccount, asset, newAmountToSend, db)
 
 				if err != nil {
 					return "", nil, err
@@ -629,71 +631,10 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner,
 		paymentInfo.CallbackURLS = GetBlockchainAccountDataKey(*destinationBlockchainAccount, "orderPaymentCallbackUrl")
 
 	}
-	return xdrBase64, destinationUser, nil
-}
-
-func ProcessArrestAccount(client *horizonclient.Client, owner *users.User, sourceAccount *horizon.Account, db *gorm.DB) (xdrBase64 string, goinToPrison bool) {
-
-	prisonSigner := keypair.MustParseFull(os.Getenv("PRISON_SIGNER"))
-
-	//check if account has prison signer key already. checks if account is already arrested.
-	if owner.SignerIsValidWA(prisonSigner.Address(), sourceAccount) {
-		//account is already in prison
-		return "", false
+	if publicKeyPayment {
+		return xdrBase64, nil, nil
 	}
-
-	//check if account is enlisted for prison arrest
-	// if !owner.PublicKeyBanned(db, false) {
-	// 	return "", false
-	// }
-	_, _, _, _, channelSourceAccount, _ := network.BlockchainAccountProperties(client, prisonSigner.Address(), txnbuild.NativeAsset{})
-
-	//no errors, so create transaction to in prison
-	log.Println("[ProcessArrestAccount]processing arrest XDR")
-	arrestRequest := &txnbuild.SetOptions{
-		Signer: &txnbuild.Signer{
-			Address: prisonSigner.Address(),
-			Weight:  2,
-		},
-		LowThreshold:    txnbuild.NewThreshold(2),
-		MediumThreshold: txnbuild.NewThreshold(2),
-		HighThreshold:   txnbuild.NewThreshold(2),
-		SourceAccount:   sourceAccount.AccountID,
-	}
-	// sourceAccount.Sequence = (decimal.RequireFromString(sourceAccount.Sequence).Add(decimal.NewFromInt(1))).String()
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        channelSourceAccount,
-			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{arrestRequest},
-			BaseFee:              txnbuild.MinBaseFee,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
-			},
-			Memo: txnbuild.MemoText("arrest operation"),
-		},
-	)
-	if err != nil {
-		log.Println("[ProcessArrestAccount] error constructing transaction ", err)
-		return "", false
-	}
-
-	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), prisonSigner)
-
-	if err != nil {
-		log.Println("[ProcessArrestAccount] error signing transaction with prison signer key ", err)
-		return "", false
-	}
-
-	xdrBase64, err = tx.Base64()
-
-	if err != nil {
-		log.Println("[ProcessArrestAccount] error getting txn base64", err)
-		return "", false
-	}
-
-	return xdrBase64, true
-
+	return xdrBase64, &destinationInfo, nil
 }
 
 func ProcessBailArrestedAccount(client *horizonclient.Client, owner *users.User, sourceAccount *horizon.Account, db *gorm.DB) (txHash string, err error) {
@@ -800,13 +741,13 @@ func ProcessBailArrestedAccount(client *horizonclient.Client, owner *users.User,
 
 }
 
-func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, sourceAccount *horizon.Account, destinationPublicKey string, asset txnbuild.Asset, amountToSend string, db *gorm.DB) ([]txnbuild.Operation, *keypair.Full, error) {
+func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, destinationWallet *paymentsDB.UserWallet, sourceAccount *horizon.Account, asset txnbuild.Asset, amountToSend string, db *gorm.DB) ([]txnbuild.Operation, *keypair.Full, error) {
 
 	ops := make([]txnbuild.Operation, 0)
 
 	var signerKeyPairToReturn *keypair.Full = nil
 
-	tempAccountKeypair, tempAccountError := network.TempAccountKeypair(destinationPublicKey)
+	tempAccountKeypair, tempAccountError := network.TempAccountKeypair(destinationWallet.ID)
 
 	var tempAccount txnbuild.Account = &txnbuild.SimpleAccount{AccountID: tempAccountKeypair.FromAddress().Address(), Sequence: 0}
 
@@ -815,7 +756,7 @@ func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, sour
 		return ops, tempAccountKeypair, &tErrors.ErrorTemporaryServerError{}
 	}
 
-	tempAccountExists, tempAccountTrustsAsset, _, _, _, tempAccountError :=
+	tempAccountExists, tempAccountTrustsAsset, _, _, tempAccountSource, tempAccountError :=
 		network.BlockchainAccountProperties(client, tempAccountKeypair.FromAddress().Address(), asset)
 
 	if tempAccountError != nil {
@@ -828,7 +769,7 @@ func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, sour
 		var _wallets []users.UserWallet
 
 		//check if temp account exists in buds or not.
-		err := db.Where("id = ?", destinationPublicKey).Find(&_wallets).Error
+		err := db.Where("id = ?", destinationWallet.ID).Find(&_wallets).Error
 
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -884,7 +825,23 @@ func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, sour
 
 		ops = append(ops, &txnbuild.SetOptions{
 			Signer: &txnbuild.Signer{
-				Address: destinationPublicKey,
+				Address: destinationWallet.Signer,
+				Weight:  1,
+			},
+			SourceAccount: tempAccount.GetAccountID(),
+		})
+
+		signerKeyPairToReturn = tempAccountKeypair
+	}
+
+	// destinationWallet.SignerIsValidWA(destinationWallet.Signer, tempAccountSource)
+	if tempAccountExists && !destinationWallet.SignerIsValidWA(destinationWallet.Signer, tempAccountSource) {
+
+		//just make the temporary key a signer
+
+		ops = append(ops, &txnbuild.SetOptions{
+			Signer: &txnbuild.Signer{
+				Address: destinationWallet.Signer,
 				Weight:  1,
 			},
 			SourceAccount: tempAccount.GetAccountID(),

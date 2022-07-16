@@ -540,35 +540,54 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, returnedTrustLineInfo)
 	})
 
-	router.PUT("/v1/users/:targetUser/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.PUT("/v1/users/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
-		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
-		uDec, e := base64.URLEncoding.DecodeString(c.Param("targetUser"))
-		if e == nil {
-			//check if the decoded contains any non-english character
-			invalidChars := 0
+		_, err = usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
 
-			acceptedChars := "abcdefghijklmnopqrstuvwxyz_1234567890/"
-			for _, c := range uDec {
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
 
-				if !strings.Contains(acceptedChars, strings.TrimSpace(strings.ToLower(string(c)))) {
-					invalidChars++
-				}
-
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			}
-			if invalidChars == 0 {
-				identifier = string(uDec)
-			}
-
-		}
-
-		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/users/:identifier/actions/claim-asset %v", identifier), gc.DB)
-		if identifier == "null" {
-			log.Printf("user cannot be %v\n", identifier)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/users/actions/claim-asset %v", middleware.ExtractPublicKey(c)), gc.DB)
+
 		var pendingAssetToClaim userModels.PendingAssetToClaim
 		// var err error
 
@@ -583,7 +602,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		returnedPendingAssetToClaim, complete, err := userServices.ClaimPendingAsset(identifier, middleware.ExtractPublicKey(c), &pendingAssetToClaim, gc.DB)
+		returnedPendingAssetToClaim, complete, err := userServices.ClaimPendingAsset(&walletOwner, &wallet, &pendingAssetToClaim, gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -598,14 +617,17 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		cacheKey := fmt.Sprintf("[GET] /v1/users/%v", identifier)
-		paymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", identifier)
-		senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", identifier)
-		senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/%v/payments", identifier)
+		var ownerBalanceCacheKey, tempCacheKey, sNFT string
 
-		gc.RedisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
 
-		gc.RedisCache.InvalidateCachedHttpResponse(cacheKey, paymentHistoryCacheKey)
+		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+
+		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 
 		if complete {
 			c.JSON(http.StatusOK, returnedPendingAssetToClaim)
