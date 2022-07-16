@@ -309,13 +309,32 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 			gc.RedisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
 			gc.RedisCache.InvalidateCachedHttpResponse(senderPaymentHistoryCacheKey)
+			var senderBalanceCacheKey, senderTempCacheKey, receiverBalanceCacheKey, receiverTempCacheKey, rNTF, sNFT string
+
+			senderBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
+			sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+			if returnedDestination != nil {
+				receiverBalanceCacheKey = fmt.Sprintf("GetBalance_%s", returnedDestination.PublicKey)
+				rNTF = fmt.Sprintf("GetNFTs_%s", returnedDestination.PublicKey)
+
+			}
+			if len(destinationWallet.ID) == 56 {
+				receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
+			}
+			if len(userWallet.ID) == 56 {
+				senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *userWallet.TempPublicKey)
+
+			}
+
 			if returnedDestination != nil {
 				destinationUsername := strings.TrimSpace(strings.ToLower(destinationUser.Username))
 
 				receiverCacheKey := fmt.Sprintf("[GET] /v1/users/%v", destinationUsername)
 				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverCacheKey, receiverPaymentHistoryCacheKey)
+				gc.RedisCache.InvalidateCachedHttpResponse(receiverPaymentHistoryCacheKey, senderBalanceCacheKey, receiverBalanceCacheKey)
 			}
+			gc.RedisCache.InvalidateCachedHttpResponse(senderBalanceCacheKey, senderTempCacheKey, receiverBalanceCacheKey, receiverTempCacheKey, sNFT, rNTF)
 			c.JSON(http.StatusOK, paymentInfoReturned)
 
 			{

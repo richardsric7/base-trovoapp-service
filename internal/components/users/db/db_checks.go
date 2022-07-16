@@ -112,7 +112,7 @@ func UserRegistrationDbChecks(userInfo usermodels.UserRegistrationInfo, db *gorm
 
 			return &user, nil
 		}
-		log.Println("[UserRegistrationDbChecks]", err)
+		log.Println("[UserRegistrationDbChecks] db error returned:", err)
 		discord.Say(fmt.Sprintf("[UserRegistrationDbChecks] DB check failed with unknown error for user:%v, error: %v", userInfo.Username, err))
 
 		return nil, &tErrors.ErrorTemporaryServerError{}
@@ -123,25 +123,6 @@ func UserRegistrationDbChecks(userInfo usermodels.UserRegistrationInfo, db *gorm
 		return nil, &tErrors.ErrorEmailAlreadyExists{Detail: fmt.Sprintf("email [%v] already exists with another account", userInfo.Email)}
 	}
 
-	// if len(userInfo.Instagram) > 0 && user.Instagram != nil {
-	// 	if *user.Instagram == userInfo.Instagram {
-	// 		return nil, &tErrors.ErrorInstagramHandleAlreadyExists{}
-	// 	}
-	// }
-
-	// if len(userInfo.Twitter) > 0 && user.Twitter != nil {
-	// 	if *user.Twitter == userInfo.Twitter {
-	// 		return nil, &tErrors.ErrorTwitterHandleAlreadyExists{}
-	// 	}
-	// }
-
-	// if len(userInfo.Telegram) > 0 && user.Telegram != nil {
-	// 	if *user.Telegram == userInfo.Telegram {
-	// 		return nil, &tErrors.ErrorTelegramHandleAlreadyExists{}
-	// 	}
-
-	// }
-
 	return nil, &tErrors.ErrorUsernameAlreadyExists{Detail: userInfo.Username + " has already been taken by another user"}
 
 }
@@ -150,11 +131,7 @@ func UserRegistrationDbChecks(userInfo usermodels.UserRegistrationInfo, db *gorm
 
 //UsernameIsReserved check is name is reserved. Status = 0 means not available (reserved). Status = 1 means available
 func UsernameIsReserved(username string, db *gorm.DB) (reserved bool, err error) {
-	// db, err := conDB.OpenDb()
-	// if err != nil {
-	// 	log.Println("-------------- ------DB error in RESERVED NAME:", err)
-	// 	return
-	// }
+
 	username = strings.TrimSpace(username)
 	var reservedName usermodels.ReservedName
 	if err := db.Where("reserved_name = ? AND status = 0", strings.ToLower(strings.ReplaceAll(username, " ", ""))).First(&reservedName).Error; err != nil {
@@ -175,6 +152,7 @@ func PublicKeyAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err err
 	var userWallet usermodels.UserWallet
 	if err := db.Where("id = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&userWallet).Error; err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Printf("[PublicKeyAlreadyExists] error checking if public key exists: %v", err)
 			return true, &tErrors.ErrorTemporaryServerError{}
 		}
 		return false, nil

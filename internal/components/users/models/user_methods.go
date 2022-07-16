@@ -62,8 +62,33 @@ func (u *User) GetSignersWA(account *horizon.Account) (signers map[string]Signer
 	return
 }
 
+// GetSignersWA returns user signers
+func (u *UserWallet) GetSignersWA(account *horizon.Account) (signers map[string]Signer) {
+
+	signers = make(map[string]Signer)
+	for _, v := range account.Signers {
+		signers[v.Key] = Signer{
+			Weight:  int(v.Weight),
+			Key:     v.Key,
+			Type:    v.Type,
+			Sponsor: v.Sponsor,
+		}
+	}
+	return
+}
+
 //SignerIsValidWA checks if the signerKey is valid for this user public key
 func (u *User) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
+	signer, ok := u.GetSignersWA(account)[signerKey]
+	if !ok || signer.Weight < 1 {
+		return false
+	}
+
+	return true
+}
+
+//SignerIsValidWA checks if the signerKey is valid for this user public key
+func (u *UserWallet) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
 	signer, ok := u.GetSignersWA(account)[signerKey]
 	if !ok || signer.Weight < 1 {
 		return false

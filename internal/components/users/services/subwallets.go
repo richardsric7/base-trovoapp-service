@@ -207,7 +207,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 			SourceAccount: subWalletInfo.PublicKey,
 		})
 
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to activate the sub-wallet.", activationAmount.String()))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to be used to activate the sub-wallet.", activationAmount.String()))
 
 	}
 

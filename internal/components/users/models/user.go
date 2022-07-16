@@ -68,17 +68,31 @@ type UserWalletManagedAccess struct {
 	AccessList          []WalletAccess `json:"accessList"`
 }
 type UserWalletManagedAccessInfo struct {
-	UserWalletManagedAccessID string         `json:"userWalletManagedAccessId"`
-	PublicKey                 string         `json:"publicKey"`
-	AccessList                []WalletAccess `json:"accessList"`
+	UserWalletManagedAccessID string             `json:"userWalletManagedAccessId"`
+	NumberOfAuthorizers       uint               `json:"numberOfAuthorizers"`
+	PublicKey                 string             `json:"publicKey"`
+	AccessList                []WalletAccessInfo `json:"accessList"`
+	Transaction               string             `json:"transaction"`
+	TransactionSignature      string             `json:"transactionSignature"`
+	TransactionID             string             `json:"transactionId"`
+	NetworkPassPhrase         string             `json:"networkPassPhrase"`
+	Messages                  []string           `json:"messages"`
+	SignatureRequired         uint               `json:"signatureRequired"`
 }
 type WalletAccess struct {
 	CreatedAt                 time.Time `json:"createdAt"`
 	UpdatedAt                 time.Time `json:"updatedAt"`
 	ID                        string
-	Username                  string `gorm:"size:16; primaryKey" json:"username"`
-	AccessLevel               string `gorm:"size:10" json:"accessLevel"`
-	UserWalletManagedAccessID string `gorm:"index:idx_wallet_access_wallet_access_id" json:"userWalletManagedAccessId"`
+	Username                  string `gorm:"size:16;not null; index:access_level_permission,unique" json:"username"`
+	AccessLevel               string `gorm:"size:10;not null; index:access_level_permission,unique" json:"accessLevel"`
+	UserWalletManagedAccessID string `gorm:"not null;index:idx_wallet_access_wallet_access_id" json:"userWalletManagedAccessId"`
+}
+type WalletAccessInfo struct {
+	ID                        string
+	Username                  string `json:"username"`
+	AccessLevel               string `json:"accessLevel"`
+	UserWalletManagedAccessID string `json:"userWalletManagedAccessId"`
+	Name                      string `json:"name"`
 }
 
 type AccessLevel struct {
