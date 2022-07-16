@@ -166,7 +166,29 @@ class _WalletDetailsState extends State<WalletDetails>
                                 children: [
                                   if (claimedAssets.length > 0) ...[
                                     for (var asset in claimedAssets) ...[
-                                      tiles(asset),
+                                      GestureDetector(
+                                          onTap: () {
+                                            appState.viewData = {
+                                              // since the original asset object
+                                              // is immutable I create a new assetObj and
+                                              // copy all the data into it so that
+                                              // I'll be able to change the data
+                                              AssetDetailsViewPageConfig.key: {
+                                                'assetCode': asset['assetCode'],
+                                                'assetIssuer':
+                                                    asset['assetIssuer'],
+                                                'amount': asset['amount'],
+                                                'qrCode': asset['qrCode'],
+                                                'imageUrl': asset['imageUrl'],
+                                              }
+                                            };
+                                            print(appState.viewData);
+                                            appState.currentAction = PageAction(
+                                              state: PageState.addPage,
+                                              page: AssetDetailsViewPageConfig,
+                                            );
+                                          },
+                                          child: tiles(asset)),
                                     ],
                                   ] else ...[
                                     Container(

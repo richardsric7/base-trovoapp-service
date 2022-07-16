@@ -38,7 +38,7 @@ class Wallet {
     };
   }
 
-  deserializeJson(Map<String, dynamic> m) {
+  Wallet deserializeJson(Map<String, dynamic> m) {
     return Wallet(
       createdAt: DateTime.parse(m["createdAt"]),
       publicKey: m["publicKey"],

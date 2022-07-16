@@ -434,11 +434,14 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
 
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        appState.viewData![TransactionSuccessViewPageConfig.key] =
-            responseData['data'];
-
         await updateUserInfo();
         hideLoader(context);
+        appState.viewData![TransactionSuccessViewPageConfig.key] =
+            responseData['data'];
+        appState.currentAction = PageAction(
+          state: PageState.replaceAll,
+          page: TransactionSuccessViewPageConfig,
+        );
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
@@ -457,6 +460,8 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: activeWallet!.publicKey!,
     );
+
+    print('secretkey: ${appState.secretKeys[0]}');
 
     print('response: ${responseData}');
 
@@ -485,10 +490,5 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     appState.setNFTs = nfts;
     appState.setassetBalances = assetBalances;
     print('stored new user data.................');
-
-    appState.currentAction = PageAction(
-      state: PageState.replaceAll,
-      page: TransactionSuccessViewPageConfig,
-    );
   }
 }

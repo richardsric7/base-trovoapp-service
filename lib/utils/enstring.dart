@@ -209,6 +209,16 @@ class LanguageEn {
   static String get yourtransactionwassuccessful =>
       'Your Transaction\nWas Successful!';
 
+  static String get dashboard => 'Dashboard';
+
+  static String get sentto => 'Sent to';
+
+  static String get formemo => 'For';
+
+  static String get copy => 'Copy';
+
+  static String get blockchainproof => 'Blockchain Proof (Transaction ID)';
+
   static String get proceed => 'Proceed';
 
   static String get welcome => "Welcome back";

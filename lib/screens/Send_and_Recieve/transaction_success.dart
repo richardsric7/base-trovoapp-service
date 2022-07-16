@@ -78,7 +78,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
               ),
               SizedBox(height: height / 30),
               Text(
-                '-${viewData['amount']} ${viewData['assetCode'].toString().isEmpty ? 'XBN' : viewData['assetCode']}',
+                '- ${viewData['amount']} ${viewData['assetCode'].toString().isEmpty ? 'XBN' : viewData['assetCode']}',
                 style: TextStyle(
                     color: Colors.red,
                     fontFamily: fontsemibold,
@@ -100,7 +100,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
                         child: Text(
-                          'Sent to',
+                          LanguageEn.sentto,
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluecolor,
@@ -127,7 +127,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20.0, vertical: 10),
                           child: Text(
-                            'For',
+                            LanguageEn.formemo,
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               color: notifier.getbluecolor,
@@ -165,7 +165,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20.0, vertical: 10),
                         child: Text(
-                          'Blockchain Proof (Transaction ID)',
+                          LanguageEn.blockchainproof,
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluecolor,
@@ -206,7 +206,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                                         notifier.getbluecolor!),
                               ),
                               child: Text(
-                                'Copy',
+                                LanguageEn.copy,
                                 style: TextStyle(
                                   fontFamily: fontsemibold,
                                 ),
@@ -226,7 +226,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                 height: height / 20,
               ),
               Button(
-                'Dashboard',
+                LanguageEn.dashboard,
                 notifier.getbluecolor,
                 notifier.getwihitecolor,
                 onTap: () {

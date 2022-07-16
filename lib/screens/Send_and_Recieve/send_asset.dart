@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
@@ -19,6 +20,7 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SendAsset extends StatefulWidget {
@@ -34,9 +36,10 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
   Wallet? activeWallet;
   final formKey = GlobalKey<FormState>();
   String to = ''; // the reciever
-  double amount = 0;
+  String amount = '';
+  bool amountError = false;
   String? memo;
-  String activeAsset = '';
+  var asset;
   TextEditingController _utf8TextController = TextEditingController();
 
   @override
@@ -51,7 +54,9 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
-    activeAsset = appState.viewData![SendAssetViewPageConfig.key]['assetCode'];
+    print(
+        'this is appState: ${appState.viewData![SendAssetViewPageConfig.key]}');
+    asset = appState.viewData![SendAssetViewPageConfig.key];
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -82,7 +87,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${LanguageEn.send} ${activeAsset}',
+                      '${LanguageEn.send} ${getAssetCode(asset['assetCode'])}',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -132,6 +137,38 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     );
   }
 
+  Widget availableBalance() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Flexible(
+          child: Text(
+            amount.isNotEmpty
+                ? "≈ ${formatNumber(double.parse(amount))} ${getAssetCode(asset['assetCode'])}"
+                : "≈ 0.0000 ${getAssetCode(asset['assetCode'])}",
+            textScaleFactor: 1.0,
+            style: TextStyle(
+                color: notifier.getdarkgrey,
+                fontWeight: FontWeight.w400,
+                fontSize: 12.0.sp),
+          ),
+        ),
+        Flexible(
+            child: Visibility(
+          visible: true,
+          replacement: Container(),
+          child: Text(
+            "${formatNumber(double.parse(asset['amount']))} ${getAssetCode(asset['assetCode'])}",
+            textScaleFactor: 1.0,
+            textAlign: TextAlign.right,
+            style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
+          ),
+        )),
+      ],
+    );
+  }
+
   Widget formFields() {
     return Column(
       children: [
@@ -172,14 +209,24 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       notifier.getprefixicon,
                       notifier.getblck,
                       notifier.getgrey,
-                      70.sp,
+                      // dynamically change the size
+                      // of the textbox so it will
+                      // consistent when showing an
+                      // error message
+                      amountError ? 70.sp : 58.sp,
                       300.sp,
-                      helperText: amount > 0 ? "$amount $activeAsset" : "",
-                      keyboardtype: TextInputType.number,
+                      onChanged: (value) {
+                        setState(() {
+                          amount = value;
+                        });
+                      },
+                      keyboardtype:
+                          TextInputType.numberWithOptions(decimal: true),
                       validator: validateAmount,
-                      onSaved: (value) => amount =
-                          double.parse(value.trim().replaceAll(' ', '')),
+                      onSaved: (value) =>
+                          amount = value.trim().replaceAll(' ', ''),
                     ),
+                    availableBalance(),
                     SizedBox(height: height / 50),
                     CustomTextFormField.textField(
                       LanguageEn.memo,
@@ -228,13 +275,37 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
   }
 
   String? validateAmount(String? value) {
-    // reciever cannot be empty
-    if (value!.isEmpty) return 'Please enter amount to send';
+    if (value!.isEmpty) {
+      setState(() {
+        amountError = true;
+      });
+      'Please enter amount to send';
+    }
 
-    if (double.tryParse(value) == null) return 'Please enter a valid amount';
+    if (double.tryParse(value) == null) {
+      setState(() {
+        amountError = true;
+      });
+      return 'Please enter a valid amount';
+    }
 
-    if (double.tryParse(value)! <= 0) return 'Value must be greater than 0';
+    if (double.tryParse(value)! <= 0) {
+      setState(() {
+        amountError = true;
+      });
+      return 'Value must be greater than 0';
+    }
 
+    if (double.tryParse(value)! > (double.parse(asset['amount']) - 6)) {
+      setState(() {
+        amountError = true;
+      });
+      return 'You don\'t have sufficient balance';
+    }
+
+    setState(() {
+      amountError = false;
+    });
     return null;
   }
 
@@ -259,7 +330,8 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         "destination": to,
         "memo": memo,
         "amount": amount.toString(),
-        "assetCode": activeAsset == 'XBN' ? '' : activeAsset,
+        "assetCode": asset['assetCode'] == 'XBN' ? '' : asset['assetCode'],
+        "assetIssuer": asset['assetIssuer'],
       };
       String requestBody = jsonEncode(map);
       print('this is request body $requestBody');

@@ -12,6 +12,7 @@ import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class Home extends StatefulWidget {
@@ -176,14 +177,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                                   wallet.publicKey ==
                                                   activeWallet);
                                           appState.viewData = {
+                                            // since the original asset object
+                                            // is immutable I create a new assetObj and
+                                            // copy all the data into it so that
+                                            // I'll be able to change the data
                                             AssetDetailsViewPageConfig.key: {
-                                              "assetCode": asset["assetCode"]
-                                                      .toString()
-                                                      .isEmpty
-                                                  ? "XBN"
-                                                  : asset["assetCode"]
-                                                      .toString(),
-                                            },
+                                              'assetCode': asset['assetCode'],
+                                              'assetIssuer':
+                                                  asset['assetIssuer'],
+                                              'amount': asset['amount'],
+                                              'qrCode': asset['qrCode'],
+                                              'imageUrl': asset['imageUrl'],
+                                            }
                                           };
                                           print(appState.viewData);
                                           appState.currentAction = PageAction(
@@ -537,6 +542,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   activeWallet = wallets[index].publicKey,
                   claimedAssets = assetBalances[activeWallet]['claimed'],
                   unclaimedAssets = assetBalances[activeWallet]['unclaimed'],
+                  print('activeWallet: $activeWallet'),
                 },
               )
             }),
@@ -653,9 +659,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      asset["assetCode"].toString().isEmpty
-                          ? 'XBN'
-                          : asset["assetCode"],
+                      getAssetCode(asset["assetCode"]),
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -682,7 +686,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  asset["amount"],
+                  formatNumber(double.parse(asset["amount"])),
                   style: TextStyle(
                     fontSize: 12,
                     fontFamily: fontsemibold,

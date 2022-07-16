@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 
@@ -27,3 +29,26 @@ void showSnackBar(String rel, BuildContext context) {
     ),
   );
 }
+
+getAssetCode(assetCode) {
+  // assign XBN to the asset which has an
+  // empty assetCode value.
+  // native token of the bantu blockchain
+  // has empty values as assetCode and
+  // assetIssuer
+  return assetCode.toString().isEmpty ? nativeAssetCode : assetCode.toString();
+}
+
+getAssetIssuer(assetIssuer) {
+  // assign 'Native Token' to the asset which has an
+  // empty assetIssuer value.
+  // Native token of the bantu blockchain
+  // has empty values as assetCode and
+  // assetIssuer
+  return assetIssuer.toString().isEmpty
+      ? nativeAssetIssuer
+      : assetIssuer.toString();
+}
+
+formatNumber(double number) =>
+    NumberFormat("#,##0.0000", "en_US").format(number);

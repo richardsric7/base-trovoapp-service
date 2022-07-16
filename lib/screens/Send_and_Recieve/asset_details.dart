@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
@@ -11,6 +12,7 @@ import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class AssetDetails extends StatefulWidget {
@@ -28,7 +30,7 @@ class _AssetDetailsState extends State<AssetDetails>
   var assetBalances;
   List<Wallet>? wallets;
   Wallet? activeWallet;
-  String activeAsset = '';
+  var activeAsset;
   var claimedAssets;
 
   dynamic selectedWallet = '';
@@ -37,15 +39,12 @@ class _AssetDetailsState extends State<AssetDetails>
   List<DropdownMenuItem<String>> get assetDropdownItems {
     List<DropdownMenuItem<String>> menuItems = [];
     for (var asset in claimedAssets) {
-      var value = asset['assetCode'].toString().isEmpty
-          ? "XBN"
-          : asset['assetCode'].toString();
       menuItems.add(DropdownMenuItem(
           child: Text(
-            value,
+            getAssetCode(asset['assetCode']),
             overflow: TextOverflow.ellipsis,
           ),
-          value: value));
+          value: getAssetIssuer(asset['assetIssuer'])));
     }
     return menuItems;
   }
@@ -77,12 +76,12 @@ class _AssetDetailsState extends State<AssetDetails>
     assetBalances = appState.assetBalances;
     wallets = userInfo.wallets!;
     activeWallet = appState.activeWallet;
-    activeAsset =
-        appState.viewData![AssetDetailsViewPageConfig.key]['assetCode'];
-    selectedAsset =
-        appState.viewData![AssetDetailsViewPageConfig.key]['assetCode'];
     selectedWallet = activeWallet!.publicKey;
     claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
+    activeAsset = appState.viewData![AssetDetailsViewPageConfig.key];
+    selectedAsset = getAssetIssuer(
+      appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
+    );
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -174,15 +173,22 @@ class _AssetDetailsState extends State<AssetDetails>
                               fontFamily: fontsemibold,
                             ),
                             onChanged: (newValue) {
+                              print('this is newValue $newValue');
                               setState(() {
                                 print('changing active asset to: $newValue');
-                                selectedAsset = newValue!;
-                                appState.viewData = {
-                                  AssetDetailsViewPageConfig.key: {
-                                    'assetCode': newValue.toString(),
+                                newValue = newValue == nativeAssetIssuer
+                                    ? ''
+                                    : newValue;
+                                for (var asset in claimedAssets) {
+                                  print('this is newValue $newValue');
+                                  if (asset['assetIssuer'] == newValue) {
+                                    appState.viewData![
+                                        AssetDetailsViewPageConfig.key] = asset;
                                   }
-                                };
+                                }
                               });
+                              print(
+                                  'this is new viewdata: ${appState.viewData}');
                             },
                             borderRadius: BorderRadius.all(
                               Radius.circular(15),
@@ -209,7 +215,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     width: 20,
                   ),
                   Text(
-                    activeAsset,
+                    getAssetCode(activeAsset['assetCode']),
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -239,9 +245,8 @@ class _AssetDetailsState extends State<AssetDetails>
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         actionButton("assets/images/send.svg", 'Send', () {
-          appState.viewData![SendAssetViewPageConfig.key] = {
-            'assetCode': activeAsset,
-          };
+          appState.viewData![SendAssetViewPageConfig.key] =
+              appState.viewData![AssetDetailsViewPageConfig.key];
 
           print(appState.viewData);
           appState.currentAction = PageAction(
@@ -400,7 +405,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '$activeAsset Token',
+                    '${getAssetCode(activeAsset['assetCode'])} Token',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
