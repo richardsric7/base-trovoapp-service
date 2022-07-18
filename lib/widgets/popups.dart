@@ -643,7 +643,8 @@ void showResponseMessage(context, message, successAction) {
                         horizontal: 10.0, vertical: 5.0),
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).pop(); // dismiss dialog,
+                        Navigator.of(context).pop();
+                        successAction();
                       },
                       style: ButtonStyle(
                         fixedSize: MaterialStateProperty.all(
@@ -661,7 +662,7 @@ void showResponseMessage(context, message, successAction) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.cancel,
+                        LanguageEn.continuee,
                         style: TextStyle(
                             color: notifier.getwihitecolor,
                             fontFamily: fontbody),
@@ -672,8 +673,7 @@ void showResponseMessage(context, message, successAction) {
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: OutlinedButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
-                        successAction();
+                        Navigator.of(context).pop(); // dismiss dialog,
                       },
                       style: ButtonStyle(
                         fixedSize: MaterialStateProperty.all(
@@ -700,7 +700,7 @@ void showResponseMessage(context, message, successAction) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.continuee,
+                        LanguageEn.cancel,
                         style: TextStyle(
                             color: notifier.getbluecolor, fontFamily: fontbody),
                       ),

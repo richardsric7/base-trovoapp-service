@@ -22,6 +22,7 @@ const String AssetDetailsViewPath = '/AssetDetailsView';
 const String SendAssetViewPath = '/sendAssetView';
 const String ConfirmTransactionViewPath = '/confirmTransactionAssetView';
 const String TransactionSuccessViewPath = '/transactionSuccessView';
+const String ReceiveAssetViewPath = '/recieveAssetView';
 
 enum Pages {
   Splash,
@@ -46,6 +47,7 @@ enum Pages {
   SendAssetView,
   ConfirmTransactionView,
   TransactionSuccessView,
+  ReceiveAssetView,
 }
 
 class PageConfiguration {
@@ -170,4 +172,9 @@ PageConfiguration TransactionSuccessViewPageConfig = PageConfiguration(
     key: 'TransactionSuccessView',
     path: TransactionSuccessViewPath,
     uiPage: Pages.TransactionSuccessView,
+    currentPageAction: null);
+PageConfiguration ReceiveAssetViewPageConfig = PageConfiguration(
+    key: 'ReceiveAssetView',
+    path: ReceiveAssetViewPath,
+    uiPage: Pages.ReceiveAssetView,
     currentPageAction: null);

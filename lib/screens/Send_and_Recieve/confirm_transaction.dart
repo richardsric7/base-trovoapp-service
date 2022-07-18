@@ -390,6 +390,10 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
       bool result = await _authenticator.authenticateMe();
       if (result) {
         sendDataToServer();
+        // aparently we need the code below to make the
+        // screen updata to show loader
+        // after authorizing with biometrics
+        setState(() {});
       }
     } on PlatformException catch (e) {
       if (e.code == auth_error.notEnrolled ||
@@ -407,11 +411,11 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     return null;
   }
 
-  void sendDataToServer() async {
+  sendDataToServer() async {
     print('sending to server....');
-    showLoader(context);
 
     try {
+      showLoader(context);
       // sign transaction
       var signature = TrovoWalletSDK().signBase64Txn(
         appState.secretKeys[0], // the primary wallet secret key,
@@ -435,13 +439,13 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
         await updateUserInfo();
-        hideLoader(context);
         appState.viewData![TransactionSuccessViewPageConfig.key] =
             responseData['data'];
         appState.currentAction = PageAction(
           state: PageState.replaceAll,
           page: TransactionSuccessViewPageConfig,
         );
+        hideLoader(context);
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);

@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -15,14 +19,14 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class AssetDetails extends StatefulWidget {
-  const AssetDetails({Key? key}) : super(key: key);
+class ReceiveAsset extends StatefulWidget {
+  const ReceiveAsset({Key? key}) : super(key: key);
 
   @override
-  State<AssetDetails> createState() => _AssetDetailsState();
+  State<ReceiveAsset> createState() => _ReceiveAssetState();
 }
 
-class _AssetDetailsState extends State<AssetDetails>
+class _ReceiveAssetState extends State<ReceiveAsset>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
@@ -78,9 +82,9 @@ class _AssetDetailsState extends State<AssetDetails>
     activeWallet = appState.activeWallet;
     selectedWallet = activeWallet!.publicKey;
     claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
-    activeAsset = appState.viewData![AssetDetailsViewPageConfig.key];
+    activeAsset = appState.viewData![ReceiveAssetViewPageConfig.key];
     selectedAsset = getAssetIssuer(
-      appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
+      appState.viewData![ReceiveAssetViewPageConfig.key]['assetIssuer'],
     );
 
     return ScreenUtilInit(
@@ -146,11 +150,10 @@ class _AssetDetailsState extends State<AssetDetails>
                                 if (asset['assetIssuer'] == selectedAsset ||
                                     asset['assetIssuer'] == '') {
                                   appState.viewData![
-                                      AssetDetailsViewPageConfig.key] = asset;
+                                      ReceiveAssetViewPageConfig.key] = asset;
                                   break;
                                 }
                               }
-                              print('this is new value: $newValue');
                               appState.activeWallet = wallets!.firstWhere(
                                   (wallet) => wallet.publicKey == newValue);
                             });
@@ -198,7 +201,7 @@ class _AssetDetailsState extends State<AssetDetails>
                                   print('this is newValue $newValue');
                                   if (asset['assetIssuer'] == newValue) {
                                     appState.viewData![
-                                        AssetDetailsViewPageConfig.key] = asset;
+                                        ReceiveAssetViewPageConfig.key] = asset;
                                   }
                                 }
                               });
@@ -230,7 +233,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     width: 20,
                   ),
                   Text(
-                    getAssetCode(activeAsset['assetCode']),
+                    "Receive " + getAssetCode(activeAsset['assetCode']),
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -239,237 +242,219 @@ class _AssetDetailsState extends State<AssetDetails>
                   ),
                 ],
               ),
-              walletSlides(),
               SizedBox(
                 height: height / 30,
               ),
-              assetInfo(),
+              showReceivingWallet(),
+              SizedBox(
+                height: height / 50,
+              ),
+              showUsername(),
+              SizedBox(
+                height: height / 50,
+              ),
+              showPublicKey(),
+              SizedBox(
+                height: height / 50,
+              ),
+              showQrCode(),
               SizedBox(
                 height: height / 20,
               ),
-              actionButtons(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget actionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        actionButton("assets/images/send.svg", 'Send', () {
-          appState.viewData![SendAssetViewPageConfig.key] =
-              appState.viewData![AssetDetailsViewPageConfig.key];
-
-          print(appState.viewData);
-          appState.currentAction = PageAction(
-            state: PageState.addPage,
-            page: SendAssetViewPageConfig,
-          );
-        }),
-        actionButton("assets/images/recieve.svg", 'Recieve', () {
-          print('fuck you 2');
-          appState.viewData![ReceiveAssetViewPageConfig.key] =
-              appState.viewData![AssetDetailsViewPageConfig.key];
-
-          print(appState.viewData);
-          appState.currentAction = PageAction(
-            state: PageState.addPage,
-            page: ReceiveAssetViewPageConfig,
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget actionButton(iconUrl, actionText, action) {
-    return ElevatedButton(
-      onPressed: action,
-      style: ButtonStyle(
-        backgroundColor:
-            MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-          const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(15),
-            ),
-          ),
-        ),
-      ),
-      child: Container(
-        width: width / 3.9,
-        height: height / 10,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8.0,
-          ),
-          child: Column(
-            children: [
-              SvgPicture.asset(
-                iconUrl,
-                width: width / 8,
+              Button(
+                LanguageEn.dashboard,
+                notifier.getbluecolor,
+                notifier.getwihitecolor,
+                onTap: () {
+                  appState.currentAction = PageAction(
+                      state: PageState.replaceAll, page: BottomHomePageConfig);
+                },
               ),
-              Text(
-                actionText,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: notifier.getwihitecolor,
-                  fontFamily: fontsemibold,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget walletSlides() {
-    var colors = [notifier.getbluecolor, Colors.red, Colors.green];
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: colors[0],
-          // color: colors[i - 1],
-        ),
-        child: Stack(children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
+              SizedBox(height: height / 20),
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 35.0, horizontal: 20),
-                child: Image.asset('assets/images/trovo_white.png'),
-              ),
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom)),
             ],
           ),
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  activeWallet!.alias!.capitalizeFirst!,
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: notifier.getwihitecolor,
-                      fontFamily: fontsemibold),
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                Row(
-                  children: [
-                    Text(
-                      LanguageEn.totalbalance,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                        color: notifier.getwihitecolor,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: height / 98.0,
-                ),
-                Text(
-                  '2,082,898 NGN',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: notifier.getwihitecolor,
-                    fontFamily: fontsemibold,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  '4,014 USD',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w300,
-                    fontSize: 13,
-                    color: notifier.getwihitecolor,
-                    fontFamily: fontbody,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ]),
+        ),
       ),
     );
   }
 
-  Widget assetInfo() {
+  Padding showReceivingWallet() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
       child: Container(
-        height: height / 2.5,
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
           color: notifier.getaddsubwalletgrey,
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    '${getAssetCode(activeAsset['assetCode'])} Token',
+                    'Receiving Wallet',
                     style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: notifier.getbluecolor,
                         fontFamily: fontsemibold),
                   ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Container(
-                    width: width / 1.3,
-                    child: Text(
-                      'TROV token (TROV) is the utility token that powers the Trovotech ecosystem. TROV token is used to access discounts, voting rights, airdrops, NFTs and other community incentives. ',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                        color: notifier.getbluecolor,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
+                  SizedBox(height: height / 90),
                   Text(
-                    'www.trovotech.io',
+                    activeWallet!.alias!,
                     style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w400,
-                      color: notifier.getbluecolor,
-                      fontFamily: fontbody,
-                    ),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluecolor,
+                        fontFamily: fontsemibold),
                   ),
-                  SizedBox(height: 2),
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Padding showPublicKey() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+          color: notifier.getaddsubwalletgrey,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Receive from non Trovo wallet',
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluecolor,
+                        fontFamily: fontsemibold),
+                  ),
+                  SizedBox(height: height / 90),
+                  Row(
+                    children: [
+                      Container(
+                        width: 250,
+                        child: Text(
+                          activeWallet!.publicKey!,
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: notifier.getbluecolor,
+                              fontFamily: fontsemibold),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          Clipboard.setData(
+                            ClipboardData(
+                              text: userInfo.username,
+                            ),
+                          );
+                          showSnackBar('Public key', context);
+                        },
+                        icon: Icon(Icons.copy, size: 20),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Padding showUsername() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+          color: notifier.getaddsubwalletgrey,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Receive with Trovo username',
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluecolor,
+                        fontFamily: fontsemibold),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        userInfo.username!,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: notifier.getbluecolor,
+                            fontFamily: fontsemibold),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          Clipboard.setData(
+                            ClipboardData(
+                              text: userInfo.username,
+                            ),
+                          );
+                          showSnackBar('Username', context);
+                        },
+                        icon: Icon(Icons.copy, size: 20),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget showQrCode() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+            color: notifier.getaddsubwalletgrey,
+          ),
+          child: Image.memory(
+              base64.decode(activeAsset['qrCode'].split(',').last))),
     );
   }
 }
