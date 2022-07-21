@@ -1,4 +1,3 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -31,10 +30,11 @@ class _WalletDetailsState extends State<WalletDetails>
   var assetBalances;
   var nfts;
   Wallet? activeWallet;
+  List<Wallet>? wallets;
   var claimedAssets;
   var unclaimedAssets;
   int tabLength = 2;
-  int touchedIndex = -1;
+  int activeTabIndex = 0;
 
   @override
   void initState() {
@@ -49,17 +49,27 @@ class _WalletDetailsState extends State<WalletDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    userInfo = appState.userInfo!;
     assetBalances = appState.assetBalances;
-    nfts = appState.nfts;
     activeWallet = appState.activeWallet;
+    nfts = appState.nfts;
+    wallets = userInfo.wallets!;
+
     claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
     unclaimedAssets = assetBalances[activeWallet!.publicKey]['unclaimed'];
-    if (unclaimedAssets.length > 0) {
-      setState(() {
-        tabLength = 3;
-        _tabController = TabController(length: tabLength, vsync: this);
-      });
+    // in order to make assets tab length dynamic we have to check
+    // for when we have pending asset and then change the tablength
+    // to 3 or back to 2 when we do not have pending assets.
+    if (unclaimedAssets != null && unclaimedAssets.length > 0) {
+      tabLength = 3;
+    } else {
+      tabLength = 2;
     }
+    // change the length of tabController too or you will have an error
+    _tabController = TabController(length: tabLength, vsync: this);
+    // keep track of the active tab to avoid having it changed
+    // on each page rebuild
+    _tabController.animateTo(activeTabIndex);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -235,7 +245,36 @@ class _WalletDetailsState extends State<WalletDetails>
                                   children: [
                                     if (unclaimedAssets.length > 0) ...[
                                       for (var asset in unclaimedAssets) ...[
-                                        tiles(asset),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              activeTabIndex =
+                                                  _tabController.index;
+                                            });
+                                            appState.viewData = {
+                                              // since the original asset object
+                                              // is immutable I create a new assetObj and
+                                              // copy all the data into it so that
+                                              // I'll be able to change the data
+                                              PendingAssetDetailsViewPageConfig
+                                                  .key: {
+                                                'assetCode': asset['assetCode'],
+                                                'assetIssuer':
+                                                    asset['assetIssuer'],
+                                                'amount': asset['amount'],
+                                                'qrCode': asset['qrCode'],
+                                                'imageUrl': asset['imageUrl'],
+                                              }
+                                            };
+                                            print(appState.viewData);
+                                            appState.currentAction = PageAction(
+                                              state: PageState.addPage,
+                                              page:
+                                                  PendingAssetDetailsViewPageConfig,
+                                            );
+                                          },
+                                          child: tiles(asset),
+                                        ),
                                       ],
                                     ] else ...[
                                       Container(

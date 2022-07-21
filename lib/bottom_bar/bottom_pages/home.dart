@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
@@ -10,6 +11,7 @@ import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -25,6 +27,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late TabController _tabController;
+  late RefreshController _refreshController;
   late DataProvider appState;
   late UserInfo userInfo;
   var assetBalances;
@@ -34,13 +37,29 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   var claimedAssets;
   var unclaimedAssets;
   int tabLength = 2;
-  int touchedIndex = -1;
+  int activeTabIndex = 0;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _tabController = TabController(length: tabLength, vsync: this);
+    _tabController.addListener(tabListener);
+    _refreshController = RefreshController(initialRefresh: false);
+  }
+
+  void tabListener() {
+    print('adding event listeners...');
+    print("${_tabController.index}");
+    // Tab Changed swiping to a new tab
+    activeTabIndex = _tabController.index;
+    print('index changed.');
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -58,32 +77,57 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     }
     claimedAssets = assetBalances[activeWallet]['claimed'];
     unclaimedAssets = assetBalances[activeWallet]['unclaimed'];
-    if (unclaimedAssets.length > 0) {
-      setState(() {
-        tabLength = 3;
-        _tabController = TabController(length: tabLength, vsync: this);
-      });
+
+    // in order to make assets tab length dynamic we have to check
+    // for when we have pending asset and then change the tablength
+    // to 3 or back to 2 when we do not have pending assets.
+    if (unclaimedAssets != null && unclaimedAssets.length > 0) {
+      if (activeTabIndex == _tabController.length - 1) activeTabIndex = 2;
+      tabLength = 3;
+    } else {
+      tabLength = 2;
+      if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
     }
+
+    if (tabLength != _tabController.length) {
+      // change the length of tabController too or you will have an error
+      _tabController = TabController(length: tabLength, vsync: this);
+      _tabController.addListener(tabListener);
+    }
+
+    print(
+        'tablength: $tabLength, tabcontroller.length: ${_tabController.length}');
+    print('activeTabIndex: $activeTabIndex');
+
+    // keep track of the active tab to avoid having it changed
+    // on each page rebuild
+    _tabController.animateTo(activeTabIndex);
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(
-                height: height / 15,
-              ),
-              firstRow(),
-              SizedBox(
-                height: height / 50,
-              ),
-              walletSlides(wallets!),
-              SizedBox(
-                height: height / 30,
-              ),
-              assetsTabs(),
-            ],
+        body: SmartRefresher(
+          enablePullDown: true,
+          controller: _refreshController,
+          onRefresh: refreshData,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: height / 15,
+                ),
+                firstRow(),
+                SizedBox(
+                  height: height / 50,
+                ),
+                walletSlides(wallets!),
+                SizedBox(
+                  height: height / 30,
+                ),
+                assetsTabs(),
+              ],
+            ),
           ),
         ),
       ),
@@ -126,7 +170,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           height: 20,
                           text: LanguageEn.assets,
                         ),
-                        if (tabLength == 3) ...[
+                        if (unclaimedAssets != null && tabLength == 3) ...[
                           Tab(
                             height: 20,
                             text:
@@ -242,9 +286,39 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               child: SingleChildScrollView(
                                 child: Column(
                                   children: [
-                                    if (unclaimedAssets.length > 0) ...[
+                                    if (unclaimedAssets != null &&
+                                        unclaimedAssets.length > 0) ...[
                                       for (var asset in unclaimedAssets) ...[
-                                        tiles(asset),
+                                        GestureDetector(
+                                          onTap: () {
+                                            appState.setActiveWallet = wallets!
+                                                .firstWhere((wallet) =>
+                                                    wallet.publicKey ==
+                                                    activeWallet);
+                                            appState.viewData = {
+                                              // since the original asset object
+                                              // is immutable I create a new assetObj and
+                                              // copy all the data into it so that
+                                              // I'll be able to change the data
+                                              PendingAssetDetailsViewPageConfig
+                                                  .key: {
+                                                'assetCode': asset['assetCode'],
+                                                'assetIssuer':
+                                                    asset['assetIssuer'],
+                                                'amount': asset['amount'],
+                                                'qrCode': asset['qrCode'],
+                                                'imageUrl': asset['imageUrl'],
+                                              }
+                                            };
+                                            print(appState.viewData);
+                                            appState.currentAction = PageAction(
+                                              state: PageState.addPage,
+                                              page:
+                                                  PendingAssetDetailsViewPageConfig,
+                                            );
+                                          },
+                                          child: tiles(asset),
+                                        ),
                                       ],
                                     ] else ...[
                                       Container(
@@ -708,5 +782,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             )),
       ),
     );
+  }
+
+  void refreshData() async {
+    try {
+      await appState.refreshData();
+      _refreshController.refreshCompleted();
+    } catch (e) {
+      _refreshController.refreshFailed();
+    }
   }
 }

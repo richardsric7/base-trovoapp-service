@@ -211,6 +211,8 @@ class LanguageEn {
 
   static String get dashboard => 'Dashboard';
 
+  static String get claimasset => 'Claim Asset';
+
   static String get sentto => 'Sent to';
 
   static String get formemo => 'For';

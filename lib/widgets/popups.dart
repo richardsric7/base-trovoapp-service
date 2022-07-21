@@ -1,6 +1,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/route_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/screens/Auth/fingerprint.dart';
@@ -713,7 +714,7 @@ void showResponseMessage(context, message, successAction) {
       });
 }
 
-void showSuccessAlert(context) {
+void showSuccessAlert(context, {onTap}) {
   notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
@@ -775,8 +776,10 @@ void showSuccessAlert(context) {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10.0, vertical: 5.0),
                     child: ElevatedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(), // dismiss dialog,
+                      onPressed: () {
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        onTap();
+                      },
                       style: ButtonStyle(
                         fixedSize: MaterialStateProperty.all(
                           Size(width / 1.5, height / 20),

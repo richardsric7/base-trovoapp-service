@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/screens/Backup/congratulation.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/User.dart';
@@ -96,6 +98,10 @@ class _SplashScreenState extends State<SplashScreen>
         landingPage =
             PageAction(state: PageState.replaceAll, page: LoginPageConfig);
         print('....................this is nfts: ${appState.nfts}');
+        var primaryWallet = appState.userInfo!.wallets!
+            .firstWhere((wallet) => wallet.primaryWallet == 1);
+        updateUserInfo(primaryWallet.signer, appState.secretKeys[0],
+            primaryWallet.publicKey, appState.userInfo!.username!, appState);
       }
     } catch (e) {
       print('[getVal]getVal exception:' + e.toString());

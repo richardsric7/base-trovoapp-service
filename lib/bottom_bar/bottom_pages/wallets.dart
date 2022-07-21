@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
@@ -60,8 +61,15 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   var unclaimedAssets;
   final _formKey = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
+  late RefreshController _refreshController;
   var actionIcon = Icons.add_circle_outline_sharp;
   var actionText = LanguageEn.addsubwallet;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshController = RefreshController(initialRefresh: false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,101 +101,106 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             backgroundColor: notifier.getfavorites,
             elevation: 0,
           ),
-          body: ListView(
-            children: [
-              if (walletView == WalletView.listWallets) ...[
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Container(
-                      color: notifier.getfavorites,
-                      padding: EdgeInsets.all(8.sp),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          GestureDetector(
-                            onTap: () => setState(() {
-                              isTileView = !isTileView;
-                            }),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SvgPicture.asset(isTileView
-                                  ? "assets/images/listview.svg"
-                                  : "assets/images/tileview.svg"),
+          body: SmartRefresher(
+            enablePullDown: true,
+            controller: _refreshController,
+            onRefresh: refreshData,
+            child: ListView(
+              children: [
+                if (walletView == WalletView.listWallets) ...[
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Container(
+                        color: notifier.getfavorites,
+                        padding: EdgeInsets.all(8.sp),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            GestureDetector(
+                              onTap: () => setState(() {
+                                isTileView = !isTileView;
+                              }),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: SvgPicture.asset(isTileView
+                                    ? "assets/images/listview.svg"
+                                    : "assets/images/tileview.svg"),
+                              ),
                             ),
-                          ),
-                        ],
-                      )),
-                )
-              ] else ...[
-                SizedBox(
-                  height: height / 40,
-                )
-              ],
-              GestureDetector(
-                onTap: () {
-                  appState.setActiveWallet = mainWallet;
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: WalletDetailsViewPageConfig);
-                },
-                child: walletListItem(mainWallet!.alias!.capitalizeFirst,
-                    '4,500 TROV', '4,014', notifier.getbluecolor),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              GestureDetector(
-                onTap: () => setState(() {
-                  if (walletView == WalletView.listWallets) {
-                    actionIcon = Icons.cancel_outlined;
-                    actionText = LanguageEn.cancel;
-                    walletView = WalletView.addSubWallet;
-                  } else if (walletView == WalletView.addSubWallet) {
-                    actionIcon = Icons.add_circle_outline_sharp;
-                    actionText = LanguageEn.addsubwallet;
-                    walletView = WalletView.listWallets;
-                  } else if (walletView == WalletView.confirmAddSubWallet) {
-                    actionIcon = Icons.cancel_outlined;
-                    actionText = LanguageEn.cancel;
-                    walletView = WalletView.addSubWallet;
-                  }
-                }),
-                child: Column(
-                  children: [
-                    Icon(
-                      actionIcon,
-                      color: notifier.getbluecolor,
-                      size: 35,
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Text(
-                      actionText,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: notifier.getbluecolor,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                  ],
+                          ],
+                        )),
+                  )
+                ] else ...[
+                  SizedBox(
+                    height: height / 40,
+                  )
+                ],
+                GestureDetector(
+                  onTap: () {
+                    appState.setActiveWallet = mainWallet;
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: WalletDetailsViewPageConfig);
+                  },
+                  child: walletListItem(mainWallet!.alias!.capitalizeFirst,
+                      '4,500 TROV', '4,014', notifier.getbluecolor),
                 ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              if (walletView == WalletView.addSubWallet) ...[
-                addSubwallet()
-              ] else if (walletView == WalletView.confirmAddSubWallet) ...[
-                confirmAddSubwallet()
-              ] else ...[
-                isTileView ? gridView() : walletListView(),
+                SizedBox(
+                  height: height / 50,
+                ),
+                GestureDetector(
+                  onTap: () => setState(() {
+                    if (walletView == WalletView.listWallets) {
+                      actionIcon = Icons.cancel_outlined;
+                      actionText = LanguageEn.cancel;
+                      walletView = WalletView.addSubWallet;
+                    } else if (walletView == WalletView.addSubWallet) {
+                      actionIcon = Icons.add_circle_outline_sharp;
+                      actionText = LanguageEn.addsubwallet;
+                      walletView = WalletView.listWallets;
+                    } else if (walletView == WalletView.confirmAddSubWallet) {
+                      actionIcon = Icons.cancel_outlined;
+                      actionText = LanguageEn.cancel;
+                      walletView = WalletView.addSubWallet;
+                    }
+                  }),
+                  child: Column(
+                    children: [
+                      Icon(
+                        actionIcon,
+                        color: notifier.getbluecolor,
+                        size: 35,
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Text(
+                        actionText,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: notifier.getbluecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                if (walletView == WalletView.addSubWallet) ...[
+                  addSubwallet()
+                ] else if (walletView == WalletView.confirmAddSubWallet) ...[
+                  confirmAddSubwallet()
+                ] else ...[
+                  isTileView ? gridView() : walletListView(),
+                ],
+                Padding(
+                    padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom)),
               ],
-              Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
-            ],
+            ),
           )),
     );
   }
@@ -1071,5 +1084,14 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         PageAction(state: PageState.addPage, page: CongratulationsPageConfig);
     resetForm();
     print('stored new user data.................');
+  }
+
+  void refreshData() async {
+    try {
+      await appState.refreshData();
+      _refreshController.refreshCompleted();
+    } catch (e) {
+      _refreshController.refreshFailed();
+    }
   }
 }

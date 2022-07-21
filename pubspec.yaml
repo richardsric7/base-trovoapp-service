@@ -78,6 +78,7 @@ dependencies:
   qr_code_scanner: ^1.0.0
   image_picker: ^0.8.4+10
   intl:
+  pull_to_refresh: ^2.0.0
 
 
 dev_dependencies:

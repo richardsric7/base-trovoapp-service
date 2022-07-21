@@ -6,6 +6,7 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import '../Models/User.dart';
 import '../router/PageActions.dart';
+import 'cache.dart';
 
 class DataProvider with ChangeNotifier {
   UserInfo? userInfo;
@@ -107,6 +108,15 @@ class DataProvider with ChangeNotifier {
     initialUrl = url;
     currentAction =
         PageAction(state: PageState.addPage, page: WebViewPageConfig);
+  }
+
+  Future<void> refreshData() async {
+    try {
+      await updateUserInfo(userInfo!.wallets![0].signer, secretKeys[0],
+          userInfo!.wallets![0].publicKey, userInfo!.username, this);
+    } catch (e) {
+      print(e);
+    }
   }
 
   // view data is where all the data that a particular view needs

@@ -53,6 +53,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return TransactionSuccessViewPageConfig;
       case ReceiveAssetViewPath:
         return ReceiveAssetViewPageConfig;
+      case PendingAssetDetailsViewPath:
+        return PendingAssetDetailsViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -105,6 +107,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: TransactionSuccessViewPath);
       case Pages.ReceiveAssetView:
         return const RouteInformation(location: ReceiveAssetViewPath);
+      case Pages.PendingAssetDetailsView:
+        return const RouteInformation(location: PendingAssetDetailsViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }
