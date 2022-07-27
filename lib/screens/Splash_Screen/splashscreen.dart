@@ -102,6 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
             .firstWhere((wallet) => wallet.primaryWallet == 1);
         updateUserInfo(primaryWallet.signer, appState.secretKeys[0],
             primaryWallet.publicKey, appState.userInfo!.username!, appState);
+        appState.activeWallet = primaryWallet;
       }
     } catch (e) {
       print('[getVal]getVal exception:' + e.toString());

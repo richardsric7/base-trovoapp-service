@@ -54,4 +54,11 @@ getAssetIssuer(assetIssuer) {
 }
 
 formatNumber(double number) =>
-    NumberFormat("#,##0.0000", "en_US").format(number);
+    NumberFormat("#,##0.000", "en_US").format(number);
+
+String truncate(String text, {length: 7, omission: '...'}) {
+  if (length >= text.length) {
+    return text;
+  }
+  return text.replaceRange(length, text.length, omission);
+}

@@ -57,6 +57,7 @@ class TrovoWebViewState extends State<TrovoWebView> {
           body: Stack(
             children: [
               WebView(
+                javascriptMode: JavascriptMode.unrestricted,
                 initialUrl: appState.initialUrl,
                 onPageStarted: (value) => {
                   print('loading... $value'),

@@ -105,6 +105,7 @@ class DataProvider with ChangeNotifier {
 
   String initialUrl = "";
   goToWebView(url) {
+    print('going to: $url');
     initialUrl = url;
     currentAction =
         PageAction(state: PageState.addPage, page: WebViewPageConfig);

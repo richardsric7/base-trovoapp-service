@@ -5,7 +5,7 @@ import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/profile.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/stockexchange.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:provider/provider.dart';
 import '../utils/medeiaqury/medeiaqury.dart';
 import 'bottom_pages/wallets.dart';
@@ -112,8 +112,8 @@ class _BottomHomeState extends State<BottomHome> {
         return [
           const Home(),
           const Wallets(),
-          const StockExchange(),
-          const StockExchange(),
+          const PaymentHistory(),
+          const PaymentHistory(),
           const Profile(),
         ].elementAt(index);
       },

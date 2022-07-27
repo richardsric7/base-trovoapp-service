@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_detail.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/subwalletCreateSuccess.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/notificationsView.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/searchview.dart';
@@ -195,6 +197,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.PendingAssetDetailsView:
           _addPageData(PendingAssetDetails(), TransactionSuccessViewPageConfig);
           break;
+        case Pages.PaymentHistoryView:
+          _addPageData(PaymentHistory(), PaymentHistoryViewPageConfig);
+          break;
+        case Pages.PaymentDetailsView:
+          _addPageData(PaymentDetails(), PaymentDetailsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -317,6 +325,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.PendingAssetDetailsView:
         PendingAssetDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.PaymentHistoryView:
+        PaymentHistoryViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.PaymentDetailsView:
+        PaymentDetailsViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -498,6 +512,16 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           ]);
           break;
         case 'pendingAssetDetailsView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
+        case 'PaymentHistoryView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
+        case 'PaymentDetailsView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
           ]);

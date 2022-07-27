@@ -24,6 +24,8 @@ const String ConfirmTransactionViewPath = '/confirmTransactionAssetView';
 const String TransactionSuccessViewPath = '/transactionSuccessView';
 const String ReceiveAssetViewPath = '/recieveAssetView';
 const String PendingAssetDetailsViewPath = '/pendingAssetView';
+const String PaymentHistoryViewPath = '/paymentHistoryView';
+const String PaymentDetailsViewPath = '/PaymentDetailsView';
 
 enum Pages {
   Splash,
@@ -50,6 +52,8 @@ enum Pages {
   TransactionSuccessView,
   ReceiveAssetView,
   PendingAssetDetailsView,
+  PaymentHistoryView,
+  PaymentDetailsView,
 }
 
 class PageConfiguration {
@@ -184,4 +188,14 @@ PageConfiguration PendingAssetDetailsViewPageConfig = PageConfiguration(
     key: 'PendingAssetDetailsView',
     path: PendingAssetDetailsViewPath,
     uiPage: Pages.PendingAssetDetailsView,
+    currentPageAction: null);
+PageConfiguration PaymentHistoryViewPageConfig = PageConfiguration(
+    key: 'PaymentHistoryView',
+    path: PaymentHistoryViewPath,
+    uiPage: Pages.PaymentHistoryView,
+    currentPageAction: null);
+PageConfiguration PaymentDetailsViewPageConfig = PageConfiguration(
+    key: 'PaymentDetailsView',
+    path: PaymentDetailsViewPath,
+    uiPage: Pages.PaymentDetailsView,
     currentPageAction: null);

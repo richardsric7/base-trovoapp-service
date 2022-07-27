@@ -67,6 +67,8 @@ class LanguageEn {
 
   static String get importwallet => "Import Wallet";
 
+  static String get share => "Share";
+
   static String get enterpassphraseempty => 'Please enter your pass phrase';
 
   static String get entersecretkeyempty => 'Please enter your secret key';
@@ -214,6 +216,8 @@ class LanguageEn {
   static String get claimasset => 'Claim Asset';
 
   static String get sentto => 'Sent to';
+
+  static String get receivedfrom => 'Received from';
 
   static String get formemo => 'For';
 
@@ -469,6 +473,10 @@ class LanguageEn {
   static String get buy => "Buy";
 
   static String get exchange => "Exchange";
+
+  static String get transactionHistory => "Transaction History";
+
+  static String get transactionDetails => "Transaction Details";
 
   static String get wallets => "Wallets";
 
