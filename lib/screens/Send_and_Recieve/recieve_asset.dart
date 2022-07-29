@@ -369,7 +369,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                         onPressed: () {
                           Clipboard.setData(
                             ClipboardData(
-                              text: userInfo.username,
+                              text: activeWallet!.publicKey!,
                             ),
                           );
                           showSnackBar('Public key', context);

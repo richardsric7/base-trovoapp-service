@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
@@ -117,6 +118,66 @@ class DataProvider with ChangeNotifier {
           userInfo!.wallets![0].publicKey, userInfo!.username, this);
     } catch (e) {
       print(e);
+    }
+  }
+
+  List<TransactionInfo> historyData = <TransactionInfo>[];
+  int limit = 20;
+  int currentPage = 1;
+  int? totalRecords = 0;
+
+  getHistory() async {
+    // var data =
+    //     await StoreData().storeGetData('historyData${activeWallet!.alias}');
+
+    // if (data == null || data.length <= 0) {
+    await fetchHistory(limit);
+    //   return;
+    // }
+
+    // for (var i = 0; i < data.length; i++) {
+    //   historyData.clear();
+    //   historyData.add(TransactionInfo().deserializeJson(data[i]));
+    // }
+
+    // totalRecords =
+    //     await StoreData().storeGetData('totalRecords${activeWallet!.alias}');
+    // currentPage =
+    //     await StoreData().storeGetData('currentPage${activeWallet!.alias}');
+    notifyListeners();
+  }
+
+  Future<void> fetchHistory(limit) async {
+    print('fetching history for: ${activeWallet!.publicKey!}');
+    Map responseData = await makeGetRequest(
+        uri: '/v1/users/payments/${activeWallet!.publicKey}?limit=$limit',
+        signer: activeWallet!.signer!,
+        publicKey: activeWallet!.publicKey!,
+        secretKey: secretKeys[0]);
+
+    print('response: ${responseData['data']}');
+    if (responseData['statusCode'] == 200) {
+      totalRecords = responseData['data']['totalRecords'];
+      currentPage = responseData['data']['currentPage'];
+      var transactions = <TransactionInfo>[];
+      for (var i = 0; i < responseData['data']['records'].length; i++) {
+        transactions.add(TransactionInfo()
+            .deserializeJson(responseData['data']['records'][i]));
+      }
+
+      // if (limit <= 20) {
+      //   await StoreData().storeInsertData('historyData${activeWallet!.alias}',
+      //       responseData['data']['records']);
+      //   await StoreData().storeInsertData('totalRecords${activeWallet!.alias}',
+      //       responseData['data']['totalRecords']);
+      //   await StoreData().storeInsertData('currentPage${activeWallet!.alias}',
+      //       responseData['data']['currentPage']);
+      // }
+
+      print('transactions: $transactions');
+
+      historyData = transactions;
+      notifyListeners();
     }
   }
 

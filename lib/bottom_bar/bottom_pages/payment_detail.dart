@@ -208,46 +208,39 @@ class _PaymentDetails extends State<PaymentDetails>
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            GestureDetector(
-                              onTap: () {
-                                appState.goToWebView(
+                            Expanded(
+                              flex: 5,
+                              child: GestureDetector(
+                                onTap: () => appState.goToWebView(
                                     bantuBlockchainExplorerBaseUrl +
-                                        viewData.transactionId!);
-                                // appState.goToWebView(termsOfServiceUrl);
-                              },
-                              child: Text(
-                                viewData.transactionId!,
-                                style: TextStyle(
-                                  decoration: TextDecoration.underline,
-                                  color: notifier.getbluecolor,
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: fontbody,
+                                        viewData.transactionId!),
+                                child: Text(
+                                  viewData.transactionId!,
+                                  style: TextStyle(
+                                    decoration: TextDecoration.underline,
+                                    color: notifier.getbluecolor,
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: fontbody,
+                                  ),
                                 ),
                               ),
                             ),
-                            ElevatedButton(
-                              onPressed: () => {
-                                Clipboard.setData(
-                                  ClipboardData(
-                                    text: viewData.transactionId!,
+                            Expanded(
+                              flex: 1,
+                              child: IconButton(
+                                onPressed: () => {
+                                  Clipboard.setData(
+                                    ClipboardData(
+                                      text: viewData.transactionId!,
+                                    ),
                                   ),
-                                ),
-                                showSnackBar('Transaction ID', context),
-                              },
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        notifier.getbluecolor!),
-                              ),
-                              child: Text(
-                                LanguageEn.copy,
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                ),
+                                  showSnackBar('Transaction ID', context),
+                                },
+                                icon: Icon(Icons.copy),
+                                color: notifier.getbluecolor,
                               ),
                             ),
                           ],
@@ -287,34 +280,60 @@ class _PaymentDetails extends State<PaymentDetails>
         SizedBox(
           width: width / 20,
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              name.toString().isEmpty
-                  ? truncate(publicKey!, length: 5) +
-                      publicKey!.substring(publicKey!.length - 5)
-                  : extractUsername(name!),
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: notifier.getbluecolor,
-                fontSize: 19.sp,
-                fontFamily: fontbody,
+        SizedBox(
+          width: width / 1.7,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      name.toString().isEmpty
+                          ? truncate(publicKey!, length: 5) +
+                              publicKey!.substring(publicKey!.length - 5)
+                          : extractUsername(name!),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: notifier.getbluecolor,
+                        fontSize: 19.sp,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      onPressed: () => {
+                        Clipboard.setData(
+                          ClipboardData(
+                            text: name.toString().isEmpty
+                                ? truncate(publicKey!, length: 5) +
+                                    publicKey!.substring(publicKey!.length - 5)
+                                : extractUsername(name!),
+                          ),
+                        ),
+                        showSnackBar('Address', context),
+                      },
+                      icon: Icon(Icons.copy),
+                      color: notifier.getbluecolor,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            SizedBox(
-              height: 5,
-            ),
-            Text(
-              '$date',
-              style: TextStyle(
-                color: notifier.getbluecolor,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w500,
-                fontFamily: fontbody,
+              Text(
+                '$date',
+                style: TextStyle(
+                  color: notifier.getbluecolor,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: fontbody,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         )
       ],
     );

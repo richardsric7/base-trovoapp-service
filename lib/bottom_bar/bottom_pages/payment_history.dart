@@ -4,9 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:sembast/sembast.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
-//
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
@@ -41,7 +39,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   int totalRecords = 0;
   int currentPage = 1;
   int limit = 20;
-  List<TransactionInfo>? historyData = <TransactionInfo>[];
+  late List<TransactionInfo>? historyData;
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
     return wallets!
@@ -64,11 +62,16 @@ class Payment_HistoryState extends State<PaymentHistory>
   void initState() {
     super.initState();
     _refreshController = RefreshController(initialRefresh: false);
-    appState = Provider.of<DataProvider>(context, listen: false);
-    wallets = appState.userInfo!.wallets!;
-    activeWallet = appState.activeWallet;
-    selectedWallet = activeWallet!.publicKey;
-    getHistory();
+    // appState = Provider.of<DataProvider>(context, listen: false);
+    // wallets = appState.userInfo!.wallets!;
+    // activeWallet = appState.activeWallet;
+    // if (activeWallet == null && wallets!.length > 0) {
+    //   activeWallet = wallets![0];
+    //   appState.activeWallet = activeWallet;
+    // }
+    // selectedWallet = activeWallet!.publicKey;
+    // appState.getHistory();
+    // historyData = appState.historyData;
   }
 
   @override
@@ -79,7 +82,14 @@ class Payment_HistoryState extends State<PaymentHistory>
     appState = Provider.of<DataProvider>(context, listen: true);
     wallets = appState.userInfo!.wallets!;
     activeWallet = appState.activeWallet;
+    if (activeWallet == null && wallets!.length > 0) {
+      activeWallet = wallets![0];
+    }
     selectedWallet = activeWallet!.publicKey;
+    historyData = appState.historyData;
+    totalRecords = appState.totalRecords!;
+    currentPage = appState.currentPage;
+    limit = appState.limit;
 
     return ScreenUtilInit(
       builder: (context, child) => DefaultTabController(
@@ -146,7 +156,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                         limit = 20;
                         totalRecords = 0;
                         currentPage = 1;
-                        await fetchHistory(limit);
+                        await appState.fetchHistory(limit);
                         hideLoader(context);
                         if (mounted) {
                           setState(() {});
@@ -181,7 +191,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             // setState(() {
             limit += 20;
             // });
-            await fetchHistory(limit);
+            await appState.fetchHistory(limit);
             return historyData!.length <= totalRecords;
           },
           textBuilder: (LoadMoreStatus status) {
@@ -209,31 +219,33 @@ class Payment_HistoryState extends State<PaymentHistory>
               // child: ListView.builder(
               itemCount: historyData!.length,
               itemBuilder: (context, index) {
-                print(
-                    'historyData.length: ${historyData!.length}, index: $index');
-                // return (index + 1 == historyData!.length)
-                //     ? Container(
-                //         color: Colors.greenAccent,
-                //         child: TextButton(
-                //           child: Text("Load More"),
-                //           onPressed: () {},
-                //         ),
-                //       )
-                //     : tile(historyData![index]);
                 return tile(historyData![index]);
               }),
         ),
       );
     }
 
-    return Center(
-      child: Text(
-        'You do not have any transactions yet.',
-        style: TextStyle(
-          color: notifier.getbluecolor,
-          fontSize: 15,
-          fontFamily: fontsemibold,
-          fontWeight: FontWeight.w500,
+    // return Center(
+    //   child: Text(
+    //     'You do not have any transactions yet.',
+    //     style: TextStyle(
+    //       color: notifier.getbluecolor,
+    //       fontSize: 15,
+    //       fontFamily: fontsemibold,
+    //       fontWeight: FontWeight.w500,
+    //     ),
+    //   ),
+    // );
+
+    return Container(
+      height: height / 2,
+      child: Center(
+        child: CircularProgressIndicator(
+          backgroundColor: notifier.getbluecolor,
+          valueColor: new AlwaysStoppedAnimation<Color>(
+            notifier.getgreencolor,
+          ),
+          strokeWidth: 3.0,
         ),
       ),
     );
@@ -456,66 +468,14 @@ class Payment_HistoryState extends State<PaymentHistory>
         : '+ $am $assetCode';
   }
 
-  getHistory() async {
-    var data =
-        await StoreData().storeGetData('historyData${activeWallet!.alias}');
-    for (var i = 0; i < data.length; i++) {
-      historyData!.add(TransactionInfo().deserializeJson(data[i]));
-    }
-
-    totalRecords =
-        await StoreData().storeGetData('totalRecords${activeWallet!.alias}');
-    currentPage =
-        await StoreData().storeGetData('currentPage${activeWallet!.alias}');
-    if (mounted) {
-      setState(() => {});
-    }
-  }
-
   refreshData() async {
     try {
-      await fetchHistory(limit);
+      showLoader(context);
+      await appState.fetchHistory(limit);
+      hideLoader(context);
       _refreshController.refreshCompleted();
     } catch (e) {
       _refreshController.refreshFailed();
-    }
-  }
-
-  Future<void> fetchHistory(limit) async {
-    Map responseData = await makeGetRequest(
-        uri:
-            '/v1/users/payments/${appState.activeWallet!.publicKey}?limit=$limit',
-        signer: appState.activeWallet!.signer!,
-        publicKey: appState.activeWallet!.publicKey!,
-        secretKey: appState.secretKeys[0]);
-
-    print('response: ${responseData['data']}');
-    if (responseData['statusCode'] == 200) {
-      totalRecords = responseData['data']['totalRecords'];
-      currentPage = responseData['data']['currentPage'];
-      var transactions = <TransactionInfo>[];
-      for (var i = 0; i < responseData['data']['records'].length; i++) {
-        transactions.add(TransactionInfo()
-            .deserializeJson(responseData['data']['records'][i]));
-      }
-
-      if (limit <= 20) {
-        await StoreData().storeInsertData(
-            'historyData${appState.activeWallet!.alias}',
-            responseData['data']['records']);
-        await StoreData().storeInsertData(
-            'totalRecords${appState.activeWallet!.alias}',
-            responseData['data']['totalRecords']);
-        await StoreData().storeInsertData(
-            'currentPage${appState.activeWallet!.alias}',
-            responseData['data']['currentPage']);
-      }
-
-      historyData = transactions;
-
-      if (mounted) {
-        setState(() => {});
-      }
     }
   }
 

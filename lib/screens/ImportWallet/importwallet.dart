@@ -443,6 +443,8 @@ class _ImportWalletState extends State<ImportWallet> {
     // save secrets to appstate
     appState.setSecretKeys = await StoreData().storeGetData('secretKey');
     appState.setPassword = appState.tempPassword;
+    appState.activeWallet = appState.userInfo!.wallets!
+        .firstWhere((wallet) => wallet.primaryWallet == 1);
   }
 
   String? validatePassword(value) {

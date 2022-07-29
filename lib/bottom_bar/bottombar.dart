@@ -7,7 +7,8 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/profile.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:provider/provider.dart';
-import '../utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'bottom_pages/wallets.dart';
 
 class BottomHome extends StatefulWidget {
@@ -25,6 +26,7 @@ class _BottomHomeState extends State<BottomHome> {
   @override
   Widget build(BuildContext context) {
     notifire = Provider.of<ColorNotifier>(context, listen: true);
+    var appState = Provider.of<DataProvider>(context, listen: false);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return WillPopScope(
@@ -89,6 +91,7 @@ class _BottomHomeState extends State<BottomHome> {
           ],
           onTap: (index) {
             setState(() {
+              if (_selectedIndex != 2 && index == 2) appState.getHistory();
               _selectedIndex = index;
             });
           },
@@ -110,11 +113,11 @@ class _BottomHomeState extends State<BottomHome> {
     return {
       '/': (context) {
         return [
-          const Home(),
-          const Wallets(),
-          const PaymentHistory(),
-          const PaymentHistory(),
-          const Profile(),
+          Home(),
+          Wallets(),
+          PaymentHistory(),
+          PaymentHistory(),
+          Profile(),
         ].elementAt(index);
       },
     };

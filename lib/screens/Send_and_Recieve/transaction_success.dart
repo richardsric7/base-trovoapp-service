@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
@@ -179,37 +180,39 @@ class _TransactionSuccess extends State<TransactionSuccess>
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Text(
-                              viewData['transactionId'],
-                              style: TextStyle(
-                                color: notifier.getbluecolor,
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w500,
-                                fontFamily: fontbody,
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () => {
-                                Clipboard.setData(
-                                  ClipboardData(
-                                    text: viewData['transactionId'],
+                            Expanded(
+                              flex: 5,
+                              child: GestureDetector(
+                                onTap: () => appState.goToWebView(
+                                    bantuBlockchainExplorerBaseUrl +
+                                        viewData['transactionId']),
+                                child: Text(
+                                  viewData['transactionId'],
+                                  style: TextStyle(
+                                    decoration: TextDecoration.underline,
+                                    color: notifier.getbluecolor,
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w500,
+                                    fontFamily: fontbody,
                                   ),
                                 ),
-                                showSnackBar('Transaction ID', context),
-                              },
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        notifier.getbluecolor!),
                               ),
-                              child: Text(
-                                LanguageEn.copy,
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: IconButton(
+                                onPressed: () => {
+                                  Clipboard.setData(
+                                    ClipboardData(
+                                      text: viewData['transactionId'],
+                                    ),
+                                  ),
+                                  showSnackBar('Transaction ID', context),
+                                },
+                                icon: Icon(Icons.copy),
+                                color: notifier.getbluecolor,
                               ),
                             ),
                           ],
