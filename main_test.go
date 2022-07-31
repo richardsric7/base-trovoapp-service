@@ -232,6 +232,16 @@ type SwapSendInfo struct {
 	Memo                   string   `json:"memo"`
 }
 
+//PendingAssetToClaim holds pensing assets to be claimed
+type PendingAssetToClaim struct {
+	AssetCode            string `json:"assetCode"`
+	AssetIssuer          string `json:"assetIssuer"`
+	Transaction          string `json:"transaction"`
+	TransactionSignature string `json:"transactionSignature"`
+	TransactionID        string `json:"transactionId"`
+	NetworkPassPhrase    string `json:"networkPassPhrase"`
+}
+
 // func TestAccountRegistration(t *testing.T) {
 // 	/*
 // 		{"username":"username","email":"richardsric7@gmail.com","firstName":"Kenny","lastName":"Maduka","mobile":"+2347062685682","mobileCountryCode":"NG","referrer":"","pushNotificationToken":"","corporate":0,"verificationCode":""}
@@ -441,6 +451,97 @@ func TestGetPaymentHistory(t *testing.T) {
 **/
 
 // TestSendPaymentMultiAccessDisabled sends payment from primary wallet
+func TestAcceptAssetMultiAccessDisabled(t *testing.T) {
+
+	fromWallet := "GDW6UKK6RI2LBTGHTDKKXYZKCGPDFBRFDTYSZKGGGE6SC5TCSG3MMJST"
+	pk := os.Getenv("RICPK")
+	secretKey := os.Getenv("RICSC")
+
+	kp := keypair.MustParseFull(secretKey)
+	baseURL := prodURL
+
+	fullPath := "/v1/users/actions/claim-asset"
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	claimPayload := PendingAssetToClaim{
+		AssetCode:   "YAM",
+		AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
+	}
+	errorResponse := new(ErrorResponse)
+	claimResponse := new(PendingAssetToClaim)
+	log.Println("making request from wallet", fromWallet)
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", fromWallet).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Put(fullPath).BodyJSON(claimPayload).Receive(claimResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestAcceptAssetMultiAccessDisabled] server response error:", *errorResponse)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestAcceptAssetMultiAccessDisabled]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Claim Response:[%+v]\n", claimResponse)
+
+	{
+		//run the payment signing and submission
+		p := *claimResponse
+		//sign transaction
+
+		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
+		if err != nil {
+			log.Println("[TestAcceptAssetMultiAccessDisabled] make claim error:", err)
+			t.Errorf(err.Error())
+
+			return
+		}
+
+		p.TransactionSignature = signedBase64
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		log.Printf("Second Claim Payload:[%+v]\n", p)
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", fromWallet).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Put(fullPath).BodyJSON(p).Receive(claimResponse, errorResponse)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+
+		log.Printf("Make Claim Response:[%+v]\n", claimResponse)
+	}
+	log.Println("[TestAcceptAssetMultiAccessDisabled] completed")
+	time.Sleep(time.Second * 10)
+
+}
 func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 
 	// pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
@@ -470,12 +571,28 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 
 	}
 
+	// paymentPayload := PaymentInfo{
+	// 	Destination: "obi",
+	// 	Memo:        "Test Payment",
+	// 	Amount:      "200",
+	// 	AssetCode:   "YAM",
+	// 	AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
+	// }
+
+	// paymentPayload := PaymentInfo{
+	// 	Destination: "onoja",
+	// 	Memo:        "Test Payment",
+	// 	Amount:      "200",
+	// 	AssetCode:   "ABC",
+	// 	AssetIssuer: "GAD3DZNQY4SXJEUJOPLJZEK3OWTASEUK2LZYT3V7C52UN5QYOFP3PM5P",
+	// }
+
 	paymentPayload := PaymentInfo{
-		Destination: "kenmaddy",
+		Destination: "obi",
 		Memo:        "Test Payment",
-		Amount:      "5",
-		AssetCode:   "YAM",
-		AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
+		Amount:      "120",
+		AssetCode:   "LUMI",
+		AssetIssuer: "GBGUHXVAK32BZTWRBML7RNIQ3532QDR5RRXOJ2P2MGEPHC3YJREMRTLE",
 	}
 	errorResponse := new(ErrorResponse)
 	payResponse := new(PaymentInfo)

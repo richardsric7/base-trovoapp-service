@@ -71,7 +71,7 @@ func ClaimPendingAsset(owner *userModels.User, wallet *userModels.UserWallet, pe
 	txnID, err := network.SubmitXdrWithSignature(horizonClient, wallet.Signer, xdrBase64, pendingAssetToClaim.TransactionSignature)
 
 	if err != nil {
-		log.Printf("error submitting txn: %v", err)
+		log.Printf("[ClaimPendingAsset]error submitting txn: %v\n", err)
 		return pendingAssetToClaim, false, &tErrors.ErrorTemporaryServerError{}
 	}
 
@@ -84,6 +84,7 @@ func ClaimPendingAsset(owner *userModels.User, wallet *userModels.UserWallet, pe
 func generateXdr(horizonClient *horizonclient.Client, owner userModels.User, wallet *userModels.UserWallet, db *gorm.DB, pendingAssetToClaim *userModels.PendingAssetToClaim) (string, error) {
 
 	tempKeyPair, err := network.TempAccountKeypair(wallet.ID)
+	log.Printf("[generateXdr]tempKey: %v, main key: %v, alias: %v\n", tempKeyPair.Address(), wallet.ID, wallet.Alias)
 
 	if err != nil {
 		return "", err
@@ -99,7 +100,7 @@ func generateXdr(horizonClient *horizonclient.Client, owner userModels.User, wal
 		asset = txnbuild.CreditAsset{Code: pendingAssetToClaim.AssetCode, Issuer: pendingAssetToClaim.AssetIssuer}
 	}
 
-	tempAccountExist, tempAccountTrustsAsset, nativeAccountBalance, customAccountBalance, tempAccount, err := network.BlockchainAccountProperties(horizonClient, tempKeyPair.FromAddress().Address(), asset)
+	tempAccountExist, tempAccountTrustsAsset, nativeAccountBalance, customAccountBalance, tempAccount, err := network.BlockchainAccountProperties(horizonClient, tempKeyPair.Address(), asset)
 
 	if err != nil {
 		return "", err
@@ -174,7 +175,7 @@ func generateXdr(horizonClient *horizonclient.Client, owner userModels.User, wal
 	)
 
 	if err != nil {
-		log.Println("error constructing transaction ", err)
+		log.Println("[claim-asset generateXdr]error constructing transaction ", err)
 		return "", &tErrors.ErrorTemporaryServerError{}
 	}
 

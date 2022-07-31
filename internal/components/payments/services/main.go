@@ -16,7 +16,6 @@ import (
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 
-	"github.com/ecnepsnai/discord"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 
@@ -637,110 +636,6 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 	return xdrBase64, &destinationInfo, nil
 }
 
-func ProcessBailArrestedAccount(client *horizonclient.Client, owner *users.User, sourceAccount *horizon.Account, db *gorm.DB) (txHash string, err error) {
-	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
-	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
-		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
-	}
-	prisonSigner := keypair.MustParseFull(os.Getenv("PRISON_SIGNER"))
-
-	//check if account has prison signer key already. checks if account is already arrested.
-	if !owner.SignerIsValidWA(prisonSigner.Address(), sourceAccount) {
-		//account is not arrested. cannot release account not in prison
-		return "", errors.New("account is not arrested")
-
-	}
-	// //signer is attached
-	// if owner.PublicKeyBanned(db, false) {
-	// 	//account is still banned. cannot release account that is banned
-	// 	return "", errors.New("account is still banned")
-	// }
-	// account no longer banned. release from prison
-	log.Println("[ProcessBailArrestedAccount]Releasing account from prison", sourceAccount.AccountID)
-	_, _, _, _, channelSourceAccount, _ := network.BlockchainAccountProperties(client, prisonSigner.Address(), txnbuild.NativeAsset{})
-
-	freeFromArrestRequest := &txnbuild.SetOptions{
-		Signer: &txnbuild.Signer{
-			Address: prisonSigner.Address(),
-			Weight:  0,
-		},
-		LowThreshold:    txnbuild.NewThreshold(0),
-		MediumThreshold: txnbuild.NewThreshold(0),
-		HighThreshold:   txnbuild.NewThreshold(0),
-		SourceAccount:   sourceAccount.AccountID,
-	}
-
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        channelSourceAccount,
-			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{freeFromArrestRequest},
-			BaseFee:              txnbuild.MinBaseFee,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
-			},
-			Memo: txnbuild.MemoText("free from prison"),
-		},
-	)
-	if err != nil {
-		log.Println("[ProcessBailArrestedAccount] error constructing transaction ", err)
-		return "", err
-	}
-
-	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), prisonSigner)
-
-	if err != nil {
-		log.Println("[ProcessBailArrestedAccount] error signing transaction with prison signer key ", err)
-		return "", err
-	}
-	var xdrBase64 string
-	xdrBase64, err = tx.Base64()
-
-	if err != nil {
-		log.Println("[ProcessBailArrestedAccount] error getting txn base64", err)
-		return "", err
-	}
-
-	resp, err := client.SubmitTransactionXDR(xdrBase64)
-	if err != nil {
-		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
-			discord.Say(fmt.Sprintf("[ProcessBailArrestedAccount] error connecting to expansion service: %v\nXDR: %v", err, xdrBase64))
-		}
-
-		horizonException, ok := err.(*horizonclient.Error)
-
-		if ok {
-
-			extraErrors := horizonException.Problem.Extras
-
-			for key, val := range extraErrors {
-				log.Printf("[ProcessBailArrestedAccount] Extras: %v is %v\nOwner publickey: %v\n", key, val, sourceAccount.AccountID)
-				logDiscordFailedPayment(fmt.Sprintf("[ProcessBailArrestedAccount] Extras: %v is %v\nOwner publickey: %v\n", key, val, sourceAccount.AccountID))
-
-			}
-
-			resultCodes, _ := horizonException.ResultCodes()
-
-			for key, val := range resultCodes.OperationCodes {
-				log.Printf("[ProcessBailArrestedAccount] Result code: %v is %v\nOwner publickey: %v\n", key, val, sourceAccount.AccountID)
-				logDiscordFailedPayment(fmt.Sprintf("[ProcessBailArrestedAccount] Result code: %v is %v\nOwner publickey: %v\n", key, val, sourceAccount.AccountID))
-
-			}
-
-		}
-
-		return "", &tErrors.CustomError{
-			Param:      "publicKey",
-			Err:        "error-failed-to-release-account-from-prison",
-			ErrMessage: "Failed to release account from prison",
-		}
-
-	}
-
-	return resp.Hash, nil
-
-}
-
 func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, destinationWallet *paymentsDB.UserWallet, sourceAccount *horizon.Account, asset txnbuild.Asset, amountToSend string, db *gorm.DB) ([]txnbuild.Operation, *keypair.Full, error) {
 
 	ops := make([]txnbuild.Operation, 0)
@@ -749,10 +644,10 @@ func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, dest
 
 	tempAccountKeypair, tempAccountError := network.TempAccountKeypair(destinationWallet.ID)
 
-	var tempAccount txnbuild.Account = &txnbuild.SimpleAccount{AccountID: tempAccountKeypair.FromAddress().Address(), Sequence: 0}
+	var tempAccount txnbuild.Account = &txnbuild.SimpleAccount{AccountID: tempAccountKeypair.Address(), Sequence: 0}
 
 	if tempAccountError != nil {
-		log.Printf("error generating temporary account %v", tempAccountError)
+		log.Printf("[processDestinationAssetDoesNotTrustAsset] error generating temporary account %v\n", tempAccountError)
 		return ops, tempAccountKeypair, &tErrors.ErrorTemporaryServerError{}
 	}
 
@@ -760,16 +655,16 @@ func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, dest
 		network.BlockchainAccountProperties(client, tempAccountKeypair.FromAddress().Address(), asset)
 
 	if tempAccountError != nil {
-		log.Printf("error looking up temporary account %v", tempAccountError)
+		log.Printf("[processDestinationAssetDoesNotTrustAsset] error looking up temporary account %v\n", tempAccountError)
 		return ops, tempAccountKeypair, &tErrors.ErrorTemporaryServerError{}
 	}
 
 	{
 
-		var _wallets []users.UserWallet
+		var _wallet users.UserWallet
 
 		//check if temp account exists in buds or not.
-		err := db.Where("id = ?", destinationWallet.ID).Find(&_wallets).Error
+		err := db.Where("id = ?", destinationWallet.ID).First(&_wallet).Error
 
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -781,28 +676,27 @@ func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, dest
 
 		}
 
-		var _walletsToUpdate []users.UserWallet
+		// var _walletToUpdate users.UserWallet
+		var update bool
 
-		for _, _wallet := range _wallets {
-			if _wallet.TempPublicKey != nil {
-				if *_wallet.TempPublicKey != tempAccountKeypair.FromAddress().Address() {
-					v := tempAccountKeypair.FromAddress().Address()
-					_wallet.TempPublicKey = &v
-					_walletsToUpdate = append(_walletsToUpdate, _wallet)
-				}
-			} else {
-				v := tempAccountKeypair.FromAddress().Address()
+		if _wallet.TempPublicKey != nil {
+			if *_wallet.TempPublicKey != tempAccountKeypair.Address() {
+				v := tempAccountKeypair.Address()
 				_wallet.TempPublicKey = &v
-				_walletsToUpdate = append(_walletsToUpdate, _wallet)
-			}
+				update = true
 
+			}
+		} else {
+			v := tempAccountKeypair.Address()
+			_wallet.TempPublicKey = &v
+			update = true
 		}
 
-		if len(_walletsToUpdate) > 0 {
-			dbSaveError := db.Save(_walletsToUpdate).Error
+		if update {
+			dbSaveError := db.Save(&_wallet).Error
 
 			if dbSaveError != nil {
-				log.Printf("db temp save error %v\n", dbSaveError)
+				log.Printf("[processDestinationAssetDoesNotTrustAsset]db temp save error %v\n", dbSaveError)
 				return ops, nil, &tErrors.ErrorTemporaryServerError{}
 			}
 		}
@@ -818,7 +712,7 @@ func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, dest
 		//create temp account and add destination public key as signer.
 
 		ops = append(ops, &txnbuild.CreateAccount{
-			Destination:   tempAccountKeypair.FromAddress().Address(),
+			Destination:   tempAccountKeypair.Address(),
 			Amount:        baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String(),
 			SourceAccount: sourceAccount.AccountID,
 		})
@@ -870,7 +764,7 @@ func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, dest
 	}
 
 	ops = append(ops, &txnbuild.Payment{
-		Destination:   tempAccountKeypair.FromAddress().Address(),
+		Destination:   tempAccountKeypair.Address(),
 		Amount:        amountToSend,
 		Asset:         asset,
 		SourceAccount: sourceAccount.AccountID,
@@ -915,10 +809,10 @@ func GetBlockchainAccountData(clientAccount horizon.Account) (accountData map[st
 	return clientAccount.Data, nil
 }
 
-func logDiscordFailedPayment(msg string) {
-	discord.WebhookURL = "https://discord.com/api/webhooks/827986576415129663/wqMKp9wxB_fxs9Q3zlMKCNPGENXmD_ueUnL8hVCu1wmRfD2wkXAjfP85k1Ro_2_wGfiY"
-	if len(os.Getenv("FAILED_PAYMENT_ERROR_WEBHOOK")) > 50 {
-		discord.WebhookURL = os.Getenv("FAILED_PAYMENT_ERROR_WEBHOOK")
-	}
-	discord.Say(msg)
-}
+// func logDiscordFailedPayment(msg string) {
+// 	discord.WebhookURL = "https://discord.com/api/webhooks/827986576415129663/wqMKp9wxB_fxs9Q3zlMKCNPGENXmD_ueUnL8hVCu1wmRfD2wkXAjfP85k1Ro_2_wGfiY"
+// 	if len(os.Getenv("FAILED_PAYMENT_ERROR_WEBHOOK")) > 50 {
+// 		discord.WebhookURL = os.Getenv("FAILED_PAYMENT_ERROR_WEBHOOK")
+// 	}
+// 	discord.Say(msg)
+// }

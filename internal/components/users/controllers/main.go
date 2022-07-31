@@ -602,7 +602,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		returnedPendingAssetToClaim, complete, err := userServices.ClaimPendingAsset(&walletOwner, &wallet, &pendingAssetToClaim, gc.DB)
+		_, complete, err := userServices.ClaimPendingAsset(&walletOwner, &wallet, &pendingAssetToClaim, gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -628,11 +628,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
 
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
-
+		log.Printf("[CLAIM ASSET] Transaction Signature: [%v]\n", pendingAssetToClaim.TransactionSignature)
 		if complete {
-			c.JSON(http.StatusOK, returnedPendingAssetToClaim)
+			c.JSON(http.StatusOK, pendingAssetToClaim)
 		} else {
-			c.JSON(http.StatusAccepted, returnedPendingAssetToClaim)
+			c.JSON(http.StatusAccepted, pendingAssetToClaim)
 		}
 
 	})
