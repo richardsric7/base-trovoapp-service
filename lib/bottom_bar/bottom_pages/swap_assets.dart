@@ -65,6 +65,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
     activeWallet = appState.activeWallet;
   }
 
@@ -75,10 +76,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     userInfo = appState.userInfo!;
-    assetBalances = appState.assetBalances;
     wallets = userInfo.wallets!;
-    // activeWallet = appState.activeWallet;
     selectedWallet = activeWallet!.publicKey;
+    assetBalances = appState.assetBalances;
     claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
 
     return ScreenUtilInit(
