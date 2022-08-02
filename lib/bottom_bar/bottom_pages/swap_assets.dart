@@ -65,6 +65,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    activeWallet = appState.activeWallet;
   }
 
   @override
@@ -76,7 +77,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     userInfo = appState.userInfo!;
     assetBalances = appState.assetBalances;
     wallets = userInfo.wallets!;
-    activeWallet = appState.activeWallet;
+    // activeWallet = appState.activeWallet;
     selectedWallet = activeWallet!.publicKey;
     claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
 
@@ -148,7 +149,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                               amount = 0;
                               textController.text = amount.toString();
                               sourceAsset = destinationAsset = null;
-                              appState.activeWallet = wallets!.firstWhere(
+                              activeWallet = wallets!.firstWhere(
                                   (wallet) => wallet.publicKey == newValue);
                             });
                           },

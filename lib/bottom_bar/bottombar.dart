@@ -91,8 +91,6 @@ class _BottomHomeState extends State<BottomHome> {
             ),
           ],
           onTap: (index) {
-            appState.activeWallet = appState.userInfo!.wallets!
-                .firstWhere((wallet) => wallet.primaryWallet == 1);
             setState(() {
               if (_selectedIndex != 2 && index == 2) {
                 appState.getHistory();
