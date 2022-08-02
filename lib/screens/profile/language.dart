@@ -46,8 +46,8 @@ class _LanguageState extends State<Language> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(notifier.getwihitecolor, LanguageEn.selectlanguage,
-            notifier.getblck,
+        appBar: CustomAppBar(context, notifier.getwihitecolor,
+            LanguageEn.selectlanguage, notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(

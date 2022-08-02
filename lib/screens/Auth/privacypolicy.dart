@@ -30,6 +30,7 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
+          context,
           notifier.getwihitecolor,
           LanguageEn.privacypolicy,
           notifier.getblck,

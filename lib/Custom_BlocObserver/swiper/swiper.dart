@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/screens/Auth/create_password.dart';
 import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/screens/page_view/onbonding_two.dart';
@@ -10,7 +11,9 @@ import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../router/PageActions.dart';
 import '../../screens/Auth/login.dart';
+import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../button/custtom_button.dart';
 import '../fonts.dart';
@@ -69,6 +72,7 @@ class _SwiperState extends State<Swiper> {
   @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
+    var appState = Provider.of<DataProvider>(context, listen: true);
     return Scaffold(
       backgroundColor: notifier.getwihitecolor,
       body: Column(
@@ -106,12 +110,8 @@ class _SwiperState extends State<Swiper> {
                 notifier.getbluecolor,
                 notifier.getwihitecolor,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CreatePassword(),
-                    ),
-                  );
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage, page: CreatePasswordPageConfig);
                 },
               ),
               SizedBox(height: height / 50.5),
@@ -120,12 +120,8 @@ class _SwiperState extends State<Swiper> {
                 notifier.getwihitecolor,
                 notifier.getbluecolor,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ImportWallet(),
-                    ),
-                  );
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage, page: ImportWalletPageConfig);
                 },
               ),
             ],

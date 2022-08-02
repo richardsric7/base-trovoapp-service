@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/profile.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/stockexchange.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:provider/provider.dart';
-
-import '../utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
+import 'bottom_pages/swap_assets.dart';
+import 'bottom_pages/wallets.dart';
 
 class BottomHome extends StatefulWidget {
   const BottomHome({Key? key}) : super(key: key);
@@ -23,6 +27,7 @@ class _BottomHomeState extends State<BottomHome> {
   @override
   Widget build(BuildContext context) {
     notifire = Provider.of<ColorNotifier>(context, listen: true);
+    var appState = Provider.of<DataProvider>(context, listen: false);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return WillPopScope(
@@ -45,40 +50,51 @@ class _BottomHomeState extends State<BottomHome> {
           items: [
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: Image.asset("assets/images/Home-Filled.png",
+                icon: SvgPicture.asset("assets/images/home.svg",
                     color: _selectedIndex == 0
                         ? notifire.getbluecolor
-                        : notifire.getgrey,
+                        : notifire.getblck,
                     height: height / 35),
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: Image.asset("assets/images/Portfolio-outline.png",
+                icon: SvgPicture.asset("assets/images/wallets.svg",
                     color: _selectedIndex == 1
                         ? notifire.getbluecolor
-                        : notifire.getgrey,
+                        : notifire.getblck,
                     height: height / 35),
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: Image.asset("assets/images/exchange.png",
+                icon: SvgPicture.asset("assets/images/history.svg",
                     color: _selectedIndex == 2
                         ? notifire.getbluecolor
-                        : notifire.getgrey,
+                        : notifire.getblck,
+                    height: height / 35),
+                label: ''),
+            BottomNavigationBarItem(
+                backgroundColor: notifire.getwihitecolor,
+                icon: SvgPicture.asset("assets/images/swap.svg",
+                    color: _selectedIndex == 3
+                        ? notifire.getbluecolor
+                        : notifire.getblck,
                     height: height / 35),
                 label: ''),
             BottomNavigationBarItem(
               backgroundColor: notifire.getwihitecolor,
-              icon: Image.asset("assets/images/User-outline.png",
-                  color: _selectedIndex == 3
+              icon: SvgPicture.asset("assets/images/settings.svg",
+                  color: _selectedIndex == 4
                       ? notifire.getbluecolor
-                      : notifire.getgrey,
+                      : notifire.getblck,
                   height: height / 35),
               label: '',
             ),
           ],
           onTap: (index) {
             setState(() {
+              if (_selectedIndex != 2 && index == 2) {
+                appState.getHistory();
+              }
               _selectedIndex = index;
             });
           },
@@ -89,6 +105,7 @@ class _BottomHomeState extends State<BottomHome> {
             _buildOffstageNavigator(1),
             _buildOffstageNavigator(2),
             _buildOffstageNavigator(3),
+            _buildOffstageNavigator(4),
           ],
         ),
       ),
@@ -99,10 +116,11 @@ class _BottomHomeState extends State<BottomHome> {
     return {
       '/': (context) {
         return [
-          const Home(),
-          const SelectStocks(),
-          const StockExchange(),
-          const Profile(),
+          Home(),
+          Wallets(),
+          PaymentHistory(),
+          SwapAssets(),
+          Profile(),
         ].elementAt(index);
       },
     };

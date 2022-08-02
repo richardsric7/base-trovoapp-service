@@ -49,7 +49,7 @@ class _ReferralCodeState extends State<ReferralCode> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-            notifier.getwihitecolor, "Referral Code", notifier.getblck,
+            context, notifier.getwihitecolor, "Referral Code", notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(

@@ -76,10 +76,18 @@ class UserInfo {
     var userWallets = m['userWallets'];
     var wallets = <Wallet>[];
     if (userWallets != null) {
-      print('runtime type: ${userWallets.runtimeType}');
       for (var i = 0; i < userWallets.length; i++) {
-        wallets.add(Wallet().deserializeJson(userWallets[i]));
+        var wallet = Wallet().deserializeJson(userWallets[i]);
+        if (wallet.primaryWallet == 1) {
+          // promote the primary wallet to appear first on the list
+          wallets.insert(0, wallet);
+          continue;
+        }
+        wallets.add(wallet);
       }
+      wallets.forEach((wallet) {
+        print('${wallet.publicKey} ${wallet.primaryWallet}');
+      });
     }
     return UserInfo(
       username: m['username'],

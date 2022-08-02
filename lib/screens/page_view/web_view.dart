@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/storage/state.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
@@ -11,9 +12,7 @@ import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
 
 class TrovoWebView extends StatefulWidget {
-  String url;
-
-  TrovoWebView({Key? key, required this.url}) : super(key: key);
+  TrovoWebView({Key? key}) : super(key: key);
 
   @override
   TrovoWebViewState createState() => TrovoWebViewState();
@@ -21,6 +20,7 @@ class TrovoWebView extends StatefulWidget {
 
 class TrovoWebViewState extends State<TrovoWebView> {
   late ColorNotifier notifier;
+  late DataProvider appState;
   String username = 'kent2cky';
   bool isLoading = false;
   getdarkmodepreviousstate() async {
@@ -46,16 +46,19 @@ class TrovoWebViewState extends State<TrovoWebView> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
           resizeToAvoidBottomInset: false,
           backgroundColor: notifier.getwihitecolor,
-          appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
+          appBar: CustomAppBar(
+              context, notifier.getwihitecolor, "", notifier.getblck,
               height: height / 15),
           body: Stack(
             children: [
               WebView(
-                initialUrl: widget.url,
+                javascriptMode: JavascriptMode.unrestricted,
+                initialUrl: appState.initialUrl,
                 onPageStarted: (value) => {
                   print('loading... $value'),
                   setState(() {

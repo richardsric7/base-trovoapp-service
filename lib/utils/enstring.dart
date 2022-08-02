@@ -6,6 +6,34 @@ class LanguageEn {
   static String get managetrovowallet =>
       "Manage your Bantu Digital Assets (including NFTs)";
 
+  static String get createnewwallet => 'Create new wallet';
+
+  static String get importexistingwallet => 'Import existing wallet';
+
+  static String get chooseamethod => 'Choose a method';
+
+  static String get abouttocreatesubwallet =>
+      'You are about to add a subwallet to your Trovo Wallet account';
+
+  static String get requesttocreatesubwallet =>
+      'You have requested to create a subwallet with these details:';
+
+  static String get method => 'Method';
+
+  static String get createnewsubwallet => 'Create new wallet';
+
+  static String get importsubwallet => 'Import existing wallet';
+
+  static String get publickey => 'Public Key';
+
+  static String get authorizewithbiometrics => 'Authorize With Biometrics';
+
+  static String get authorize => 'Authorize';
+
+  static String get addsubwallet => 'Add Subwallet';
+
+  static String get tag => 'Tag';
+
   static String get domorewithblockchain =>
       "Do more magic with Blockchain. \nGo beyond limits.";
 
@@ -38,6 +66,8 @@ class LanguageEn {
   static String get customwalletaddress => "Wallet address";
 
   static String get importwallet => "Import Wallet";
+
+  static String get share => "Share";
 
   static String get enterpassphraseempty => 'Please enter your pass phrase';
 
@@ -176,6 +206,29 @@ class LanguageEn {
 
   static String get signinwithbiometrics => "Sign In With Biometrics";
 
+  static String get send => 'Send';
+
+  static String get yourtransactionwassuccessful =>
+      'Your Transaction\nWas Successful!';
+
+  static String get dashboard => 'Dashboard';
+
+  static String get claimasset => 'Claim Asset';
+
+  static String get sentto => 'Sent to';
+
+  static String get swapped => 'Swapped';
+
+  static String get receivedfrom => 'Received from';
+
+  static String get formemo => 'For';
+
+  static String get copy => 'Copy';
+
+  static String get blockchainproof => 'Blockchain Proof (Transaction ID)';
+
+  static String get proceed => 'Proceed';
+
   static String get welcome => "Welcome back";
 
   static String get youhavebeenmissed => "You have been missed";
@@ -209,12 +262,22 @@ class LanguageEn {
 
   static String get youhavebeensucces => "You have been succesfully verified";
 
+  static String get createsuccess => "Success!";
+
+  static String get youhavecreatedsuccessfully =>
+      "Subwallet successfully added!";
+
   static String get congratulations => "Congratulations ";
 
   static String get walletcreatesuccess =>
       "Your wallet has been successfully created. \n\n\nWe strongly recommend that you backup your wallet before proceeding.\n\n\nBacking up your wallet is the only way to restore your wallet if you lose your device";
 
+  static String get subwalletcreatesuccess =>
+      "You have successfully created a subwallet. \n\n\nWe strongly recommend that you backup this new subwallet before proceeding.\n\n\nIf you do not backup your wallet, you can lose your assets if something happens to your device.\n\n\nBacking up your wallet also allows you to migrate this account to another device if you ever wish to.";
+
   static String get backup => "Backup";
+
+  static String get backupwallet => "Backup Wallet";
 
   static String get ensureprivacybackup =>
       "Ensure no one is looking while you back up your wallet. Anyone with your secret key can access your Trovo wallet.";
@@ -225,6 +288,9 @@ class LanguageEn {
   static String get warnskipbackup =>
       "We strongly recommend that you backup your wallet secret key. Are you sure you want to skip?";
 
+  static String get warncost =>
+      "This action will cost you 3450 TROV to complete.";
+
   static String get iensuredprivacy =>
       "I have ensured that no one is looking and I understand that I should never share my secret key with anyone.";
 
@@ -234,11 +300,11 @@ class LanguageEn {
   static String get iunderstandliability =>
       "I understand that if I lose my secret key. Trovo is not liable to any loss and that my funds are securely held and controlled on this device not by Trovo.";
 
-  static String get youysecrethasbeengenerated =>
-      "Your secret key has been generated and is 56 characters long.";
+  static String get maynotbedisplayedagain =>
+      "This wallet's secret key will only be available while this app in not yet unistalled from this device.";
 
   static String get writeitdown =>
-      "Write it down correctly and store in a safe place.";
+      "Please write down the following details correctly and store in a safe place.";
 
   static String get writeitasfollows =>
       "You can write down your secret key as follows:";
@@ -273,6 +339,8 @@ class LanguageEn {
   static String get gotosettings => 'Go to settings';
 
   static String get cancel => 'Cancel';
+
+  static String get back => 'Back';
 
   static String get fingerprintrequired => 'Fingerprint required';
 
@@ -331,6 +399,24 @@ class LanguageEn {
 
   static String get accept => "Accept";
 
+  static String get goodevening => "Good evening,";
+
+  static String get totalbalance => 'Total Balance   ';
+
+  static String get placeqrcode => 'Please place the QRcode inside the frame';
+
+  static String get nopendingassets => "You do not have any pending assets.";
+
+  static String get noassets => "You do not have any assets yet.";
+
+  static String get noNFTs => "You do not have any NFTs yet.";
+
+  static String get assets => "ASSETS";
+
+  static String get pendingassets => "PENDING";
+
+  static String get nfts => "NFT";
+
   static String get gocrypto => "GoCrypto";
 
   static String get buildingtrustinthecrypto => "Building trust in the Crypto";
@@ -338,6 +424,8 @@ class LanguageEn {
   static String get favorites => "Favorites";
 
   static String get seeall => "See All";
+
+  static String get search => "Search";
 
   static String get btc => "BTC";
 
@@ -388,6 +476,12 @@ class LanguageEn {
 
   static String get exchange => "Exchange";
 
+  static String get transactionHistory => "Transaction History";
+
+  static String get transactionDetails => "Transaction Details";
+
+  static String get wallets => "Wallets";
+
   static String get yousend => "You Send";
 
   static String get youreceive => "You Receive";
@@ -409,7 +503,19 @@ class LanguageEn {
 
   static String get confirmation => "Confirmation";
 
-  static String get to => "to";
+  static String get to => "To";
+
+  static String get memo => "Add Memo (optional)";
+
+  static String get confirmyourtransaction => 'Confirm your transaction';
+
+  static String get youareabouttosend => 'You are about to send';
+
+  static String get confirmswap => 'Confirm Swap';
+
+  static String get youareabouttoswap => 'You are swapping';
+
+  static String get descriptionmemo => 'Description/Memo';
 
   static String get amount => "Amount";
 
@@ -487,6 +593,8 @@ class LanguageEn {
   static String get portofolio => "Portofolio";
 
   static String get notication => "Notification";
+
+  static String get news => "News";
 
   static String get offers => "Offers";
 

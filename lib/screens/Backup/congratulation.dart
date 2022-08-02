@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../Auth/fingerprint.dart';
-import '../ImportWallet/importwallet.dart';
-import 'ensure_privacy.dart';
 
 class Congratulations extends StatelessWidget {
   Congratulations({Key? key}) : super(key: key);
@@ -29,7 +29,7 @@ class Congratulations extends StatelessWidget {
             children: [
               SizedBox(height: height / 6),
               Text(
-                LanguageEn.congratulations,
+                '${LanguageEn.congratulations}',
                 style: TextStyle(
                     color: notifier.getblck,
                     fontFamily: fontsemibold,
@@ -46,7 +46,9 @@ class Congratulations extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: Text(
-                  LanguageEn.walletcreatesuccess,
+                  appState.activeWallet!.primaryWallet == 1
+                      ? LanguageEn.walletcreatesuccess
+                      : LanguageEn.subwalletcreatesuccess,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getgrey,
@@ -55,7 +57,7 @@ class Congratulations extends StatelessWidget {
                       fontFamily: fontbody),
                 ),
               ),
-              SizedBox(height: height / 7.3),
+              SizedBox(height: height / 20),
               Button(
                 LanguageEn.backup,
                 notifier.getbluecolor,
@@ -65,12 +67,9 @@ class Congratulations extends StatelessWidget {
                     context,
                     () {
                       Navigator.of(context).pop();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EnsurePrivacy(),
-                        ),
-                      );
+                      appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: EnsurePrivacyPageConfig);
                     },
                   );
                 },
@@ -81,13 +80,25 @@ class Congratulations extends StatelessWidget {
                 notifier.getwihitecolor,
                 notifier.getbluecolor,
                 onTap: () {
-                  warnSkipBackupDialog(context);
+                  warnSkipBackupDialog(context, gotoNext);
                 },
               ),
+              SizedBox(height: height / 7.3),
             ],
           ),
         ),
       ),
     );
+  }
+
+  gotoNext() async {
+    var isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
+    if (isFirstTime) {
+      appState.currentAction =
+          PageAction(state: PageState.addPage, page: FingerprintPageConfig);
+    } else {
+      appState.currentAction =
+          PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+    }
   }
 }

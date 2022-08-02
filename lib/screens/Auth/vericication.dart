@@ -18,6 +18,8 @@ import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/User.dart';
 import '../../network/requests.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../services/push_fcm_service.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -70,6 +72,7 @@ class _VeryficationState extends State<Veryfication> {
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
+          context,
           notifier.getwihitecolor,
           "",
           notifier.getblck,
@@ -208,13 +211,6 @@ class _VeryficationState extends State<Veryfication> {
 
     if (responseData['statusCode'] == 200) {
       getUserInfo();
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Congratulations(),
-        ),
-      );
     } else {
       popup(context,
           title: LanguageEn.error, message: responseData['data']['message']);
@@ -222,6 +218,8 @@ class _VeryficationState extends State<Veryfication> {
   }
 
   getUserInfo() async {
+    showLoader(context);
+
     var publicKey = state.tempPublicKey;
     var secretKey = state.tempSecretKey;
 
@@ -235,11 +233,14 @@ class _VeryficationState extends State<Veryfication> {
     print('response: ${responseData}');
 
     if (responseData['statusCode'] == 200) {
-      storeUserInfo(responseData['data']);
+      await storeUserInfo(responseData['data']);
+      hideLoader(context);
     } else if (responseData['statusCode'] == 404) {
+      hideLoader(context);
       popup(context,
           title: LanguageEn.error, message: responseData['data']['message']);
     } else {
+      hideLoader(context);
       // must be some sort of server error
       // let's throw it
       popup(context,
@@ -251,7 +252,7 @@ class _VeryficationState extends State<Veryfication> {
     print('userInfoMap: ${userInfoMap['userData']}');
     var userInfo = userInfoMap['userData'] ?? {};
     var assetBalances = userInfoMap['assetBalances'] ?? {};
-    var nftBalances = userInfoMap['nftBalances'] ?? {};
+    var nfts = userInfoMap['nfts'] ?? {};
     var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
     var defaultAssets = userInfoMap['defaultAssets'] ?? [];
 
@@ -259,11 +260,10 @@ class _VeryficationState extends State<Veryfication> {
 
     await StoreData().storeInsertData('userInfo', userInfo);
     await StoreData().storeInsertData('assetBalances', assetBalances);
-    await StoreData().storeInsertData('nftBalances', nftBalances);
+    await StoreData().storeInsertData('nftBalances', nfts);
     await StoreData()
         .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
-    await StoreData().storeInsertData('isFirstTime', false);
     await StoreData().storeInsertData('password', state.tempPassword);
     await StoreData().storeInsertData('publicKey', state.tempPublicKey);
     await StoreData()
@@ -271,9 +271,16 @@ class _VeryficationState extends State<Veryfication> {
 
     // save useInfo to appstate
     state.setUser = UserInfo().deserializeJson(userInfo);
-
+    state.setNFTs = nfts;
+    state.setassetBalances = assetBalances;
+    state.activeWallet = state.userInfo!.wallets!
+        .firstWhere((wallet) => wallet.publicKey == state.tempPublicKey);
+    state.activeWallet!.secretKey = state.tempSecretKey;
     // save secrets to appstate
     state.setSecretKeys = await StoreData().storeGetData('secretKey');
+    state.setPassword = state.tempPassword;
+    state.currentAction =
+        PageAction(state: PageState.addPage, page: CongratulationsPageConfig);
 
     print('secretkey from state ${state.secretKeys}');
   }

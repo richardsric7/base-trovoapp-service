@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/screens/Backup/backup.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
+import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../Auth/fingerprint.dart';
@@ -20,17 +24,26 @@ class EnsurePrivacy extends StatefulWidget {
 
 class _EnsurePrivacyState extends State<EnsurePrivacy> {
   bool hasAccepted = false;
+  late DataProvider appState;
   @override
   Widget build(BuildContext context) {
     var notifier = Provider.of<ColorNotifier>(context, listen: true);
+    appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 6),
+              SizedBox(height: height / 20),
               Text(
                 LanguageEn.backup,
                 style: TextStyle(
@@ -87,12 +100,8 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
                 notifier.getwihitecolor,
                 onTap: () {
                   if (hasAccepted) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const Backup(),
-                      ),
-                    );
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage, page: BackupPageConfig);
                   } else {
                     popup(context,
                         title: LanguageEn.important,

@@ -47,6 +47,7 @@ class _PhonePasswordState extends State<PhonePassword> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
+          context,
           notifier.getwihitecolor,
           "",
           notifier.getblck,

@@ -51,11 +51,17 @@ class CustomTextFormField {
     bordercolor,
     h,
     w, {
+    initialValue,
     onChanged,
     maxLength,
     validator,
     onSaved,
     keyboardtype,
+    helperText,
+    inputFormatters,
+    controller,
+    buildCounter,
+    key,
   }) {
     return ScreenUtilInit(
       builder: (context, child) => Container(
@@ -63,11 +69,24 @@ class CustomTextFormField {
         height: h,
         width: w,
         child: TextFormField(
+          key: key,
           maxLength: maxLength,
           style: TextStyle(color: textcolor, fontFamily: fontbody),
+          initialValue: initialValue,
           cursorColor: lablecolor,
           onChanged: onChanged,
           decoration: InputDecoration(
+            counterStyle: TextStyle(
+              fontFamily: fontbody,
+            ),
+            errorStyle: TextStyle(
+              fontFamily: fontbody,
+            ),
+            helperText: helperText,
+            helperStyle: TextStyle(
+              fontSize: 12,
+              fontFamily: fontbody,
+            ),
             label: Text(labletext),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15.sp),
@@ -86,9 +105,12 @@ class CustomTextFormField {
               borderRadius: BorderRadius.circular(15.sp),
             ),
           ),
+          inputFormatters: inputFormatters,
           keyboardType: keyboardtype,
           validator: validator,
+          controller: controller,
           onSaved: onSaved,
+          buildCounter: buildCounter,
         ),
       ),
     );

@@ -27,8 +27,8 @@ class _OrderPreviewState extends State<OrderPreview> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
-            notifier.getwihitecolor, LanguageEn.orderpreview, notifier.getblck,
+        appBar: CustomAppBar(context, notifier.getwihitecolor,
+            LanguageEn.orderpreview, notifier.getblck,
             height: height / 15),
         body: Column(
           children: [

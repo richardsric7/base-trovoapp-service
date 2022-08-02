@@ -13,6 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../bottom_bar/bottombar.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../utils/local_auth.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/popups.dart';
@@ -128,9 +130,9 @@ class _LoginState extends State<Login> {
                 children: [
                   TextButton(
                     onPressed: () {
-                      Get.to(
-                        () => ImportWallet(),
-                      );
+                      appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: ImportWalletPageConfig);
                     },
                     child: Text(
                       LanguageEn.forgotpassword,
@@ -192,12 +194,8 @@ class _LoginState extends State<Login> {
                 notifier.getwihitecolor,
                 notifier.getbluecolor,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CreatePassword(),
-                    ),
-                  );
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage, page: CreatePasswordPageConfig);
                 },
               ),
               SizedBox(height: height / 20),
@@ -215,12 +213,8 @@ class _LoginState extends State<Login> {
     try {
       bool result = await _authenticator.authenticateMe();
       if (result) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const BottomHome(),
-          ),
-        );
+        appState.currentAction =
+            PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
       }
     } on PlatformException catch (e) {
       if (e.code == auth_error.notEnrolled ||
@@ -239,18 +233,14 @@ class _LoginState extends State<Login> {
   }
 
   void handleSignin() {
-    print('handling signin $password ${appState.password!}');
+    print('handling signin...');
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     if (password == appState.password!) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const BottomHome(),
-        ),
-      );
+      appState.currentAction =
+          PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
     } else {
       popup(context,
           title: LanguageEn.oops, message: LanguageEn.invalidpassword);

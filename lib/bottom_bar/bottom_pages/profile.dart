@@ -5,6 +5,8 @@ import 'package:flutter_share/flutter_share.dart';
 import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/screens/Auth/login.dart';
 import 'package:trovo_wallet/screens/Payment%20Method/paymentmethod.dart';
 import 'package:trovo_wallet/screens/profile/faq.dart';
@@ -14,6 +16,7 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class Profile extends StatefulWidget {
@@ -46,11 +49,13 @@ class _ProfileState extends State<Profile> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    var appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
+        appBar: CustomAppBar(
+            context, notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(
@@ -151,7 +156,8 @@ class _ProfileState extends State<Profile> {
               SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
-                  Get.to(() => const Login());
+                  appState.currentAction = PageAction(
+                      state: PageState.replaceAll, page: LoginPageConfig);
                 },
                 child:
                     iteamlist("assets/images/FAQ.png", "", LanguageEn.logout),

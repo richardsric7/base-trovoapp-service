@@ -54,7 +54,8 @@ class _OrderState extends State<Order> with SingleTickerProviderStateMixin {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(notifier.getwihitecolor, "Order", notifier.getblck,
+        appBar: CustomAppBar(
+            context, notifier.getwihitecolor, "Order", notifier.getblck,
             height: height / 15),
       ),
     );

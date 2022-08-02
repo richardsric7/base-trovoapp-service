@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
+import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +13,8 @@ import '../../Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../Models/User.dart';
 import '../../network/requests.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -69,7 +72,8 @@ class _ImportWalletState extends State<ImportWallet> {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
+        appBar: CustomAppBar(
+            context, notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(
@@ -373,9 +377,14 @@ class _ImportWalletState extends State<ImportWallet> {
         appState.setTempPassword = password;
         appState.setTempPublicKey = creds.publicKey;
         appState.setTempSecretKey = creds.secretKey;
+        String? token = await StoreData().storeGetData('token');
+
+        if (token == null) {
+          token = await FCM().getPushNotificationToken();
+        }
 
         Map responseData = await makeGetRequest(
-            uri: '/v1/users/${username}?type=import',
+            uri: '/v1/users/${username}?type=import&pnt=$token',
             signer: creds.publicKey,
             publicKey: creds.publicKey,
             secretKey: creds.secretKey);
@@ -383,12 +392,8 @@ class _ImportWalletState extends State<ImportWallet> {
 
         if (responseData['statusCode'] == 200) {
           storeUserInfo(responseData['data']);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const FingerPrint(),
-            ),
-          );
+          appState.currentAction =
+              PageAction(state: PageState.addPage, page: FingerprintPageConfig);
         } else if (responseData['statusCode'] == 404) {
           accountNotFoundPopup(context);
         } else {
@@ -411,7 +416,7 @@ class _ImportWalletState extends State<ImportWallet> {
     print('this is userinfo map: ${userInfoMap}');
     var userInfo = userInfoMap['userData'] ?? {};
     var assetBalances = userInfoMap['assetBalances'] ?? {};
-    var nftBalances = userInfoMap['nftBalances'] ?? {};
+    var nfts = userInfoMap['nfts'] ?? {};
     var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
     var defaultAssets = userInfoMap['defaultAssets'] ?? [];
 
@@ -420,7 +425,7 @@ class _ImportWalletState extends State<ImportWallet> {
 
     await StoreData().storeInsertData('userInfo', userInfo);
     await StoreData().storeInsertData('assetBalances', assetBalances);
-    await StoreData().storeInsertData('nftBalances', nftBalances);
+    await StoreData().storeInsertData('nfts', nfts);
     await StoreData()
         .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
@@ -432,8 +437,14 @@ class _ImportWalletState extends State<ImportWallet> {
 
     // save useInfo to appstate
     appState.setUser = UserInfo().deserializeJson(userInfo);
+    appState.setNFTs = nfts;
+    appState.assetBalances = assetBalances;
+
     // save secrets to appstate
     appState.setSecretKeys = await StoreData().storeGetData('secretKey');
+    appState.setPassword = appState.tempPassword;
+    appState.activeWallet = appState.userInfo!.wallets!
+        .firstWhere((wallet) => wallet.primaryWallet == 1);
   }
 
   String? validatePassword(value) {

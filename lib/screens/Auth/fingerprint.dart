@@ -13,6 +13,8 @@ import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../bottom_bar/bottombar.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../storage/store.dart';
 import '../../utils/local_auth.dart';
@@ -58,7 +60,8 @@ class _FingerPrintState extends State<FingerPrint> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         resizeToAvoidBottomInset: false,
-        appBar: CustomAppBar(notifier.getwihitecolor, "", notifier.getblck,
+        appBar: CustomAppBar(
+            context, notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(
@@ -163,17 +166,9 @@ class _FingerPrintState extends State<FingerPrint> {
   void _submit() {
     appState.biometricEnabled = isSwitched;
     _persistBiometricState();
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (BuildContext context) => BottomHome()),
-      ModalRoute.withName('/'),
-    );
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => const BottomHome(),
-    //   ),
-    // );
+    StoreData().storeInsertData('isFirstTime', false);
+    appState.currentAction =
+        PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
   }
 
   void _persistBiometricState() async =>

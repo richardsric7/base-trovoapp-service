@@ -45,8 +45,8 @@ class _ChoicePaymentState extends State<ChoicePayment> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
-            notifier.getwihitecolor, "Payment Method", notifier.getblck,
+        appBar: CustomAppBar(context, notifier.getwihitecolor, "Payment Method",
+            notifier.getblck,
             height: height / 15),
       ),
     );

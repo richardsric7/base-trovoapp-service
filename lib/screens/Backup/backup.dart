@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/Wallet.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -35,27 +39,23 @@ class _BackupState extends State<Backup> {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 6),
+              SizedBox(height: height / 20),
               Text(
-                LanguageEn.secretkey,
+                LanguageEn.backupwallet,
                 style: TextStyle(
                     color: notifier.getblck,
                     fontFamily: fontsemibold,
                     fontSize: 27.sp),
-              ),
-              SizedBox(height: height / 50),
-              Container(
-                width: width / 1.2,
-                child: Text(
-                  LanguageEn.youysecrethasbeengenerated,
-                  style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 15.sp,
-                      fontFamily: fontbody),
-                ),
               ),
               SizedBox(height: height / 50),
               Container(
@@ -68,6 +68,20 @@ class _BackupState extends State<Backup> {
                       fontFamily: fontbody),
                 ),
               ),
+              // display only for subwallets
+              if (state.activeWallet!.primaryWallet == 0) ...[
+                SizedBox(height: height / 50),
+                Container(
+                  width: width / 1.2,
+                  child: Text(
+                    LanguageEn.maynotbedisplayedagain,
+                    style: TextStyle(
+                        color: notifier.getgrey,
+                        fontSize: 15.sp,
+                        fontFamily: fontbody),
+                  ),
+                ),
+              ],
               // SizedBox(height: height / 50),
               // Container(
               //   width: width / 1.2,
@@ -99,9 +113,16 @@ class _BackupState extends State<Backup> {
               //     ),
               //   ),
               // ),
-              for (var wallet in getUserWallets()) ...[
-                Secret(wallet.alias!, wallet.secretKey!)
-              ],
+              // for (var wallet in getUserWallets()) ...[
+              //   Secret(wallet.alias!, wallet.secretKey!)
+              // ],
+
+              Secret(state.activeWallet!.alias!, state.activeWallet!.secretKey!,
+                  state.activeWallet!.publicKey!),
+              // Secret(
+              //     'Kenmaddy_kennis',
+              //     'SAV232SDWDS4SRFVXGHYUIOLJY653DRT67HN8JMKIU654EDFRTGV56Y',
+              //     'SAV232SDWDS4SRFVXGHYUIOLJY653DRT67HN8JMKIU654EDFRTGV56Y'),
 
               SizedBox(height: height / 20),
               Button(
@@ -109,14 +130,13 @@ class _BackupState extends State<Backup> {
                 notifier.getbluecolor,
                 notifier.getwihitecolor,
                 onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const FingerPrint(),
-                    ),
-                  );
+                  gotoNext();
                 },
               ),
+              SizedBox(height: height / 20),
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom)),
             ],
           ),
         ),
@@ -124,16 +144,27 @@ class _BackupState extends State<Backup> {
     );
   }
 
-  List<Wallet> getUserWallets() {
-    var wallets = <Wallet>[];
-    secrets.forEach((secret) {
-      print(secret);
-      Account account = TrovoWalletSDK().parseSecretKey(secret);
-      var wlt = user.wallets!
-          .firstWhere((wallet) => wallet.publicKey == account.publicKey);
-      wlt.secretKey = secret;
-      wallets.add(wlt);
-    });
-    return wallets;
+  // List<Wallet> getUserWallets() {
+  //   var wallets = <Wallet>[];
+  //   secrets.forEach((secret) {
+  //     print(secret);
+  //     Account account = TrovoWalletSDK().parseSecretKey(secret);
+  //     var wlt = user.wallets!
+  //         .firstWhere((wallet) => wallet.publicKey == account.publicKey);
+  //     wlt.secretKey = secret;
+  //     wallets.add(wlt);
+  //   });
+  //   return wallets;
+  // }
+
+  gotoNext() async {
+    var isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
+    if (isFirstTime) {
+      state.currentAction =
+          PageAction(state: PageState.addPage, page: FingerprintPageConfig);
+    } else {
+      state.currentAction =
+          PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+    }
   }
 }

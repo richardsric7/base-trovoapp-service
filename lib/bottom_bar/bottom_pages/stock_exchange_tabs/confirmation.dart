@@ -27,8 +27,8 @@ class _ConfirmationState extends State<Confirmation> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
-            notifier.getwihitecolor, LanguageEn.confirmation, notifier.getblck,
+        appBar: CustomAppBar(context, notifier.getwihitecolor,
+            LanguageEn.confirmation, notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(

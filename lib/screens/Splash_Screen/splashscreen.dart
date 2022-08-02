@@ -2,30 +2,33 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/screens/Auth/login.dart';
+import 'package:trovo_wallet/Models/Wallet.dart';
+import 'package:trovo_wallet/screens/Backup/congratulation.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/User.dart';
+import '../../router/PageActions.dart';
+import '../../router/ui_pages.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../Backup/congratulation.dart';
 
-class SpashScreen extends StatefulWidget {
-  const SpashScreen({Key? key}) : super(key: key);
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({Key? key}) : super(key: key);
 
   @override
-  State<SpashScreen> createState() => _SpashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SpashScreenState extends State<SpashScreen>
+class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
   late AnimationController controller;
-  Widget landingPage = Login();
+  PageAction landingPage =
+      PageAction(state: PageState.replaceAll, page: LoginPageConfig);
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -53,16 +56,18 @@ class _SpashScreenState extends State<SpashScreen>
     });
 
     controller.repeat();
-    Timer(
-      const Duration(seconds: 4),
-      () => Navigator.pushReplacement(
-        context,
-        // LandingPageRoute(Congratulations()),
-        LandingPageRoute(landingPage),
-      ),
-    );
+    Timer(const Duration(seconds: 4), () {
+      // appState.currentAction =
+      // PageAction(
+      //     state: PageState.replaceAll, page: CongratulationsPageConfig);
+      appState.currentAction = landingPage;
+      appState.setSplashFinished();
+    });
   }
 
+  // one way to await an async functions inside
+  // initState is to place and await the async function from inside
+  // another function which will not be awaited in initState
   runAsync() async {
     await getVal();
   }
@@ -77,10 +82,9 @@ class _SpashScreenState extends State<SpashScreen>
       print('first time here: $isFirstTime');
 
       if (isFirstTime) {
-        setState(() {
-          print('first time here indeed: $isFirstTime');
-          landingPage = Swiper();
-        });
+        print('first time here indeed: $isFirstTime');
+        landingPage =
+            PageAction(state: PageState.replaceAll, page: OnboardingPageConfig);
       } else {
         var data = await StoreData().storeGetData('userInfo');
         appState.setUser = UserInfo().deserializeJson(data);
@@ -88,10 +92,17 @@ class _SpashScreenState extends State<SpashScreen>
         appState.setPassword = await StoreData().storeGetData('password');
         appState.biometricEnabled =
             await StoreData().storeGetData('biometricsEnabled') ?? false;
-
-        setState(() {
-          landingPage = Login();
-        });
+        appState.assetBalances =
+            await StoreData().storeGetData('assetBalances');
+        appState.setNFTs = await StoreData().storeGetData('nfts');
+        landingPage =
+            PageAction(state: PageState.replaceAll, page: LoginPageConfig);
+        print('....................this is nfts: ${appState.nfts}');
+        var primaryWallet = appState.userInfo!.wallets!
+            .firstWhere((wallet) => wallet.primaryWallet == 1);
+        updateUserInfo(primaryWallet.signer, appState.secretKeys[0],
+            primaryWallet.publicKey, appState.userInfo!.username!, appState);
+        appState.activeWallet = primaryWallet;
       }
     } catch (e) {
       print('[getVal]getVal exception:' + e.toString());

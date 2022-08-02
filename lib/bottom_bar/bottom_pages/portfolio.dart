@@ -48,7 +48,7 @@ class _PortfolioState extends State<Portfolio> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-            notifier.getwihitecolor, "Portfolio", notifier.getblck,
+            context, notifier.getwihitecolor, "Portfolio", notifier.getblck,
             height: height / 15),
         body: Column(
           children: [

@@ -85,7 +85,7 @@ class _ButtonState extends State<Button> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontFamily: fontbody,
-                            fontSize: 15.sp,
+                            fontSize: 15,
                             color: widget.buttontextcolor),
                       ),
                     ),

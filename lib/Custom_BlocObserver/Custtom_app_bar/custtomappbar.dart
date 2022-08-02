@@ -3,12 +3,14 @@ import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 
 class CustomAppBar extends PreferredSize {
+  final BuildContext context;
   final double height;
   final String txt;
   final Color color;
   final Color titlecolor;
 
   CustomAppBar(
+    this.context,
     this.color,
     this.txt,
     this.titlecolor, {
@@ -22,7 +24,7 @@ class CustomAppBar extends PreferredSize {
             backgroundColor: color,
             leading: GestureDetector(
               onTap: () {
-                Get.back();
+                Navigator.of(context).pop();
               },
               child: Image.asset("assets/images/back.png", scale: 5),
             ),
