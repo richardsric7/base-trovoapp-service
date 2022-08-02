@@ -26,6 +26,9 @@ const String ReceiveAssetViewPath = '/recieveAssetView';
 const String PendingAssetDetailsViewPath = '/pendingAssetView';
 const String PaymentHistoryViewPath = '/paymentHistoryView';
 const String PaymentDetailsViewPath = '/PaymentDetailsView';
+const String SwapAssetsViewPath = '/SwapAssetsView';
+const String ConfirmSwapViewPath = '/ConfirmSwapView';
+const String SwapSuccessViewPath = '/SwapSuccessView';
 
 enum Pages {
   Splash,
@@ -54,6 +57,9 @@ enum Pages {
   PendingAssetDetailsView,
   PaymentHistoryView,
   PaymentDetailsView,
+  SwapAssetsView,
+  ConfirmSwapView,
+  SwapSuccessView,
 }
 
 class PageConfiguration {
@@ -198,4 +204,19 @@ PageConfiguration PaymentDetailsViewPageConfig = PageConfiguration(
     key: 'PaymentDetailsView',
     path: PaymentDetailsViewPath,
     uiPage: Pages.PaymentDetailsView,
+    currentPageAction: null);
+PageConfiguration SwapAssetsViewPageConfig = PageConfiguration(
+    key: 'SwapAssetsView',
+    path: SwapAssetsViewPath,
+    uiPage: Pages.SwapAssetsView,
+    currentPageAction: null);
+PageConfiguration ConfirmSwapViewPageConfig = PageConfiguration(
+    key: 'ConfirmSwapView',
+    path: ConfirmSwapViewPath,
+    uiPage: Pages.ConfirmSwapView,
+    currentPageAction: null);
+PageConfiguration SwapSuccessViewPageConfig = PageConfiguration(
+    key: 'SwapSuccessView',
+    path: SwapSuccessViewPath,
+    uiPage: Pages.SwapSuccessView,
     currentPageAction: null);

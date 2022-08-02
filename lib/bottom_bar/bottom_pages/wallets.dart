@@ -317,7 +317,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         for (var i = 0; i < wallets!.length; i++) ...[
           GestureDetector(
             onTap: () {
-              appState.setActiveWallet = wallets![i];
+              appState.activeWallet = wallets![i];
               appState.currentAction = PageAction(
                   state: PageState.addPage, page: WalletDetailsViewPageConfig);
             },
@@ -610,6 +610,14 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                 if (trimmedVal.length < 56) {
                   return LanguageEn.secretkeyinvalid;
                 }
+
+                try {
+                  TrovoWalletSDK().parseSecretKey(value);
+                } catch (e) {
+                  return 'Secret Key is invalid';
+                }
+
+                return null;
               },
               onSaved: (value) {
                 print('email: $value');
@@ -837,12 +845,16 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   }
 
   generateKeyPairs() {
+    primaryWalletKeyPair =
+        TrovoWalletSDK().parseSecretKey(appState.secretKeys[0]);
     setState(() {
-      primaryWalletKeyPair =
-          TrovoWalletSDK().parseSecretKey(appState.secretKeys[0]);
       if (action == WalletAction.import) {
-        // parse supplied secret to get the keypair
-        newSubWalletKeyPair = TrovoWalletSDK().parseSecretKey(secretKey);
+        try {
+          // parse supplied secret to get the keypair
+          newSubWalletKeyPair = TrovoWalletSDK().parseSecretKey(secretKey);
+        } catch (e) {
+          popup(context, title: 'Error!', message: 'Secret Key is invalid');
+        }
       } else {
         // generate keypair for the new subwallet
         newSubWalletKeyPair = TrovoWalletSDK().createAccount();

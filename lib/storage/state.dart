@@ -187,5 +187,5 @@ class DataProvider with ChangeNotifier {
   // to the view. viewData is of type Map<String, dynamic>? where the string key
   // is the ViewPageConfig.key and the value is the data you want to pass to the
   // view. The value is of dynamic type so you can pass any data type you want.
-  Map<String, dynamic>? viewData;
+  Map<String, dynamic>? viewData = {};
 }

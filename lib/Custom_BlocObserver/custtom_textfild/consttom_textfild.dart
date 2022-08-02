@@ -61,6 +61,7 @@ class CustomTextFormField {
     inputFormatters,
     controller,
     buildCounter,
+    key,
   }) {
     return ScreenUtilInit(
       builder: (context, child) => Container(
@@ -68,6 +69,7 @@ class CustomTextFormField {
         height: h,
         width: w,
         child: TextFormField(
+          key: key,
           maxLength: maxLength,
           style: TextStyle(color: textcolor, fontFamily: fontbody),
           initialValue: initialValue,

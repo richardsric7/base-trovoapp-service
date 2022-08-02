@@ -78,6 +78,7 @@ dependencies:
   timeago: ^3.2.2
   loadmore: ^2.0.1
   qr_code_scanner: ^1.0.0
+  syncfusion_flutter_sliders: ^19.4.56
   image_picker: ^0.8.4+10
   intl:
   pull_to_refresh: ^2.0.0

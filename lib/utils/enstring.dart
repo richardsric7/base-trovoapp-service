@@ -217,6 +217,8 @@ class LanguageEn {
 
   static String get sentto => 'Sent to';
 
+  static String get swapped => 'Swapped';
+
   static String get receivedfrom => 'Received from';
 
   static String get formemo => 'For';
@@ -508,6 +510,10 @@ class LanguageEn {
   static String get confirmyourtransaction => 'Confirm your transaction';
 
   static String get youareabouttosend => 'You are about to send';
+
+  static String get confirmswap => 'Confirm Swap';
+
+  static String get youareabouttoswap => 'You are swapping';
 
   static String get descriptionmemo => 'Description/Memo';
 

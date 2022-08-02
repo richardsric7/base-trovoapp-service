@@ -7,7 +7,6 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
-import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -16,9 +15,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:timeago/timeago.dart' as timeago;
-
 import '../../Custom_BlocObserver/notifire_clor.dart';
-import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class PaymentHistory extends StatefulWidget {
@@ -225,18 +222,6 @@ class Payment_HistoryState extends State<PaymentHistory>
       );
     }
 
-    // return Center(
-    //   child: Text(
-    //     'You do not have any transactions yet.',
-    //     style: TextStyle(
-    //       color: notifier.getbluecolor,
-    //       fontSize: 15,
-    //       fontFamily: fontsemibold,
-    //       fontWeight: FontWeight.w500,
-    //     ),
-    //   ),
-    // );
-
     return Container(
       height: height / 2,
       child: Center(
@@ -251,105 +236,30 @@ class Payment_HistoryState extends State<PaymentHistory>
     );
   }
 
-  Padding walletTile() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getbluecolor,
-        ),
-        child: Stack(children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20),
-                child: Image.asset('assets/images/trovo_white.png'),
-              ),
-            ],
-          ),
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  activeWallet!.alias!.capitalizeFirst!,
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: notifier.getwihitecolor,
-                      fontFamily: fontsemibold),
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                Row(
-                  children: [
-                    Text(
-                      LanguageEn.totalbalance,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                        color: notifier.getwihitecolor,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: height / 98.0,
-                ),
-                Text(
-                  '2,082,898 NGN',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: notifier.getwihitecolor,
-                    fontFamily: fontsemibold,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  '4,014 USD',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w300,
-                    fontSize: 13,
-                    color: notifier.getwihitecolor,
-                    fontFamily: fontbody,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ]),
-      ),
-    );
-  }
-
   Widget tile(TransactionInfo transaction) {
-    // if record.from is same as the current active wallet public key
-    // then it was a send transaction otherwise, its a recieve transaction
-    TransactionType transactionType =
-        transaction.fromPublicKey == activeWallet!.publicKey
-            ? TransactionType.Send
-            : TransactionType.Receive;
-    var name = transactionType == TransactionType.Send
-        ? transaction.to
-        : transaction.from;
-
-    var publicKey = transactionType == TransactionType.Send
-        ? transaction.toPublicKey
-        : transaction.fromPublicKey;
-
+    // lets start by setting transactionType to receive
+    TransactionType transactionType = TransactionType.Receive;
+    var publicKey = transaction.fromPublicKey;
     var amount = transaction.amount;
-
     var assetCode = transaction.assetCode;
-
     var date = transaction.transactionDate;
+    var name =
+        '${LanguageEn.receivedfrom} ${extractUsername(transaction.from!) ?? truncate(publicKey!)}';
+
+    // if record.from is same as the current active wallet public key
+    // then it was a send transaction
+    if (transaction.fromPublicKey == activeWallet!.publicKey) {
+      transactionType = TransactionType.Send;
+      name =
+          '${LanguageEn.sentto} ${extractUsername(transaction.to!) ?? truncate(publicKey!)}';
+      publicKey = transaction.toPublicKey;
+    }
+
+    if (transaction.transactionType!.contains('SWAP')) {
+      transactionType = TransactionType.Swap;
+      var splitResult = transaction.memo!.split('>');
+      name = "Swapped ${splitResult[0]} to ${splitResult[1]}";
+    }
 
     return GestureDetector(
       onTap: () {
@@ -373,13 +283,9 @@ class Payment_HistoryState extends State<PaymentHistory>
             child: Row(
               children: [
                 SvgPicture.asset(
-                  transactionType == TransactionType.Send
-                      ? 'assets/images/send.svg'
-                      : 'assets/images/recieve.svg',
+                  getIcon(transactionType),
                   width: width / 8,
-                  color: transactionType == TransactionType.Send
-                      ? notifier.getbluecolor
-                      : notifier.getbluecolor,
+                  color: notifier.getbluecolor,
                   height: 25,
                 ),
                 SizedBox(
@@ -423,23 +329,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                     Row(
                       children: [
                         Text(
-                          transactionType == TransactionType.Send
-                              ? LanguageEn.sentto
-                              : LanguageEn.receivedfrom,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400,
-                            color: notifier.getbluecolor,
-                            fontFamily: fontbody,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 3,
-                        ),
-                        Text(
-                          name.toString().isEmpty
-                              ? truncate(publicKey!)
-                              : extractUsername(name!),
+                          name,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 15,
@@ -461,6 +351,17 @@ class Payment_HistoryState extends State<PaymentHistory>
     );
   }
 
+  String getIcon(TransactionType transactionType) {
+    switch (transactionType) {
+      case TransactionType.Swap:
+        return "assets/images/swap.svg";
+      case TransactionType.Send:
+        return 'assets/images/send.svg';
+      default:
+        return 'assets/images/recieve.svg';
+    }
+  }
+
   String formatAmount(TransactionType transactionType, amount, assetCode) {
     var am = formatNumber(double.parse(amount.toString()));
     return transactionType == TransactionType.Send
@@ -479,12 +380,15 @@ class Payment_HistoryState extends State<PaymentHistory>
     }
   }
 
-  String extractUsername(String data) {
-    const start = '[';
-    const end = ']';
-    final startIndex = data.indexOf(start);
-    final endIndex = data.indexOf(end);
-    return data.substring(startIndex + start.length, endIndex);
+  String? extractUsername(String data) {
+    if (data.isNotEmpty) {
+      const start = '[';
+      const end = ']';
+      final startIndex = data.indexOf(start);
+      final endIndex = data.indexOf(end);
+      return data.substring(startIndex + start.length, endIndex);
+    }
+    return null;
   }
 }
 

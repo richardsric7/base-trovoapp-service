@@ -9,6 +9,7 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
+import 'bottom_pages/swap_assets.dart';
 import 'bottom_pages/wallets.dart';
 
 class BottomHome extends StatefulWidget {
@@ -90,8 +91,12 @@ class _BottomHomeState extends State<BottomHome> {
             ),
           ],
           onTap: (index) {
+            appState.activeWallet = appState.userInfo!.wallets!
+                .firstWhere((wallet) => wallet.primaryWallet == 1);
             setState(() {
-              if (_selectedIndex != 2 && index == 2) appState.getHistory();
+              if (_selectedIndex != 2 && index == 2) {
+                appState.getHistory();
+              }
               _selectedIndex = index;
             });
           },
@@ -116,7 +121,7 @@ class _BottomHomeState extends State<BottomHome> {
           Home(),
           Wallets(),
           PaymentHistory(),
-          PaymentHistory(),
+          SwapAssets(),
           Profile(),
         ].elementAt(index);
       },

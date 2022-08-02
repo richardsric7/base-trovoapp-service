@@ -1,11 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/confirm_swap.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_detail.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/subwalletCreateSuccess.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/notificationsView.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/searchview.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_assets.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottombar.dart';
 import 'package:trovo_wallet/screens/Auth/create_password.dart';
@@ -203,6 +206,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.PaymentDetailsView:
           _addPageData(PaymentDetails(), PaymentDetailsViewPageConfig);
           break;
+        case Pages.SwapAssetsView:
+          _addPageData(SwapAssets(), SwapAssetsViewPageConfig);
+          break;
+        case Pages.ConfirmSwapView:
+          _addPageData(ConfirmSwap(), ConfirmSwapViewPageConfig);
+          break;
+        case Pages.SwapSuccessView:
+          _addPageData(SwapSuccess(), SwapSuccessViewPageConfig);
+          break;
         default:
           break;
       }
@@ -331,6 +343,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.PaymentDetailsView:
         PaymentDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SwapAssetsView:
+        SwapAssetsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ConfirmSwapView:
+        ConfirmSwapViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SwapSuccessView:
+        SwapSuccessViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -522,6 +543,21 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           ]);
           break;
         case 'PaymentDetailsView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
+        case 'SwapAssetsView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
+        case 'ConfirmSwapView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
+        case 'SwapSuccessView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
           ]);
