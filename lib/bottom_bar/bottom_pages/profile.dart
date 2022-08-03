@@ -54,12 +54,12 @@ class _ProfileState extends State<Profile> {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
-            context, notifier.getwihitecolor, "", notifier.getblck,
-            height: height / 15),
         body: SingleChildScrollView(
           child: Column(
             children: [
+              SizedBox(
+                height: height / 15,
+              ),
               Center(
                 child: Image.asset("assets/images/avatar.png",
                     height: height / 10),

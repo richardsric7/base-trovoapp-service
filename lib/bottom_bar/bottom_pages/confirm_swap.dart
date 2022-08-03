@@ -354,11 +354,13 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
         );
         hideLoader(context);
       } else {
+        hideLoader(context);
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
+      hideLoader(context);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
   }

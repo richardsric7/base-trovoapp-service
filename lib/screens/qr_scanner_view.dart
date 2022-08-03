@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:scan/scan.dart';
+import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -169,19 +171,10 @@ class _QrScannerState extends State<QrScanner> {
   }
 
   void _handleScanResult(String? scanResult) {
-    // appState?.currentAssetId = 1;
-    // appState?.transactionDetail = Transaction(
-    //   transactionId: DateTime.now().toString(),
-    //   timestamp: DateTime.now(),
-    //   asset: appState!.listedAssets!
-    //       .firstWhere((asset) => asset.id == appState!.currentAssetId),
-    //   reciever: User(username: '', walletAddress: ''),
-    //   transactionType: TransactionType.send,
-    //   memo: scanResult,
-    // );
-
-    // appState?.currentAction =
-    //     PageAction(state: PageState.replace, page: ScanResultPageConfig);
+    print('scan result:');
+    print(scanResult);
+    appState?.currentAction =
+        PageAction(state: PageState.replace, page: SendAssetViewPageConfig);
     hideLoader(context);
   }
 

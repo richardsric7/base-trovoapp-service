@@ -219,7 +219,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                             onChanged: _onSliderChanged,
                             interval: 25,
                             stepSize: 1,
-                            inactiveColor: Colors.grey[900],
+                            inactiveColor: notifier.getdarkgrey,
                             showTicks: true,
                             tooltipTextFormatterCallback: _setToolTip,
                             showLabels: true,
@@ -351,10 +351,11 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         setState(() {
                           sourceAsset = claimedAssets.firstWhere(
                               (asset) => asset['assetIssuer'] == newValue);
+                          sourceErr = false;
                         });
-                        formKey.currentState!.validate();
                       },
-                      items: dropdownItemBuilder(claimedAssets),
+                      items:
+                          dropdownItemBuilder(claimedAssets, destinationAsset),
                     ),
                   ),
                   SizedBox(height: height / 50),
@@ -408,7 +409,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       ),
                       icon: Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: sourceErr ? Colors.red : notifier.getbluecolor,
+                        color: destErr ? Colors.red : notifier.getbluecolor,
                       ),
                       elevation: 0,
                       style: TextStyle(
@@ -418,7 +419,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                           fontWeight: FontWeight.w500),
                       validator: (value) {
                         if (destinationAsset == null) {
-                          destErr = true;
+                          setState(() {
+                            destErr = true;
+                          });
                           return '';
                         }
 
@@ -426,21 +429,16 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                           destErr = false;
                         });
 
-                        if (sourceAsset['assetIssuer'] ==
-                            destinationAsset['assetIssuer']) {
-                          return 'Destination asset cannot be \nthe same as the source asset';
-                        }
-
                         return null;
                       },
                       onChanged: (newValue) {
                         setState(() {
                           destinationAsset = claimedAssets.firstWhere(
                               (asset) => asset['assetIssuer'] == newValue);
+                          destErr = false;
                         });
-                        formKey.currentState!.validate();
                       },
-                      items: dropdownItemBuilder(claimedAssets),
+                      items: dropdownItemBuilder(claimedAssets, sourceAsset),
                     ),
                   ),
                   SizedBox(height: 2),
@@ -462,7 +460,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   }
 
   submitForm() async {
-    print('submitting form...');
     try {
       showLoader(context);
       // make initial request to the server using the
@@ -475,12 +472,10 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
         "sourceAssetCode":
             sourceAsset['assetCode'] == 'XBN' ? '' : sourceAsset['assetCode'],
         "sourceAssetIssuer": sourceAsset['assetIssuer'],
-        "sourceAmount": amount.toString(),
+        "sourceAmount": amount.toStringAsFixed(4),
       };
       String requestBody = jsonEncode(map);
       print('this is request body $requestBody');
-
-      print(requestBody);
 
       Map responseData = await makePostRequest(
         uri: '/v1/users/swap',
@@ -509,7 +504,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   }
 
   postProcessData(messageShown, messageLength, data) {
-    print('messageShown: $messageShown messageLength $messageLength');
     // we would like to display all messages returned from the initial
     // request to server using a popup. In order to achieve that we
     // employ the use of a little recursion here. Please recursive
@@ -529,9 +523,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
     // go to the definition of appState.viewData
     // to learn more about viewData
-    print(ConfirmSwapViewPageConfig.key);
     appState.viewData![ConfirmSwapViewPageConfig.key] = data;
-    print(appState.viewData);
 
     appState.currentAction =
         PageAction(state: PageState.addPage, page: ConfirmSwapViewPageConfig);
@@ -541,7 +533,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     setState(() {
       sliderValue = newValue;
       amount = (newValue / 100) * double.parse(sourceAsset['amount']);
-      textController.text = amount.toStringAsFixed(3);
+      textController.text = amount.toStringAsFixed(4);
       textController.selection = TextSelection.fromPosition(
           TextPosition(offset: textController.text.length));
     });
@@ -552,8 +544,16 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     return '$actualValue%';
   }
 
-  List<DropdownMenuItem<String>> dropdownItemBuilder(assets) {
-    return assets.map<DropdownMenuItem<String>>((asset) {
+  List<DropdownMenuItem<String>> dropdownItemBuilder(assets, assetToSkip) {
+    var assetList = assets;
+
+    // filter assetList to remove the ones already selected
+    if (assetToSkip != null) {
+      assetList = assets
+          .where((asset) => asset['assetIssuer'] != assetToSkip['assetIssuer'])
+          .toList();
+    }
+    return assetList.map<DropdownMenuItem<String>>((asset) {
       return DropdownMenuItem<String>(
         value: asset['assetIssuer'],
         child: Row(
@@ -587,11 +587,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   }
 
   String? validateAmount(String? value) {
-    print('sourceAsset: $sourceAsset');
-    if (sourceAsset == null) {
-      return 'Please choose an asset';
-    }
-
     if (value!.isEmpty || double.tryParse(value)! <= 0) {
       return 'Please enter amount to swap';
     }
@@ -616,7 +611,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
           Flexible(
             child: Text(
               amount.toString().isNotEmpty
-                  ? "≈ ${amount.toStringAsFixed(3)} ${getAssetCode(sourceAsset['assetCode'])}"
+                  ? "≈ ${amount.toStringAsFixed(4)} ${getAssetCode(sourceAsset['assetCode'])}"
                   : "≈ 0.0000 ${getAssetCode(sourceAsset['assetCode'])}",
               textScaleFactor: 1.0,
               style: TextStyle(

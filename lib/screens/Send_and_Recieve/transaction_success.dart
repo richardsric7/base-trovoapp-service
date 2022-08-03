@@ -63,10 +63,10 @@ class _TransactionSuccess extends State<TransactionSuccess>
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 18),
+              SizedBox(height: height / 10),
               Center(
                 child: Image.asset("assets/images/success.gif",
-                    height: height / 5.3),
+                    height: height / 10),
               ),
               SizedBox(height: height / 50),
               Text(

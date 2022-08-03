@@ -615,7 +615,7 @@ void showResponseMessage(context, message, successAction) {
                   ),
                   Container(
                     constraints: BoxConstraints(
-                      maxHeight: height / 5,
+                      maxHeight: height / 4.5,
                     ),
                     // height: height / 5,
                     child: SingleChildScrollView(

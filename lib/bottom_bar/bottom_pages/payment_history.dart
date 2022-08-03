@@ -33,9 +33,6 @@ class Payment_HistoryState extends State<PaymentHistory>
   List<Wallet>? wallets;
   Wallet? activeWallet;
   dynamic selectedWallet = '';
-  int totalRecords = 0;
-  int currentPage = 1;
-  int limit = 20;
   late List<TransactionInfo>? historyData;
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
@@ -59,16 +56,6 @@ class Payment_HistoryState extends State<PaymentHistory>
   void initState() {
     super.initState();
     _refreshController = RefreshController(initialRefresh: false);
-    // appState = Provider.of<DataProvider>(context, listen: false);
-    // wallets = appState.userInfo!.wallets!;
-    // activeWallet = appState.activeWallet;
-    // if (activeWallet == null && wallets!.length > 0) {
-    //   activeWallet = wallets![0];
-    //   appState.activeWallet = activeWallet;
-    // }
-    // selectedWallet = activeWallet!.publicKey;
-    // appState.getHistory();
-    // historyData = appState.historyData;
   }
 
   @override
@@ -84,9 +71,6 @@ class Payment_HistoryState extends State<PaymentHistory>
     }
     selectedWallet = activeWallet!.publicKey;
     historyData = appState.historyData;
-    totalRecords = appState.totalRecords!;
-    currentPage = appState.currentPage;
-    limit = appState.limit;
 
     return ScreenUtilInit(
       builder: (context, child) => DefaultTabController(
@@ -150,10 +134,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                         appState.activeWallet = wallets!.firstWhere(
                             (wallet) => wallet.publicKey == newValue);
                         showLoader(context);
-                        limit = 20;
-                        totalRecords = 0;
-                        currentPage = 1;
-                        await appState.fetchHistory(limit);
+                        appState.limit = 20;
+                        appState.totalRecords = 0;
+                        appState.currentPage = 1;
+                        await appState.fetchHistory(appState.limit);
                         hideLoader(context);
                         if (mounted) {
                           setState(() {});
@@ -183,13 +167,11 @@ class Payment_HistoryState extends State<PaymentHistory>
         height: height / 1.343,
         // color: Colors.black,
         child: LoadMore(
-          isFinish: historyData!.length == totalRecords,
+          isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {
-            // setState(() {
-            limit += 20;
-            // });
-            await appState.fetchHistory(limit);
-            return historyData!.length <= totalRecords;
+            appState.limit += 20;
+            await appState.fetchHistory(appState.limit);
+            return historyData!.length <= appState.totalRecords!;
           },
           textBuilder: (LoadMoreStatus status) {
             String text;
@@ -213,7 +195,6 @@ class Payment_HistoryState extends State<PaymentHistory>
           },
           child: ListView.separated(
               separatorBuilder: (context, int) => Container(),
-              // child: ListView.builder(
               itemCount: historyData!.length,
               itemBuilder: (context, index) {
                 return tile(historyData![index]);
@@ -372,7 +353,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   refreshData() async {
     try {
       showLoader(context);
-      await appState.fetchHistory(limit);
+      await appState.fetchHistory(appState.limit);
       hideLoader(context);
       _refreshController.refreshCompleted();
     } catch (e) {

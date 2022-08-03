@@ -143,7 +143,8 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      'You have received ${activeAsset['assetCode']} which is not one of your claimed assets. Do you wish to claim this asset?',
+                      '${activeAsset['assetCode']} is not yet part of your approved assets to be received on wallet ${activeWallet!.alias}. ' +
+                          'Do you wish to start receiving this asset?',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
@@ -159,7 +160,8 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      'Claiming this asset will add it to your main list of assets.',
+                      'Claiming this asset will enable you to continue to receive ' +
+                          'it in the future and will add it to the list of assets on your wallet.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,

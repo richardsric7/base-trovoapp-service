@@ -372,10 +372,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     gridView(),
                                     SizedBox(height: 600),
                                   ] else ...[
-                                    showEmptyNFTs(),
+                                    // showEmptyNFTs(),
+                                    gridView(),
                                   ]
                                 ] else ...[
-                                  showEmptyNFTs(),
+                                  // showEmptyNFTs(),
+                                  gridView(),
                                 ],
                               ],
                             ),
@@ -727,6 +729,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   "https://drive.google.com/uc?export=view&id=103fw13pcBoCO2hkTPFX73BUKeWWkVpGZ",
                   height: 35,
                   width: 35,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/trovo.png',
+                      height: 35,
+                      width: 35,
+                    );
+                  },
                 ),
                 SizedBox(width: 20),
                 Column(
