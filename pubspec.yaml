@@ -83,6 +83,7 @@ dependencies:
   intl:
   pull_to_refresh: ^2.0.0
   share: ^2.0.4
+  uni_links: ^0.5.1
 
 
 dev_dependencies:
