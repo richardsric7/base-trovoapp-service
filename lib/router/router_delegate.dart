@@ -4,6 +4,8 @@ import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/confirm_swap.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_detail.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/profile_details.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/referral_info.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/subwalletCreateSuccess.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/notificationsView.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/searchview.dart';
@@ -215,6 +217,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.SwapSuccessView:
           _addPageData(SwapSuccess(), SwapSuccessViewPageConfig);
           break;
+        case Pages.ProfileDetailsView:
+          _addPageData(ProfileDetails(), ProfileDetailsViewPageConfig);
+          break;
+        case Pages.ReferralInfoView:
+          _addPageData(ReferralInfo(), ReferralInfoViewPageConfig);
+          break;
         default:
           break;
       }
@@ -352,6 +360,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.SwapSuccessView:
         SwapSuccessViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ProfileDetailsView:
+        ProfileDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ReferralInfoView:
+        ReferralInfoViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -560,6 +574,18 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case 'SwapSuccessView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
+        case 'ProfileDetailsView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+            _createPage(const ProfileDetails(), ProfileDetailsViewPageConfig),
+          ]);
+          break;
+        case 'ReferralInfoView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+            _createPage(const ReferralInfo(), ReferralInfoViewPageConfig),
           ]);
           break;
         default:

@@ -231,6 +231,9 @@ class LanguageEn {
 
   static String get welcome => "Welcome back";
 
+  static String get invitefriends =>
+      "Invite friends to earn TROV tokens when they transact";
+
   static String get youhavebeenmissed => "You have been missed";
 
   static String get forgotpassword => "Forgot Password?";
@@ -558,21 +561,77 @@ class LanguageEn {
 
   static String get hirenjoshi => "Hiren Joshi";
 
-  static String get general => "General";
+  static String get personal => "Personal";
 
-  static String get myaccount => "My Account";
+  static String get preferences => "Preferences";
 
-  static String get billingpayment => "Billing/Payment";
+  static String get security => "Security";
+
+  static String get access => "Access";
+
+  static String get passwordmanagement => "Password Management";
+
+  static String get myprofile => "My Profile";
+
+  static String get myreferrals => "My Referrals";
+
+  static String get hidebalance => "Hide My Balance";
+
+  static String get timeout => "Time Out";
+
+  static String get wallet => "Wallet";
+
+  static String get curatedassets => "Curated Assets";
+
+  static String get walletmode => "Wallet Mode";
+
+  static String get more => "More";
+
+  static String get helpandsupport => "Help and Support";
+
+  static String get termsofuse => "Terms of Use";
+
+  static String get changepicture => "Change Picture";
+
+  static String get abouttrovowallet => "About Trovo Wallet";
+
+  static String get mysubscriptions => "My Subscriptions";
 
   static String get faqsupport => "FAQ & Support";
 
-  static String get language => "Language";
+  static String get languages => "Languages";
+
+  static String get currency => "Currency";
+
+  static String get theme => "Theme";
 
   static String get darkmode => "Dark Mode";
 
   static String get fullname => "Full name";
 
   static String get editprofile => "Edit Profile";
+
+  static String get edit => "edit";
+
+  static String get advancedkyc => 'Advanced KYC';
+
+  static String get unverified => "UNVERIFIED";
+
+  static String get taptoverify => "Tap to verify";
+
+  static String get taptoconnect => "Tap to connect";
+
+  static String get referrals => "Referrals";
+
+  static String get rewards => "Rewards";
+
+  static String get taptostart => "Tap to start";
+
+  static String get bio => 'Bio';
+
+  static String get socials => 'Socials';
+
+  static String get referralid => 'Referral ID';
 
   static String get email => "Email";
 

@@ -29,6 +29,8 @@ const String PaymentDetailsViewPath = '/PaymentDetailsView';
 const String SwapAssetsViewPath = '/SwapAssetsView';
 const String ConfirmSwapViewPath = '/ConfirmSwapView';
 const String SwapSuccessViewPath = '/SwapSuccessView';
+const String ProfileDetailsViewPath = '/ProfileDetailsView';
+const String ReferralInfoViewPath = '/ReferralInfoView';
 
 enum Pages {
   Splash,
@@ -60,6 +62,8 @@ enum Pages {
   SwapAssetsView,
   ConfirmSwapView,
   SwapSuccessView,
+  ProfileDetailsView,
+  ReferralInfoView
 }
 
 class PageConfiguration {
@@ -219,4 +223,14 @@ PageConfiguration SwapSuccessViewPageConfig = PageConfiguration(
     key: 'SwapSuccessView',
     path: SwapSuccessViewPath,
     uiPage: Pages.SwapSuccessView,
+    currentPageAction: null);
+PageConfiguration ProfileDetailsViewPageConfig = PageConfiguration(
+    key: 'ProfileDetailsView',
+    path: ProfileDetailsViewPath,
+    uiPage: Pages.ProfileDetailsView,
+    currentPageAction: null);
+PageConfiguration ReferralInfoViewPageConfig = PageConfiguration(
+    key: 'ReferralInfoView',
+    path: ReferralInfoViewPath,
+    uiPage: Pages.ReferralInfoView,
     currentPageAction: null);

@@ -3,7 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/profile.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:provider/provider.dart';
@@ -120,7 +120,7 @@ class _BottomHomeState extends State<BottomHome> {
           Wallets(),
           PaymentHistory(),
           SwapAssets(),
-          Profile(),
+          Settings(),
         ].elementAt(index);
       },
     };
