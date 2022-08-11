@@ -3,19 +3,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Models/User.dart';
-import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
-import '../../Models/Wallet.dart';
 import '../../router/PageActions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/Secret.dart';
-import '../Auth/fingerprint.dart';
 
 class Backup extends StatefulWidget {
   const Backup({Key? key}) : super(key: key);

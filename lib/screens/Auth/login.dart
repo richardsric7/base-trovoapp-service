@@ -1,24 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
-import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
-import '../../bottom_bar/bottombar.dart';
 import '../../router/PageActions.dart';
 import '../../router/ui_pages.dart';
 import '../../utils/local_auth.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/popups.dart';
-import 'create_password.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class Login extends StatefulWidget {

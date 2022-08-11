@@ -4,7 +4,6 @@ import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
-import '../../../Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import '../../../utils/medeiaqury/medeiaqury.dart';
 
 class NotificationsView extends StatefulWidget {

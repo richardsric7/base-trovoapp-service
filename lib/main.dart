@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+// import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/back_dispatcher.dart';
@@ -14,7 +14,7 @@ import 'package:trovo_wallet/router/router_delegate.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/screens/notifications/firebase_notifications.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:uni_links/uni_links.dart';
+// import 'package:uni_links/uni_links.dart';
 import 'Custom_BlocObserver/notifire_clor.dart';
 
 void main() async {
@@ -36,10 +36,10 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   TrovoWalletBackButtonDispatcher? backButtonDispatcher;
   final appState = DataProvider();
-  bool _initialURILinkHandled = false;
-  Uri? _initialURI;
-  Uri? _currentURI;
-  Object? _err;
+  // bool _initialURILinkHandled = false;
+  // Uri? _initialURI;
+  // Uri? _currentURI;
+  // Object? _err;
 
   StreamSubscription? _streamSubscription;
   TrovoWalletRouterDelegate? delegate;
@@ -55,8 +55,9 @@ class _AppState extends State<App> {
   void initState() {
     super.initState();
     initAppNotification(context);
-    _initURIHandler();
-    _incomingLinkHandler();
+    // _initURIHandler();
+    // _incomingLinkHandler();
+    // DynamicLinkService().handleDynamicLink();
   }
 
   @override
@@ -132,81 +133,81 @@ class _AppState extends State<App> {
   //   );
   // }
 
-  Future<void> _initURIHandler() async {
-    // 1
-    if (!_initialURILinkHandled) {
-      _initialURILinkHandled = true;
-      // 2
-      Fluttertoast.showToast(
-          msg: "Invoked _initURIHandler",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.green,
-          textColor: Colors.white);
-      try {
-        // 3
-        final initialURI = await getInitialUri();
-        // 4
-        if (initialURI != null) {
-          debugPrint("Initial URI received $initialURI");
-          if (!mounted) {
-            return;
-          }
-          setState(() {
-            _initialURI = initialURI;
-          });
-        } else {
-          debugPrint("Null Initial URI received");
-        }
-      } on PlatformException {
-        // 5
-        debugPrint("Failed to receive initial uri");
-      } on FormatException catch (err) {
-        // 6
-        if (!mounted) {
-          return;
-        }
-        debugPrint('Malformed Initial URI received');
-        setState(() => _err = err);
-      }
-    }
-  }
+  // Future<void> _initURIHandler() async {
+  //   // 1
+  //   if (!_initialURILinkHandled) {
+  //     _initialURILinkHandled = true;
+  //     // 2
+  //     Fluttertoast.showToast(
+  //         msg: "Invoked _initURIHandler",
+  //         toastLength: Toast.LENGTH_SHORT,
+  //         gravity: ToastGravity.BOTTOM,
+  //         timeInSecForIosWeb: 1,
+  //         backgroundColor: Colors.green,
+  //         textColor: Colors.white);
+  //     try {
+  //       // 3
+  //       final initialURI = await getInitialUri();
+  //       // 4
+  //       if (initialURI != null) {
+  //         debugPrint("Initial URI received $initialURI");
+  //         if (!mounted) {
+  //           return;
+  //         }
+  //         setState(() {
+  //           _initialURI = initialURI;
+  //         });
+  //       } else {
+  //         debugPrint("Null Initial URI received");
+  //       }
+  //     } on PlatformException {
+  //       // 5
+  //       debugPrint("Failed to receive initial uri");
+  //     } on FormatException catch (err) {
+  //       // 6
+  //       if (!mounted) {
+  //         return;
+  //       }
+  //       debugPrint('Malformed Initial URI received');
+  //       setState(() => _err = err);
+  //     }
+  //   }
+  // }
 
-  void _incomingLinkHandler() {
-    // 1
-    if (!kIsWeb) {
-      // 2
-      _streamSubscription = uriLinkStream.listen((Uri? uri) {
-        if (!mounted) {
-          return;
-        }
-        debugPrint('Received URI: $uri');
-        setState(() {
-          _currentURI = uri;
-          _err = null;
-        });
-        // 3
-      }, onError: (Object err) {
-        if (!mounted) {
-          return;
-        }
-        debugPrint('Error occurred: $err');
-        setState(() {
-          _currentURI = null;
-          if (err is FormatException) {
-            _err = err;
-          } else {
-            _err = null;
-          }
-        });
-      });
-    }
-  }
+  // void _incomingLinkHandler() {
+  //   // 1
+  //   if (!kIsWeb) {
+  //     // 2
+  //     _streamSubscription = uriLinkStream.listen((Uri? uri) {
+  //       if (!mounted) {
+  //         return;
+  //       }
+  //       debugPrint('Received URI: $uri');
+  //       setState(() {
+  //         _currentURI = uri;
+  //         _err = null;
+  //       });
+  //       // 3
+  //     }, onError: (Object err) {
+  //       if (!mounted) {
+  //         return;
+  //       }
+  //       debugPrint('Error occurred: $err');
+  //       setState(() {
+  //         _currentURI = null;
+  //         if (err is FormatException) {
+  //           _err = err;
+  //         } else {
+  //           _err = null;
+  //         }
+  //       });
+  //     });
+  //   }
+  // }
 
-  @override
-  void dispose() {
-    _streamSubscription?.cancel();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _streamSubscription?.cancel();
+  //   super.dispose();
+  // }
 }

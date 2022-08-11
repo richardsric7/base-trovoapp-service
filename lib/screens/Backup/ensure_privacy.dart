@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
-import 'package:trovo_wallet/screens/Backup/backup.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
@@ -12,8 +11,6 @@ import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../Auth/fingerprint.dart';
-import '../ImportWallet/importwallet.dart';
 
 class EnsurePrivacy extends StatefulWidget {
   const EnsurePrivacy({Key? key}) : super(key: key);

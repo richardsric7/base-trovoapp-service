@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import '../Custom_BlocObserver/constants.dart';
 import '../Custom_BlocObserver/fonts.dart';
 import '../Custom_BlocObserver/notifire_clor.dart';
-import '../screens/page_view/web_view.dart';
 import '../storage/state.dart';
 import '../utils/enstring.dart';
 import '../utils/medeiaqury/medeiaqury.dart';

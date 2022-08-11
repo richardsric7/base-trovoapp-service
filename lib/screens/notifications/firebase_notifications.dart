@@ -51,9 +51,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:trovo_wallet/screens/Auth/signup.dart';
 
-import '../../widgets/popups.dart';
-import '../Splash_Screen/splashscreen.dart';
-
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 

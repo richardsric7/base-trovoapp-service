@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/bottom_bar/bottombar.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';

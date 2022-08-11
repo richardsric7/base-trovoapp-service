@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';

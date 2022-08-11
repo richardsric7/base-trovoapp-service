@@ -38,7 +38,6 @@ class _WalletDetailsState extends State<WalletDetails>
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _tabController = TabController(length: tabLength, vsync: this);
   }

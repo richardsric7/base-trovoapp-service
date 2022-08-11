@@ -62,7 +62,6 @@ class _AssetDetailsState extends State<AssetDetails>
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
