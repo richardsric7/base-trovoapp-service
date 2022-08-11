@@ -21,7 +21,6 @@ import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/popups.dart';
 import '../../widgets/termsOfService.dart';
-import '../Auth/fingerprint.dart';
 
 class ImportWallet extends StatefulWidget {
   const ImportWallet({Key? key}) : super(key: key);

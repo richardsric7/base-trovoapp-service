@@ -68,11 +68,12 @@ class _ReferralInfoState extends State<ReferralInfo>
                 child: Image.asset("assets/images/avatar.png",
                     height: height / 10),
               ),
+              SizedBox(height: height / 90),
               Text(
                 'Obi Enechi',
                 style: TextStyle(
                     color: notifier.getbluecolor,
-                    fontFamily: 'Gilroy_Bold',
+                    fontFamily: fontsemibold,
                     fontSize: 16.sp),
               ),
               SizedBox(height: height / 50),
@@ -94,6 +95,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                         child: TabBar(
                           controller: _tabController,
                           labelColor: notifier.getbluecolor,
+                          indicatorColor: notifier.getbluecolor,
                           labelStyle: TextStyle(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w600,
@@ -117,12 +119,34 @@ class _ReferralInfoState extends State<ReferralInfo>
               ),
               Container(
                 height: height / 1.9,
-                child: Expanded(
-                  child: TabBarView(controller: _tabController, children: [
-                    socials(),
-                    socials(),
-                  ]),
-                ),
+                child: TabBarView(controller: _tabController, children: [
+                  Column(
+                    children: [
+                      SizedBox(height: height / 30),
+                      Text(
+                        "4 ${LanguageEn.referrals}",
+                        style: TextStyle(
+                            color: notifier.getbluecolor,
+                            fontFamily: fontsemibold,
+                            fontSize: 16.sp),
+                      ),
+                      referralList(),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      SizedBox(height: height / 30),
+                      Text(
+                        "25 TROV earned",
+                        style: TextStyle(
+                            color: notifier.getbluecolor,
+                            fontFamily: fontsemibold,
+                            fontSize: 16.sp),
+                      ),
+                      commissionList(),
+                    ],
+                  ),
+                ]),
               ),
               SizedBox(height: height / 20),
             ],
@@ -132,7 +156,7 @@ class _ReferralInfoState extends State<ReferralInfo>
     );
   }
 
-  Widget socials() {
+  Widget referralList() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
       child: Container(
@@ -150,126 +174,143 @@ class _ReferralInfoState extends State<ReferralInfo>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  // Twitter
-                  Container(
-                    width: width / 1.29,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Image.asset(
-                                "assets/images/twitter.png",
-                                height: height / 30,
-                                color: notifier.getbluecolor,
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          child: Column(
-                            children: [
-                              Text(
-                                LanguageEn.unverified,
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: notifier.getbluecolor,
-                                    fontFamily: fontsemibold),
-                              ),
-                              SizedBox(
-                                height: 5,
-                              ),
-                              GestureDetector(
-                                onTap: () {},
-                                child: Text(
-                                  LanguageEn.taptoverify,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w400,
-                                    color: notifier.getbluecolor,
-                                    fontFamily: fontbody,
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
+                  referredUser('Thundeyy', 'joined 1 day ago'),
                   // Instagram
                   SizedBox(
                     height: height / 50,
                   ),
-                  Container(
-                    width: width / 1.29,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          child: Image.asset(
-                            "assets/images/instagram.png",
-                            height: height / 30,
-                            color: notifier.getbluecolor,
-                          ),
-                        ),
-                        Container(
-                          child: Column(
-                            children: [
-                              Image.asset(
-                                "assets/images/tick.png",
-                                height: height / 30,
-                                color: notifier.getbluecolor,
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
+                  referredUser('muche', '3 days ago'),
                   // Instagram
                   SizedBox(
                     height: height / 50,
                   ),
-                  Container(
-                    width: width / 1.29,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          child: Image.asset(
-                            "assets/images/gemcave.png",
-                            height: height / 30,
-                            color: notifier.getbluecolor,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {},
-                          child: Text(
-                            LanguageEn.taptoconnect,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w400,
-                              color: notifier.getbluecolor,
-                              fontFamily: fontbody,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
+                  referredUser('ric', '3 days ago'),
+                  SizedBox(
+                    height: height / 50,
                   ),
+                  referredUser('kennis', 'joined 1 week ago'),
                   SizedBox(height: 2),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget referredUser(name, timeAgo) {
+    return Container(
+      width: width / 1.29,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            name,
+            style: TextStyle(
+                color: notifier.getbluecolor,
+                fontSize: 15.sp,
+                fontFamily: 'Gilroy_Medium'),
+          ),
+          Text(
+            timeAgo,
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: notifier.getbluecolor,
+                fontFamily: fontsemibold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget commissionList() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+          color: notifier.getaddsubwalletgrey,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  commissionItem('4 TROV', 'Swap commission', '3 days ago'),
+                  // Instagram
+                  SizedBox(
+                    height: height / 40,
+                  ),
+                  commissionItem('12 TROV', 'Swap commission', '3 days ago'),
+                  SizedBox(
+                    height: height / 40,
+                  ),
+                  commissionItem(
+                      '9 TROV', 'Subscription commission', 'joined 1 week ago'),
+                  SizedBox(height: 2),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget commissionItem(amount, rel, timeAgo) {
+    return Container(
+      width: width / 1.29,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  amount,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: notifier.getbluecolor,
+                      fontFamily: fontsemibold),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: Text(
+                    rel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                      color: notifier.getbluecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+          Text(
+            timeAgo,
+            style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: notifier.getbluecolor,
+                fontFamily: fontsemibold),
+          ),
+        ],
       ),
     );
   }

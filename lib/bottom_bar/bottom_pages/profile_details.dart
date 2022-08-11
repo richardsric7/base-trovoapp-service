@@ -8,8 +8,6 @@ import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class ProfileDetails extends StatefulWidget {
@@ -42,7 +40,6 @@ class _ProfileDetailsState extends State<ProfileDetails> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    var appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -60,9 +57,12 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               SizedBox(
                 height: height / 20,
               ),
-              Center(
-                child: Image.asset("assets/images/avatar.png",
-                    height: height / 10),
+              GestureDetector(
+                onTap: () {},
+                child: Center(
+                  child: Image.asset("assets/images/avatar.png",
+                      height: height / 10),
+                ),
               ),
               TextButton(
                 onPressed: () {},

@@ -3,16 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:get/get.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/Auth/login.dart';
 import 'package:trovo_wallet/screens/Payment%20Method/paymentmethod.dart';
 import 'package:trovo_wallet/screens/profile/faq.dart';
 import 'package:trovo_wallet/screens/profile/language.dart';
-import 'package:trovo_wallet/screens/profile/myaccount.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -104,7 +101,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist(
                     "assets/images/profile.png", "", LanguageEn.myprofile),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   appState.currentAction = PageAction(
@@ -114,7 +110,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist("assets/images/referrals-dark.png", "",
                     LanguageEn.myreferrals),
               ),
-              SizedBox(height: height / 30),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const PaymentMethod());
@@ -143,7 +138,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist(
                     "assets/images/languages.png", "", LanguageEn.languages),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const FAQ());
@@ -151,7 +145,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist(
                     "assets/images/currency.png", "", LanguageEn.currency),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const FAQ());
@@ -180,7 +173,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist(
                     "assets/images/access.png", "", LanguageEn.access),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const Language());
@@ -188,7 +180,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist("assets/images/lock.png", "",
                     LanguageEn.passwordmanagement),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const Language());
@@ -196,7 +187,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist(
                     "assets/images/eyeoff.png", "", LanguageEn.hidebalance),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const Language());
@@ -204,7 +194,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist(
                     "assets/images/hourglass.png", "", LanguageEn.timeout),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const Language());
@@ -233,7 +222,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist(
                     "assets/images/coins.png", "", LanguageEn.curatedassets),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const Language());
@@ -241,7 +229,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist(
                     "assets/images/import.png", "", LanguageEn.importwallet),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const Language());
@@ -249,7 +236,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist("assets/images/backup-wallets.png", "",
                     LanguageEn.backupwallet),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const Language());
@@ -278,7 +264,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist(
                     "assets/images/help.png", "", LanguageEn.helpandsupport),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const Language());
@@ -286,7 +271,6 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist(
                     "assets/images/terms.png", "", LanguageEn.termsofuse),
               ),
-              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   Get.to(() => const Language());
@@ -370,27 +354,30 @@ class _SettingsState extends State<Settings> {
   Widget iteamlist(image, txt, name) {
     return Container(
       color: Colors.transparent,
-      child: Row(
-        children: [
-          SizedBox(width: width / 25),
-          Image.asset(
-            image,
-            height: height / 30,
-            color: notifier.getbluecolor,
-          ),
-          SizedBox(width: width / 40),
-          Text(
-            name,
-            style: TextStyle(
-                color: notifier.getblck,
-                fontSize: 15.sp,
-                fontFamily: 'Gilroy_Medium'),
-          ),
-          const Spacer(),
-          SizedBox(width: width / 100),
-          Icon(Icons.arrow_forward_ios, color: notifier.getgrey, size: 17.sp),
-          SizedBox(width: width / 15),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: Row(
+          children: [
+            SizedBox(width: width / 25),
+            Image.asset(
+              image,
+              height: height / 30,
+              color: notifier.getbluecolor,
+            ),
+            SizedBox(width: width / 40),
+            Text(
+              name,
+              style: TextStyle(
+                  color: notifier.getblck,
+                  fontSize: 15.sp,
+                  fontFamily: 'Gilroy_Medium'),
+            ),
+            const Spacer(),
+            SizedBox(width: width / 100),
+            Icon(Icons.arrow_forward_ios, color: notifier.getgrey, size: 17.sp),
+            SizedBox(width: width / 15),
+          ],
+        ),
       ),
     );
   }
@@ -422,40 +409,43 @@ class _SettingsState extends State<Settings> {
   Widget darkmode(image, txt, name) {
     return Container(
       color: Colors.transparent,
-      child: Row(
-        children: [
-          SizedBox(width: width / 25),
-          Image.asset(
-            image,
-            height: height / 30,
-            color: notifier.getbluecolor,
-          ),
-          SizedBox(width: width / 40),
-          Text(
-            name,
-            style: TextStyle(
-                color: notifier.getblck,
-                fontSize: 15.sp,
-                fontFamily: 'Gilroy_Medium'),
-          ),
-          const Spacer(),
-          SizedBox(width: width / 100),
-          Transform.scale(
-            scale: 0.7,
-            child: CupertinoSwitch(
-              activeColor: notifier.getbluecolor,
-              value: notifier.getIsDark,
-              onChanged: (val) async {
-                final prefs = await SharedPreferences.getInstance();
-                setState(() {
-                  notifier.setIsDark = val;
-                  prefs.setBool("setIsDark", val);
-                });
-              },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: Row(
+          children: [
+            SizedBox(width: width / 25),
+            Image.asset(
+              image,
+              height: height / 30,
+              color: notifier.getbluecolor,
             ),
-          ),
-          SizedBox(width: width / 15),
-        ],
+            SizedBox(width: width / 40),
+            Text(
+              name,
+              style: TextStyle(
+                  color: notifier.getblck,
+                  fontSize: 15.sp,
+                  fontFamily: 'Gilroy_Medium'),
+            ),
+            const Spacer(),
+            SizedBox(width: width / 100),
+            Transform.scale(
+              scale: 0.7,
+              child: CupertinoSwitch(
+                activeColor: notifier.getbluecolor,
+                value: notifier.getIsDark,
+                onChanged: (val) async {
+                  final prefs = await SharedPreferences.getInstance();
+                  setState(() {
+                    notifier.setIsDark = val;
+                    prefs.setBool("setIsDark", val);
+                  });
+                },
+              ),
+            ),
+            SizedBox(width: width / 15),
+          ],
+        ),
       ),
     );
   }

@@ -1,5 +1,3 @@
-import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
-
 class LanguageEn {
   static String get welcometotrovowallet => "Welcome to Trovo Wallet";
 

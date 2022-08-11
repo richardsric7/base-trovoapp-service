@@ -1,10 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
-import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import '../Models/User.dart';
 import '../router/PageActions.dart';
 import 'cache.dart';

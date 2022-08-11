@@ -1,22 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/Auth/create_password.dart';
-import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/screens/page_view/onbonding_two.dart';
 import 'package:trovo_wallet/screens/page_view/onbondingthree.dart';
 import 'package:trovo_wallet/screens/page_view/one_onbonding.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../router/PageActions.dart';
-import '../../screens/Auth/login.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../button/custtom_button.dart';
-import '../fonts.dart';
 
 class Swiper extends StatefulWidget {
   const Swiper({Key? key}) : super(key: key);

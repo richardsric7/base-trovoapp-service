@@ -1,12 +1,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/route_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
-import 'package:trovo_wallet/screens/Auth/fingerprint.dart';
-import 'package:trovo_wallet/screens/Auth/signup.dart';
-import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import '../Custom_BlocObserver/notifire_clor.dart';
 import '../router/PageActions.dart';
@@ -442,7 +437,7 @@ void ensureBackupPrivacyDialog(context, action) {
 
 void warnSkipBackupDialog(context, onSkip) {
   notifier = Provider.of<ColorNotifier>(context, listen: false);
-  var appState = Provider.of<DataProvider>(context, listen: false);
+  // var appState = Provider.of<DataProvider>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
