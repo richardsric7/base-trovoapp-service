@@ -18,6 +18,12 @@ class LanguageEn {
 
   static String get method => 'Method';
 
+  static String get camera => 'Camera';
+
+  static String get chooseimagesource => 'Choose Image Source';
+
+  static String get gallery => 'Gallery';
+
   static String get createnewsubwallet => 'Create new wallet';
 
   static String get importsubwallet => 'Import existing wallet';

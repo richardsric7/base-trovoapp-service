@@ -2,12 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class ProfileDetails extends StatefulWidget {
@@ -58,14 +60,34 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                 height: height / 20,
               ),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  imageSourceDialog(
+                    context,
+                    onCamera: () {
+                      getImage(ImageSource.camera);
+                    },
+                    onGallery: () {
+                      getImage(ImageSource.gallery);
+                    },
+                  );
+                },
                 child: Center(
                   child: Image.asset("assets/images/avatar.png",
                       height: height / 10),
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  imageSourceDialog(
+                    context,
+                    onCamera: () {
+                      getImage(ImageSource.camera);
+                    },
+                    onGallery: () {
+                      getImage(ImageSource.gallery);
+                    },
+                  );
+                },
                 child: Text(
                   LanguageEn.changepicture,
                   style: TextStyle(
@@ -135,6 +157,14 @@ class _ProfileDetailsState extends State<ProfileDetails> {
         ),
       ),
     );
+  }
+
+  Future<void> getImage(ImageSource source) async {
+    var image = await ImagePicker().pickImage(source: source);
+    if (image != null) {
+      print('${image.mimeType}, ${image.path}');
+      image.saveTo('images/profile-pic.${image.name.split('.')[1]}');
+    }
   }
 
   Widget bioInfo() {
