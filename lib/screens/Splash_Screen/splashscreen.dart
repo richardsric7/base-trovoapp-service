@@ -138,35 +138,10 @@ class _SplashScreenState extends State<SplashScreen>
                   fontFamily: 'Matahari_Semi_Bold',
                   fontSize: 35.sp),
             ),
-            // ElevatedButton(
-            //   onPressed: () => {
-            //     if (controller.isCompleted) {controller.reset()},
-            //     controller.forward(),
-            //   },
-            //   child: Text('again'),
-            // ),
-            // Stack(
-            //   children: [
-            //     Column(
-            //       children: [
-            //         Center(
-            //             child: Image.asset("assets/images/trovo.png",
-            //                 height: height / 13)),
-            //         SizedBox(height: height / 45),
-            //         Text(
-            //           "Trovo Wallet",
-            //           style: TextStyle(
-            //               color: notifier.getdarkgrey,
-            //               fontFamily: 'Matahari_Semi_Bold',
-            //               fontSize: 35.sp),
-            //         ),
-            //       ],
-            //     ),
-            //     Center(
-            //         child: AnimatedBuilder(
-            //             animation: controller, builder: _blurAnimationBuilder))
-            //   ],
-            // ),
+            TextButton(
+              onPressed: () => throw Exception(),
+              child: const Text("Throw Test Exception"),
+            ),
           ],
         )),
       ),
