@@ -83,6 +83,8 @@ dependencies:
   pull_to_refresh: ^2.0.0
   share: ^2.0.4
   uni_links: ^0.5.1
+  firebase_crashlytics: ^2.8.7
+  firebase_dynamic_links: ^4.3.4
 
 dev_dependencies:
   flutter_test:

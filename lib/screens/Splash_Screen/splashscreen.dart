@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/screens/notifications/firebase_dynamic_links.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
@@ -44,6 +46,14 @@ class _SplashScreenState extends State<SplashScreen>
     getdarkmodepreviousstate();
     runAsync();
 
+    FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
+      // Navigator.pushNamed(context, dynamicLinkData.link.path);
+      print('this is dynamicLinkData: $dynamicLinkData');
+    }).onError((error) {
+      // Handle errors
+      print('this is dynamicLink error: $error');
+    });
+
     controller = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 11000),
@@ -55,9 +65,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     controller.repeat();
     Timer(const Duration(seconds: 4), () {
-      // appState.currentAction =
-      // PageAction(
-      //     state: PageState.replaceAll, page: CongratulationsPageConfig);
       appState.currentAction = landingPage;
       appState.setSplashFinished();
     });
@@ -71,6 +78,11 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   getVal() async {
+    PendingDynamicLinkData? initialLink =
+        await FirebaseDynamicLinkInitializer().getInitialLink();
+
+    print('initialLink: $initialLink');
+
     bool isFirstTime;
 
     try {
@@ -136,51 +148,11 @@ class _SplashScreenState extends State<SplashScreen>
                   fontFamily: 'Matahari_Semi_Bold',
                   fontSize: 35.sp),
             ),
-            // ElevatedButton(
-            //   onPressed: () => {
-            //     if (controller.isCompleted) {controller.reset()},
-            //     controller.forward(),
-            //   },
-            //   child: Text('again'),
-            // ),
-            // Stack(
-            //   children: [
-            //     Column(
-            //       children: [
-            //         Center(
-            //             child: Image.asset("assets/images/trovo.png",
-            //                 height: height / 13)),
-            //         SizedBox(height: height / 45),
-            //         Text(
-            //           "Trovo Wallet",
-            //           style: TextStyle(
-            //               color: notifier.getdarkgrey,
-            //               fontFamily: 'Matahari_Semi_Bold',
-            //               fontSize: 35.sp),
-            //         ),
-            //       ],
-            //     ),
-            //     Center(
-            //         child: AnimatedBuilder(
-            //             animation: controller, builder: _blurAnimationBuilder))
-            //   ],
-            // ),
           ],
         )),
       ),
     );
   }
-
-  // Widget _blurAnimationBuilder(context, child) {
-  //   double startValue = 10.0;
-  //   return BackdropFilter(
-  //     filter: ImageFilter.blur(
-  //       sigmaX: startValue - controller.value * 10,
-  //       sigmaY: startValue - controller.value * 10,
-  //     ),
-  //     child: Container(color: Colors.transparent),
-  //   );
-  // }
 
   @override
   void dispose() {
