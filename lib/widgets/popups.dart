@@ -709,7 +709,7 @@ void showResponseMessage(context, message, successAction) {
       });
 }
 
-void showSuccessAlert(context, {onTap}) {
+void showSuccessAlert(context, {required onTap}) {
   notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;

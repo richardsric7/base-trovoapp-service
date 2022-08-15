@@ -94,6 +94,10 @@ class LanguageEn {
 
   static String get passwordemptyerror => "Enter a password";
 
+  static String get oldpasswordemptyerror => "Enter old password";
+
+  static String get newpasswordemptyerror => "Enter new password";
+
   static String get hinterrorpassword =>
       "Use 6 characters or more for your password";
 
@@ -114,6 +118,8 @@ class LanguageEn {
       "Please enter a valid email address";
 
   static String get confirmpasswordemptyerror => "Confirm your password";
+
+  static String get confirmnewpasswordemptyerror => "Confirm your new password";
 
   static String get passwordmismatcherror =>
       "Those passwords didn\’t match. Try again.";
@@ -184,6 +190,12 @@ class LanguageEn {
   static String get passphrase => "Enter pass phrase";
 
   static String get enterpassphrase => "Enter pass phrase instead";
+
+  static String get changepassword => "Change Password";
+
+  static String get oldpassword => "Old Password";
+
+  static String get newpassword => "New Password";
 
   static String get password => "Password";
 

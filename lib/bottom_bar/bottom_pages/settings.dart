@@ -1,18 +1,22 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:get/get.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/Payment%20Method/paymentmethod.dart';
 import 'package:trovo_wallet/screens/profile/faq.dart';
-import 'package:trovo_wallet/screens/profile/language.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/utils/local_auth.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
+import 'package:trovo_wallet/widgets/popups.dart';
 
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -26,6 +30,7 @@ class Settings extends StatefulWidget {
 
 class _SettingsState extends State<Settings> {
   late ColorNotifier notifier;
+  late DataProvider appState;
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -40,6 +45,7 @@ class _SettingsState extends State<Settings> {
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
+    appState = Provider.of<DataProvider>(context, listen: false);
   }
 
   @override
@@ -47,7 +53,7 @@ class _SettingsState extends State<Settings> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    var appState = Provider.of<DataProvider>(context, listen: true);
+    appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -111,9 +117,6 @@ class _SettingsState extends State<Settings> {
                     LanguageEn.myreferrals),
               ),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const PaymentMethod());
-                },
                 child: iteamlist("assets/images/trovo-blue.png", "",
                     LanguageEn.mysubscriptions),
               ),
@@ -132,23 +135,14 @@ class _SettingsState extends State<Settings> {
               ),
               SizedBox(height: height / 50),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const FAQ());
-                },
                 child: iteamlist(
                     "assets/images/languages.png", "", LanguageEn.languages),
               ),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const FAQ());
-                },
                 child: iteamlist(
                     "assets/images/currency.png", "", LanguageEn.currency),
               ),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const FAQ());
-                },
                 child:
                     darkmode("assets/images/theme.png", "", LanguageEn.theme),
               ),
@@ -167,38 +161,25 @@ class _SettingsState extends State<Settings> {
               ),
               SizedBox(height: height / 50),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
                 child: iteamlist(
                     "assets/images/access.png", "", LanguageEn.access),
               ),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
+                onTap: () => appState.currentAction = PageAction(
+                    state: PageState.addPage, page: PasswordMgtViewPageConfig),
                 child: iteamlist("assets/images/lock.png", "",
                     LanguageEn.passwordmanagement),
               ),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
                 child: iteamlist(
                     "assets/images/eyeoff.png", "", LanguageEn.hidebalance),
               ),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
                 child: iteamlist(
                     "assets/images/hourglass.png", "", LanguageEn.timeout),
               ),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
-                child: iteamlist(
+                child: biometrics(
                     "assets/images/biometrics.png", "", LanguageEn.biometrics),
               ),
               SizedBox(height: height / 25),
@@ -216,33 +197,19 @@ class _SettingsState extends State<Settings> {
               ),
               SizedBox(height: height / 50),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
                 child: iteamlist(
                     "assets/images/coins.png", "", LanguageEn.curatedassets),
               ),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
                 child: iteamlist(
                     "assets/images/import.png", "", LanguageEn.importwallet),
               ),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
                 child: iteamlist("assets/images/backup-wallets.png", "",
                     LanguageEn.backupwallet),
               ),
-              GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
-                child: iteamlist(
-                    "assets/images/walletmode.png", "", LanguageEn.walletmode),
-              ),
+              walletMode(
+                  "assets/images/walletmode.png", "", LanguageEn.walletmode),
               SizedBox(height: height / 25),
               Row(
                 children: [
@@ -258,23 +225,16 @@ class _SettingsState extends State<Settings> {
               ),
               SizedBox(height: height / 50),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
                 child: iteamlist(
                     "assets/images/help.png", "", LanguageEn.helpandsupport),
               ),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
+                onTap: () => appState.goToWebView(termsOfServiceUrl),
                 child: iteamlist(
                     "assets/images/terms.png", "", LanguageEn.termsofuse),
               ),
               GestureDetector(
-                onTap: () {
-                  Get.to(() => const Language());
-                },
+                onTap: () => appState.goToWebView(trovoServicesUrl),
                 child: iteamlist("assets/images/copyright.png", "",
                     LanguageEn.abouttrovowallet),
               ),
@@ -382,6 +342,87 @@ class _SettingsState extends State<Settings> {
     );
   }
 
+  Widget walletMode(image, txt, name) {
+    return Container(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: Row(
+          children: [
+            SizedBox(width: width / 25),
+            Image.asset(
+              image,
+              height: height / 30,
+              width: 30,
+              color: notifier.getbluecolor,
+            ),
+            SizedBox(width: width / 40),
+            Text(
+              name,
+              style: TextStyle(
+                  color: notifier.getblck,
+                  fontSize: 15.sp,
+                  fontFamily: 'Gilroy_Medium'),
+            ),
+            const Spacer(),
+            SizedBox(width: width / 100),
+            Row(
+              children: [
+                Container(
+                  width: width / 4.5,
+                  height: 20,
+                  child: Expanded(
+                    child: DropdownButtonFormField(
+                      isExpanded: true,
+                      value: 'Testnet',
+                      icon: Visibility(
+                          visible: false, child: Icon(Icons.arrow_downward)),
+                      decoration: InputDecoration(
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      elevation: 0,
+                      style: TextStyle(
+                        color: notifier.getbluecolor,
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      onChanged: (newValue) {
+                        setState(() {});
+                      },
+                      items: <DropdownMenuItem<String>>[
+                        DropdownMenuItem(
+                            child: Text(
+                              'Testnet',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            value: 'Testnet'),
+                        DropdownMenuItem(
+                            child: Text(
+                              'Mainnet',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            value: 'Mainet'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(width: width / 20),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget logout(image, txt, name) {
     return Container(
       color: Colors.transparent,
@@ -443,10 +484,67 @@ class _SettingsState extends State<Settings> {
                 },
               ),
             ),
-            SizedBox(width: width / 15),
+            SizedBox(width: width / 20),
           ],
         ),
       ),
     );
+  }
+
+  Widget biometrics(image, txt, name) {
+    return Container(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: Row(
+          children: [
+            SizedBox(width: width / 25),
+            Image.asset(
+              image,
+              height: height / 30,
+              color: notifier.getbluecolor,
+            ),
+            SizedBox(width: width / 40),
+            Text(
+              name,
+              style: TextStyle(
+                  color: notifier.getblck,
+                  fontSize: 15.sp,
+                  fontFamily: 'Gilroy_Medium'),
+            ),
+            const Spacer(),
+            SizedBox(width: width / 100),
+            Transform.scale(
+              scale: 0.7,
+              child: CupertinoSwitch(
+                activeColor: notifier.getbluecolor,
+                value: appState.biometricEnabled,
+                onChanged: (val) async {
+                  toggleBiometrics();
+                },
+              ),
+            ),
+            SizedBox(width: width / 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void toggleBiometrics() async {
+    try {
+      bool result = await Authenticator().authenticateMe();
+      if (result) {
+        setState(() {
+          StoreData().storeInsertData('biometricsEnabled', result);
+          appState.biometricEnabled = !appState.biometricEnabled;
+        });
+      }
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notEnrolled ||
+          e.code == auth_error.notAvailable) {
+        biometricsErrorAlert(context);
+      }
+    }
   }
 }

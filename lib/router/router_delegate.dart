@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/confirm_swap.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/change_password.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_detail.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/profile_details.dart';
@@ -223,6 +224,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.ReferralInfoView:
           _addPageData(ReferralInfo(), ReferralInfoViewPageConfig);
           break;
+        case Pages.PasswordMgtView:
+          _addPageData(PasswordMgtView(), PasswordMgtViewPageConfig);
+          break;
         default:
           break;
       }
@@ -366,6 +370,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.ReferralInfoView:
         ReferralInfoViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.PasswordMgtView:
+        PasswordMgtViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -586,6 +593,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
             _createPage(const ReferralInfo(), ReferralInfoViewPageConfig),
+          ]);
+          break;
+        case 'PasswordMgtView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+            _createPage(const PasswordMgtView(), PasswordMgtViewPageConfig),
           ]);
           break;
         default:
