@@ -17,6 +17,7 @@ import 'package:trovo_wallet/bottom_bar/bottombar.dart';
 import 'package:trovo_wallet/screens/Auth/create_password.dart';
 import 'package:trovo_wallet/screens/Auth/signup.dart';
 import 'package:trovo_wallet/screens/Auth/vericication.dart';
+import 'package:trovo_wallet/screens/Backup/backup_all.dart';
 import 'package:trovo_wallet/screens/Backup/congratulation.dart';
 import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
 import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
@@ -227,6 +228,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.PasswordMgtView:
           _addPageData(PasswordMgtView(), PasswordMgtViewPageConfig);
           break;
+        case Pages.BackupAllView:
+          _addPageData(BackupAll(), BackupAllViewPageConfig);
+          break;
         default:
           break;
       }
@@ -373,6 +377,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.PasswordMgtView:
         PasswordMgtViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.BackupAllView:
+        BackupAllViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -599,6 +606,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
             _createPage(const PasswordMgtView(), PasswordMgtViewPageConfig),
+          ]);
+          break;
+        case 'BackupAllView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+            _createPage(const BackupAll(), BackupAllViewPageConfig),
           ]);
           break;
         default:

@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Models/User.dart';
+import 'package:trovo_wallet/Models/Wallet.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
@@ -79,48 +81,21 @@ class _BackupAllState extends State<BackupAll> {
                   ),
                 ),
               ],
-              // SizedBox(height: height / 50),
-              // Container(
-              //   width: width / 1.2,
-              //   child: Text(
-              //     LanguageEn.writeitasfollows,
-              //     style: TextStyle(
-              //         color: notifier.getgrey,
-              //         fontSize: 15.sp,
-              //         fontFamily: fontbody),
-              //   ),
-              // ),
+              SizedBox(height: height / 50),
+              Container(
+                width: width / 1.2,
+                child: Text(
+                  LanguageEn.writeitasfollows,
+                  style: TextStyle(
+                      color: notifier.getgrey,
+                      fontSize: 15.sp,
+                      fontFamily: fontbody),
+                ),
+              ),
               SizedBox(height: height / 20),
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(horizontal: 30),
-              //   child: TextButton(
-              //     onPressed: () {
-              //       setState(() {
-              //         showAll = !showAll;
-              //       });
-              //     },
-              //     child: Text(
-              //       showAll
-              //           ? LanguageEn.taptorevealsecretkeys
-              //           : LanguageEn.taptohidesecretkeys,
-              //       style: TextStyle(
-              //           color: notifier.getbluecolor,
-              //           fontSize: 15.sp,
-              //           fontFamily: fontbody),
-              //     ),
-              //   ),
-              // ),
-              // for (var wallet in getUserWallets()) ...[
-              //   Secret(wallet.alias!, wallet.secretKey!)
-              // ],
-
-              Secret(state.activeWallet!.alias!, state.activeWallet!.secretKey!,
-                  state.activeWallet!.publicKey!),
-              // Secret(
-              //     'Kenmaddy_kennis',
-              //     'SAV232SDWDS4SRFVXGHYUIOLJY653DRT67HN8JMKIU654EDFRTGV56Y',
-              //     'SAV232SDWDS4SRFVXGHYUIOLJY653DRT67HN8JMKIU654EDFRTGV56Y'),
-
+              for (var wallet in getUserWallets()) ...[
+                Secret(wallet.alias!, wallet.secretKey!, wallet.publicKey!)
+              ],
               SizedBox(height: height / 20),
               Button(
                 LanguageEn.continuee,
@@ -141,18 +116,18 @@ class _BackupAllState extends State<BackupAll> {
     );
   }
 
-  // List<Wallet> getUserWallets() {
-  //   var wallets = <Wallet>[];
-  //   secrets.forEach((secret) {
-  //     print(secret);
-  //     Account account = TrovoWalletSDK().parseSecretKey(secret);
-  //     var wlt = user.wallets!
-  //         .firstWhere((wallet) => wallet.publicKey == account.publicKey);
-  //     wlt.secretKey = secret;
-  //     wallets.add(wlt);
-  //   });
-  //   return wallets;
-  // }
+  List<Wallet> getUserWallets() {
+    var wallets = <Wallet>[];
+    secrets.forEach((secret) {
+      print(secret);
+      Account account = TrovoWalletSDK().parseSecretKey(secret);
+      var wlt = user.wallets!
+          .firstWhere((wallet) => wallet.publicKey == account.publicKey);
+      wlt.secretKey = secret;
+      wallets.add(wlt);
+    });
+    return wallets;
+  }
 
   gotoNext() async {
     var isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;

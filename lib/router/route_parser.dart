@@ -71,6 +71,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return ReferralInfoViewPageConfig;
       case PasswordMgtViewPath:
         return PasswordMgtViewPageConfig;
+      case BackupAllViewPath:
+        return BackupAllViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -141,6 +143,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: ReferralInfoViewPath);
       case Pages.PasswordMgtView:
         return const RouteInformation(location: PasswordMgtViewPath);
+      case Pages.BackupAllView:
+        return const RouteInformation(location: BackupAllViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

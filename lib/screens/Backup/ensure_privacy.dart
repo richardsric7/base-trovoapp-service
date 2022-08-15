@@ -97,8 +97,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
                 notifier.getwihitecolor,
                 onTap: () {
                   if (hasAccepted) {
-                    appState.currentAction = PageAction(
-                        state: PageState.addPage, page: BackupPageConfig);
+                    gotoNext();
                   } else {
                     popup(context,
                         title: LanguageEn.important,
@@ -152,5 +151,18 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
         )
       ],
     );
+  }
+
+  gotoNext() async {
+    var data = appState.viewData![EnsurePrivacyPageConfig.key];
+    print('gotoNext: $data');
+    if (data != null && data['backupAll']) {
+      appState.currentAction =
+          PageAction(state: PageState.addPage, page: BackupAllViewPageConfig);
+      appState.viewData![EnsurePrivacyPageConfig.key] = null;
+    } else {
+      appState.currentAction =
+          PageAction(state: PageState.addPage, page: BackupPageConfig);
+    }
   }
 }

@@ -175,7 +175,7 @@ class _SettingsState extends State<Settings> {
                     "assets/images/eyeoff.png", "", LanguageEn.hidebalance),
               ),
               GestureDetector(
-                child: iteamlist(
+                child: timeout(
                     "assets/images/hourglass.png", "", LanguageEn.timeout),
               ),
               GestureDetector(
@@ -201,10 +201,21 @@ class _SettingsState extends State<Settings> {
                     "assets/images/coins.png", "", LanguageEn.curatedassets),
               ),
               GestureDetector(
+                onTap: () => appState.currentAction = PageAction(
+                    state: PageState.addPage, page: ImportWalletPageConfig),
                 child: iteamlist(
                     "assets/images/import.png", "", LanguageEn.importwallet),
               ),
               GestureDetector(
+                onTap: () {
+                  // go to the definition of appState.viewData
+                  // to learn more about viewData
+                  appState.viewData![EnsurePrivacyPageConfig.key] = {
+                    'backupAll': true
+                  };
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage, page: EnsurePrivacyPageConfig);
+                },
                 child: iteamlist("assets/images/backup-wallets.png", "",
                     LanguageEn.backupwallet),
               ),
@@ -410,6 +421,105 @@ class _SettingsState extends State<Settings> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: 'Mainet'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(width: width / 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget timeout(image, txt, name) {
+    return Container(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: Row(
+          children: [
+            SizedBox(width: width / 25),
+            Image.asset(
+              image,
+              height: height / 30,
+              width: 30,
+              color: notifier.getbluecolor,
+            ),
+            SizedBox(width: width / 40),
+            Text(
+              name,
+              style: TextStyle(
+                  color: notifier.getblck,
+                  fontSize: 15.sp,
+                  fontFamily: 'Gilroy_Medium'),
+            ),
+            const Spacer(),
+            SizedBox(width: width / 100),
+            Row(
+              children: [
+                Container(
+                  width: width / 4,
+                  height: 20,
+                  child: Expanded(
+                    child: DropdownButtonFormField(
+                      isExpanded: true,
+                      value: '5',
+                      icon: Visibility(
+                          visible: false, child: Icon(Icons.arrow_downward)),
+                      decoration: InputDecoration(
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      elevation: 0,
+                      style: TextStyle(
+                        color: notifier.getbluecolor,
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      onChanged: (newValue) {
+                        setState(() {});
+                      },
+                      items: <DropdownMenuItem<String>>[
+                        DropdownMenuItem(
+                            child: Text(
+                              '1 minute',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            value: '1'),
+                        DropdownMenuItem(
+                            child: Text(
+                              '2 minutes',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            value: '2'),
+                        DropdownMenuItem(
+                            child: Text(
+                              '5 minutes',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            value: '5'),
+                        DropdownMenuItem(
+                            child: Text(
+                              '10 minutes',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            value: '10'),
+                        DropdownMenuItem(
+                            child: Text(
+                              '15 minutes',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            value: '15'),
                       ],
                     ),
                   ),
