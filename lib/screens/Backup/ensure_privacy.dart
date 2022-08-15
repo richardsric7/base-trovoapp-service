@@ -22,9 +22,11 @@ class EnsurePrivacy extends StatefulWidget {
 class _EnsurePrivacyState extends State<EnsurePrivacy> {
   bool hasAccepted = false;
   late DataProvider appState;
+  late ColorNotifier notifier;
+
   @override
   Widget build(BuildContext context) {
-    var notifier = Provider.of<ColorNotifier>(context, listen: true);
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
     appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -159,7 +161,6 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
     if (data != null && data['backupAll']) {
       appState.currentAction =
           PageAction(state: PageState.addPage, page: BackupAllViewPageConfig);
-      appState.viewData![EnsurePrivacyPageConfig.key] = null;
     } else {
       appState.currentAction =
           PageAction(state: PageState.addPage, page: BackupPageConfig);

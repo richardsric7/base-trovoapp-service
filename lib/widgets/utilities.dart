@@ -8,7 +8,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 
 void showSnackBar(String rel, BuildContext context) {
-  notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
   ScaffoldMessenger.of(context).clearSnackBars();
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(

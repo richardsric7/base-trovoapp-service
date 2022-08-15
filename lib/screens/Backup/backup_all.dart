@@ -50,7 +50,7 @@ class _BackupAllState extends State<BackupAll> {
             children: [
               SizedBox(height: height / 20),
               Text(
-                LanguageEn.backupwallet,
+                LanguageEn.backupwallets,
                 style: TextStyle(
                     color: notifier.getblck,
                     fontFamily: fontsemibold,
@@ -138,5 +138,6 @@ class _BackupAllState extends State<BackupAll> {
       state.currentAction =
           PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
     }
+    state.viewData![EnsurePrivacyPageConfig.key] = null;
   }
 }

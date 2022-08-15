@@ -9,13 +9,13 @@ import '../router/ui_pages.dart';
 import '../storage/state.dart';
 import '../utils/enstring.dart';
 
-late ColorNotifier notifier;
+// late ColorNotifier notifier;
 
 popup(context,
     {required String title,
     Color bodyColor = Colors.red,
     required String message}) async {
-  notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   return showDialog(
@@ -166,7 +166,7 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
 }
 
 Future<bool?> accountNotFoundPopup(BuildContext context) {
-  notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
   var appState = Provider.of<DataProvider>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
@@ -304,7 +304,7 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
 }
 
 void ensureBackupPrivacyDialog(context, action) {
-  notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
@@ -436,7 +436,7 @@ void ensureBackupPrivacyDialog(context, action) {
 }
 
 void warnSkipBackupDialog(context, onSkip) {
-  notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
   // var appState = Provider.of<DataProvider>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
@@ -573,7 +573,7 @@ void warnSkipBackupDialog(context, onSkip) {
 }
 
 void showResponseMessage(context, message, successAction) {
-  notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
@@ -710,7 +710,7 @@ void showResponseMessage(context, message, successAction) {
 }
 
 void showSuccessAlert(context, {required onTap}) {
-  notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
@@ -806,7 +806,7 @@ void showSuccessAlert(context, {required onTap}) {
 }
 
 void imageSourceDialog(context, {onCamera, onGallery}) {
-  notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(

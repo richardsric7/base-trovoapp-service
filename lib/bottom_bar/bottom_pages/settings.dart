@@ -171,7 +171,7 @@ class _SettingsState extends State<Settings> {
                     LanguageEn.passwordmanagement),
               ),
               GestureDetector(
-                child: iteamlist(
+                child: hideBalance(
                     "assets/images/eyeoff.png", "", LanguageEn.hidebalance),
               ),
               GestureDetector(
@@ -196,10 +196,6 @@ class _SettingsState extends State<Settings> {
                 ],
               ),
               SizedBox(height: height / 50),
-              GestureDetector(
-                child: iteamlist(
-                    "assets/images/coins.png", "", LanguageEn.curatedassets),
-              ),
               GestureDetector(
                 onTap: () => appState.currentAction = PageAction(
                     state: PageState.addPage, page: ImportWalletPageConfig),
@@ -377,12 +373,12 @@ class _SettingsState extends State<Settings> {
             ),
             const Spacer(),
             SizedBox(width: width / 100),
-            Row(
-              children: [
-                Container(
-                  width: width / 4.5,
-                  height: 20,
-                  child: Expanded(
+            Container(
+              width: width / 4.5,
+              height: 20,
+              child: Row(
+                children: [
+                  Expanded(
                     child: DropdownButtonFormField(
                       isExpanded: true,
                       value: 'Testnet',
@@ -424,8 +420,8 @@ class _SettingsState extends State<Settings> {
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             SizedBox(width: width / 20),
           ],
@@ -458,15 +454,15 @@ class _SettingsState extends State<Settings> {
             ),
             const Spacer(),
             SizedBox(width: width / 100),
-            Row(
-              children: [
-                Container(
-                  width: width / 4,
-                  height: 20,
-                  child: Expanded(
+            Container(
+              width: width / 3.5,
+              height: 20,
+              child: Row(
+                children: [
+                  Expanded(
                     child: DropdownButtonFormField(
                       isExpanded: true,
-                      value: '5',
+                      value: appState.timeout,
                       icon: Visibility(
                           visible: false, child: Icon(Icons.arrow_downward)),
                       decoration: InputDecoration(
@@ -486,7 +482,8 @@ class _SettingsState extends State<Settings> {
                         fontFamily: fontsemibold,
                         fontWeight: FontWeight.w500,
                       ),
-                      onChanged: (newValue) {
+                      onChanged: (newValue) async {
+                        await StoreData().storeInsertData('timeOut', newValue);
                         setState(() {});
                       },
                       items: <DropdownMenuItem<String>>[
@@ -523,8 +520,8 @@ class _SettingsState extends State<Settings> {
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             SizedBox(width: width / 20),
           ],
@@ -631,6 +628,50 @@ class _SettingsState extends State<Settings> {
                 value: appState.biometricEnabled,
                 onChanged: (val) async {
                   toggleBiometrics();
+                },
+              ),
+            ),
+            SizedBox(width: width / 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget hideBalance(image, txt, name) {
+    return Container(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: Row(
+          children: [
+            SizedBox(width: width / 25),
+            Image.asset(
+              image,
+              height: height / 30,
+              color: notifier.getbluecolor,
+            ),
+            SizedBox(width: width / 40),
+            Text(
+              name,
+              style: TextStyle(
+                  color: notifier.getblck,
+                  fontSize: 15.sp,
+                  fontFamily: 'Gilroy_Medium'),
+            ),
+            const Spacer(),
+            SizedBox(width: width / 100),
+            Transform.scale(
+              scale: 0.7,
+              child: CupertinoSwitch(
+                activeColor: notifier.getbluecolor,
+                value: appState.hideBalances,
+                onChanged: (val) async {
+                  setState(() {
+                    appState.hideBalances = !appState.hideBalances;
+                    StoreData()
+                        .storeInsertData('hideBalances', appState.hideBalances);
+                  });
                 },
               ),
             ),

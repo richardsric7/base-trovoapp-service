@@ -15,10 +15,11 @@ import '../../utils/medeiaqury/medeiaqury.dart';
 class Congratulations extends StatelessWidget {
   Congratulations({Key? key}) : super(key: key);
   late DataProvider appState;
+  late ColorNotifier notifier;
 
   @override
   Widget build(BuildContext context) {
-    var notifier = Provider.of<ColorNotifier>(context, listen: true);
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
     appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -67,6 +68,7 @@ class Congratulations extends StatelessWidget {
                     context,
                     () {
                       Navigator.of(context).pop();
+                      appState.viewData![EnsurePrivacyPageConfig.key] = null;
                       appState.currentAction = PageAction(
                           state: PageState.addPage,
                           page: EnsurePrivacyPageConfig);

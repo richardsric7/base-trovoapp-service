@@ -12,6 +12,8 @@ class DataProvider with ChangeNotifier {
   List<String> secretKeys = [];
   bool isDark = false;
   bool biometricEnabled = false;
+  bool hideBalances = false;
+  String timeout = '5'; // 5 minutes
   String? password;
   var assetBalances;
   var nfts;

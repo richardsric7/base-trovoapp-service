@@ -139,35 +139,35 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                 ],
               ),
               SizedBox(height: height / 20),
-              if (appState.biometricEnabled) ...[
-                Button(
-                  LanguageEn.authorizewithbiometrics,
-                  notifier.getbluecolor,
-                  notifier.getwihitecolor,
-                  onTap: () {
-                    final form = _formKey.currentState;
-                    if (!form!.validate()) {
-                      return;
-                    }
-                    form.save();
-                    toggleSwitch();
-                  },
-                ),
-              ] else ...[
-                Button(
-                  LanguageEn.changepassword,
-                  notifier.getbluecolor,
-                  notifier.getwihitecolor,
-                  onTap: () {
-                    final form = _formKey.currentState;
-                    if (!form!.validate()) {
-                      return;
-                    }
-                    form.save();
-                    changePassword();
-                  },
-                ),
-              ],
+              // if (appState.biometricEnabled) ...[
+              //   Button(
+              //     LanguageEn.authorizewithbiometrics,
+              //     notifier.getbluecolor,
+              //     notifier.getwihitecolor,
+              //     onTap: () {
+              //       final form = _formKey.currentState;
+              //       if (!form!.validate()) {
+              //         return;
+              //       }
+              //       form.save();
+              //       toggleSwitch();
+              //     },
+              //   ),
+              // ] else ...[
+              Button(
+                LanguageEn.changepassword,
+                notifier.getbluecolor,
+                notifier.getwihitecolor,
+                onTap: () {
+                  final form = _formKey.currentState;
+                  if (!form!.validate()) {
+                    return;
+                  }
+                  form.save();
+                  changePassword();
+                },
+              ),
+              // ],
               SizedBox(height: height / 10),
               Padding(
                 padding: EdgeInsets.only(

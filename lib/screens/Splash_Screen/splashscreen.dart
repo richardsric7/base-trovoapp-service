@@ -100,8 +100,11 @@ class _SplashScreenState extends State<SplashScreen>
         appState.setUser = UserInfo().deserializeJson(data);
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');
         appState.setPassword = await StoreData().storeGetData('password');
+        appState.timeout = await StoreData().storeGetData('timeOut');
         appState.biometricEnabled =
             await StoreData().storeGetData('biometricsEnabled') ?? false;
+        appState.hideBalances =
+            await StoreData().storeGetData('hideBalances') ?? false;
         appState.assetBalances =
             await StoreData().storeGetData('assetBalances');
         appState.setNFTs = await StoreData().storeGetData('nfts');

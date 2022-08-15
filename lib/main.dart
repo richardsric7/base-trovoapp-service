@@ -41,9 +41,7 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   TrovoWalletBackButtonDispatcher? backButtonDispatcher;
   final appState = DataProvider();
-  late Timer? _timer;
-  PageAction logoutRoute =
-      PageAction(state: PageState.replaceAll, page: LoginPageConfig);
+  Timer? _timer;
   TrovoWalletRouterDelegate? delegate;
   final parser = TrovoWalletRouteParser();
 
@@ -66,18 +64,24 @@ class _AppState extends State<App> {
         ChangeNotifierProvider<ColorNotifier>(create: (_) => ColorNotifier()),
         ChangeNotifierProvider<DataProvider>(create: (_) => appState)
       ],
-      child: MaterialApp.router(
-        routerDelegate: delegate!,
-        routeInformationParser: parser,
-        backButtonDispatcher: backButtonDispatcher,
-        debugShowCheckedModeBanner: false,
+      child: GestureDetector(
+        onTap: _initializeTimer,
+        onPanDown: (_) => _initializeTimer(),
+        onScaleStart: (_) => _initializeTimer(),
+        child: MaterialApp.router(
+          routerDelegate: delegate!,
+          routeInformationParser: parser,
+          backButtonDispatcher: backButtonDispatcher,
+          debugShowCheckedModeBanner: false,
+        ),
       ),
     );
   }
 
   void _initializeTimer() async {
+    print('------------------timer initialized--------------------');
     String? time = await StoreData().storeGetData('timeOut');
-
+    print('this is timeout: $time');
     int? timeOut = int.tryParse(time == null ? '5' : time);
 
     // print('Timer init And Timeout is $timeOut........... ');
@@ -97,13 +101,12 @@ class _AppState extends State<App> {
     bool isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
     if (isFirstTime) {
       setState(() {
-        logoutRoute =
+        appState.currentAction =
             PageAction(state: PageState.replaceAll, page: OnboardingPageConfig);
       });
     } else {
-      await StoreData().storeInsertData('logoutMode', '1');
       setState(() {
-        logoutRoute =
+        appState.currentAction =
             PageAction(state: PageState.replaceAll, page: LoginPageConfig);
       });
     }

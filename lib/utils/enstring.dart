@@ -298,6 +298,8 @@ class LanguageEn {
 
   static String get backupwallet => "Backup Wallet";
 
+  static String get backupwallets => "Backup Wallets";
+
   static String get ensureprivacybackup =>
       "Ensure no one is looking while you back up your wallet. Anyone with your secret key can access your Trovo wallet.";
 
