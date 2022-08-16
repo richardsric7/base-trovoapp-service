@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
@@ -683,7 +684,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           height: height / 98.0,
                         ),
                         Text(
-                          '2,082,898 NGN',
+                          appState.hideBalances
+                              ? hideBalanceText
+                              : '2,082,898 NGN',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -693,7 +696,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         ),
                         SizedBox(height: 2),
                         Text(
-                          '4,014 USD',
+                          appState.hideBalances ? hideBalanceText : '4,014 USD',
                           style: TextStyle(
                             fontWeight: FontWeight.w300,
                             fontSize: 13,
@@ -768,7 +771,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  formatNumber(double.parse(asset["amount"])),
+                  appState.hideBalances
+                      ? hideBalanceText
+                      : formatNumber(double.parse(asset["amount"])),
                   style: TextStyle(
                     fontSize: 12,
                     fontFamily: fontsemibold,
@@ -778,7 +783,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
-                    '146,875 NGN',
+                    appState.hideBalances ? hideBalanceText : '146,875 NGN',
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,

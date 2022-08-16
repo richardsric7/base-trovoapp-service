@@ -5,3 +5,4 @@ String nativeAssetCode = 'XBN';
 String nativeAssetIssuer = 'Native Token';
 String bantuBlockchainExplorerBaseUrl =
     'https://explorer-testnet.bantu.network/tx/';
+String hideBalanceText = '********';

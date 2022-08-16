@@ -205,7 +205,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         onSaved: (value) =>
                             amount = value.trim().replaceAll(' ', ''),
                       ),
-                      if (sourceAsset != null) ...[
+                      if (sourceAsset != null && !appState.hideBalances) ...[
                         availableBalance(),
                         SizedBox(
                           height: height / 50,

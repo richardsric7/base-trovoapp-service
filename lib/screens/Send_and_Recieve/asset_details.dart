@@ -381,7 +381,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   height: height / 98.0,
                 ),
                 Text(
-                  '2,082,898 NGN',
+                  appState.hideBalances ? hideBalanceText : '2,082,898 NGN',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -391,7 +391,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 ),
                 SizedBox(height: 2),
                 Text(
-                  '4,014 USD',
+                  appState.hideBalances ? hideBalanceText : '4,014 USD',
                   style: TextStyle(
                     fontWeight: FontWeight.w300,
                     fontSize: 13,

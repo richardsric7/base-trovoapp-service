@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
@@ -199,6 +201,19 @@ class _WalletDetailsState extends State<WalletDetails>
                                           },
                                           child: tiles(asset)),
                                     ],
+                                    SizedBox(
+                                      height: height / 20,
+                                    ),
+                                    Button(
+                                      LanguageEn.dashboard,
+                                      notifier.getbluecolor,
+                                      notifier.getwihitecolor,
+                                      onTap: () {
+                                        appState.currentAction = PageAction(
+                                            state: PageState.replaceAll,
+                                            page: BottomHomePageConfig);
+                                      },
+                                    ),
                                   ] else ...[
                                     Container(
                                       height: height / 3,
@@ -321,18 +336,18 @@ class _WalletDetailsState extends State<WalletDetails>
                                 // in situations where the blockchain has an issue,
                                 // some values can be returned as null or empty
                                 // so always null check for such situations
-                                if (nfts != null && nfts != {}) ...[
-                                  if (nfts[activeWallet!.publicKey] != null &&
-                                      nfts[activeWallet!.publicKey].length >
-                                          0) ...[
-                                    gridView(),
-                                    SizedBox(height: 600),
-                                  ] else ...[
-                                    showEmptyNFTs(),
-                                  ]
-                                ] else ...[
-                                  showEmptyNFTs(),
-                                ],
+                                // if (nfts != null && nfts != {}) ...[
+                                //   if (nfts[activeWallet!.publicKey] != null &&
+                                //       nfts[activeWallet!.publicKey].length >
+                                //           0) ...[
+                                gridView(),
+                                //     SizedBox(height: 600),
+                                //   ] else ...[
+                                //     showEmptyNFTs(),
+                                //   ]
+                                // ] else ...[
+                                //   showEmptyNFTs(),
+                                // ],
                               ],
                             ),
                           ),
@@ -542,7 +557,7 @@ class _WalletDetailsState extends State<WalletDetails>
                   height: height / 98.0,
                 ),
                 Text(
-                  '2,082,898 NGN',
+                  appState.hideBalances ? hideBalanceText : '2,082,898 NGN',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -552,7 +567,7 @@ class _WalletDetailsState extends State<WalletDetails>
                 ),
                 SizedBox(height: 2),
                 Text(
-                  '4,014 USD',
+                  appState.hideBalances ? hideBalanceText : '4,014 USD',
                   style: TextStyle(
                     fontWeight: FontWeight.w300,
                     fontSize: 13,
@@ -618,7 +633,7 @@ class _WalletDetailsState extends State<WalletDetails>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  asset["amount"],
+                  appState.hideBalances ? hideBalanceText : asset["amount"],
                   style: TextStyle(
                     fontSize: 12,
                     fontFamily: fontsemibold,
@@ -628,7 +643,7 @@ class _WalletDetailsState extends State<WalletDetails>
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
-                    '146,875 NGN',
+                    appState.hideBalances ? hideBalanceText : '146,875 NGN',
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,

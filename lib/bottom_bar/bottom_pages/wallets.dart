@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
@@ -278,7 +279,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   padding:
                       const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                   child: Text(
-                    balance,
+                    appState.hideBalances ? hideBalanceText : balance,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -291,7 +292,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   padding:
                       const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                   child: Text(
-                    usdBal,
+                    appState.hideBalances ? hideBalanceText : usdBal,
                     style: TextStyle(
                       fontSize: 13,
                       fontFamily: fontbody,
@@ -367,7 +368,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     walletName,
@@ -385,7 +385,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               Row(
                 children: [
                   Text(
-                    balance,
+                    appState.hideBalances ? hideBalanceText : balance,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -405,7 +405,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               ),
               SizedBox(height: height / 80),
               Text(
-                balanceUsd,
+                appState.hideBalances ? hideBalanceText : balanceUsd,
                 style: TextStyle(
                   fontWeight: FontWeight.w300,
                   fontSize: 13,
