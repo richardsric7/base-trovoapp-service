@@ -24,6 +24,12 @@ class LanguageEn {
 
   static String get minutes => 'minutes';
 
+  static String get chooseasset => 'Choose asset';
+
+  static String get swapfrom => 'Swap From';
+
+  static String get swapto => 'Swap To';
+
   static String get chooseimagesource => 'Choose Image Source';
 
   static String get gallery => 'Gallery';

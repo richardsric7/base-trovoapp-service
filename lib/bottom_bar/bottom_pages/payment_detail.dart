@@ -46,6 +46,7 @@ class _PaymentDetails extends State<PaymentDetails>
   double? amount;
   String? assetCode;
   String? date;
+  String memo = '';
 
   @override
   void initState() {
@@ -60,16 +61,31 @@ class _PaymentDetails extends State<PaymentDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![PaymentDetailsViewPageConfig.key];
-    transactionType = viewData.fromPublicKey == activeWallet!.publicKey
-        ? TransactionType.Send
-        : TransactionType.Receive;
+    transactionType = TransactionType.Receive;
+    name = '${extractUsername(viewData.from!)}';
+    publicKey = viewData.fromPublicKey;
+    memo = viewData.memo!;
 
-    name =
-        transactionType == TransactionType.Send ? viewData.to : viewData.from;
+    // if record.from is same as the current active wallet public key
+    // then it was a send transaction
+    if (viewData.fromPublicKey == activeWallet!.publicKey) {
+      transactionType = TransactionType.Send;
+      name = '${extractUsername(viewData.to!)}';
+      publicKey = viewData.toPublicKey;
+    }
 
-    publicKey = transactionType == TransactionType.Send
-        ? viewData.toPublicKey
-        : viewData.fromPublicKey;
+    if (viewData.transactionType!.contains('SWAP')) {
+      transactionType = TransactionType.Swap;
+      var splitResult = viewData.memo!.split('>');
+      memo = "Swapped ${splitResult[0]} to ${splitResult[1]}";
+    }
+
+    // name =
+    //     transactionType == TransactionType.Send ? viewData.to : viewData.from;
+
+    // publicKey = transactionType == TransactionType.Send
+    //     ? viewData.toPublicKey
+    //     : viewData.fromPublicKey;
 
     amount = viewData.amount;
 
@@ -124,30 +140,32 @@ class _PaymentDetails extends State<PaymentDetails>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
-                        child: Text(
-                          transactionType == TransactionType.Send
-                              ? LanguageEn.sentto
-                              : LanguageEn.receivedfrom,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: notifier.getbluecolor,
-                            fontSize: 16.sp,
-                            fontFamily: fontsemibold,
+                      if (TransactionType.Swap != transactionType) ...[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
+                          child: Text(
+                            transactionType == TransactionType.Send
+                                ? LanguageEn.sentto
+                                : LanguageEn.receivedfrom,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: notifier.getbluecolor,
+                              fontSize: 16.sp,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 5,
-                      ),
-                      showUserInfo(),
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      Divider(
-                        height: 5,
-                      ),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        showUserInfo(),
+                        SizedBox(
+                          height: height / 50,
+                        ),
+                        Divider(
+                          height: 5,
+                        ),
+                      ],
                       SizedBox(
                         height: height / 90,
                       ),
@@ -171,7 +189,7 @@ class _PaymentDetails extends State<PaymentDetails>
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: Text(
-                            viewData.memo!,
+                            memo,
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               color: notifier.getbluecolor,
@@ -293,7 +311,7 @@ class _PaymentDetails extends State<PaymentDetails>
                       name.toString().isEmpty
                           ? truncate(publicKey!, length: 5) +
                               publicKey!.substring(publicKey!.length - 5)
-                          : extractUsername(name!),
+                          : name!,
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluecolor,
@@ -309,10 +327,7 @@ class _PaymentDetails extends State<PaymentDetails>
                       onPressed: () => {
                         Clipboard.setData(
                           ClipboardData(
-                            text: name.toString().isEmpty
-                                ? truncate(publicKey!, length: 5) +
-                                    publicKey!.substring(publicKey!.length - 5)
-                                : extractUsername(name!),
+                            text: name.toString().isEmpty ? publicKey : name!,
                           ),
                         ),
                         showSnackBar('Address', context),
@@ -347,11 +362,17 @@ class _PaymentDetails extends State<PaymentDetails>
   }
 
   String extractUsername(String data) {
-    const start = '[';
-    const end = ']';
-    final startIndex = data.indexOf(start);
-    final endIndex = data.indexOf(end);
-    return data.substring(startIndex + start.length, endIndex);
+    print('data $data');
+    if (data.isNotEmpty) {
+      const start = '[';
+      const end = ']';
+      final startIndex = data.indexOf(start);
+      final endIndex = data.indexOf(end);
+      print('data $data');
+      return data.substring(startIndex + start.length, endIndex);
+    }
+
+    return '';
   }
 
   void share() {

@@ -203,7 +203,7 @@ class Payment_HistoryState extends State<PaymentHistory>
     }
 
     return Container(
-      height: height / 2,
+      height: height / 1.8,
       child: Center(
         child: CircularProgressIndicator(
           backgroundColor: notifier.getbluecolor,
@@ -219,20 +219,18 @@ class Payment_HistoryState extends State<PaymentHistory>
   Widget tile(TransactionInfo transaction) {
     // lets start by setting transactionType to receive
     TransactionType transactionType = TransactionType.Receive;
-    var publicKey = transaction.fromPublicKey;
     var amount = transaction.amount;
     var assetCode = transaction.assetCode;
     var date = transaction.transactionDate;
     var name =
-        '${LanguageEn.receivedfrom} ${extractUsername(transaction.from!) ?? truncate(publicKey!)}';
+        '${LanguageEn.receivedfrom} ${extractUsername(transaction.from!) ?? truncate(transaction.fromPublicKey!)}';
 
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
     if (transaction.fromPublicKey == activeWallet!.publicKey) {
       transactionType = TransactionType.Send;
       name =
-          '${LanguageEn.sentto} ${extractUsername(transaction.to!) ?? truncate(publicKey!)}';
-      publicKey = transaction.toPublicKey;
+          '${LanguageEn.sentto} ${extractUsername(transaction.to!) ?? truncate(transaction.toPublicKey!)}';
     }
 
     if (transaction.transactionType!.contains('SWAP')) {
@@ -343,7 +341,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   }
 
   String formatAmount(TransactionType transactionType, amount, assetCode) {
-    var am = formatNumber(double.parse(amount.toString()));
+    var am = formatHistoryNumber(double.parse(amount.toString()));
     return transactionType == TransactionType.Send
         ? '- $am $assetCode'
         : '+ $am $assetCode';
@@ -361,6 +359,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   }
 
   String? extractUsername(String data) {
+    print('data $data');
     if (data.isNotEmpty) {
       const start = '[';
       const end = ']';

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -54,11 +55,35 @@ getAssetIssuer(assetIssuer) {
 }
 
 formatNumber(double number) =>
-    NumberFormat("#,##0.000", "en_US").format(number);
+    NumberFormat("#,##0.0000", "en_US").format(number);
+
+formatHistoryNumber(double number) {
+  // if number is greater than 1million return 1m or 1.2m
+  if (number >= 1000000) {
+    return NumberFormat.compact().format(number);
+  }
+
+  return NumberFormat("#,##0", "en_US").format(number);
+}
 
 String truncate(String text, {length: 7, omission: '...'}) {
   if (length >= text.length) {
     return text;
   }
   return text.replaceRange(length, text.length, omission);
+}
+
+class doubleTypeFormatter extends TextInputFormatter {
+  doubleTypeFormatter();
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    print('this is old value ${oldValue.text}');
+    print('this is new value ${newValue.text}');
+    return TextEditingValue(
+        text: formatNumber(double.parse(newValue.text.replaceAll(',', ''))),
+        selection: TextSelection.collapsed(offset: newValue.selection.end + 1));
+  }
 }

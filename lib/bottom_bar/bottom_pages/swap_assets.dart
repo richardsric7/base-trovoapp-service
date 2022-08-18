@@ -199,6 +199,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         },
                         key: key3,
                         controller: textController,
+                        // inputFormatters: [
+                        //   doubleTypeFormatter(),
+                        // ],
                         keyboardtype:
                             TextInputType.numberWithOptions(decimal: true),
                         validator: validateAmount,
@@ -280,7 +283,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Swap From",
+                    LanguageEn.swapfrom,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -315,11 +318,12 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       hint: Container(
                         width: 150, //and here
                         child: Text(
-                          "Choose asset",
+                          LanguageEn.chooseasset,
                           style: TextStyle(
-                              color: sourceErr
-                                  ? Colors.red
-                                  : notifier.getbluecolor),
+                            color:
+                                sourceErr ? Colors.red : notifier.getbluecolor,
+                            fontFamily: fontbody,
+                          ),
                           textAlign: TextAlign.end,
                         ),
                       ),
@@ -348,11 +352,17 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         return null;
                       },
                       onChanged: (newValue) {
+                        print('this is new value: $newValue');
+                        var splitNewValue = newValue!.split('|');
                         setState(() {
                           sourceAsset = claimedAssets.firstWhere(
-                              (asset) => asset['assetIssuer'] == newValue);
+                            (asset) =>
+                                asset['assetIssuer'] == splitNewValue[0] &&
+                                asset['assetCode'] == splitNewValue[1],
+                          );
                           sourceErr = false;
                         });
+                        print('this is source asset: $sourceAsset');
                       },
                       items:
                           dropdownItemBuilder(claimedAssets, destinationAsset),
@@ -365,7 +375,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                   ),
                   SizedBox(height: height / 25),
                   Text(
-                    "Swap To",
+                    LanguageEn.swapto,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -400,10 +410,11 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       hint: Container(
                         width: 150, //and here
                         child: Text(
-                          "Choose asset",
+                          LanguageEn.chooseasset,
                           style: TextStyle(
-                              color:
-                                  destErr ? Colors.red : notifier.getbluecolor),
+                            color: destErr ? Colors.red : notifier.getbluecolor,
+                            fontFamily: fontbody,
+                          ),
                           textAlign: TextAlign.end,
                         ),
                       ),
@@ -413,10 +424,11 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       ),
                       elevation: 0,
                       style: TextStyle(
-                          color: notifier.getbluecolor,
-                          fontSize: 15,
-                          fontFamily: fontsemibold,
-                          fontWeight: FontWeight.w500),
+                        color: notifier.getbluecolor,
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
                       validator: (value) {
                         if (destinationAsset == null) {
                           setState(() {
@@ -432,11 +444,17 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         return null;
                       },
                       onChanged: (newValue) {
+                        print('this is new destination value: $newValue');
+                        var splitNewValue = newValue!.split('|');
                         setState(() {
                           destinationAsset = claimedAssets.firstWhere(
-                              (asset) => asset['assetIssuer'] == newValue);
+                            (asset) =>
+                                asset['assetIssuer'] == splitNewValue[0] &&
+                                asset['assetCode'] == splitNewValue[1],
+                          );
                           destErr = false;
                         });
+                        print('this is destination asset: $sourceAsset');
                       },
                       items: dropdownItemBuilder(claimedAssets, sourceAsset),
                     ),
@@ -555,7 +573,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     }
     return assetList.map<DropdownMenuItem<String>>((asset) {
       return DropdownMenuItem<String>(
-        value: asset['assetIssuer'],
+        value: '${asset['assetIssuer']}|${asset["assetCode"]}',
         child: Row(
           children: [
             CircleAvatar(
@@ -574,9 +592,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                     : asset["assetCode"],
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.bold,
+                  // fontWeight: FontWeight.bold,
                   color: notifier.getbluecolor,
-                  fontFamily: fontsemibold,
+                  fontFamily: fontbody,
                 ),
               ),
             ),

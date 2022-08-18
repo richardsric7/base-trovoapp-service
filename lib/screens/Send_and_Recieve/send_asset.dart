@@ -40,6 +40,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
   String? memo;
   var asset;
   TextEditingController _utf8TextController = TextEditingController();
+  final textController = TextEditingController();
 
   @override
   void initState() {
@@ -219,6 +220,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                           amount = value;
                         });
                       },
+                      controller: textController,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                       validator: validateAmount,
