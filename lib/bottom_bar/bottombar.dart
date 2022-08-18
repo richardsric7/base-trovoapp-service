@@ -48,7 +48,7 @@ class _BottomHomeState extends State<BottomHome> {
           items: [
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: SvgPicture.asset("assets/images/home.svg",
+                icon: Image.asset("assets/images/home.png",
                     color: _selectedIndex == 0
                         ? notifire.getbluecolor
                         : notifire.getblck,
@@ -56,7 +56,7 @@ class _BottomHomeState extends State<BottomHome> {
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: SvgPicture.asset("assets/images/wallets.svg",
+                icon: Image.asset("assets/images/wallets.png",
                     color: _selectedIndex == 1
                         ? notifire.getbluecolor
                         : notifire.getblck,
@@ -64,7 +64,7 @@ class _BottomHomeState extends State<BottomHome> {
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: SvgPicture.asset("assets/images/history.svg",
+                icon: Image.asset("assets/images/history.png",
                     color: _selectedIndex == 2
                         ? notifire.getbluecolor
                         : notifire.getblck,
@@ -72,7 +72,7 @@ class _BottomHomeState extends State<BottomHome> {
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: SvgPicture.asset("assets/images/swap.svg",
+                icon: Image.asset("assets/images/swap.png",
                     color: _selectedIndex == 3
                         ? notifire.getbluecolor
                         : notifire.getblck,
@@ -80,11 +80,11 @@ class _BottomHomeState extends State<BottomHome> {
                 label: ''),
             BottomNavigationBarItem(
               backgroundColor: notifire.getwihitecolor,
-              icon: SvgPicture.asset("assets/images/settings.svg",
+              icon: Image.asset("assets/images/settings.png",
                   color: _selectedIndex == 4
                       ? notifire.getbluecolor
                       : notifire.getblck,
-                  height: height / 35),
+                  height: height / 33),
               label: '',
             ),
           ],
