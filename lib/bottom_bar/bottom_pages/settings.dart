@@ -65,15 +65,15 @@ class _SettingsState extends State<Settings> {
                 height: height / 15,
               ),
               Center(
-                child: Image.asset("assets/images/avatar.png",
-                    height: height / 10),
+                child:
+                    Image.asset("assets/images/obi.png", height: height / 10),
               ),
               SizedBox(height: height / 70),
               Text(
-                LanguageEn.hirenjoshi,
+                'Obi Enechi',
                 style: TextStyle(
                     color: notifier.getblck,
-                    fontFamily: 'Gilroy_Bold',
+                    fontFamily: fontsemibold,
                     fontSize: 16.sp),
               ),
               SizedBox(height: height / 20),
@@ -93,7 +93,7 @@ class _SettingsState extends State<Settings> {
                     style: TextStyle(
                         color: notifier.getgrey,
                         fontSize: 13.sp,
-                        fontFamily: 'Gilroy_Bold'),
+                        fontFamily: fontsemibold),
                   ),
                 ],
               ),
@@ -129,7 +129,7 @@ class _SettingsState extends State<Settings> {
                     style: TextStyle(
                         color: notifier.getgrey,
                         fontSize: 13.sp,
-                        fontFamily: 'Gilroy_Bold'),
+                        fontFamily: fontsemibold),
                   ),
                 ],
               ),
@@ -155,7 +155,7 @@ class _SettingsState extends State<Settings> {
                     style: TextStyle(
                         color: notifier.getgrey,
                         fontSize: 13.sp,
-                        fontFamily: 'Gilroy_Bold'),
+                        fontFamily: fontsemibold),
                   ),
                 ],
               ),
@@ -191,7 +191,7 @@ class _SettingsState extends State<Settings> {
                     style: TextStyle(
                         color: notifier.getgrey,
                         fontSize: 13.sp,
-                        fontFamily: 'Gilroy_Bold'),
+                        fontFamily: fontsemibold),
                   ),
                 ],
               ),
@@ -226,7 +226,7 @@ class _SettingsState extends State<Settings> {
                     style: TextStyle(
                         color: notifier.getgrey,
                         fontSize: 13.sp,
-                        fontFamily: 'Gilroy_Bold'),
+                        fontFamily: fontsemibold),
                   ),
                 ],
               ),
@@ -336,8 +336,8 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 15.sp,
-                  fontFamily: 'Gilroy_Medium'),
+                  fontSize: 14.sp,
+                  fontFamily: fontsemibold),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -368,8 +368,8 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 15.sp,
-                  fontFamily: 'Gilroy_Medium'),
+                  fontSize: 13.sp,
+                  fontFamily: fontsemibold),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -449,8 +449,8 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 15.sp,
-                  fontFamily: 'Gilroy_Medium'),
+                  fontSize: 13.sp,
+                  fontFamily: fontsemibold),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -489,31 +489,31 @@ class _SettingsState extends State<Settings> {
                       items: <DropdownMenuItem<String>>[
                         DropdownMenuItem(
                             child: Text(
-                              '1 minute',
+                              '1 ${LanguageEn.minute}',
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: '1'),
                         DropdownMenuItem(
                             child: Text(
-                              '2 minutes',
+                              '2 ${LanguageEn.minutes}',
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: '2'),
                         DropdownMenuItem(
                             child: Text(
-                              '5 minutes',
+                              '5 ${LanguageEn.minutes}',
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: '5'),
                         DropdownMenuItem(
                             child: Text(
-                              '10 minutes',
+                              '10 ${LanguageEn.minutes}',
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: '10'),
                         DropdownMenuItem(
                             child: Text(
-                              '15 minutes',
+                              '15 ${LanguageEn.minutes}',
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: '15'),
@@ -546,8 +546,8 @@ class _SettingsState extends State<Settings> {
             name,
             style: TextStyle(
                 color: notifier.getblck,
-                fontSize: 15.sp,
-                fontFamily: 'Gilroy_Medium'),
+                fontSize: 13.sp,
+                fontFamily: fontsemibold),
           ),
         ],
       ),
@@ -572,8 +572,8 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 15.sp,
-                  fontFamily: 'Gilroy_Medium'),
+                  fontSize: 13.sp,
+                  fontFamily: fontsemibold),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -616,8 +616,8 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 15.sp,
-                  fontFamily: 'Gilroy_Medium'),
+                  fontSize: 13.sp,
+                  fontFamily: fontsemibold),
             ),
             const Spacer(),
             SizedBox(width: width / 100),
@@ -656,8 +656,8 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 15.sp,
-                  fontFamily: 'Gilroy_Medium'),
+                  fontSize: 13.sp,
+                  fontFamily: fontsemibold),
             ),
             const Spacer(),
             SizedBox(width: width / 100),

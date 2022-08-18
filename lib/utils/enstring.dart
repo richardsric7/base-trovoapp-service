@@ -20,6 +20,10 @@ class LanguageEn {
 
   static String get camera => 'Camera';
 
+  static String get minute => 'minute';
+
+  static String get minutes => 'minutes';
+
   static String get chooseimagesource => 'Choose Image Source';
 
   static String get gallery => 'Gallery';

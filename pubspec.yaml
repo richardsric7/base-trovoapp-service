@@ -148,6 +148,15 @@ flutter:
     - family: Matahari_Regular
       fonts:
         - asset: assets/fonts/Matahari-400Regular.ttf
+    - family: Montserrat_Regular
+      fonts:
+        - asset: assets/fonts/Montserrat-Regular.ttf
+    - family: Montserrat_SemiBold
+      fonts:
+        - asset: assets/fonts/Montserrat-SemiBold.ttf
+    - family: Montserrat_Medium
+      fonts:
+        - asset: assets/fonts/Montserrat-Medium.ttf
         
   
   #

@@ -338,7 +338,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
 
   Widget walletListItem(walletName, balance, balanceUsd, color) {
     return Container(
-      height: height / 7,
+      height: height / 6.6,
       margin: EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(20.0)),

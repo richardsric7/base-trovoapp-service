@@ -1,2 +1,2 @@
-String fontsemibold = 'Matahari_Semi_Bold';
-String fontbody = 'Matahari_Regular';
+String fontsemibold = 'Montserrat_SemiBold';
+String fontbody = 'Montserrat_Regular';

@@ -428,8 +428,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     child: CircleAvatar(
                       radius: 30,
                       backgroundColor: notifier.getwihitecolor,
-                      foregroundImage:
-                          AssetImage("assets/images/default-user.png"),
+                      foregroundImage: AssetImage("assets/images/obi.png"),
                     )),
                 SizedBox(
                   width: width / 70,
@@ -608,8 +607,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   Widget walletSlides(List<Wallet> wallets) {
-    // var thiswallets = [1, 2, 3];
-    var colors = [notifier.getbluecolor, Colors.red, Colors.green];
+    var colors = [
+      notifier.getbluecolor,
+      Colors.lightBlue,
+      Colors.green,
+      Colors.deepOrangeAccent,
+      Colors.purple,
+      Colors.lightBlue
+    ];
     return CarouselSlider(
       options: CarouselOptions(
         onPageChanged: ((index, reason) => {
@@ -636,8 +641,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                  color: colors[0],
-                  // color: colors[i - 1],
+                  // color: colors[0],
+                  color: colors[wallets.indexOf(wallet)],
                 ),
                 child: Stack(children: [
                   Row(
@@ -652,7 +657,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 35.0),
+                        horizontal: 20.0, vertical: 25.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
