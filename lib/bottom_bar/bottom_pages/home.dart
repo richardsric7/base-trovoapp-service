@@ -18,7 +18,8 @@ import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+  final void Function(int) onButtonPressed;
+  const Home({Key? key, required this.onButtonPressed}) : super(key: key);
 
   @override
   State<Home> createState() => _HomeState();
@@ -33,6 +34,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   var assetBalances;
   var nfts;
   List<Wallet>? wallets;
+  List<Wallet>? carouselWallets;
   String? activeWallet;
   var claimedAssets;
   var unclaimedAssets;
@@ -71,6 +73,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     userInfo = appState.userInfo!;
     assetBalances = appState.assetBalances;
     wallets = userInfo.wallets!;
+    carouselWallets =
+        wallets!.length > 7 ? wallets!.getRange(0, 7).toList() : wallets;
     nfts = appState.nfts;
     if (activeWallet == null && wallets!.length > 0) {
       activeWallet = wallets![0].publicKey;
@@ -609,11 +613,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   Widget walletSlides(List<Wallet> wallets) {
     var colors = [
       notifier.getbluecolor,
-      Colors.lightBlue,
-      Colors.green,
-      Colors.deepOrangeAccent,
-      Colors.purple,
-      Colors.lightBlue
+      notifier.getbluecolor90,
+      notifier.getbluecolor80,
+      notifier.getbluecolor70,
+      notifier.getbluecolor60,
+      notifier.getbluecolor50,
     ];
     return CarouselSlider(
       options: CarouselOptions(
@@ -633,86 +637,162 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         clipBehavior: Clip.antiAlias,
         viewportFraction: wallets.length > 1 ? 0.9 : 1,
       ),
-      items: wallets.map((wallet) {
+      items: carouselWallets!.map((wallet) {
+        var indexOfWallet = wallets.indexOf(wallet);
         return Builder(
           builder: (BuildContext context) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                  // color: colors[0],
-                  color: colors[wallets.indexOf(wallet)],
-                ),
-                child: Stack(children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 35.0, horizontal: 20),
-                        child: Image.asset('assets/images/trovo_white.png'),
-                      ),
-                    ],
+            if (indexOfWallet < 6) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                    // color: colors[0],
+                    color: colors[wallets.indexOf(wallet)],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 25.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Stack(children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Text(
-                          wallet.alias!.capitalizeFirst!,
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: notifier.getwihitecolor,
-                              fontFamily: fontsemibold),
-                        ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              LanguageEn.totalbalance,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w400,
-                                color: notifier.getwihitecolor,
-                                fontFamily: fontbody,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: height / 98.0,
-                        ),
-                        Text(
-                          appState.hideBalances
-                              ? hideBalanceText
-                              : '2,082,898 NGN',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontsemibold,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          appState.hideBalances ? hideBalanceText : '4,014 USD',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w300,
-                            fontSize: 13,
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontbody,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 35.0, horizontal: 20),
+                          child: Image.asset(
+                            'assets/images/trovo_white.png',
+                            color: indexOfWallet > 3
+                                ? notifier.getbluecolor
+                                : notifier.getwihitecolor,
                           ),
                         ),
                       ],
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 25.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            wallet.alias!.capitalizeFirst!,
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: indexOfWallet > 3
+                                    ? notifier.getbluecolor
+                                    : notifier.getwihitecolor,
+                                fontFamily: fontsemibold),
+                          ),
+                          SizedBox(
+                            height: height / 50,
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                LanguageEn.totalbalance,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w400,
+                                  color: indexOfWallet > 3
+                                      ? notifier.getbluecolor
+                                      : notifier.getwihitecolor,
+                                  fontFamily: fontbody,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: height / 98.0,
+                          ),
+                          Text(
+                            appState.hideBalances
+                                ? hideBalanceText
+                                : '2,082,898 NGN',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: indexOfWallet > 3
+                                  ? notifier.getbluecolor
+                                  : notifier.getwihitecolor,
+                              fontFamily: fontsemibold,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            appState.hideBalances
+                                ? hideBalanceText
+                                : '4,014 USD',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w300,
+                              fontSize: 13,
+                              color: indexOfWallet > 3
+                                  ? notifier.getbluecolor
+                                  : notifier.getwihitecolor,
+                              fontFamily: fontbody,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
+              );
+            }
+
+            return GestureDetector(
+              onTap: () {
+                // moves user to the wallets list tab
+                widget.onButtonPressed(1);
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                    color: colors[0],
+                    // color: colors[wallets.indexOf(wallet)],
                   ),
-                ]),
+                  child: Stack(children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 35.0, horizontal: 20),
+                          child: Image.asset('assets/images/trovo_white.png'),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 25.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                LanguageEn.taptoviewall,
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: notifier.getwihitecolor,
+                                    fontFamily: fontsemibold),
+                              ),
+                              SizedBox(
+                                width: width / 50,
+                              ),
+                              Icon(
+                                Icons.arrow_forward,
+                                color: notifier.getwihitecolor,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
               ),
             );
           },

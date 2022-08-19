@@ -1,3 +1,4 @@
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -62,15 +63,18 @@ class _SettingsState extends State<Settings> {
           child: Column(
             children: [
               SizedBox(
-                height: height / 15,
+                height: height / 10,
               ),
               Center(
-                child:
-                    Image.asset("assets/images/obi.png", height: height / 10),
+                child: Image.asset(
+                  "assets/images/obi.png",
+                  height: height / 10,
+                  fit: BoxFit.fill,
+                ),
               ),
               SizedBox(height: height / 70),
               Text(
-                'Obi Enechi',
+                '${appState.userInfo!.firstName} ${appState.userInfo!.lastName}',
                 style: TextStyle(
                     color: notifier.getblck,
                     fontFamily: fontsemibold,
@@ -263,11 +267,12 @@ class _SettingsState extends State<Settings> {
   }
 
   Future<void> share() async {
+    var label = await FirebaseRemoteConfig.instance
+        .getString('wallet_referral_share_label');
     await FlutterShare.share(
-        title: 'Example share',
-        text: 'Example share text',
-        linkUrl: 'https://flutter.dev/',
-        chooserTitle: 'Example Chooser Title');
+      title: 'Trovo Wallet',
+      text: label,
+    );
   }
 
   Widget invitefriend(colorbutton, buttontext, buttontextcolor) {

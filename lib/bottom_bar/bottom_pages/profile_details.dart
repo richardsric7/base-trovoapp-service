@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +22,8 @@ class ProfileDetails extends StatefulWidget {
 
 class _ProfileDetailsState extends State<ProfileDetails> {
   late ColorNotifier notifier;
+  late DataProvider appState;
+
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -40,6 +43,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
   @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
+    appState = Provider.of<DataProvider>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
@@ -72,21 +76,24 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                   );
                 },
                 child: Center(
-                  child: Image.asset("assets/images/avatar.png",
-                      height: height / 10),
+                  child: Image.asset(
+                    "assets/images/obi.png",
+                    height: height / 10,
+                    fit: BoxFit.fill,
+                  ),
                 ),
               ),
               TextButton(
                 onPressed: () {
-                  imageSourceDialog(
-                    context,
-                    onCamera: () {
-                      getImage(ImageSource.camera);
-                    },
-                    onGallery: () {
-                      getImage(ImageSource.gallery);
-                    },
-                  );
+                  // imageSourceDialog(
+                  //   context,
+                  //   onCamera: () {
+                  //     getImage(ImageSource.camera);
+                  //   },
+                  //   onGallery: () {
+                  //     getImage(ImageSource.gallery);
+                  //   },
+                  // );
                 },
                 child: Text(
                   LanguageEn.changepicture,
@@ -97,7 +104,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                 ),
               ),
               Text(
-                'Obi Enechi',
+                '${appState.userInfo!.firstName} ${appState.userInfo!.lastName}',
                 style: TextStyle(
                     color: notifier.getbluecolor,
                     fontFamily: 'Gilroy_Bold',
@@ -105,7 +112,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               ),
               SizedBox(height: height / 70),
               Text(
-                '@efizee',
+                '@${appState.userInfo!.username}',
                 style: TextStyle(
                     color: notifier.getgrey,
                     fontFamily: fontsemibold,
@@ -113,7 +120,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               ),
               SizedBox(height: height / 70),
               Text(
-                '${LanguageEn.referralid}: efizee',
+                '${LanguageEn.referralid}: ${appState.userInfo!.username}',
                 style: TextStyle(
                     color: notifier.getgrey,
                     fontFamily: fontsemibold,
@@ -197,7 +204,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                     height: height / 90,
                   ),
                   Text(
-                    'thundeyy@trovo.io',
+                    appState.userInfo!.email!,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -221,7 +228,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Phone Number',
+                                LanguageEn.phonenumber,
                                 style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -234,7 +241,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                               Row(
                                 children: [
                                   Text(
-                                    '+2347062685682',
+                                    appState.userInfo!.mobile!,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 15,

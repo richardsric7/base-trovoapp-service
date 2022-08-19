@@ -24,6 +24,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
@@ -143,8 +144,11 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                         state: PageState.addPage,
                         page: WalletDetailsViewPageConfig);
                   },
-                  child: walletListItem(mainWallet!.alias!.capitalizeFirst,
-                      '4,500 TROV', '4,014', notifier.getbluecolor),
+                  child: walletListItem(
+                      mainWallet!.alias!.capitalizeFirst,
+                      '4,014 USD',
+                      notifier.getbluecolor,
+                      assetBalances[mainWallet!.publicKey]['claimed'][0]),
                 ),
                 SizedBox(
                   height: height / 50,
@@ -226,11 +230,10 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     page: WalletDetailsViewPageConfig);
               },
               child: walletTile(
-                wallets![i].alias!.capitalizeFirst!,
-                '4,500 TROV',
-                '4,014 USD',
-                Colors.blue,
-              ),
+                  wallets![i].alias!.capitalizeFirst!,
+                  '4,014 USD',
+                  notifier.getbluecolor80,
+                  assetBalances[wallets![i].publicKey]['claimed'][0]),
             ),
           ]
         ],
@@ -238,7 +241,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget walletTile(walletName, balance, usdBal, color) {
+  Widget walletTile(walletName, usdBal, color, asset) {
+    var balance =
+        "${formatHistoryNumber(double.parse(asset['amount']))} ${asset["assetCode"].toString().isEmpty ? 'XBN' : asset["assetCode"]}";
     return Card(
       elevation: 5,
       shadowColor: Colors.black,
@@ -270,8 +275,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   walletName,
                   style: TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: fontbody,
+                    fontFamily: fontsemibold,
                     color: notifier.getwihitecolor,
                   ),
                 ),
@@ -282,7 +286,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     appState.hideBalances ? hideBalanceText : balance,
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
                       fontFamily: fontbody,
                       color: notifier.getwihitecolor,
                     ),
@@ -322,8 +325,11 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               appState.currentAction = PageAction(
                   state: PageState.addPage, page: WalletDetailsViewPageConfig);
             },
-            child: walletListItem(wallets![i].alias!.capitalizeFirst!,
-                '4,500 TROV', '4,014', Colors.blue),
+            child: walletListItem(
+                wallets![i].alias!.capitalizeFirst!,
+                '4,014 USD',
+                notifier.getbluecolor80,
+                assetBalances[wallets![i].publicKey]['claimed'][0]),
           ),
           SizedBox(
             height: height / 50,
@@ -336,7 +342,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget walletListItem(walletName, balance, balanceUsd, color) {
+  Widget walletListItem(walletName, balanceUsd, color, asset) {
+    var balance =
+        "${formatHistoryNumber(double.parse(asset['amount']))} ${asset["assetCode"].toString().isEmpty ? 'XBN' : asset["assetCode"]}";
     return Container(
       height: height / 6.6,
       margin: EdgeInsets.symmetric(horizontal: 20),
@@ -372,10 +380,10 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   Text(
                     walletName,
                     style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getwihitecolor,
-                        fontFamily: fontbody),
+                      fontSize: 16,
+                      color: notifier.getwihitecolor,
+                      fontFamily: fontsemibold,
+                    ),
                   ),
                 ],
               ),
@@ -388,7 +396,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     appState.hideBalances ? hideBalanceText : balance,
                     style: TextStyle(
                       fontSize: 20,
-                      fontWeight: FontWeight.bold,
                       color: notifier.getwihitecolor,
                       fontFamily: fontbody,
                     ),

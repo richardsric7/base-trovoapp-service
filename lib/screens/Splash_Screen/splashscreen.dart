@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -78,8 +79,21 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   getVal() async {
+    // initialize firebase dynamic link
     PendingDynamicLinkData? initialLink =
         await FirebaseDynamicLinkInitializer().getInitialLink();
+
+    // initialize firebase remote config
+    final remoteConfig = FirebaseRemoteConfig.instance;
+    await remoteConfig.setConfigSettings(RemoteConfigSettings(
+      fetchTimeout: const Duration(minutes: 1),
+      minimumFetchInterval: const Duration(minutes: 1),
+    ));
+
+    await remoteConfig.setDefaults(const {
+      "wallet_referral_share_label":
+          "Earn tokens, discover gems, download Trovo Wallet \nwallet.trovotech.io",
+    });
 
     print('initialLink: $initialLink');
 

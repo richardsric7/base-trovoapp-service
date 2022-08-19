@@ -20,6 +20,8 @@ class LanguageEn {
 
   static String get camera => 'Camera';
 
+  static String get taptoviewall => 'Tap to view all';
+
   static String get minute => 'minute';
 
   static String get minutes => 'minutes';

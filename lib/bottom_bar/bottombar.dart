@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
@@ -21,11 +20,12 @@ class _BottomHomeState extends State<BottomHome> {
   int _selectedIndex = 0;
 
   late ColorNotifier notifire;
+  late DataProvider appState;
 
   @override
   Widget build(BuildContext context) {
     notifire = Provider.of<ColorNotifier>(context, listen: true);
-    var appState = Provider.of<DataProvider>(context, listen: false);
+    appState = Provider.of<DataProvider>(context, listen: false);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return WillPopScope(
@@ -89,12 +89,7 @@ class _BottomHomeState extends State<BottomHome> {
             ),
           ],
           onTap: (index) {
-            setState(() {
-              if (_selectedIndex != 2 && index == 2) {
-                appState.getHistory();
-              }
-              _selectedIndex = index;
-            });
+            changeTabMethod(index);
           },
         ),
         body: Stack(
@@ -110,11 +105,20 @@ class _BottomHomeState extends State<BottomHome> {
     );
   }
 
+  changeTabMethod(index) {
+    setState(() {
+      if (_selectedIndex != 2 && index == 2) {
+        appState.getHistory();
+      }
+      _selectedIndex = index;
+    });
+  }
+
   Map<String, WidgetBuilder> _routeBuilders(BuildContext context, int index) {
     return {
       '/': (context) {
         return [
-          Home(),
+          Home(onButtonPressed: changeTabMethod),
           Wallets(),
           PaymentHistory(),
           SwapAssets(),
