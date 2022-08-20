@@ -148,36 +148,31 @@ class DataProvider with ChangeNotifier {
   }
 
   Future<void> fetchHistory(limit) async {
-    print('fetching history for: ${activeWallet!.publicKey!}');
-    Map responseData = await makeGetRequest(
-        uri: '/v1/users/payments/${activeWallet!.publicKey}?limit=$limit',
-        signer: activeWallet!.signer!,
-        publicKey: activeWallet!.publicKey!,
-        secretKey: secretKeys[0]);
+    try {
+      print('fetching history for: ${activeWallet!.publicKey!}');
+      Map responseData = await makeGetRequest(
+          uri: '/v1/users/payments/${activeWallet!.publicKey}?limit=$limit',
+          signer: activeWallet!.signer!,
+          publicKey: activeWallet!.publicKey!,
+          secretKey: secretKeys[0]);
 
-    print('response: ${responseData['data']}');
-    if (responseData['statusCode'] == 200) {
-      totalRecords = responseData['data']['totalRecords'];
-      currentPage = responseData['data']['currentPage'];
-      var transactions = <TransactionInfo>[];
-      for (var i = 0; i < responseData['data']['records'].length; i++) {
-        transactions.add(TransactionInfo()
-            .deserializeJson(responseData['data']['records'][i]));
+      print('response: ${responseData['data']}');
+      if (responseData['statusCode'] == 200) {
+        totalRecords = responseData['data']['totalRecords'];
+        currentPage = responseData['data']['currentPage'];
+        var transactions = <TransactionInfo>[];
+        for (var i = 0; i < responseData['data']['records'].length; i++) {
+          transactions.add(TransactionInfo()
+              .deserializeJson(responseData['data']['records'][i]));
+        }
+
+        print('transactions: $transactions');
+
+        historyData = transactions;
+        notifyListeners();
       }
-
-      // if (limit <= 20) {
-      //   await StoreData().storeInsertData('historyData${activeWallet!.alias}',
-      //       responseData['data']['records']);
-      //   await StoreData().storeInsertData('totalRecords${activeWallet!.alias}',
-      //       responseData['data']['totalRecords']);
-      //   await StoreData().storeInsertData('currentPage${activeWallet!.alias}',
-      //       responseData['data']['currentPage']);
-      // }
-
-      print('transactions: $transactions');
-
-      historyData = transactions;
-      notifyListeners();
+    } catch (e) {
+      print('................................in transaction history: $e');
     }
   }
 

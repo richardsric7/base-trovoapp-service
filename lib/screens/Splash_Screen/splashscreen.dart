@@ -79,27 +79,25 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   getVal() async {
-    // initialize firebase dynamic link
-    PendingDynamicLinkData? initialLink =
-        await FirebaseDynamicLinkInitializer().getInitialLink();
-    print('initialLink: $initialLink');
-
-    // initialize firebase remote config
-    final remoteConfig = FirebaseRemoteConfig.instance;
-    await remoteConfig.setConfigSettings(RemoteConfigSettings(
-      fetchTimeout: const Duration(minutes: 1),
-      minimumFetchInterval: const Duration(minutes: 1),
-    ));
-
-    await remoteConfig.setDefaults(const {
-      "wallet_referral_share_label":
-          "Earn tokens, discover gems, download Trovo Wallet \nwallet.trovotech.io",
-    });
-
-    bool isFirstTime;
-
     try {
-      isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
+      // initialize firebase dynamic link
+      PendingDynamicLinkData? initialLink =
+          await FirebaseDynamicLinkInitializer().getInitialLink();
+      print('initialLink: $initialLink');
+
+      // initialize firebase remote config
+      final remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.setConfigSettings(RemoteConfigSettings(
+        fetchTimeout: const Duration(minutes: 1),
+        minimumFetchInterval: const Duration(minutes: 1),
+      ));
+
+      await remoteConfig.setDefaults(const {
+        "wallet_referral_share_label":
+            "Earn tokens, discover gems, download Trovo Wallet \nwallet.trovotech.io",
+      });
+
+      bool isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
       print('first time here: $isFirstTime');
 
       if (isFirstTime) {

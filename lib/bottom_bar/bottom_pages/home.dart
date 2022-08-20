@@ -167,7 +167,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         color: notifier.getwihitecolor,
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
-                        fontFamily: fontbody,
+                        fontFamily: fontsemibold,
                       ),
                       tabs: [
                         Tab(

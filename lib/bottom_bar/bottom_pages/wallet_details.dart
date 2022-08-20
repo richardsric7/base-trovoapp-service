@@ -126,7 +126,7 @@ class _WalletDetailsState extends State<WalletDetails>
                         color: notifier.getwihitecolor,
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
-                        fontFamily: fontbody,
+                        fontFamily: fontsemibold,
                       ),
                       tabs: [
                         Tab(
@@ -598,6 +598,13 @@ class _WalletDetailsState extends State<WalletDetails>
                   "https://drive.google.com/uc?export=view&id=103fw13pcBoCO2hkTPFX73BUKeWWkVpGZ",
                   height: 35,
                   width: 35,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/trovo.png',
+                      height: 35,
+                      width: 35,
+                    );
+                  },
                 ),
                 SizedBox(width: 20),
                 Column(

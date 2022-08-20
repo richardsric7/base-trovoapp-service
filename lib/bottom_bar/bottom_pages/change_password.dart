@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/route_manager.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
+import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -202,7 +204,9 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
     try {
       await StoreData().storeInsertData('password', newPassword);
       appState.setPassword = await StoreData().storeGetData('password');
-      showSuccessAlert(context, onTap: () {});
+      showSuccessAlert(context, onTap: () {
+        Navigator.of(context).pop();
+      });
     } catch (e) {
       print(e);
       popup(context,

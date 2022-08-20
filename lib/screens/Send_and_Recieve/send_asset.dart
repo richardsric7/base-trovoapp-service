@@ -39,8 +39,10 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
   bool amountError = false;
   String? memo;
   var asset;
+  var deeplinkInfo;
   TextEditingController _utf8TextController = TextEditingController();
-  final textController = TextEditingController();
+  TextEditingController toController = TextEditingController();
+  final amountController = TextEditingController();
 
   @override
   void initState() {
@@ -57,6 +59,15 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     print(
         'this is appState: ${appState.viewData![SendAssetViewPageConfig.key]}');
     asset = appState.viewData![SendAssetViewPageConfig.key];
+
+    if (asset['deepLinkInfo'] != null) {
+      deeplinkInfo = asset['deepLinkInfo'];
+      print('deeplink is here....$deeplinkInfo');
+      toController.text = deeplinkInfo['receiver'];
+      amountController.text = deeplinkInfo['amount'];
+      _utf8TextController.text = deeplinkInfo['memo'];
+    }
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -197,6 +208,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       notifier.getgrey,
                       70.sp,
                       300.sp,
+                      controller: toController,
                       validator: validateTo,
                       onSaved: (value) => to = value.trim().replaceAll(' ', ''),
                     ),
@@ -220,7 +232,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                           amount = value;
                         });
                       },
-                      controller: textController,
+                      controller: amountController,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                       validator: validateAmount,

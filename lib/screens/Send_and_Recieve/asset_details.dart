@@ -78,9 +78,11 @@ class _AssetDetailsState extends State<AssetDetails>
     selectedWallet = activeWallet!.publicKey;
     claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
     activeAsset = appState.viewData![AssetDetailsViewPageConfig.key];
-    selectedAsset = getAssetIssuer(
-      appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
-    );
+    if (appState.viewData![AssetDetailsViewPageConfig.key] != null) {
+      selectedAsset = getAssetIssuer(
+        appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
+      );
+    }
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
