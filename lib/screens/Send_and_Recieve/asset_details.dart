@@ -260,7 +260,7 @@ class _AssetDetailsState extends State<AssetDetails>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        actionButton("assets/images/send.svg", 'Send', () {
+        actionButton("assets/images/send.png", 'Send', () {
           appState.viewData![SendAssetViewPageConfig.key] =
               appState.viewData![AssetDetailsViewPageConfig.key];
 
@@ -270,8 +270,7 @@ class _AssetDetailsState extends State<AssetDetails>
             page: SendAssetViewPageConfig,
           );
         }),
-        actionButton("assets/images/recieve.svg", 'Recieve', () {
-          print('fuck you 2');
+        actionButton("assets/images/receive.png", 'Recieve', () {
           appState.viewData![ReceiveAssetViewPageConfig.key] =
               appState.viewData![AssetDetailsViewPageConfig.key];
 
@@ -286,19 +285,8 @@ class _AssetDetailsState extends State<AssetDetails>
   }
 
   Widget actionButton(iconUrl, actionText, action) {
-    return ElevatedButton(
-      onPressed: action,
-      style: ButtonStyle(
-        backgroundColor:
-            MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-          const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(15),
-            ),
-          ),
-        ),
-      ),
+    return GestureDetector(
+      onTap: action,
       child: Container(
         width: width / 3.9,
         height: height / 10,
@@ -308,7 +296,7 @@ class _AssetDetailsState extends State<AssetDetails>
           ),
           child: Column(
             children: [
-              SvgPicture.asset(
+              Image.asset(
                 iconUrl,
                 width: width / 8,
               ),
@@ -317,7 +305,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: notifier.getwihitecolor,
+                  color: notifier.getbluecolor,
                   fontFamily: fontsemibold,
                 ),
               ),
