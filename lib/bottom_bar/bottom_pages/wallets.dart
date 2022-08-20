@@ -466,7 +466,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
-                        // fontWeight: FontWeight.bold,
                         fontFamily: fontsemibold,
                         color: notifier.getbluecolor,
                       ),

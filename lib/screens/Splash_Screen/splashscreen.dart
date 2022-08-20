@@ -82,6 +82,7 @@ class _SplashScreenState extends State<SplashScreen>
     // initialize firebase dynamic link
     PendingDynamicLinkData? initialLink =
         await FirebaseDynamicLinkInitializer().getInitialLink();
+    print('initialLink: $initialLink');
 
     // initialize firebase remote config
     final remoteConfig = FirebaseRemoteConfig.instance;
@@ -95,14 +96,10 @@ class _SplashScreenState extends State<SplashScreen>
           "Earn tokens, discover gems, download Trovo Wallet \nwallet.trovotech.io",
     });
 
-    print('initialLink: $initialLink');
-
     bool isFirstTime;
 
     try {
       isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
-      // isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
-
       print('first time here: $isFirstTime');
 
       if (isFirstTime) {
