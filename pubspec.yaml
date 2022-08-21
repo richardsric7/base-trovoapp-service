@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.16.2 <3.0.0"
+  sdk: ">=2.16.2 <=3.0.5"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -56,7 +56,7 @@ dependencies:
   stellar_flutter_sdk:
     git: 
      url: https://github.com/Soneso/stellar_flutter_sdk.git
-     ref: master  
+     ref: master
   sembast: ^3.2.0
   intl_phone_field: ^3.1.0
   flutter_overlay_loader: ^2.0.0
