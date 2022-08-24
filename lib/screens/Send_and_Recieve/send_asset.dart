@@ -65,7 +65,11 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       print('deeplink is here....$deeplinkInfo');
       toController.text = deeplinkInfo['receiver'];
       amountController.text = deeplinkInfo['amount'];
+      // amountController.text = '34';
+      // amountController.selection = TextSelection.fromPosition(
+      //     TextPosition(offset: amountController.text.length));
       _utf8TextController.text = deeplinkInfo['memo'];
+      asset['deepLinkInfo'] = null;
     }
 
     return ScreenUtilInit(

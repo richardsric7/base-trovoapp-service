@@ -123,10 +123,10 @@ class _AssetDetailsState extends State<AssetDetails>
                             fillColor: notifier.getaddsubwalletgrey,
                           ),
                           value: selectedWallet,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: notifier.getbluecolor,
-                          ),
+                          // icon: Icon(
+                          //   Icons.keyboard_arrow_down_rounded,
+                          //   color: notifier.getbluecolor,
+                          // ),
                           elevation: 0,
                           style: TextStyle(
                               color: notifier.getbluecolor,
@@ -189,22 +189,17 @@ class _AssetDetailsState extends State<AssetDetails>
                               fontFamily: fontsemibold,
                             ),
                             onChanged: (newValue) {
-                              print('this is newValue $newValue');
                               setState(() {
-                                print('changing active asset to: $newValue');
                                 newValue = newValue == nativeAssetIssuer
                                     ? ''
                                     : newValue;
                                 for (var asset in claimedAssets) {
-                                  print('this is newValue $newValue');
                                   if (asset['assetIssuer'] == newValue) {
                                     appState.viewData![
                                         AssetDetailsViewPageConfig.key] = asset;
                                   }
                                 }
                               });
-                              print(
-                                  'this is new viewdata: ${appState.viewData}');
                             },
                             borderRadius: BorderRadius.all(
                               Radius.circular(15),

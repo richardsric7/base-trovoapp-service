@@ -175,7 +175,13 @@ class _QrScannerState extends State<QrScanner> {
     controller!.pauseCamera();
     print('scan result:');
     print(scanResult);
-    runDynamicLinks(Uri.parse(scanResult!));
+    if (scanResult != null) {
+      runDynamicLinks(Uri.parse(scanResult));
+    }
+
+    Tooltip(
+        message: 'Does that look like a QR Code file to you?',
+        showDuration: Duration(seconds: 10));
     controller!.resumeCamera();
   }
 

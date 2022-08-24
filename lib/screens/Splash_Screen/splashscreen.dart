@@ -76,28 +76,14 @@ class _SplashScreenState extends State<SplashScreen>
   // another function which will not be awaited in initState
   runAsync() async {
     await getVal();
+    await initFirebaseTools();
   }
 
   getVal() async {
     try {
-      // initialize firebase dynamic link
-      PendingDynamicLinkData? initialLink =
-          await FirebaseDynamicLinkInitializer().getInitialLink();
-      print('initialLink: $initialLink');
-
-      // initialize firebase remote config
-      final remoteConfig = FirebaseRemoteConfig.instance;
-      await remoteConfig.setConfigSettings(RemoteConfigSettings(
-        fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: const Duration(minutes: 1),
-      ));
-
-      await remoteConfig.setDefaults(const {
-        "wallet_referral_share_label":
-            "Earn tokens, discover gems, download Trovo Wallet \nwallet.trovotech.io",
-      });
-
       bool isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
+      appState.timeout = await StoreData().storeGetData('timeOut') ?? '5';
+
       print('first time here: $isFirstTime');
 
       if (isFirstTime) {
@@ -109,7 +95,6 @@ class _SplashScreenState extends State<SplashScreen>
         appState.setUser = UserInfo().deserializeJson(data);
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');
         appState.setPassword = await StoreData().storeGetData('password');
-        appState.timeout = await StoreData().storeGetData('timeOut');
         appState.biometricEnabled =
             await StoreData().storeGetData('biometricsEnabled') ?? false;
         appState.hideBalances =
@@ -128,6 +113,29 @@ class _SplashScreenState extends State<SplashScreen>
       }
     } catch (e) {
       print('[getVal]getVal exception:' + e.toString());
+    }
+  }
+
+  initFirebaseTools() async {
+    try {
+      // initialize firebase dynamic link
+      PendingDynamicLinkData? initialLink =
+          await FirebaseDynamicLinkInitializer().getInitialLink();
+      print('initialLink: $initialLink');
+
+      // initialize firebase remote config
+      final remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.setConfigSettings(RemoteConfigSettings(
+        fetchTimeout: const Duration(minutes: 1),
+        minimumFetchInterval: const Duration(minutes: 1),
+      ));
+
+      await remoteConfig.setDefaults(const {
+        "wallet_referral_share_label":
+            "Earn tokens, discover gems, download Trovo Wallet \nwallet.trovotech.io",
+      });
+    } catch (e) {
+      print('firebase error: $e');
     }
   }
 
