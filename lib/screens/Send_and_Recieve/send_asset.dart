@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -40,7 +40,10 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
   bool amountError = false;
   String? memo;
   var asset;
+  var deeplinkInfo;
   TextEditingController _utf8TextController = TextEditingController();
+  TextEditingController toController = TextEditingController();
+  final amountController = TextEditingController();
 
   @override
   void initState() {
@@ -57,6 +60,19 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     print(
         'this is appState: ${appState.viewData![SendAssetViewPageConfig.key]}');
     asset = appState.viewData![SendAssetViewPageConfig.key];
+
+    if (asset['deepLinkInfo'] != null) {
+      deeplinkInfo = asset['deepLinkInfo'];
+      print('deeplink is here....$deeplinkInfo');
+      toController.text = deeplinkInfo['receiver'];
+      amountController.text = deeplinkInfo['amount'];
+      // amountController.text = '34';
+      // amountController.selection = TextSelection.fromPosition(
+      //     TextPosition(offset: amountController.text.length));
+      _utf8TextController.text = deeplinkInfo['memo'];
+      asset['deepLinkInfo'] = null;
+    }
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -91,7 +107,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                           fontFamily: fontsemibold),
                     ),
                     GestureDetector(
@@ -102,7 +118,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       },
                       child: SvgPicture.asset(
                         "assets/images/scan.svg",
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         height: height / 40,
                       ),
                     ),
@@ -119,7 +135,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
               Button(
                 LanguageEn.proceed,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () {
                   handleSubmit();
                 },
@@ -197,6 +213,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       notifier.getgrey,
                       70.sp,
                       300.sp,
+                      controller: toController,
                       validator: validateTo,
                       onSaved: (value) => to = value.trim().replaceAll(' ', ''),
                     ),
@@ -220,13 +237,14 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                           amount = value;
                         });
                       },
+                      controller: amountController,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                       validator: validateAmount,
                       onSaved: (value) =>
                           amount = value.trim().replaceAll(' ', ''),
                     ),
-                    availableBalance(),
+                    if (!appState.hideBalances) ...[availableBalance()],
                     SizedBox(height: height / 50),
                     CustomTextFormField.textField(
                       LanguageEn.memo,
@@ -248,7 +266,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                         return Container(
                           child: Text(
                             '$utf8Length/$maxLength',
-                            style: Theme.of(context).textTheme.caption,
+                            style: TextStyle(color: notifier.getdarkgrey),
                           ),
                         );
                       },

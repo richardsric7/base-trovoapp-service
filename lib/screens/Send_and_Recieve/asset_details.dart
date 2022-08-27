@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -62,7 +63,6 @@ class _AssetDetailsState extends State<AssetDetails>
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
@@ -79,9 +79,11 @@ class _AssetDetailsState extends State<AssetDetails>
     selectedWallet = activeWallet!.publicKey;
     claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
     activeAsset = appState.viewData![AssetDetailsViewPageConfig.key];
-    selectedAsset = getAssetIssuer(
-      appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
-    );
+    if (appState.viewData![AssetDetailsViewPageConfig.key] != null) {
+      selectedAsset = getAssetIssuer(
+        appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
+      );
+    }
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -107,6 +109,9 @@ class _AssetDetailsState extends State<AssetDetails>
                       Expanded(
                         child: DropdownButtonFormField(
                           isExpanded: true,
+                          dropdownColor: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
                           decoration: InputDecoration(
                             contentPadding: EdgeInsets.symmetric(
                                 vertical: 0, horizontal: 20),
@@ -119,16 +124,18 @@ class _AssetDetailsState extends State<AssetDetails>
                               borderRadius: BorderRadius.circular(20),
                             ),
                             filled: true,
-                            fillColor: notifier.getaddsubwalletgrey,
+                            fillColor: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
                           ),
                           value: selectedWallet,
                           icon: Icon(
                             Icons.keyboard_arrow_down_rounded,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                           ),
                           elevation: 0,
                           style: TextStyle(
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 15,
                               fontFamily: fontsemibold,
                               fontWeight: FontWeight.w500),
@@ -163,6 +170,9 @@ class _AssetDetailsState extends State<AssetDetails>
                       ),
                       Expanded(
                         child: DropdownButtonFormField(
+                            dropdownColor: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.symmetric(
                                   vertical: 0, horizontal: 20),
@@ -175,27 +185,26 @@ class _AssetDetailsState extends State<AssetDetails>
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               filled: true,
-                              fillColor: notifier.getaddsubwalletgrey,
+                              fillColor: notifier.isDark
+                                  ? darktilewhitecolor
+                                  : notifier.getaddsubwalletgrey,
                             ),
                             value: selectedAsset,
                             icon: Icon(
                               Icons.keyboard_arrow_down_rounded,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                             ),
                             style: TextStyle(
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 15,
                               fontFamily: fontsemibold,
                             ),
                             onChanged: (newValue) {
-                              print('this is newValue $newValue');
                               setState(() {
-                                print('changing active asset to: $newValue');
                                 newValue = newValue == nativeAssetIssuer
                                     ? ''
                                     : newValue;
                                 for (var asset in claimedAssets) {
-                                  print('this is newValue $newValue');
                                   if (asset['assetIssuer'] == newValue) {
                                     appState.viewData![
                                         AssetDetailsViewPageConfig.key] = asset;
@@ -234,7 +243,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                 ],
@@ -259,7 +268,7 @@ class _AssetDetailsState extends State<AssetDetails>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        actionButton("assets/images/send.svg", 'Send', () {
+        actionButton("assets/images/send.png", 'Send', () {
           appState.viewData![SendAssetViewPageConfig.key] =
               appState.viewData![AssetDetailsViewPageConfig.key];
 
@@ -269,8 +278,7 @@ class _AssetDetailsState extends State<AssetDetails>
             page: SendAssetViewPageConfig,
           );
         }),
-        actionButton("assets/images/recieve.svg", 'Recieve', () {
-          print('fuck you 2');
+        actionButton("assets/images/receive.png", 'Receive', () {
           appState.viewData![ReceiveAssetViewPageConfig.key] =
               appState.viewData![AssetDetailsViewPageConfig.key];
 
@@ -285,19 +293,8 @@ class _AssetDetailsState extends State<AssetDetails>
   }
 
   Widget actionButton(iconUrl, actionText, action) {
-    return ElevatedButton(
-      onPressed: action,
-      style: ButtonStyle(
-        backgroundColor:
-            MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-          const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(15),
-            ),
-          ),
-        ),
-      ),
+    return GestureDetector(
+      onTap: action,
       child: Container(
         width: width / 3.9,
         height: height / 10,
@@ -307,16 +304,17 @@ class _AssetDetailsState extends State<AssetDetails>
           ),
           child: Column(
             children: [
-              SvgPicture.asset(
+              Image.asset(
                 iconUrl,
                 width: width / 8,
+                color: notifier.getbluewhitecolor,
               ),
               Text(
                 actionText,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: notifier.getwihitecolor,
+                  color: notifier.getbluewhitecolor,
                   fontFamily: fontsemibold,
                 ),
               ),
@@ -359,7 +357,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: notifier.getwihitecolor,
+                      color: wihitecolor,
                       fontFamily: fontsemibold),
                 ),
                 SizedBox(
@@ -372,7 +370,7 @@ class _AssetDetailsState extends State<AssetDetails>
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
-                        color: notifier.getwihitecolor,
+                        color: wihitecolor,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -382,21 +380,21 @@ class _AssetDetailsState extends State<AssetDetails>
                   height: height / 98.0,
                 ),
                 Text(
-                  '2,082,898 NGN',
+                  appState.hideBalances ? hideBalanceText : '2,082,898 NGN',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: notifier.getwihitecolor,
+                    color: wihitecolor,
                     fontFamily: fontsemibold,
                   ),
                 ),
                 SizedBox(height: 2),
                 Text(
-                  '4,014 USD',
+                  appState.hideBalances ? hideBalanceText : '4,014 USD',
                   style: TextStyle(
                     fontWeight: FontWeight.w300,
                     fontSize: 13,
-                    color: notifier.getwihitecolor,
+                    color: wihitecolor,
                     fontFamily: fontbody,
                   ),
                 ),
@@ -415,7 +413,9 @@ class _AssetDetailsState extends State<AssetDetails>
         height: height / 2.5,
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -432,7 +432,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                   SizedBox(
@@ -446,7 +446,7 @@ class _AssetDetailsState extends State<AssetDetails>
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -459,7 +459,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontFamily: fontbody,
                     ),
                   ),

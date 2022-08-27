@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otp_text_field/otp_text_field.dart';
 import 'package:otp_text_field/style.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/screens/Auth/complateverification.dart';
-import 'package:trovo_wallet/screens/Auth/fingerprint.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,7 +24,6 @@ import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/popups.dart';
-import '../Backup/congratulation.dart';
 
 class Veryfication extends StatefulWidget {
   const Veryfication({Key? key}) : super(key: key);
@@ -136,7 +134,7 @@ class _VeryficationState extends State<Veryfication> {
               Button(
                 LanguageEn.verify,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () {
                   if (otp.length == 6) {
                     completeRegistration();
@@ -200,7 +198,6 @@ class _VeryficationState extends State<Veryfication> {
       hideLoader(context);
       popup(context,
           title: LanguageEn.error,
-          // TODO: Show somethingwentwrongerror for internal error
           // message: LanguageEn.somethingwentwrong);
           message: e.toString());
     }
@@ -342,7 +339,6 @@ class _VeryficationState extends State<Veryfication> {
     // countdownTimer!.cancel();
     // countdownTimer = null;
     print('disposed');
-    // TODO: implement dispose
     super.dispose();
   }
 }

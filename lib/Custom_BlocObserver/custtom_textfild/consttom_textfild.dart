@@ -78,6 +78,7 @@ class CustomTextFormField {
           decoration: InputDecoration(
             counterStyle: TextStyle(
               fontFamily: fontbody,
+              color: textcolor,
             ),
             errorStyle: TextStyle(
               fontFamily: fontbody,

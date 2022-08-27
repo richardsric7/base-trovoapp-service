@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
-import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
-import '../../bottom_bar/bottombar.dart';
 import '../../router/PageActions.dart';
 import '../../router/ui_pages.dart';
 import '../../utils/local_auth.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/popups.dart';
-import 'create_password.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
 class Login extends StatefulWidget {
@@ -65,145 +62,227 @@ class _LoginState extends State<Login> {
         backgroundColor: notifier.getwihitecolor,
         resizeToAvoidBottomInset: false,
         body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: height / 7),
-              Row(
+          child: Stack(children: [
+            Container(
+              height: height / 2.65,
+              decoration: BoxDecoration(
+                color: notifier.isDark
+                    ? darktilewhitecolor
+                    : notifier.getaddsubwalletgrey,
+              ),
+              child: Stack(
                 children: [
-                  SizedBox(width: width / 15),
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        LanguageEn.welcome,
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 26.sp,
-                            fontFamily: fontsemibold),
+                      SizedBox(
+                        height: height / 10.5,
                       ),
-                      SizedBox(height: height / 95),
-                      ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: width / 1.1),
-                        child: Text(
-                          userInfo.username ?? "",
-                          style: TextStyle(
-                              color: notifier.getblck,
-                              fontSize: 26.sp,
-                              fontFamily: fontsemibold),
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/trovo-logo-bg.png',
+                            height: height / 4.5,
+                            color: notifier.isDark
+                                ? notifier.getdarkgrey
+                                : notifier.getsplashgrey,
+                          ),
+                        ],
                       ),
-                      SizedBox(height: height / 40),
-                      Text(
-                        LanguageEn.youhavebeenmissed,
-                        style: TextStyle(
-                            fontSize: 16.sp,
-                            color: notifier.getgrey,
-                            fontFamily: fontbody),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      SizedBox(
+                        height: height / 80,
                       ),
-                      SizedBox(height: height / 10),
-                      Form(
-                        key: _formKey,
-                        child: CustomPasswordFormField(
-                          LanguageEn.password,
-                          notifier.getbluecolor,
-                          Icons.lock,
-                          notifier.getgrey,
-                          notifier.getprefixicon,
-                          notifier.getblck,
-                          70.sp,
-                          300.sp,
-                          validator: validateInput,
-                          onChanged: (value) {
-                            setState(() {
-                              password = value!.trim().replaceAll(' ', '');
-                            });
-                          },
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Image.asset(
+                            'assets/images/trovo-logo-bg.png',
+                            height: height / 15,
+                            color: notifier.isDark
+                                ? notifier.getdarkgrey
+                                : notifier.getsplashgrey,
+                          ),
+                          Image.asset(
+                            'assets/images/trovo-logo-bg.png',
+                            height: height / 15,
+                            color: notifier.isDark
+                                ? notifier.getdarkgrey
+                                : notifier.getsplashgrey,
+                          ),
+                        ],
+                      ),
+                      Spacer(
+                        flex: 50,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Image.asset(
+                            'assets/images/trovo-logo-bg.png',
+                            height: height / 15,
+                            color: notifier.isDark
+                                ? notifier.getdarkgrey
+                                : notifier.getsplashgrey,
+                          ),
+                          Image.asset(
+                            'assets/images/trovo-logo-bg.png',
+                            height: height / 15,
+                            color: notifier.isDark
+                                ? notifier.getdarkgrey
+                                : notifier.getsplashgrey,
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: height / 80,
                       ),
                     ],
                   ),
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: ImportWalletPageConfig);
-                    },
-                    child: Text(
-                      LanguageEn.forgotpassword,
-                      style: TextStyle(
-                          color: notifier.getdarkgrey,
-                          fontSize: 13.5.sp,
-                          fontFamily: fontbody),
+            ),
+            Column(
+              children: [
+                SizedBox(height: height / 7),
+                Column(
+                  children: [
+                    Column(
+                      children: [
+                        Text(
+                          LanguageEn.welcome,
+                          style: TextStyle(
+                              color: notifier.getblck,
+                              fontSize: 26.sp,
+                              fontFamily: fontsemibold),
+                        ),
+                        SizedBox(height: height / 95),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: width / 1.1),
+                          child: Text(
+                            userInfo.username ?? "",
+                            style: TextStyle(
+                                color: notifier.getblck,
+                                fontSize: 26.sp,
+                                fontFamily: fontsemibold),
+                          ),
+                        ),
+                        SizedBox(height: height / 40),
+                        Text(
+                          LanguageEn.youhavebeenmissed,
+                          style: TextStyle(
+                              fontSize: 16.sp,
+                              color: notifier.getgrey,
+                              fontFamily: fontbody),
+                        ),
+                      ],
                     ),
+                    SizedBox(height: height / 7),
+                    Form(
+                      key: _formKey,
+                      child: CustomPasswordFormField(
+                        LanguageEn.password,
+                        notifier.getbluecolor,
+                        Icons.lock,
+                        notifier.getgrey,
+                        notifier.getprefixicon,
+                        notifier.getblck,
+                        70.sp,
+                        300.sp,
+                        validator: validateInput,
+                        onChanged: (value) {
+                          setState(() {
+                            password = value!.trim().replaceAll(' ', '');
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: ImportWalletPageConfig);
+                      },
+                      child: Text(
+                        LanguageEn.forgotpassword,
+                        style: TextStyle(
+                            color: notifier.getdarkgrey,
+                            fontSize: 13.5.sp,
+                            fontFamily: fontbody),
+                      ),
+                    ),
+                    SizedBox(width: width / 10),
+                  ],
+                ),
+                SizedBox(height: height / 25),
+                if (appState.biometricEnabled && password.isEmpty) ...[
+                  Button(
+                    LanguageEn.signinwithbiometrics,
+                    notifier.getbluecolor,
+                    wihitecolor,
+                    onTap: toggleSwitch,
                   ),
-                  SizedBox(width: width / 10),
+                ] else ...[
+                  Button(
+                    LanguageEn.signin,
+                    notifier.getbluecolor,
+                    wihitecolor,
+                    onTap: handleSignin,
+                  ),
                 ],
-              ),
-              SizedBox(height: height / 20),
-              if (appState.biometricEnabled && password.isEmpty) ...[
-                Button(
-                  LanguageEn.signinwithbiometrics,
-                  notifier.getbluecolor,
-                  notifier.getwihitecolor,
-                  onTap: toggleSwitch,
-                ),
-              ] else ...[
-                Button(
-                  LanguageEn.signin,
-                  notifier.getbluecolor,
-                  notifier.getwihitecolor,
-                  onTap: handleSignin,
-                ),
-              ],
 
-              // SizedBox(height: height / 90),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(left: 27.0, right: 27.0),
-                      child: Divider(
-                        color: notifier.getgrey,
-                        height: 50,
+                // SizedBox(height: height / 90),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.only(left: 27.0, right: 27.0),
+                        child: Divider(
+                          color: notifier.getgrey,
+                          height: 50,
+                        ),
                       ),
                     ),
-                  ),
-                  Text(
-                    LanguageEn.oR,
-                    style: TextStyle(color: notifier.getgrey),
-                  ),
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(left: 27.0, right: 27.0),
-                      child: Divider(
-                        color: notifier.getgrey,
-                        height: 50,
+                    Text(
+                      LanguageEn.oR,
+                      style: TextStyle(color: notifier.getgrey),
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.only(left: 27.0, right: 27.0),
+                        child: Divider(
+                          color: notifier.getgrey,
+                          height: 50,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              ButtonOutlined(
-                LanguageEn.signup,
-                notifier.getwihitecolor,
-                notifier.getbluecolor,
-                onTap: () {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage, page: CreatePasswordPageConfig);
-                },
-              ),
-              SizedBox(height: height / 20),
-              Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
-            ],
-          ),
+                  ],
+                ),
+                ButtonOutlined(
+                  LanguageEn.signup,
+                  notifier.getwihitecolor,
+                  notifier.getbluewhitecolor,
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: CreatePasswordPageConfig);
+                  },
+                ),
+                SizedBox(height: height / 20),
+                Padding(
+                    padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom)),
+              ],
+            ),
+          ]),
         ),
       ),
     );

@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/notification.dart';
-import 'package:trovo_wallet/button_tabs/chart.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
-
-import '../../../Custom_BlocObserver/custtom_slock_list/custtom_slock_list.dart';
 import '../../../Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import '../../../utils/medeiaqury/medeiaqury.dart';
 

@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_sliders/sliders.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -105,7 +107,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                           fontFamily: fontsemibold,
                         ),
                       ),
@@ -115,6 +117,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       Expanded(
                         child: DropdownButtonFormField(
                           isExpanded: true,
+                          dropdownColor: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
                           decoration: InputDecoration(
                             contentPadding: EdgeInsets.symmetric(
                                 vertical: 0, horizontal: 20),
@@ -127,16 +132,18 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             filled: true,
-                            fillColor: notifier.getaddsubwalletgrey,
+                            fillColor: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
                           ),
                           value: selectedWallet,
                           icon: Icon(
                             Icons.keyboard_arrow_down_rounded,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                           ),
                           elevation: 0,
                           style: TextStyle(
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 15,
                               fontFamily: fontsemibold,
                               fontWeight: FontWeight.w500),
@@ -199,32 +206,53 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         },
                         key: key3,
                         controller: textController,
+                        // inputFormatters: [
+                        //   doubleTypeFormatter(),
+                        // ],
                         keyboardtype:
                             TextInputType.numberWithOptions(decimal: true),
                         validator: validateAmount,
                         onSaved: (value) =>
                             amount = value.trim().replaceAll(' ', ''),
                       ),
-                      if (sourceAsset != null) ...[
+                      if (sourceAsset != null && !appState.hideBalances) ...[
                         availableBalance(),
                         SizedBox(
                           height: height / 50,
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: SfSlider(
-                            min: 0,
-                            max: 100,
-                            value: sliderValue,
-                            onChanged: _onSliderChanged,
-                            interval: 25,
-                            stepSize: 1,
-                            inactiveColor: Colors.grey[900],
-                            showTicks: true,
-                            tooltipTextFormatterCallback: _setToolTip,
-                            showLabels: true,
-                            enableTooltip: true,
-                            minorTicksPerInterval: 1,
+                          child: SfSliderTheme(
+                            data: SfSliderThemeData(
+                              activeTickColor: notifier.getdarkgrey,
+                              inactiveTickColor: notifier.getdarkgrey,
+                              activeMinorTickColor: notifier.getdarkgrey,
+                              inactiveMinorTickColor: notifier.getdarkgrey,
+                              inactiveLabelStyle: TextStyle(
+                                  color: notifier.getdarkgrey,
+                                  fontSize: 15,
+                                  fontFamily: fontbody,
+                                  fontWeight: FontWeight.w500),
+                              activeLabelStyle: TextStyle(
+                                  color: notifier.getdarkgrey,
+                                  fontSize: 15,
+                                  fontFamily: fontbody,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                            child: SfSlider(
+                              min: 0,
+                              max: 100,
+                              value: sliderValue,
+                              onChanged: _onSliderChanged,
+                              interval: 25,
+                              stepSize: 1,
+                              inactiveColor: notifier.getdarkgrey,
+                              showTicks: true,
+                              tooltipTextFormatterCallback: _setToolTip,
+                              showLabels: true,
+                              enableTooltip: true,
+                              minorTicksPerInterval: 1,
+                            ),
                           ),
                         ),
                         const SizedBox(
@@ -237,7 +265,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       Button(
                         LanguageEn.proceed,
                         notifier.getbluecolor,
-                        notifier.getwihitecolor,
+                        wihitecolor,
                         onTap: () {
                           handleSubmit();
                         },
@@ -267,7 +295,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
         // height: height / 2.5,
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -280,11 +310,11 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Swap From",
+                    LanguageEn.swapfrom,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontFamily: fontsemibold,
                     ),
                   ),
@@ -293,6 +323,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                     child: DropdownButtonFormField<String>(
                       key: key1,
                       isExpanded: true,
+                      dropdownColor: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
                       decoration: InputDecoration(
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 0, horizontal: 20),
@@ -305,7 +338,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         filled: true,
-                        fillColor: notifier.getaddsubwalletgrey,
+                        fillColor: notifier.isDark
+                            ? darktilewhitecolor
+                            : notifier.getaddsubwalletgrey,
                         errorStyle: TextStyle(
                           fontFamily: fontbody,
                           fontSize: 12,
@@ -315,21 +350,24 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       hint: Container(
                         width: 150, //and here
                         child: Text(
-                          "Choose asset",
+                          LanguageEn.chooseasset,
                           style: TextStyle(
-                              color: sourceErr
-                                  ? Colors.red
-                                  : notifier.getbluecolor),
+                            color: sourceErr
+                                ? Colors.red
+                                : notifier.getbluewhitecolor,
+                            fontFamily: fontbody,
+                          ),
                           textAlign: TextAlign.end,
                         ),
                       ),
                       icon: Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: sourceErr ? Colors.red : notifier.getbluecolor,
+                        color:
+                            sourceErr ? Colors.red : notifier.getbluewhitecolor,
                       ),
                       elevation: 0,
                       style: TextStyle(
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                           fontSize: 15,
                           fontFamily: fontsemibold,
                           fontWeight: FontWeight.w500),
@@ -348,13 +386,20 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         return null;
                       },
                       onChanged: (newValue) {
+                        print('this is new value: $newValue');
+                        var splitNewValue = newValue!.split('|');
                         setState(() {
                           sourceAsset = claimedAssets.firstWhere(
-                              (asset) => asset['assetIssuer'] == newValue);
+                            (asset) =>
+                                asset['assetIssuer'] == splitNewValue[0] &&
+                                asset['assetCode'] == splitNewValue[1],
+                          );
+                          sourceErr = false;
                         });
-                        formKey.currentState!.validate();
+                        print('this is source asset: $sourceAsset');
                       },
-                      items: dropdownItemBuilder(claimedAssets),
+                      items:
+                          dropdownItemBuilder(claimedAssets, destinationAsset),
                     ),
                   ),
                   SizedBox(height: height / 50),
@@ -364,11 +409,11 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                   ),
                   SizedBox(height: height / 25),
                   Text(
-                    "Swap To",
+                    LanguageEn.swapto,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontFamily: fontsemibold,
                     ),
                   ),
@@ -377,6 +422,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                     child: DropdownButtonFormField<String>(
                       key: key2,
                       isExpanded: true,
+                      dropdownColor: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
                       decoration: InputDecoration(
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 0, horizontal: 20),
@@ -389,7 +437,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         filled: true,
-                        fillColor: notifier.getaddsubwalletgrey,
+                        fillColor: notifier.isDark
+                            ? darktilewhitecolor
+                            : notifier.getaddsubwalletgrey,
                         errorStyle: TextStyle(
                           fontFamily: fontbody,
                           fontSize: 12,
@@ -399,26 +449,33 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       hint: Container(
                         width: 150, //and here
                         child: Text(
-                          "Choose asset",
+                          LanguageEn.chooseasset,
                           style: TextStyle(
-                              color:
-                                  destErr ? Colors.red : notifier.getbluecolor),
+                            color: destErr
+                                ? Colors.red
+                                : notifier.getbluewhitecolor,
+                            fontFamily: fontbody,
+                          ),
                           textAlign: TextAlign.end,
                         ),
                       ),
                       icon: Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: sourceErr ? Colors.red : notifier.getbluecolor,
+                        color:
+                            destErr ? Colors.red : notifier.getbluewhitecolor,
                       ),
                       elevation: 0,
                       style: TextStyle(
-                          color: notifier.getbluecolor,
-                          fontSize: 15,
-                          fontFamily: fontsemibold,
-                          fontWeight: FontWeight.w500),
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
                       validator: (value) {
                         if (destinationAsset == null) {
-                          destErr = true;
+                          setState(() {
+                            destErr = true;
+                          });
                           return '';
                         }
 
@@ -426,21 +483,22 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                           destErr = false;
                         });
 
-                        if (sourceAsset['assetIssuer'] ==
-                            destinationAsset['assetIssuer']) {
-                          return 'Destination asset cannot be \nthe same as the source asset';
-                        }
-
                         return null;
                       },
                       onChanged: (newValue) {
+                        print('this is new destination value: $newValue');
+                        var splitNewValue = newValue!.split('|');
                         setState(() {
                           destinationAsset = claimedAssets.firstWhere(
-                              (asset) => asset['assetIssuer'] == newValue);
+                            (asset) =>
+                                asset['assetIssuer'] == splitNewValue[0] &&
+                                asset['assetCode'] == splitNewValue[1],
+                          );
+                          destErr = false;
                         });
-                        formKey.currentState!.validate();
+                        print('this is destination asset: $sourceAsset');
                       },
-                      items: dropdownItemBuilder(claimedAssets),
+                      items: dropdownItemBuilder(claimedAssets, sourceAsset),
                     ),
                   ),
                   SizedBox(height: 2),
@@ -462,7 +520,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   }
 
   submitForm() async {
-    print('submitting form...');
     try {
       showLoader(context);
       // make initial request to the server using the
@@ -475,12 +532,10 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
         "sourceAssetCode":
             sourceAsset['assetCode'] == 'XBN' ? '' : sourceAsset['assetCode'],
         "sourceAssetIssuer": sourceAsset['assetIssuer'],
-        "sourceAmount": amount.toString(),
+        "sourceAmount": amount.toStringAsFixed(4),
       };
       String requestBody = jsonEncode(map);
       print('this is request body $requestBody');
-
-      print(requestBody);
 
       Map responseData = await makePostRequest(
         uri: '/v1/users/swap',
@@ -509,7 +564,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   }
 
   postProcessData(messageShown, messageLength, data) {
-    print('messageShown: $messageShown messageLength $messageLength');
     // we would like to display all messages returned from the initial
     // request to server using a popup. In order to achieve that we
     // employ the use of a little recursion here. Please recursive
@@ -529,9 +583,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
     // go to the definition of appState.viewData
     // to learn more about viewData
-    print(ConfirmSwapViewPageConfig.key);
     appState.viewData![ConfirmSwapViewPageConfig.key] = data;
-    print(appState.viewData);
 
     appState.currentAction =
         PageAction(state: PageState.addPage, page: ConfirmSwapViewPageConfig);
@@ -541,7 +593,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     setState(() {
       sliderValue = newValue;
       amount = (newValue / 100) * double.parse(sourceAsset['amount']);
-      textController.text = amount.toStringAsFixed(3);
+      textController.text = amount.toStringAsFixed(4);
       textController.selection = TextSelection.fromPosition(
           TextPosition(offset: textController.text.length));
     });
@@ -552,15 +604,22 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     return '$actualValue%';
   }
 
-  List<DropdownMenuItem<String>> dropdownItemBuilder(assets) {
-    return assets.map<DropdownMenuItem<String>>((asset) {
+  List<DropdownMenuItem<String>> dropdownItemBuilder(assets, assetToSkip) {
+    var assetList = assets;
+
+    // filter assetList to remove the ones already selected
+    if (assetToSkip != null) {
+      assetList = assets
+          .where((asset) => asset['assetIssuer'] != assetToSkip['assetIssuer'])
+          .toList();
+    }
+    return assetList.map<DropdownMenuItem<String>>((asset) {
       return DropdownMenuItem<String>(
-        value: asset['assetIssuer'],
+        value: '${asset['assetIssuer']}|${asset["assetCode"]}',
         child: Row(
           children: [
             CircleAvatar(
               maxRadius: 15,
-              backgroundColor: Colors.orange[800],
               child: SvgPicture.asset(
                 "assets/images/swapicon.svg",
                 // height: height / 40,
@@ -574,9 +633,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                     : asset["assetCode"],
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: notifier.getbluecolor,
-                  fontFamily: fontsemibold,
+                  // fontWeight: FontWeight.bold,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
                 ),
               ),
             ),
@@ -587,11 +646,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   }
 
   String? validateAmount(String? value) {
-    print('sourceAsset: $sourceAsset');
-    if (sourceAsset == null) {
-      return 'Please choose an asset';
-    }
-
     if (value!.isEmpty || double.tryParse(value)! <= 0) {
       return 'Please enter amount to swap';
     }
@@ -616,7 +670,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
           Flexible(
             child: Text(
               amount.toString().isNotEmpty
-                  ? "≈ ${amount.toStringAsFixed(3)} ${getAssetCode(sourceAsset['assetCode'])}"
+                  ? "≈ ${amount.toStringAsFixed(4)} ${getAssetCode(sourceAsset['assetCode'])}"
                   : "≈ 0.0000 ${getAssetCode(sourceAsset['assetCode'])}",
               textScaleFactor: 1.0,
               style: TextStyle(

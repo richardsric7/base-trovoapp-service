@@ -1,10 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
-import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import '../Models/User.dart';
 import '../router/PageActions.dart';
 import 'cache.dart';
@@ -14,6 +12,8 @@ class DataProvider with ChangeNotifier {
   List<String> secretKeys = [];
   bool isDark = false;
   bool biometricEnabled = false;
+  bool hideBalances = false;
+  String timeout = '5'; // 5 minutes
   String? password;
   var assetBalances;
   var nfts;
@@ -148,36 +148,31 @@ class DataProvider with ChangeNotifier {
   }
 
   Future<void> fetchHistory(limit) async {
-    print('fetching history for: ${activeWallet!.publicKey!}');
-    Map responseData = await makeGetRequest(
-        uri: '/v1/users/payments/${activeWallet!.publicKey}?limit=$limit',
-        signer: activeWallet!.signer!,
-        publicKey: activeWallet!.publicKey!,
-        secretKey: secretKeys[0]);
+    try {
+      print('fetching history for: ${activeWallet!.publicKey!}');
+      Map responseData = await makeGetRequest(
+          uri: '/v1/users/payments/${activeWallet!.publicKey}?limit=$limit',
+          signer: activeWallet!.signer!,
+          publicKey: activeWallet!.publicKey!,
+          secretKey: secretKeys[0]);
 
-    print('response: ${responseData['data']}');
-    if (responseData['statusCode'] == 200) {
-      totalRecords = responseData['data']['totalRecords'];
-      currentPage = responseData['data']['currentPage'];
-      var transactions = <TransactionInfo>[];
-      for (var i = 0; i < responseData['data']['records'].length; i++) {
-        transactions.add(TransactionInfo()
-            .deserializeJson(responseData['data']['records'][i]));
+      print('response: ${responseData['data']}');
+      if (responseData['statusCode'] == 200) {
+        totalRecords = responseData['data']['totalRecords'];
+        currentPage = responseData['data']['currentPage'];
+        var transactions = <TransactionInfo>[];
+        for (var i = 0; i < responseData['data']['records'].length; i++) {
+          transactions.add(TransactionInfo()
+              .deserializeJson(responseData['data']['records'][i]));
+        }
+
+        print('transactions: $transactions');
+
+        historyData = transactions;
+        notifyListeners();
       }
-
-      // if (limit <= 20) {
-      //   await StoreData().storeInsertData('historyData${activeWallet!.alias}',
-      //       responseData['data']['records']);
-      //   await StoreData().storeInsertData('totalRecords${activeWallet!.alias}',
-      //       responseData['data']['totalRecords']);
-      //   await StoreData().storeInsertData('currentPage${activeWallet!.alias}',
-      //       responseData['data']['currentPage']);
-      // }
-
-      print('transactions: $transactions');
-
-      historyData = transactions;
-      notifyListeners();
+    } catch (e) {
+      print('................................in transaction history: $e');
     }
   }
 

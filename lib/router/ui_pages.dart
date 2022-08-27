@@ -29,6 +29,10 @@ const String PaymentDetailsViewPath = '/PaymentDetailsView';
 const String SwapAssetsViewPath = '/SwapAssetsView';
 const String ConfirmSwapViewPath = '/ConfirmSwapView';
 const String SwapSuccessViewPath = '/SwapSuccessView';
+const String ProfileDetailsViewPath = '/ProfileDetailsView';
+const String ReferralInfoViewPath = '/ReferralInfoView';
+const String PasswordMgtViewPath = '/PasswordMgtView';
+const String BackupAllViewPath = '/BackupAllView';
 
 enum Pages {
   Splash,
@@ -60,6 +64,10 @@ enum Pages {
   SwapAssetsView,
   ConfirmSwapView,
   SwapSuccessView,
+  ProfileDetailsView,
+  ReferralInfoView,
+  PasswordMgtView,
+  BackupAllView,
 }
 
 class PageConfiguration {
@@ -219,4 +227,24 @@ PageConfiguration SwapSuccessViewPageConfig = PageConfiguration(
     key: 'SwapSuccessView',
     path: SwapSuccessViewPath,
     uiPage: Pages.SwapSuccessView,
+    currentPageAction: null);
+PageConfiguration ProfileDetailsViewPageConfig = PageConfiguration(
+    key: 'ProfileDetailsView',
+    path: ProfileDetailsViewPath,
+    uiPage: Pages.ProfileDetailsView,
+    currentPageAction: null);
+PageConfiguration ReferralInfoViewPageConfig = PageConfiguration(
+    key: 'ReferralInfoView',
+    path: ReferralInfoViewPath,
+    uiPage: Pages.ReferralInfoView,
+    currentPageAction: null);
+PageConfiguration PasswordMgtViewPageConfig = PageConfiguration(
+    key: 'PasswordMgtView',
+    path: PasswordMgtViewPath,
+    uiPage: Pages.PasswordMgtView,
+    currentPageAction: null);
+PageConfiguration BackupAllViewPageConfig = PageConfiguration(
+    key: 'BackupAllView',
+    path: BackupAllViewPath,
+    uiPage: Pages.BackupAllView,
     currentPageAction: null);

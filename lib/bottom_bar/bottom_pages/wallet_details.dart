@@ -3,6 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
@@ -38,7 +41,6 @@ class _WalletDetailsState extends State<WalletDetails>
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _tabController = TabController(length: tabLength, vsync: this);
   }
@@ -125,7 +127,7 @@ class _WalletDetailsState extends State<WalletDetails>
                         color: notifier.getwihitecolor,
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
-                        fontFamily: fontbody,
+                        fontFamily: fontsemibold,
                       ),
                       tabs: [
                         Tab(
@@ -200,6 +202,19 @@ class _WalletDetailsState extends State<WalletDetails>
                                           },
                                           child: tiles(asset)),
                                     ],
+                                    SizedBox(
+                                      height: height / 20,
+                                    ),
+                                    Button(
+                                      LanguageEn.back,
+                                      notifier.getbluecolor,
+                                      wihitecolor,
+                                      onTap: () {
+                                        appState.currentAction = PageAction(
+                                            state: PageState.replaceAll,
+                                            page: BottomHomePageConfig);
+                                      },
+                                    ),
                                   ] else ...[
                                     Container(
                                       height: height / 3,
@@ -322,18 +337,18 @@ class _WalletDetailsState extends State<WalletDetails>
                                 // in situations where the blockchain has an issue,
                                 // some values can be returned as null or empty
                                 // so always null check for such situations
-                                if (nfts != null && nfts != {}) ...[
-                                  if (nfts[activeWallet!.publicKey] != null &&
-                                      nfts[activeWallet!.publicKey].length >
-                                          0) ...[
-                                    gridView(),
-                                    SizedBox(height: 600),
-                                  ] else ...[
-                                    showEmptyNFTs(),
-                                  ]
-                                ] else ...[
-                                  showEmptyNFTs(),
-                                ],
+                                // if (nfts != null && nfts != {}) ...[
+                                //   if (nfts[activeWallet!.publicKey] != null &&
+                                //       nfts[activeWallet!.publicKey].length >
+                                //           0) ...[
+                                gridView(),
+                                //     SizedBox(height: 600),
+                                //   ] else ...[
+                                //     showEmptyNFTs(),
+                                //   ]
+                                // ] else ...[
+                                //   showEmptyNFTs(),
+                                // ],
                               ],
                             ),
                           ),
@@ -489,13 +504,12 @@ class _WalletDetailsState extends State<WalletDetails>
   }
 
   Widget walletSlides() {
-    var colors = [notifier.getbluecolor, Colors.red, Colors.green];
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: colors[0],
+          color: notifier.getbluecolor,
           // color: colors[i - 1],
         ),
         child: Stack(children: [
@@ -520,7 +534,7 @@ class _WalletDetailsState extends State<WalletDetails>
                   style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: notifier.getwihitecolor,
+                      color: wihitecolor,
                       fontFamily: fontsemibold),
                 ),
                 SizedBox(
@@ -533,7 +547,7 @@ class _WalletDetailsState extends State<WalletDetails>
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
-                        color: notifier.getwihitecolor,
+                        color: wihitecolor,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -543,21 +557,21 @@ class _WalletDetailsState extends State<WalletDetails>
                   height: height / 98.0,
                 ),
                 Text(
-                  '2,082,898 NGN',
+                  appState.hideBalances ? hideBalanceText : '2,082,898 NGN',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: notifier.getwihitecolor,
+                    color: wihitecolor,
                     fontFamily: fontsemibold,
                   ),
                 ),
                 SizedBox(height: 2),
                 Text(
-                  '4,014 USD',
+                  appState.hideBalances ? hideBalanceText : '4,014 USD',
                   style: TextStyle(
                     fontWeight: FontWeight.w300,
                     fontSize: 13,
-                    color: notifier.getwihitecolor,
+                    color: wihitecolor,
                     fontFamily: fontbody,
                   ),
                 ),
@@ -571,10 +585,13 @@ class _WalletDetailsState extends State<WalletDetails>
 
   Widget tiles(asset) {
     return Card(
-      shadowColor: notifier.getblck,
-      color: notifier.getwihitecolor,
+      shadowColor: Colors.black,
+      color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      elevation: 5,
+      elevation: notifier.isDark ? 0 : 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(
@@ -584,6 +601,13 @@ class _WalletDetailsState extends State<WalletDetails>
                   "https://drive.google.com/uc?export=view&id=103fw13pcBoCO2hkTPFX73BUKeWWkVpGZ",
                   height: 35,
                   width: 35,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/trovo.png',
+                      height: 35,
+                      width: 35,
+                    );
+                  },
                 ),
                 SizedBox(width: 20),
                 Column(
@@ -619,7 +643,7 @@ class _WalletDetailsState extends State<WalletDetails>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  asset["amount"],
+                  appState.hideBalances ? hideBalanceText : asset["amount"],
                   style: TextStyle(
                     fontSize: 12,
                     fontFamily: fontsemibold,
@@ -629,7 +653,7 @@ class _WalletDetailsState extends State<WalletDetails>
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
-                    '146,875 NGN',
+                    appState.hideBalances ? hideBalanceText : '146,875 NGN',
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,

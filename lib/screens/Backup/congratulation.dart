@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
@@ -15,10 +16,11 @@ import '../../utils/medeiaqury/medeiaqury.dart';
 class Congratulations extends StatelessWidget {
   Congratulations({Key? key}) : super(key: key);
   late DataProvider appState;
+  late ColorNotifier notifier;
 
   @override
   Widget build(BuildContext context) {
-    var notifier = Provider.of<ColorNotifier>(context, listen: true);
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
     appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -61,12 +63,13 @@ class Congratulations extends StatelessWidget {
               Button(
                 LanguageEn.backup,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () {
                   ensureBackupPrivacyDialog(
                     context,
                     () {
                       Navigator.of(context).pop();
+                      appState.viewData![EnsurePrivacyPageConfig.key] = null;
                       appState.currentAction = PageAction(
                           state: PageState.addPage,
                           page: EnsurePrivacyPageConfig);
@@ -78,7 +81,7 @@ class Congratulations extends StatelessWidget {
               ButtonOutlined(
                 LanguageEn.skip,
                 notifier.getwihitecolor,
-                notifier.getbluecolor,
+                notifier.getbluewhitecolor,
                 onTap: () {
                   warnSkipBackupDialog(context, gotoNext);
                 },

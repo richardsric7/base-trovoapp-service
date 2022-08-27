@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
-import '../Custom_BlocObserver/notifire_clor.dart';
 import 'router_delegate.dart';
 
 class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {

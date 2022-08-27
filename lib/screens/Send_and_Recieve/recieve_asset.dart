@@ -3,9 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -66,7 +65,6 @@ class _ReceiveAssetState extends State<ReceiveAsset>
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
@@ -111,6 +109,9 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                       Expanded(
                         child: DropdownButtonFormField(
                           isExpanded: true,
+                          dropdownColor: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
                           decoration: InputDecoration(
                             contentPadding: EdgeInsets.symmetric(
                                 vertical: 0, horizontal: 20),
@@ -123,16 +124,18 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                               borderRadius: BorderRadius.circular(20),
                             ),
                             filled: true,
-                            fillColor: notifier.getaddsubwalletgrey,
+                            fillColor: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
                           ),
                           value: selectedWallet,
                           icon: Icon(
                             Icons.keyboard_arrow_down_rounded,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                           ),
                           elevation: 0,
                           style: TextStyle(
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 15,
                               fontFamily: fontsemibold,
                               fontWeight: FontWeight.w500),
@@ -178,15 +181,17 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               filled: true,
-                              fillColor: notifier.getaddsubwalletgrey,
+                              fillColor: notifier.isDark
+                                  ? darktilewhitecolor
+                                  : notifier.getaddsubwalletgrey,
                             ),
                             value: selectedAsset,
                             icon: Icon(
                               Icons.keyboard_arrow_down_rounded,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                             ),
                             style: TextStyle(
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 15,
                               fontFamily: fontsemibold,
                             ),
@@ -237,7 +242,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                 ],
@@ -264,7 +269,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
               Button(
                 LanguageEn.dashboard,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
                       state: PageState.replaceAll, page: BottomHomePageConfig);
@@ -287,7 +292,9 @@ class _ReceiveAssetState extends State<ReceiveAsset>
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -304,7 +311,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                   SizedBox(height: height / 90),
@@ -313,7 +320,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                 ],
@@ -331,7 +338,9 @@ class _ReceiveAssetState extends State<ReceiveAsset>
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -344,11 +353,11 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    'Receive from non Trovo wallet',
+                    LanguageEn.receivefromnontrovowallet,
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                   SizedBox(height: height / 90),
@@ -361,7 +370,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                           style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontFamily: fontsemibold),
                         ),
                       ),
@@ -374,7 +383,8 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                           );
                           showSnackBar('Public key', context);
                         },
-                        icon: Icon(Icons.copy, size: 20),
+                        icon: Icon(Icons.copy,
+                            size: 20, color: notifier.getbluewhitecolor),
                       ),
                     ],
                   ),
@@ -393,7 +403,9 @@ class _ReceiveAssetState extends State<ReceiveAsset>
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -406,11 +418,11 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    'Receive with Trovo username',
+                    LanguageEn.receivewithtrovousername,
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                   Row(
@@ -420,7 +432,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                         style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold),
                       ),
                       IconButton(
@@ -432,7 +444,11 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                           );
                           showSnackBar('Username', context);
                         },
-                        icon: Icon(Icons.copy, size: 20),
+                        icon: Icon(
+                          Icons.copy,
+                          size: 20,
+                          color: notifier.getbluewhitecolor,
+                        ),
                       ),
                     ],
                   ),
@@ -451,7 +467,9 @@ class _ReceiveAssetState extends State<ReceiveAsset>
       child: Container(
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.getaddsubwalletgrey,
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
           ),
           child: Image.memory(
               base64.decode(activeAsset['qrCode'].split(',').last))),

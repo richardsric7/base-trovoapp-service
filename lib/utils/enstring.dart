@@ -1,5 +1,3 @@
-import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
-
 class LanguageEn {
   static String get welcometotrovowallet => "Welcome to Trovo Wallet";
 
@@ -12,13 +10,38 @@ class LanguageEn {
 
   static String get chooseamethod => 'Choose a method';
 
+  static String get receivefromnontrovowallet =>
+      'Receive from non Trovo wallet';
+
+  static String get receivewithtrovousername => 'Receive with Trovo username';
+
   static String get abouttocreatesubwallet =>
       'You are about to add a subwallet to your Trovo Wallet account';
+
+  static String get transactioncomplete => 'Transaction Complete';
 
   static String get requesttocreatesubwallet =>
       'You have requested to create a subwallet with these details:';
 
   static String get method => 'Method';
+
+  static String get camera => 'Camera';
+
+  static String get taptoviewall => 'Tap to view all';
+
+  static String get minute => 'minute';
+
+  static String get minutes => 'minutes';
+
+  static String get chooseasset => 'Choose asset';
+
+  static String get swapfrom => 'Swap From';
+
+  static String get swapto => 'Swap To';
+
+  static String get chooseimagesource => 'Choose Image Source';
+
+  static String get gallery => 'Gallery';
 
   static String get createnewsubwallet => 'Create new wallet';
 
@@ -90,6 +113,10 @@ class LanguageEn {
 
   static String get passwordemptyerror => "Enter a password";
 
+  static String get oldpasswordemptyerror => "Enter old password";
+
+  static String get newpasswordemptyerror => "Enter new password";
+
   static String get hinterrorpassword =>
       "Use 6 characters or more for your password";
 
@@ -110,6 +137,8 @@ class LanguageEn {
       "Please enter a valid email address";
 
   static String get confirmpasswordemptyerror => "Confirm your password";
+
+  static String get confirmnewpasswordemptyerror => "Confirm your new password";
 
   static String get passwordmismatcherror =>
       "Those passwords didn\’t match. Try again.";
@@ -181,6 +210,12 @@ class LanguageEn {
 
   static String get enterpassphrase => "Enter pass phrase instead";
 
+  static String get changepassword => "Change Password";
+
+  static String get oldpassword => "Old Password";
+
+  static String get newpassword => "New Password";
+
   static String get password => "Password";
 
   static String get confirmPassword => "Confirm Password";
@@ -231,6 +266,9 @@ class LanguageEn {
 
   static String get welcome => "Welcome back";
 
+  static String get invitefriends =>
+      "Invite friends to earn TROV tokens when they transact";
+
   static String get youhavebeenmissed => "You have been missed";
 
   static String get forgotpassword => "Forgot Password?";
@@ -278,6 +316,8 @@ class LanguageEn {
   static String get backup => "Backup";
 
   static String get backupwallet => "Backup Wallet";
+
+  static String get backupwallets => "Backup Wallets";
 
   static String get ensureprivacybackup =>
       "Ensure no one is looking while you back up your wallet. Anyone with your secret key can access your Trovo wallet.";
@@ -327,7 +367,7 @@ class LanguageEn {
   static String get fingerprint => "Fingerprint";
 
   static String get unlockfinger =>
-      "Unlock Trovo Wallet with fingerprint,\nquick and secured";
+      "Unlock Trovo Wallet with fingerprint,\nquick and secure";
 
   static String get biometrics => "Biometrics ";
 
@@ -558,21 +598,77 @@ class LanguageEn {
 
   static String get hirenjoshi => "Hiren Joshi";
 
-  static String get general => "General";
+  static String get personal => "Personal";
 
-  static String get myaccount => "My Account";
+  static String get preferences => "Preferences";
 
-  static String get billingpayment => "Billing/Payment";
+  static String get security => "Security";
+
+  static String get access => "Access";
+
+  static String get passwordmanagement => "Password Management";
+
+  static String get myprofile => "My Profile";
+
+  static String get myreferrals => "My Referrals";
+
+  static String get hidebalance => "Hide My Balance";
+
+  static String get timeout => "Time Out";
+
+  static String get wallet => "Wallet";
+
+  static String get curatedassets => "Curated Assets";
+
+  static String get walletmode => "Wallet Mode";
+
+  static String get more => "More";
+
+  static String get helpandsupport => "Help and Support";
+
+  static String get termsofuse => "Terms of Use";
+
+  static String get changepicture => "Change Picture";
+
+  static String get abouttrovowallet => "About Trovo Wallet";
+
+  static String get mysubscriptions => "My Subscriptions";
 
   static String get faqsupport => "FAQ & Support";
 
-  static String get language => "Language";
+  static String get languages => "Languages";
+
+  static String get currency => "Currency";
+
+  static String get theme => "Theme";
 
   static String get darkmode => "Dark Mode";
 
   static String get fullname => "Full name";
 
   static String get editprofile => "Edit Profile";
+
+  static String get edit => "edit";
+
+  static String get advancedkyc => 'Advanced KYC';
+
+  static String get unverified => "UNVERIFIED";
+
+  static String get taptoverify => "Tap to verify";
+
+  static String get taptoconnect => "Tap to connect";
+
+  static String get referrals => "Referrals";
+
+  static String get rewards => "Rewards";
+
+  static String get taptostart => "Tap to start";
+
+  static String get bio => 'Bio';
+
+  static String get socials => 'Socials';
+
+  static String get referralid => 'Referral ID';
 
   static String get email => "Email";
 

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/profile.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/selectstocks.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -23,11 +20,12 @@ class _BottomHomeState extends State<BottomHome> {
   int _selectedIndex = 0;
 
   late ColorNotifier notifire;
+  late DataProvider appState;
 
   @override
   Widget build(BuildContext context) {
     notifire = Provider.of<ColorNotifier>(context, listen: true);
-    var appState = Provider.of<DataProvider>(context, listen: false);
+    appState = Provider.of<DataProvider>(context, listen: false);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return WillPopScope(
@@ -50,7 +48,7 @@ class _BottomHomeState extends State<BottomHome> {
           items: [
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: SvgPicture.asset("assets/images/home.svg",
+                icon: Image.asset("assets/images/home.png",
                     color: _selectedIndex == 0
                         ? notifire.getbluecolor
                         : notifire.getblck,
@@ -58,7 +56,7 @@ class _BottomHomeState extends State<BottomHome> {
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: SvgPicture.asset("assets/images/wallets.svg",
+                icon: Image.asset("assets/images/wallets.png",
                     color: _selectedIndex == 1
                         ? notifire.getbluecolor
                         : notifire.getblck,
@@ -66,7 +64,7 @@ class _BottomHomeState extends State<BottomHome> {
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: SvgPicture.asset("assets/images/history.svg",
+                icon: Image.asset("assets/images/history.png",
                     color: _selectedIndex == 2
                         ? notifire.getbluecolor
                         : notifire.getblck,
@@ -74,7 +72,7 @@ class _BottomHomeState extends State<BottomHome> {
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: SvgPicture.asset("assets/images/swap.svg",
+                icon: Image.asset("assets/images/swap.png",
                     color: _selectedIndex == 3
                         ? notifire.getbluecolor
                         : notifire.getblck,
@@ -82,21 +80,16 @@ class _BottomHomeState extends State<BottomHome> {
                 label: ''),
             BottomNavigationBarItem(
               backgroundColor: notifire.getwihitecolor,
-              icon: SvgPicture.asset("assets/images/settings.svg",
+              icon: Image.asset("assets/images/settings.png",
                   color: _selectedIndex == 4
                       ? notifire.getbluecolor
                       : notifire.getblck,
-                  height: height / 35),
+                  height: height / 33),
               label: '',
             ),
           ],
           onTap: (index) {
-            setState(() {
-              if (_selectedIndex != 2 && index == 2) {
-                appState.getHistory();
-              }
-              _selectedIndex = index;
-            });
+            changeTabMethod(index);
           },
         ),
         body: Stack(
@@ -112,15 +105,24 @@ class _BottomHomeState extends State<BottomHome> {
     );
   }
 
+  changeTabMethod(index) {
+    setState(() {
+      if (_selectedIndex != 2 && index == 2) {
+        appState.getHistory();
+      }
+      _selectedIndex = index;
+    });
+  }
+
   Map<String, WidgetBuilder> _routeBuilders(BuildContext context, int index) {
     return {
       '/': (context) {
         return [
-          Home(),
+          Home(onButtonPressed: changeTabMethod),
           Wallets(),
           PaymentHistory(),
           SwapAssets(),
-          Profile(),
+          Settings(),
         ].elementAt(index);
       },
     };

@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
@@ -63,17 +59,17 @@ class _TransactionSuccess extends State<TransactionSuccess>
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 18),
+              SizedBox(height: height / 10),
               Center(
                 child: Image.asset("assets/images/success.gif",
-                    height: height / 5.3),
+                    height: height / 10),
               ),
               SizedBox(height: height / 50),
               Text(
                 LanguageEn.yourtransactionwassuccessful,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluecolor,
+                    color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
                     fontSize: 22.sp),
               ),
@@ -93,7 +89,9 @@ class _TransactionSuccess extends State<TransactionSuccess>
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                    color: notifier.getaddsubwalletgrey,
+                    color: notifier.isDark
+                        ? darktilewhitecolor
+                        : notifier.getaddsubwalletgrey,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +102,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                           LanguageEn.sentto,
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                             fontSize: 16.sp,
                             fontFamily: fontsemibold,
                           ),
@@ -131,7 +129,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                             LanguageEn.formemo,
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 16.sp,
                               fontFamily: fontsemibold,
                             ),
@@ -146,7 +144,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                             viewData['memo'],
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 15.sp,
                               fontFamily: fontbody,
                             ),
@@ -169,7 +167,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                           LanguageEn.blockchainproof,
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                             fontSize: 16.sp,
                             fontFamily: fontsemibold,
                           ),
@@ -192,7 +190,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                                   viewData['transactionId'],
                                   style: TextStyle(
                                     decoration: TextDecoration.underline,
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                     fontSize: 12.sp,
                                     fontWeight: FontWeight.w500,
                                     fontFamily: fontbody,
@@ -212,7 +210,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                                   showSnackBar('Transaction ID', context),
                                 },
                                 icon: Icon(Icons.copy),
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                               ),
                             ),
                           ],
@@ -231,7 +229,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
               Button(
                 LanguageEn.dashboard,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
                     state: PageState.replaceAll,
@@ -258,7 +256,9 @@ class _TransactionSuccess extends State<TransactionSuccess>
         child: Container(
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.getaddsubwalletgrey,
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
           ),
           child: Row(
             children: [
@@ -268,7 +268,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                   viewData['destination'].toString(),
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    color: notifier.getbluecolor,
+                    color: notifier.getbluewhitecolor,
                     fontSize: 15.sp,
                     fontFamily: fontbody,
                   ),
@@ -308,7 +308,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
               viewData['destination'].toString(),
               style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: notifier.getbluecolor,
+                color: notifier.getbluewhitecolor,
                 fontSize: 19.sp,
                 fontFamily: fontbody,
               ),
@@ -319,7 +319,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
             Text(
               '${viewData['destinationFirstName']} ${viewData['destinationLastName']}',
               style: TextStyle(
-                color: notifier.getbluecolor,
+                color: notifier.getbluewhitecolor,
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w500,
                 fontFamily: fontbody,

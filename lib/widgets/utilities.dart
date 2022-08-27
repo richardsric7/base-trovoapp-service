@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 
 void showSnackBar(String rel, BuildContext context) {
-  notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
   ScaffoldMessenger.of(context).clearSnackBars();
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
@@ -16,7 +18,7 @@ void showSnackBar(String rel, BuildContext context) {
       content: Text(
         '$rel copied successfully',
         style: TextStyle(
-          color: notifier.getwihitecolor,
+          color: wihitecolor,
           fontSize: 12.sp,
           fontWeight: FontWeight.w500,
           fontFamily: fontbody,
@@ -24,7 +26,7 @@ void showSnackBar(String rel, BuildContext context) {
       ),
       action: SnackBarAction(
         label: 'DISMISS',
-        textColor: Colors.white,
+        textColor: wihitecolor,
         onPressed: () => {
           ScaffoldMessenger.of(context).clearSnackBars(),
         },
@@ -42,6 +44,17 @@ getAssetCode(assetCode) {
   return assetCode.toString().isEmpty ? nativeAssetCode : assetCode.toString();
 }
 
+Color getColor(context, indexOfWallet) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+
+  // return only white color if app is in dark mode
+  if (notifier.isDark) {
+    return wihitecolor;
+  }
+
+  return indexOfWallet > 3 ? notifier.getbluecolor : notifier.getwihitecolor;
+}
+
 getAssetIssuer(assetIssuer) {
   // assign 'Native Token' to the asset which has an
   // empty assetIssuer value.
@@ -54,11 +67,35 @@ getAssetIssuer(assetIssuer) {
 }
 
 formatNumber(double number) =>
-    NumberFormat("#,##0.000", "en_US").format(number);
+    NumberFormat("#,##0.0000", "en_US").format(number);
+
+formatHistoryNumber(double number) {
+  // if number is greater than 1million return 1m or 1.2m
+  if (number >= 1000000) {
+    return NumberFormat.compact().format(number);
+  }
+
+  return NumberFormat("#,##0", "en_US").format(number);
+}
 
 String truncate(String text, {length: 7, omission: '...'}) {
   if (length >= text.length) {
     return text;
   }
   return text.replaceRange(length, text.length, omission);
+}
+
+class doubleTypeFormatter extends TextInputFormatter {
+  doubleTypeFormatter();
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    print('this is old value ${oldValue.text}');
+    print('this is new value ${newValue.text}');
+    return TextEditingValue(
+        text: formatNumber(double.parse(newValue.text.replaceAll(',', ''))),
+        selection: TextSelection.collapsed(offset: newValue.selection.end + 1));
+  }
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
@@ -33,9 +33,6 @@ class Payment_HistoryState extends State<PaymentHistory>
   List<Wallet>? wallets;
   Wallet? activeWallet;
   dynamic selectedWallet = '';
-  int totalRecords = 0;
-  int currentPage = 1;
-  int limit = 20;
   late List<TransactionInfo>? historyData;
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
@@ -59,16 +56,6 @@ class Payment_HistoryState extends State<PaymentHistory>
   void initState() {
     super.initState();
     _refreshController = RefreshController(initialRefresh: false);
-    // appState = Provider.of<DataProvider>(context, listen: false);
-    // wallets = appState.userInfo!.wallets!;
-    // activeWallet = appState.activeWallet;
-    // if (activeWallet == null && wallets!.length > 0) {
-    //   activeWallet = wallets![0];
-    //   appState.activeWallet = activeWallet;
-    // }
-    // selectedWallet = activeWallet!.publicKey;
-    // appState.getHistory();
-    // historyData = appState.historyData;
   }
 
   @override
@@ -84,9 +71,6 @@ class Payment_HistoryState extends State<PaymentHistory>
     }
     selectedWallet = activeWallet!.publicKey;
     historyData = appState.historyData;
-    totalRecords = appState.totalRecords!;
-    currentPage = appState.currentPage;
-    limit = appState.limit;
 
     return ScreenUtilInit(
       builder: (context, child) => DefaultTabController(
@@ -119,6 +103,9 @@ class Payment_HistoryState extends State<PaymentHistory>
                     child: DropdownButtonFormField(
                       isDense: true,
                       isExpanded: true,
+                      dropdownColor: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
                       decoration: InputDecoration(
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 0, horizontal: 20),
@@ -131,16 +118,18 @@ class Payment_HistoryState extends State<PaymentHistory>
                           borderRadius: BorderRadius.circular(10),
                         ),
                         filled: true,
-                        fillColor: notifier.getaddsubwalletgrey,
+                        fillColor: notifier.isDark
+                            ? darktilewhitecolor
+                            : notifier.getaddsubwalletgrey,
                       ),
                       value: selectedWallet,
                       icon: Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                       elevation: 0,
                       style: TextStyle(
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 15,
                         fontFamily: fontsemibold,
                         fontWeight: FontWeight.w500,
@@ -150,10 +139,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                         appState.activeWallet = wallets!.firstWhere(
                             (wallet) => wallet.publicKey == newValue);
                         showLoader(context);
-                        limit = 20;
-                        totalRecords = 0;
-                        currentPage = 1;
-                        await appState.fetchHistory(limit);
+                        appState.limit = 20;
+                        appState.totalRecords = 0;
+                        appState.currentPage = 1;
+                        await appState.fetchHistory(appState.limit);
                         hideLoader(context);
                         if (mounted) {
                           setState(() {});
@@ -183,13 +172,11 @@ class Payment_HistoryState extends State<PaymentHistory>
         height: height / 1.343,
         // color: Colors.black,
         child: LoadMore(
-          isFinish: historyData!.length == totalRecords,
+          isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {
-            // setState(() {
-            limit += 20;
-            // });
-            await appState.fetchHistory(limit);
-            return historyData!.length <= totalRecords;
+            appState.limit += 20;
+            await appState.fetchHistory(appState.limit);
+            return historyData!.length <= appState.totalRecords!;
           },
           textBuilder: (LoadMoreStatus status) {
             String text;
@@ -213,7 +200,6 @@ class Payment_HistoryState extends State<PaymentHistory>
           },
           child: ListView.separated(
               separatorBuilder: (context, int) => Container(),
-              // child: ListView.builder(
               itemCount: historyData!.length,
               itemBuilder: (context, index) {
                 return tile(historyData![index]);
@@ -223,7 +209,7 @@ class Payment_HistoryState extends State<PaymentHistory>
     }
 
     return Container(
-      height: height / 2,
+      height: height / 1.8,
       child: Center(
         child: CircularProgressIndicator(
           backgroundColor: notifier.getbluecolor,
@@ -239,20 +225,18 @@ class Payment_HistoryState extends State<PaymentHistory>
   Widget tile(TransactionInfo transaction) {
     // lets start by setting transactionType to receive
     TransactionType transactionType = TransactionType.Receive;
-    var publicKey = transaction.fromPublicKey;
     var amount = transaction.amount;
     var assetCode = transaction.assetCode;
     var date = transaction.transactionDate;
     var name =
-        '${LanguageEn.receivedfrom} ${extractUsername(transaction.from!) ?? truncate(publicKey!)}';
+        '${LanguageEn.receivedfrom} ${extractUsername(transaction.from!) ?? truncate(transaction.fromPublicKey!)}';
 
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
     if (transaction.fromPublicKey == activeWallet!.publicKey) {
       transactionType = TransactionType.Send;
       name =
-          '${LanguageEn.sentto} ${extractUsername(transaction.to!) ?? truncate(publicKey!)}';
-      publicKey = transaction.toPublicKey;
+          '${LanguageEn.sentto} ${extractUsername(transaction.to!) ?? truncate(transaction.toPublicKey!)}';
     }
 
     if (transaction.transactionType!.contains('SWAP')) {
@@ -275,17 +259,19 @@ class Payment_HistoryState extends State<PaymentHistory>
         child: Container(
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.getaddsubwalletgrey,
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
           ),
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
             child: Row(
               children: [
-                SvgPicture.asset(
+                Image.asset(
                   getIcon(transactionType),
                   width: width / 8,
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   height: 25,
                 ),
                 SizedBox(
@@ -303,7 +289,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w400,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                             fontFamily: fontbody,
                           ),
                         ),
@@ -334,7 +320,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w400,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                             fontFamily: fontbody,
                           ),
                         ),
@@ -354,16 +340,16 @@ class Payment_HistoryState extends State<PaymentHistory>
   String getIcon(TransactionType transactionType) {
     switch (transactionType) {
       case TransactionType.Swap:
-        return "assets/images/swap.svg";
+        return "assets/images/swap.png";
       case TransactionType.Send:
-        return 'assets/images/send.svg';
+        return 'assets/images/send.png';
       default:
-        return 'assets/images/recieve.svg';
+        return 'assets/images/receive.png';
     }
   }
 
   String formatAmount(TransactionType transactionType, amount, assetCode) {
-    var am = formatNumber(double.parse(amount.toString()));
+    var am = formatHistoryNumber(double.parse(amount.toString()));
     return transactionType == TransactionType.Send
         ? '- $am $assetCode'
         : '+ $am $assetCode';
@@ -372,7 +358,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   refreshData() async {
     try {
       showLoader(context);
-      await appState.fetchHistory(limit);
+      await appState.fetchHistory(appState.limit);
       hideLoader(context);
       _refreshController.refreshCompleted();
     } catch (e) {
@@ -381,6 +367,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   }
 
   String? extractUsername(String data) {
+    print('data $data');
     if (data.isNotEmpty) {
       const start = '[';
       const end = ']';

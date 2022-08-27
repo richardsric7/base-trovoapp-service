@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:share/share.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -46,6 +47,7 @@ class _PaymentDetails extends State<PaymentDetails>
   double? amount;
   String? assetCode;
   String? date;
+  String memo = '';
 
   @override
   void initState() {
@@ -60,16 +62,31 @@ class _PaymentDetails extends State<PaymentDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![PaymentDetailsViewPageConfig.key];
-    transactionType = viewData.fromPublicKey == activeWallet!.publicKey
-        ? TransactionType.Send
-        : TransactionType.Receive;
+    transactionType = TransactionType.Receive;
+    name = '${extractUsername(viewData.from!)}';
+    publicKey = viewData.fromPublicKey;
+    memo = viewData.memo!;
 
-    name =
-        transactionType == TransactionType.Send ? viewData.to : viewData.from;
+    // if record.from is same as the current active wallet public key
+    // then it was a send transaction
+    if (viewData.fromPublicKey == activeWallet!.publicKey) {
+      transactionType = TransactionType.Send;
+      name = '${extractUsername(viewData.to!)}';
+      publicKey = viewData.toPublicKey;
+    }
 
-    publicKey = transactionType == TransactionType.Send
-        ? viewData.toPublicKey
-        : viewData.fromPublicKey;
+    if (viewData.transactionType!.contains('SWAP')) {
+      transactionType = TransactionType.Swap;
+      var splitResult = viewData.memo!.split('>');
+      memo = "Swapped ${splitResult[0]} to ${splitResult[1]}";
+    }
+
+    // name =
+    //     transactionType == TransactionType.Send ? viewData.to : viewData.from;
+
+    // publicKey = transactionType == TransactionType.Send
+    //     ? viewData.toPublicKey
+    //     : viewData.fromPublicKey;
 
     amount = viewData.amount;
 
@@ -96,7 +113,7 @@ class _PaymentDetails extends State<PaymentDetails>
                 LanguageEn.transactionDetails,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluecolor,
+                    color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
                     fontSize: 22.sp),
               ),
@@ -119,35 +136,39 @@ class _PaymentDetails extends State<PaymentDetails>
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                    color: notifier.getaddsubwalletgrey,
+                    color: notifier.isDark
+                        ? darktilewhitecolor
+                        : notifier.getaddsubwalletgrey,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
-                        child: Text(
-                          transactionType == TransactionType.Send
-                              ? LanguageEn.sentto
-                              : LanguageEn.receivedfrom,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            color: notifier.getbluecolor,
-                            fontSize: 16.sp,
-                            fontFamily: fontsemibold,
+                      if (TransactionType.Swap != transactionType) ...[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
+                          child: Text(
+                            transactionType == TransactionType.Send
+                                ? LanguageEn.sentto
+                                : LanguageEn.receivedfrom,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 16.sp,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
                         ),
-                      ),
-                      SizedBox(
-                        height: 5,
-                      ),
-                      showUserInfo(),
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      Divider(
-                        height: 5,
-                      ),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        showUserInfo(),
+                        SizedBox(
+                          height: height / 50,
+                        ),
+                        Divider(
+                          height: 5,
+                        ),
+                      ],
                       SizedBox(
                         height: height / 90,
                       ),
@@ -159,7 +180,7 @@ class _PaymentDetails extends State<PaymentDetails>
                             LanguageEn.formemo,
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 16.sp,
                               fontFamily: fontsemibold,
                             ),
@@ -171,10 +192,10 @@ class _PaymentDetails extends State<PaymentDetails>
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: Text(
-                            viewData.memo!,
+                            memo,
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 15.sp,
                               fontFamily: fontbody,
                             ),
@@ -197,7 +218,7 @@ class _PaymentDetails extends State<PaymentDetails>
                           LanguageEn.blockchainproof,
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                             fontSize: 16.sp,
                             fontFamily: fontsemibold,
                           ),
@@ -220,7 +241,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                   viewData.transactionId!,
                                   style: TextStyle(
                                     decoration: TextDecoration.underline,
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                     fontSize: 12.sp,
                                     fontWeight: FontWeight.w500,
                                     fontFamily: fontbody,
@@ -240,7 +261,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                   showSnackBar('Transaction ID', context),
                                 },
                                 icon: Icon(Icons.copy),
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                               ),
                             ),
                           ],
@@ -259,7 +280,7 @@ class _PaymentDetails extends State<PaymentDetails>
               Button(
                 LanguageEn.share,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () {
                   share();
                 },
@@ -293,10 +314,10 @@ class _PaymentDetails extends State<PaymentDetails>
                       name.toString().isEmpty
                           ? truncate(publicKey!, length: 5) +
                               publicKey!.substring(publicKey!.length - 5)
-                          : extractUsername(name!),
+                          : name!,
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 19.sp,
                         fontFamily: fontbody,
                       ),
@@ -309,16 +330,13 @@ class _PaymentDetails extends State<PaymentDetails>
                       onPressed: () => {
                         Clipboard.setData(
                           ClipboardData(
-                            text: name.toString().isEmpty
-                                ? truncate(publicKey!, length: 5) +
-                                    publicKey!.substring(publicKey!.length - 5)
-                                : extractUsername(name!),
+                            text: name.toString().isEmpty ? publicKey : name!,
                           ),
                         ),
                         showSnackBar('Address', context),
                       },
                       icon: Icon(Icons.copy),
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                 ],
@@ -326,7 +344,7 @@ class _PaymentDetails extends State<PaymentDetails>
               Text(
                 '$date',
                 style: TextStyle(
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.w500,
                   fontFamily: fontbody,
@@ -347,11 +365,17 @@ class _PaymentDetails extends State<PaymentDetails>
   }
 
   String extractUsername(String data) {
-    const start = '[';
-    const end = ']';
-    final startIndex = data.indexOf(start);
-    final endIndex = data.indexOf(end);
-    return data.substring(startIndex + start.length, endIndex);
+    print('data $data');
+    if (data.isNotEmpty) {
+      const start = '[';
+      const end = ']';
+      final startIndex = data.indexOf(start);
+      final endIndex = data.indexOf(end);
+      print('data $data');
+      return data.substring(startIndex + start.length, endIndex);
+    }
+
+    return '';
   }
 
   void share() {
@@ -363,11 +387,11 @@ class _PaymentDetails extends State<PaymentDetails>
       //   break;
       case TransactionType.Send:
         shareString =
-            'Sent $amount $assetCode \n\nTo: ${name.toString().isEmpty ? publicKey! : extractUsername(name!)} \n\nFor: ${viewData.memo} \n\nTransaction Id: ${viewData.transactionId!.toLowerCase()} \n\nTime: ${date} \n\nBlockchain Proof: ${bantuBlockchainExplorerBaseUrl + viewData.transactionId!}';
+            'Sent $amount $assetCode \n\nTo: ${name.toString().isEmpty ? publicKey! : name} \n\nFor: ${viewData.memo} \n\nTransaction Id: ${viewData.transactionId!.toLowerCase()} \n\nTime: ${date} \n\nBlockchain Proof: ${bantuBlockchainExplorerBaseUrl + viewData.transactionId!}';
         break;
       default:
         shareString =
-            'Recieved $amount $assetCode \n\nFrom: ${name.toString().isEmpty ? publicKey! : extractUsername(name!)} \n\nFor: ${viewData.memo} \n\nTransaction Id: ${viewData.transactionId!.toLowerCase()} \n\nTime: ${date} \n\nBlockchain Proof: ${bantuBlockchainExplorerBaseUrl + viewData.transactionId!}';
+            'Recieved $amount $assetCode \n\nFrom: ${name.toString().isEmpty ? publicKey! : name} \n\nFor: ${viewData.memo} \n\nTransaction Id: ${viewData.transactionId!.toLowerCase()} \n\nTime: ${date} \n\nBlockchain Proof: ${bantuBlockchainExplorerBaseUrl + viewData.transactionId!}';
     }
 
     Share.share(shareString);

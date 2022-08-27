@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
-import 'package:trovo_wallet/screens/Backup/backup.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
@@ -12,8 +12,6 @@ import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../Auth/fingerprint.dart';
-import '../ImportWallet/importwallet.dart';
 
 class EnsurePrivacy extends StatefulWidget {
   const EnsurePrivacy({Key? key}) : super(key: key);
@@ -25,9 +23,11 @@ class EnsurePrivacy extends StatefulWidget {
 class _EnsurePrivacyState extends State<EnsurePrivacy> {
   bool hasAccepted = false;
   late DataProvider appState;
+  late ColorNotifier notifier;
+
   @override
   Widget build(BuildContext context) {
-    var notifier = Provider.of<ColorNotifier>(context, listen: true);
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
     appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -97,11 +97,10 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
               Button(
                 LanguageEn.continuee,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () {
                   if (hasAccepted) {
-                    appState.currentAction = PageAction(
-                        state: PageState.addPage, page: BackupPageConfig);
+                    gotoNext();
                   } else {
                     popup(context,
                         title: LanguageEn.important,
@@ -132,7 +131,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
               ),
             ),
             activeColor: notifier.getbluecolor,
-            side: BorderSide(color: notifier.getbluecolor),
+            side: BorderSide(color: notifier.getbluewhitecolor),
             value: value,
             onChanged: onChanged,
           ),
@@ -155,5 +154,17 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
         )
       ],
     );
+  }
+
+  gotoNext() async {
+    var data = appState.viewData![EnsurePrivacyPageConfig.key];
+    print('gotoNext: $data');
+    if (data != null && data['backupAll']) {
+      appState.currentAction =
+          PageAction(state: PageState.addPage, page: BackupAllViewPageConfig);
+    } else {
+      appState.currentAction =
+          PageAction(state: PageState.addPage, page: BackupPageConfig);
+    }
   }
 }

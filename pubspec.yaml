@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.16.2 <3.0.0"
+  sdk: ">=2.16.2 <=3.0.5"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -29,7 +29,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -57,7 +56,7 @@ dependencies:
   stellar_flutter_sdk:
     git: 
      url: https://github.com/Soneso/stellar_flutter_sdk.git
-     ref: master  
+     ref: master
   sembast: ^3.2.0
   intl_phone_field: ^3.1.0
   flutter_overlay_loader: ^2.0.0
@@ -83,7 +82,12 @@ dependencies:
   intl:
   pull_to_refresh: ^2.0.0
   share: ^2.0.4
-
+  uni_links: ^0.5.1
+  firebase_crashlytics: ^2.8.7
+  firebase_dynamic_links: ^4.3.4
+  firebase_remote_config: ^2.0.15
+  device_preview: ^1.1.0
+  syncfusion_flutter_core: ^19.4.56
 
 dev_dependencies:
   flutter_test:
@@ -147,6 +151,15 @@ flutter:
     - family: Matahari_Regular
       fonts:
         - asset: assets/fonts/Matahari-400Regular.ttf
+    - family: Montserrat_Regular
+      fonts:
+        - asset: assets/fonts/Montserrat-Regular.ttf
+    - family: Montserrat_SemiBold
+      fonts:
+        - asset: assets/fonts/Montserrat-SemiBold.ttf
+    - family: Montserrat_Medium
+      fonts:
+        - asset: assets/fonts/Montserrat-Medium.ttf
         
   
   #

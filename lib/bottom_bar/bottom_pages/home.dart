@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
@@ -11,14 +13,14 @@ import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+  final void Function(int) onButtonPressed;
+  const Home({Key? key, required this.onButtonPressed}) : super(key: key);
 
   @override
   State<Home> createState() => _HomeState();
@@ -33,6 +35,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   var assetBalances;
   var nfts;
   List<Wallet>? wallets;
+  List<Wallet>? carouselWallets;
   String? activeWallet;
   var claimedAssets;
   var unclaimedAssets;
@@ -71,6 +74,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     userInfo = appState.userInfo!;
     assetBalances = appState.assetBalances;
     wallets = userInfo.wallets!;
+    carouselWallets =
+        wallets!.length > 7 ? wallets!.getRange(0, 7).toList() : wallets;
     nfts = appState.nfts;
     if (activeWallet == null && wallets!.length > 0) {
       activeWallet = wallets![0].publicKey;
@@ -163,7 +168,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         color: notifier.getwihitecolor,
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
-                        fontFamily: fontbody,
+                        fontFamily: fontsemibold,
                       ),
                       tabs: [
                         Tab(
@@ -372,10 +377,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     gridView(),
                                     SizedBox(height: 600),
                                   ] else ...[
-                                    showEmptyNFTs(),
+                                    // showEmptyNFTs(),
+                                    gridView(),
                                   ]
                                 ] else ...[
-                                  showEmptyNFTs(),
+                                  // showEmptyNFTs(),
+                                  gridView(),
                                 ],
                               ],
                             ),
@@ -426,8 +433,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     child: CircleAvatar(
                       radius: 30,
                       backgroundColor: notifier.getwihitecolor,
-                      foregroundImage:
-                          AssetImage("assets/images/default-user.png"),
+                      foregroundImage: AssetImage("assets/images/obi.png"),
                     )),
                 SizedBox(
                   width: width / 70,
@@ -439,7 +445,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       LanguageEn.goodevening,
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: notifier.getblck,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 14.sp,
                         fontFamily: fontbody,
                       ),
@@ -450,7 +456,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     Text(
                       userInfo.firstName!.capitalizeFirst!,
                       style: TextStyle(
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 17.sp,
                         fontWeight: FontWeight.w600,
                         fontFamily: fontbody,
@@ -475,7 +481,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
                 child: SvgPicture.asset(
                   "assets/images/search.svg",
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   height: height / 40,
                 ),
               ),
@@ -490,7 +496,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
                 child: SvgPicture.asset(
                   "assets/images/scan.svg",
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   height: height / 40,
                 ),
               ),
@@ -508,7 +514,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 //     color: notifier.getbluecolor),
                 child: SvgPicture.asset(
                   "assets/images/notifications-active.svg",
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   height: height / 40,
                 ),
               ),
@@ -606,8 +612,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   Widget walletSlides(List<Wallet> wallets) {
-    // var thiswallets = [1, 2, 3];
-    var colors = [notifier.getbluecolor, Colors.red, Colors.green];
+    var colors = [
+      notifier.getbluecolor,
+      notifier.getbluecolor90,
+      notifier.getbluecolor80,
+      notifier.getbluecolor70,
+      notifier.getbluecolor60,
+      notifier.getbluecolor50,
+    ];
     return CarouselSlider(
       options: CarouselOptions(
         onPageChanged: ((index, reason) => {
@@ -626,84 +638,152 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         clipBehavior: Clip.antiAlias,
         viewportFraction: wallets.length > 1 ? 0.9 : 1,
       ),
-      items: wallets.map((wallet) {
+      items: carouselWallets!.map((wallet) {
+        var indexOfWallet = wallets.indexOf(wallet);
         return Builder(
           builder: (BuildContext context) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                  color: colors[0],
-                  // color: colors[i - 1],
-                ),
-                child: Stack(children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 35.0, horizontal: 20),
-                        child: Image.asset('assets/images/trovo_white.png'),
-                      ),
-                    ],
+            if (indexOfWallet < 6) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                    // color: colors[0],
+                    color: colors[wallets.indexOf(wallet)],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 35.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Stack(children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Text(
-                          wallet.alias!.capitalizeFirst!,
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: notifier.getwihitecolor,
-                              fontFamily: fontsemibold),
-                        ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              LanguageEn.totalbalance,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w400,
-                                color: notifier.getwihitecolor,
-                                fontFamily: fontbody,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: height / 98.0,
-                        ),
-                        Text(
-                          '2,082,898 NGN',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontsemibold,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          '4,014 USD',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w300,
-                            fontSize: 13,
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontbody,
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 35.0, horizontal: 20),
+                          child: Image.asset(
+                            'assets/images/trovo_white.png',
+                            color: getColor(context, indexOfWallet),
                           ),
                         ),
                       ],
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 25.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            wallet.alias!.capitalizeFirst!,
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: getColor(context, indexOfWallet),
+                                fontFamily: fontsemibold),
+                          ),
+                          SizedBox(
+                            height: height / 50,
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                LanguageEn.totalbalance,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w400,
+                                  color: getColor(context, indexOfWallet),
+                                  fontFamily: fontbody,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: height / 98.0,
+                          ),
+                          Text(
+                            appState.hideBalances
+                                ? hideBalanceText
+                                : '2,082,898 NGN',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: getColor(context, indexOfWallet),
+                              fontFamily: fontsemibold,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            appState.hideBalances
+                                ? hideBalanceText
+                                : '4,014 USD',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w300,
+                              fontSize: 13,
+                              color: getColor(context, indexOfWallet),
+                              fontFamily: fontbody,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
+              );
+            }
+
+            return GestureDetector(
+              onTap: () {
+                // moves user to the wallets list tab
+                widget.onButtonPressed(1);
+              },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                    color: colors[0],
+                    // color: colors[wallets.indexOf(wallet)],
                   ),
-                ]),
+                  child: Stack(children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 35.0, horizontal: 20),
+                          child: Image.asset('assets/images/trovo_white.png'),
+                        ),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 25.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                LanguageEn.taptoviewall,
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: wihitecolor,
+                                    fontFamily: fontsemibold),
+                              ),
+                              SizedBox(
+                                width: width / 50,
+                              ),
+                              Icon(
+                                Icons.arrow_forward,
+                                color: wihitecolor,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
+                ),
               ),
             );
           },
@@ -714,10 +794,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Widget tiles(asset) {
     return Card(
-      shadowColor: notifier.getblck,
-      color: notifier.getwihitecolor,
+      elevation: notifier.isDark ? 0 : 5,
+      shadowColor: Colors.black,
+      color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      elevation: 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(
@@ -727,6 +810,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   "https://drive.google.com/uc?export=view&id=103fw13pcBoCO2hkTPFX73BUKeWWkVpGZ",
                   height: 35,
                   width: 35,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Image.asset(
+                      'assets/images/trovo.png',
+                      height: 35,
+                      width: 35,
+                    );
+                  },
                 ),
                 SizedBox(width: 20),
                 Column(
@@ -760,7 +850,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  formatNumber(double.parse(asset["amount"])),
+                  appState.hideBalances
+                      ? hideBalanceText
+                      : formatNumber(double.parse(asset["amount"])),
                   style: TextStyle(
                     fontSize: 12,
                     fontFamily: fontsemibold,
@@ -770,7 +862,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
-                    '146,875 NGN',
+                    appState.hideBalances ? hideBalanceText : '146,875 NGN',
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,

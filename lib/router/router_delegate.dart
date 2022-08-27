@@ -2,8 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/confirm_swap.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/change_password.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_detail.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/profile_details.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/referral_info.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/subwalletCreateSuccess.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/notificationsView.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/searchview.dart';
@@ -14,6 +17,7 @@ import 'package:trovo_wallet/bottom_bar/bottombar.dart';
 import 'package:trovo_wallet/screens/Auth/create_password.dart';
 import 'package:trovo_wallet/screens/Auth/signup.dart';
 import 'package:trovo_wallet/screens/Auth/vericication.dart';
+import 'package:trovo_wallet/screens/Backup/backup_all.dart';
 import 'package:trovo_wallet/screens/Backup/congratulation.dart';
 import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
 import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
@@ -215,6 +219,18 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.SwapSuccessView:
           _addPageData(SwapSuccess(), SwapSuccessViewPageConfig);
           break;
+        case Pages.ProfileDetailsView:
+          _addPageData(ProfileDetails(), ProfileDetailsViewPageConfig);
+          break;
+        case Pages.ReferralInfoView:
+          _addPageData(ReferralInfo(), ReferralInfoViewPageConfig);
+          break;
+        case Pages.PasswordMgtView:
+          _addPageData(PasswordMgtView(), PasswordMgtViewPageConfig);
+          break;
+        case Pages.BackupAllView:
+          _addPageData(BackupAll(), BackupAllViewPageConfig);
+          break;
         default:
           break;
       }
@@ -352,6 +368,18 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.SwapSuccessView:
         SwapSuccessViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ProfileDetailsView:
+        ProfileDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ReferralInfoView:
+        ReferralInfoViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.PasswordMgtView:
+        PasswordMgtViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.BackupAllView:
+        BackupAllViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -560,6 +588,30 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case 'SwapSuccessView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
+        case 'ProfileDetailsView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+            _createPage(const ProfileDetails(), ProfileDetailsViewPageConfig),
+          ]);
+          break;
+        case 'ReferralInfoView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+            _createPage(const ReferralInfo(), ReferralInfoViewPageConfig),
+          ]);
+          break;
+        case 'PasswordMgtView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+            _createPage(const PasswordMgtView(), PasswordMgtViewPageConfig),
+          ]);
+          break;
+        case 'BackupAllView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+            _createPage(const BackupAll(), BackupAllViewPageConfig),
           ]);
           break;
         default:

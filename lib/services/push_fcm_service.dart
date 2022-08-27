@@ -1,10 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-
-import '../network/requests.dart';
-import '../storage/store.dart';
 
 class FCM {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;

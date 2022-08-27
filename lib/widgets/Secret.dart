@@ -1,7 +1,9 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -12,7 +14,6 @@ class Secret extends StatefulWidget {
   late String alias;
   late String secret;
   late String publicKey;
-  // late bool? showSecret; // this will be controlled by external code
   Secret(
     this.alias,
     this.secret,
@@ -27,12 +28,15 @@ class Secret extends StatefulWidget {
 class _SecretState extends State<Secret> {
   bool show = false; // internal state for this widget
   String hiddenText = '**********';
+  late ColorNotifier notifier;
 
   @override
   Widget build(BuildContext context) {
+    notifier = Provider.of<ColorNotifier>(context, listen: false);
+
     return Card(
-      shadowColor: notifier.getblck,
-      color: notifier.getwihitecolor,
+      shadowColor: darkblck,
+      color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       elevation: 5,
       child: ListTile(
@@ -174,40 +178,6 @@ class _SecretState extends State<Secret> {
             ],
           ),
         ),
-        // subtitle: Padding(
-        //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-        //   child: Text(
-        //     getSecretText(),
-        //     style: TextStyle(
-        //       fontFamily: fontbody,
-        //       color: notifier.getblck,
-        //     ),
-        //   ),
-        // ),
-        // trailing: Row(
-        //   mainAxisSize: MainAxisSize.min,
-        //   children: [
-        //     IconButton(
-        //       onPressed: () => {
-        //         Clipboard.setData(
-        //           ClipboardData(text: widget.secret),
-        //         ),
-        //         showSnackBar('Secret', context),
-        //       },
-        //       icon: Icon(Icons.copy),
-        //       color: notifier.getblck,
-        //     ),
-        //     IconButton(
-        //       onPressed: () {
-        //         setState(() {
-        //           show = !show;
-        //         });
-        //       },
-        //       icon: Icon(show ? CupertinoIcons.eye_slash : CupertinoIcons.eye),
-        //       color: notifier.getblck,
-        //     ),
-        //   ],
-        // ),
       ),
     );
   }
