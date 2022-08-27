@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -82,7 +83,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                     style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                 ],
@@ -96,7 +97,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   fontFamily: fontbody,
                 ),
               ),
@@ -108,7 +109,9 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                    color: notifier.getaddsubwalletgrey,
+                    color: notifier.isDark
+                        ? darktilewhitecolor
+                        : notifier.getaddsubwalletgrey,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -123,7 +126,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                             style: TextStyle(
                                 fontSize: 19,
                                 fontWeight: FontWeight.w700,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                                 fontFamily: fontsemibold),
                           ),
                           SizedBox(
@@ -137,7 +140,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w400,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                                 fontFamily: fontbody,
                               ),
                             ),
@@ -160,7 +163,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   fontFamily: fontbody,
                 ),
               ),
@@ -175,7 +178,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 key: formKey,
                 child: CustomPasswordFormField(
                   LanguageEn.password,
-                  notifier.getbluecolor,
+                  notifier.getbluewhitecolor,
                   Icons.lock,
                   notifier.getgrey,
                   notifier.getprefixicon,
@@ -197,14 +200,14 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 Button(
                   LanguageEn.authorizewithbiometrics,
                   notifier.getbluecolor,
-                  notifier.getwihitecolor,
+                  wihitecolor,
                   onTap: toggleSwitch,
                 ),
               ] else ...[
                 Button(
                   LanguageEn.authorize,
                   notifier.getbluecolor,
-                  notifier.getwihitecolor,
+                  wihitecolor,
                   onTap: handleAuthorization,
                 ),
               ],
@@ -229,7 +232,9 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Column(
           children: [
@@ -248,7 +253,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                       '${swappedEstimate} ${viewData['destinationAssetCode'].toString().isEmpty ? 'XBN' : viewData['destinationAssetCode']}',
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 19.sp,
                         fontFamily: fontbody,
                       ),
@@ -259,7 +264,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                     Text(
                       '+ 3400 NGN',
                       style: TextStyle(
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w500,
                         fontFamily: fontbody,

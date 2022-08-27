@@ -88,6 +88,10 @@ class _CustomPasswordFormFieldState extends State<CustomPasswordFormField> {
           style: TextStyle(color: widget.textColor, fontFamily: fontbody),
           obscureText: hidePassword, //show/hide password
           decoration: InputDecoration(
+            counterStyle: TextStyle(
+              fontFamily: fontbody,
+              color: widget.textColor,
+            ),
             label: Text(widget.labelText!),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15.sp),

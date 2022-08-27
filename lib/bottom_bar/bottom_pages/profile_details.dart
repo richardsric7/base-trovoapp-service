@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -106,7 +107,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               Text(
                 '${appState.userInfo!.firstName} ${appState.userInfo!.lastName}',
                 style: TextStyle(
-                    color: notifier.getbluecolor,
+                    color: notifier.getbluewhitecolor,
                     fontFamily: 'Gilroy_Bold',
                     fontSize: 16.sp),
               ),
@@ -134,7 +135,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                     Text(
                       LanguageEn.bio,
                       style: TextStyle(
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                           fontFamily: 'Gilroy_Bold',
                           fontSize: 16.sp),
                     ),
@@ -150,7 +151,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                     Text(
                       LanguageEn.socials,
                       style: TextStyle(
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                           fontFamily: 'Gilroy_Bold',
                           fontSize: 16.sp),
                     ),
@@ -180,7 +181,9 @@ class _ProfileDetailsState extends State<ProfileDetails> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -197,7 +200,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                   SizedBox(
@@ -209,7 +212,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontFamily: fontbody,
                     ),
                   ),
@@ -232,7 +235,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                 style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                     fontFamily: fontsemibold),
                               ),
                               SizedBox(
@@ -246,7 +249,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w400,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                       fontFamily: fontbody,
                                     ),
                                   ),
@@ -260,7 +263,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w400,
-                                        color: notifier.getbluecolor,
+                                        color: notifier.getbluewhitecolor,
                                         fontFamily: fontbody,
                                       ),
                                     ),
@@ -278,7 +281,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                 style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                     fontFamily: fontsemibold),
                               ),
                               SizedBox(
@@ -291,7 +294,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w400,
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                     fontFamily: fontbody,
                                   ),
                                 ),
@@ -318,7 +321,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                             style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                                 fontFamily: fontsemibold),
                           ),
                         ),
@@ -330,7 +333,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                 style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                     fontFamily: fontsemibold),
                               ),
                               SizedBox(
@@ -343,7 +346,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w400,
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                     fontFamily: fontbody,
                                   ),
                                 ),
@@ -370,7 +373,9 @@ class _ProfileDetailsState extends State<ProfileDetails> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -396,7 +401,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                               Image.asset(
                                 "assets/images/twitter.png",
                                 height: height / 30,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                               ),
                             ],
                           ),
@@ -409,7 +414,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                 style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                     fontFamily: fontsemibold),
                               ),
                               SizedBox(
@@ -422,7 +427,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w400,
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                     fontFamily: fontbody,
                                   ),
                                 ),
@@ -447,7 +452,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                           child: Image.asset(
                             "assets/images/instagram.png",
                             height: height / 30,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                           ),
                         ),
                         Container(
@@ -456,7 +461,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                               Image.asset(
                                 "assets/images/tick.png",
                                 height: height / 30,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                               ),
                             ],
                           ),
@@ -478,7 +483,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                           child: Image.asset(
                             "assets/images/gemcave.png",
                             height: height / 30,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                           ),
                         ),
                         GestureDetector(
@@ -488,7 +493,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w400,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontFamily: fontbody,
                             ),
                           ),
@@ -502,155 +507,6 @@ class _ProfileDetailsState extends State<ProfileDetails> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Future<void> share() async {
-    await FlutterShare.share(
-        title: 'Example share',
-        text: 'Example share text',
-        linkUrl: 'https://flutter.dev/',
-        chooserTitle: 'Example Chooser Title');
-  }
-
-  Widget invitefriend(colorbutton, buttontext, buttontextcolor) {
-    return Center(
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            LayoutBuilder(builder: (context, constraints) {
-              return Container(
-                height: height / 10,
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: colorbutton!,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Image.asset("assets/images/referrals.png",
-                        height: height / 30),
-                    Container(
-                      width: width / 1.7,
-                      child: Text(
-                        buttontext!,
-                        textAlign: TextAlign.start,
-                        style: TextStyle(
-                            fontFamily: fontbody,
-                            fontSize: 13.sp,
-                            color: buttontextcolor),
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 12.sp,
-                      color: notifier.getwihitecolor,
-                    )
-                  ],
-                ),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget iteamlist(image, txt, name) {
-    return Container(
-      color: Colors.transparent,
-      child: Row(
-        children: [
-          SizedBox(width: width / 25),
-          Image.asset(
-            image,
-            height: height / 30,
-            color: notifier.getbluecolor,
-          ),
-          SizedBox(width: width / 40),
-          Text(
-            name,
-            style: TextStyle(
-                color: notifier.getblck,
-                fontSize: 15.sp,
-                fontFamily: 'Gilroy_Medium'),
-          ),
-          const Spacer(),
-          SizedBox(width: width / 100),
-          Icon(Icons.arrow_forward_ios, color: notifier.getgrey, size: 17.sp),
-          SizedBox(width: width / 15),
-        ],
-      ),
-    );
-  }
-
-  Widget logout(image, txt, name) {
-    return Container(
-      color: Colors.transparent,
-      child: Row(
-        children: [
-          SizedBox(width: width / 25),
-          Image.asset(
-            image,
-            height: height / 30,
-            color: notifier.getbluecolor,
-          ),
-          SizedBox(width: width / 40),
-          Text(
-            name,
-            style: TextStyle(
-                color: notifier.getblck,
-                fontSize: 15.sp,
-                fontFamily: 'Gilroy_Medium'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget darkmode(image, txt, name) {
-    return Container(
-      color: Colors.transparent,
-      child: Row(
-        children: [
-          SizedBox(width: width / 25),
-          Image.asset(
-            image,
-            height: height / 30,
-            color: notifier.getbluecolor,
-          ),
-          SizedBox(width: width / 40),
-          Text(
-            name,
-            style: TextStyle(
-                color: notifier.getblck,
-                fontSize: 15.sp,
-                fontFamily: 'Gilroy_Medium'),
-          ),
-          const Spacer(),
-          SizedBox(width: width / 100),
-          Transform.scale(
-            scale: 0.7,
-            child: CupertinoSwitch(
-              activeColor: notifier.getbluecolor,
-              value: notifier.getIsDark,
-              onChanged: (val) async {
-                final prefs = await SharedPreferences.getInstance();
-                setState(() {
-                  notifier.setIsDark = val;
-                  prefs.setBool("setIsDark", val);
-                });
-              },
-            ),
-          ),
-          SizedBox(width: width / 15),
-        ],
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -17,7 +18,7 @@ void showSnackBar(String rel, BuildContext context) {
       content: Text(
         '$rel copied successfully',
         style: TextStyle(
-          color: notifier.getwihitecolor,
+          color: wihitecolor,
           fontSize: 12.sp,
           fontWeight: FontWeight.w500,
           fontFamily: fontbody,
@@ -25,7 +26,7 @@ void showSnackBar(String rel, BuildContext context) {
       ),
       action: SnackBarAction(
         label: 'DISMISS',
-        textColor: Colors.white,
+        textColor: wihitecolor,
         onPressed: () => {
           ScaffoldMessenger.of(context).clearSnackBars(),
         },
@@ -41,6 +42,17 @@ getAssetCode(assetCode) {
   // has empty values as assetCode and
   // assetIssuer
   return assetCode.toString().isEmpty ? nativeAssetCode : assetCode.toString();
+}
+
+Color getColor(context, indexOfWallet) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+
+  // return only white color if app is in dark mode
+  if (notifier.isDark) {
+    return wihitecolor;
+  }
+
+  return indexOfWallet > 3 ? notifier.getbluecolor : notifier.getwihitecolor;
 }
 
 getAssetIssuer(assetIssuer) {

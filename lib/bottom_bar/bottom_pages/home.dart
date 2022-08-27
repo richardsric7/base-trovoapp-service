@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -444,7 +445,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       LanguageEn.goodevening,
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: notifier.getblck,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 14.sp,
                         fontFamily: fontbody,
                       ),
@@ -455,7 +456,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     Text(
                       userInfo.firstName!.capitalizeFirst!,
                       style: TextStyle(
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 17.sp,
                         fontWeight: FontWeight.w600,
                         fontFamily: fontbody,
@@ -480,7 +481,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
                 child: SvgPicture.asset(
                   "assets/images/search.svg",
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   height: height / 40,
                 ),
               ),
@@ -495,7 +496,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
                 child: SvgPicture.asset(
                   "assets/images/scan.svg",
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   height: height / 40,
                 ),
               ),
@@ -513,7 +514,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 //     color: notifier.getbluecolor),
                 child: SvgPicture.asset(
                   "assets/images/notifications-active.svg",
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   height: height / 40,
                 ),
               ),
@@ -659,9 +660,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               vertical: 35.0, horizontal: 20),
                           child: Image.asset(
                             'assets/images/trovo_white.png',
-                            color: indexOfWallet > 3
-                                ? notifier.getbluecolor
-                                : notifier.getwihitecolor,
+                            color: getColor(context, indexOfWallet),
                           ),
                         ),
                       ],
@@ -677,9 +676,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
-                                color: indexOfWallet > 3
-                                    ? notifier.getbluecolor
-                                    : notifier.getwihitecolor,
+                                color: getColor(context, indexOfWallet),
                                 fontFamily: fontsemibold),
                           ),
                           SizedBox(
@@ -692,9 +689,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w400,
-                                  color: indexOfWallet > 3
-                                      ? notifier.getbluecolor
-                                      : notifier.getwihitecolor,
+                                  color: getColor(context, indexOfWallet),
                                   fontFamily: fontbody,
                                 ),
                               ),
@@ -710,9 +705,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: indexOfWallet > 3
-                                  ? notifier.getbluecolor
-                                  : notifier.getwihitecolor,
+                              color: getColor(context, indexOfWallet),
                               fontFamily: fontsemibold,
                             ),
                           ),
@@ -724,9 +717,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             style: TextStyle(
                               fontWeight: FontWeight.w300,
                               fontSize: 13,
-                              color: indexOfWallet > 3
-                                  ? notifier.getbluecolor
-                                  : notifier.getwihitecolor,
+                              color: getColor(context, indexOfWallet),
                               fontFamily: fontbody,
                             ),
                           ),
@@ -776,7 +767,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                 style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
-                                    color: notifier.getwihitecolor,
+                                    color: wihitecolor,
                                     fontFamily: fontsemibold),
                               ),
                               SizedBox(
@@ -784,7 +775,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               ),
                               Icon(
                                 Icons.arrow_forward,
-                                color: notifier.getwihitecolor,
+                                color: wihitecolor,
                               )
                             ],
                           ),
@@ -803,10 +794,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Widget tiles(asset) {
     return Card(
-      shadowColor: notifier.getblck,
-      color: notifier.getwihitecolor,
-      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       elevation: 5,
+      shadowColor: Colors.black,
+      color: notifier.gettilewihitecolor,
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(

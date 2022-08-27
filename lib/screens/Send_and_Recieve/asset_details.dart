@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -108,6 +109,9 @@ class _AssetDetailsState extends State<AssetDetails>
                       Expanded(
                         child: DropdownButtonFormField(
                           isExpanded: true,
+                          dropdownColor: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
                           decoration: InputDecoration(
                             contentPadding: EdgeInsets.symmetric(
                                 vertical: 0, horizontal: 20),
@@ -120,16 +124,18 @@ class _AssetDetailsState extends State<AssetDetails>
                               borderRadius: BorderRadius.circular(20),
                             ),
                             filled: true,
-                            fillColor: notifier.getaddsubwalletgrey,
+                            fillColor: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
                           ),
                           value: selectedWallet,
-                          // icon: Icon(
-                          //   Icons.keyboard_arrow_down_rounded,
-                          //   color: notifier.getbluecolor,
-                          // ),
+                          icon: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: notifier.getbluewhitecolor,
+                          ),
                           elevation: 0,
                           style: TextStyle(
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 15,
                               fontFamily: fontsemibold,
                               fontWeight: FontWeight.w500),
@@ -164,6 +170,9 @@ class _AssetDetailsState extends State<AssetDetails>
                       ),
                       Expanded(
                         child: DropdownButtonFormField(
+                            dropdownColor: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.symmetric(
                                   vertical: 0, horizontal: 20),
@@ -176,15 +185,17 @@ class _AssetDetailsState extends State<AssetDetails>
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               filled: true,
-                              fillColor: notifier.getaddsubwalletgrey,
+                              fillColor: notifier.isDark
+                                  ? darktilewhitecolor
+                                  : notifier.getaddsubwalletgrey,
                             ),
                             value: selectedAsset,
                             icon: Icon(
                               Icons.keyboard_arrow_down_rounded,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                             ),
                             style: TextStyle(
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 15,
                               fontFamily: fontsemibold,
                             ),
@@ -200,6 +211,8 @@ class _AssetDetailsState extends State<AssetDetails>
                                   }
                                 }
                               });
+                              print(
+                                  'this is new viewdata: ${appState.viewData}');
                             },
                             borderRadius: BorderRadius.all(
                               Radius.circular(15),
@@ -230,7 +243,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                 ],
@@ -265,7 +278,7 @@ class _AssetDetailsState extends State<AssetDetails>
             page: SendAssetViewPageConfig,
           );
         }),
-        actionButton("assets/images/receive.png", 'Recieve', () {
+        actionButton("assets/images/receive.png", 'Receive', () {
           appState.viewData![ReceiveAssetViewPageConfig.key] =
               appState.viewData![AssetDetailsViewPageConfig.key];
 
@@ -294,13 +307,14 @@ class _AssetDetailsState extends State<AssetDetails>
               Image.asset(
                 iconUrl,
                 width: width / 8,
+                color: notifier.getbluewhitecolor,
               ),
               Text(
                 actionText,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   fontFamily: fontsemibold,
                 ),
               ),
@@ -343,7 +357,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: notifier.getwihitecolor,
+                      color: wihitecolor,
                       fontFamily: fontsemibold),
                 ),
                 SizedBox(
@@ -356,7 +370,7 @@ class _AssetDetailsState extends State<AssetDetails>
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
-                        color: notifier.getwihitecolor,
+                        color: wihitecolor,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -370,7 +384,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: notifier.getwihitecolor,
+                    color: wihitecolor,
                     fontFamily: fontsemibold,
                   ),
                 ),
@@ -380,7 +394,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   style: TextStyle(
                     fontWeight: FontWeight.w300,
                     fontSize: 13,
-                    color: notifier.getwihitecolor,
+                    color: wihitecolor,
                     fontFamily: fontbody,
                   ),
                 ),
@@ -399,7 +413,9 @@ class _AssetDetailsState extends State<AssetDetails>
         height: height / 2.5,
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -416,7 +432,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                   SizedBox(
@@ -430,7 +446,7 @@ class _AssetDetailsState extends State<AssetDetails>
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -443,7 +459,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontFamily: fontbody,
                     ),
                   ),

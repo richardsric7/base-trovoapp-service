@@ -1,7 +1,9 @@
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
@@ -61,14 +63,17 @@ class _ReferralInfoState extends State<ReferralInfo>
                 height: height / 20,
               ),
               Center(
-                child: Image.asset("assets/images/avatar.png",
-                    height: height / 10),
+                child: Image.asset(
+                  "assets/images/obi.png",
+                  height: height / 10,
+                  fit: BoxFit.fill,
+                ),
               ),
               SizedBox(height: height / 90),
               Text(
                 'Obi Enechi',
                 style: TextStyle(
-                    color: notifier.getbluecolor,
+                    color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
                     fontSize: 16.sp),
               ),
@@ -78,7 +83,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                   share();
                 },
                 child: invitefriend(notifier.getbluecolor,
-                    LanguageEn.invitefriends, notifier.getwihitecolor),
+                    LanguageEn.invitefriends, wihitecolor),
               ),
               SizedBox(height: height / 50),
               DefaultTabController(
@@ -90,12 +95,12 @@ class _ReferralInfoState extends State<ReferralInfo>
                         padding: const EdgeInsets.fromLTRB(20, 12.0, 20, 10.0),
                         child: TabBar(
                           controller: _tabController,
-                          labelColor: notifier.getbluecolor,
-                          indicatorColor: notifier.getbluecolor,
+                          labelColor: notifier.getbluewhitecolor,
+                          indicatorColor: notifier.getbluewhitecolor,
                           labelStyle: TextStyle(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w600,
-                            fontFamily: fontbody,
+                            fontFamily: fontsemibold,
                           ),
                           tabs: [
                             Tab(
@@ -122,7 +127,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                       Text(
                         "4 ${LanguageEn.referrals}",
                         style: TextStyle(
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold,
                             fontSize: 16.sp),
                       ),
@@ -135,7 +140,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                       Text(
                         "25 TROV earned",
                         style: TextStyle(
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold,
                             fontSize: 16.sp),
                       ),
@@ -158,7 +163,9 @@ class _ReferralInfoState extends State<ReferralInfo>
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -205,7 +212,7 @@ class _ReferralInfoState extends State<ReferralInfo>
           Text(
             name,
             style: TextStyle(
-                color: notifier.getbluecolor,
+                color: notifier.getbluewhitecolor,
                 fontSize: 15.sp,
                 fontFamily: 'Gilroy_Medium'),
           ),
@@ -214,7 +221,7 @@ class _ReferralInfoState extends State<ReferralInfo>
             style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: notifier.getbluecolor,
+                color: notifier.getbluewhitecolor,
                 fontFamily: fontsemibold),
           ),
         ],
@@ -228,7 +235,9 @@ class _ReferralInfoState extends State<ReferralInfo>
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -277,7 +286,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                   style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontFamily: fontsemibold),
                 ),
                 SizedBox(
@@ -290,7 +299,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w400,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontFamily: fontbody,
                     ),
                   ),
@@ -303,7 +312,7 @@ class _ReferralInfoState extends State<ReferralInfo>
             style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: notifier.getbluecolor,
+                color: notifier.getbluewhitecolor,
                 fontFamily: fontsemibold),
           ),
         ],
@@ -312,11 +321,12 @@ class _ReferralInfoState extends State<ReferralInfo>
   }
 
   Future<void> share() async {
+    var label = await FirebaseRemoteConfig.instance
+        .getString('wallet_referral_share_label');
     await FlutterShare.share(
-        title: 'Example share',
-        text: 'Example share text',
-        linkUrl: 'https://flutter.dev/',
-        chooserTitle: 'Example Chooser Title');
+      title: 'Trovo Wallet',
+      text: label,
+    );
   }
 
   Widget invitefriend(colorbutton, buttontext, buttontextcolor) {
@@ -355,7 +365,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                     Icon(
                       Icons.arrow_forward_ios,
                       size: 12.sp,
-                      color: notifier.getwihitecolor,
+                      color: wihitecolor,
                     )
                   ],
                 ),

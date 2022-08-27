@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -34,8 +35,8 @@ class _SecretState extends State<Secret> {
     notifier = Provider.of<ColorNotifier>(context, listen: false);
 
     return Card(
-      shadowColor: notifier.getblck,
-      color: notifier.getwihitecolor,
+      shadowColor: darkblck,
+      color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       elevation: 5,
       child: ListTile(

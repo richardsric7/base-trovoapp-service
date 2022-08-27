@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/route_manager.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
@@ -77,7 +78,6 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                   Form(
                     key: _formKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           LanguageEn.changepassword,
@@ -159,7 +159,7 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
               Button(
                 LanguageEn.changepassword,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () {
                   final form = _formKey.currentState;
                   if (!form!.validate()) {

@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
@@ -124,9 +125,12 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                               }),
                               child: Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: SvgPicture.asset(isTileView
-                                    ? "assets/images/listview.svg"
-                                    : "assets/images/tileview.svg"),
+                                child: SvgPicture.asset(
+                                  isTileView
+                                      ? "assets/images/listview.svg"
+                                      : "assets/images/tileview.svg",
+                                  color: notifier.getbluewhitecolor,
+                                ),
                               ),
                             ),
                           ],
@@ -173,7 +177,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     children: [
                       Icon(
                         actionIcon,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         size: 35,
                       ),
                       SizedBox(
@@ -184,7 +188,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                           fontFamily: fontbody,
                         ),
                       ),
@@ -276,7 +280,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   style: TextStyle(
                     fontSize: 15,
                     fontFamily: fontsemibold,
-                    color: notifier.getwihitecolor,
+                    color: getColor(context, 1),
                   ),
                 ),
                 Padding(
@@ -287,7 +291,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 18,
                       fontFamily: fontbody,
-                      color: notifier.getwihitecolor,
+                      color: getColor(context, 1),
                     ),
                   ),
                 ),
@@ -299,13 +303,13 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 13,
                       fontFamily: fontbody,
-                      color: notifier.getwihitecolor,
+                      color: getColor(context, 1),
                     ),
                   ),
                 ),
                 Icon(
                   CupertinoIcons.eye_slash,
-                  color: notifier.getwihitecolor,
+                  color: getColor(context, 1),
                 ),
               ],
             ),
@@ -381,7 +385,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     walletName,
                     style: TextStyle(
                       fontSize: 16,
-                      color: notifier.getwihitecolor,
+                      color: getColor(context, 1),
                       fontFamily: fontsemibold,
                     ),
                   ),
@@ -396,7 +400,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     appState.hideBalances ? hideBalanceText : balance,
                     style: TextStyle(
                       fontSize: 20,
-                      color: notifier.getwihitecolor,
+                      color: getColor(context, 1),
                       fontFamily: fontbody,
                     ),
                   ),
@@ -406,7 +410,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   Icon(
                     CupertinoIcons.eye_slash,
                     size: 25,
-                    color: notifier.getwihitecolor,
+                    color: getColor(context, 1),
                   ),
                 ],
               ),
@@ -416,7 +420,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                 style: TextStyle(
                   fontWeight: FontWeight.w300,
                   fontSize: 13,
-                  color: notifier.getwihitecolor,
+                  color: getColor(context, 1),
                   fontFamily: fontbody,
                 ),
               ),
@@ -439,7 +443,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15.0),
               ),
-              color: notifier.getaddsubwalletgrey,
+              color: notifier.isDark
+                  ? notifier.getbluecolor90
+                  : notifier.getaddsubwalletgrey,
               child: Center(
                 child: Column(
                   children: [
@@ -454,7 +460,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily: fontsemibold,
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                         ),
                       ),
                     ),
@@ -467,7 +473,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                     SizedBox(
@@ -483,7 +489,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                           child: Radio<WalletAction>(
                             value: WalletAction.import,
                             groupValue: action,
-                            activeColor: notifier.getbluecolor,
+                            activeColor: notifier.getbluewhitecolor,
                             onChanged: (value) => {
                               setState(
                                 () {
@@ -497,9 +503,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                           LanguageEn.importexistingwallet,
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: fontbody,
-                            color: notifier.getbluecolor,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
                           ),
                         ),
                       ],
@@ -513,7 +518,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                           scale: 1.5,
                           child: Radio<WalletAction>(
                             value: WalletAction.createNew,
-                            activeColor: notifier.getbluecolor,
+                            activeColor: notifier.getbluewhitecolor,
                             groupValue: action,
                             onChanged: (value) => {
                               setState(
@@ -528,9 +533,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                           LanguageEn.createnewwallet,
                           style: TextStyle(
                             fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: fontbody,
-                            color: notifier.getbluecolor,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
                           ),
                         ),
                       ],
@@ -552,7 +556,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             notifier.getbluecolor,
             Icons.tag,
             notifier.getgrey,
-            notifier.getbluecolor,
+            notifier.getbluewhitecolor,
             notifier.getblck,
             notifier.getgrey,
             70.sp,
@@ -580,7 +584,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             notifier.getbluecolor,
             Icons.description,
             notifier.getgrey,
-            notifier.getbluecolor,
+            notifier.getbluewhitecolor,
             notifier.getblck,
             notifier.getgrey,
             70.sp,
@@ -602,7 +606,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               notifier.getbluecolor,
               Icons.lock,
               notifier.getgrey,
-              notifier.getbluecolor,
+              notifier.getbluewhitecolor,
               notifier.getblck,
               70.sp,
               300.sp,
@@ -635,7 +639,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
           Button(
             LanguageEn.continuee,
             notifier.getbluecolor,
-            notifier.getwihitecolor,
+            wihitecolor,
             onTap: () => submitForm(),
           ),
           SizedBox(height: height / 20),
@@ -653,7 +657,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
           ),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? notifier.getbluecolor90
+              : notifier.getaddsubwalletgrey,
           child: Center(
             child: Form(
               key: _formKey,
@@ -669,9 +675,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: fontbody,
-                        color: notifier.getbluecolor,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -683,9 +688,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   Text(
@@ -695,7 +699,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                       fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   SizedBox(
@@ -708,7 +712,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   Text(
@@ -718,7 +722,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                       fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   SizedBox(
@@ -731,7 +735,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   Text(
@@ -743,7 +747,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                       fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   SizedBox(
@@ -756,7 +760,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   Padding(
@@ -768,7 +772,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                         fontFamily: fontbody,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -788,7 +792,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         notifier.getbluecolor,
         Icons.lock,
         notifier.getgrey,
-        notifier.getbluecolor,
+        notifier.getbluewhitecolor,
         notifier.getblck,
         70.sp,
         300.sp,
@@ -809,14 +813,14 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         Button(
           LanguageEn.authorizewithbiometrics,
           notifier.getbluecolor,
-          notifier.getwihitecolor,
+          notifier.getbluewhitecolor,
           onTap: toggleSwitch,
         ),
       ] else ...[
         Button(
           LanguageEn.authorize,
           notifier.getbluecolor,
-          notifier.getwihitecolor,
+          wihitecolor,
           onTap: handleAuthorization,
         ),
       ],

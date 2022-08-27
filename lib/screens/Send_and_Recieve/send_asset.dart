@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
@@ -106,7 +107,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                           fontFamily: fontsemibold),
                     ),
                     GestureDetector(
@@ -117,7 +118,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       },
                       child: SvgPicture.asset(
                         "assets/images/scan.svg",
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         height: height / 40,
                       ),
                     ),
@@ -134,7 +135,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
               Button(
                 LanguageEn.proceed,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () {
                   handleSubmit();
                 },
@@ -265,7 +266,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                         return Container(
                           child: Text(
                             '$utf8Length/$maxLength',
-                            style: Theme.of(context).textTheme.caption,
+                            style: TextStyle(color: notifier.getdarkgrey),
                           ),
                         );
                       },

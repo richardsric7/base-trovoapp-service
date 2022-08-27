@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:get/get.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -86,7 +87,7 @@ class _SettingsState extends State<Settings> {
                   share();
                 },
                 child: invitefriend(notifier.getbluecolor,
-                    LanguageEn.invitefriends, notifier.getwihitecolor),
+                    LanguageEn.invitefriends, wihitecolor),
               ),
               SizedBox(height: height / 25),
               Row(
@@ -311,7 +312,7 @@ class _SettingsState extends State<Settings> {
                     Icon(
                       Icons.arrow_forward_ios,
                       size: 12.sp,
-                      color: notifier.getwihitecolor,
+                      color: wihitecolor,
                     )
                   ],
                 ),
@@ -334,7 +335,7 @@ class _SettingsState extends State<Settings> {
             Image.asset(
               image,
               height: height / 30,
-              color: notifier.getbluecolor,
+              color: notifier.getbluewhitecolor,
             ),
             SizedBox(width: width / 40),
             Text(
@@ -366,7 +367,7 @@ class _SettingsState extends State<Settings> {
               image,
               height: height / 30,
               width: 30,
-              color: notifier.getbluecolor,
+              color: notifier.getbluewhitecolor,
             ),
             SizedBox(width: width / 40),
             Text(
@@ -386,6 +387,9 @@ class _SettingsState extends State<Settings> {
                   Expanded(
                     child: DropdownButtonFormField(
                       isExpanded: true,
+                      dropdownColor: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
                       value: 'Testnet',
                       icon: Visibility(
                           visible: false, child: Icon(Icons.arrow_downward)),
@@ -401,7 +405,7 @@ class _SettingsState extends State<Settings> {
                       ),
                       elevation: 0,
                       style: TextStyle(
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 13,
                         fontFamily: fontsemibold,
                         fontWeight: FontWeight.w500,
@@ -447,7 +451,7 @@ class _SettingsState extends State<Settings> {
               image,
               height: height / 30,
               width: 30,
-              color: notifier.getbluecolor,
+              color: notifier.getbluewhitecolor,
             ),
             SizedBox(width: width / 40),
             Text(
@@ -467,6 +471,9 @@ class _SettingsState extends State<Settings> {
                   Expanded(
                     child: DropdownButtonFormField(
                       isExpanded: true,
+                      dropdownColor: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
                       value: appState.timeout,
                       icon: Visibility(
                           visible: false, child: Icon(Icons.arrow_downward)),
@@ -482,7 +489,7 @@ class _SettingsState extends State<Settings> {
                       ),
                       elevation: 0,
                       style: TextStyle(
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 13,
                         fontFamily: fontsemibold,
                         fontWeight: FontWeight.w500,
@@ -544,7 +551,7 @@ class _SettingsState extends State<Settings> {
           Image.asset(
             image,
             height: height / 30,
-            color: notifier.getbluecolor,
+            color: notifier.getbluewhitecolor,
           ),
           SizedBox(width: width / 40),
           Text(
@@ -570,7 +577,7 @@ class _SettingsState extends State<Settings> {
             Image.asset(
               image,
               height: height / 30,
-              color: notifier.getbluecolor,
+              color: notifier.getbluewhitecolor,
             ),
             SizedBox(width: width / 40),
             Text(
@@ -585,7 +592,7 @@ class _SettingsState extends State<Settings> {
             Transform.scale(
               scale: 0.7,
               child: CupertinoSwitch(
-                activeColor: notifier.getbluecolor,
+                activeColor: notifier.getgreencolor,
                 value: notifier.getIsDark,
                 onChanged: (val) async {
                   final prefs = await SharedPreferences.getInstance();
@@ -614,7 +621,7 @@ class _SettingsState extends State<Settings> {
             Image.asset(
               image,
               height: height / 30,
-              color: notifier.getbluecolor,
+              color: notifier.getbluewhitecolor,
             ),
             SizedBox(width: width / 40),
             Text(
@@ -629,7 +636,7 @@ class _SettingsState extends State<Settings> {
             Transform.scale(
               scale: 0.7,
               child: CupertinoSwitch(
-                activeColor: notifier.getbluecolor,
+                activeColor: notifier.getgreencolor,
                 value: appState.biometricEnabled,
                 onChanged: (val) async {
                   toggleBiometrics();
@@ -654,7 +661,7 @@ class _SettingsState extends State<Settings> {
             Image.asset(
               image,
               height: height / 30,
-              color: notifier.getbluecolor,
+              color: notifier.getbluewhitecolor,
             ),
             SizedBox(width: width / 40),
             Text(
@@ -669,7 +676,7 @@ class _SettingsState extends State<Settings> {
             Transform.scale(
               scale: 0.7,
               child: CupertinoSwitch(
-                activeColor: notifier.getbluecolor,
+                activeColor: notifier.getgreencolor,
                 value: appState.hideBalances,
                 onChanged: (val) async {
                   setState(() {

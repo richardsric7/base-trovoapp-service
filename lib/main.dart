@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -27,6 +28,15 @@ void main() async {
   FirebaseDynamicLinkInitializer().initializeDeeplinking();
 
   BlocOverrides.runZoned(
+    // () => runApp(
+    //   DevicePreview(
+    //     enabled: true,
+    //     tools: [
+    //       ...DevicePreview.defaultTools,
+    //     ],
+    //     builder: (context) => const App(),
+    //   ),
+    // ),
     () => runApp(const App()),
   );
 }

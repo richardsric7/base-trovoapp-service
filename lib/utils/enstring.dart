@@ -10,8 +10,15 @@ class LanguageEn {
 
   static String get chooseamethod => 'Choose a method';
 
+  static String get receivefromnontrovowallet =>
+      'Receive from non Trovo wallet';
+
+  static String get receivewithtrovousername => 'Receive with Trovo username';
+
   static String get abouttocreatesubwallet =>
       'You are about to add a subwallet to your Trovo Wallet account';
+
+  static String get transactioncomplete => 'Transaction Complete';
 
   static String get requesttocreatesubwallet =>
       'You have requested to create a subwallet with these details:';
@@ -360,7 +367,7 @@ class LanguageEn {
   static String get fingerprint => "Fingerprint";
 
   static String get unlockfinger =>
-      "Unlock Trovo Wallet with fingerprint,\nquick and secured";
+      "Unlock Trovo Wallet with fingerprint,\nquick and secure";
 
   static String get biometrics => "Biometrics ";
 

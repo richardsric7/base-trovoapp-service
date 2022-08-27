@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -77,7 +78,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                     style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                 ],
@@ -91,7 +92,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   fontFamily: fontbody,
                 ),
               ),
@@ -103,7 +104,9 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                    color: notifier.getaddsubwalletgrey,
+                    color: notifier.isDark
+                        ? darktilewhitecolor
+                        : notifier.getaddsubwalletgrey,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -118,7 +121,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                                 fontFamily: fontsemibold),
                           ),
                           SizedBox(
@@ -132,7 +135,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w400,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                                 fontFamily: fontbody,
                               ),
                             ),
@@ -155,7 +158,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   fontFamily: fontbody,
                 ),
               ),
@@ -176,7 +179,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 key: formKey,
                 child: CustomPasswordFormField(
                   LanguageEn.password,
-                  notifier.getbluecolor,
+                  notifier.getbluewhitecolor,
                   Icons.lock,
                   notifier.getgrey,
                   notifier.getprefixicon,
@@ -198,14 +201,14 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 Button(
                   LanguageEn.authorizewithbiometrics,
                   notifier.getbluecolor,
-                  notifier.getwihitecolor,
+                  wihitecolor,
                   onTap: toggleSwitch,
                 ),
               ] else ...[
                 Button(
                   LanguageEn.authorize,
                   notifier.getbluecolor,
-                  notifier.getwihitecolor,
+                  wihitecolor,
                   onTap: handleAuthorization,
                 ),
               ],
@@ -231,7 +234,9 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
         child: Container(
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.getaddsubwalletgrey,
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
@@ -244,7 +249,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                     viewData['destination'].toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 15.sp,
                       fontFamily: fontbody,
                     ),
@@ -264,7 +269,9 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Column(
           children: [
@@ -281,7 +288,9 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                         )
                       : CircleAvatar(
                           radius: 30,
-                          backgroundColor: notifier.getaddsubwalletgrey,
+                          backgroundColor: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
                           foregroundImage: NetworkImage(
                             viewData['destinationThumbnail'].toString(),
                           ),
@@ -297,7 +306,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                       viewData['destination'].toString(),
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 19.sp,
                         fontFamily: fontbody,
                       ),
@@ -308,7 +317,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                     Text(
                       '${viewData['destinationFirstName']} ${viewData['destinationLastName']}',
                       style: TextStyle(
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w500,
                         fontFamily: fontbody,
@@ -333,7 +342,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w400,
-            color: notifier.getbluecolor,
+            color: notifier.getbluewhitecolor,
             fontFamily: fontbody,
           ),
         ),
@@ -345,7 +354,9 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
           child: Container(
             decoration: BoxDecoration(
               borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              color: notifier.getaddsubwalletgrey,
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -356,7 +367,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                     viewData['memo'],
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 17.sp,
                       fontFamily: fontbody,
                     ),

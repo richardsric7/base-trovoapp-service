@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
@@ -102,6 +103,9 @@ class Payment_HistoryState extends State<PaymentHistory>
                     child: DropdownButtonFormField(
                       isDense: true,
                       isExpanded: true,
+                      dropdownColor: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
                       decoration: InputDecoration(
                         contentPadding:
                             EdgeInsets.symmetric(vertical: 0, horizontal: 20),
@@ -114,16 +118,18 @@ class Payment_HistoryState extends State<PaymentHistory>
                           borderRadius: BorderRadius.circular(10),
                         ),
                         filled: true,
-                        fillColor: notifier.getaddsubwalletgrey,
+                        fillColor: notifier.isDark
+                            ? darktilewhitecolor
+                            : notifier.getaddsubwalletgrey,
                       ),
                       value: selectedWallet,
                       icon: Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                       elevation: 0,
                       style: TextStyle(
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 15,
                         fontFamily: fontsemibold,
                         fontWeight: FontWeight.w500,
@@ -253,17 +259,19 @@ class Payment_HistoryState extends State<PaymentHistory>
         child: Container(
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.getaddsubwalletgrey,
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
           ),
           child: Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
             child: Row(
               children: [
-                SvgPicture.asset(
+                Image.asset(
                   getIcon(transactionType),
                   width: width / 8,
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                   height: 25,
                 ),
                 SizedBox(
@@ -281,7 +289,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w400,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                             fontFamily: fontbody,
                           ),
                         ),
@@ -312,7 +320,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w400,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                             fontFamily: fontbody,
                           ),
                         ),
@@ -332,11 +340,11 @@ class Payment_HistoryState extends State<PaymentHistory>
   String getIcon(TransactionType transactionType) {
     switch (transactionType) {
       case TransactionType.Swap:
-        return "assets/images/swap.svg";
+        return "assets/images/swap.png";
       case TransactionType.Send:
-        return 'assets/images/send.svg';
+        return 'assets/images/send.png';
       default:
-        return 'assets/images/recieve.svg';
+        return 'assets/images/receive.png';
     }
   }
 

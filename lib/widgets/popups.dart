@@ -1,6 +1,7 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import '../Custom_BlocObserver/notifire_clor.dart';
@@ -98,9 +99,8 @@ popup(context,
                       ),
                       child: Text(
                         LanguageEn.continuee,
-                        style: TextStyle(
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontbody),
+                        style:
+                            TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
                     ),
                   ),
@@ -334,8 +334,7 @@ void ensureBackupPrivacyDialog(context, action) {
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: fontbody),
+                            fontFamily: fontsemibold),
                       ),
                     ),
                   ),
@@ -356,6 +355,7 @@ void ensureBackupPrivacyDialog(context, action) {
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
+                                color: notifier.getbluewhitecolor,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -386,9 +386,8 @@ void ensureBackupPrivacyDialog(context, action) {
                       ),
                       child: Text(
                         LanguageEn.continuee,
-                        style: TextStyle(
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontbody),
+                        style:
+                            TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
                     ),
                   ),
@@ -424,7 +423,8 @@ void ensureBackupPrivacyDialog(context, action) {
                       child: Text(
                         LanguageEn.cancel,
                         style: TextStyle(
-                            color: notifier.getbluecolor, fontFamily: fontbody),
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody),
                       ),
                     ),
                   ),
@@ -467,8 +467,7 @@ void warnSkipBackupDialog(context, onSkip) {
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: fontbody),
+                            fontFamily: fontsemibold),
                       ),
                     ),
                   ),
@@ -521,9 +520,8 @@ void warnSkipBackupDialog(context, onSkip) {
                       ),
                       child: Text(
                         LanguageEn.cancel,
-                        style: TextStyle(
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontbody),
+                        style:
+                            TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
                     ),
                   ),
@@ -561,7 +559,8 @@ void warnSkipBackupDialog(context, onSkip) {
                       child: Text(
                         LanguageEn.skip,
                         style: TextStyle(
-                            color: notifier.getbluecolor, fontFamily: fontbody),
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody),
                       ),
                     ),
                   ),
@@ -603,8 +602,7 @@ void showResponseMessage(context, message, successAction) {
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: fontbody),
+                            fontFamily: fontsemibold),
                       ),
                     ),
                   ),
@@ -625,7 +623,7 @@ void showResponseMessage(context, message, successAction) {
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -660,8 +658,9 @@ void showResponseMessage(context, message, successAction) {
                       child: Text(
                         LanguageEn.continuee,
                         style: TextStyle(
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontbody),
+                          color: wihitecolor,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ),
                   ),
@@ -698,7 +697,9 @@ void showResponseMessage(context, message, successAction) {
                       child: Text(
                         LanguageEn.cancel,
                         style: TextStyle(
-                            color: notifier.getbluecolor, fontFamily: fontbody),
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ),
                   ),

@@ -86,6 +86,8 @@ dependencies:
   firebase_crashlytics: ^2.8.7
   firebase_dynamic_links: ^4.3.4
   firebase_remote_config: ^2.0.15
+  device_preview: ^1.1.0
+  syncfusion_flutter_core: ^19.4.56
 
 dev_dependencies:
   flutter_test:

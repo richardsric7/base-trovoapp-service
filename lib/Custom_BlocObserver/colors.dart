@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 Color wihitecolor = Colors.white;
 Color darkwihitecolor = const Color(0xff10192d);
+Color darktilewhitecolor = const Color(0xff00296c);
 
 Color blue = Color(0xFF007CDF);
 
