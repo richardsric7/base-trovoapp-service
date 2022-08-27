@@ -47,3 +47,24 @@ Color darkidentyfiymethod = const Color(0xff1a2537);
 
 Color favorites = const Color(0xfff8fafc);
 Color darkfavorites = const Color(0xff1a2537);
+
+Color colorPink = const Color(0xffFAACAC);
+Color colorPink90 = const Color(0xffFBB3B3);
+Color colorPink80 = const Color(0xffFCCACA);
+Color colorPink70 = const Color(0xffFDE0E0);
+Color colorPink60 = const Color(0xffFFF0F0);
+Color colorPink50 = const Color(0xFFF2F6F9);
+
+Color colorGreen = const Color(0xff00DD77);
+Color colorGreen90 = const Color(0xff17E183);
+Color colorGreen80 = const Color(0xff5CE9A9);
+Color colorGreen70 = const Color(0xffA3F2CE);
+Color colorGreen60 = const Color(0xffE6FBF1);
+Color colorGreen50 = const Color(0xFFF2F6F9);
+
+Color colorOrange = const Color(0xffFFCC00);
+Color colorOrange90 = const Color(0xffFFD117);
+Color colorOrange80 = const Color(0xffFFDF5C);
+Color colorOrange70 = const Color(0xffFFEDA3);
+Color colorOrange60 = const Color(0xffFFF9E6);
+Color colorOrange50 = Color(0xFFF2F6F9);

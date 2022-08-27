@@ -25,6 +25,60 @@ class ColorNotifier with ChangeNotifier {
   get getbluecolor60 => isDark ? darkblue60 : trovoblue60;
   get getbluecolor50 => isDark ? darkblue50 : trovoblue50;
 
+  WalletTileColor get getstructuredbluecolor => WalletTileColor(
+      backColor: isDark ? darkblue90 : trovoblue, foreColor: wihitecolor);
+  WalletTileColor get getstructuredbluecolor90 => WalletTileColor(
+      backColor: isDark ? darkblue90 : trovoblue90, foreColor: wihitecolor);
+  WalletTileColor get getstructuredbluecolor80 => WalletTileColor(
+      backColor: isDark ? darkblue80 : trovoblue80, foreColor: wihitecolor);
+  WalletTileColor get getstructuredbluecolor70 => WalletTileColor(
+      backColor: isDark ? darkblue70 : trovoblue70, foreColor: wihitecolor);
+  WalletTileColor get getstructuredbluecolor60 => WalletTileColor(
+      backColor: isDark ? darkblue60 : trovoblue60,
+      foreColor: getbluewhitecolor);
+  WalletTileColor get getstructuredbluecolor50 => WalletTileColor(
+      backColor: isDark ? darkblue50 : trovoblue50,
+      foreColor: getbluewhitecolor);
+
+  WalletTileColor get getpinkcolor =>
+      WalletTileColor(backColor: colorPink, foreColor: darkgrey);
+  WalletTileColor get getpinkcolor90 =>
+      WalletTileColor(backColor: colorPink90, foreColor: darkgrey);
+  WalletTileColor get getpinkcolor80 =>
+      WalletTileColor(backColor: colorPink80, foreColor: darkgrey);
+  WalletTileColor get getpinkcolor70 =>
+      WalletTileColor(backColor: colorPink70, foreColor: darkgrey);
+  WalletTileColor get getpinkcolor60 =>
+      WalletTileColor(backColor: colorPink60, foreColor: darkgrey);
+  WalletTileColor get getpinkcolor50 =>
+      WalletTileColor(backColor: colorPink50, foreColor: darkgrey);
+
+  WalletTileColor get getstructuredgreencolor =>
+      WalletTileColor(backColor: colorGreen, foreColor: darkgrey);
+  WalletTileColor get getstructuredgreencolor90 =>
+      WalletTileColor(backColor: colorGreen90, foreColor: darkgrey);
+  WalletTileColor get getstructuredgreencolor80 =>
+      WalletTileColor(backColor: colorGreen80, foreColor: darkgrey);
+  WalletTileColor get getstructuredgreencolor70 =>
+      WalletTileColor(backColor: colorGreen70, foreColor: darkgrey);
+  WalletTileColor get getstructuredgreencolor60 =>
+      WalletTileColor(backColor: colorGreen60, foreColor: darkgrey);
+  WalletTileColor get getstructuredgreencolor50 =>
+      WalletTileColor(backColor: colorGreen50, foreColor: darkgrey);
+
+  WalletTileColor get getorangecolor =>
+      WalletTileColor(backColor: colorOrange, foreColor: darkgrey);
+  WalletTileColor get getorangecolor90 =>
+      WalletTileColor(backColor: colorOrange90, foreColor: darkgrey);
+  WalletTileColor get getorangecolor80 =>
+      WalletTileColor(backColor: colorOrange80, foreColor: darkgrey);
+  WalletTileColor get getorangecolor70 =>
+      WalletTileColor(backColor: colorOrange70, foreColor: darkgrey);
+  WalletTileColor get getorangecolor60 =>
+      WalletTileColor(backColor: colorOrange60, foreColor: darkgrey);
+  WalletTileColor get getorangecolor50 =>
+      WalletTileColor(backColor: colorOrange50, foreColor: darkgrey);
+
   // get getbluecolor => isDark ? blue : darkblue;
 
   get getgrey => isDark ? grey : darkgrey;
@@ -51,4 +105,11 @@ class ColorNotifier with ChangeNotifier {
   get getfavorites => isDark ? darkfavorites : favorites;
 
   get getaddsubwalletgrey => addsubwalletgrey;
+}
+
+class WalletTileColor {
+  Color backColor;
+  Color foreColor;
+
+  WalletTileColor({required this.backColor, required this.foreColor});
 }

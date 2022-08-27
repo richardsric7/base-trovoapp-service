@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -205,9 +206,9 @@ class _WalletDetailsState extends State<WalletDetails>
                                       height: height / 20,
                                     ),
                                     Button(
-                                      LanguageEn.dashboard,
+                                      LanguageEn.back,
                                       notifier.getbluecolor,
-                                      notifier.getwihitecolor,
+                                      wihitecolor,
                                       onTap: () {
                                         appState.currentAction = PageAction(
                                             state: PageState.replaceAll,
@@ -503,13 +504,12 @@ class _WalletDetailsState extends State<WalletDetails>
   }
 
   Widget walletSlides() {
-    var colors = [notifier.getbluecolor, Colors.red, Colors.green];
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: colors[0],
+          color: notifier.getbluecolor,
           // color: colors[i - 1],
         ),
         child: Stack(children: [
@@ -534,7 +534,7 @@ class _WalletDetailsState extends State<WalletDetails>
                   style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: notifier.getwihitecolor,
+                      color: wihitecolor,
                       fontFamily: fontsemibold),
                 ),
                 SizedBox(
@@ -547,7 +547,7 @@ class _WalletDetailsState extends State<WalletDetails>
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
-                        color: notifier.getwihitecolor,
+                        color: wihitecolor,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -561,7 +561,7 @@ class _WalletDetailsState extends State<WalletDetails>
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: notifier.getwihitecolor,
+                    color: wihitecolor,
                     fontFamily: fontsemibold,
                   ),
                 ),
@@ -571,7 +571,7 @@ class _WalletDetailsState extends State<WalletDetails>
                   style: TextStyle(
                     fontWeight: FontWeight.w300,
                     fontSize: 13,
-                    color: notifier.getwihitecolor,
+                    color: wihitecolor,
                     fontFamily: fontbody,
                   ),
                 ),
@@ -585,10 +585,13 @@ class _WalletDetailsState extends State<WalletDetails>
 
   Widget tiles(asset) {
     return Card(
-      shadowColor: notifier.getblck,
-      color: notifier.getwihitecolor,
+      shadowColor: Colors.black,
+      color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      elevation: 5,
+      elevation: notifier.isDark ? 0 : 5,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(

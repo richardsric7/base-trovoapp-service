@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
@@ -89,7 +90,9 @@ class _FingerPrintState extends State<FingerPrint> {
               Center(
                 child: Icon(
                   Icons.fingerprint,
-                  color: notifier.getbluecolor,
+                  color: notifier.isDark
+                      ? notifier.getbluecolor50
+                      : notifier.getbluecolor,
                   size: 200.sp,
                 ),
               ),
@@ -99,14 +102,16 @@ class _FingerPrintState extends State<FingerPrint> {
                   SizedBox(width: width / 10),
                   Icon(
                     Icons.fingerprint,
-                    color: notifier.getbluecolor,
+                    color: notifier.isDark
+                        ? notifier.getbluecolor50
+                        : notifier.getbluecolor,
                     size: 20.sp,
                   ),
                   SizedBox(width: width / 40),
                   Text(
                     LanguageEn.setupfingerprint,
                     style: TextStyle(
-                        color: notifier.getblck,
+                        color: notifier.getgrey,
                         fontSize: 15.sp,
                         fontFamily: fontbody),
                   ),
@@ -115,7 +120,9 @@ class _FingerPrintState extends State<FingerPrint> {
                   Transform.scale(
                     scale: 0.7,
                     child: CupertinoSwitch(
-                        activeColor: notifier.getbluecolor,
+                        activeColor: notifier.isDark
+                            ? notifier.getbluecolor50
+                            : notifier.getbluecolor,
                         value: isSwitched,
                         onChanged: _toggleSwitch),
                   ),
@@ -126,7 +133,7 @@ class _FingerPrintState extends State<FingerPrint> {
               Button(
                 LanguageEn.goahead,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: _handleSubmit,
               )
             ],
@@ -172,20 +179,23 @@ class _FingerPrintState extends State<FingerPrint> {
       await StoreData().storeInsertData('biometricsEnabled', isSwitched);
 
   void showSkipBiometricsDialog(context) {
+    var notifier = Provider.of<ColorNotifier>(context, listen: false);
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
     showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
+              scrollable: true,
               backgroundColor: Colors.transparent,
               insetPadding: const EdgeInsets.all(20),
               content: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
                   borderRadius: BorderRadius.all(
                     Radius.circular(23),
                   ),
                 ),
-                height: 230,
                 child: Column(
                   children: [
                     Padding(
@@ -194,20 +204,36 @@ class _FingerPrintState extends State<FingerPrint> {
                         child: Text(
                           LanguageEn.important,
                           style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w500),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: notifier.getblck),
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 10.0, horizontal: 5.0),
-                      child: Text(
-                        LanguageEn.skipBiometricsMessage,
-                        style: TextStyle(
-                            color: notifier.getblck,
-                            fontSize: 15.sp,
-                            fontFamily: fontbody),
-                        textAlign: TextAlign.center,
+                    Container(
+                      constraints: BoxConstraints(
+                        maxHeight: height / 5,
+                      ),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 5.0),
+                              child: Text(
+                                LanguageEn.skipBiometricsMessage,
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w300,
+                                  color: Colors.red,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     Padding(
@@ -236,8 +262,7 @@ class _FingerPrintState extends State<FingerPrint> {
                             child: Text(
                               LanguageEn.skipBiometrics,
                               style: TextStyle(
-                                  color: notifier.getwihitecolor,
-                                  fontFamily: fontbody),
+                                  color: wihitecolor, fontFamily: fontbody),
                             ),
                           ),
                           OutlinedButton(
@@ -246,8 +271,7 @@ class _FingerPrintState extends State<FingerPrint> {
                             child: Text(
                               LanguageEn.cancel,
                               style: TextStyle(
-                                  color: notifier.getbluecolor,
-                                  fontFamily: fontbody),
+                                  color: wihitecolor, fontFamily: fontbody),
                             ),
                             style: ButtonStyle(
                               fixedSize: MaterialStateProperty.all(
@@ -268,10 +292,11 @@ class _FingerPrintState extends State<FingerPrint> {
                                 ),
                               ),
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ),
+                    SizedBox(height: height / 50),
                   ],
                 ),
               ));

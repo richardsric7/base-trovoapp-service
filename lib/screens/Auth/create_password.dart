@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -67,7 +68,9 @@ class _CreatePassword extends State<CreatePassword> {
                 Center(
                   child: Icon(
                     CupertinoIcons.lock,
-                    color: notifier.getbluecolor,
+                    color: notifier.isDark
+                        ? notifier.getbluecolor50
+                        : notifier.getbluecolor,
                     size: 200.sp,
                   ),
                 ),
@@ -122,7 +125,7 @@ class _CreatePassword extends State<CreatePassword> {
                 Button(
                   LanguageEn.continuee,
                   notifier.getbluecolor,
-                  notifier.getwihitecolor,
+                  wihitecolor,
                   onTap: saveAndProceed,
                 ),
                 SizedBox(height: height / 10),

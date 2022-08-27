@@ -6,6 +6,7 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -138,9 +139,11 @@ class _SignUpState extends State<SignUp> {
                           ],
                           fontSize: 16.0,
                           initialLabelIndex: corporate,
-                          activeBgColor: [notifier.getbluecolor],
-                          activeFgColor: Colors.red,
-                          // activeFgColor: notifier.getwihitecolor,
+                          activeBgColor: [
+                            notifier.isDark
+                                ? notifier.getbluecolor50
+                                : notifier.getbluecolor,
+                          ],
                           inactiveBgColor: notifier.getsplashgrey,
                           inactiveFgColor: notifier.getblck,
                           totalSwitches: 2,
@@ -245,7 +248,7 @@ class _SignUpState extends State<SignUp> {
               Button(
                 LanguageEn.signup,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () => _validateAndSave(),
               ),
               SizedBox(height: height / 40),
@@ -266,7 +269,7 @@ class _SignUpState extends State<SignUp> {
                     child: Text(
                       ' ' + LanguageEn.signin,
                       style: TextStyle(
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluecolor50,
                           fontSize: 13.sp,
                           fontFamily: fontbody),
                     ),
@@ -381,6 +384,7 @@ class _SignUpState extends State<SignUp> {
               TextStyle(color: textcolor, fontSize: 16, fontFamily: fontbody),
           decoration: InputDecoration(
             label: Text(labletext),
+            counterStyle: TextStyle(color: textcolor),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15.sp),
             ),

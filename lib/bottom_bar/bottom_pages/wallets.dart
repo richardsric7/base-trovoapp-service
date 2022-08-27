@@ -151,7 +151,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   child: walletListItem(
                       mainWallet!.alias!.capitalizeFirst,
                       '4,014 USD',
-                      notifier.getbluecolor,
+                      notifier.getstructuredbluecolor,
                       assetBalances[mainWallet!.publicKey]['claimed'][0]),
                 ),
                 SizedBox(
@@ -320,6 +320,32 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   }
 
   Widget walletListView() {
+    var colors = [
+      notifier.getstructuredbluecolor,
+      notifier.getstructuredbluecolor90,
+      notifier.getstructuredbluecolor80,
+      notifier.getstructuredbluecolor70,
+      notifier.getstructuredbluecolor60,
+      notifier.getstructuredbluecolor50,
+      notifier.getstructuredgreencolor,
+      notifier.getstructuredgreencolor90,
+      notifier.getstructuredgreencolor80,
+      notifier.getstructuredgreencolor70,
+      notifier.getstructuredgreencolor60,
+      notifier.getstructuredgreencolor50,
+      notifier.getorangecolor,
+      notifier.getorangecolor90,
+      notifier.getorangecolor80,
+      notifier.getorangecolor70,
+      notifier.getorangecolor60,
+      notifier.getorangecolor50,
+      notifier.getpinkcolor,
+      notifier.getpinkcolor90,
+      notifier.getpinkcolor80,
+      notifier.getpinkcolor70,
+      notifier.getpinkcolor60,
+      notifier.getpinkcolor50,
+    ];
     return Column(
       children: [
         for (var i = 0; i < wallets!.length; i++) ...[
@@ -332,7 +358,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             child: walletListItem(
                 wallets![i].alias!.capitalizeFirst!,
                 '4,014 USD',
-                notifier.getbluecolor80,
+                colors[((i + 1) % colors.length)],
                 assetBalances[wallets![i].publicKey]['claimed'][0]),
           ),
           SizedBox(
@@ -346,7 +372,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget walletListItem(walletName, balanceUsd, color, asset) {
+  Widget walletListItem(walletName, balanceUsd, WalletTileColor color, asset) {
     var balance =
         "${formatHistoryNumber(double.parse(asset['amount']))} ${asset["assetCode"].toString().isEmpty ? 'XBN' : asset["assetCode"]}";
     return Container(
@@ -354,7 +380,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       margin: EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(20.0)),
-        color: color,
+        color: color.backColor,
         // color: colors[i - 1],
       ),
       child: Stack(children: [
@@ -385,7 +411,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     walletName,
                     style: TextStyle(
                       fontSize: 16,
-                      color: getColor(context, 1),
+                      color: color.foreColor,
                       fontFamily: fontsemibold,
                     ),
                   ),
@@ -400,7 +426,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     appState.hideBalances ? hideBalanceText : balance,
                     style: TextStyle(
                       fontSize: 20,
-                      color: getColor(context, 1),
+                      color: color.foreColor,
                       fontFamily: fontbody,
                     ),
                   ),
@@ -410,7 +436,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   Icon(
                     CupertinoIcons.eye_slash,
                     size: 25,
-                    color: getColor(context, 1),
+                    color: color.foreColor,
                   ),
                 ],
               ),
@@ -420,7 +446,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                 style: TextStyle(
                   fontWeight: FontWeight.w300,
                   fontSize: 13,
-                  color: getColor(context, 1),
+                  color: color.foreColor,
                   fontFamily: fontbody,
                 ),
               ),

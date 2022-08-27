@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
@@ -221,7 +222,7 @@ class _ImportWalletState extends State<ImportWallet> {
               Button(
                 LanguageEn.continuee,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: () => saveForm(),
               ),
               SizedBox(height: height / 10),
@@ -247,8 +248,8 @@ class _ImportWalletState extends State<ImportWallet> {
                 Radius.circular(5.sp),
               ),
             ),
-            activeColor: notifier.getbluecolor,
-            side: BorderSide(color: notifier.getbluecolor),
+            activeColor: notifier.getbluecolor50,
+            side: BorderSide(color: notifier.getbluecolor50),
             value: usePassPhrase,
             onChanged: (bool? value) {
               setState(() {
@@ -314,6 +315,7 @@ class _ImportWalletState extends State<ImportWallet> {
           onChanged: onChanged,
           decoration: InputDecoration(
             hintText: labletext,
+            hintStyle: TextStyle(color: lablecolor),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15.sp),
             ),

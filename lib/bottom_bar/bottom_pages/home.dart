@@ -794,7 +794,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Widget tiles(asset) {
     return Card(
-      elevation: 5,
+      elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
       color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
