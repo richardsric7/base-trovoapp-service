@@ -1,0 +1,214 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:trovo_wallet/utils/local_auth.dart';
+import '../Custom_BlocObserver/constants.dart';
+import '../Custom_BlocObserver/fonts.dart';
+import '../Custom_BlocObserver/notifire_clor.dart';
+import '../storage/state.dart';
+import '../utils/enstring.dart';
+import '../utils/medeiaqury/medeiaqury.dart';
+import 'package:local_auth/error_codes.dart' as auth_error;
+
+import 'popups.dart';
+
+class WalletSlide extends StatefulWidget {
+  String alias;
+  String totalBalance;
+  String fiatBalance;
+  Color backColor;
+  Color foreColor;
+
+  WalletSlide({
+    Key? key,
+    required this.alias,
+    required this.totalBalance,
+    required this.fiatBalance,
+    required this.backColor,
+    required this.foreColor,
+  }) : super(key: key);
+
+  @override
+  State<WalletSlide> createState() => _WalletSlideState();
+}
+
+class _WalletSlideState extends State<WalletSlide> {
+  late ColorNotifier notifier;
+  late DataProvider appState;
+  late bool localHideBalance;
+  final Authenticator _authenticator = Authenticator();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    localHideBalance = appState.hideBalances;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    notifier = Provider.of<ColorNotifier>(context, listen: false);
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
+    return walletSlide();
+  }
+
+  Widget walletSlide() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+          // color: colors[0],
+          color: widget.backColor,
+        ),
+        child: Stack(children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 35.0, horizontal: 20),
+                child: Image.asset(
+                  'assets/images/trovo_white.png',
+                  color: widget.foreColor,
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 25.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.alias,
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: widget.foreColor,
+                      fontFamily: fontsemibold),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      LanguageEn.totalbalance,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: widget.foreColor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 15,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        if (localHideBalance) {
+                          authenticateAndToggle();
+                        } else
+                          toggleHideBalance();
+                      },
+                      child: Icon(
+                        getIcon(),
+                        size: 20,
+                        color: widget.foreColor,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 98.0,
+                ),
+                Text(
+                  getBalance(widget.totalBalance),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: widget.foreColor,
+                    fontFamily: fontsemibold,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  getBalance(widget.fiatBalance),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w300,
+                    fontSize: 13,
+                    color: widget.foreColor,
+                    fontFamily: fontbody,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+
+  IconData getIcon() {
+    IconData icon;
+    if (appState.hideBalances) icon = CupertinoIcons.eye;
+
+    if (localHideBalance)
+      icon = CupertinoIcons.eye;
+    else
+      icon = CupertinoIcons.eye_slash;
+
+    return icon;
+  }
+
+  void authenticateAndToggle() {
+    if (appState.biometricEnabled) {
+      toggleBiometrics();
+      return;
+    }
+
+    showPasswordDialog(context, () {
+      toggleHideBalance();
+    });
+  }
+
+  void toggleBiometrics() async {
+    try {
+      bool result = await _authenticator.authenticateMe();
+      if (result) {
+        toggleHideBalance();
+      }
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notEnrolled ||
+          e.code == auth_error.notAvailable) {
+        biometricsErrorAlert(context);
+      }
+    }
+  }
+
+  toggleHideBalance() {
+    setState(() {
+      localHideBalance = !localHideBalance;
+      appState.toggleActiveBalances = localHideBalance;
+      print(
+          'localHideBalance: $localHideBalance, appState.hideBalances: ${appState.hideBalances}');
+    });
+  }
+
+  String getBalance(String balance) {
+    String text;
+    if (appState.hideBalances) text = hideBalanceText;
+
+    if (localHideBalance)
+      text = hideBalanceText;
+    else
+      text = balance;
+
+    return text;
+  }
+}

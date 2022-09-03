@@ -15,6 +15,7 @@ import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/WalletSlides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -48,6 +49,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     _tabController = TabController(length: tabLength, vsync: this);
     _tabController.addListener(tabListener);
     _refreshController = RefreshController(initialRefresh: false);
+    appState = Provider.of<DataProvider>(context, listen: false);
+    appState.resetActiveWalletBalances();
   }
 
   void tabListener() {
@@ -625,6 +628,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         onPageChanged: ((index, reason) => {
               setState(
                 () => {
+                  appState.resetActiveWalletBalances(),
                   activeWallet = wallets[index].publicKey,
                   claimedAssets = assetBalances[activeWallet]['claimed'],
                   unclaimedAssets = assetBalances[activeWallet]['unclaimed'],
@@ -643,89 +647,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         return Builder(
           builder: (BuildContext context) {
             if (indexOfWallet < 6) {
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                    // color: colors[0],
-                    color: colors[wallets.indexOf(wallet)],
-                  ),
-                  child: Stack(children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 35.0, horizontal: 20),
-                          child: Image.asset(
-                            'assets/images/trovo_white.png',
-                            color: getColor(context, indexOfWallet),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0, vertical: 25.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            wallet.alias!.capitalizeFirst!,
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: getColor(context, indexOfWallet),
-                                fontFamily: fontsemibold),
-                          ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                LanguageEn.totalbalance,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w400,
-                                  color: getColor(context, indexOfWallet),
-                                  fontFamily: fontbody,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: height / 98.0,
-                          ),
-                          Text(
-                            appState.hideBalances
-                                ? hideBalanceText
-                                : '2,082,898 NGN',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: getColor(context, indexOfWallet),
-                              fontFamily: fontsemibold,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            appState.hideBalances
-                                ? hideBalanceText
-                                : '4,014 USD',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w300,
-                              fontSize: 13,
-                              color: getColor(context, indexOfWallet),
-                              fontFamily: fontbody,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ]),
-                ),
+              return WalletSlide(
+                backColor: colors[wallets.indexOf(wallet)],
+                foreColor: getColor(context, indexOfWallet),
+                alias: wallet.alias!.capitalizeFirst!,
+                totalBalance: '2,082,898 NGN',
+                fiatBalance: '4,014 USD',
               );
             }
 
@@ -850,9 +777,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  appState.hideBalances
-                      ? hideBalanceText
-                      : formatNumber(double.parse(asset["amount"])),
+                  getBalance(formatNumber(double.parse(asset["amount"]))),
                   style: TextStyle(
                     fontSize: 12,
                     fontFamily: fontsemibold,
@@ -862,7 +787,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
-                    appState.hideBalances ? hideBalanceText : '146,875 NGN',
+                    getBalance('146,875 NGN'),
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,
@@ -874,6 +799,20 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             )),
       ),
     );
+  }
+
+  String getBalance(String balance) {
+    print(
+        'getting bal for active wallet... ${appState.hideActiveWalletBalance}');
+    String text;
+    if (appState.hideBalances) text = hideBalanceText;
+
+    if (appState.hideActiveWalletBalance)
+      text = hideBalanceText;
+    else
+      text = balance;
+
+    return text;
   }
 
   void refreshData() async {

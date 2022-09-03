@@ -44,7 +44,6 @@ enum WalletView { listWallets, addSubWallet, confirmAddSubWallet }
 class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   late ColorNotifier notifier;
   WalletAction? action = WalletAction.createNew;
-  WalletView walletView = WalletView.listWallets;
   final Authenticator _authenticator = Authenticator();
   bool isTileView = false;
   bool isImport = true;
@@ -65,10 +64,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
   late RefreshController _refreshController;
-  var actionIcon = Icons.add_circle_outline_sharp;
-  var actionText = LanguageEn.addsubwallet;
+  // var actionIcon = Icons.add_circle_outline_sharp;
+  // var actionText = LanguageEn.addsubwallet;
   late List<WalletTileColor> colors;
-
   @override
   void initState() {
     super.initState();
@@ -111,7 +109,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             onRefresh: refreshData,
             child: ListView(
               children: [
-                if (walletView == WalletView.listWallets) ...[
+                if (appState.walletView.view == WalletView.listWallets) ...[
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Container(
@@ -159,25 +157,30 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   height: height / 50,
                 ),
                 GestureDetector(
-                  onTap: () => setState(() {
-                    if (walletView == WalletView.listWallets) {
-                      actionIcon = Icons.cancel_outlined;
-                      actionText = LanguageEn.cancel;
-                      walletView = WalletView.addSubWallet;
-                    } else if (walletView == WalletView.addSubWallet) {
-                      actionIcon = Icons.add_circle_outline_sharp;
-                      actionText = LanguageEn.addsubwallet;
-                      walletView = WalletView.listWallets;
-                    } else if (walletView == WalletView.confirmAddSubWallet) {
-                      actionIcon = Icons.cancel_outlined;
-                      actionText = LanguageEn.cancel;
-                      walletView = WalletView.addSubWallet;
+                  onTap: () {
+                    if (appState.walletView.view == WalletView.listWallets) {
+                      appState.walletView.actionIcon = Icons.cancel_outlined;
+                      appState.walletView.actionText = LanguageEn.cancel;
+                      appState.walletView.view = WalletView.addSubWallet;
+                    } else if (appState.walletView.view ==
+                        WalletView.addSubWallet) {
+                      appState.walletView.actionIcon =
+                          Icons.add_circle_outline_sharp;
+                      appState.walletView.actionText = LanguageEn.addsubwallet;
+                      appState.walletView.view = WalletView.listWallets;
+                    } else if (appState.walletView.view ==
+                        WalletView.confirmAddSubWallet) {
+                      appState.walletView.actionIcon = Icons.cancel_outlined;
+                      appState.walletView.actionText = LanguageEn.cancel;
+                      appState.walletView.view = WalletView.addSubWallet;
                     }
-                  }),
+
+                    setState(() {});
+                  },
                   child: Column(
                     children: [
                       Icon(
-                        actionIcon,
+                        appState.walletView.actionIcon,
                         color: notifier.getbluewhitecolor,
                         size: 35,
                       ),
@@ -185,7 +188,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                         height: 5,
                       ),
                       Text(
-                        actionText,
+                        appState.walletView.actionText,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
@@ -199,9 +202,10 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                 SizedBox(
                   height: height / 50,
                 ),
-                if (walletView == WalletView.addSubWallet) ...[
+                if (appState.walletView.view == WalletView.addSubWallet) ...[
                   addSubwallet()
-                ] else if (walletView == WalletView.confirmAddSubWallet) ...[
+                ] else if (appState.walletView.view ==
+                    WalletView.confirmAddSubWallet) ...[
                   confirmAddSubwallet()
                 ] else ...[
                   isTileView ? gridView() : walletListView(),
@@ -336,10 +340,10 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     ),
                   ),
                 ),
-                Icon(
-                  CupertinoIcons.eye_slash,
-                  color: color.foreColor,
-                ),
+                // Icon(
+                //   CupertinoIcons.eye_slash,
+                //   color: color.foreColor,
+                // ),
               ],
             ),
           ),
@@ -458,14 +462,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       color: color.foreColor,
                       fontFamily: fontbody,
                     ),
-                  ),
-                  SizedBox(
-                    width: 20,
-                  ),
-                  Icon(
-                    CupertinoIcons.eye_slash,
-                    size: 25,
-                    color: color.foreColor,
                   ),
                 ],
               ),
@@ -904,9 +900,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     form.save();
     generateKeyPairs();
     setState(() {
-      walletView = WalletView.confirmAddSubWallet;
-      actionIcon = Icons.arrow_circle_left_outlined;
-      actionText = LanguageEn.back;
+      appState.walletView.view = WalletView.confirmAddSubWallet;
+      appState.walletView.actionIcon = Icons.arrow_circle_left_outlined;
+      appState.walletView.actionText = LanguageEn.back;
       password = '';
       secretKey = '';
     });
@@ -1117,9 +1113,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     tag = '';
     description = '';
     secretKey = '';
-    actionIcon = Icons.add_circle_outline_sharp;
-    actionText = LanguageEn.addsubwallet;
-    walletView = WalletView.listWallets;
+    appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
+    appState.walletView.actionText = LanguageEn.addsubwallet;
+    appState.walletView.view = WalletView.listWallets;
   }
 
   Future<void> updateUserInfo() async {

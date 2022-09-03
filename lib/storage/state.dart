@@ -1,9 +1,13 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import '../Models/User.dart';
+import '../Models/WalletsListViewData.dart';
 import '../router/PageActions.dart';
 import 'cache.dart';
 
@@ -12,11 +16,31 @@ class DataProvider with ChangeNotifier {
   List<String> secretKeys = [];
   bool isDark = false;
   bool biometricEnabled = false;
-  bool hideBalances = false;
   String timeout = '5'; // 5 minutes
   String? password;
   var assetBalances;
   var nfts;
+  WalletsListViewData walletView = WalletsListViewData(
+      view: WalletView.listWallets,
+      actionIcon: Icons.add_circle_outline_sharp,
+      actionText: LanguageEn.addsubwallet);
+
+  bool hideBalances = false;
+  set sethideBalances(bool value) {
+    hideBalances = value;
+    print('notifying listeners...');
+    notifyListeners();
+  }
+
+  bool hideActiveWalletBalance = false;
+  set toggleActiveBalances(bool value) {
+    hideActiveWalletBalance = value;
+    notifyListeners();
+  }
+
+  void resetActiveWalletBalances() {
+    hideActiveWalletBalance = hideBalances;
+  }
 
   bool _splashFinished = false;
   bool get splashFinished => _splashFinished;
@@ -120,6 +144,8 @@ class DataProvider with ChangeNotifier {
       print(e);
     }
   }
+
+  int currentBottomTabIndex = 0;
 
   List<TransactionInfo> historyData = <TransactionInfo>[];
   int limit = 20;

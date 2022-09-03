@@ -157,6 +157,7 @@ class _BottomHomeState extends State<BottomHome> {
         appState.getHistory();
       }
       _selectedIndex = index;
+      appState.currentBottomTabIndex = _selectedIndex;
     });
   }
 

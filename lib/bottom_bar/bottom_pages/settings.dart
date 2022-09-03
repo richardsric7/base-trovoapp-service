@@ -679,11 +679,10 @@ class _SettingsState extends State<Settings> {
                 activeColor: notifier.getgreencolor,
                 value: appState.hideBalances,
                 onChanged: (val) async {
-                  setState(() {
-                    appState.hideBalances = !appState.hideBalances;
-                    StoreData()
-                        .storeInsertData('hideBalances', appState.hideBalances);
-                  });
+                  if (val)
+                    toggleHideBalances();
+                  else
+                    authenticateAndUnhideBalances();
                 },
               ),
             ),
@@ -699,8 +698,9 @@ class _SettingsState extends State<Settings> {
       bool result = await Authenticator().authenticateMe();
       if (result) {
         setState(() {
-          StoreData().storeInsertData('biometricsEnabled', result);
           appState.biometricEnabled = !appState.biometricEnabled;
+          StoreData()
+              .storeInsertData('biometricsEnabled', appState.biometricEnabled);
         });
       }
     } on PlatformException catch (e) {
@@ -709,5 +709,33 @@ class _SettingsState extends State<Settings> {
         biometricsErrorAlert(context);
       }
     }
+  }
+
+  void authenticateAndUnhideBalances() async {
+    if (appState.biometricEnabled) {
+      try {
+        bool result = await Authenticator().authenticateMe();
+        if (result) {
+          toggleHideBalances();
+          return;
+        }
+      } on PlatformException catch (e) {
+        if (e.code == auth_error.notEnrolled ||
+            e.code == auth_error.notAvailable) {
+          biometricsErrorAlert(context);
+        }
+      }
+    }
+
+    showPasswordDialog(context, () {
+      toggleHideBalances();
+    });
+  }
+
+  void toggleHideBalances() {
+    setState(() {
+      appState.sethideBalances = !appState.hideBalances;
+      StoreData().storeInsertData('hideBalances', appState.hideBalances);
+    });
   }
 }
