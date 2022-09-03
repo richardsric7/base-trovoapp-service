@@ -271,7 +271,8 @@ class _FingerPrintState extends State<FingerPrint> {
                             child: Text(
                               LanguageEn.cancel,
                               style: TextStyle(
-                                  color: wihitecolor, fontFamily: fontbody),
+                                  color: notifier.getbluecolor,
+                                  fontFamily: fontbody),
                             ),
                             style: ButtonStyle(
                               fixedSize: MaterialStateProperty.all(

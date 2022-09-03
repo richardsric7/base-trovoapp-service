@@ -4,7 +4,7 @@ Color wihitecolor = Colors.white;
 Color darkwihitecolor = const Color(0xff10192d);
 Color darktilewhitecolor = const Color(0xff00296c);
 
-Color blue = Color(0xFF007CDF);
+Color forecolorblue = Color(0xFF00225A);
 
 Color trovoblue = Color(0xFF004988);
 Color trovoblue90 = Color(0xFF336DA0);
@@ -13,12 +13,12 @@ Color trovoblue70 = Color(0xFF99B6CF);
 Color trovoblue60 = Color(0xFFCCDBE7);
 Color trovoblue50 = Color(0xFFF2F6F9);
 
-Color darkblue = const Color(0xFF007CDF);
-Color darkblue90 = const Color(0xFF00225A);
+Color darkblue = const Color(0xFF00296C);
+Color darkblue90 = const Color(0xFF002C75);
 Color darkblue80 = const Color(0xFF003387);
-Color darkblue70 = const Color(0xFF003da2);
-Color darkblue60 = const Color(0xFF003a99);
-Color darkblue50 = const Color(0xFF003da2);
+Color darkblue70 = const Color(0xFF003a99);
+Color darkblue60 = const Color(0xFF003da2);
+Color darkblue50 = const Color(0xFF0041ab);
 
 Color green = const Color(0xff00a859);
 

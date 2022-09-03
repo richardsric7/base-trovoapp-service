@@ -21,6 +21,13 @@ class _BottomHomeState extends State<BottomHome> {
 
   late ColorNotifier notifire;
   late DataProvider appState;
+  bool isTapped = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,48 +55,87 @@ class _BottomHomeState extends State<BottomHome> {
           items: [
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: Image.asset("assets/images/home.png",
+                icon: AnimatedContainer(
+                  duration: Duration(milliseconds: 2000),
+                  curve: Curves.fastOutSlowIn,
+                  child: Image.asset(
+                    "assets/images/home.png",
                     color: _selectedIndex == 0
-                        ? notifire.getbluecolor
+                        ? notifire.isDark
+                            ? notifire.getbluecolor60
+                            : notifire.getbluecolor
                         : notifire.getblck,
-                    height: height / 35),
+                    height: _selectedIndex == 0 ? height / 29 : height / 35,
+                    fit: BoxFit.contain,
+                  ),
+                ),
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: Image.asset("assets/images/wallets.png",
+                icon: AnimatedContainer(
+                  duration: Duration(milliseconds: 2000),
+                  curve: Curves.fastOutSlowIn,
+                  child: Image.asset(
+                    "assets/images/wallets.png",
                     color: _selectedIndex == 1
-                        ? notifire.getbluecolor
+                        ? notifire.isDark
+                            ? notifire.getbluecolor60
+                            : notifire.getbluecolor
                         : notifire.getblck,
-                    height: height / 35),
+                    height: _selectedIndex == 1 ? height / 29 : height / 35,
+                    fit: BoxFit.fitHeight,
+                  ),
+                ),
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: Image.asset("assets/images/history.png",
-                    color: _selectedIndex == 2
-                        ? notifire.getbluecolor
-                        : notifire.getblck,
-                    height: height / 35),
+                icon: AnimatedContainer(
+                  duration: Duration(milliseconds: 2000),
+                  curve: Curves.fastOutSlowIn,
+                  child: Image.asset("assets/images/history.png",
+                      color: _selectedIndex == 2
+                          ? notifire.isDark
+                              ? notifire.getbluecolor60
+                              : notifire.getbluecolor
+                          : notifire.getblck,
+                      height: _selectedIndex == 2 ? height / 29 : height / 35),
+                ),
                 label: ''),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
-                icon: Image.asset("assets/images/swap.png",
-                    color: _selectedIndex == 3
-                        ? notifire.getbluecolor
-                        : notifire.getblck,
-                    height: height / 35),
+                icon: AnimatedContainer(
+                  duration: Duration(milliseconds: 2000),
+                  curve: Curves.fastOutSlowIn,
+                  child: Image.asset("assets/images/swap.png",
+                      color: _selectedIndex == 3
+                          ? notifire.isDark
+                              ? notifire.getbluecolor60
+                              : notifire.getbluecolor
+                          : notifire.getblck,
+                      height: _selectedIndex == 3 ? height / 29 : height / 35),
+                ),
                 label: ''),
             BottomNavigationBarItem(
               backgroundColor: notifire.getwihitecolor,
-              icon: Image.asset("assets/images/settings.png",
+              icon: AnimatedContainer(
+                duration: Duration(milliseconds: 2000),
+                curve: Curves.fastOutSlowIn,
+                child: Image.asset(
+                  "assets/images/settings.png",
                   color: _selectedIndex == 4
-                      ? notifire.getbluecolor
+                      ? notifire.isDark
+                          ? notifire.getbluecolor60
+                          : notifire.getbluecolor
                       : notifire.getblck,
-                  height: height / 33),
+                  height: _selectedIndex == 4 ? height / 27 : height / 33,
+                ),
+              ),
               label: '',
             ),
           ],
           onTap: (index) {
             changeTabMethod(index);
+            isTapped = true;
           },
         ),
         body: Stack(

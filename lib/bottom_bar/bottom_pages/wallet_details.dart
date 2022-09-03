@@ -138,7 +138,7 @@ class _WalletDetailsState extends State<WalletDetails>
                           Tab(
                             height: 20,
                             text:
-                                '${LanguageEn.pendingassets} (${unclaimedAssets.length})',
+                                '${LanguageEn.pending} (${unclaimedAssets.length})',
                           ),
                         ],
                         Tab(

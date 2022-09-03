@@ -67,6 +67,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   late RefreshController _refreshController;
   var actionIcon = Icons.add_circle_outline_sharp;
   var actionText = LanguageEn.addsubwallet;
+  late List<WalletTileColor> colors;
 
   @override
   void initState() {
@@ -215,6 +216,32 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   }
 
   Widget gridView() {
+    colors = [
+      notifier.getstructuredbluecolor,
+      notifier.getstructuredbluecolor90,
+      notifier.getstructuredbluecolor80,
+      notifier.getstructuredbluecolor70,
+      notifier.getstructuredbluecolor60,
+      notifier.getstructuredbluecolor50,
+      notifier.getstructuredgreencolor,
+      notifier.getstructuredgreencolor90,
+      notifier.getstructuredgreencolor80,
+      notifier.getstructuredgreencolor70,
+      notifier.getstructuredgreencolor60,
+      notifier.getstructuredgreencolor50,
+      notifier.getorangecolor,
+      notifier.getorangecolor90,
+      notifier.getorangecolor80,
+      notifier.getorangecolor70,
+      notifier.getorangecolor60,
+      notifier.getorangecolor50,
+      notifier.getpinkcolor,
+      notifier.getpinkcolor90,
+      notifier.getpinkcolor80,
+      notifier.getpinkcolor70,
+      notifier.getpinkcolor60,
+      notifier.getpinkcolor50,
+    ];
     return Container(
       height: height / 2,
       child: GridView.count(
@@ -236,7 +263,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               child: walletTile(
                   wallets![i].alias!.capitalizeFirst!,
                   '4,014 USD',
-                  notifier.getbluecolor80,
+                  i % 2 == 0
+                      ? colors[((i + 1) % colors.length)]
+                      : colors[((i) % colors.length)],
                   assetBalances[wallets![i].publicKey]['claimed'][0]),
             ),
           ]
@@ -245,7 +274,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget walletTile(walletName, usdBal, color, asset) {
+  Widget walletTile(walletName, usdBal, WalletTileColor color, asset) {
     var balance =
         "${formatHistoryNumber(double.parse(asset['amount']))} ${asset["assetCode"].toString().isEmpty ? 'XBN' : asset["assetCode"]}";
     return Card(
@@ -254,7 +283,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15.0),
       ),
-      color: color,
+      color: color.backColor,
       child: Stack(
         children: [
           Center(
@@ -280,7 +309,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   style: TextStyle(
                     fontSize: 15,
                     fontFamily: fontsemibold,
-                    color: getColor(context, 1),
+                    color: color.foreColor,
                   ),
                 ),
                 Padding(
@@ -291,7 +320,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 18,
                       fontFamily: fontbody,
-                      color: getColor(context, 1),
+                      color: color.foreColor,
                     ),
                   ),
                 ),
@@ -303,13 +332,13 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 13,
                       fontFamily: fontbody,
-                      color: getColor(context, 1),
+                      color: color.foreColor,
                     ),
                   ),
                 ),
                 Icon(
                   CupertinoIcons.eye_slash,
-                  color: getColor(context, 1),
+                  color: color.foreColor,
                 ),
               ],
             ),
@@ -320,7 +349,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   }
 
   Widget walletListView() {
-    var colors = [
+    colors = [
       notifier.getstructuredbluecolor,
       notifier.getstructuredbluecolor90,
       notifier.getstructuredbluecolor80,
@@ -516,6 +545,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                             value: WalletAction.import,
                             groupValue: action,
                             activeColor: notifier.getbluewhitecolor,
+                            fillColor: MaterialStateColor.resolveWith(
+                                (states) => notifier.getbluewhitecolor),
                             onChanged: (value) => {
                               setState(
                                 () {
@@ -545,6 +576,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                           child: Radio<WalletAction>(
                             value: WalletAction.createNew,
                             activeColor: notifier.getbluewhitecolor,
+                            fillColor: MaterialStateColor.resolveWith(
+                                (states) => notifier.getbluewhitecolor),
                             groupValue: action,
                             onChanged: (value) => {
                               setState(
@@ -839,7 +872,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         Button(
           LanguageEn.authorizewithbiometrics,
           notifier.getbluecolor,
-          notifier.getbluewhitecolor,
+          wihitecolor,
           onTap: toggleSwitch,
         ),
       ] else ...[

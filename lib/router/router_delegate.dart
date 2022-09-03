@@ -199,10 +199,11 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(TransactionSuccess(), TransactionSuccessViewPageConfig);
           break;
         case Pages.ReceiveAssetView:
-          _addPageData(ReceiveAsset(), TransactionSuccessViewPageConfig);
+          _addPageData(ReceiveAsset(), ReceiveAssetViewPageConfig);
           break;
         case Pages.PendingAssetDetailsView:
-          _addPageData(PendingAssetDetails(), TransactionSuccessViewPageConfig);
+          _addPageData(
+              PendingAssetDetails(), PendingAssetDetailsViewPageConfig);
           break;
         case Pages.PaymentHistoryView:
           _addPageData(PaymentHistory(), PaymentHistoryViewPageConfig);

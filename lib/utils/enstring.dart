@@ -338,7 +338,7 @@ class LanguageEn {
       "I understand that I need to securely store my secret key and that if this app is deleted or moved to another device, I can only restore my wallet with the secret key.";
 
   static String get iunderstandliability =>
-      "I understand that if I lose my secret key. Trovo is not liable to any loss and that my funds are securely held and controlled on this device not by Trovo.";
+      "I understand that if I lose my secret key. Trovotech is not liable to any loss and that my funds are securely held and controlled on this device not by Trovotech.";
 
   static String get maynotbedisplayedagain =>
       "This wallet's secret key will only be available while this app in not yet unistalled from this device.";
@@ -453,7 +453,17 @@ class LanguageEn {
 
   static String get assets => "ASSETS";
 
-  static String get pendingassets => "PENDING";
+  static String get pendingassets => "Pending Asset ";
+
+  static String get pendingassetwarning =>
+      "assetCode is not yet part of your approved assets to be received on wallet walletAlias. Do you wish to start receiving this asset?";
+
+  static String get pendingassetwarning2 =>
+      'Claiming this asset will enable you to continue to receive it in the future and will add it to the list of assets on your wallet.';
+
+  static String get version => "Version";
+
+  static String get pending => "PENDING";
 
   static String get nfts => "NFT";
 

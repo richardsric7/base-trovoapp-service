@@ -52,7 +52,7 @@ Color getColor(context, indexOfWallet) {
     return wihitecolor;
   }
 
-  return indexOfWallet > 3 ? notifier.getbluecolor : notifier.getwihitecolor;
+  return indexOfWallet > 2 ? notifier.getbluecolor : notifier.getwihitecolor;
 }
 
 getAssetIssuer(assetIssuer) {

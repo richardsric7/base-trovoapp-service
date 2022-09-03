@@ -248,8 +248,14 @@ class _ImportWalletState extends State<ImportWallet> {
                 Radius.circular(5.sp),
               ),
             ),
-            activeColor: notifier.getbluecolor50,
-            side: BorderSide(color: notifier.getbluecolor50),
+            activeColor: notifier.isDark
+                ? notifier.getbluecolor50
+                : notifier.getbluecolor90,
+            side: BorderSide(
+              color: notifier.isDark
+                  ? notifier.getbluecolor50
+                  : notifier.getbluecolor90,
+            ),
             value: usePassPhrase,
             onChanged: (bool? value) {
               setState(() {

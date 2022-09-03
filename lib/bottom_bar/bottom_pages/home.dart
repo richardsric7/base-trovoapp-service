@@ -179,7 +179,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           Tab(
                             height: 20,
                             text:
-                                '${LanguageEn.pendingassets} (${unclaimedAssets.length})',
+                                '${LanguageEn.pending} (${unclaimedAssets.length})',
                           ),
                         ],
                         Tab(

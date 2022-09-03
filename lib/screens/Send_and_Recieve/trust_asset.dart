@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
@@ -85,11 +86,11 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                     width: 20,
                   ),
                   Text(
-                    'Pending Asset ',
+                    LanguageEn.pendingassets,
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                 ],
@@ -108,7 +109,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
               Button(
                 LanguageEn.claimasset,
                 notifier.getbluecolor,
-                notifier.getwihitecolor,
+                wihitecolor,
                 onTap: trustAsset,
               ),
             ],
@@ -124,7 +125,9 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -139,13 +142,16 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      '${activeAsset['assetCode']} is not yet part of your approved assets to be received on wallet ${activeWallet!.alias}. ' +
-                          'Do you wish to start receiving this asset?',
+                      // '${activeAsset['assetCode']} is not yet part of your approved assets to be received on wallet ${activeWallet!.alias}. ' +
+                      //     'Do you wish to start receiving this asset?',
+                      LanguageEn.pendingassetwarning
+                          .replaceAll('assetCode', activeAsset['assetCode'])
+                          .replaceAll('walletAlias', activeWallet!.alias!),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -156,13 +162,12 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      'Claiming this asset will enable you to continue to receive ' +
-                          'it in the future and will add it to the list of assets on your wallet.',
+                      LanguageEn.pendingassetwarning2,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -183,7 +188,9 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.getaddsubwalletgrey,
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -200,7 +207,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
                   SizedBox(
@@ -214,7 +221,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -227,7 +234,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontFamily: fontbody,
                     ),
                   ),
