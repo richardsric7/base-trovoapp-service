@@ -286,7 +286,7 @@ func CreateMultiWalletAccess(signerPublicKey string, accessInfo *userModels.User
 
 	return managedAccess, &tErrors.CustomError{
 		Param:      "id",
-		Err:        "error-access-management-already-=active-on-wallet",
+		Err:        "error-access-management-already-active-on-wallet",
 		ErrMessage: "Access management already activated on wallet. Use option to update the access or update the access list.",
 		Code:       http.StatusForbidden,
 	}

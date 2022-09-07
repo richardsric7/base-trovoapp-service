@@ -73,7 +73,7 @@ func main() {
 			"IPAPI_KEY", "IPAPI_HOST", "VERIFICATION_CODE_SALT", "ENABLE_EMAIL_VALIDATION", "ENABLE_CACHING", "DEFAULT_ASSET_IMAGE_URL",
 			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_API_KEY", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
 			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "FBDL_SERVICE_URLS", "MAILGUN_DOMAIN", "XBN_ASSET_IMAGE_URL",
-			"GC",
+			"GC", "GOOGLE_PROJECT_ID",
 		}
 
 		for _, requiredEnvironmentVariable := range requiredEnvironmentVariables {
@@ -230,8 +230,14 @@ func main() {
 	pnsContext := context.Background()
 	pnsClient, _, err := pns.GetFirebaseMessagingClient(pnsContext)
 	if err != nil {
-		log.Fatalln("Unable to initialize Firebase Messaging client:", err)
+		log.Fatalln("Unable to initialize Firebase messaging client:", err)
 	}
+	storageContext := context.Background()
+	storageClient, _, err := pns.GetFirebaseStorageClient(storageContext)
+	if err != nil {
+		log.Fatalln("Unable to initialize Firebase storage client:", err)
+	}
+
 	var globalConfig = sharedconfig.GlobalConfig{
 		DynamicLinkServiceURLChan: dynamicLinkServiceUrlChan,
 		PNSContext:                pnsContext,
@@ -241,6 +247,12 @@ func main() {
 		RoachDB:                   roachDB,
 		BantuExpansionClient:      network.GetBlockchainClient(),
 		BantuNetworkPassphrase:    network.GetBlockchainNetworkPassPhrase(),
+		FirebaseStorageUploader: &sharedconfig.ClientUploader{
+			Client:     storageClient,
+			ProjectID:  os.Getenv("GOOGLE_PROJECT_ID"),
+			BucketName: os.Getenv("STORAGE_BUCKET_NAME"),
+			UploadPath: os.Getenv("STORAGE_BUCKET_NAME") ,
+		},
 	}
 	//setup router
 

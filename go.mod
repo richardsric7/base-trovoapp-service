@@ -3,6 +3,7 @@ module trovo-wallet-api
 go 1.18
 
 require (
+	cloud.google.com/go/storage v1.10.0
 	firebase.google.com/go v3.12.0+incompatible
 	github.com/bantublockchain/bantupaysdk-go v1.1.9
 	github.com/bantublockchain/push-notification-service v1.0.1
@@ -29,7 +30,6 @@ require (
 require (
 	cloud.google.com/go v0.84.0 // indirect
 	cloud.google.com/go/firestore v1.5.0 // indirect
-	cloud.google.com/go/storage v1.10.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect

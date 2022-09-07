@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"firebase.google.com/go/storage"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/messaging"
 	"google.golang.org/api/option"
@@ -30,6 +31,28 @@ func GetFirebaseMessagingClient(ctx context.Context) (fcmClient *messaging.Clien
 		return nil, ctx, err
 	}
 	return fcmClient, ctx, nil
+
+}
+
+func GetFirebaseStorageClient(ctx context.Context) (storageClient *storage.Client, usedContext context.Context, err error) {
+
+	opts := []option.ClientOption{option.WithCredentialsJSON(getDecodedFireBaseKey())}
+	if ctx == nil {
+		ctx = context.Background()
+
+	}
+	app, err := firebase.NewApp(ctx, nil, opts...)
+	if err != nil {
+		log.Printf("[GetFirebaseStorageClient] new firebase app: %s", err)
+		return nil, ctx, err
+	}
+
+	storageClient, err = app.Storage(ctx)
+	if err != nil {
+		log.Printf("[GetFirebaseStorageClient] error getting storage client: %s", err)
+		return nil, ctx, err
+	}
+	return storageClient, ctx, nil
 
 }
 

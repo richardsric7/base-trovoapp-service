@@ -3,7 +3,7 @@ package middleware
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
+
 	"log"
 	"net/http"
 	"os"
@@ -70,8 +70,8 @@ func AuthenticationMiddlewareUsingBody() gin.HandlerFunc {
 
 		var buf bytes.Buffer
 		tee := io.TeeReader(c.Request.Body, &buf)
-		body, _ := ioutil.ReadAll(tee)
-		c.Request.Body = ioutil.NopCloser(&buf)
+		body, _ := io.ReadAll(tee)
+		c.Request.Body = io.NopCloser(&buf)
 		// log.Println("body is:", string(body))
 		authenticationError := authenticationChecks(string(body), c)
 

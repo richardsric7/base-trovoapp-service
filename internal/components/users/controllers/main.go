@@ -10,11 +10,10 @@ import (
 	tErrors "trovo-wallet-api/internal/errors"
 	pns "trovo-wallet-api/internal/pns"
 
-	"fmt"
-
 	"encoding/base64"
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -240,7 +239,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		var userRegistrationInfo userModels.UserRegistrationInfo
 		// var err error
 
-		data, _ := ioutil.ReadAll(c.Request.Body)
+		data, _ := io.ReadAll(c.Request.Body)
 
 		err = json.Unmarshal(data, &userRegistrationInfo)
 
@@ -310,7 +309,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		var subWalletInfo userModels.SubWalletInfo
 		// var err error
 
-		data, _ := ioutil.ReadAll(c.Request.Body)
+		data, _ := io.ReadAll(c.Request.Body)
 
 		err = json.Unmarshal(data, &subWalletInfo)
 
@@ -364,13 +363,78 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, returnedSubwalletInfo)
 	})
 
+	router.PUT("/v1/users/upload-picture", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+		f, err := c.FormFile("profilePicture")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if f.Size > 700000 {
+			//greater than 700kb
+			c.JSON(http.StatusBadRequest, gin.H{"error": "picture cannot be more than 700kb in file size"})
+			return
+		}
+		blobFile, err := f.Open()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the picture uploaded"})
+
+			return
+		}
+		fnameSplit := strings.Split(f.Filename, ".")
+		fileExtension := fnameSplit[len(fnameSplit)-1]
+
+		user, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/upload-picture %v", user.Username), gc.DB)
+
+		url, err := userServices.UploadProfilePicture(&user, blobFile, fileExtension, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		if user.PushNotificationToken != nil && len(url) > 0 {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*user.PushNotificationToken, "Profile picture updated!", fmt.Sprintf("You have successfully updated profile picture on your account [%v].", user.Username), url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, url)
+	})
+
 	router.POST("/v1/users/trust-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
 		var trustLineInfo userModels.Trustline
 		// var err error
 
-		data, _ := ioutil.ReadAll(c.Request.Body)
+		data, _ := io.ReadAll(c.Request.Body)
 
 		err = json.Unmarshal(data, &trustLineInfo)
 
@@ -458,7 +522,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		var trustLineInfo userModels.Trustline
 		// var err error
 
-		data, _ := ioutil.ReadAll(c.Request.Body)
+		data, _ := io.ReadAll(c.Request.Body)
 
 		err = json.Unmarshal(data, &trustLineInfo)
 
@@ -591,7 +655,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		var pendingAssetToClaim userModels.PendingAssetToClaim
 		// var err error
 
-		data, _ := ioutil.ReadAll(c.Request.Body)
+		data, _ := io.ReadAll(c.Request.Body)
 
 		err = json.Unmarshal(data, &pendingAssetToClaim)
 
