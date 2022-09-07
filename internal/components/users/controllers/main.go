@@ -400,7 +400,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/upload-picture %v", user.Username), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/users/upload-picture %v", user.Username), gc.DB)
 
 		url, err := userServices.UploadProfilePicture(&user, blobFile, fmt.Sprintf("%s.%s", user.Username, fileExtension), gc)
 
