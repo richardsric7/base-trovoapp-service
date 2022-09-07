@@ -142,7 +142,7 @@ type ThirdPartyWalletAccess struct {
 	WalletDescription string `json:"walletDescription"`
 }
 
-//Balance model for user
+// Balance model for user
 type Balance struct {
 	AssetIssuer string          `json:"assetIssuer"`
 	AssetCode   string          `json:"assetCode"`
@@ -150,7 +150,7 @@ type Balance struct {
 	QRCode      string          `json:"qrCode"`
 }
 
-//Signer model for user
+// Signer model for user
 type Signer struct {
 	Weight  int    `json:"weight"`
 	Key     string `json:"key"`
@@ -158,20 +158,20 @@ type Signer struct {
 	Sponsor string `json:"sponsor"`
 }
 
-//Signer model for user
+// Signer model for user
 type Thresholds struct {
 	LowThreshold    string `json:"low_threshold"`
 	MediumThreshold string `json:"medium_threshold"`
 	HighThreshold   string `json:"high_threshold"`
 }
 
-//AssetBalances holds user balances
+// AssetBalances holds user balances
 type AssetBalances struct {
 	Claimed   []Balance `json:"claimed"`
 	Unclaimed []Balance `json:"unclaimed"`
 }
 
-//NFTBalances holds user NFT balances
+// NFTBalances holds user NFT balances
 type NFTBalances struct {
 	NFTs []NFT `json:"nfts"`
 }
@@ -232,7 +232,7 @@ type SwapSendInfo struct {
 	Memo                   string   `json:"memo"`
 }
 
-//PendingAssetToClaim holds pensing assets to be claimed
+// PendingAssetToClaim holds pensing assets to be claimed
 type PendingAssetToClaim struct {
 	AssetCode            string `json:"assetCode"`
 	AssetIssuer          string `json:"assetIssuer"`
@@ -255,12 +255,18 @@ func TestAccountRegistration(t *testing.T) {
 		MobileCountryCode: "NG",
 		Referrer:          "",
 		Corporate:         0,
-		VerificationCode:  "249506",
+		VerificationCode:  "253988",
 	}
 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
 	primaryPK := os.Getenv("RICPK")
 	primarySecretKey := os.Getenv("RICSC")
+	if len(primarySecretKey) == 0 || len(primaryPK) == 0 {
+		log.Println("No primary secret or public key specified")
+		time.Sleep(20 * time.Second)
+		t.Errorf("No primary secret or public key specified")
+		return
+	}
 	kp := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	baseURL := devURL
@@ -349,9 +355,11 @@ func TestGetUserInfo(t *testing.T) {
 
 }
 
-/**
+/*
+*
 2022/06/30 18:40:23 Full Path With Query:[/v1/users/payments/GCWNKFHXYJ7XW6ZL3UFTKXBSRFK7EKBLXXRZQR6PIK3N2KBKQ74I3RIC] KeyParam:[GCWNKFHXYJ7XW6ZL3UFTKXBSRFK7EKBLXXRZQR6PIK3N2KBKQ74I3RIC1656614] Signature: [dBVVuSejU7jfc7QPLU4pMuAuDa00S/3EPyasS+ime9gGFFOONwogY1otWVduUu0VnirdTIj1jXCLzsmblH3qBA==]
-**/
+*
+*/
 func TestGetPaymentHistory(t *testing.T) {
 
 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
@@ -674,7 +682,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 
 }
 
-//TestSendPaymentMultiAccessDisabled sends payment from primary account
+// TestSendPaymentMultiAccessDisabled sends payment from primary account
 func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 
 	// pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
