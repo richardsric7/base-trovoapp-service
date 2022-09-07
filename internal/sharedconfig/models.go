@@ -58,13 +58,15 @@ func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName string) e
 
 	if err != nil {
 		//no bucket with that name exists, create it
-		err := sh.Create(ctx, c.ProjectID, nil)
+		rules := make([]cs.ACLRule, 0)
+		rules = append(rules, cs.ACLRule{Entity: "allUsers", Role: "READER"})
+		err := sh.Create(ctx, c.ProjectID, &cs.BucketAttrs{ACL: rules})
 		if err != nil {
 			log.Printf("[UploadFile] error creating bucket handle %v: %v\n", c.BucketName, err)
 			return fmt.Errorf("error creating bucket handle %v: %v", c.BucketName, err)
 		}
 	}
-	object := sh.Object(c.UploadPath + fileName)
+	object := sh.Object(c.UploadPath + "/" + fileName)
 
 	{
 		//check if object already exists and delete it.
@@ -85,9 +87,9 @@ func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName string) e
 		return fmt.Errorf("error uploading file %v: %v", fileName, err)
 	}
 
-	if err := object.ACL().Set(context.Background(), cs.AllUsers, cs.RoleReader); err != nil {
-		log.Printf("[UploadFile] error setting file permission %v: %v\n", fileName, err)
-		return fmt.Errorf("error setting file permission %v: %v", fileName, err)
-	}
+	// if err := object.ACL().Set(context.Background(), cs.AllUsers, cs.ScopeReadOnly); err != nil {
+	// 	log.Printf("[UploadFile] error setting file permission %v: %v\n", fileName, err)
+	// 	return fmt.Errorf("error setting file permission %v: %v", fileName, err)
+	// }
 	return nil
 }

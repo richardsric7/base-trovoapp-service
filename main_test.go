@@ -308,12 +308,80 @@ func TestAccountRegistration(t *testing.T) {
 	log.Printf("Result:[%+v]\n", regResponse)
 
 }
+func TestAccountProfilePictureUpdate(t *testing.T) {
+	/*
+		{"username":"username","email":"richardsric7@gmail.com","firstName":"Kenny","lastName":"Maduka","mobile":"+2347062685682","mobileCountryCode":"NG","referrer":"","pushNotificationToken":"","corporate":0,"verificationCode":""}
+	*/
+	userRegInfo := UserRegistrationInfo{
+		Username:          "ric",
+		Email:             "richardsric7@gmail.com",
+		FirstName:         "Ric",
+		LastName:          "Richards",
+		Mobile:            "+2348180067955",
+		MobileCountryCode: "NG",
+		Referrer:          "",
+		Corporate:         0,
+		VerificationCode:  "253988",
+	}
+	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
+	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
+	primaryPK := os.Getenv("RICPK")
+	primarySecretKey := os.Getenv("RICSC")
+	if len(primarySecretKey) == 0 || len(primaryPK) == 0 {
+		log.Println("No primary secret or public key specified")
+		time.Sleep(20 * time.Second)
+		t.Errorf("No primary secret or public key specified")
+		return
+	}
+	kp := keypair.MustParseFull(primarySecretKey)
+	// log.Println(kp.Address())
+	baseURL := devURL
+	fullPath := "/v1/users/upload-picture"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	errorResponse := new(ErrorResponse)
+	regResponse := new(RegSuccessInfo)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Put(fullPath).BodyJSON(userRegInfo).Receive(regResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestAccountRegistration] server response error:", *errorResponse)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestAccountRegistration]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Result:[%+v]\n", regResponse)
+
+}
 
 func TestGetUserInfo(t *testing.T) {
 
-	pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
-	secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-	kp := keypair.MustParseFull(secretKey)
+	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
+	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
+	primaryPK := os.Getenv("RICPK")
+	primarySecretKey := os.Getenv("RICSC")
+	kp := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
 	baseURL := devURL
@@ -321,7 +389,7 @@ func TestGetUserInfo(t *testing.T) {
 	ts := time.Now().Unix() / 1000
 
 	tsString := fmt.Sprintf("%v", ts)
-	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, kp.Seed())
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -332,7 +400,7 @@ func TestGetUserInfo(t *testing.T) {
 	resultResponse := new(UserInfo)
 
 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-PUBLIC-KEY", primaryPK).
 		Set("X-TW-SIGNER", kp.Address()).
 		Set("X-TW-SIGNATURE", signedHttpHeader).
 		Set("X-TW-TIMESTAMP", tsString).
