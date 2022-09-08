@@ -12,7 +12,7 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-//SignString returns a signed base64 encoded string of toSign
+// SignString returns a signed base64 encoded string of toSign
 func SignString(toSign string, secretKey string) (string, error) {
 	kp, keyPairError := keypair.ParseFull(secretKey)
 	if keyPairError != nil {
@@ -31,7 +31,7 @@ func SignString(toSign string, secretKey string) (string, error) {
 	return signature, nil
 }
 
-//SignHttp returns a signed base64 encoded string of fullPathWithQuery+keyParam. keyParam = signerPublicKey+timestamp
+// SignHttp returns a signed base64 encoded string of fullPathWithQuery+keyParam. keyParam = signerPublicKey+timestamp
 func SignHttp(fullPathWithQuery string, keyParam string, secretKey string) (string, error) {
 	// log.Printf("path + string:[%v]\n", fullPathWithQuery+body)
 	keyParam = strings.TrimSpace(keyParam)
@@ -45,7 +45,7 @@ func SignHttp(fullPathWithQuery string, keyParam string, secretKey string) (stri
 	return signature, nil
 }
 
-//SignBase64Txn signs the transaction hash from base64Txn string using the secret key
+// SignBase64Txn signs the transaction hash from base64Txn string using the secret key
 func SignBase64Txn(secretKey string, base64Txn string, networkPassPhrase string) (string, error) {
 
 	kp, keyPairError := keypair.ParseFull(secretKey)
@@ -80,7 +80,7 @@ func SignBase64Txn(secretKey string, base64Txn string, networkPassPhrase string)
 
 }
 
-//SignBase64Txn signs the transaction hash from base64Txn string using the secret key
+// SignBase64Txn signs the transaction hash from base64Txn string using the secret key
 func SignSubwalletBase64Txn(primarySecretKey, subWalletSecretKey string, base64Txn string, networkPassPhrase string) (primarySignature, subWalletSignature string, err error) {
 
 	primaryKP, keyPairError := keypair.ParseFull(primarySecretKey)
@@ -124,7 +124,7 @@ func SignSubwalletBase64Txn(primarySecretKey, subWalletSecretKey string, base64T
 
 }
 
-//VerifySignatureString verifies if the signatures match with the one to be generated from toSign. toSign = publicKey+timestamp
+// VerifySignatureString verifies if the signatures match with the one to be generated from toSign. toSign = publicKey+timestamp
 func VerifySignatureString(toSign string, base64Signature string, signerPublicKey string) error {
 	kp, errParsingPublicKey := keypair.ParseAddress(signerPublicKey)
 	if errParsingPublicKey != nil {
@@ -150,7 +150,7 @@ func VerifySignatureString(toSign string, base64Signature string, signerPublicKe
 
 }
 
-//VerifyHttpSignature verifies the httpRequest signation retrieved from X-TW-SIGNATURE header. keyParam = signerPublicKey+timestamp
+// VerifyHttpSignature verifies the httpRequest signation retrieved from X-TW-SIGNATURE header. keyParam = signerPublicKey+timestamp
 func VerifyHttpSignature(fullPathWithQuery string, keyParam string, base64Signature string, signerPublicKey string) error {
 	keyParam = strings.TrimSpace(keyParam)
 	fullPathWithQuery = strings.TrimSpace(fullPathWithQuery)

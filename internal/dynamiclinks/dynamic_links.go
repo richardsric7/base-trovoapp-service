@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -62,7 +62,7 @@ type ReferralLinkData struct {
 	QRCode      string `json:"qrCode"`
 }
 
-//FBDL is model for sending the POST request to the DL proxy
+// FBDL is model for sending the POST request to the DL proxy
 type FBDL struct {
 	Link   string `json:"link"`
 	APIKey string `json:"apiKey"`
@@ -131,7 +131,7 @@ func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl str
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("[GenerateDynamicLinkWithStaticService]Reading Dynamics Links response Body failed with", err)
 		return
@@ -155,7 +155,7 @@ func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl str
 }
 
 func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLink string, err error) {
-
+	// log.Println("link for: ", link)
 	cacheKey := link
 	{
 
@@ -172,6 +172,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 	}
 
 	baseUrl := <-gc.DynamicLinkServiceURLChan
+	log.Println("using baseurl:", baseUrl)
 	defer func() {
 		time.Sleep(200 * time.Millisecond) // wait for 200ms before sending next request. enough time to achieve 5 requests per ip
 		//return the link to waiting list
@@ -206,11 +207,12 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("[GenerateDynamicLink]Reading Dynamics Links response Body failed with", err)
 		return
 	}
+	log.Printf("[GenerateDynamicLink] Reading Dynamics Links response: %s\n", body)
 
 	var sr FBDLResponse
 	err = json.Unmarshal(body, &sr)
@@ -234,7 +236,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 
 }
 
-//GenerateLoginData generates Login Data
+// GenerateLoginData generates Login Data
 func GenerateLoginData(merchant, merchantShortName, targetUser, loginID, deviceInfo string, gc *sharedconfig.GlobalConfig) (p LoginWithTrovoWalletData, err error) {
 
 	var dynamicLink, pngDataURI string
@@ -251,7 +253,7 @@ func GenerateLoginData(merchant, merchantShortName, targetUser, loginID, deviceI
 	dynamicLink, err = GenerateDynamicLink(link, gc)
 
 	if err != nil {
-		log.Printf("[GenerateLoginData]could not generate dynamicLink for [%v]. error: %v\n", link, err)
+		log.Printf("[GenerateLoginData] could not generate dynamicLink for username %s [%v]. error: %v\n", targetUser, link, err)
 		return
 	}
 	if len(dynamicLink) == 0 {
@@ -271,7 +273,7 @@ func GenerateLoginData(merchant, merchantShortName, targetUser, loginID, deviceI
 	return p, nil
 }
 
-//GenerateAuthorizationData generates authorization Data
+// GenerateAuthorizationData generates authorization Data
 func GenerateAuthorizationData(merchant, merchantShortName, description, targetUser, deviceInfo, authID string, gc *sharedconfig.GlobalConfig) (p TrovoWalletAuthorizationData, err error) {
 
 	var dynamicLink, pngDataURI string
@@ -309,7 +311,7 @@ func GenerateAuthorizationData(merchant, merchantShortName, description, targetU
 	return p, nil
 }
 
-//GeneratePaymentData generates payment Data
+// GeneratePaymentData generates payment Data
 func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, memo string, gc *sharedconfig.GlobalConfig) (p PayWithTrovoWalletData, err error) {
 	if len(paymentDestination) == 0 {
 		err = errors.New("no payment destination")
@@ -370,7 +372,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 	return p, nil
 }
 
-//GenerateReferralLinkWithStaticURL generates payment Data
+// GenerateReferralLinkWithStaticURL generates payment Data
 func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl string, redisCache *cache.RedisCache) (p ReferralLinkData, err error) {
 	if len(username) == 0 {
 		err = errors.New("no username")
@@ -406,7 +408,7 @@ func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl st
 	return p, nil
 }
 
-//GenerateReferralLink generates payment Data
+// GenerateReferralLink generates payment Data
 func GenerateReferralLink(username string, gc *sharedconfig.GlobalConfig) (p ReferralLinkData, err error) {
 	if len(username) == 0 {
 		err = errors.New("no username")

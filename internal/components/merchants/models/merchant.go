@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -13,16 +13,16 @@ import (
 	"github.com/bantublockchain/push-notification-service/pkg/shove"
 )
 
-//Merchant holds Merchant data model
+// Merchant holds Merchant data model
 type Merchant struct {
 	ID                         string    `json:"-" gorm:"size:100"`
 	CreatedAt                  time.Time `json:"-"`
 	UpdatedAt                  time.Time `json:"-"`
 	TrovoWalletUsername        string    `json:"TrovoUsername" gorm:"size:100;index:idx_trovowallet_username,unique;not null;check:,length(trovo_wallet_username) > 2"`
-	Email                      string    `json:"email" gorm:"not null;index:idx_merchant_email,unique"`
 	PublicKey                  string    `json:"publicKey" gorm:"size:56;index:idx_merchant_user_public_key;not null;"`
-	ShortName                  string    `json:"shortName" gorm:"size:20;index:idx_merchant_shortname,unique;not null;"`
-	Name                       string    `json:"name" gorm:"size:100"`
+	ApiKey                     string    `json:"apiKey" gorm:"size:50;index:idx_merchant_api_key,unique;not null;"`
+	ShortName                  string    `json:"shortName" gorm:"size:50;index:idx_merchant_shortname,unique;not null;"`
+	LongName                   string    `json:"longName" gorm:"size:100"`
 	LoginPermission            int       `json:"-" gorm:"type:integer;not null;default:0"`
 	PaymentPermission          int       `json:"-" gorm:"type:integer;not null;default:0"`
 	AuthorizationPermission    int       `json:"-" gorm:"type:integer;not null;default:0"`
@@ -35,8 +35,15 @@ type Merchant struct {
 	Suspended                  int       `json:"-" gorm:"type:integer;not null;default:0"`
 	SuspensionReason           *string   `json:"-" gorm:"null"`
 }
+type MerchantApiKeyLog struct {
+	ID         int64     `json:"-"`
+	CreatedAt  time.Time `json:"-"`
+	UpdatedAt  time.Time `json:"-"`
+	MerchantID string    `json:"-"`
+	ApiKey     string    `json:"apiKey" gorm:"size:50;index:idx_old_merchant_api_key,unique;not null;"`
+}
 
-//MerchantLoginSession holds user data model
+// MerchantLoginSession holds user data model
 type MerchantLoginSession struct {
 	ID               string `gorm:"size;primaryKey"`
 	CreatedAt        time.Time
@@ -47,7 +54,7 @@ type MerchantLoginSession struct {
 	Authorized       int     `gorm:"type:integer;not null;default:0"`
 }
 
-//MerchantAuthorization holds user data model
+// MerchantAuthorization holds user data model
 type MerchantAuthorization struct {
 	ID               string `gorm:"size:100;primaryKey"`
 	CreatedAt        time.Time
@@ -60,6 +67,7 @@ type MerchantAuthorization struct {
 }
 
 type MerchantRequestInput struct {
+	MerchantID        string `json:"merchantId,omitempty"`
 	AuthDescription   string `json:"authDescription,omitempty"`
 	DeviceInfo        string `json:"deviceInfo,omitempty"`
 	CallbackURL       string `json:"callbackUrl,omitempty"`
@@ -99,7 +107,7 @@ type payload struct {
 	APNS            *APNS    `json:"apns,omitempty"`
 }
 
-//MerchantBudsInfo model for bantu user directory info
+// MerchantBudsInfo model for bantu user directory info
 type MerchantBudsInfo struct {
 	CreatedAt             string                 `json:"createdAt"`
 	Username              string                 `json:"username"`
@@ -190,7 +198,7 @@ func (m *MerchantPushNotificationInput) PushMessage(token string) {
 		}
 		defer resp.Body.Close()
 		//Read the response body
-		body, err = ioutil.ReadAll(resp.Body)
+		body, err = io.ReadAll(resp.Body)
 		if err == nil {
 
 			log.Printf("[PushMessage] Response Body: [%v]\n", string(body))
@@ -266,7 +274,7 @@ func (m *MerchantPushNotificationInput) PushMessage999Max(tokens []string) {
 			}
 			defer resp.Body.Close()
 			//Read the response body
-			body, err = ioutil.ReadAll(resp.Body)
+			body, err = io.ReadAll(resp.Body)
 			if err == nil {
 
 				log.Printf("[PushMessage] Response Body: [%v]\n", string(body))

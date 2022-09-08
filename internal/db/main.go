@@ -106,7 +106,7 @@ func OpenRoachDB() (*gorm.DB, error) {
 	return roachDB, nil
 }
 
-//OpenSqliteDB opens ecnrypted SQlite connection
+// OpenSqliteDB opens ecnrypted SQlite connection
 func OpenSqliteDB() (*gorm.DB, error) {
 
 	var errDB error
@@ -168,6 +168,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating Merchant: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&merchantModels.MerchantApiKeyLog{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating MerchantApiKeyLog: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&merchantModels.MerchantLoginSession{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating MerchantLoginSession: ", errMigrate)
@@ -216,7 +220,7 @@ func logDiscordDBWarning(msg string) {
 	discord.Say(msg)
 }
 
-//UserTriggers executes creates users triggers and functions in users table
+// UserTriggers executes creates users triggers and functions in users table
 func UserTriggers(db *gorm.DB) error {
 
 	trigger := `DROP TRIGGER IF EXISTS users_au ON users;

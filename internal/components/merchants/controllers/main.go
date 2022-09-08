@@ -3,17 +3,17 @@ package merchants
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"os"
 	"time"
 	merchantModels "trovo-wallet-api/internal/components/merchants/models"
 	merchantServices "trovo-wallet-api/internal/components/merchants/services"
 	conDB "trovo-wallet-api/internal/db"
 	dl "trovo-wallet-api/internal/dynamiclinks"
-	"trovo-wallet-api/internal/sharedconfig"
-
-	"fmt"
 	tErrors "trovo-wallet-api/internal/errors"
+	pns "trovo-wallet-api/internal/pns"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"log"
 	"net/http"
@@ -112,16 +112,33 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	}
 
 	//merchant login request
-	router.POST("/v1/merchants/:merchantID/:targetUser/login", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/merchants/login/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
-		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		if trovoUser == "null" {
 			log.Printf("user cannot be %v\n", trovoUser)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/merchants/%v/%v/login?", identifier, trovoUser), gc.DB)
+		var merchantRequestInput merchantModels.MerchantRequestInput
+		reqBody, _ := io.ReadAll(c.Request.Body)
+
+		err := json.Unmarshal(reqBody, &merchantRequestInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Println("Login Request Input JSON Error:", err)
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		identifier := merchantRequestInput.MerchantID
+		if identifier == "" {
+			log.Println("merchant cannot be empty")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "merchant cannot be empty"})
+			return
+		}
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/merchants/login/%v?%v", trovoUser, identifier), gc.DB)
 		mInfo, err := merchantServices.GetMerchant(identifier, gc.DB)
 
 		if err != nil {
@@ -185,19 +202,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		var merchantRequestInput merchantModels.MerchantRequestInput
-		reqBody, _ := ioutil.ReadAll(c.Request.Body)
-
-		err = json.Unmarshal(reqBody, &merchantRequestInput)
-
-		var invalidJSON tErrors.ErrorInvalidJSON
-
-		if err != nil {
-			log.Println("Login Request Input JSON Error:", err)
-			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-			return
-		}
-
 		//store login data for verification
 		//does not exist. create new one.
 		loginID := uuid.NewString()
@@ -229,22 +233,39 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
+
+		if userInfo.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["link"] = data.DynamicLink
+			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for [%v] requested!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to request a login session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, merchantRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
 		c.JSON(http.StatusOK, data)
 
 	})
 
-	//user login approval url
-	router.POST("/v1/users/merchants/:targetUser/login/:merchantID/:loginID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	//user login approval url; uses signature algorithm bcos it is only called by trovo wallet.
+	router.POST("/v1/users/merchants/login/approval/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
-		merchant := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
-		loginID := strings.TrimSpace(strings.ToLower(c.Param("loginID")))
-		if identifier == "null" {
+		merchant := strings.TrimSpace(strings.ToLower(c.Query("merchantID")))
+		loginID := strings.TrimSpace(strings.ToLower(c.Query("loginID")))
+		if identifier == "null" || identifier == "" {
 			log.Printf("user cannot be %v\n", identifier)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/%v/login/%v/%v", identifier, merchant, loginID), gc.DB)
+		if len(merchant) == 0 {
+			log.Printf("merchant cannot be empty%v\n", identifier)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "merchant cannot be empty"})
+			return
+		}
+		if len(loginID) == 0 {
+			log.Printf("loginID cannot be empty%v\n", identifier)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "loginID cannot be empty"})
+			return
+		}
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/merchants/login/approval/%v %v/%v", identifier, merchant, loginID), gc.DB)
 		mInfo, err := merchantServices.GetMerchant(merchant, gc.DB)
 
 		if err != nil {
@@ -300,12 +321,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		if len(strings.TrimSpace(userInfo.Mobile)) < 6 {
+
+		if userInfo.Mobile == nil {
 			log.Println("[GET UserInfo] error for user:", identifier, "error: user does not have a valid phone number")
 			err = &tErrors.CustomError{
 				Param:      "mobile",
-				Err:        "no valid phone number",
-				ErrMessage: "only users with valid phone number are allows to use this service. please update your mobile number.",
+				Err:        "error no valid phone number",
+				ErrMessage: "Only users with valid phone number are allows to use this service. Please update your mobile number.",
 				Code:       http.StatusBadRequest,
 			}
 			var ex tErrors.GenericError
@@ -326,7 +348,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		if middleware.ExtractPublicKey(c) != userInfo.PublicKey {
+		if middleware.ExtractSigner(c) != userInfo.PrimarySigner {
 			//wrong access
 			statusCode := http.StatusUnauthorized
 			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "this login request does not belong to your Trovo wallet"}
@@ -411,7 +433,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 			defer resp.Body.Close()
 			//Read the response body
-			body, err = ioutil.ReadAll(resp.Body)
+			body, err = io.ReadAll(resp.Body)
 			if err != nil {
 				//send to retry channel
 				log.Println("[LoginAuthCallback] callback failed:", err)
@@ -650,7 +672,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		var merchantRequestInput merchantModels.MerchantRequestInput
-		reqBody, _ := ioutil.ReadAll(c.Request.Body)
+		reqBody, _ := io.ReadAll(c.Request.Body)
 
 		err = json.Unmarshal(reqBody, &merchantRequestInput)
 
@@ -779,7 +801,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			Data: "OK",
 		}
 		//check if user has Push Notification Token set
-		if len(userInfo.PushNotificationToken) < 50 {
+		if userInfo.PushNotificationToken == nil {
 			//no valid token set. user cannot receive push notification
 
 			c.JSON(http.StatusOK, successResponseData)
@@ -787,7 +809,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		var merchantRequestInput merchantModels.MerchantPushNotificationInput
-		reqBody, _ := ioutil.ReadAll(c.Request.Body)
+		reqBody, _ := io.ReadAll(c.Request.Body)
 
 		err = json.Unmarshal(reqBody, &merchantRequestInput)
 
@@ -821,7 +843,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		//Push Message
-		merchantRequestInput.PushMessage(userInfo.PushNotificationToken)
+		merchantRequestInput.PushMessage(*userInfo.PushNotificationToken)
 
 		c.JSON(http.StatusOK, successResponseData)
 	})
@@ -966,7 +988,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				}
 				defer resp.Body.Close()
 				//Read the response body
-				body, err = ioutil.ReadAll(resp.Body)
+				body, err = io.ReadAll(resp.Body)
 				if err != nil {
 					//send to retry channel
 					log.Println("[EVENT CALLBACK AuthCallback] callback failed:", err)
@@ -1073,7 +1095,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				}
 				defer resp.Body.Close()
 				//Read the response body
-				body, err = ioutil.ReadAll(resp.Body)
+				body, err = io.ReadAll(resp.Body)
 				if err != nil {
 					//send to retry channel
 					log.Println("[REWARD AuthCallback] callback failed:", err)
@@ -1195,7 +1217,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				}
 				defer resp.Body.Close()
 				//Read the response body
-				body, err = ioutil.ReadAll(resp.Body)
+				body, err = io.ReadAll(resp.Body)
 				if err != nil {
 					//send to retry channel
 					log.Println("[LoginAuthCallback] callback failed:", err)

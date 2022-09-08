@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"strings"
+	merchantdb "trovo-wallet-api/internal/components/merchants/db"
 	merchantmodels "trovo-wallet-api/internal/components/merchants/models"
 	conDB "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -12,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//GetMerchantInfo gets merchant data
+// GetMerchantInfo gets merchant data
 func GetMerchantInfo(mInfo string, db *gorm.DB) (user merchantmodels.Merchant, err error) {
 
 	conDB.PrintDBStats("GetMerchantInfo", db)
@@ -22,9 +23,6 @@ func GetMerchantInfo(mInfo string, db *gorm.DB) (user merchantmodels.Merchant, e
 	if len(mInfo) == 56 {
 		//56 char publick key is supplied
 		e = db.Where(merchantmodels.Merchant{PublicKey: mInfo}).First(&user).Error
-	} else if strings.Contains(mInfo, "@") {
-		//email is supplied
-		e = db.First(&user, merchantmodels.Merchant{Email: strings.ToLower(mInfo)}).Error
 	} else {
 		//username is supplied
 		e = db.First(&user, merchantmodels.Merchant{TrovoWalletUsername: strings.ToLower(mInfo)}).Error
@@ -47,7 +45,32 @@ func GetMerchantInfo(mInfo string, db *gorm.DB) (user merchantmodels.Merchant, e
 
 }
 
-//GetLoginSession gets merchant data
+// GetMerchantByAPIKey gets merchant data by API key
+func GetMerchantByAPIKey(apiKey string, db *gorm.DB) (merchant merchantmodels.Merchant, err error) {
+
+	conDB.PrintDBStats("GetMerchantByAPIKey", db)
+
+	//e returns execution errors
+
+	e := db.Where(merchantmodels.Merchant{ApiKey: apiKey}).First(&merchant).Error
+
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no user was found
+			err = &tErrors.CustomError{Param: "apiKey", Err: "error-api-key-invalid", ErrMessage: "apiKey is invalid."}
+			return
+		}
+		log.Println("[GetMerchantByAPIKey] error: ", e)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+
+	}
+
+	return merchant, nil
+
+}
+
+// GetLoginSession gets merchant data
 func GetLoginSession(mInfo, walletInfo, loginID string, db *gorm.DB) (loginSession merchantmodels.MerchantLoginSession, err error) {
 
 	conDB.PrintDBStats("GetLoginSession", db)
@@ -78,7 +101,7 @@ func GetLoginSession(mInfo, walletInfo, loginID string, db *gorm.DB) (loginSessi
 
 }
 
-//GetUserAuthorization gets user authorization data
+// GetUserAuthorization gets user authorization data
 func GetUserAuthorizationData(mInfo, walletInfo, authID string, db *gorm.DB) (authData merchantmodels.MerchantAuthorization, err error) {
 
 	conDB.PrintDBStats("GetUserAuthorizationData", db)
@@ -101,7 +124,7 @@ func GetUserAuthorizationData(mInfo, walletInfo, authID string, db *gorm.DB) (au
 
 }
 
-//GetRewardOnlyAuthorizationData gets user authorization data
+// GetRewardOnlyAuthorizationData gets user authorization data
 func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData merchantmodels.MerchantAuthorization, err error) {
 
 	conDB.PrintDBStats("GetRewardOnlyAuthorizationData", db)
@@ -144,7 +167,7 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 
 }
 
-//GetEventAuthorizationData gets user authorization data
+// GetEventAuthorizationData gets user authorization data
 func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData merchantmodels.MerchantAuthorization, err error) {
 
 	conDB.PrintDBStats("GetEventAuthorizationData", db)
@@ -187,18 +210,18 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData merc
 
 }
 
-//GetUserForMerchants gets user information
-func GetUserForMerchants(ID string, merchant merchantmodels.Merchant, gc *sharedconfig.GlobalConfig) (userForMerchantInfo merchantmodels.MerchantBudsInfo, err error) {
+// GetUserForMerchants gets user information
+func GetUserForMerchants(ID string, merchant merchantmodels.Merchant, gc *sharedconfig.GlobalConfig) (userForMerchantInfo merchantmodels.User, err error) {
 	conDB.PrintDBStats("GetUserForMerchants", gc.DB)
 
-	// user, err := users.GetUserInfo(ID, db)
+	userForMerchantInfo, err = merchantdb.GetMerchantUserInfo(ID, gc.DB)
 
-	// if err != nil {
-	// 	return userForMerchantInfo, err
-	// }
-	// if user.Suspended == 1 {
-	// 	return userForMerchantInfo, &tErrors.ErrorUsernameIsSuspended{}
-	// }
+	if err != nil {
+		return userForMerchantInfo, err
+	}
+	if userForMerchantInfo.Suspended == 1 {
+		return userForMerchantInfo, &tErrors.ErrorUsernameIsSuspended{}
+	}
 
 	return userForMerchantInfo, nil
 
