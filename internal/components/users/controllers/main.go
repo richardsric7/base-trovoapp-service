@@ -385,6 +385,15 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		fnameSplit := strings.Split(f.Filename, ".")
 		fileExtension := fnameSplit[len(fnameSplit)-1]
 
+		{
+			//check for unsupported extension
+			if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported picture format. Only jpg, jpeg, png and gif are supported"})
+
+				return
+			}
+		}
+
 		user, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
