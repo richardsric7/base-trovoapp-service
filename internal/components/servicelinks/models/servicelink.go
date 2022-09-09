@@ -13,15 +13,15 @@ import (
 	"github.com/bantublockchain/push-notification-service/pkg/shove"
 )
 
-// Merchant holds Merchant data model
-type Merchant struct {
+// ServiceLink holds ServiceLink data model
+type ServiceLink struct {
 	ID                         string    `json:"-" gorm:"size:100"`
 	CreatedAt                  time.Time `json:"-"`
 	UpdatedAt                  time.Time `json:"-"`
-	TrovoWalletUsername        string    `json:"TrovoUsername" gorm:"size:100;index:idx_trovowallet_username,unique;not null;check:,length(trovo_wallet_username) > 2"`
-	PublicKey                  string    `json:"publicKey" gorm:"size:56;index:idx_merchant_user_public_key;not null;"`
-	ApiKey                     string    `json:"apiKey" gorm:"size:50;index:idx_merchant_api_key,unique;not null;"`
-	ShortName                  string    `json:"shortName" gorm:"size:50;index:idx_merchant_shortname,unique;not null;"`
+	OwnerUsername              string    `json:"TrovoUsername" gorm:"size:100;index:idx_owner_username;index:idx_service_shortname,unique;not null;check:,length(owner_username) > 2"`
+	PublicKey                  string    `json:"publicKey" gorm:"size:56;index:idx_service_user_public_key;not null;"`
+	ApiKey                     string    `json:"apiKey" gorm:"size:50;index:idx_service_api_key,unique;not null;"`
+	ShortName                  string    `json:"shortName" gorm:"size:50;index:idx_service_shortname,unique;not null;"`
 	LongName                   string    `json:"longName" gorm:"size:100"`
 	LoginPermission            int       `json:"-" gorm:"type:integer;not null;default:0"`
 	PaymentPermission          int       `json:"-" gorm:"type:integer;not null;default:0"`
@@ -32,49 +32,50 @@ type Merchant struct {
 	IncludeUserBalances        int       `json:"-" gorm:"type:integer;not null;default:0"`
 	Verified                   int       `json:"-" gorm:"type:integer;not null;default:0"`
 	RewardOnly                 int       `json:"-" gorm:"type:integer;not null;default:0"`
+	Inactive                   int       `json:"inactive" gorm:"type:integer;not null;default:0"`
 	Suspended                  int       `json:"-" gorm:"type:integer;not null;default:0"`
 	SuspensionReason           *string   `json:"-" gorm:"null"`
 }
-type MerchantApiKeyLog struct {
-	ID         int64     `json:"-"`
-	CreatedAt  time.Time `json:"-"`
-	UpdatedAt  time.Time `json:"-"`
-	MerchantID string    `json:"-"`
-	ApiKey     string    `json:"apiKey" gorm:"size:50;index:idx_old_merchant_api_key,unique;not null;"`
+type ServiceLinkApiKeyLog struct {
+	ID            int64     `json:"-"`
+	CreatedAt     time.Time `json:"-"`
+	UpdatedAt     time.Time `json:"-"`
+	ServiceLinkID string    `json:"-"`
+	ApiKey        string    `json:"apiKey" gorm:"size:50;index:idx_old_service_api_key,unique;not null;"`
 }
 
-// MerchantLoginSession holds user data model
-type MerchantLoginSession struct {
-	ID               string `gorm:"size;primaryKey"`
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	MerchantUsername string  `gorm:"size:100;index:idx_loginsession;not null;check:,length(merchant_username) >= 2"`
-	WalletUsername   string  `gorm:"size:100;not null;index:idx_loginsession"`
-	CallbackURL      *string `gorm:"null"`
-	Authorized       int     `gorm:"type:integer;not null;default:0"`
+// ServiceLinkLoginSession holds user data model
+type ServiceLinkLoginSession struct {
+	ID             string `gorm:"size;primaryKey"`
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	OwnerUsername  string  `gorm:"size:100;index:idx_loginsession;not null;check:,length(owner_username) >= 2"`
+	WalletUsername string  `gorm:"size:100;not null;index:idx_loginsession"`
+	CallbackURL    *string `gorm:"null"`
+	Authorized     int     `gorm:"type:integer;not null;default:0"`
 }
 
-// MerchantAuthorization holds user data model
-type MerchantAuthorization struct {
-	ID               string `gorm:"size:100;primaryKey"`
-	CreatedAt        time.Time
-	ExpiresAt        time.Time `gorm:"default:now()"`
-	UpdatedAt        time.Time
-	MerchantUsername string  `gorm:"size:100;index:idx_authdata;not null;check:,length(merchant_username) >= 2"`
-	WalletUsername   string  `gorm:"not null;index:idx_authdata"`
-	CallbackURL      *string `gorm:"null"`
-	Authorized       int     `gorm:"type:integer;not null;default:0"`
+// ServiceAuthorization holds authorization data model
+type ServiceAuthorization struct {
+	ID             string `gorm:"size:100;primaryKey"`
+	CreatedAt      time.Time
+	ExpiresAt      time.Time `gorm:"default:now()"`
+	UpdatedAt      time.Time
+	OwnerUsername  string  `gorm:"size:100;index:idx_authdata;not null;check:,length(owner_username) >= 2"`
+	WalletUsername string  `gorm:"not null;index:idx_authdata"`
+	CallbackURL    *string `gorm:"null"`
+	Authorized     int     `gorm:"type:integer;not null;default:0"`
 }
 
-type MerchantRequestInput struct {
-	MerchantID        string `json:"merchantId,omitempty"`
+type ServiceLinkRequestInput struct {
+	OwnerUsername     string `json:"ownerUsername,omitempty"`
 	AuthDescription   string `json:"authDescription,omitempty"`
 	DeviceInfo        string `json:"deviceInfo,omitempty"`
 	CallbackURL       string `json:"callbackUrl,omitempty"`
 	ValidityInMinutes int    `json:"validityInMinutes,omitempty"`
 }
 
-type MerchantPushNotificationInput struct {
+type ServiceLinkPushNotificationInput struct {
 	Title   string `json:"title"`
 	Message string `json:"message"`
 }
@@ -107,8 +108,8 @@ type payload struct {
 	APNS            *APNS    `json:"apns,omitempty"`
 }
 
-// MerchantBudsInfo model for bantu user directory info
-type MerchantBudsInfo struct {
+// ServiceLinkBudsInfo model for bantu user directory info
+type ServiceLinkBudsInfo struct {
 	CreatedAt             string                 `json:"createdAt"`
 	Username              string                 `json:"username"`
 	PublicKey             string                 `json:"publicKey"`
@@ -127,7 +128,7 @@ type MerchantBudsInfo struct {
 	Wallet                UserBalanceForMerchant `json:"wallet"`
 }
 
-func (m *MerchantPushNotificationInput) PushMessage(token string) {
+func (m *ServiceLinkPushNotificationInput) PushMessage(token string) {
 
 	if os.Getenv("PUSH_NOTIFICATION_SERVICE_MODE") == "redis" {
 		//use redis queue
@@ -208,7 +209,7 @@ func (m *MerchantPushNotificationInput) PushMessage(token string) {
 	}
 }
 
-func (m *MerchantPushNotificationInput) PushMessage999Max(tokens []string) {
+func (m *ServiceLinkPushNotificationInput) PushMessage999Max(tokens []string) {
 	if len(tokens) == 0 || len(tokens) > 999 {
 		return
 	}
@@ -285,7 +286,7 @@ func (m *MerchantPushNotificationInput) PushMessage999Max(tokens []string) {
 	}
 }
 
-func (m *MerchantPushNotificationInput) PushBulkMessage(tokens []string) {
+func (m *ServiceLinkPushNotificationInput) PushBulkMessage(tokens []string) {
 
 	if len(tokens) < 1000 {
 		m.PushMessage999Max(tokens)

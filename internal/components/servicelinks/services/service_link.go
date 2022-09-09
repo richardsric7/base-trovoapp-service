@@ -4,8 +4,8 @@ import (
 	"errors"
 	"log"
 	"strings"
-	merchantdb "trovo-wallet-api/internal/components/merchants/db"
-	merchantmodels "trovo-wallet-api/internal/components/merchants/models"
+	merchantdb "trovo-wallet-api/internal/components/servicelinks/db"
+	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	conDB "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -14,7 +14,7 @@ import (
 )
 
 // GetMerchantInfo gets merchant data
-func GetMerchantInfo(mInfo string, db *gorm.DB) (user merchantmodels.Merchant, err error) {
+func GetServiceInfo(mInfo string, db *gorm.DB) (user servicelinkModels.ServiceLink, err error) {
 
 	conDB.PrintDBStats("GetMerchantInfo", db)
 
@@ -22,10 +22,10 @@ func GetMerchantInfo(mInfo string, db *gorm.DB) (user merchantmodels.Merchant, e
 	var e error
 	if len(mInfo) == 56 {
 		//56 char publick key is supplied
-		e = db.Where(merchantmodels.Merchant{PublicKey: mInfo}).First(&user).Error
+		e = db.Where(servicelinkModels.ServiceLink{PublicKey: mInfo}).First(&user).Error
 	} else {
 		//username is supplied
-		e = db.First(&user, merchantmodels.Merchant{TrovoWalletUsername: strings.ToLower(mInfo)}).Error
+		e = db.First(&user, servicelinkModels.ServiceLink{OwnerUsername: strings.ToLower(mInfo)}).Error
 	}
 
 	if e != nil {
@@ -45,14 +45,14 @@ func GetMerchantInfo(mInfo string, db *gorm.DB) (user merchantmodels.Merchant, e
 
 }
 
-// GetMerchantByAPIKey gets merchant data by API key
-func GetMerchantByAPIKey(apiKey string, db *gorm.DB) (merchant merchantmodels.Merchant, err error) {
+// GetServiceLinkByAPIKey gets merchant data by API key
+func GetServiceLinkByAPIKey(apiKey string, db *gorm.DB) (serviceLink servicelinkModels.ServiceLink, err error) {
 
-	conDB.PrintDBStats("GetMerchantByAPIKey", db)
+	conDB.PrintDBStats("GetServiceLinkByAPIKey", db)
 
 	//e returns execution errors
 
-	e := db.Where(merchantmodels.Merchant{ApiKey: apiKey}).First(&merchant).Error
+	e := db.Where(servicelinkModels.ServiceLink{ApiKey: apiKey}).First(&serviceLink).Error
 
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -60,30 +60,23 @@ func GetMerchantByAPIKey(apiKey string, db *gorm.DB) (merchant merchantmodels.Me
 			err = &tErrors.CustomError{Param: "apiKey", Err: "error-api-key-invalid", ErrMessage: "apiKey is invalid."}
 			return
 		}
-		log.Println("[GetMerchantByAPIKey] error: ", e)
+		log.Println("[GetServiceLinkByAPIKey] error: ", e)
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
 
-	return merchant, nil
+	return serviceLink, nil
 
 }
 
-// GetLoginSession gets merchant data
-func GetLoginSession(mInfo, walletInfo, loginID string, db *gorm.DB) (loginSession merchantmodels.MerchantLoginSession, err error) {
+// GetLoginSession gets login data
+func GetLoginSession(mInfo, walletInfo, loginID string, db *gorm.DB) (loginSession servicelinkModels.ServiceLinkLoginSession, err error) {
 
 	conDB.PrintDBStats("GetLoginSession", db)
-	// db, err := conDB.OpenDb()
-	// if err != nil {
-	// 	log.Println("-------------- ------DB error in getUserInfo:", err)
-	// 	return
-	// }
-	// var user usermodels.User
-	//Check if username already exists.
 
 	//e returns execution errors
-	e := db.Where("id = ?", loginID).Where("merchant_username = ?", mInfo).Where("wallet_Username = ?", walletInfo).First(&loginSession).Error
+	e := db.Where("id = ?", loginID).Where("owner_username = ?", mInfo).Where("wallet_Username = ?", walletInfo).First(&loginSession).Error
 
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -102,11 +95,11 @@ func GetLoginSession(mInfo, walletInfo, loginID string, db *gorm.DB) (loginSessi
 }
 
 // GetUserAuthorization gets user authorization data
-func GetUserAuthorizationData(mInfo, walletInfo, authID string, db *gorm.DB) (authData merchantmodels.MerchantAuthorization, err error) {
+func GetUserAuthorizationData(mInfo, walletInfo, authID string, db *gorm.DB) (authData servicelinkModels.ServiceAuthorization, err error) {
 
 	conDB.PrintDBStats("GetUserAuthorizationData", db)
 
-	e := db.Where("merchant_username = ?", mInfo).Where("wallet_Username = ?", walletInfo).Where("id = ?", authID).First(&authData).Error
+	e := db.Where("owner_username = ?", mInfo).Where("wallet_Username = ?", walletInfo).Where("id = ?", authID).First(&authData).Error
 
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -125,11 +118,11 @@ func GetUserAuthorizationData(mInfo, walletInfo, authID string, db *gorm.DB) (au
 }
 
 // GetRewardOnlyAuthorizationData gets user authorization data
-func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData merchantmodels.MerchantAuthorization, err error) {
+func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData servicelinkModels.ServiceAuthorization, err error) {
 
 	conDB.PrintDBStats("GetRewardOnlyAuthorizationData", db)
 
-	e := db.Where("merchant_username = ?", mInfo).Where("wallet_Username = ?", mInfo).Where("id = ?", authID).First(&authData).Error
+	e := db.Where("owner_username = ?", mInfo).Where("wallet_Username = ?", mInfo).Where("id = ?", authID).First(&authData).Error
 
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -168,11 +161,11 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 }
 
 // GetEventAuthorizationData gets user authorization data
-func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData merchantmodels.MerchantAuthorization, err error) {
+func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData servicelinkModels.ServiceAuthorization, err error) {
 
 	conDB.PrintDBStats("GetEventAuthorizationData", db)
 
-	e := db.Where("merchant_username = ?", mInfo).Where("wallet_Username = ?", mInfo).Where("id = ?", authID).First(&authData).Error
+	e := db.Where("owner_username = ?", mInfo).Where("wallet_Username = ?", mInfo).Where("id = ?", authID).First(&authData).Error
 
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -210,19 +203,19 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData merc
 
 }
 
-// GetUserForMerchants gets user information
-func GetUserForMerchants(ID string, merchant merchantmodels.Merchant, gc *sharedconfig.GlobalConfig) (userForMerchantInfo merchantmodels.User, err error) {
-	conDB.PrintDBStats("GetUserForMerchants", gc.DB)
+// GetUserForServiceLink gets user information
+func GetUserForServiceLink(ID string, serviceLink servicelinkModels.ServiceLink, gc *sharedconfig.GlobalConfig) (userInfoForServiceLink servicelinkModels.User, err error) {
+	conDB.PrintDBStats("GetUserForServiceLink", gc.DB)
 
-	userForMerchantInfo, err = merchantdb.GetMerchantUserInfo(ID, gc.DB)
+	userInfoForServiceLink, err = merchantdb.GetServiceLinkUserInfo(ID, gc.DB)
 
 	if err != nil {
-		return userForMerchantInfo, err
+		return userInfoForServiceLink, err
 	}
-	if userForMerchantInfo.Suspended == 1 {
-		return userForMerchantInfo, &tErrors.ErrorUsernameIsSuspended{}
+	if userInfoForServiceLink.Suspended == 1 {
+		return userInfoForServiceLink, &tErrors.ErrorUsernameIsSuspended{}
 	}
 
-	return userForMerchantInfo, nil
+	return userInfoForServiceLink, nil
 
 }

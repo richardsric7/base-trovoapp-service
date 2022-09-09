@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 	"strings"
-	userModels "trovo-wallet-api/internal/components/merchants/models"
+	userModels "trovo-wallet-api/internal/components/servicelinks/models"
 	conDB "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
 
@@ -12,10 +12,10 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// GetMerchantUserInfo gets user data
-func GetMerchantUserInfo(userInfo string, db *gorm.DB) (user userModels.User, err error) {
+// GetServiceLinkUserInfo gets user data
+func GetServiceLinkUserInfo(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 	// var wallet usermodels.UserWallet
-	conDB.PrintDBStats("GetMerchantUserInfo", db)
+	conDB.PrintDBStats("GetServiceLinkUserInfo", db)
 
 	//e returns execution errors
 	var e error
@@ -37,12 +37,12 @@ func GetMerchantUserInfo(userInfo string, db *gorm.DB) (user userModels.User, er
 			err = &tErrors.ErrorUserDoesNotExist{Username: userInfo}
 			return
 		}
-		log.Println("[GetMerchantUserInfo] error: ", e)
+		log.Println("[GetServiceLinkUserInfo] error: ", e)
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
-	// log.Printf("[GetMerchantUserInfo] %+v\n", user)
+	// log.Printf("[GetServiceLinkUserInfo] %+v\n", user)
 	return user, nil
 
 }

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	merchantModels "trovo-wallet-api/internal/components/merchants/models"
+	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	users "trovo-wallet-api/internal/components/users/models"
@@ -164,21 +164,21 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating UserMobilePhoneVerification: ", errMigrate)
 		}
 
-		errMigrate = gormDB.AutoMigrate(&merchantModels.Merchant{})
+		errMigrate = gormDB.AutoMigrate(&servicelinkModels.ServiceLink{})
 		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating Merchant: ", errMigrate)
+			log.Fatalln("[OpenDb]Error Migrating ServiceLink: ", errMigrate)
 		}
-		errMigrate = gormDB.AutoMigrate(&merchantModels.MerchantApiKeyLog{})
+		errMigrate = gormDB.AutoMigrate(&servicelinkModels.ServiceLinkApiKeyLog{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating MerchantApiKeyLog: ", errMigrate)
 		}
-		errMigrate = gormDB.AutoMigrate(&merchantModels.MerchantLoginSession{})
+		errMigrate = gormDB.AutoMigrate(&servicelinkModels.ServiceLinkLoginSession{})
 		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating MerchantLoginSession: ", errMigrate)
+			log.Fatalln("[OpenDb]Error Migrating ServiceLinkLoginSession: ", errMigrate)
 		}
-		errMigrate = gormDB.AutoMigrate(&merchantModels.MerchantAuthorization{})
+		errMigrate = gormDB.AutoMigrate(&servicelinkModels.ServiceAuthorization{})
 		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating MerchantAuthorization: ", errMigrate)
+			log.Fatalln("[OpenDb]Error Migrating ServiceAuthorization: ", errMigrate)
 		}
 
 		errMigrate = gormDB.AutoMigrate(&SMS.SmsProvider{})

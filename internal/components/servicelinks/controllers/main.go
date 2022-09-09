@@ -7,8 +7,8 @@ import (
 	"io"
 	"os"
 	"time"
-	merchantModels "trovo-wallet-api/internal/components/merchants/models"
-	merchantServices "trovo-wallet-api/internal/components/merchants/services"
+	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
+	servicelinkServices "trovo-wallet-api/internal/components/servicelinks/services"
 	conDB "trovo-wallet-api/internal/db"
 	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -67,10 +67,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//auto expire login sessions that where that are not within valid time.
 
 		go func() {
-			log.Println("@@@@@Started routine to Auto remove <merchant> LoginSessions")
+			log.Println("@@@@@Started routine to Auto remove <SERVICELINK> LoginSessions")
 			period := time.Duration(3)
-			if os.Getenv("MERCHANT_LOGIN_REQUEST_VALIDITY") != "" {
-				m, e := decimal.NewFromString(os.Getenv("MERCHANT_LOGIN_REQUEST_VALIDITY"))
+			if os.Getenv("SERVICE_LINK_LOGIN_REQUEST_VALIDITY") != "" {
+				m, e := decimal.NewFromString(os.Getenv("SERVICE_LINK_LOGIN_REQUEST_VALIDITY"))
 				if e == nil {
 					if m.IsPositive() {
 						period = time.Duration(m.IntPart())
@@ -78,7 +78,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				}
 			}
 			for {
-				err := gc.DB.Where("created_at < ?", time.Now().Add(-1*period*time.Minute)).Delete(merchantModels.MerchantLoginSession{}).Error
+				err := gc.DB.Where("created_at < ?", time.Now().Add(-1*period*time.Minute)).Delete(servicelinkModels.ServiceLinkLoginSession{}).Error
 				if err != nil {
 					log.Printf("[Expire Login Sessions Routine]unable to delete expired login sessions due to error [%v]\n", err)
 				}
@@ -91,18 +91,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//auto expire authorizations that are not within valid time.
 
 		go func() {
-			log.Println("@@@@@Started routine to Auto remove <merchant> Authorizations")
-			// period := time.Duration(3)
-			// if os.Getenv("MERCHANT_AUTHORIZATION_REQUEST_VALIDITY") != "" {
-			// 	m, e := decimal.NewFromString(os.Getenv("MERCHANT_AUTHORIZATION_REQUEST_VALIDITY"))
-			// 	if e == nil {
-			// 		if m.IsPositive() {
-			// 			period = time.Duration(m.IntPart())
-			// 		}
-			// 	}
-			// }
+			log.Println("@@@@@Started routine to Auto remove <service> Authorizations")
+
 			for {
-				err := gc.DB.Where("expires_at < ?", time.Now()).Delete(merchantModels.MerchantAuthorization{}).Error
+				err := gc.DB.Where("expires_at < ?", time.Now()).Delete(servicelinkModels.ServiceAuthorization{}).Error
 				if err != nil {
 					log.Printf("[Expire Authorizations Routine]unable to delete expired authorizations requests due to error [%v]\n", err)
 				}
@@ -112,7 +104,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	}
 
 	//merchant login request
-	router.POST("/v1/merchants/login/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+	router.POST("/v1/servicelinks/login/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		if trovoUser == "null" {
@@ -120,10 +112,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		var merchantRequestInput merchantModels.MerchantRequestInput
+		var serviceLinkRequestInput servicelinkModels.ServiceLinkRequestInput
 		reqBody, _ := io.ReadAll(c.Request.Body)
 
-		err := json.Unmarshal(reqBody, &merchantRequestInput)
+		err := json.Unmarshal(reqBody, &serviceLinkRequestInput)
 
 		var invalidJSON tErrors.ErrorInvalidJSON
 
@@ -132,17 +124,17 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
 			return
 		}
-		identifier := merchantRequestInput.MerchantID
+		identifier := serviceLinkRequestInput.OwnerUsername
 		if identifier == "" {
-			log.Println("merchant cannot be empty")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "merchant cannot be empty"})
+			log.Println("service account cannot be empty")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "service account cannot be empty"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/merchants/login/%v?%v", trovoUser, identifier), gc.DB)
-		mInfo, err := merchantServices.GetMerchant(identifier, gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/login/%v?%v", trovoUser, identifier), gc.DB)
+		mInfo, err := servicelinkServices.GetService(identifier, gc.DB)
 
 		if err != nil {
-			log.Println("[GET MERCHANT] error for merchant:", identifier, "error: ", err)
+			log.Println("[GET SERVICE] error for SERVICE:", identifier, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -165,7 +157,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Authentication", "message": "Authentication failed"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -173,12 +165,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.LoginPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Permission", "message": "login permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "login permission not enabled for this service"}
 			c.JSON(statusCode, response)
 			return
 		}
 
-		userInfo, err := merchantServices.GetUserForMerchants(trovoUser, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -205,14 +197,14 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//store login data for verification
 		//does not exist. create new one.
 		loginID := uuid.NewString()
-		newLoginSession := merchantModels.MerchantLoginSession{
-			MerchantUsername: identifier,
-			WalletUsername:   userInfo.Username,
-			ID:               loginID,
+		newLoginSession := servicelinkModels.ServiceLinkLoginSession{
+			OwnerUsername:  identifier,
+			WalletUsername: userInfo.Username,
+			ID:             loginID,
 		}
 
-		if len(merchantRequestInput.CallbackURL) > 0 {
-			newLoginSession.CallbackURL = &merchantRequestInput.CallbackURL
+		if len(serviceLinkRequestInput.CallbackURL) > 0 {
+			newLoginSession.CallbackURL = &serviceLinkRequestInput.CallbackURL
 		}
 
 		err = gc.DB.Create(&newLoginSession).Error
@@ -225,7 +217,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		//respond with deep-link and QRCode for login
-		data, err := dl.GenerateLoginData(mInfo.TrovoWalletUsername, mInfo.ShortName, userInfo.Username, loginID, merchantRequestInput.DeviceInfo, gc)
+		data, err := dl.GenerateLoginData(mInfo.OwnerUsername, mInfo.ShortName, userInfo.Username, loginID, serviceLinkRequestInput.DeviceInfo, gc)
 		if err != nil {
 			//could not create login session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
@@ -237,7 +229,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if userInfo.PushNotificationToken != nil {
 			dataPayload := make(map[string]string)
 			dataPayload["link"] = data.DynamicLink
-			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for [%v] requested!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to request a login session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, merchantRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for [%v] requested!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to request a login session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, serviceLinkRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 
 		c.JSON(http.StatusOK, data)
@@ -245,18 +237,18 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//user login approval url; uses signature algorithm bcos it is only called by trovo wallet.
-	router.POST("/v1/users/merchants/login/approval/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/users/servicelinks/login/approval/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
-		merchant := strings.TrimSpace(strings.ToLower(c.Query("merchantID")))
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
 		loginID := strings.TrimSpace(strings.ToLower(c.Query("loginID")))
 		if identifier == "null" || identifier == "" {
 			log.Printf("user cannot be %v\n", identifier)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		if len(merchant) == 0 {
-			log.Printf("merchant cannot be empty%v\n", identifier)
+		if len(ownerUsername) == 0 {
+			log.Printf("service owner cannot be empty%v\n", identifier)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "merchant cannot be empty"})
 			return
 		}
@@ -265,11 +257,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "loginID cannot be empty"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/merchants/login/approval/%v %v/%v", identifier, merchant, loginID), gc.DB)
-		mInfo, err := merchantServices.GetMerchant(merchant, gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/servicelinks/login/approval/%v %v/%v", identifier, ownerUsername, loginID), gc.DB)
+		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
 
 		if err != nil {
-			log.Println("[GET MERCHANT] error for merchant:", merchant, "error: ", err)
+			log.Println("[GET SERVICE INFO] error for SERVICE:", ownerUsername, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -293,12 +285,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.LoginPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Permission", "message": "login permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "login permission not enabled for this merchant"}
 			c.JSON(statusCode, response)
 			return
 		}
 
-		userInfo, err := merchantServices.GetUserForMerchants(identifier, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(identifier, mInfo, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
@@ -356,7 +348,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 		//store login data for verification
-		loginSession, err := merchantServices.GetLoginSession(merchant, userInfo.Username, loginID, gc.DB)
+		loginSession, err := servicelinkServices.GetLoginSession(ownerUsername, userInfo.Username, loginID, gc.DB)
 		if err != nil {
 
 			//other system error
@@ -397,7 +389,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		cacheKey := fmt.Sprintf("[GET] /v1/merchants/%v/%v/login/%v", mInfo.TrovoWalletUsername, userInfo.Username, loginID)
+		cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/%v/%v/login/%v", mInfo.OwnerUsername, userInfo.Username, loginID)
 		gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
 
 		//return response to user and  not keep them waiting.
@@ -444,15 +436,15 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 			}
 		}
-		cacheKey = fmt.Sprintf("[GET] /v1/merchants/%v/%v/login/%v", mInfo.TrovoWalletUsername, userInfo.Username, loginID)
+		cacheKey = fmt.Sprintf("[GET] /v1/servicelinks/%v/%v/login/%v", mInfo.OwnerUsername, userInfo.Username, loginID)
 		gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
 
 	})
 
 	//merchant login verify url
-	router.GET("/v1/merchants/:merchantID/:targetUser/login/:loginID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/login/:loginID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
-		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
+		identifier := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		loginID := strings.TrimSpace(strings.ToLower(c.Param("loginID")))
 		if trovoUser == "null" {
@@ -460,9 +452,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/merchants/%v/%v/login/%v", identifier, trovoUser, loginID), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/%v/%v/login/%v", identifier, trovoUser, loginID), gc.DB)
 
-		cacheKey := fmt.Sprintf("[GET] /v1/merchants/%v/%v/login/%v", identifier, trovoUser, loginID)
+		cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/%v/%v/login/%v", identifier, trovoUser, loginID)
 		{
 			//search cache
 
@@ -475,10 +467,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 		}
 
-		mInfo, err := merchantServices.GetMerchant(identifier, gc.DB)
+		mInfo, err := servicelinkServices.GetService(identifier, gc.DB)
 
 		if err != nil {
-			log.Println("[GET MERCHANT USER LOGIN] error for merchant:", identifier, "error: ", err)
+			log.Println("[GET SERVICE FOR USER LOGIN] error for servicelink:", identifier, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -501,7 +493,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Authentication", "message": "Authentication failed"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
 			c.JSON(statusCode, response)
 			cacheDurationInSeconds := 60 //1 minutes
 
@@ -512,7 +504,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.LoginPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Permission", "message": "login permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "login permission not enabled for this merchant"}
 			c.JSON(statusCode, response)
 			cacheDurationInSeconds := 60 //1 minutes
 
@@ -520,7 +512,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		userInfo, err := merchantServices.GetUserForMerchants(trovoUser, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -548,7 +540,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		//store login data for verification
-		loginSession, err := merchantServices.GetLoginSession(identifier, userInfo.Username, loginID, gc.DB)
+		loginSession, err := servicelinkServices.GetLoginSession(identifier, userInfo.Username, loginID, gc.DB)
 		if err != nil {
 			log.Printf("[error Verifying Login] for user [%v], error [%v]]\n", trovoUser, err)
 			var ex tErrors.GenericError
@@ -597,21 +589,21 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//merchant authorization request
-	router.POST("/v1/merchants/:merchantID/:targetUser/authorize", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/servicelinks/:ownerUsername/:targetUser/authorize", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
-		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/merchants/%v/%v/authorize?", identifier, trovoUser), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/%v/%v/authorize?", ownerUsername, trovoUser), gc.DB)
 		if trovoUser == "null" {
 			log.Printf("user cannot be %v\n", trovoUser)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		mInfo, err := merchantServices.GetMerchant(identifier, gc.DB)
+		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
 
 		if err != nil {
-			log.Println("[GET MERCHANT] error for merchant:", identifier, "error: ", err)
+			log.Println("[GET MERCHANT] error for merchant:", ownerUsername, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -634,7 +626,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Authentication", "message": "Authentication failed"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -642,12 +634,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.AuthorizationPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Permission", "message": "authorization permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "authorization permission not enabled for this merchant"}
 			c.JSON(statusCode, response)
 			return
 		}
 
-		userInfo, err := merchantServices.GetUserForMerchants(trovoUser, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -671,10 +663,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		var merchantRequestInput merchantModels.MerchantRequestInput
+		var serviceLinkRequestInput servicelinkModels.ServiceLinkRequestInput
 		reqBody, _ := io.ReadAll(c.Request.Body)
 
-		err = json.Unmarshal(reqBody, &merchantRequestInput)
+		err = json.Unmarshal(reqBody, &serviceLinkRequestInput)
 
 		var invalidJSON tErrors.ErrorInvalidJSON
 
@@ -685,10 +677,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		authID := uuid.NewString()
-		authorizationData := merchantModels.MerchantAuthorization{ID: authID, MerchantUsername: mInfo.TrovoWalletUsername,
+		authorizationData := servicelinkModels.ServiceAuthorization{ID: authID, OwnerUsername: mInfo.OwnerUsername,
 			WalletUsername: userInfo.Username}
-		if len(merchantRequestInput.CallbackURL) > 0 {
-			authorizationData.CallbackURL = &merchantRequestInput.CallbackURL
+		if len(serviceLinkRequestInput.CallbackURL) > 0 {
+			authorizationData.CallbackURL = &serviceLinkRequestInput.CallbackURL
 		}
 		period := time.Duration(3)
 		if os.Getenv("MERCHANT_AUTHORIZATION_REQUEST_VALIDITY") != "" {
@@ -699,9 +691,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				}
 			}
 		}
-		if merchantRequestInput.ValidityInMinutes > 0 {
+		if serviceLinkRequestInput.ValidityInMinutes > 0 {
 			//check if validtity was submitted
-			period = time.Duration(merchantRequestInput.ValidityInMinutes)
+			period = time.Duration(serviceLinkRequestInput.ValidityInMinutes)
 
 		}
 		authorizationData.ExpiresAt = time.Now().Add(period * time.Minute)
@@ -715,7 +707,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		data, err := dl.GenerateAuthorizationData(mInfo.TrovoWalletUsername, mInfo.ShortName, merchantRequestInput.AuthDescription, userInfo.Username, merchantRequestInput.DeviceInfo, authID, gc)
+		data, err := dl.GenerateAuthorizationData(mInfo.OwnerUsername, mInfo.ShortName, serviceLinkRequestInput.AuthDescription, userInfo.Username, serviceLinkRequestInput.DeviceInfo, authID, gc)
 		if err != nil {
 			//could not create authorization session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
@@ -726,17 +718,17 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, data)
 	})
 
-	//merchant push notification request
-	router.POST("/v1/merchants/:merchantID/:targetUser/push", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	//SERVICE push notification request
+	router.POST("/v1/servicelinks/:ownerUsername/:targetUser/push", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
-		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/merchants/%v/%v/push?", identifier, trovoUser), gc.DB)
-		mInfo, err := merchantServices.GetMerchant(identifier, gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/%v/%v/push?", ownerUsername, trovoUser), gc.DB)
+		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
 
 		if err != nil {
-			log.Println("[GET MERCHANT FOR PUSH] error for merchant:", identifier, "error: ", err)
+			log.Println("[GET MERCHANT FOR PUSH] error for merchant:", ownerUsername, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -759,7 +751,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Authentication", "message": "Authentication failed"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -767,12 +759,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.PushNotificationPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Permission", "message": "Push notification permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Push notification permission not enabled for this merchant"}
 			c.JSON(statusCode, response)
 			return
 		}
 
-		userInfo, err := merchantServices.GetUserForMerchants(trovoUser, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -808,10 +800,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		var merchantRequestInput merchantModels.MerchantPushNotificationInput
+		var serviceLinkRequestInput servicelinkModels.ServiceLinkPushNotificationInput
 		reqBody, _ := io.ReadAll(c.Request.Body)
 
-		err = json.Unmarshal(reqBody, &merchantRequestInput)
+		err = json.Unmarshal(reqBody, &serviceLinkRequestInput)
 
 		var invalidJSON tErrors.ErrorInvalidJSON
 
@@ -821,17 +813,17 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 		//check if message is set
-		if len(merchantRequestInput.Message) == 0 {
+		if len(serviceLinkRequestInput.Message) == 0 {
 
 			c.JSON(http.StatusOK, successResponseData)
 			return
 		}
 
-		if len(merchantRequestInput.Message) > 100 {
+		if len(serviceLinkRequestInput.Message) > 100 {
 			message100Bytes := make([]byte, 0)
 
 			//trim to 100 bytes
-			for _, c := range []byte(merchantRequestInput.Message) {
+			for _, c := range []byte(serviceLinkRequestInput.Message) {
 				if (len(message100Bytes) + len(string(c))) <= 100 {
 					message100Bytes = append(message100Bytes, c)
 					if len(message100Bytes) == 100 {
@@ -839,32 +831,32 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					}
 				}
 			}
-			merchantRequestInput.Message = string(message100Bytes)
+			serviceLinkRequestInput.Message = string(message100Bytes)
 		}
 
 		//Push Message
-		merchantRequestInput.PushMessage(*userInfo.PushNotificationToken)
+		serviceLinkRequestInput.PushMessage(*userInfo.PushNotificationToken)
 
 		c.JSON(http.StatusOK, successResponseData)
 	})
 
 	//user authorization approval url
-	router.POST("/v1/users/merchants/:targetUser/authorize/:merchantID/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/users/servicelinks/:targetUser/authorize/:ownerUsername/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
-		merchant := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
 		authID := strings.TrimSpace(c.Param("authID"))
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/merchants/%v/authorize/%v/%v", identifier, merchant, authID), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/servicelinks/%v/authorize/%v/%v", identifier, ownerUsername, authID), gc.DB)
 		if identifier == "null" {
 			log.Printf("user cannot be %v\n", identifier)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		mInfo, err := merchantServices.GetMerchant(merchant, gc.DB)
+		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
 
 		if err != nil {
-			log.Println("[GET MERCHANT] error for merchant:", merchant, "error: ", err)
+			log.Println("[GET SERVICE] error for SERVICELINK:", ownerUsername, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -889,7 +881,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			//wrong access
 
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Permission", "message": "authorization permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "authorization permission not enabled for this merchant"}
 			log.Printf("%+v\n", response)
 			c.JSON(statusCode, response)
 			return
@@ -898,7 +890,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//check if merchant is for an event registration/reward merchant: [2 = registration, 1 = reward, 0 = none]
 		if mInfo.RewardOnly == 2 {
 
-			userInfo, err := merchantServices.GetUserForMerchants(middleware.ExtractPublicKey(c), mInfo, gc)
+			userInfo, err := servicelinkServices.GetUserForServiceLink(middleware.ExtractPublicKey(c), mInfo, gc)
 
 			if err != nil {
 				log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
@@ -932,7 +924,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 
 			//get authorization data for user
-			authData, err := merchantServices.GetEventAuthorizationData(merchant, authID, gc.DB)
+			authData, err := servicelinkServices.GetEventAuthorizationData(ownerUsername, authID, gc.DB)
 			if err != nil {
 
 				//other system error
@@ -1005,7 +997,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		} else if mInfo.RewardOnly == 1 {
 
-			userInfo, err := merchantServices.GetUserForMerchants(middleware.ExtractPublicKey(c), mInfo, gc)
+			userInfo, err := servicelinkServices.GetUserForServiceLink(middleware.ExtractPublicKey(c), mInfo, gc)
 
 			if err != nil {
 				log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
@@ -1038,7 +1030,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 
 			//get authorization data for user
-			authData, err := merchantServices.GetRewardOnlyAuthorizationData(merchant, authID, gc.DB)
+			authData, err := servicelinkServices.GetRewardOnlyAuthorizationData(ownerUsername, authID, gc.DB)
 			if err != nil {
 
 				//other system error
@@ -1112,7 +1104,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		} else {
 
-			userInfo, err := merchantServices.GetUserForMerchants(identifier, mInfo, gc)
+			userInfo, err := servicelinkServices.GetUserForServiceLink(identifier, mInfo, gc)
 
 			if err != nil {
 				log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
@@ -1143,7 +1135,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				return
 			}
 			//get authorization data for user
-			authData, err := merchantServices.GetUserAuthorizationData(merchant, userInfo.Username, authID, gc.DB)
+			authData, err := servicelinkServices.GetUserAuthorizationData(ownerUsername, userInfo.Username, authID, gc.DB)
 			if err != nil {
 
 				//other system error
@@ -1234,18 +1226,18 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//merchant authorization verify url
-	router.GET("/v1/merchants/:merchantID/:targetUser/authorize/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/authorize/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 
-		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		authID := strings.TrimSpace(strings.ToLower(c.Param("authID")))
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/merchants/%v/%v/authorize/%v", identifier, trovoUser, authID), gc.DB)
-		mInfo, err := merchantServices.GetMerchant(identifier, gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/%v/%v/authorize/%v", ownerUsername, trovoUser, authID), gc.DB)
+		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
 
 		if err != nil {
-			log.Println("[GET MERCHANT] error for merchant:", identifier, "error: ", err)
+			log.Println("[GET SERVICE INFO] error for SERVICE:", ownerUsername, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -1268,7 +1260,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Authentication", "message": "Authentication failed"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -1276,12 +1268,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.AuthorizationPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Permission", "message": "authorization permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "authorization permission not enabled for this merchant"}
 			c.JSON(statusCode, response)
 			return
 		}
 
-		userInfo, err := merchantServices.GetUserForMerchants(trovoUser, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -1305,7 +1297,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		authData, err := merchantServices.GetUserAuthorizationData(identifier, userInfo.Username, authID, gc.DB)
+		authData, err := servicelinkServices.GetUserAuthorizationData(ownerUsername, userInfo.Username, authID, gc.DB)
 		if err != nil {
 
 			var ex tErrors.GenericError
@@ -1340,9 +1332,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//merchant payment request
-	router.GET("/v1/merchants/:merchantID/:targetUser/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
-		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		paymentDestination := strings.TrimSpace(strings.ToLower(c.Query("paymentDestination")))
 		if len(paymentDestination) == 56 {
@@ -1353,7 +1345,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		amount := strings.TrimSpace(c.Query("amount"))
 		memo := strings.TrimSpace(c.Query("memo"))
 
-		cacheKey := fmt.Sprintf("[GET] /v1/merchants/%v/%v/payment", identifier, trovoUser)
+		cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/%v/%v/payment", ownerUsername, trovoUser)
 		cacheKeyParameters := fmt.Sprintf("%v", c.Request.URL.RawQuery)
 
 		{
@@ -1368,11 +1360,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/merchants/%v/%v/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", identifier, trovoUser, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
-		mInfo, err := merchantServices.GetMerchant(identifier, gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/%v/%v/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", ownerUsername, trovoUser, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
+		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
 
 		if err != nil {
-			log.Println("[GET MERCHANT PAYMENT DATA] error for merchant:", identifier, "error: ", err)
+			log.Println("[GET SERVICE PAYMENT DATA] error for SERVICE:", ownerUsername, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -1395,7 +1387,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Authentication", "message": "Authentication failed"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -1403,12 +1395,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.PaymentPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Permission", "message": "payment permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "payment permission not enabled for this merchant"}
 			c.JSON(statusCode, response)
 			return
 		}
 
-		_, err = merchantServices.GetUserForMerchants(trovoUser, mInfo, gc)
+		_, err = servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -1450,14 +1442,14 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	//merchant payment request
-	router.GET("/v1/merchants/:merchantID/:targetUser/userinfo", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	//SERVICELINK USER INFO request
+	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/userinfo", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
-		identifier := strings.TrimSpace(strings.ToLower(c.Param("merchantID")))
+		identifier := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		{
 			//do not cache this so that it brings the latest data
-			// cacheKey := fmt.Sprintf("[GET] /v1/merchants/%v/%v/payment", identifier, trovoUser)
+			// cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/%v/%v/payment", identifier, trovoUser)
 			// cacheKeyParameters := fmt.Sprintf("%v", c.Request.URL.RawQuery)
 
 			// {
@@ -1472,11 +1464,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			// 	}
 			// }
 		}
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/merchants/%v/%v/userinfo", identifier, trovoUser), gc.DB)
-		mInfo, err := merchantServices.GetMerchant(identifier, gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/%v/%v/userinfo", identifier, trovoUser), gc.DB)
+		mInfo, err := servicelinkServices.GetService(identifier, gc.DB)
 
 		if err != nil {
-			log.Println("[GET USER DATA] error for merchant:", identifier, "error: ", err)
+			log.Println("[GET USER DATA] error for SERVICE:", identifier, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -1499,7 +1491,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Authentication", "message": "Authentication failed"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -1507,12 +1499,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.AllowUserInfo == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-merchant-access", "data": "Permission", "message": "userInfo permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "userInfo permission not enabled for this merchant"}
 			c.JSON(statusCode, response)
 			return
 		}
 
-		data, err := merchantServices.GetUserForMerchants(trovoUser, mInfo, gc)
+		data, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)

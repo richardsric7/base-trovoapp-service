@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
-	merchants "trovo-wallet-api/internal/components/merchants/controllers"
 	payments "trovo-wallet-api/internal/components/payments/controllers"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	root "trovo-wallet-api/internal/components/root/controllers"
+	merchants "trovo-wallet-api/internal/components/servicelinks/controllers"
 	swaps "trovo-wallet-api/internal/components/swaps/controllers"
 	users "trovo-wallet-api/internal/components/users/controllers"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -251,7 +251,7 @@ func main() {
 			Client:     storageClient,
 			ProjectID:  os.Getenv("GOOGLE_PROJECT_ID"),
 			BucketName: os.Getenv("STORAGE_BUCKET_NAME"),
-			UploadPath: os.Getenv("STORAGE_BUCKET_NAME") ,
+			UploadPath: os.Getenv("STORAGE_BUCKET_NAME"),
 		},
 	}
 	//setup router
