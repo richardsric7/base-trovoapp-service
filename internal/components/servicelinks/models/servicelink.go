@@ -57,7 +57,7 @@ type ServiceLinkLoginSession struct {
 }
 
 // ServiceAuthorization holds authorization data model
-type ServiceAuthorization struct {
+type ServiceLinkAuthorization struct {
 	ID             string `gorm:"size:100;primaryKey"`
 	CreatedAt      time.Time
 	ExpiresAt      time.Time `gorm:"default:now()"`

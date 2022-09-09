@@ -95,7 +95,7 @@ func GetLoginSession(mInfo, walletInfo, loginID string, db *gorm.DB) (loginSessi
 }
 
 // GetUserAuthorization gets user authorization data
-func GetUserAuthorizationData(mInfo, walletInfo, authID string, db *gorm.DB) (authData servicelinkModels.ServiceAuthorization, err error) {
+func GetUserAuthorizationData(mInfo, walletInfo, authID string, db *gorm.DB) (authData servicelinkModels.ServiceLinkAuthorization, err error) {
 
 	conDB.PrintDBStats("GetUserAuthorizationData", db)
 
@@ -118,7 +118,7 @@ func GetUserAuthorizationData(mInfo, walletInfo, authID string, db *gorm.DB) (au
 }
 
 // GetRewardOnlyAuthorizationData gets user authorization data
-func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData servicelinkModels.ServiceAuthorization, err error) {
+func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData servicelinkModels.ServiceLinkAuthorization, err error) {
 
 	conDB.PrintDBStats("GetRewardOnlyAuthorizationData", db)
 
@@ -161,7 +161,7 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 }
 
 // GetEventAuthorizationData gets user authorization data
-func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData servicelinkModels.ServiceAuthorization, err error) {
+func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData servicelinkModels.ServiceLinkAuthorization, err error) {
 
 	conDB.PrintDBStats("GetEventAuthorizationData", db)
 

@@ -94,7 +94,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			log.Println("@@@@@Started routine to Auto remove <service> Authorizations")
 
 			for {
-				err := gc.DB.Where("expires_at < ?", time.Now()).Delete(servicelinkModels.ServiceAuthorization{}).Error
+				err := gc.DB.Where("expires_at < ?", time.Now()).Delete(servicelinkModels.ServiceLinkAuthorization{}).Error
 				if err != nil {
 					log.Printf("[Expire Authorizations Routine]unable to delete expired authorizations requests due to error [%v]\n", err)
 				}
@@ -681,7 +681,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		authID := uuid.NewString()
-		authorizationData := servicelinkModels.ServiceAuthorization{ID: authID, OwnerUsername: mInfo.OwnerUsername,
+		authorizationData := servicelinkModels.ServiceLinkAuthorization{ID: authID, OwnerUsername: mInfo.OwnerUsername,
 			WalletUsername: userInfo.Username}
 		if len(serviceLinkRequestInput.CallbackURL) > 0 {
 			authorizationData.CallbackURL = &serviceLinkRequestInput.CallbackURL
