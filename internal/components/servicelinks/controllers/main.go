@@ -105,36 +105,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	//merchant login request
 	router.POST("/v1/servicelinks/login/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
-
-		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
-		if trovoUser == "null" {
-			log.Printf("user cannot be %v\n", trovoUser)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
-			return
-		}
-		var serviceLinkRequestInput servicelinkModels.ServiceLinkRequestInput
-		reqBody, _ := io.ReadAll(c.Request.Body)
-
-		err := json.Unmarshal(reqBody, &serviceLinkRequestInput)
-
-		var invalidJSON tErrors.ErrorInvalidJSON
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("Login Request Input JSON Error:", err)
-			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-			return
-		}
-		identifier := serviceLinkRequestInput.OwnerUsername
-		if identifier == "" {
-			log.Println("service account cannot be empty")
-			c.JSON(http.StatusBadRequest, gin.H{"error": "service account cannot be empty"})
-			return
-		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/login/%v?%v", trovoUser, identifier), gc.DB)
-		mInfo, err := servicelinkServices.GetService(identifier, gc.DB)
-
-		if err != nil {
-			log.Println("[GET SERVICE] error for SERVICE:", identifier, "error: ", err)
+			log.Println("[GET SERVICE] error for SERVICE:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -154,13 +128,39 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
-			//wrong access
-			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
-			c.JSON(statusCode, response)
+		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
+		if trovoUser == "null" {
+			log.Printf("user cannot be %v\n", trovoUser)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
+		var serviceLinkRequestInput servicelinkModels.ServiceLinkRequestInput
+		reqBody, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(reqBody, &serviceLinkRequestInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Println("Login Request Input JSON Error:", err)
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		identifier := mInfo.OwnerUsername
+		if identifier == "" {
+			log.Println("service account cannot be empty")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "service account cannot be empty"})
+			return
+		}
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/login/%v %v/%v", trovoUser, identifier, middleware.ExtractServiceLinkApiKey(c)), gc.DB)
+
+		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		// 	//wrong access
+		// 	statusCode := http.StatusUnauthorized
+		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
+		// 	c.JSON(statusCode, response)
+		// 	return
+		// }
 		// log.Printf("Merchant Info: %+v\n", mInfo)
 		if mInfo.LoginPermission == 0 {
 			//wrong access
@@ -198,6 +198,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//does not exist. create new one.
 		loginID := uuid.NewString()
 		newLoginSession := servicelinkModels.ServiceLinkLoginSession{
+			ApiKey:         middleware.ExtractServiceLinkApiKey(c),
 			OwnerUsername:  identifier,
 			WalletUsername: userInfo.Username,
 			ID:             loginID,
@@ -257,8 +258,32 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "loginID cannot be empty"})
 			return
 		}
+		//store login data for verification
+		loginSession, err := servicelinkServices.GetLoginSession(ownerUsername, identifier, loginID, gc.DB)
+		if err != nil {
+
+			//other system error
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+
+		}
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/servicelinks/login/approval/%v %v/%v", identifier, ownerUsername, loginID), gc.DB)
-		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
 			log.Println("[GET SERVICE INFO] error for SERVICE:", ownerUsername, "error: ", err)
@@ -286,6 +311,15 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			//wrong access
 			statusCode := http.StatusUnauthorized
 			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "login permission not enabled for this merchant"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		//validate ownership
+		if mInfo.OwnerUsername != ownerUsername {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "this login request does not belong to your Trovo wallet"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -340,37 +374,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		if middleware.ExtractSigner(c) != userInfo.PrimarySigner {
-			//wrong access
-			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "this login request does not belong to your Trovo wallet"}
-			c.JSON(statusCode, response)
-			return
-		}
-		//store login data for verification
-		loginSession, err := servicelinkServices.GetLoginSession(ownerUsername, userInfo.Username, loginID, gc.DB)
-		if err != nil {
 
-			//other system error
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			var statusCode int = 0
-			var response interface{}
-
-			if ok {
-				statusCode = ex.HTTPCode()
-				response = ex.JSONError()
-			} else {
-				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
-			}
-
-			c.JSON(statusCode, response)
-			return
-
-		}
 		if loginSession.Authorized == 1 {
 			response := gin.H{"error": "error-login-session-does-not-exist", "data": userInfo.Username, "message": "invalid/expired login request"}
 			statusCode := http.StatusNotFound
@@ -467,7 +471,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 		}
 
-		mInfo, err := servicelinkServices.GetService(identifier, gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
 			log.Println("[GET SERVICE FOR USER LOGIN] error for servicelink:", identifier, "error: ", err)
@@ -600,7 +604,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
 			log.Println("[GET MERCHANT] error for merchant:", ownerUsername, "error: ", err)
@@ -725,7 +729,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/%v/%v/push?", ownerUsername, trovoUser), gc.DB)
-		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
 			log.Println("[GET MERCHANT FOR PUSH] error for merchant:", ownerUsername, "error: ", err)
@@ -853,7 +857,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
 			log.Println("[GET SERVICE] error for SERVICELINK:", ownerUsername, "error: ", err)
@@ -1234,7 +1238,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		authID := strings.TrimSpace(strings.ToLower(c.Param("authID")))
 
 		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/%v/%v/authorize/%v", ownerUsername, trovoUser, authID), gc.DB)
-		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
 			log.Println("[GET SERVICE INFO] error for SERVICE:", ownerUsername, "error: ", err)
@@ -1361,7 +1365,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/%v/%v/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", ownerUsername, trovoUser, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
-		mInfo, err := servicelinkServices.GetService(ownerUsername, gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
 			log.Println("[GET SERVICE PAYMENT DATA] error for SERVICE:", ownerUsername, "error: ", err)
@@ -1465,7 +1469,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			// }
 		}
 		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/%v/%v/userinfo", identifier, trovoUser), gc.DB)
-		mInfo, err := servicelinkServices.GetService(identifier, gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
 			log.Println("[GET USER DATA] error for SERVICE:", identifier, "error: ", err)

@@ -49,6 +49,7 @@ type ServiceLinkLoginSession struct {
 	ID             string `gorm:"size;primaryKey"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+	ApiKey         string  `gorm:"size:50"`
 	OwnerUsername  string  `gorm:"size:100;index:idx_loginsession;not null;check:,length(owner_username) >= 2"`
 	WalletUsername string  `gorm:"size:100;not null;index:idx_loginsession"`
 	CallbackURL    *string `gorm:"null"`
@@ -61,6 +62,7 @@ type ServiceAuthorization struct {
 	CreatedAt      time.Time
 	ExpiresAt      time.Time `gorm:"default:now()"`
 	UpdatedAt      time.Time
+	ApiKey         string  `gorm:"size:50"`
 	OwnerUsername  string  `gorm:"size:100;index:idx_authdata;not null;check:,length(owner_username) >= 2"`
 	WalletUsername string  `gorm:"not null;index:idx_authdata"`
 	CallbackURL    *string `gorm:"null"`
@@ -68,7 +70,6 @@ type ServiceAuthorization struct {
 }
 
 type ServiceLinkRequestInput struct {
-	OwnerUsername     string `json:"ownerUsername,omitempty"`
 	AuthDescription   string `json:"authDescription,omitempty"`
 	DeviceInfo        string `json:"deviceInfo,omitempty"`
 	CallbackURL       string `json:"callbackUrl,omitempty"`

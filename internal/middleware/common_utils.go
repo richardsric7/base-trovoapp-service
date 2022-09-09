@@ -16,9 +16,9 @@ func ExtractSigner(c *gin.Context) string {
 	return signer
 }
 
-func ExtractMerchantApiKey(c *gin.Context) string {
+func ExtractServiceLinkApiKey(c *gin.Context) string {
 
-	apiKey := c.GetHeader("X-TW-MERCHANT-API-KEY")
+	apiKey := c.GetHeader("X-TW-SERVICE-LINK-API-KEY")
 
 	return apiKey
 }

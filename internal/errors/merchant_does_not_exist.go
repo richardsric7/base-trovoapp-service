@@ -7,39 +7,39 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const errorMerchantDoesNotExist = "error-merchant-does-not-exist"
+const errorServiceDoesNotExist = "error-service-does-not-exist"
 
-//ErrorMerchantDoesNotExist is when user does not exist
-type ErrorMerchantDoesNotExist struct {
+// ErrorServiceDoesNotExist is when user does not exist
+type ErrorServiceDoesNotExist struct {
 	Username string
 }
 
-//Error returns the error string
-func (e *ErrorMerchantDoesNotExist) Error() string {
-	return errorMerchantDoesNotExist
+// Error returns the error string
+func (e *ErrorServiceDoesNotExist) Error() string {
+	return errorServiceDoesNotExist
 }
 
-//ErrorType returns error type as string
-func (e *ErrorMerchantDoesNotExist) ErrorType() string {
-	return errorMerchantDoesNotExist
+// ErrorType returns error type as string
+func (e *ErrorServiceDoesNotExist) ErrorType() string {
+	return errorServiceDoesNotExist
 }
 
-//Data returns data of the error
-func (e *ErrorMerchantDoesNotExist) Data() string {
+// Data returns data of the error
+func (e *ErrorServiceDoesNotExist) Data() string {
 	return fmt.Sprintf("%v", e.Username)
 }
 
-//Message returns tring message of error
-func (e *ErrorMerchantDoesNotExist) Message() string {
-	return fmt.Sprintf("merchant: %v does not exist", e.Username)
+// Message returns tring message of error
+func (e *ErrorServiceDoesNotExist) Message() string {
+	return fmt.Sprintf("service: %v does not exist", e.Username)
 }
 
-//JSONError returns json of the error
-func (e *ErrorMerchantDoesNotExist) JSONError() gin.H {
+// JSONError returns json of the error
+func (e *ErrorServiceDoesNotExist) JSONError() gin.H {
 	return gin.H{"error": e.ErrorType(), "data": e.Data(), "message": e.Message()}
 }
 
-//HTTPCode returns http status code
-func (e *ErrorMerchantDoesNotExist) HTTPCode() int {
+// HTTPCode returns http status code
+func (e *ErrorServiceDoesNotExist) HTTPCode() int {
 	return http.StatusNotFound
 }

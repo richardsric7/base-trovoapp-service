@@ -17,7 +17,7 @@ import (
 	payments "trovo-wallet-api/internal/components/payments/controllers"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	root "trovo-wallet-api/internal/components/root/controllers"
-	merchants "trovo-wallet-api/internal/components/servicelinks/controllers"
+	serviceLinks "trovo-wallet-api/internal/components/servicelinks/controllers"
 	swaps "trovo-wallet-api/internal/components/swaps/controllers"
 	users "trovo-wallet-api/internal/components/users/controllers"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -273,8 +273,8 @@ func main() {
 	swaps.Init(router, &globalConfig)
 	log.Println("##swap services initialized##")
 
-	merchants.Init(router, &globalConfig)
-	log.Println("##merchants services initialized##")
+	serviceLinks.Init(router, &globalConfig)
+	log.Println("##serviceLinks services initialized##")
 
 	//run app
 	log.Println("##service started##")

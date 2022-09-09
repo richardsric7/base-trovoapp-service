@@ -14,7 +14,7 @@ import (
 )
 
 // GetMerchantInfo gets merchant data
-func GetServiceInfo(mInfo string, db *gorm.DB) (user servicelinkModels.ServiceLink, err error) {
+func GetServiceInfo(mInfo, apikey string, db *gorm.DB) (user servicelinkModels.ServiceLink, err error) {
 
 	conDB.PrintDBStats("GetMerchantInfo", db)
 
@@ -22,16 +22,16 @@ func GetServiceInfo(mInfo string, db *gorm.DB) (user servicelinkModels.ServiceLi
 	var e error
 	if len(mInfo) == 56 {
 		//56 char publick key is supplied
-		e = db.Where(servicelinkModels.ServiceLink{PublicKey: mInfo}).First(&user).Error
+		e = db.Where(servicelinkModels.ServiceLink{PublicKey: mInfo, ApiKey: apikey}).First(&user).Error
 	} else {
 		//username is supplied
-		e = db.First(&user, servicelinkModels.ServiceLink{OwnerUsername: strings.ToLower(mInfo)}).Error
+		e = db.First(&user, servicelinkModels.ServiceLink{OwnerUsername: strings.ToLower(mInfo), ApiKey: apikey}).Error
 	}
 
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
-			err = &tErrors.ErrorMerchantDoesNotExist{Username: mInfo}
+			err = &tErrors.ErrorServiceDoesNotExist{Username: mInfo}
 			return
 		}
 		log.Println("[GetMerchantInfo] error: ", e)

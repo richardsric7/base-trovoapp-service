@@ -12,23 +12,23 @@ import (
 )
 
 // Merchant holds Merchant data model
-type Merchant struct {
+type ServiceLink struct {
 	ID        string `json:"-" gorm:"size:100"`
-	ApiKey    string `json:"apiKey" gorm:"size:50;index:idx_merchant_api_key,unique;not null;"`
+	ApiKey    string `json:"apiKey" gorm:"size:50;index:idx_service_api_key,unique;not null;"`
 	Suspended int    `json:"-" gorm:"type:integer;not null;default:0"`
 }
 
 func apiKeyChecks(c *gin.Context, gc *sharedconfig.GlobalConfig) error {
 	// apiKey = strings.TrimSpace(apiKey)
 	fullUri := c.Request.URL.RequestURI()
-	merchantKey := ExtractMerchantApiKey(c)
-	log.Printf("Full Path With Query:[%s] APIKEY:[%s]\n", fullUri, merchantKey)
+	serviceLinkKey := ExtractServiceLinkApiKey(c)
+	log.Printf("Full Path With Query:[%s] APIKEY:[%s]\n", fullUri, serviceLinkKey)
 
-	if len(merchantKey) == 0 {
+	if len(serviceLinkKey) == 0 {
 		return &errors.CustomError{Param: "apiKey", Err: "Error Missing APIKEY parameter", ErrMessage: "Missing APIKEY parameter"}
 	}
 
-	err := VerifyMerchantAPIKey(merchantKey, gc.DB)
+	err := VerifyServiceLinkAPIKey(serviceLinkKey, gc.DB)
 
 	if err != nil {
 		return err
@@ -38,10 +38,10 @@ func apiKeyChecks(c *gin.Context, gc *sharedconfig.GlobalConfig) error {
 
 }
 
-// VerifyMerchantAPIKey checks merchant by API key
-func VerifyMerchantAPIKey(apiKey string, db *gorm.DB) (err error) {
+// VerifyServiceLinkAPIKey checks merchant by API key
+func VerifyServiceLinkAPIKey(apiKey string, db *gorm.DB) (err error) {
 
-	e := db.Where(Merchant{ApiKey: apiKey}).First(&Merchant{}).Error
+	e := db.Where(ServiceLink{ApiKey: apiKey}).First(&ServiceLink{}).Error
 
 	if e != nil {
 
@@ -59,9 +59,9 @@ func AuthenticationMiddlewareUsingAPIKey(gc *sharedconfig.GlobalConfig) gin.Hand
 			return
 		}
 		h := c.Request.Header.Get("User-Agent")
-		merchantKey := ExtractMerchantApiKey(c)
+		serviceLinkKey := ExtractServiceLinkApiKey(c)
 
-		log.Printf("[%s] is using [%s]\n", merchantKey, h)
+		log.Printf("[%s] is using [%s]\n", serviceLinkKey, h)
 
 		authenticationError := apiKeyChecks(c, gc)
 
