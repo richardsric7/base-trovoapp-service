@@ -240,26 +240,26 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	//user login approval url; uses signature algorithm bcos it is only called by trovo wallet.
 	router.POST("/v1/users/servicelinks/login/approval/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
-		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
+		targetUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
 		loginID := strings.TrimSpace(strings.ToLower(c.Query("loginID")))
-		if identifier == "null" || identifier == "" {
-			log.Printf("user cannot be %v\n", identifier)
+		if targetUser == "null" || targetUser == "" {
+			log.Printf("user cannot be %v\n", targetUser)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
 		if len(ownerUsername) == 0 {
-			log.Printf("service owner cannot be empty%v\n", identifier)
+			log.Printf("service owner cannot be empty%v\n", targetUser)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "merchant cannot be empty"})
 			return
 		}
 		if len(loginID) == 0 {
-			log.Printf("loginID cannot be empty%v\n", identifier)
+			log.Printf("loginID cannot be empty%v\n", targetUser)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "loginID cannot be empty"})
 			return
 		}
 		//store login data for verification
-		loginSession, err := servicelinkServices.GetLoginSession(ownerUsername, identifier, loginID, gc.DB)
+		loginSession, err := servicelinkServices.GetLoginSession(ownerUsername, targetUser, loginID, gc.DB)
 		if err != nil {
 
 			//other system error
@@ -282,11 +282,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 
 		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/servicelinks/login/approval/%v %v/%v", identifier, ownerUsername, loginID), gc.DB)
-		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/servicelinks/login/approval/%v %v/%v", targetUser, ownerUsername, loginID), gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(loginSession.ApiKey, gc.DB)
 
 		if err != nil {
-			log.Println("[GET SERVICE INFO] error for SERVICE:", ownerUsername, "error: ", err)
+			log.Println("[GET SERVICE INFO] error for SERVICE:", ownerUsername, loginSession.ApiKey, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -324,10 +324,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		userInfo, err := servicelinkServices.GetUserForServiceLink(identifier, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(targetUser, mInfo, gc)
 
 		if err != nil {
-			log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
+			log.Println("[GET UserInfo] error for user:", targetUser, "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -349,7 +349,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		if userInfo.Mobile == nil {
-			log.Println("[GET UserInfo] error for user:", identifier, "error: user does not have a valid phone number")
+			log.Println("[GET UserInfo] error for user:", targetUser, "error: user does not have a valid phone number")
 			err = &tErrors.CustomError{
 				Param:      "mobile",
 				Err:        "error no valid phone number",
@@ -393,8 +393,14 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/%v/%v/login/%v", mInfo.OwnerUsername, userInfo.Username, loginID)
+		cacheKey := fmt.Sprintf("[GET] /v1/users/servicelinks/login/approval/%v %v", userInfo.Username, loginID)
 		gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
+
+		if userInfo.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["none"] = ""
+			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for [%v] authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been authorized to login on [%v] service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
 
 		//return response to user and  not keep them waiting.
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
@@ -446,9 +452,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//merchant login verify url
-	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/login/:loginID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/servicelinks/login/verify/:ownerUsername/:targetUser/:loginID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
-		identifier := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		loginID := strings.TrimSpace(strings.ToLower(c.Param("loginID")))
 		if trovoUser == "null" {
@@ -456,9 +462,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/%v/%v/login/%v", identifier, trovoUser, loginID), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/login/verify/%v/%v/%v", ownerUsername, trovoUser, loginID), gc.DB)
 
-		cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/%v/%v/login/%v", identifier, trovoUser, loginID)
+		cacheKey := fmt.Sprintf("GET /v1/servicelinks/login/verify/%v/%v/%v", ownerUsername, trovoUser, loginID)
 		{
 			//search cache
 
@@ -474,7 +480,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET SERVICE FOR USER LOGIN] error for servicelink:", identifier, "error: ", err)
+			log.Println("[GET SERVICE FOR USER LOGIN] error for servicelink:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -494,7 +500,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		if mInfo.OwnerUsername != ownerUsername {
 			//wrong access
 			statusCode := http.StatusUnauthorized
 			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
@@ -544,7 +550,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		//store login data for verification
-		loginSession, err := servicelinkServices.GetLoginSession(identifier, userInfo.Username, loginID, gc.DB)
+		loginSession, err := servicelinkServices.GetLoginSession(ownerUsername, userInfo.Username, loginID, gc.DB)
 		if err != nil {
 			log.Printf("[error Verifying Login] for user [%v], error [%v]]\n", trovoUser, err)
 			var ex tErrors.GenericError
