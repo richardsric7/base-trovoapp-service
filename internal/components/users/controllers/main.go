@@ -432,6 +432,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			pns.SendFirebaseMessage(*user.PushNotificationToken, "Profile picture updated!", fmt.Sprintf("You have successfully updated profile picture on your account [%v].", user.Username), url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", user.Username)
+
+		gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, url)
