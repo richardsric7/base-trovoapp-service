@@ -99,3 +99,11 @@ class doubleTypeFormatter extends TextInputFormatter {
         selection: TextSelection.collapsed(offset: newValue.selection.end + 1));
   }
 }
+
+changeTabPage(appState, index) {
+  // moves user to the wallets list tab
+  appState.bottomTabPageController!.animateToPage(index,
+      duration: const Duration(milliseconds: 500), curve: Curves.ease);
+  // set this to the wallets list tab index
+  appState.currentBottomTabIndex = index;
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/Models/BottomTabPage.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
@@ -22,17 +23,22 @@ class _BottomHomeState extends State<BottomHome> {
   late ColorNotifier notifire;
   late DataProvider appState;
   bool isTapped = false;
+  final _controller = PageController();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    // set the page controller to appState
+    appState.bottomTabPageController = _controller;
+    print('---------initing bottombar-----------');
   }
 
   @override
   Widget build(BuildContext context) {
     notifire = Provider.of<ColorNotifier>(context, listen: true);
-    appState = Provider.of<DataProvider>(context, listen: false);
+    appState = Provider.of<DataProvider>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return WillPopScope(
@@ -60,12 +66,14 @@ class _BottomHomeState extends State<BottomHome> {
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset(
                     "assets/images/home.png",
-                    color: _selectedIndex == 0
+                    color: _selectedIndex == ButtomTabPage.Dashboard.index
                         ? notifire.isDark
                             ? notifire.getbluecolor60
                             : notifire.getbluecolor
                         : notifire.getblck,
-                    height: _selectedIndex == 0 ? height / 29 : height / 35,
+                    height: _selectedIndex == ButtomTabPage.Dashboard.index
+                        ? height / 29
+                        : height / 35,
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -77,12 +85,14 @@ class _BottomHomeState extends State<BottomHome> {
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset(
                     "assets/images/wallets.png",
-                    color: _selectedIndex == 1
+                    color: _selectedIndex == ButtomTabPage.Wallets.index
                         ? notifire.isDark
                             ? notifire.getbluecolor60
                             : notifire.getbluecolor
                         : notifire.getblck,
-                    height: _selectedIndex == 1 ? height / 29 : height / 35,
+                    height: _selectedIndex == ButtomTabPage.Wallets.index
+                        ? height / 29
+                        : height / 35,
                     fit: BoxFit.fitHeight,
                   ),
                 ),
@@ -93,12 +103,16 @@ class _BottomHomeState extends State<BottomHome> {
                   duration: Duration(milliseconds: 2000),
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset("assets/images/history.png",
-                      color: _selectedIndex == 2
+                      color: _selectedIndex ==
+                              ButtomTabPage.TransactionHistory.index
                           ? notifire.isDark
                               ? notifire.getbluecolor60
                               : notifire.getbluecolor
                           : notifire.getblck,
-                      height: _selectedIndex == 2 ? height / 29 : height / 35),
+                      height: _selectedIndex ==
+                              ButtomTabPage.TransactionHistory.index
+                          ? height / 29
+                          : height / 35),
                 ),
                 label: ''),
             BottomNavigationBarItem(
@@ -107,12 +121,14 @@ class _BottomHomeState extends State<BottomHome> {
                   duration: Duration(milliseconds: 2000),
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset("assets/images/swap.png",
-                      color: _selectedIndex == 3
+                      color: _selectedIndex == ButtomTabPage.Swap.index
                           ? notifire.isDark
                               ? notifire.getbluecolor60
                               : notifire.getbluecolor
                           : notifire.getblck,
-                      height: _selectedIndex == 3 ? height / 29 : height / 35),
+                      height: _selectedIndex == ButtomTabPage.Swap.index
+                          ? height / 29
+                          : height / 35),
                 ),
                 label: ''),
             BottomNavigationBarItem(
@@ -122,30 +138,40 @@ class _BottomHomeState extends State<BottomHome> {
                 curve: Curves.fastOutSlowIn,
                 child: Image.asset(
                   "assets/images/settings.png",
-                  color: _selectedIndex == 4
+                  color: _selectedIndex == ButtomTabPage.Settings.index
                       ? notifire.isDark
                           ? notifire.getbluecolor60
                           : notifire.getbluecolor
                       : notifire.getblck,
-                  height: _selectedIndex == 4 ? height / 27 : height / 33,
+                  height: _selectedIndex == ButtomTabPage.Settings.index
+                      ? height / 27
+                      : height / 33,
                 ),
               ),
               label: '',
             ),
           ],
-          onTap: (index) {
-            changeTabMethod(index);
-            isTapped = true;
-          },
+          // onTap: (index) {
+          //   changeTabMethod(index);
+          //   isTapped = true;
+          // },
+          onTap: _onItemTapped,
         ),
-        body: Stack(
-          children: [
-            _buildOffstageNavigator(0),
-            _buildOffstageNavigator(1),
-            _buildOffstageNavigator(2),
-            _buildOffstageNavigator(3),
-            _buildOffstageNavigator(4),
-          ],
+        // body: Stack(
+        //   children: [
+        //     _buildOffstageNavigator(0),
+        //     _buildOffstageNavigator(1),
+        //     _buildOffstageNavigator(2),
+        //     _buildOffstageNavigator(3),
+        //     _buildOffstageNavigator(4),
+        //   ],
+        // ),
+        body: PageView(
+          controller: _controller,
+          onPageChanged: (index) {
+            changeTabMethod(index);
+          },
+          children: _pages,
         ),
       ),
     );
@@ -153,13 +179,28 @@ class _BottomHomeState extends State<BottomHome> {
 
   changeTabMethod(index) {
     setState(() {
-      if (_selectedIndex != 2 && index == 2) {
+      if (_selectedIndex != ButtomTabPage.TransactionHistory.index &&
+          index == ButtomTabPage.TransactionHistory.index) {
         appState.getHistory();
       }
       _selectedIndex = index;
       appState.currentBottomTabIndex = _selectedIndex;
     });
   }
+
+  void _onItemTapped(int index) {
+    changeTabMethod(index);
+    _controller.animateToPage(index,
+        duration: const Duration(milliseconds: 500), curve: Curves.ease);
+  }
+
+  final List<Widget> _pages = [
+    Home(),
+    Wallets(),
+    PaymentHistory(),
+    SwapAssets(),
+    Settings(),
+  ];
 
   Map<String, WidgetBuilder> _routeBuilders(BuildContext context, int index) {
     return {

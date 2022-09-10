@@ -1,12 +1,17 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
+// import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -66,15 +71,15 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               ),
               GestureDetector(
                 onTap: () {
-                  imageSourceDialog(
-                    context,
-                    onCamera: () {
-                      getImage(ImageSource.camera);
-                    },
-                    onGallery: () {
-                      getImage(ImageSource.gallery);
-                    },
-                  );
+                  // imageSourceDialog(
+                  //   context,
+                  //   onCamera: () {
+                  //     getImage(ImageSource.camera);
+                  //   },
+                  //   onGallery: () {
+                  //     getImage(ImageSource.gallery);
+                  //   },
+                  // );
                 },
                 child: Center(
                   child: Image.asset(
@@ -167,13 +172,56 @@ class _ProfileDetailsState extends State<ProfileDetails> {
     );
   }
 
-  Future<void> getImage(ImageSource source) async {
-    var image = await ImagePicker().pickImage(source: source);
-    if (image != null) {
-      print('${image.mimeType}, ${image.path}');
-      image.saveTo('images/profile-pic.${image.name.split('.')[1]}');
-    }
-  }
+  // Future<void> getImage(ImageSource source) async {
+  //   var image = await ImagePicker().pickImage(source: source);
+  //   var croppedImage = await ImageCropper().cropImage(
+  //       sourcePath: image!.path,
+  //       aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
+  //       compressQuality: 100,
+  //       maxHeight: 800,
+  //       maxWidth: 800,
+  //       compressFormat: ImageCompressFormat.jpg,
+  //       uiSettings: [
+  //         AndroidUiSettings(
+  //           toolbarColor: Color(0xffFC690A),
+  //           toolbarTitle: 'Crop Image',
+  //         ),
+  //         IOSUiSettings(
+  //           title: 'Crop Image',
+  //         ),
+  //       ]);
+  //   if (croppedImage != null) {
+  //     print('${image.mimeType}, ${image.path}');
+  //     // image.saveTo('images/profile-pic.${image.name.split('.')[1]}');
+  //     await uploadImage(image);
+  //   }
+  // }
+
+  // Future<void> uploadImage(image) async {
+  //   var base64ImageData = getBase64Image(image);
+
+  //   // Map responseData = await makePutRequest(
+  //   //     uri: '/v1/users/payment',
+  //   //     body: requestBody,
+  //   //     signer: activeWallet!.signer!,
+  //   //     secretKey: appState.secretKeys[0], // the primary wallet secret key
+  //   //     publicKey: activeWallet!.publicKey!,
+  //   //   );
+  // }
+
+  // Future<dynamic> getBase64Image(XFile image) async {
+  //   //
+  //   List<int> imageBytes = await image.readAsBytes();
+  //   String imageB64 = base64Encode(imageBytes);
+  //   return imageB64;
+  //   // String fileName = image.path.split("/").last;
+  // }
+
+  // Uint8List getBase64Decode(String image) {
+  //   Uint8List imageString = base64Decode(image);
+  //   return imageString;
+  //   // String fileName = image.path.split("/").last;
+  // }
 
   Widget bioInfo() {
     return Padding(

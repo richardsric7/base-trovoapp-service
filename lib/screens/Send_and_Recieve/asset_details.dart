@@ -13,6 +13,7 @@ import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/WalletSlides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -248,7 +249,14 @@ class _AssetDetailsState extends State<AssetDetails>
                   ),
                 ],
               ),
-              walletSlides(),
+              WalletSlide(
+                backColor: notifier.getbluecolor,
+                foreColor: wihitecolor,
+                alias: activeWallet!.alias!.capitalizeFirst!,
+                totalBalance: '2,082,898 NGN',
+                fiatBalance: '4,014 USD',
+                initialHiddenState: appState.hideBalances,
+              ),
               SizedBox(
                 height: height / 30,
               ),

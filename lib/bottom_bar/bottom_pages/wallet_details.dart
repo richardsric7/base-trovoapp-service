@@ -47,7 +47,7 @@ class _WalletDetailsState extends State<WalletDetails>
     super.initState();
     _tabController = TabController(length: tabLength, vsync: this);
     appState = Provider.of<DataProvider>(context, listen: false);
-    appState.resetActiveWalletBalances();
+    localHideBalance = appState.hideBalances;
   }
 
   @override
@@ -97,6 +97,14 @@ class _WalletDetailsState extends State<WalletDetails>
                 alias: activeWallet!.alias!.capitalizeFirst!,
                 totalBalance: '2,082,898 NGN',
                 fiatBalance: '4,014 USD',
+                initialHiddenState: appState.hideBalances,
+                onHiddenStateChanged: (state) => {
+                  setState(
+                    () => {
+                      localHideBalance = state,
+                    },
+                  )
+                },
               ),
               SizedBox(
                 height: height / 30,
@@ -213,19 +221,6 @@ class _WalletDetailsState extends State<WalletDetails>
                                           },
                                           child: tiles(asset)),
                                     ],
-                                    SizedBox(
-                                      height: height / 20,
-                                    ),
-                                    Button(
-                                      LanguageEn.back,
-                                      notifier.getbluecolor,
-                                      wihitecolor,
-                                      onTap: () {
-                                        appState.currentAction = PageAction(
-                                            state: PageState.replaceAll,
-                                            page: BottomHomePageConfig);
-                                      },
-                                    ),
                                   ] else ...[
                                     Container(
                                       height: height / 3,
@@ -247,6 +242,16 @@ class _WalletDetailsState extends State<WalletDetails>
                                   ],
                                   SizedBox(
                                     height: height / 22,
+                                  ),
+                                  Button(
+                                    LanguageEn.back,
+                                    notifier.getbluecolor,
+                                    wihitecolor,
+                                    onTap: () {
+                                      appState.currentAction = PageAction(
+                                          state: PageState.replaceAll,
+                                          page: BottomHomePageConfig);
+                                    },
                                   ),
                                 ],
                               ),
@@ -599,12 +604,10 @@ class _WalletDetailsState extends State<WalletDetails>
   }
 
   String getBalance(String balance) {
-    print(
-        'getting bal for active wallet... ${appState.hideActiveWalletBalance}');
     String text;
     if (appState.hideBalances) text = hideBalanceText;
 
-    if (appState.hideActiveWalletBalance)
+    if (localHideBalance)
       text = hideBalanceText;
     else
       text = balance;

@@ -32,15 +32,15 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool hideActiveWalletBalance = false;
-  set toggleActiveBalances(bool value) {
-    hideActiveWalletBalance = value;
-    notifyListeners();
-  }
+  // bool hideActiveWalletBalance = false;
+  // set toggleActiveBalances(bool value) {
+  //   hideActiveWalletBalance = value;
+  //   notifyListeners();
+  // }
 
-  void resetActiveWalletBalances() {
-    hideActiveWalletBalance = hideBalances;
-  }
+  // void resetActiveWalletBalances() {
+  //   hideActiveWalletBalance = hideBalances;
+  // }
 
   bool _splashFinished = false;
   bool get splashFinished => _splashFinished;
@@ -145,6 +145,9 @@ class DataProvider with ChangeNotifier {
     }
   }
 
+  // used to keep track of the current bottom navigation index
+  // this variable is currently used in back_dispatcher to know when
+  // to handle the back button
   int currentBottomTabIndex = 0;
 
   List<TransactionInfo> historyData = <TransactionInfo>[];
@@ -153,23 +156,7 @@ class DataProvider with ChangeNotifier {
   int? totalRecords = 0;
 
   getHistory() async {
-    // var data =
-    //     await StoreData().storeGetData('historyData${activeWallet!.alias}');
-
-    // if (data == null || data.length <= 0) {
     await fetchHistory(limit);
-    //   return;
-    // }
-
-    // for (var i = 0; i < data.length; i++) {
-    //   historyData.clear();
-    //   historyData.add(TransactionInfo().deserializeJson(data[i]));
-    // }
-
-    // totalRecords =
-    //     await StoreData().storeGetData('totalRecords${activeWallet!.alias}');
-    // currentPage =
-    //     await StoreData().storeGetData('currentPage${activeWallet!.alias}');
     notifyListeners();
   }
 
@@ -209,4 +196,23 @@ class DataProvider with ChangeNotifier {
   // is the ViewPageConfig.key and the value is the data you want to pass to the
   // view. The value is of dynamic type so you can pass any data type you want.
   Map<String, dynamic>? viewData = {};
+
+  // in order to make it possible for bottom navigation tabs to be changed from
+  // anywhere in the app we will bring this function here where everybody can
+  // reach it from anywhere.
+  PageController? bottomTabPageController;
+
+  // use this to keep track of individual wallets' hidden state used
+  // especially on the dashboard screen to track which wallet is set to hidden
+  // by the user
+  List<bool> hideWalletList = [];
+  set sethideWalletList(list) {
+    hideWalletList.clear();
+    if (list != null) {
+      for (var i = 0; i < list.length; i++) {
+        hideWalletList.add(list[i]);
+      }
+    }
+    notifyListeners();
+  }
 }

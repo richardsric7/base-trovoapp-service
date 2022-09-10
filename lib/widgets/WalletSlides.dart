@@ -19,6 +19,8 @@ class WalletSlide extends StatefulWidget {
   String fiatBalance;
   Color backColor;
   Color foreColor;
+  bool initialHiddenState;
+  void Function(bool)? onHiddenStateChanged;
 
   WalletSlide({
     Key? key,
@@ -27,6 +29,8 @@ class WalletSlide extends StatefulWidget {
     required this.fiatBalance,
     required this.backColor,
     required this.foreColor,
+    required this.initialHiddenState,
+    this.onHiddenStateChanged,
   }) : super(key: key);
 
   @override
@@ -43,8 +47,8 @@ class _WalletSlideState extends State<WalletSlide> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    localHideBalance = widget.initialHiddenState;
     appState = Provider.of<DataProvider>(context, listen: false);
-    localHideBalance = appState.hideBalances;
   }
 
   @override
@@ -194,9 +198,12 @@ class _WalletSlideState extends State<WalletSlide> {
   toggleHideBalance() {
     setState(() {
       localHideBalance = !localHideBalance;
-      appState.toggleActiveBalances = localHideBalance;
+      // appState.toggleActiveBalances = localHideBalance;
       print(
           'localHideBalance: $localHideBalance, appState.hideBalances: ${appState.hideBalances}');
+      if (widget.onHiddenStateChanged != null) {
+        widget.onHiddenStateChanged!(localHideBalance);
+      }
     });
   }
 

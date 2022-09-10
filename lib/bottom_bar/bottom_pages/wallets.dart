@@ -168,6 +168,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                           Icons.add_circle_outline_sharp;
                       appState.walletView.actionText = LanguageEn.addsubwallet;
                       appState.walletView.view = WalletView.listWallets;
+                      resetForm();
                     } else if (appState.walletView.view ==
                         WalletView.confirmAddSubWallet) {
                       appState.walletView.actionIcon = Icons.cancel_outlined;

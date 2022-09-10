@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
-import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/Models/BottomTabPage.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/profile/faq.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -47,7 +47,6 @@ class _SettingsState extends State<Settings> {
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
-    appState = Provider.of<DataProvider>(context, listen: false);
   }
 
   @override
@@ -286,35 +285,37 @@ class _SettingsState extends State<Settings> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             LayoutBuilder(builder: (context, constraints) {
-              return Container(
-                height: height / 10,
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: colorbutton!,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Image.asset("assets/images/referrals.png",
-                        height: height / 30),
-                    Container(
-                      width: width / 1.7,
-                      child: Text(
-                        buttontext!,
-                        textAlign: TextAlign.start,
-                        style: TextStyle(
-                            fontFamily: fontbody,
-                            fontSize: 13.sp,
-                            color: buttontextcolor),
+              return ScreenUtilInit(
+                builder: (context, child) => Container(
+                  height: height / 10,
+                  width: width / 1.1,
+                  decoration: BoxDecoration(
+                    color: colorbutton!,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Image.asset("assets/images/referrals.png",
+                          height: height / 30),
+                      Container(
+                        width: width / 1.7,
+                        child: Text(
+                          buttontext!,
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                              fontFamily: fontbody,
+                              fontSize: 13.sp,
+                              color: buttontextcolor),
+                        ),
                       ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 12.sp,
-                      color: wihitecolor,
-                    )
-                  ],
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 12.sp,
+                        color: wihitecolor,
+                      )
+                    ],
+                  ),
                 ),
               );
             }),
@@ -735,7 +736,10 @@ class _SettingsState extends State<Settings> {
   void toggleHideBalances() {
     setState(() {
       appState.sethideBalances = !appState.hideBalances;
+      appState.sethideWalletList = List.filled(6, appState.hideBalances);
       StoreData().storeInsertData('hideBalances', appState.hideBalances);
+      StoreData().storeInsertData('hideWalletList', appState.hideWalletList);
+      changeTabPage(appState, ButtomTabPage.Dashboard.index);
     });
   }
 }

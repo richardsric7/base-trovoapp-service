@@ -102,6 +102,11 @@ class _SplashScreenState extends State<SplashScreen>
         appState.assetBalances =
             await StoreData().storeGetData('assetBalances');
         appState.setNFTs = await StoreData().storeGetData('nfts');
+        print(
+            '-------------------${await StoreData().storeGetData('hideWalletList') ?? List.filled(6, appState.hideBalances)}');
+        appState.sethideWalletList =
+            await StoreData().storeGetData('hideWalletList') ??
+                List.filled(6, appState.hideBalances);
         landingPage =
             PageAction(state: PageState.replaceAll, page: LoginPageConfig);
         print('....................this is nfts: ${appState.nfts}');

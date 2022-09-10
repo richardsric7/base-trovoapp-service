@@ -8,20 +8,22 @@ import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/Models/BottomTabPage.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/WalletSlides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class Home extends StatefulWidget {
-  final void Function(int) onButtonPressed;
-  const Home({Key? key, required this.onButtonPressed}) : super(key: key);
+  final void Function(int)? onButtonPressed;
+  const Home({Key? key, this.onButtonPressed}) : super(key: key);
 
   @override
   State<Home> createState() => _HomeState();
@@ -42,6 +44,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   var unclaimedAssets;
   int tabLength = 2;
   int activeTabIndex = 0;
+  int activeWalletIndex = 0;
 
   @override
   void initState() {
@@ -49,8 +52,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     _tabController = TabController(length: tabLength, vsync: this);
     _tabController.addListener(tabListener);
     _refreshController = RefreshController(initialRefresh: false);
-    appState = Provider.of<DataProvider>(context, listen: false);
-    appState.resetActiveWalletBalances();
   }
 
   void tabListener() {
@@ -105,7 +106,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
     print(
         'tablength: $tabLength, tabcontroller.length: ${_tabController.length}');
-    print('activeTabIndex: $activeTabIndex');
+    print('hideWalletList: ${appState.hideWalletList}');
 
     // keep track of the active tab to avoid having it changed
     // on each page rebuild
@@ -228,6 +229,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                               .firstWhere((wallet) =>
                                                   wallet.publicKey ==
                                                   activeWallet);
+
                                           appState.viewData = {
                                             // since the original asset object
                                             // is immutable I create a new assetObj and
@@ -248,7 +250,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                             page: AssetDetailsViewPageConfig,
                                           );
                                         },
-                                        child: tiles(asset),
+                                        child: tiles(asset, activeWalletIndex),
                                       ),
                                     ],
                                   ] else ...[
@@ -325,7 +327,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                                   PendingAssetDetailsViewPageConfig,
                                             );
                                           },
-                                          child: tiles(asset),
+                                          child:
+                                              tiles(asset, activeWalletIndex),
                                         ),
                                       ],
                                     ] else ...[
@@ -628,8 +631,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         onPageChanged: ((index, reason) => {
               setState(
                 () => {
-                  appState.resetActiveWalletBalances(),
-                  activeWallet = wallets[index].publicKey,
+                  activeWalletIndex = index == 6 ? index - 1 : index,
+                  activeWallet = wallets[activeWalletIndex].publicKey,
                   claimedAssets = assetBalances[activeWallet]['claimed'],
                   unclaimedAssets = assetBalances[activeWallet]['unclaimed'],
                   print('activeWallet: $activeWallet'),
@@ -653,14 +656,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 alias: wallet.alias!.capitalizeFirst!,
                 totalBalance: '2,082,898 NGN',
                 fiatBalance: '4,014 USD',
+                initialHiddenState: appState.hideWalletList[indexOfWallet],
+                onHiddenStateChanged: (state) => {
+                  setState(
+                    () => {
+                      appState.hideWalletList[indexOfWallet] = state,
+                      StoreData().storeInsertData(
+                          'hideWalletList', appState.hideWalletList)
+                    },
+                  )
+                },
               );
             }
 
             return GestureDetector(
-              onTap: () {
-                // moves user to the wallets list tab
-                widget.onButtonPressed(1);
-              },
+              onTap: () => changeTabPage(appState, ButtomTabPage.Wallets.index),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -719,7 +729,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget tiles(asset) {
+  Widget tiles(asset, indexOfWallet) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
@@ -777,7 +787,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  getBalance(formatNumber(double.parse(asset["amount"]))),
+                  getBalance(formatNumber(double.parse(asset["amount"])),
+                      indexOfWallet),
                   style: TextStyle(
                     fontSize: 12,
                     fontFamily: fontsemibold,
@@ -787,7 +798,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
-                    getBalance('146,875 NGN'),
+                    getBalance('146,875 NGN', indexOfWallet),
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,
@@ -801,13 +812,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  String getBalance(String balance) {
-    print(
-        'getting bal for active wallet... ${appState.hideActiveWalletBalance}');
+  String getBalance(String balance, indexOfWallet) {
+    // print(
+    //     'getting bal for active wallet... ${appState.hideActiveWalletBalance}');
     String text;
     if (appState.hideBalances) text = hideBalanceText;
 
-    if (appState.hideActiveWalletBalance)
+    if (indexOfWallet < appState.hideWalletList.length &&
+        appState.hideWalletList[indexOfWallet])
       text = hideBalanceText;
     else
       text = balance;

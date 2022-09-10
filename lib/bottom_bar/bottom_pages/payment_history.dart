@@ -265,17 +265,17 @@ class Payment_HistoryState extends State<PaymentHistory>
           ),
           child: Padding(
             padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
             child: Row(
               children: [
                 Image.asset(
                   getIcon(transactionType),
-                  width: width / 8,
+                  width: width / 12,
                   color: notifier.getbluewhitecolor,
                   height: 25,
                 ),
                 SizedBox(
-                  width: 15,
+                  width: width / 50,
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,7 +294,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                           ),
                         ),
                         SizedBox(
-                          width: 10,
+                          width: width / 50,
                         ),
                         Text(
                           formatAmount(transactionType, amount, assetCode),
@@ -326,7 +326,6 @@ class Payment_HistoryState extends State<PaymentHistory>
                         ),
                       ],
                     ),
-                    SizedBox(height: 2),
                   ],
                 ),
               ],
