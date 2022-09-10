@@ -8,15 +8,18 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 )
 
-func UploadProfilePicture(user *userModels.User, file multipart.File, fileNameWithExt string, gc *sharedconfig.GlobalConfig) (string,error) {
-
-	err := gc.FirebaseStorageUploader.UploadFile(file, fileNameWithExt)
+func UploadProfilePicture(user *userModels.User, file multipart.File, fileNameWithExt string, gc *sharedconfig.GlobalConfig) (string, error) {
+	var oldThumbnail string
+	if user.ImageThumbnailURL != nil {
+		oldThumbnail = *user.ImageThumbnailURL
+	}
+	newThumbnail, err := gc.FirebaseStorageUploader.UploadFile(file, fileNameWithExt, oldThumbnail)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
 	//update the user thumbnail url
-	url := fmt.Sprintf("https://storage.googleapis.com/%v/%v/%v", gc.FirebaseStorageUploader.BucketName, gc.FirebaseStorageUploader.BucketName, fileNameWithExt)
+	url := fmt.Sprintf("https://storage.googleapis.com/%v/%v", gc.FirebaseStorageUploader.BucketName, newThumbnail)
 	user.ImageThumbnailURL = &url
 	e := gc.DB.Save(user).Error
 	if e != nil {

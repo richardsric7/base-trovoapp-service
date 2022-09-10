@@ -599,21 +599,19 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//merchant authorization request
-	router.POST("/v1/servicelinks/:ownerUsername/:targetUser/authorize", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
-
-		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
+	router.POST("/v1/servicelinks/authorize/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/%v/%v/authorize?", ownerUsername, trovoUser), gc.DB)
 		if trovoUser == "null" {
 			log.Printf("user cannot be %v\n", trovoUser)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
+
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET MERCHANT] error for merchant:", ownerUsername, "error: ", err)
+			log.Println("[GET MERCHANT] error for merchant:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -633,13 +631,17 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
-			//wrong access
-			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
-			c.JSON(statusCode, response)
-			return
-		}
+
+		ownerUsername := mInfo.OwnerUsername
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/authorize/%v %v", trovoUser, ownerUsername), gc.DB)
+		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		// 	//wrong access
+		// 	statusCode := http.StatusUnauthorized
+		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
+		// 	c.JSON(statusCode, response)
+		// 	return
+		// }
 		// log.Printf("Merchant Info: %+v\n", mInfo)
 		if mInfo.AuthorizationPermission == 0 {
 			//wrong access
@@ -687,8 +689,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		authID := uuid.NewString()
-		authorizationData := servicelinkModels.ServiceLinkAuthorization{ID: authID, OwnerUsername: mInfo.OwnerUsername,
-			WalletUsername: userInfo.Username}
+		authorizationData := servicelinkModels.ServiceLinkAuthorization{
+
+			ID:             authID,
+			ApiKey:         middleware.ExtractServiceLinkApiKey(c),
+			OwnerUsername:  mInfo.OwnerUsername,
+			WalletUsername: userInfo.Username,
+		}
 		if len(serviceLinkRequestInput.CallbackURL) > 0 {
 			authorizationData.CallbackURL = &serviceLinkRequestInput.CallbackURL
 		}
@@ -724,6 +731,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			statusCode := http.StatusServiceUnavailable
 			c.JSON(statusCode, response)
 			return
+		}
+		if userInfo.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["link"] = data.DynamicLink
+			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Authorization for [%v] requested!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to request an authorization session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, serviceLinkRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 		c.JSON(http.StatusOK, data)
 	})

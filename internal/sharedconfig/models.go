@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
+	"strings"
 	"time"
 	"trovo-wallet-api/internal/cache"
 
@@ -36,7 +37,7 @@ type ClientUploader struct {
 	UploadPath string
 }
 
-func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName string) error {
+func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName, imageThumbnailURL string) (string, error) {
 
 	// create an id
 	id := uuid.New()
@@ -45,13 +46,11 @@ func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName string) e
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
 
-	// Upload an object with storage.Writer.
-	// wc := c.cl.Bucket(c.bucketName).Object(c.uploadPath + object).NewWriter(ctx)
 	sh, err := c.Client.Bucket(c.BucketName)
 	if err != nil {
 		//no bucket with that name exists
 		log.Printf("[UploadFile] error getting bucket handle %v: %v\n", c.BucketName, err)
-		return fmt.Errorf("error getting bucket handle %v: %v", c.BucketName, err)
+		return "", fmt.Errorf("error getting bucket handle %v: %v", c.BucketName, err)
 	}
 
 	_, err = sh.Attrs(ctx)
@@ -63,17 +62,20 @@ func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName string) e
 		err := sh.Create(ctx, c.ProjectID, &cs.BucketAttrs{ACL: rules})
 		if err != nil {
 			log.Printf("[UploadFile] error creating bucket handle %v: %v\n", c.BucketName, err)
-			return fmt.Errorf("error creating bucket handle %v: %v", c.BucketName, err)
+			return "", fmt.Errorf("error creating bucket handle %v: %v", c.BucketName, err)
 		}
 	}
-	object := sh.Object(c.UploadPath + "/" + fileName)
+	newImageThumbnailName := c.UploadPath + "/" + id.String() + fileName
+	object := sh.Object(newImageThumbnailName)
 
-	{
+	if len(imageThumbnailURL) > 3 {
+		// ImageThumbnailURL is full https url. strip the unnecessary portion
+		oldName := strings.ReplaceAll(imageThumbnailURL, fmt.Sprintf("https://storage.googleapis.com/%v/", c.BucketName), "")
+		oldObject := sh.Object(oldName)
 		//check if object already exists and delete it.
-		if _, err := object.Attrs(ctx); err == nil {
-			object.Delete(ctx)
-			//set the object again
-			object = sh.Object(c.UploadPath + "/" + fileName)
+		if _, err := oldObject.Attrs(ctx); err == nil {
+			oldObject.Delete(ctx)
+
 		}
 	}
 	writer := object.NewWriter(ctx)
@@ -83,13 +85,9 @@ func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName string) e
 	defer writer.Close()
 
 	if _, err := io.Copy(writer, fileInput); err != nil {
-		log.Printf("[UploadFile] error uploading file %v: %v\n", fileName, err)
-		return fmt.Errorf("error uploading file %v: %v", fileName, err)
+		log.Printf("[UploadFile] error uploading file %v: %v\n", newImageThumbnailName, err)
+		return "", fmt.Errorf("error uploading file %v: %v", newImageThumbnailName, err)
 	}
 
-	// if err := object.ACL().Set(context.Background(), cs.AllUsers, cs.ScopeReadOnly); err != nil {
-	// 	log.Printf("[UploadFile] error setting file permission %v: %v\n", fileName, err)
-	// 	return fmt.Errorf("error setting file permission %v: %v", fileName, err)
-	// }
-	return nil
+	return newImageThumbnailName, nil
 }
