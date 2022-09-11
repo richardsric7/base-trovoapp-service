@@ -1,4 +1,4 @@
-package merchants
+package servicelinks
 
 import (
 	merchantUserModels "trovo-wallet-api/internal/components/servicelinks/models"

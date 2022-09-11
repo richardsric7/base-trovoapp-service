@@ -1,4 +1,4 @@
-package merchants
+package servicelinks
 
 import (
 	"bytes"
@@ -26,7 +26,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Init initializes /v1/merchants endpoint
+// Init initializes /v1/services endpoint
 func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	//retryCallbacks stores failed callbacks
@@ -103,7 +103,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}()
 	}
 
-	//merchant login request
+	//service login request
 	router.POST("/v1/servicelinks/login/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
@@ -152,16 +152,8 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "service account cannot be empty"})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/login/%v %v/%v", trovoUser, identifier, middleware.ExtractServiceLinkApiKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/login/request/%v %v/%v", trovoUser, identifier, middleware.ExtractServiceLinkApiKey(c)), gc.DB)
 
-		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
-		// 	//wrong access
-		// 	statusCode := http.StatusUnauthorized
-		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
-		// 	c.JSON(statusCode, response)
-		// 	return
-		// }
-		// log.Printf("Merchant Info: %+v\n", mInfo)
 		if mInfo.LoginPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
@@ -193,7 +185,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-
+		loginDescription := c.Query("loginDescription")
 		//store login data for verification
 		//does not exist. create new one.
 		loginID := uuid.NewString()
@@ -218,7 +210,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		//respond with deep-link and QRCode for login
-		data, err := dl.GenerateLoginData(mInfo.OwnerUsername, mInfo.ShortName, userInfo.Username, loginID, serviceLinkRequestInput.DeviceInfo, gc)
+		data, err := dl.GenerateLoginData(mInfo.OwnerUsername, mInfo.ShortName, userInfo.Username, loginID, serviceLinkRequestInput.DeviceInfo, loginDescription, gc)
 		if err != nil {
 			//could not create login session
 			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
@@ -242,7 +234,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		targetUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
-		loginID := strings.TrimSpace(strings.ToLower(c.Query("loginID")))
+		loginID := strings.TrimSpace(strings.ToLower(c.Query("loginId")))
 		if targetUser == "null" || targetUser == "" {
 			log.Printf("user cannot be %v\n", targetUser)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
@@ -250,12 +242,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 		if len(ownerUsername) == 0 {
 			log.Printf("service owner cannot be empty%v\n", targetUser)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "merchant cannot be empty"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "service cannot be empty"})
 			return
 		}
 		if len(loginID) == 0 {
 			log.Printf("loginID cannot be empty%v\n", targetUser)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "loginID cannot be empty"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "loginId cannot be empty"})
 			return
 		}
 		//store login data for verification
@@ -310,7 +302,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.LoginPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "login permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "login permission not enabled for this service"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -451,7 +443,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	//merchant login verify url
+	//service login verify url
 	router.GET("/v1/servicelinks/login/verify/:ownerUsername/:targetUser/:loginID", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
@@ -510,11 +502,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			gc.RedisCache.CacheHttpResponse(cacheKey, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		// log.Printf("Merchant Info: %+v\n", mInfo)
+		// log.Printf("service Info: %+v\n", mInfo)
 		if mInfo.LoginPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "login permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "login permission not enabled for this service"}
 			c.JSON(statusCode, response)
 			cacheDurationInSeconds := 60 //1 minutes
 
@@ -598,7 +590,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, userInfo)
 	})
 
-	//merchant authorization request
+	//service authorization request
 	router.POST("/v1/servicelinks/authorize/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 
@@ -611,7 +603,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET MERCHANT] error for merchant:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -634,7 +626,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		ownerUsername := mInfo.OwnerUsername
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/authorize/%v %v", trovoUser, ownerUsername), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/authorize/request/%v %v", trovoUser, ownerUsername), gc.DB)
 		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
 		// 	//wrong access
 		// 	statusCode := http.StatusUnauthorized
@@ -642,11 +634,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		// 	c.JSON(statusCode, response)
 		// 	return
 		// }
-		// log.Printf("Merchant Info: %+v\n", mInfo)
+		// log.Printf("service Info: %+v\n", mInfo)
 		if mInfo.AuthorizationPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "authorization permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "authorization permission not enabled for this service"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -700,8 +692,8 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			authorizationData.CallbackURL = &serviceLinkRequestInput.CallbackURL
 		}
 		period := time.Duration(3)
-		if os.Getenv("MERCHANT_AUTHORIZATION_REQUEST_VALIDITY") != "" {
-			m, e := decimal.NewFromString(os.Getenv("MERCHANT_AUTHORIZATION_REQUEST_VALIDITY"))
+		if os.Getenv("SERVICE_LINK_AUTHORIZATION_REQUEST_VALIDITY") != "" {
+			m, e := decimal.NewFromString(os.Getenv("SERVICE_LINK_AUTHORIZATION_REQUEST_VALIDITY"))
 			if e == nil {
 				if m.IsPositive() {
 					period = time.Duration(m.IntPart())
@@ -740,142 +732,44 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, data)
 	})
 
-	//SERVICE push notification request
-	router.POST("/v1/servicelinks/:ownerUsername/:targetUser/push", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
-
-		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
-		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
-
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/%v/%v/push?", ownerUsername, trovoUser), gc.DB)
-		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
-
-		if err != nil {
-			log.Println("[GET MERCHANT FOR PUSH] error for merchant:", ownerUsername, "error: ", err)
-
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			var statusCode int = 0
-			var response interface{}
-
-			if ok {
-				statusCode = ex.HTTPCode()
-				response = ex.JSONError()
-			} else {
-				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
-			}
-
-			c.JSON(statusCode, response)
-			return
-		}
-		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
-			//wrong access
-			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
-			c.JSON(statusCode, response)
-			return
-		}
-		// log.Printf("Merchant Infor: %+v\n", mInfo)
-		if mInfo.PushNotificationPermission == 0 {
-			//wrong access
-			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Push notification permission not enabled for this merchant"}
-			c.JSON(statusCode, response)
-			return
-		}
-
-		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
-
-		if err != nil {
-			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
-
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			var statusCode int = 0
-			var response interface{}
-
-			if ok {
-				statusCode = ex.HTTPCode()
-				response = ex.JSONError()
-			} else {
-				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
-			}
-
-			c.JSON(statusCode, response)
-			return
-		}
-		successResponseData := struct {
-			Data string `json:"data"`
-		}{
-			Data: "OK",
-		}
-		//check if user has Push Notification Token set
-		if userInfo.PushNotificationToken == nil {
-			//no valid token set. user cannot receive push notification
-
-			c.JSON(http.StatusOK, successResponseData)
-			return
-		}
-
-		var serviceLinkRequestInput servicelinkModels.ServiceLinkPushNotificationInput
-		reqBody, _ := io.ReadAll(c.Request.Body)
-
-		err = json.Unmarshal(reqBody, &serviceLinkRequestInput)
-
-		var invalidJSON tErrors.ErrorInvalidJSON
-
-		if err != nil {
-			log.Println("Push Notification Request Input JSON Error:", err)
-			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-			return
-		}
-		//check if message is set
-		if len(serviceLinkRequestInput.Message) == 0 {
-
-			c.JSON(http.StatusOK, successResponseData)
-			return
-		}
-
-		if len(serviceLinkRequestInput.Message) > 100 {
-			message100Bytes := make([]byte, 0)
-
-			//trim to 100 bytes
-			for _, c := range []byte(serviceLinkRequestInput.Message) {
-				if (len(message100Bytes) + len(string(c))) <= 100 {
-					message100Bytes = append(message100Bytes, c)
-					if len(message100Bytes) == 100 {
-						break
-					}
-				}
-			}
-			serviceLinkRequestInput.Message = string(message100Bytes)
-		}
-
-		//Push Message
-		serviceLinkRequestInput.PushMessage(*userInfo.PushNotificationToken)
-
-		c.JSON(http.StatusOK, successResponseData)
-	})
-
 	//user authorization approval url
-	router.POST("/v1/users/servicelinks/:targetUser/authorize/:ownerUsername/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/users/servicelinks/authorize/approval/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
-		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
-		authID := strings.TrimSpace(c.Param("authID"))
-
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/servicelinks/%v/authorize/%v/%v", identifier, ownerUsername, authID), gc.DB)
 		if identifier == "null" {
 			log.Printf("user cannot be %v\n", identifier)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
 			return
 		}
-		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
+		authID := strings.TrimSpace(c.Query("authId"))
+		//get authorization data for user
+		authData, err := servicelinkServices.GetEventAuthorizationData(ownerUsername, authID, gc.DB)
+		if err != nil {
+
+			//other system error
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+			log.Println("Event authorization error:", response)
+			c.JSON(statusCode, response)
+			return
+
+		}
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/servicelinks/authorize/%v %v/%v", identifier, ownerUsername, authID), gc.DB)
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(authData.ApiKey, gc.DB)
 
 		if err != nil {
 			log.Println("[GET SERVICE] error for SERVICELINK:", ownerUsername, "error: ", err)
@@ -903,13 +797,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			//wrong access
 
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "authorization permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "authorization permission not enabled for this service"}
 			log.Printf("%+v\n", response)
 			c.JSON(statusCode, response)
 			return
 		}
 
-		//check if merchant is for an event registration/reward merchant: [2 = registration, 1 = reward, 0 = none]
+		//check if service is for an event registration/reward service: [2 = registration, 1 = reward, 0 = none]
 		if mInfo.RewardOnly == 2 {
 
 			userInfo, err := servicelinkServices.GetUserForServiceLink(middleware.ExtractPublicKey(c), mInfo, gc)
@@ -945,30 +839,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				return
 			}
 
-			//get authorization data for user
-			authData, err := servicelinkServices.GetEventAuthorizationData(ownerUsername, authID, gc.DB)
-			if err != nil {
-
-				//other system error
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error()}
-				}
-				log.Println("Event authorization error:", response)
-				c.JSON(statusCode, response)
-				return
-
+			if userInfo.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["none"] = ""
+				pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Event Registration/Attendance for [%v] authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to authorize an event registration/attendance action on [%v] service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 			}
+
 			//return report to user and not keep them waiting.
 			c.JSON(http.StatusOK, gin.H{"message": "success"})
 
@@ -1074,6 +950,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				c.JSON(statusCode, response)
 				return
 
+			}
+
+			if userInfo.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["none"] = ""
+				pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Reward Action for [%v] authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to authorize a reward action on [%v] service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 			}
 			//return report to user and not keep them waiting.
 			c.JSON(http.StatusOK, gin.H{"message": "success"})
@@ -1197,6 +1079,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				c.JSON(statusCode, response)
 				return
 			}
+
+			if userInfo.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["none"] = ""
+				pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("2FA Action for [%v] authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to authorize a 2FA action on [%v] service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
 			//return report to user and not keep them waiting.
 			c.JSON(http.StatusOK, gin.H{"message": "success"})
 
@@ -1247,15 +1135,15 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	//merchant authorization verify url
-	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/authorize/:authID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	//service authorization verify url
+	router.GET("/v1/servicelinks/authorize/verify/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 
-		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
-		authID := strings.TrimSpace(strings.ToLower(c.Param("authID")))
+		authID := strings.TrimSpace(strings.ToLower(c.Query("authId")))
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/%v/%v/authorize/%v", ownerUsername, trovoUser, authID), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/authorize/verify/%v %v/%v", trovoUser,ownerUsername, authID), gc.DB)
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
@@ -1286,11 +1174,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		// log.Printf("Merchant Info: %+v\n", mInfo)
+		// log.Printf("service Info: %+v\n", mInfo)
 		if mInfo.AuthorizationPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "authorization permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "authorization permission not enabled for this service"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -1353,10 +1241,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
-	//merchant payment request
-	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	//service payment request
+	router.GET("/v1/servicelinks/payment/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
-		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		paymentDestination := strings.TrimSpace(strings.ToLower(c.Query("paymentDestination")))
 		if len(paymentDestination) == 56 {
@@ -1367,7 +1255,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		amount := strings.TrimSpace(c.Query("amount"))
 		memo := strings.TrimSpace(c.Query("memo"))
 
-		cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/%v/%v/payment", ownerUsername, trovoUser)
+		cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/payment/request/%v %v",  trovoUser,ownerUsername)
 		cacheKeyParameters := fmt.Sprintf("%v", c.Request.URL.RawQuery)
 
 		{
@@ -1382,7 +1270,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/%v/%v/payment?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", ownerUsername, trovoUser, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/payment/%v/%v/?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", trovoUser,ownerUsername, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
@@ -1413,11 +1301,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		// log.Printf("Merchant Infor: %+v\n", mInfo)
+		// log.Printf("service Infor: %+v\n", mInfo)
 		if mInfo.PaymentPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "payment permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "payment permission not enabled for this service"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -1517,11 +1405,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		// log.Printf("Merchant Info: %+v\n", mInfo)
+		// log.Printf("service Info: %+v\n", mInfo)
 		if mInfo.AllowUserInfo == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "userInfo permission not enabled for this merchant"}
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "userInfo permission not enabled for this service"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -1552,6 +1440,128 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		c.JSON(http.StatusOK, data)
 
+	})
+
+	//SERVICE push notification request
+	router.POST("/v1/servicelinks/:ownerUsername/:targetUser/push", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
+		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/%v/%v/push?", ownerUsername, trovoUser), gc.DB)
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service FOR PUSH] error for service:", ownerUsername, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
+			c.JSON(statusCode, response)
+			return
+		}
+		// log.Printf("service Infor: %+v\n", mInfo)
+		if mInfo.PushNotificationPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Push notification permission not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
+
+		if err != nil {
+			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+		successResponseData := struct {
+			Data string `json:"data"`
+		}{
+			Data: "OK",
+		}
+		//check if user has Push Notification Token set
+		if userInfo.PushNotificationToken == nil {
+			//no valid token set. user cannot receive push notification
+
+			c.JSON(http.StatusOK, successResponseData)
+			return
+		}
+
+		var serviceLinkRequestInput servicelinkModels.ServiceLinkPushNotificationInput
+		reqBody, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(reqBody, &serviceLinkRequestInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Println("Push Notification Request Input JSON Error:", err)
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		//check if message is set
+		if len(serviceLinkRequestInput.Message) == 0 {
+
+			c.JSON(http.StatusOK, successResponseData)
+			return
+		}
+
+		if len(serviceLinkRequestInput.Message) > 100 {
+			message100Bytes := make([]byte, 0)
+
+			//trim to 100 bytes
+			for _, c := range []byte(serviceLinkRequestInput.Message) {
+				if (len(message100Bytes) + len(string(c))) <= 100 {
+					message100Bytes = append(message100Bytes, c)
+					if len(message100Bytes) == 100 {
+						break
+					}
+				}
+			}
+			serviceLinkRequestInput.Message = string(message100Bytes)
+		}
+
+		//Push Message
+		serviceLinkRequestInput.PushMessage(*userInfo.PushNotificationToken)
+
+		c.JSON(http.StatusOK, successResponseData)
 	})
 
 }

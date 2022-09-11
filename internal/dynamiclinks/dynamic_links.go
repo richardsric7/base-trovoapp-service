@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 	"trovo-wallet-api/internal/cache"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -237,16 +238,19 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 }
 
 // GenerateLoginData generates Login Data
-func GenerateLoginData(merchant, merchantShortName, targetUser, loginID, deviceInfo string, gc *sharedconfig.GlobalConfig) (p LoginWithTrovoWalletData, err error) {
-
+func GenerateLoginData(ownerUsername, serviceShortName, targetUser, loginID, deviceInfo, loginDescription string, gc *sharedconfig.GlobalConfig) (p LoginWithTrovoWalletData, err error) {
+	if len(loginDescription) == 0 {
+		loginDescription = fmt.Sprintf("This is a request to authorize a login session for the Trovo wallet user account [%s] on the service %s.", targetUser, strings.ToUpper(serviceShortName))
+	}
 	var dynamicLink, pngDataURI string
 	params := url.Values{}
 	params.Add("action", "login")
-	params.Add("merchant", merchant)
-	params.Add("merchantShortName", merchantShortName)
+	params.Add("ownerUsername", ownerUsername)
+	params.Add("serviceShortName", serviceShortName)
 	params.Add("targetUser", targetUser)
 	params.Add("deviceInfo", deviceInfo)
 	params.Add("loginId", loginID)
+	params.Add("description", loginDescription)
 	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
 	// log.Println("[GenerateLoginData]link=", link)
 
@@ -274,24 +278,26 @@ func GenerateLoginData(merchant, merchantShortName, targetUser, loginID, deviceI
 }
 
 // GenerateAuthorizationData generates authorization Data
-func GenerateAuthorizationData(merchant, merchantShortName, description, targetUser, deviceInfo, authID string, gc *sharedconfig.GlobalConfig) (p TrovoWalletAuthorizationData, err error) {
-
+func GenerateAuthorizationData(ownerUsername, serviceShortName, description, targetUser, deviceInfo, authID string, gc *sharedconfig.GlobalConfig) (p TrovoWalletAuthorizationData, err error) {
+	if len(description) == 0 {
+		description = fmt.Sprintf("This is a request to authorize a 2FA action for the Trovo wallet user account [%s] on the service %s.", targetUser, strings.ToUpper(serviceShortName))
+	}
 	var dynamicLink, pngDataURI string
 	params := url.Values{}
 	params.Add("action", "authorize")
-	params.Add("merchant", merchant)
-	params.Add("merchantShortName", merchantShortName)
+	params.Add("ownerUsername", ownerUsername)
+	params.Add("serviceShortName", serviceShortName)
 	params.Add("targetUser", targetUser)
 	params.Add("deviceInfo", deviceInfo)
 	params.Add("description", description)
 	params.Add("authId", authID)
-	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
+	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
 	// log.Println("[GenerateAuthorizationData]link=", link)
 
 	dynamicLink, err = GenerateDynamicLink(link, gc)
 
 	if err != nil {
-		log.Printf("[GenerateAuthorizationData]could not generate dynamic-link for [%v]. error: %v\n", link, err)
+		log.Printf("[GenerateAuthorizationData] could not generate dynamic-link for [%v]. error: %v\n", link, err)
 		return
 	}
 	// log.Println("[GenerateAuthorizationData] generated dynamic link=", dynamicLink)
@@ -347,7 +353,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 	params.Add("assetIssuer", assetIssuer)
 	params.Add("amount", amount)
 	params.Add("memo", memo)
-	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
+	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
 	log.Println("[GeneratePaymentData]link=", link)
 
 	dynamicLink, err = GenerateDynamicLink(link, gc)
@@ -384,7 +390,7 @@ func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl st
 	params.Add("action", "register")
 	params.Add("referrer", username)
 
-	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
+	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
 
 	dynamicLink, err = GenerateDynamicLinkWithStaticService(link, dynamicLinkServiceUrl, redisCache)
 
@@ -420,7 +426,7 @@ func GenerateReferralLink(username string, gc *sharedconfig.GlobalConfig) (p Ref
 	params.Add("action", "register")
 	params.Add("referrer", username)
 
-	link := fmt.Sprintf("https://wallet.trovotech.io?%v", params.Encode())
+	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
 
 	dynamicLink, err = GenerateDynamicLink(link, gc)
 

@@ -1,1 +1,1 @@
-package merchants
+package servicelinks

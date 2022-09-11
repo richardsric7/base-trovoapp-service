@@ -1,4 +1,4 @@
-package merchants
+package servicelinks
 
 import (
 	"bytes"

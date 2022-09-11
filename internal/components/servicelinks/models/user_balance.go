@@ -1,4 +1,4 @@
-package merchants
+package servicelinks
 
 //Balance model for user
 type Balance struct {
