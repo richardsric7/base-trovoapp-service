@@ -714,7 +714,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	router.GET("/v1/users/:targetUser/generate/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/users/payment/generate/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -752,7 +752,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		amount := strings.TrimSpace(c.Query("amount"))
 		memo := strings.TrimSpace(c.Query("memo"))
 
-		cacheKey := fmt.Sprintf("[GET] /v1/users/%v/generate/payment", identifier)
+		cacheKey := fmt.Sprintf("[GET] /v1/users/payment/generate/%v", identifier)
 		cacheKeyParameters := fmt.Sprintf("%v", c.Request.URL.RawQuery)
 
 		{
