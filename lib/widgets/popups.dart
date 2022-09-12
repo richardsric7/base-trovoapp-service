@@ -971,129 +971,129 @@ void showSuccessAlert(context, {required onTap}) {
 
 void imageSourceDialog(context, {onCamera, onGallery}) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var appState = Provider.of<DataProvider>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
+  appState.dialogOpen = true;
   showDialog(
       context: context,
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false,
-          child: AlertDialog(
-              scrollable: true,
-              backgroundColor: Colors.transparent,
-              insetPadding: const EdgeInsets.all(20),
-              content: Container(
-                decoration: BoxDecoration(
-                  color: notifier.getwihitecolor,
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(23),
+        return AlertDialog(
+            scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(23),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 5,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 20.0, horizontal: 5.0),
+                            child: Text(
+                              LanguageEn.chooseimagesource,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: notifier.getbluecolor,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      constraints: BoxConstraints(
-                        maxHeight: height / 5,
-                      ),
-                      // height: height / 5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 20.0, horizontal: 5.0),
-                              child: Text(
-                                LanguageEn.chooseimagesource,
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: notifier.getbluecolor,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 5.0),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        onGallery();
+                        Navigator.of(context).pop();
+                        appState.dialogOpen = false;
+                      },
+                      // dismiss dialog,
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
                         ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0, vertical: 5.0),
-                      child: OutlinedButton(
-                        onPressed: () {
-                          onGallery();
-                          Navigator.of(context).pop();
-                        },
-                        // dismiss dialog,
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
                             ),
                           ),
                         ),
-                        child: Text(
-                          LanguageEn.gallery,
-                          style: TextStyle(
-                              color: notifier.getwihitecolor,
-                              fontFamily: fontbody),
-                        ),
+                      ),
+                      child: Text(
+                        LanguageEn.gallery,
+                        style: TextStyle(
+                            color: notifier.getwihitecolor,
+                            fontFamily: fontbody),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      child: OutlinedButton(
-                        onPressed: () {
-                          onCamera();
-                          Navigator.of(context).pop();
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
-                          ),
-                          overlayColor: MaterialStateProperty.all<Color>(
-                              notifier.getsplashgrey),
-                          elevation: MaterialStateProperty.all<double>(0),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getwihitecolor!),
-                          side: MaterialStateProperty.all(
-                            BorderSide(
-                                color: notifier.getgrey,
-                                width: 1,
-                                style: BorderStyle.solid),
-                          ),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        onCamera();
+                        Navigator.of(context).pop();
+                        appState.dialogOpen = false;
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                            notifier.getsplashgrey),
+                        elevation: MaterialStateProperty.all<double>(0),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getwihitecolor!),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                              color: notifier.getgrey,
+                              width: 1,
+                              style: BorderStyle.solid),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
                             ),
                           ),
                         ),
-                        child: Text(
-                          LanguageEn.camera,
-                          style: TextStyle(
-                              color: notifier.getbluecolor,
-                              fontFamily: fontbody),
-                        ),
+                      ),
+                      child: Text(
+                        LanguageEn.camera,
+                        style: TextStyle(
+                            color: notifier.getbluecolor, fontFamily: fontbody),
                       ),
                     ),
-                    SizedBox(height: height / 50),
-                  ],
-                ),
-              )),
-        );
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ));
       });
 }

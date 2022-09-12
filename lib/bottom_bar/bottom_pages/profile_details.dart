@@ -5,17 +5,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
+import 'package:image_cropper/image_cropper.dart';
 // import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -71,52 +75,67 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               ),
               GestureDetector(
                 onTap: () {
-                  // imageSourceDialog(
-                  //   context,
-                  //   onCamera: () {
-                  //     getImage(ImageSource.camera);
-                  //   },
-                  //   onGallery: () {
-                  //     getImage(ImageSource.gallery);
-                  //   },
-                  // );
+                  imageSourceDialog(
+                    context,
+                    onCamera: () {
+                      getImage(ImageSource.camera);
+                    },
+                    onGallery: () {
+                      getImage(ImageSource.gallery);
+                    },
+                  );
                 },
                 child: Center(
-                  child: Image.asset(
-                    "assets/images/obi.png",
-                    height: height / 10,
-                    fit: BoxFit.fill,
+                  child: GestureDetector(
+                    onTap: () {
+                      imageSourceDialog(
+                        context,
+                        onCamera: () {
+                          getImage(ImageSource.camera);
+                        },
+                        onGallery: () {
+                          getImage(ImageSource.gallery);
+                        },
+                      );
+                    },
+                    child: CircleAvatar(
+                        radius: width / 10,
+                        backgroundColor: notifier.getbluecolor70,
+                        child: GestureDetector(
+                          onTap: () {
+                            imageSourceDialog(
+                              context,
+                              onCamera: () {
+                                getImage(ImageSource.camera);
+                              },
+                              onGallery: () {
+                                getImage(ImageSource.gallery);
+                              },
+                            );
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(100.0),
+                            child: Image.network(
+                              appState.userInfo!.imageThumbnailURL!,
+                              width: width / 5.3,
+                              // height: width / 10,
+                              fit: BoxFit.fill,
+                            ),
+                          ),
+                        )),
                   ),
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  // imageSourceDialog(
-                  //   context,
-                  //   onCamera: () {
-                  //     getImage(ImageSource.camera);
-                  //   },
-                  //   onGallery: () {
-                  //     getImage(ImageSource.gallery);
-                  //   },
-                  // );
-                },
-                child: Text(
-                  LanguageEn.changepicture,
-                  style: TextStyle(
-                      color: notifier.getgrey,
-                      fontFamily: fontsemibold,
-                      fontSize: 13.sp),
-                ),
+              SizedBox(
+                height: height / 80,
               ),
               Text(
                 '${appState.userInfo!.firstName} ${appState.userInfo!.lastName}',
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
-                    fontFamily: 'Gilroy_Bold',
+                    fontFamily: fontsemibold,
                     fontSize: 16.sp),
               ),
-              SizedBox(height: height / 70),
               Text(
                 '@${appState.userInfo!.username}',
                 style: TextStyle(
@@ -124,7 +143,6 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                     fontFamily: fontsemibold,
                     fontSize: 13.sp),
               ),
-              SizedBox(height: height / 70),
               Text(
                 '${LanguageEn.referralid}: ${appState.userInfo!.username}',
                 style: TextStyle(
@@ -141,7 +159,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                       LanguageEn.bio,
                       style: TextStyle(
                           color: notifier.getbluewhitecolor,
-                          fontFamily: 'Gilroy_Bold',
+                          fontFamily: fontsemibold,
                           fontSize: 16.sp),
                     ),
                   ],
@@ -157,7 +175,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                       LanguageEn.socials,
                       style: TextStyle(
                           color: notifier.getbluewhitecolor,
-                          fontFamily: 'Gilroy_Bold',
+                          fontFamily: fontsemibold,
                           fontSize: 16.sp),
                     ),
                   ],
@@ -172,56 +190,84 @@ class _ProfileDetailsState extends State<ProfileDetails> {
     );
   }
 
-  // Future<void> getImage(ImageSource source) async {
-  //   var image = await ImagePicker().pickImage(source: source);
-  //   var croppedImage = await ImageCropper().cropImage(
-  //       sourcePath: image!.path,
-  //       aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
-  //       compressQuality: 100,
-  //       maxHeight: 800,
-  //       maxWidth: 800,
-  //       compressFormat: ImageCompressFormat.jpg,
-  //       uiSettings: [
-  //         AndroidUiSettings(
-  //           toolbarColor: Color(0xffFC690A),
-  //           toolbarTitle: 'Crop Image',
-  //         ),
-  //         IOSUiSettings(
-  //           title: 'Crop Image',
-  //         ),
-  //       ]);
-  //   if (croppedImage != null) {
-  //     print('${image.mimeType}, ${image.path}');
-  //     // image.saveTo('images/profile-pic.${image.name.split('.')[1]}');
-  //     await uploadImage(image);
-  //   }
-  // }
+  Future<void> getImage(ImageSource source) async {
+    var image = await ImagePicker().pickImage(source: source);
+    if (image != null) {
+      var croppedImage = await ImageCropper().cropImage(
+          sourcePath: image.path,
+          cropStyle: CropStyle.circle,
+          aspectRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
+          compressQuality: 100,
+          maxHeight: 800,
+          maxWidth: 800,
+          compressFormat: ImageCompressFormat.jpg,
+          uiSettings: [
+            AndroidUiSettings(
+              toolbarColor: notifier.getbluecolor80,
+              toolbarTitle: 'Crop Image',
+            ),
+            IOSUiSettings(
+              title: 'Crop Image',
+            ),
+          ]);
+      if (croppedImage != null) {
+        await uploadImage(croppedImage);
+      }
+    }
+  }
 
-  // Future<void> uploadImage(image) async {
-  //   var base64ImageData = getBase64Image(image);
+  Future<void> uploadImage(croppedImage) async {
+    print('-----------------------${croppedImage.path}');
+    try {
+      showLoader(context);
+      // make initial request to the server using the
+      // following credentials
+      var primaryWalletKeyPair =
+          TrovoWalletSDK().parseSecretKey(appState.secretKeys[0]);
 
-  //   // Map responseData = await makePutRequest(
-  //   //     uri: '/v1/users/payment',
-  //   //     body: requestBody,
-  //   //     signer: activeWallet!.signer!,
-  //   //     secretKey: appState.secretKeys[0], // the primary wallet secret key
-  //   //     publicKey: activeWallet!.publicKey!,
-  //   //   );
-  // }
+      Map responseData = await makePutRequestForMultipartFile(
+        uri: '/v1/users/upload-picture',
+        multipartFilePath: croppedImage.path,
+        signer: primaryWalletKeyPair.publicKey,
+        secretKey: primaryWalletKeyPair.secretKey,
+        publicKey: primaryWalletKeyPair.publicKey,
+      );
+      print('----------this is responseData: $responseData');
+      if (responseData['statusCode'] == 200) {
+        String imageUrl = responseData['data'].toString().replaceAll('"', '');
+        appState.userInfo!.imageThumbnailURL = imageUrl;
+        appState.updateListeners();
+        print(
+            '---------------------appState.userInfo!.imageThumbnailURL: ${appState.userInfo!.imageThumbnailURL}');
+        await StoreData()
+            .storeInsertData('userInfo', appState.userInfo!.toJSONEncodable());
+        setState(() {});
+        hideLoader(context);
+      } else {
+        popup(context,
+            title: LanguageEn.error, message: responseData['data']['message']);
+        hideLoader(context);
+      }
+    } catch (e) {
+      print(e);
+      hideLoader(context);
+      popup(context, title: LanguageEn.error, message: e.toString());
+    }
+  }
 
-  // Future<dynamic> getBase64Image(XFile image) async {
-  //   //
-  //   List<int> imageBytes = await image.readAsBytes();
-  //   String imageB64 = base64Encode(imageBytes);
-  //   return imageB64;
-  //   // String fileName = image.path.split("/").last;
-  // }
+  Future<dynamic> getBase64Image(XFile image) async {
+    //
+    List<int> imageBytes = await image.readAsBytes();
+    String imageB64 = base64Encode(imageBytes);
+    return imageB64;
+    // String fileName = image.path.split("/").last;
+  }
 
-  // Uint8List getBase64Decode(String image) {
-  //   Uint8List imageString = base64Decode(image);
-  //   return imageString;
-  //   // String fileName = image.path.split("/").last;
-  // }
+  Uint8List getBase64Decode(String image) {
+    Uint8List imageString = base64Decode(image);
+    return imageString;
+    // String fileName = image.path.split("/").last;
+  }
 
   Widget bioInfo() {
     return Padding(

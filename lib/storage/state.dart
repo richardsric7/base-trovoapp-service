@@ -20,6 +20,7 @@ class DataProvider with ChangeNotifier {
   String? password;
   var assetBalances;
   var nfts;
+  bool dialogOpen = false;
   WalletsListViewData walletView = WalletsListViewData(
       view: WalletView.listWallets,
       actionIcon: Icons.add_circle_outline_sharp,
@@ -31,6 +32,8 @@ class DataProvider with ChangeNotifier {
     print('notifying listeners...');
     notifyListeners();
   }
+
+  void updateListeners() => notifyListeners();
 
   // bool hideActiveWalletBalance = false;
   // set toggleActiveBalances(bool value) {

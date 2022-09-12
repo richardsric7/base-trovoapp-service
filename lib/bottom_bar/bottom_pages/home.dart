@@ -435,12 +435,26 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             Row(
               children: [
                 Padding(
-                    padding: EdgeInsets.fromLTRB(width / 18, 0, 0, 0),
-                    child: CircleAvatar(
-                      radius: 30,
-                      backgroundColor: notifier.getwihitecolor,
-                      foregroundImage: AssetImage("assets/images/obi.png"),
-                    )),
+                  padding: EdgeInsets.fromLTRB(width / 18, 0, 0, 0),
+                  child: CircleAvatar(
+                    radius: 30,
+                    backgroundColor: notifier.getbluecolor70,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100.0),
+                      child: Image.network(
+                        appState.userInfo!.imageThumbnailURL!,
+                        width: width / 6.8,
+                        // height: width / 10,
+                        fit: BoxFit.fill,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset(
+                            'assets/images/trovo.png',
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
                 SizedBox(
                   width: width / 70,
                 ),

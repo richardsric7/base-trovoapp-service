@@ -66,13 +66,29 @@ class _SettingsState extends State<Settings> {
                 height: height / 10,
               ),
               Center(
-                child: Image.asset(
-                  "assets/images/obi.png",
-                  height: height / 10,
-                  fit: BoxFit.fill,
-                ),
+                child: CircleAvatar(
+                    radius: width / 10,
+                    backgroundColor: notifier.getbluecolor70,
+                    child: GestureDetector(
+                      onTap: () {
+                        appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: ProfileDetailsViewPageConfig);
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100.0),
+                        child: Image.network(
+                          appState.userInfo!.imageThumbnailURL!,
+                          width: width / 5.3,
+                          // height: width / 10,
+                          fit: BoxFit.fill,
+                        ),
+                      ),
+                    )),
               ),
-              SizedBox(height: height / 70),
+              SizedBox(
+                height: height / 80,
+              ),
               Text(
                 '${appState.userInfo!.firstName} ${appState.userInfo!.lastName}',
                 style: TextStyle(
@@ -80,7 +96,7 @@ class _SettingsState extends State<Settings> {
                     fontFamily: fontsemibold,
                     fontSize: 16.sp),
               ),
-              SizedBox(height: height / 20),
+              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   share();

@@ -14,7 +14,7 @@ class UserInfo {
   String? publicKey;
   int? corporate;
   String? pushNotificationToken;
-  String? imageThumbNail;
+  String? imageThumbnailURL;
   int? membershipType;
   DateTime? membershipExpiry;
   int? kycVerified;
@@ -37,7 +37,7 @@ class UserInfo {
     this.referralQRCode,
     this.corporate,
     this.pushNotificationToken,
-    this.imageThumbNail,
+    this.imageThumbnailURL,
     this.membershipType,
     this.membershipExpiry,
     this.kycVerified,
@@ -62,9 +62,9 @@ class UserInfo {
       "publicKey": publicKey,
       "corporate": corporate,
       "pushNotificationToken": pushNotificationToken,
-      "imageThumbNail": imageThumbNail,
+      "imageThumbnailURL": imageThumbnailURL,
       "membershipType": membershipType,
-      "membershipExpiry": membershipExpiry,
+      "membershipExpiry": membershipExpiry!.toIso8601String(),
       "kycVerified": kycVerified,
       "walletRecoveryEnabled": walletRecoveryEnabled,
       "verified": verified,
@@ -103,7 +103,7 @@ class UserInfo {
       publicKey: m['publicKey'],
       corporate: m['corporate'],
       pushNotificationToken: m['pushNotificationToken'],
-      imageThumbNail: m['imageThumbNail'],
+      imageThumbnailURL: m['imageThumbnailURL'],
       membershipType: m['membershipType'],
       membershipExpiry: DateTime.tryParse(m['membershipExpiry']),
       kycVerified: m['kycVerified'],

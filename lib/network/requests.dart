@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:trovo_wallet/functions/helpers.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:http_parser/http_parser.dart';
 import '../functions/trovo-sdk.dart';
 
 //final String trovoBaseUrl = 'https://api-alpha.dev.bantupay.org'; // alpha
@@ -348,6 +348,95 @@ Future<Map> makeUnSecuredGetRequest(String path) async {
     return {'statusCode': 505, 'data': errorResponse};
   } on Exception catch (e) {
     print("The Catch Error on makeUnSecuredGetRequest() Is: $e");
+    // return {'statusCode': 505, 'data': 'Request failed. Try again'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "UnknownException",
+      "message": "Unknown error. Try again"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  }
+}
+
+Future<Map> makePutRequestForMultipartFile({
+  required String uri,
+  required String signer,
+  required String multipartFilePath,
+  required String secretKey,
+  required String publicKey,
+}) async {
+  Map<String, String> headers = await getRequestHeader(
+    uri: uri,
+    signer: signer,
+    secretKey: secretKey,
+    publicKey: publicKey,
+  );
+
+  //print('frist body: $body, pubkey: $publicKey, url: $baseUrlTest$uri');
+
+  try {
+    var request =
+        await http.MultipartRequest('PUT', Uri.parse(getTrovoBaseURL() + uri));
+    request.headers.addAll(headers);
+    request.files.add(await http.MultipartFile.fromPath(
+        'profilePicture', multipartFilePath,
+        contentType: MediaType('image', 'jpeg')));
+    var response = await request.send();
+    var responseString = await response.stream.bytesToString();
+    print("The statucode is: ${response.statusCode}");
+    print("The Response Body is: ${responseString}");
+
+    return {
+      'statusCode': response.statusCode,
+      'data': responseString,
+    };
+  } on SocketException catch (e) {
+    print("The Catch Error on makePutRequest() Is: $e");
+    // print('No Internet connection 😑');
+    // return {'statusCode': 505, 'data': 'No Internet connection'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "SocketException",
+      "message": "No Internet connection"
+    };
+    return {'statusCode': 505, 'data': errorResponse};
+  } on HttpException catch (e) {
+    print("The Catch Error on makePutRequest() Is: $e");
+    // print("Couldn't find the post 😱");
+    // return {'statusCode': 505, 'data': "Couldn't find the post. Try again"};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "HttpException",
+      "message": "Couldn't find the post"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on FormatException catch (e) {
+    print("The Catch Error on makePutRequest() Is: $e");
+    // print("Bad response format 👎");
+    // return {'statusCode': 505, 'data': 'Bad response format'};
+
+    Map errorResponse = {
+      "data": "$e",
+      "error": "FormatException",
+      "message": "Bad response format"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on TimeoutException catch (e) {
+    print("The Catch Error on makePutRequest() Is: $e");
+    print("Request Time Out");
+    // return {'statusCode': 505, 'data': 'Request Time Out'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "TimeoutException",
+      "message": "Request Time Out"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on Exception catch (e) {
+    print("The Catch Error on makePutRequest() Is: $e");
     // return {'statusCode': 505, 'data': 'Request failed. Try again'};
     Map errorResponse = {
       "data": "$e",
