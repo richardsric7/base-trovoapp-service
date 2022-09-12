@@ -7,41 +7,43 @@ import (
 )
 
 type User struct {
-	CreatedAt             time.Time    `json:"createdAt"`
-	UpdatedAt             time.Time    `json:"updatedAt"`
-	LastUpdatedMobileOn   time.Time    `json:"lastUpdatedMobileOn"`
-	ID                    string       `json:"id"`
-	Username              string       `gorm:"size:16; index:idx_user_unique_username, unique" json:"username"`
-	Email                 string       `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
-	ImageThumbnailURL     *string      `json:"imageThumbnailURL"`
-	FirstName             string       `gorm:"size:50" json:"firstName"`
-	LastName              *string      `gorm:"size:50" json:"lastName"`
-	Mobile                *string      `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
-	PublicKey             string       `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
-	PrimarySigner         string       `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
-	Referrer              *string      `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
-	ReferralLink          *string      `json:"referralLink"`
-	ReferralQrCode        *string      `json:"referralQrCode"`
-	PushNotificationToken *string      `json:"pushNotificationToken"`
-	Corporate             uint         `gorm:"type:integer;not null; default:0" json:"corporate"`
-	MobileVerified        uint         `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
-	MembershipType        uint         `gorm:"type:integer;not null; default:0" json:"membershipType"`
-	MembershipExpiry      *time.Time   `json:"membershipExpiry"`
-	KYCVerified           uint         `gorm:"type:integer;not null; default:0" json:"kycVerified"`
-	WalletRecoveryEnabled uint         `gorm:"type:integer;not null; default:0" json:"walletRecoveryEnabled"`
-	UserWallets           []UserWallet `json:"userWallets"`
-	PublicIP              string       `gorm:"size:45" json:"publicIP"`
-	CountryCode           *string      `gorm:"size:2;null"`
-	Latitude              *float64     `gorm:"null"`
-	Longitude             *float64     `gorm:"null"`
-	City                  *string      `gorm:"null;size:100"`
-	Region                *string      `gorm:"null;size:100"`
-	RegionName            *string      `gorm:"null;size:100"`
-	TimeZone              *string      `gorm:"null;size:100"`
-	ISP                   *string      `gorm:"null;size:150"`
-	Verified              int          `gorm:"type:integer;not null;default:0" json:"verified"`
-	Suspended             int          `gorm:"type:integer;not null;default:0" json:"suspended"`
-	SuspensionReason      *string      `gorm:"null" json:"suspensionReason"`
+	CreatedAt               time.Time    `json:"createdAt"`
+	UpdatedAt               time.Time    `json:"updatedAt"`
+	LastUpdatedMobileOn     time.Time    `json:"lastUpdatedMobileOn"`
+	ID                      string       `json:"id"`
+	Username                string       `gorm:"size:16; index:idx_user_unique_username, unique" json:"username"`
+	Email                   string       `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
+	ImageThumbnailURL       *string      `json:"imageThumbnailURL"`
+	FirstName               string       `gorm:"size:50" json:"firstName"`
+	LastName                *string      `gorm:"size:50" json:"lastName"`
+	Mobile                  *string      `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
+	PublicKey               string       `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
+	PrimarySigner           string       `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
+	Referrer                *string      `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
+	ReferralLink            *string      `json:"referralLink"`
+	ReferralQrCode          *string      `json:"referralQrCode"`
+	PushNotificationToken   *string      `json:"pushNotificationToken"`
+	Corporate               uint         `gorm:"type:integer;not null; default:0" json:"corporate"`
+	MobileVerified          uint         `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
+	MembershipType          uint         `gorm:"type:integer;not null; default:0" json:"membershipType"`
+	MembershipExpiry        *time.Time   `json:"membershipExpiry"`
+	KYCVerified             uint         `gorm:"type:integer;not null; default:0" json:"kycVerified"`
+	WalletRecoveryEnabled   uint         `gorm:"type:integer;not null; default:0" json:"walletRecoveryEnabled"`
+	WalletRecoveryExpiresOn *time.Time   `gorm:"type:integer;not null; default:0" json:"walletRecoveryExpiresOn"`
+	UserWallets             []UserWallet `json:"userWallets"`
+	PublicIP                string       `gorm:"size:45" json:"publicIP"`
+	CountryCode             *string      `gorm:"size:2;null"`
+	Latitude                *float64     `gorm:"null"`
+	Longitude               *float64     `gorm:"null"`
+	City                    *string      `gorm:"null;size:100"`
+	Region                  *string      `gorm:"null;size:100"`
+	RegionName              *string      `gorm:"null;size:100"`
+	TimeZone                *string      `gorm:"null;size:100"`
+	ISP                     *string      `gorm:"null;size:150"`
+	HasSecretQuestions      int          `gorm:"type:integer;not null;default:0" json:"hasSecretQuestions"`
+	Verified                int          `gorm:"type:integer;not null;default:0" json:"verified"`
+	Suspended               int          `gorm:"type:integer;not null;default:0" json:"suspended"`
+	SuspensionReason        *string      `gorm:"null" json:"suspensionReason"`
 }
 
 type UserWallet struct {
@@ -115,10 +117,10 @@ type UserRegistrationInfo struct {
 	PublicIP              string `json:"-"`
 }
 
-//UserWalletManagedAccessID is type for wallet access id
+// UserWalletManagedAccessID is type for wallet access id
 type UserWalletManagedAccessID string
 
-//UserWalletID is type for wallet/sub-wallet Public Key
+// UserWalletID is type for wallet/sub-wallet Public Key
 type UserWalletID string
 
 type TrackedWallet struct {
@@ -146,4 +148,22 @@ type SubWalletInfo struct {
 	ChannelAccountSignature string   `json:"channelAccountSignature"`
 	SubWalletMustSign       int      `json:"subWalletMustSign"`
 	Messages                []string `json:"messages"`
+}
+
+type SecretQuestion struct {
+	ID       uint64
+	Question string
+}
+
+type UserSecretAnswer struct {
+	ID        uint64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Username  string `gorm:"size:20;not null;" json:"username"`
+	Q1        uint64 `gorm:"not null;" json:"q1"`
+	A1        string `gorm:"size:50;not null;" json:"a1"`
+	Q2        uint64 `gorm:"not null;" json:"q2"`
+	A2        string `gorm:"size:50;not null;" json:"a2"`
+	Q3        uint64 `gorm:"not null;" json:"q3"`
+	A3        string `gorm:"size:50;not null;" json:"a3"`
 }

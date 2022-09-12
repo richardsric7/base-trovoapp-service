@@ -25,6 +25,7 @@ type UserJSON struct {
 	UserWallets           []UserWalletJSON `json:"userWallets"`
 	Verified              int              `json:"verified"`
 	Suspended             int              `json:"suspended"`
+	HasSecretQuestions    int              `json:"hasSecretQuestions"`
 }
 
 type UserWalletJSON struct {

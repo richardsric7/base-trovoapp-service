@@ -3,14 +3,14 @@ package users
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	tErrors "trovo-wallet-api/internal/errors"
 )
 
-//GetGeoInfo gives the Geo Information
+// GetGeoInfo gives the Geo Information
 func GetGeoInfo(ip string) (fetchedGeoIP IPAPI, err error) {
 	if ip == "" {
 		log.Println("[GetGeoIP] no ip address supplied")
@@ -33,7 +33,7 @@ func GetGeoInfo(ip string) (fetchedGeoIP IPAPI, err error) {
 	if err == nil {
 		defer resp.Body.Close()
 
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if len(string(body)) == 0 {
 			log.Println("error getting response for request")
 			return fetchedGeoIP, &tErrors.ErrorTemporaryServerError{}

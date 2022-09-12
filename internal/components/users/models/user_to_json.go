@@ -14,6 +14,7 @@ func (u *User) ToJSON() (jsonObj UserJSON) {
 	jsonObj.WalletRecoveryEnabled = u.WalletRecoveryEnabled
 	jsonObj.Verified = u.Verified
 	jsonObj.Suspended = u.Suspended
+	jsonObj.HasSecretQuestions = u.HasSecretQuestions
 	// log.Println("[UserToJSON] set basic params")
 	//nullable
 	{
