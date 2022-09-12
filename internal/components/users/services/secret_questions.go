@@ -7,7 +7,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 )
 
-func SaveSecretQuestions(user *userModels.User, answer userModels.UserSecretAnswer, gc *sharedconfig.GlobalConfig) error {
+func SaveUserSecretQuestions(user *userModels.User, answer userModels.UserSecretAnswer, gc *sharedconfig.GlobalConfig) error {
 	var existingAnswer userModels.UserSecretAnswer
 	e := gc.DB.Where("username = ?", user.Username).First(&existingAnswer).Error
 	if e != nil {
@@ -18,8 +18,11 @@ func SaveSecretQuestions(user *userModels.User, answer userModels.UserSecretAnsw
 			log.Printf("[SaveSecretQuestions] error creating answers [%v]", e)
 			return &tErrors.CustomError{Param: "id", Err: "error saving secret answers", ErrMessage: "Unable to save secret answers at this time"}
 		}
-		user.HasSecretQuestions = 1
-		gc.DB.Save(user)
+		if user.HasSecretQuestions == 0 {
+			user.HasSecretQuestions = 1
+			gc.DB.Save(user)
+		}
+
 		return nil
 
 	}
@@ -36,8 +39,34 @@ func SaveSecretQuestions(user *userModels.User, answer userModels.UserSecretAnsw
 		log.Printf("[SaveSecretQuestions] error saving answers [%v]", e)
 		return &tErrors.CustomError{Param: "id", Err: "error saving secret answers", ErrMessage: "Unable to save secret answers at this time"}
 	}
-	user.HasSecretQuestions = 1
-	gc.DB.Save(user)
+	if user.HasSecretQuestions == 0 {
+		user.HasSecretQuestions = 1
+		gc.DB.Save(user)
+	}
 	return nil
 
+}
+
+func GetUserSecretAnswers(user *userModels.User, gc *sharedconfig.GlobalConfig) (answer userModels.UserSecretAnswer, err error) {
+	if user.HasSecretQuestions == 0 {
+		return answer, &tErrors.CustomError{Param: "username",
+			Err:        "error-no-secret answers exist for user",
+			ErrMessage: "No secret answers yet",
+		}
+	}
+	if e := gc.DB.Where("username = ?", user.Username).First(&answer).Error; e != nil {
+		return answer, &tErrors.CustomError{Param: "username",
+			Err:        "error-no-secret answers exist for user",
+			ErrMessage: "No secret answers yet",
+		}
+	}
+	return answer, nil
+}
+
+func GetSecretQuestions(user *userModels.User, gc *sharedconfig.GlobalConfig) (questions []userModels.SecretQuestion) {
+
+	if e := gc.DB.Order("question ASC").Find(&questions).Error; e != nil {
+		return make([]userModels.SecretQuestion, 0)
+	}
+	return questions
 }

@@ -148,6 +148,14 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating WalletAccess: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.SecretQuestion{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating SecretQuestion: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.UserSecretAnswer{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserSecretAnswer: ", errMigrate)
+		}
 
 		errMigrate = gormDB.AutoMigrate(&users.AccessLevel{})
 		if errMigrate != nil {

@@ -29,7 +29,7 @@ type User struct {
 	MembershipExpiry        *time.Time   `json:"membershipExpiry"`
 	KYCVerified             uint         `gorm:"type:integer;not null; default:0" json:"kycVerified"`
 	WalletRecoveryEnabled   uint         `gorm:"type:integer;not null; default:0" json:"walletRecoveryEnabled"`
-	WalletRecoveryExpiresOn *time.Time   `gorm:"type:integer;not null; default:0" json:"walletRecoveryExpiresOn"`
+	WalletRecoveryExpiresOn *time.Time   `gorm:"type:integer;null" json:"walletRecoveryExpiresOn"`
 	UserWallets             []UserWallet `json:"userWallets"`
 	PublicIP                string       `gorm:"size:45" json:"publicIP"`
 	CountryCode             *string      `gorm:"size:2;null"`

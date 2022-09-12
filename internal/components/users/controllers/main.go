@@ -813,7 +813,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	router.POST("/v1/users/secret-questions", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/secret-questions", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
 		var answers userModels.UserSecretAnswer
@@ -851,7 +851,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/secret-questions %v", user.Username), gc.DB)
 
-		err = userServices.SaveSecretQuestions(&user, answers, gc)
+		err = userServices.SaveUserSecretQuestions(&user, answers, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -874,7 +874,44 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		//At this point, there was no error.
 
-		c.JSON(http.StatusOK, user)
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	router.GET("/v1/secret-questions", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		// var err error
+
+		signerUser, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("secret-questions %v", signerUser.Username), gc.DB)
+
+		secretQuestions := userServices.GetSecretQuestions(&signerUser, gc)
+
+		userSecretAnswers, _ := userServices.GetUserSecretAnswers(&signerUser, gc)
+
+		c.JSON(http.StatusOK, gin.H{"secretQuestions": secretQuestions, "userSecretAnswers": userSecretAnswers})
+
 	})
 
 }
