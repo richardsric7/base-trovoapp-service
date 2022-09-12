@@ -242,6 +242,28 @@ type PendingAssetToClaim struct {
 	NetworkPassPhrase    string `json:"networkPassPhrase"`
 }
 
+type SecretQuestion struct {
+	ID       uint64
+	Question string
+}
+
+type UserSecretAnswer struct {
+	ID        uint64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Username  string `gorm:"size:20;not null;" json:"username"`
+	Q1        uint64 `gorm:"not null;" json:"q1"`
+	A1        string `gorm:"size:50;not null;" json:"a1"`
+	Q2        uint64 `gorm:"not null;" json:"q2"`
+	A2        string `gorm:"size:50;not null;" json:"a2"`
+	Q3        uint64 `gorm:"not null;" json:"q3"`
+	A3        string `gorm:"size:50;not null;" json:"a3"`
+}
+type AnswerResp struct {
+	Questions   []SecretQuestion `json:"secretQuestions"`
+	UserAnswers UserSecretAnswer `json:"userSecretAnswers"`
+}
+
 func TestAccountRegistration(t *testing.T) {
 	/*
 		{"username":"username","email":"richardsric7@gmail.com","firstName":"Kenny","lastName":"Maduka","mobile":"+2347062685682","mobileCountryCode":"NG","referrer":"","pushNotificationToken":"","corporate":0,"verificationCode":""}
@@ -375,6 +397,53 @@ func TestAccountProfilePictureUpdate(t *testing.T) {
 
 }
 
+func TestGetSecretAnswers(t *testing.T) {
+
+	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
+	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
+	primaryPK := os.Getenv("RICPK")
+	primarySecretKey := os.Getenv("RICSC")
+	kp := keypair.MustParseFull(primarySecretKey)
+	// log.Println(kp.Address())
+	// baseURL := "http://localhost:8080"
+	baseURL := prodURL
+	fullPath := "/v1/secret-questions"
+	ts := time.Now().Unix() / 1000
+
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	errorResponse := new(ErrorResponse)
+	resultResponse := new(AnswerResp)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", primaryPK).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Get(fullPath).Receive(resultResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestGetSecretAnswers] server response error:", *errorResponse)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestGetSecretAnswers]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("[TestGetSecretAnswers] Result:[%+v]\n", resultResponse)
+
+}
 func TestGetUserInfo(t *testing.T) {
 
 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
