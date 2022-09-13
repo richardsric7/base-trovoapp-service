@@ -156,14 +156,14 @@ type SecretQuestion struct {
 }
 
 type UserSecretAnswer struct {
-	ID        uint64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Username  string `gorm:"size:20;not null;" json:"username"`
-	Q1        uint64 `gorm:"not null;" json:"q1"`
-	A1        string `gorm:"size:50;not null;" json:"a1"`
-	Q2        uint64 `gorm:"not null;" json:"q2"`
-	A2        string `gorm:"size:50;not null;" json:"a2"`
-	Q3        uint64 `gorm:"not null;" json:"q3"`
-	A3        string `gorm:"size:50;not null;" json:"a3"`
+	ID        uint64    `json:"id"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
+	Username  string    `gorm:"size:20;not null; index:unique_user_secret_answer,unique" json:"-"`
+	Q1        uint64    `gorm:"not null;" json:"q1"`
+	A1        string    `gorm:"size:50;not null;" json:"a1"`
+	Q2        uint64    `gorm:"not null;" json:"q2"`
+	A2        string    `gorm:"size:50;not null;" json:"a2"`
+	Q3        uint64    `gorm:"not null;" json:"q3"`
+	A3        string    `gorm:"size:50;not null;" json:"a3"`
 }

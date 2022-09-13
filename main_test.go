@@ -102,6 +102,7 @@ type UserJSON struct {
 	UserWallets           []UserWalletJSON `json:"userWallets"`
 	Verified              int              `json:"verified"`
 	Suspended             int              `json:"suspended"`
+	HasSecretQuestions    int              `json:"hasSecretQuestions"`
 }
 
 type UserWalletJSON struct {
@@ -248,36 +249,38 @@ type SecretQuestion struct {
 }
 
 type UserSecretAnswer struct {
-	ID        uint64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Username  string `gorm:"size:20;not null;" json:"username"`
-	Q1        uint64 `gorm:"not null;" json:"q1"`
-	A1        string `gorm:"size:50;not null;" json:"a1"`
-	Q2        uint64 `gorm:"not null;" json:"q2"`
-	A2        string `gorm:"size:50;not null;" json:"a2"`
-	Q3        uint64 `gorm:"not null;" json:"q3"`
-	A3        string `gorm:"size:50;not null;" json:"a3"`
-}
-type AnswerResp struct {
-	Questions   []SecretQuestion `json:"secretQuestions"`
-	UserAnswers UserSecretAnswer `json:"userSecretAnswers"`
+	ID uint64 `json:"id"`
+	Q1 uint64 `gorm:"not null;" json:"q1"`
+	A1 string `gorm:"size:50;not null;" json:"a1"`
+	Q2 uint64 `gorm:"not null;" json:"q2"`
+	A2 string `gorm:"size:50;not null;" json:"a2"`
+	Q3 uint64 `gorm:"not null;" json:"q3"`
+	A3 string `gorm:"size:50;not null;" json:"a3"`
 }
 
-func TestAccountRegistration(t *testing.T) {
-	/*
-		{"username":"username","email":"richardsric7@gmail.com","firstName":"Kenny","lastName":"Maduka","mobile":"+2347062685682","mobileCountryCode":"NG","referrer":"","pushNotificationToken":"","corporate":0,"verificationCode":""}
-	*/
-	userRegInfo := UserRegistrationInfo{
-		Username:          "ric",
-		Email:             "richardsric7@gmail.com",
-		FirstName:         "Ric",
-		LastName:          "Richards",
-		Mobile:            "+2348180067955",
-		MobileCountryCode: "NG",
-		Referrer:          "",
-		Corporate:         0,
-		VerificationCode:  "253988",
+//	type UserSecretAnswerResponse struct {
+//		ID        uint64
+//		Q1        uint64 `gorm:"not null;" json:"q1"`
+//		A1        string `gorm:"size:50;not null;" json:"a1"`
+//		Q2        uint64 `gorm:"not null;" json:"q2"`
+//		A2        string `gorm:"size:50;not null;" json:"a2"`
+//		Q3        uint64 `gorm:"not null;" json:"q3"`
+//		A3        string `gorm:"size:50;not null;" json:"a3"`
+//	}
+type AnswerResp struct {
+	Questions   []SecretQuestion  `json:"secretQuestions"`
+	UserAnswers *UserSecretAnswer `json:"userSecretAnswers"`
+}
+
+func TestAccountSetSecretAnswer(t *testing.T) {
+
+	answers := UserSecretAnswer{
+		Q1: 1,
+		Q2: 2,
+		Q3: 7,
+		A1: "test",
+		A2: "test",
+		A3: "test",
 	}
 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
@@ -292,7 +295,7 @@ func TestAccountRegistration(t *testing.T) {
 	kp := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	baseURL := devURL
-	fullPath := "/v1/users"
+	fullPath := "/v1/secret-questions"
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
 
@@ -303,9 +306,11 @@ func TestAccountRegistration(t *testing.T) {
 		return
 
 	}
-
+	type Success struct {
+		Message string `json:"message"`
+	}
 	errorResponse := new(ErrorResponse)
-	regResponse := new(RegSuccessInfo)
+	regResponse := new(Success)
 
 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
 		Set("X-TW-PUBLIC-KEY", kp.Address()).
@@ -313,24 +318,24 @@ func TestAccountRegistration(t *testing.T) {
 		Set("X-TW-SIGNATURE", signedHttpHeader).
 		Set("X-TW-TIMESTAMP", tsString).
 		Base(baseURL).
-		Post(fullPath).BodyJSON(userRegInfo).Receive(regResponse, errorResponse)
+		Post(fullPath).BodyJSON(answers).Receive(regResponse, errorResponse)
 	//get payload string
 	if len(errorResponse.Error) > 0 {
-		log.Println("[TestAccountRegistration] server response error:", *errorResponse)
+		log.Println("[TestAccountSetSecretAnswer] server response error:", *errorResponse)
 		return
 
 	}
 	if err != nil {
-		log.Println("[TestAccountRegistration]request error:", err)
+		log.Println("[TestAccountSetSecretAnswer]request error:", err)
 		t.Errorf(err.Error())
 
 		return
 	}
 
-	log.Printf("Result:[%+v]\n", regResponse)
+	log.Printf("[TestAccountSetSecretAnswer]Result:[%+v]\n", regResponse)
 
 }
-func TestAccountProfilePictureUpdate(t *testing.T) {
+func TestAccountProfileUpdate(t *testing.T) {
 	/*
 		{"username":"username","email":"richardsric7@gmail.com","firstName":"Kenny","lastName":"Maduka","mobile":"+2347062685682","mobileCountryCode":"NG","referrer":"","pushNotificationToken":"","corporate":0,"verificationCode":""}
 	*/
@@ -406,7 +411,7 @@ func TestGetSecretAnswers(t *testing.T) {
 	kp := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
-	baseURL := prodURL
+	baseURL := devURL
 	fullPath := "/v1/secret-questions"
 	ts := time.Now().Unix() / 1000
 
@@ -441,7 +446,7 @@ func TestGetSecretAnswers(t *testing.T) {
 		return
 	}
 
-	log.Printf("[TestGetSecretAnswers] Result:[%+v]\n", resultResponse)
+	log.Printf("[TestGetSecretAnswers] Result:[%+v\n %+v]\n", resultResponse.Questions, resultResponse.UserAnswers)
 
 }
 func TestGetUserInfo(t *testing.T) {

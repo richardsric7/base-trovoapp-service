@@ -883,7 +883,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		signerUser, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
+			log.Println("[GET QUESTIONS] error for signer:", middleware.ExtractSigner(c), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool

@@ -9,6 +9,13 @@ import (
 
 func SaveUserSecretQuestions(user *userModels.User, answer userModels.UserSecretAnswer, gc *sharedconfig.GlobalConfig) error {
 	var existingAnswer userModels.UserSecretAnswer
+	// check if  questions where repeated
+	if answer.Q1 == answer.Q2 || answer.Q1 == answer.Q3 || answer.Q2 == answer.Q3 {
+		return &tErrors.CustomError{Param: "username",
+			Err:        "error-cannot-have-duplicate-question",
+			ErrMessage: "You cannot have duplicate question.",
+		}
+	}
 	e := gc.DB.Where("username = ?", user.Username).First(&existingAnswer).Error
 	if e != nil {
 		// possibly does not exist
@@ -36,7 +43,7 @@ func SaveUserSecretQuestions(user *userModels.User, answer userModels.UserSecret
 	existingAnswer.Q3 = answer.Q3
 	e = gc.DB.Save(&existingAnswer).Error
 	if e != nil {
-		log.Printf("[SaveSecretQuestions] error saving answers [%v]", e)
+		log.Printf("[SaveSecretQuestions] error saving answers [%v]\n", e)
 		return &tErrors.CustomError{Param: "id", Err: "error saving secret answers", ErrMessage: "Unable to save secret answers at this time"}
 	}
 	if user.HasSecretQuestions == 0 {
