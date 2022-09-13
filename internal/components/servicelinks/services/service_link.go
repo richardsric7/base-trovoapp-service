@@ -3,6 +3,7 @@ package servicelinks
 import (
 	"errors"
 	"log"
+	"net/http"
 	"strings"
 	merchantdb "trovo-wallet-api/internal/components/servicelinks/db"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
@@ -131,6 +132,7 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 				Param:      authID,
 				Err:        "error reward data does not exist",
 				ErrMessage: "Reward/Airdrop is invalid or it has expired.",
+				Code:       http.StatusNotFound,
 			}
 			return
 		}
@@ -147,6 +149,7 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 				Param:      authID,
 				Err:        "error: reward data has expired",
 				ErrMessage: "Reward/Airdrop has expired.",
+				Code:       http.StatusNotFound,
 			}
 			return
 		}
@@ -174,6 +177,7 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData serv
 				Param:      authID,
 				Err:        "error: link data does not exist",
 				ErrMessage: "Link is either invalid or closed or expired.",
+				Code:       http.StatusNotFound,
 			}
 			return
 		}
@@ -190,6 +194,7 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData serv
 				Param:      authID,
 				Err:        "error: link data has expired",
 				ErrMessage: "Link has closed/expired.",
+				Code:       http.StatusNotFound,
 			}
 			return
 		}
