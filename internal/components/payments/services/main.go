@@ -4,15 +4,15 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log"
 	"os"
+	"strconv"
 	"strings"
+	algofuncs "trovo-wallet-api/internal/blockchainalgofuncs"
+	paymentsDB "trovo-wallet-api/internal/components/payments/db"
 	tPayErrors "trovo-wallet-api/internal/components/payments/errors"
 	payments "trovo-wallet-api/internal/components/payments/models"
 	users "trovo-wallet-api/internal/components/users/models"
-
-	"log"
-	"strconv"
-	paymentsDB "trovo-wallet-api/internal/components/payments/db"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 
@@ -25,7 +25,7 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-//Pay function sends a payment from user to another user
+// Pay function sends a payment from user to another user
 func Pay(owner *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *payments.PaymentInfo, db *gorm.DB) (*payments.PaymentInfo, *paymentsDB.User, error) {
 
 	client := network.GetBlockchainClient()
@@ -308,7 +308,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *paymentsDB.User, wa
 
 		if !destinationAccountTrustsAsset {
 			if !publicKeyPayment {
-				ops2, _tempAccountKeyPair, err := processDestinationAssetDoesNotTrustAsset(client, &destinationWallet, sourceAccount, asset, newAmountToSend, db)
+				ops2, _tempAccountKeyPair, err := processDestinationAssetDoesNotTrustAsset(destinationInfo, client, &destinationWallet, sourceAccount, asset, newAmountToSend, db)
 
 				if err != nil {
 					return "", nil, err
@@ -568,7 +568,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 		if !destinationAccountTrustsAsset {
 			if !publicKeyPayment {
 
-				ops2, _tempAccountKeyPair, err := processDestinationAssetDoesNotTrustAsset(client, &destinationWallet, sourceAccount, asset, newAmountToSend, db)
+				ops2, _tempAccountKeyPair, err := processDestinationAssetDoesNotTrustAsset(destinationInfo, client, &destinationWallet, sourceAccount, asset, newAmountToSend, db)
 
 				if err != nil {
 					return "", nil, err
@@ -636,7 +636,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 	return xdrBase64, &destinationInfo, nil
 }
 
-func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, destinationWallet *paymentsDB.UserWallet, sourceAccount *horizon.Account, asset txnbuild.Asset, amountToSend string, db *gorm.DB) ([]txnbuild.Operation, *keypair.Full, error) {
+func processDestinationAssetDoesNotTrustAsset(destinationUser paymentsDB.User, client *horizonclient.Client, destinationWallet *paymentsDB.UserWallet, sourceAccount *horizon.Account, asset txnbuild.Asset, amountToSend string, db *gorm.DB) ([]txnbuild.Operation, *keypair.Full, error) {
 
 	ops := make([]txnbuild.Operation, 0)
 
@@ -644,12 +644,12 @@ func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, dest
 
 	tempAccountKeypair, tempAccountError := network.TempAccountKeypair(destinationWallet.ID)
 
-	var tempAccount txnbuild.Account = &txnbuild.SimpleAccount{AccountID: tempAccountKeypair.Address(), Sequence: 0}
-
 	if tempAccountError != nil {
 		log.Printf("[processDestinationAssetDoesNotTrustAsset] error generating temporary account %v\n", tempAccountError)
 		return ops, tempAccountKeypair, &tErrors.ErrorTemporaryServerError{}
 	}
+
+	var tempAccount txnbuild.Account = &txnbuild.SimpleAccount{AccountID: tempAccountKeypair.Address(), Sequence: 0}
 
 	tempAccountExists, tempAccountTrustsAsset, _, _, tempAccountSource, tempAccountError :=
 		network.BlockchainAccountProperties(client, tempAccountKeypair.FromAddress().Address(), asset)
@@ -725,7 +725,48 @@ func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, dest
 			SourceAccount: tempAccount.GetAccountID(),
 		})
 
+		//add the recovery address if enabled
+		if len(destinationUser.Username) > 0 {
+			if destinationUser.WalletRecoveryEnabled == 1 {
+				recoveryKeyAddress := algofuncs.GetRecoveryAccountAddress(destinationUser.Username, destinationUser.PublicKey)
+				if len(recoveryKeyAddress) > 0 {
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: recoveryKeyAddress,
+							Weight:  1,
+						},
+						SourceAccount: tempAccount.GetAccountID(),
+					})
+				}
+
+			}
+		}
+
 		signerKeyPairToReturn = tempAccountKeypair
+	}
+
+	//add the recovery address if enabled and account exists but recovery is not already signer key
+	if len(destinationUser.Username) > 0 {
+		if destinationUser.WalletRecoveryEnabled == 1 {
+			recoveryKeyAddress := algofuncs.GetRecoveryAccountAddress(destinationUser.Username, destinationUser.PublicKey)
+			if len(recoveryKeyAddress) > 0 {
+				if tempAccountExists && !destinationWallet.SignerIsValidWA(recoveryKeyAddress, tempAccountSource) {
+
+					//just make the recovery key a signer
+
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: recoveryKeyAddress,
+							Weight:  1,
+						},
+						SourceAccount: tempAccount.GetAccountID(),
+					})
+
+					signerKeyPairToReturn = tempAccountKeypair
+				}
+			}
+
+		}
 	}
 
 	// destinationWallet.SignerIsValidWA(destinationWallet.Signer, tempAccountSource)
@@ -774,7 +815,7 @@ func processDestinationAssetDoesNotTrustAsset(client *horizonclient.Client, dest
 
 }
 
-//GetBlockchainAccountDataKey fetches the bantu account information using public key
+// GetBlockchainAccountDataKey fetches the bantu account information using public key
 func GetBlockchainAccountDataKey(account horizon.Account, keys ...string) (dataValues map[string]string) {
 	dataValues = make(map[string]string)
 

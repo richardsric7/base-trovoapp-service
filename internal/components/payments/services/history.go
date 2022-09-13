@@ -120,7 +120,7 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 
 	}
 	if len(amountBetween) > 2 && strings.Contains(amountBetween, ";") {
-		// 0:1
+		// 0;1
 		amountRange := strings.Split(amountBetween, ";")
 		query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
 		countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])

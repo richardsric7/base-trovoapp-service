@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func processRetrievedPaymentOperation(publicKey string, i int, v operations.Operation, parsedRecIndexed IndexedBantuOperation, parsedRecChan chan IndexedBantuOperation, ownerData usermodels.User, wg *sync.WaitGroup, db *gorm.DB) {
+func ProcessRetrievedPaymentOperation(publicKey string, i int, v operations.Operation, parsedRecIndexed IndexedBantuOperation, parsedRecChan chan IndexedBantuOperation, ownerData usermodels.User, wg *sync.WaitGroup, db *gorm.DB) {
 
 	//end go routine here
 }
