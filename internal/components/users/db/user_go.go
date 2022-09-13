@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	conDB "trovo-wallet-api/internal/db"
@@ -13,7 +14,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-//GetUser gets user data by either wallet id or signer or temporary public key
+// GetUser gets user data by either wallet id or signer or temporary public key
 func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
@@ -52,7 +53,7 @@ func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 
 }
 
-//GetWallet gets user wallet data by alias or public key or temp public key
+// GetWallet gets user wallet data by alias or public key or temp public key
 func GetWallet(identifier string, db *gorm.DB) (userWallet userModels.UserWallet, temp bool, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
@@ -100,4 +101,25 @@ func UpdatePushNotificationToken(identifier string, pnt *string, db *gorm.DB) {
 			log.Printf("[UpdatePushNotificationToken] unable to update push notification token for user [%v], due to:[%v]", user.Username, err)
 		}
 	}
+}
+
+// GetUserFromPrimarySigner fetches the user linked to the primary signer
+func GetUserFromPrimarySigner(publicKey string, db *gorm.DB) (user userModels.User, err error) {
+
+	publicKey = strings.TrimSpace(publicKey)
+	// var user usermodels.User
+	if err := db.Where("primary_signer = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&user).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return user, &tErrors.ErrorTemporaryServerError{}
+		}
+		return user, &tErrors.CustomError{Param: "primarySigner",
+			Err:        "error primary signer does not exist",
+			ErrMessage: "PrimarySigner does not exist",
+			Code:       http.StatusNotFound,
+		}
+	}
+	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
+
+	return user, nil
+
 }

@@ -92,7 +92,7 @@ type AccessLevel struct {
 	AccessLevel string `gorm:"size:text" json:"accessList"`
 }
 
-//ReservedName holds model struct for ReservedName table
+// ReservedName holds model struct for ReservedName table
 type ReservedName struct {
 	ID           uint64 `gorm:"primaryKey"`
 	CreatedAt    time.Time
@@ -101,7 +101,7 @@ type ReservedName struct {
 	Status       *uint64 `gorm:"default:0;index:idx_reserved_status"`
 }
 
-//Signer model for user
+// Signer model for user
 type Signer struct {
 	Weight  int    `json:"weight"`
 	Key     string `json:"key"`
@@ -109,14 +109,14 @@ type Signer struct {
 	Sponsor string `json:"sponsor"`
 }
 
-//Signer model for user
+// Signer model for user
 type Thresholds struct {
 	LowThreshold    string `json:"low_threshold"`
 	MediumThreshold string `json:"medium_threshold"`
 	HighThreshold   string `json:"high_threshold"`
 }
 
-//GetBlockchainAccountDetail fetches the bantu account information using public key
+// GetBlockchainAccountDetail fetches the bantu account information using public key
 func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizon.Account, destinationAccountExists bool, err error) {
 	client := network.GetBlockchainClient()
 	var accountRequest horizonclient.AccountRequest
@@ -208,7 +208,7 @@ func (u *UserWallet) GetSignersWA(account *horizon.Account) (signers map[string]
 	return
 }
 
-//SignerIsValidWA checks if the signerKey is valid for this user public key
+// SignerIsValidWA checks if the signerKey is valid for this user public key
 func (u *User) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
 	signer, ok := u.GetSignersWA(account)[signerKey]
 	if !ok || signer.Weight < 1 {
@@ -218,7 +218,7 @@ func (u *User) SignerIsValidWA(signerKey string, account *horizon.Account) bool 
 	return true
 }
 
-//SignerIsValidWA checks if the signerKey is valid for this user public key
+// SignerIsValidWA checks if the signerKey is valid for this user public key
 func (u *UserWallet) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
 	signer, ok := u.GetSignersWA(account)[signerKey]
 	if !ok || signer.Weight < 1 {
@@ -228,7 +228,7 @@ func (u *UserWallet) SignerIsValidWA(signerKey string, account *horizon.Account)
 	return true
 }
 
-//SignerIsValid checks if the signerKey is valid for this user public key
+// SignerIsValid checks if the signerKey is valid for this user public key
 func (u *UserWallet) SignerIsValid(signerKey string, temp bool) bool {
 	signer, ok := u.GetSigners(temp)[signerKey]
 	if !ok || signer.Weight < 1 {
@@ -238,7 +238,7 @@ func (u *UserWallet) SignerIsValid(signerKey string, temp bool) bool {
 	return true
 }
 
-//SignerIsValid checks if the signerKey is valid for this user public key
+// SignerIsValid checks if the signerKey is valid for this user public key
 func (u *User) SignerIsValid(signerKey string, temp bool) bool {
 	for _, w := range u.UserWallets {
 		if w.ID == w.Signer {
@@ -291,7 +291,7 @@ func GetUser(userInfo string, db *gorm.DB) (user User, err error) {
 
 }
 
-//GetWallet gets user wallet data by alias or public key or temp public key
+// GetWallet gets user wallet data by alias or public key or temp public key
 func GetWallet(identifier string, db *gorm.DB) (userWallet UserWallet, temp bool, err error) {
 	conDB.PrintDBStats("[payments]GetUserInfo", db)
 
@@ -329,7 +329,7 @@ func GetWallet(identifier string, db *gorm.DB) (userWallet UserWallet, temp bool
 
 }
 
-//UsernameIsReserved check is name is reserved. Status = 0 means not available (reserved). Status = 1 means available
+// UsernameIsReserved check is name is reserved. Status = 0 means not available (reserved). Status = 1 means available
 func UsernameIsReserved(username string, db *gorm.DB) (reserved bool, err error) {
 
 	username = strings.TrimSpace(username)
@@ -342,7 +342,7 @@ func UsernameIsReserved(username string, db *gorm.DB) (reserved bool, err error)
 	return true, &tErrors.ErrorUsernameIsReserved{}
 }
 
-//PublicKeyIAlreadyExists check if public key already exists
+// PublicKeyIAlreadyExists check if public key already exists
 func PublicKeyAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err error) {
 	// discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	// if len(os.Getenv("IMPORT_ERROR_WEBHOOK")) > 50 {
@@ -370,5 +370,26 @@ func (u *User) SendPushMessage(title, body, imageURI string, dataPayload map[str
 	}
 
 	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+
+}
+
+// GetUserFromPrimarySigner fetches the user linked to the primary signer
+func GetUserFromPrimarySigner(publicKey string, db *gorm.DB) (user User, err error) {
+
+	publicKey = strings.TrimSpace(publicKey)
+	// var user usermodels.User
+	if err := db.Where("primary_signer = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&user).Error; err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return user, &tErrors.ErrorTemporaryServerError{}
+		}
+		return user, &tErrors.CustomError{Param: "primarySigner",
+			Err:        "error primary signer does not exist",
+			ErrMessage: "Primary Signer does not exist",
+			Code:       http.StatusNotFound,
+		}
+	}
+	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
+
+	return user, nil
 
 }

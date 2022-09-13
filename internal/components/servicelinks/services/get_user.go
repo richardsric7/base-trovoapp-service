@@ -1,15 +1,15 @@
 package servicelinks
 
 import (
+	merchantdb "trovo-wallet-api/internal/components/servicelinks/db"
 	merchantUserModels "trovo-wallet-api/internal/components/servicelinks/models"
-	"trovo-wallet-api/internal/sharedconfig"
 
 	"gorm.io/gorm"
 )
 
-// GetUser gets user information
-func GetUser(ID string, db *gorm.DB, publicKey string, gc *sharedconfig.GlobalConfig) (userInfo merchantUserModels.User, err error) {
+// GetUserFromPrimarySigner fetches the user linked to the primary signer
+func GetUserFromPrimarySigner(publicKey string, db *gorm.DB) (user merchantUserModels.User, err error) {
 
-	return
+	return merchantdb.GetUserFromPrimarySigner(publicKey, db)
 
 }

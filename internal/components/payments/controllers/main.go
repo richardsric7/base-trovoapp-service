@@ -14,7 +14,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -24,7 +24,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//Init initializes the controller
+// Init initializes the controller
 func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	//start routine to resend failed payment callbacks
 	// type retrySling struct {
@@ -98,7 +98,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		var err error
 
 		//get user DB record
-		accountSignerUser, getUserError := paymentsDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+		accountSignerUser, getUserError := paymentsDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if getUserError != nil {
 			log.Printf("[FAILED PAYMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
@@ -139,18 +139,18 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		}
 
-		primaryAccountSigner := accountSignerUser.PrimarySigner
+		// primaryAccountSigner := accountSignerUser.PrimarySigner
 
-		if primaryAccountSigner != middleware.ExtractSigner(c) {
-			log.Printf("[FAILED PAYMENT] INVALID PAYMENT SIGNER IN HEADER from [%v], error: [%v]\n", primaryAccountAlias, err)
-			c.JSON(http.StatusBadRequest, (&tPayErrors.ErrorInvalidPaymentSender{}).JSONError())
-			return
-		}
+		// if primaryAccountSigner != middleware.ExtractSigner(c) {
+		// 	log.Printf("[FAILED PAYMENT] INVALID PAYMENT SIGNER IN HEADER from [%v], error: [%v]\n", primaryAccountAlias, err)
+		// 	c.JSON(http.StatusBadRequest, (&tPayErrors.ErrorInvalidPaymentSender{}).JSONError())
+		// 	return
+		// }
 
 		var paymentInfo paymentModels.PaymentInfo
 		// var err error
 
-		data, _ := ioutil.ReadAll(c.Request.Body)
+		data, _ := io.ReadAll(c.Request.Body)
 
 		err = json.Unmarshal(data, &paymentInfo)
 

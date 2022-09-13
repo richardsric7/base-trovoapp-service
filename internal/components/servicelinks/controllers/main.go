@@ -311,15 +311,15 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if mInfo.OwnerUsername != ownerUsername {
 			//wrong access
 			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "this login request does not belong to your Trovo wallet"}
+			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "this login request does not belong to service owner specified"}
 			c.JSON(statusCode, response)
 			return
 		}
 
-		userInfo, err := servicelinkServices.GetUserForServiceLink(targetUser, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
-			log.Println("[GET UserInfo] error for user:", targetUser, "error: ", err)
+			log.Println("[GET UserInfo] error for signer:", middleware.ExtractSigner(c), "error: ", err)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -336,6 +336,14 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				response = gin.H{"error": err.Error()}
 			}
 
+			c.JSON(statusCode, response)
+			return
+		}
+		//validate ownership
+		if targetUser != userInfo.Username {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "this login request does not belong to your Trovo wallet"}
 			c.JSON(statusCode, response)
 			return
 		}
@@ -803,32 +811,31 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
+		userInfo, err := servicelinkServices.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
 		//check if service is for an event registration/reward service: [2 = registration, 1 = reward, 0 = none]
 		if mInfo.RewardOnly == 2 {
-
-			userInfo, err := servicelinkServices.GetUserForServiceLink(middleware.ExtractPublicKey(c), mInfo, gc)
-
-			if err != nil {
-				log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
 
 			if userInfo.MobileVerified == 0 && os.Getenv("ENABLE_MOBILE_VERIFICATION") == "1" {
 
@@ -894,30 +901,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 
 		} else if mInfo.RewardOnly == 1 {
-
-			userInfo, err := servicelinkServices.GetUserForServiceLink(middleware.ExtractPublicKey(c), mInfo, gc)
-
-			if err != nil {
-				log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
 
 			if userInfo.MobileVerified == 0 && os.Getenv("ENABLE_MOBILE_VERIFICATION") == "1" {
 
@@ -1007,34 +990,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 
 		} else {
+			//2FA must belong to the caller account
 
-			userInfo, err := servicelinkServices.GetUserForServiceLink(identifier, mInfo, gc)
-
-			if err != nil {
-				log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
-
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-			}
-			if (middleware.ExtractPublicKey(c) != userInfo.PublicKey) && mInfo.RewardOnly == 0 {
+			if (identifier != userInfo.Username) && mInfo.RewardOnly == 0 {
 				//wrong access
 				statusCode := http.StatusUnauthorized
-				response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "2FA/Authorization request does not belong to your Bantupay wallet"}
+				response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "2FA/Authorization request does not belong to your Trovo Wallet"}
 				c.JSON(statusCode, response)
 				return
 			}
@@ -1143,7 +1104,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		authID := strings.TrimSpace(strings.ToLower(c.Query("authId")))
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/authorize/verify/%v %v/%v", trovoUser,ownerUsername, authID), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/authorize/verify/%v %v/%v", trovoUser, ownerUsername, authID), gc.DB)
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
@@ -1255,7 +1216,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		amount := strings.TrimSpace(c.Query("amount"))
 		memo := strings.TrimSpace(c.Query("memo"))
 
-		cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/payment/request/%v %v",  trovoUser,ownerUsername)
+		cacheKey := fmt.Sprintf("[GET] /v1/servicelinks/payment/request/%v %v", trovoUser, ownerUsername)
 		cacheKeyParameters := fmt.Sprintf("%v", c.Request.URL.RawQuery)
 
 		{
@@ -1270,7 +1231,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/payment/%v/%v/?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", trovoUser,ownerUsername, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("GET /v1/servicelinks/payment/%v/%v/?paymentDestination=%v&assetCode=%v&assetIssuer=%v&amount=%v&memo=%v", trovoUser, ownerUsername, paymentDestination, assetCode, assetIssuer, amount, memo), gc.DB)
 		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
 
 		if err != nil {
@@ -1294,13 +1255,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
-			//wrong access
-			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
-			c.JSON(statusCode, response)
-			return
-		}
+		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		// 	//wrong access
+		// 	statusCode := http.StatusUnauthorized
+		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
+		// 	c.JSON(statusCode, response)
+		// 	return
+		// }
 		// log.Printf("service Infor: %+v\n", mInfo)
 		if mInfo.PaymentPermission == 0 {
 			//wrong access
@@ -1353,7 +1314,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//SERVICELINK USER INFO request
-	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/userinfo", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/servicelinks/:ownerUsername/:targetUser/userinfo", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -1398,13 +1359,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
-			//wrong access
-			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
-			c.JSON(statusCode, response)
-			return
-		}
+		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		// 	//wrong access
+		// 	statusCode := http.StatusUnauthorized
+		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
+		// 	c.JSON(statusCode, response)
+		// 	return
+		// }
 		// log.Printf("service Info: %+v\n", mInfo)
 		if mInfo.AllowUserInfo == 0 {
 			//wrong access
@@ -1443,7 +1404,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//SERVICE push notification request
-	router.POST("/v1/servicelinks/:ownerUsername/:targetUser/push", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/servicelinks/:ownerUsername/:targetUser/push", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 
 		ownerUsername := strings.TrimSpace(strings.ToLower(c.Param("ownerUsername")))
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
@@ -1472,13 +1433,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
-			//wrong access
-			statusCode := http.StatusUnauthorized
-			response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
-			c.JSON(statusCode, response)
-			return
-		}
+		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
+		// 	//wrong access
+		// 	statusCode := http.StatusUnauthorized
+		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
+		// 	c.JSON(statusCode, response)
+		// 	return
+		// }
 		// log.Printf("service Infor: %+v\n", mInfo)
 		if mInfo.PushNotificationPermission == 0 {
 			//wrong access

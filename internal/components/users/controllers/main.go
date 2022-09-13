@@ -81,7 +81,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		cacheDurationInSeconds := 60 //1 minutes
 		conDB.PrintDBStats(fmt.Sprintf("/v1/users/payments/%v", targetPublicKeyForHistory), gc.DB)
 
-		signerUser, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
 			log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
@@ -320,7 +320,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		user, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -394,7 +394,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 		}
 
-		user, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -458,7 +458,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		signerUser, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -546,7 +546,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		signerUser, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -620,7 +620,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.PUT("/v1/users/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
-		_, err = usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+		_, err = usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -834,7 +834,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		user, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -880,7 +880,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.GET("/v1/secret-questions", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 
-		signerUser, err := usersDB.GetUser(middleware.ExtractSigner(c), gc.DB)
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
 			log.Println("[GET QUESTIONS] error for signer:", middleware.ExtractSigner(c), "error: ", err)
@@ -909,6 +909,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		secretQuestions := userServices.GetSecretQuestions(&signerUser, gc)
 
 		userSecretAnswers, _ := userServices.GetUserSecretAnswers(&signerUser, gc)
+		userSecretAnswers.A1 = ""
+		userSecretAnswers.A2 = ""
+		userSecretAnswers.A3 = ""
 
 		c.JSON(http.StatusOK, gin.H{"secretQuestions": secretQuestions, "userSecretAnswers": userSecretAnswers})
 

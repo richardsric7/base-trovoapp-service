@@ -13,8 +13,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//GetUserInfo gets the user Information
+// GetUserInfo gets the user Information
 func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Context) (userInfo userModels.UserInfo, err error) {
+	var owner bool
+	//get user from DB
+	primarySigner, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+	if err != nil {
+		return userModels.UserInfo{}, &tErrors.CustomError{Param: "primarySigner",
+			Err:        "error invalid primary signer",
+			ErrMessage: "Your request signer is not valid",
+		}
+	}
 
 	//get user from DB
 	user, err := usersDB.GetUser(identifier, gc.DB)
@@ -26,12 +35,8 @@ func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Contex
 			Username: user.Username,
 		}
 	}
-	var owner bool
-	for _, wallet := range user.UserWallets {
-		if wallet.Tag == nil {
-			//primary wallet
-			owner = wallet.Signer == middleware.ExtractSigner(c)
-		}
+	if primarySigner.Username == user.Username {
+		owner = true
 	}
 
 	//set userInfo
