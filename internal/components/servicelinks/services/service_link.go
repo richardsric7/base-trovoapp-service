@@ -172,8 +172,8 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData serv
 			//no user was found
 			err = &tErrors.CustomError{
 				Param:      authID,
-				Err:        "error: event data does not exist",
-				ErrMessage: "Event registration is either invalid or closed or expired.",
+				Err:        "error: link data does not exist",
+				ErrMessage: "Link is either invalid or closed or expired.",
 			}
 			return
 		}
@@ -188,8 +188,8 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData serv
 			//no user was found
 			err = &tErrors.CustomError{
 				Param:      authID,
-				Err:        "error: event data has expired",
-				ErrMessage: "Event registration has closed/expired.",
+				Err:        "error: link data has expired",
+				ErrMessage: "Link has closed/expired.",
 			}
 			return
 		}
