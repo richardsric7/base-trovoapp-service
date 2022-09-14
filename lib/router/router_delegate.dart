@@ -14,6 +14,8 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottombar.dart';
+import 'package:trovo_wallet/screens/Auth/AuthorizeActionView.dart';
+import 'package:trovo_wallet/screens/Auth/AuthorizeLoginView.dart';
 import 'package:trovo_wallet/screens/Auth/create_password.dart';
 import 'package:trovo_wallet/screens/Auth/signup.dart';
 import 'package:trovo_wallet/screens/Auth/vericication.dart';
@@ -24,6 +26,7 @@ import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/asset_details.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/confirm_transaction.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/recieve_asset.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/send_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
@@ -232,6 +235,16 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.BackupAllView:
           _addPageData(BackupAll(), BackupAllViewPageConfig);
           break;
+        case Pages.AuthorizeLoginView:
+          _addPageData(AuthorizeLoginView(), AuthorizeLoginViewPageConfig);
+          break;
+        case Pages.AuthorizeActionView:
+          _addPageData(AuthorizeActionView(), AuthorizeActionViewPageConfig);
+          break;
+        case Pages.RequestSpecificPaymentView:
+          _addPageData(
+              RequestSpecificPayment(), RequestSpecificPaymentViewPageConfig);
+          break;
         default:
           break;
       }
@@ -381,6 +394,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.BackupAllView:
         BackupAllViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AuthorizeLoginView:
+        AuthorizeLoginViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AuthorizeActionView:
+        AuthorizeActionViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.RequestSpecificPaymentView:
+        RequestSpecificPaymentViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -542,6 +564,11 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
             _createPage(const SendAsset(), SendAssetViewPageConfig),
           ]);
           break;
+        case 'requestSpecificPaymentView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
+          ]);
+          break;
         case 'confirmTransactionView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
@@ -613,6 +640,16 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
             _createPage(const BackupAll(), BackupAllViewPageConfig),
+          ]);
+          break;
+        case 'AuthorizeLoginView':
+          setPath([
+            _createPage(AuthorizeLoginView(), AuthorizeLoginViewPageConfig),
+          ]);
+          break;
+        case 'AuthorizeActionView':
+          setPath([
+            _createPage(AuthorizeActionView(), AuthorizeActionViewPageConfig),
           ]);
           break;
         default:

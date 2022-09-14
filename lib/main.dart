@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -15,6 +14,7 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/screens/notifications/firebase_dynamic_links.dart';
 import 'package:trovo_wallet/screens/notifications/firebase_notifications.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import 'Custom_BlocObserver/notifire_clor.dart';
 import 'firebase_options.dart';
 import 'storage/store.dart';
@@ -23,9 +23,13 @@ void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
+  await StoreData().storeDeleteItem('initialDynamicLink');
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  FirebaseDynamicLinkInitializer().initializeDeeplinking();
+  var dynamicLink = await FirebaseDynamicLinkInitializer().getInitialLink();
+  if (dynamicLink != null) {
+    await StoreData()
+        .storeInsertData('initialDynamicLink', dynamicLink.link.toString());
+  }
 
   BlocOverrides.runZoned(
     // () => runApp(

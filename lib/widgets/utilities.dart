@@ -100,10 +100,19 @@ class doubleTypeFormatter extends TextInputFormatter {
   }
 }
 
-changeTabPage(appState, index) {
+void changeTabPage(appState, index) {
   // moves user to the wallets list tab
   appState.bottomTabPageController!.animateToPage(index,
       duration: const Duration(milliseconds: 500), curve: Curves.ease);
   // set this to the wallets list tab index
   appState.currentBottomTabIndex = index;
+}
+
+void handleDynamicLinkData(Uri parsedUri) {
+  print('action: ${parsedUri.queryParameters['action']}');
+  print('description: ${parsedUri.queryParameters['description']}');
+  print('deviceInfo: ${parsedUri.queryParameters['deviceInfo']}');
+  print('targetUser: ${parsedUri.queryParameters['targetUser']}');
+  print('ownerUsername: ${parsedUri.queryParameters['ownerUsername']}');
+  print('serviceShortName: ${parsedUri.queryParameters['serviceShortName']}');
 }

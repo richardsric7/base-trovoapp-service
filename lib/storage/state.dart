@@ -1,3 +1,4 @@
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
@@ -5,6 +6,8 @@ import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/screens/Auth/AuthorizeActionView.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import '../Models/User.dart';
 import '../Models/WalletsListViewData.dart';
@@ -45,6 +48,12 @@ class DataProvider with ChangeNotifier {
   //   hideActiveWalletBalance = hideBalances;
   // }
 
+  // used to check if dynamic link was used while the app is open
+  // for some reason the splashscreen finishes before the firebase dynamiclink
+  // handler is processed so we will use this flag to check on the splashscreen
+  // whether the app is open so the splashscreen will wait till the dynamiclink
+  // handler finishes and then move to the appropriate next screen.
+  bool appIsOpen = false;
   bool _splashFinished = false;
   bool get splashFinished => _splashFinished;
   void setSplashFinished() {
@@ -217,5 +226,53 @@ class DataProvider with ChangeNotifier {
       }
     }
     notifyListeners();
+  }
+
+  void initFirebaseListener() {
+    print('initing firebaselistener..............................');
+    FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) async {
+      try {
+        print('one 1');
+        await StoreData().storeDeleteItem('initialDynamicLink');
+        // Navigator.pushNamed(context, dynamicLinkData.link.path);
+        print('this is dynamicLinkData: $dynamicLinkData');
+        print(
+            'current action is login ${dynamicLinkData.link.queryParameters['action']}');
+        await StoreData().storeInsertData(
+            'initialDynamicLink', dynamicLinkData.link.toString());
+        var deepLinkView = getDeepLinkView(dynamicLinkData.link);
+
+        currentAction = deepLinkView;
+      } catch (e) {
+        print('error processing dynamic link');
+      }
+    }).onError((error) {
+      // Handle errors
+      print('this is dynamicLink error: $error');
+    });
+  }
+
+  PageAction getDeepLinkView(Uri initialDynamicLink) {
+    PageAction pageAction;
+    if (initialDynamicLink.queryParameters['action'] == 'login')
+      pageAction = PageAction(
+          state: PageState.addAll,
+          pages: [LoginPageConfig, AuthorizeLoginViewPageConfig]);
+    else
+      pageAction = PageAction(
+          state: PageState.addAll,
+          pages: [LoginPageConfig, AuthorizeActionViewPageConfig]);
+
+    viewData![pageAction.pages![1].key] = {
+      'action': initialDynamicLink.queryParameters['action'],
+      'loginId': initialDynamicLink.queryParameters['loginId'],
+      'authId': initialDynamicLink.queryParameters['authId'],
+      'description': initialDynamicLink.queryParameters['description'],
+      'deviceInfo': initialDynamicLink.queryParameters['deviceInfo'],
+      'targetUser': initialDynamicLink.queryParameters['targetUser'],
+      'ownerUsername': initialDynamicLink.queryParameters['ownerUsername'],
+      'serviceShortName': initialDynamicLink.queryParameters['serviceShortName']
+    };
+    return pageAction;
   }
 }
