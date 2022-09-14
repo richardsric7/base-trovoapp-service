@@ -103,6 +103,7 @@ func GetUserAuthorizationData(mInfo, walletInfo, authID string, db *gorm.DB) (au
 	e := db.Where("owner_username = ?", mInfo).Where("wallet_Username = ?", walletInfo).Where("id = ?", authID).First(&authData).Error
 
 	if e != nil {
+
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
 			err = &tErrors.ErrorAuthorizationDoesNotExist{Username: walletInfo}
@@ -126,6 +127,7 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 	e := db.Where("owner_username = ?", mInfo).Where("id = ?", authID).First(&authData).Error
 
 	if e != nil {
+
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
 			err = &tErrors.CustomError{
@@ -143,18 +145,14 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 	}
 
 	if authData.Authorized == 1 {
-		if errors.Is(e, gorm.ErrRecordNotFound) {
-			//no user was found
-			err = &tErrors.CustomError{
-				Param:      authID,
-				Err:        "error: reward data has expired",
-				ErrMessage: "Reward/Airdrop has expired.",
-				Code:       http.StatusNotFound,
-			}
-			return
+
+		//no user was found
+		err = &tErrors.CustomError{
+			Param:      authID,
+			Err:        "error: reward data has expired",
+			ErrMessage: "Reward/Airdrop has expired.",
+			Code:       http.StatusNotFound,
 		}
-		log.Println("[GetRewardOnlyAuthorizationData] error: ", e)
-		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
@@ -182,24 +180,21 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData serv
 			return
 		}
 		log.Println("[GetEventAuthorizationData] error: ", e)
+
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
 
 	if authData.Authorized == 1 {
-		if errors.Is(e, gorm.ErrRecordNotFound) {
-			//no user was found
-			err = &tErrors.CustomError{
-				Param:      authID,
-				Err:        "error: link data has expired",
-				ErrMessage: "Link has closed/expired.",
-				Code:       http.StatusNotFound,
-			}
-			return
+		log.Println("[GetEventAuthorizationData] error: auth already authorized")
+		//no user was found
+		err = &tErrors.CustomError{
+			Param:      authID,
+			Err:        "error: link data has expired",
+			ErrMessage: "Link is no longer valid.",
+			Code:       http.StatusNotFound,
 		}
-		log.Println("[GetEventAuthorizationData] error: ", e)
-		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
 	}
