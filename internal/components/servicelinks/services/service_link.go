@@ -123,7 +123,7 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 
 	conDB.PrintDBStats("GetRewardOnlyAuthorizationData", db)
 
-	e := db.Where("owner_username = ?", mInfo).Where("wallet_Username = ?", mInfo).Where("id = ?", authID).First(&authData).Error
+	e := db.Where("owner_username = ?", mInfo).Where("id = ?", authID).First(&authData).Error
 
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -168,7 +168,7 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData serv
 
 	conDB.PrintDBStats("GetEventAuthorizationData", db)
 
-	e := db.Where("owner_username = ?", mInfo).Where("wallet_Username = ?", mInfo).Where("id = ?", authID).First(&authData).Error
+	e := db.Where("owner_username = ?", mInfo).Where("id = ?", authID).First(&authData).Error
 
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
