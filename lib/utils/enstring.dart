@@ -6,9 +6,15 @@ class LanguageEn {
 
   static String get createnewwallet => 'Create new wallet';
 
+  static String get requestspecificamount => 'Request Specific Amount';
+
   static String get importexistingwallet => 'Import existing wallet';
 
   static String get chooseamethod => 'Choose a method';
+
+  static String get request => 'Request';
+
+  static String get receivingwallet => 'Receiving Wallet';
 
   static String get receivefromnontrovowallet =>
       'Receive from non Trovo wallet';

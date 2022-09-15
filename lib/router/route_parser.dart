@@ -79,6 +79,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return AuthorizeActionViewPageConfig;
       case RequestSpecificPaymentViewPath:
         return RequestSpecificPaymentViewPageConfig;
+      case RequestSpecificPaymentDetailsViewPath:
+        return RequestSpecificPaymentDetailsViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -157,6 +159,9 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: AuthorizeActionViewPath);
       case Pages.RequestSpecificPaymentView:
         return const RouteInformation(location: RequestSpecificPaymentViewPath);
+      case Pages.RequestSpecificPaymentDetailsView:
+        return const RouteInformation(
+            location: RequestSpecificPaymentDetailsViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

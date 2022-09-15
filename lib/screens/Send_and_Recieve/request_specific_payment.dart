@@ -16,6 +16,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment_details.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -104,24 +105,12 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${LanguageEn.send} ${getAssetCode(asset['assetCode'])}',
+                      '${LanguageEn.request} ${getAssetCode(asset['assetCode'])}',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: notifier.getbluewhitecolor,
                           fontFamily: fontsemibold),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: QrScannerPageConfig);
-                      },
-                      child: SvgPicture.asset(
-                        "assets/images/scan.svg",
-                        color: notifier.getbluewhitecolor,
-                        height: height / 40,
-                      ),
                     ),
                   ],
                 ),
@@ -130,9 +119,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                 height: height / 50,
               ),
               formFields(),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 20),
               Button(
                 LanguageEn.proceed,
                 notifier.getbluecolor,
@@ -141,9 +128,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                   handleSubmit();
                 },
               ),
-              SizedBox(
-                height: height / 20,
-              ),
+              SizedBox(height: height / 7.3),
               Padding(
                   padding: EdgeInsets.only(
                       bottom: MediaQuery.of(context).viewInsets.bottom)),
@@ -154,143 +139,78 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
     );
   }
 
-  Widget availableBalance() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Flexible(
-          child: Text(
-            amount.isNotEmpty
-                ? "≈ ${formatNumber(double.parse(amount))} ${getAssetCode(asset['assetCode'])}"
-                : "≈ 0.0000 ${getAssetCode(asset['assetCode'])}",
-            textScaleFactor: 1.0,
-            style: TextStyle(
-                color: notifier.getdarkgrey,
-                fontWeight: FontWeight.w400,
-                fontSize: 12.0.sp),
-          ),
-        ),
-        Flexible(
-            child: Visibility(
-          visible: true,
-          replacement: Container(),
-          child: Text(
-            "${formatNumber(double.parse(asset['amount']))} ${getAssetCode(asset['assetCode'])}",
-            textScaleFactor: 1.0,
-            textAlign: TextAlign.right,
-            style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
-          ),
-        )),
-      ],
-    );
-  }
-
   Widget formFields() {
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-          child: Container(
-              height: height / 2.5,
-              width: 300.sp,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              ),
-              child: Form(
-                key: formKey,
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    CustomTextFormField.textField(
-                      LanguageEn.to,
-                      notifier.getbluecolor,
-                      Icons.send,
-                      notifier.getgrey,
-                      notifier.getprefixicon,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      300.sp,
-                      controller: toController,
-                      validator: validateTo,
-                      onSaved: (value) => to = value.trim().replaceAll(' ', ''),
-                    ),
-                    SizedBox(height: height / 50),
-                    CustomTextFormField.textField(
-                      LanguageEn.amount,
-                      notifier.getbluecolor,
-                      Icons.currency_exchange,
-                      notifier.getgrey,
-                      notifier.getprefixicon,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      // dynamically change the size
-                      // of the textbox so it will
-                      // consistent when showing an
-                      // error message
-                      amountError ? 70.sp : 58.sp,
-                      300.sp,
-                      onChanged: (value) {
-                        setState(() {
-                          amount = value;
-                        });
-                      },
-                      controller: amountController,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
-                      validator: validateAmount,
-                      onSaved: (value) =>
-                          amount = value.trim().replaceAll(' ', ''),
-                    ),
-                    if (!appState.hideBalances) ...[availableBalance()],
-                    SizedBox(height: height / 50),
-                    CustomTextFormField.textField(
-                      LanguageEn.memo,
-                      notifier.getbluecolor,
-                      Icons.edit_note,
-                      notifier.getgrey,
-                      notifier.getprefixicon,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      300.sp,
-                      onSaved: (value) => memo = value,
-                      maxLength: 28,
-                      controller: _utf8TextController,
-                      buildCounter: (context,
-                          {currentLength, isFocused, maxLength}) {
-                        int utf8Length =
-                            utf8.encode(_utf8TextController.text).length;
-                        return Container(
-                          child: Text(
-                            '$utf8Length/$maxLength',
-                            style: TextStyle(color: notifier.getdarkgrey),
-                          ),
-                        );
-                      },
-                      inputFormatters: [
-                        _Utf8LengthLimitingTextInputFormatter(28),
-                      ],
-                    ),
-                    SizedBox(height: height / 50),
+          child: Form(
+            key: formKey,
+            child: Column(
+              children: [
+                SizedBox(
+                  height: height / 50,
+                ),
+                SizedBox(height: height / 50),
+                CustomTextFormField.textField(
+                  LanguageEn.amount,
+                  notifier.getbluecolor,
+                  Icons.currency_exchange,
+                  notifier.getgrey,
+                  notifier.getprefixicon,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  // dynamically change the size
+                  // of the textbox so it will
+                  // consistent when showing an
+                  // error message
+                  amountError ? 70.sp : 58.sp,
+                  300.sp,
+                  onChanged: (value) {
+                    setState(() {
+                      amount = value;
+                    });
+                  },
+                  controller: amountController,
+                  keyboardtype: TextInputType.numberWithOptions(decimal: true),
+                  validator: validateAmount,
+                  onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
+                ),
+                SizedBox(height: height / 50),
+                CustomTextFormField.textField(
+                  LanguageEn.memo,
+                  notifier.getbluecolor,
+                  Icons.edit_note,
+                  notifier.getgrey,
+                  notifier.getprefixicon,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  75.sp,
+                  300.sp,
+                  onSaved: (value) => memo = value,
+                  maxLength: 28,
+                  controller: _utf8TextController,
+                  buildCounter: (context,
+                      {currentLength, isFocused, maxLength}) {
+                    int utf8Length =
+                        utf8.encode(_utf8TextController.text).length;
+                    return Container(
+                      child: Text(
+                        '$utf8Length/$maxLength',
+                        style: TextStyle(color: notifier.getdarkgrey),
+                      ),
+                    );
+                  },
+                  inputFormatters: [
+                    _Utf8LengthLimitingTextInputFormatter(28),
                   ],
                 ),
-              )),
+              ],
+            ),
+          ),
         ),
       ],
     );
-  }
-
-  String? validateTo(String? value) {
-    // reciever cannot be empty
-    if (value!.isEmpty) return 'Please enter reciever username or public key';
-
-    if (value.length < 3) return 'Invalid username or public key';
-
-    return null;
   }
 
   String? validateAmount(String? value) {
@@ -315,13 +235,6 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
       return 'Value must be greater than 0';
     }
 
-    if (double.tryParse(value)! > (double.parse(asset['amount']) - 6)) {
-      setState(() {
-        amountError = true;
-      });
-      return 'You don\'t have sufficient balance';
-    }
-
     setState(() {
       amountError = false;
     });
@@ -343,23 +256,9 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
     print('submitting form...');
     try {
       showLoader(context);
-      // make initial request to the server using the
-      // following credentials
-      Map map = {
-        "destination": to,
-        "memo": memo,
-        "amount": amount.toString(),
-        "assetCode": asset['assetCode'] == 'XBN' ? '' : asset['assetCode'],
-        "assetIssuer": asset['assetIssuer'],
-      };
-      String requestBody = jsonEncode(map);
-      print('this is request body $requestBody');
-
-      print(requestBody);
-
-      Map responseData = await makePostRequest(
-        uri: '/v1/users/payment',
-        body: requestBody,
+      Map responseData = await makeGetRequest(
+        uri:
+            '/v1/users/payment/generate/${appState.userInfo!.username}?paymentDestination=${activeWallet!.publicKey}&assetCode=${asset['assetCode']}&assetIssuer=${asset['assetIssuer']}&amount=${amount.toString()}&memo=${memo != null ? Uri.encodeComponent(memo!) : ''}',
         signer: activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: activeWallet!.publicKey!,
@@ -368,11 +267,19 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
       print('response: $responseData');
       hideLoader(context);
 
-      if (responseData['statusCode'] == 202) {
-        var messageLength = responseData['data']['messages'].length;
-        var messageShown = 0;
-
-        postProcessData(messageShown, messageLength, responseData['data']);
+      if (responseData['statusCode'] == 200) {
+        print('this is responseData ${responseData['data']}');
+        appState.viewData![RequestSpecificPaymentDetailsViewPageConfig.key] = {
+          'qrCode': responseData['data']['qrCode'],
+          'dynamicLink': responseData['data']['dynamicLink'],
+          'amount': amount,
+          'assetIssuer': asset['assetIssuer'],
+          'assetCode': asset['assetCode'],
+          'memo': memo,
+        };
+        appState.currentAction = PageAction(
+            state: PageState.addPage,
+            page: RequestSpecificPaymentDetailsViewPageConfig);
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
@@ -381,36 +288,6 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
       print(e);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
-  }
-
-  postProcessData(messageShown, messageLength, data) {
-    print('messageShown: $messageShown messageLength $messageLength');
-    // we would like to display all messages returned from the initial
-    // request to server using a popup. In order to achieve that we
-    // employ the use of a little recursion here. Please recursive
-    // functions can turn into a nightmare fast so be carefull here.
-    if (messageShown <= messageLength - 1) {
-      showResponseMessage(
-          context,
-          data['messages'][messageShown],
-          () => {
-                print('postProcessData: $messageShown'),
-                postProcessData(messageShown, messageLength, data),
-              });
-
-      messageShown++;
-      return;
-    }
-
-    // go to the definition of appState.viewData
-    // to learn more about viewData
-    appState.viewData![ConfirmTransactionViewPageConfig.key] = data;
-    print(appState.viewData);
-
-    appState.currentAction = PageAction(
-      state: PageState.addPage,
-      page: ConfirmTransactionViewPageConfig,
-    );
   }
 }
 

@@ -36,6 +36,8 @@ const String BackupAllViewPath = '/BackupAllView';
 const String AuthorizeLoginViewPath = '/AuthorizeLoginView';
 const String AuthorizeActionViewPath = '/AuthorizeActionView';
 const String RequestSpecificPaymentViewPath = '/RequestSpecificPaymentView';
+const String RequestSpecificPaymentDetailsViewPath =
+    '/RequestSpecificPaymentDetailsView';
 
 enum Pages {
   Splash,
@@ -74,6 +76,7 @@ enum Pages {
   AuthorizeLoginView,
   AuthorizeActionView,
   RequestSpecificPaymentView,
+  RequestSpecificPaymentDetailsView,
 }
 
 class PageConfiguration {
@@ -269,3 +272,9 @@ PageConfiguration RequestSpecificPaymentViewPageConfig = PageConfiguration(
     path: RequestSpecificPaymentViewPath,
     uiPage: Pages.RequestSpecificPaymentView,
     currentPageAction: null);
+PageConfiguration RequestSpecificPaymentDetailsViewPageConfig =
+    PageConfiguration(
+        key: 'RequestSpecificPaymentDetailsView',
+        path: RequestSpecificPaymentDetailsViewPath,
+        uiPage: Pages.RequestSpecificPaymentDetailsView,
+        currentPageAction: null);

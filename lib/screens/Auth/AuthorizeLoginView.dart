@@ -126,6 +126,9 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
                   },
                 ),
                 SizedBox(height: height / 7.3),
+                Padding(
+                    padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom)),
               ],
             ),
           ),

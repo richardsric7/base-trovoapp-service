@@ -26,6 +26,7 @@ import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/asset_details.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/confirm_transaction.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/recieve_asset.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment_details.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/send_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
@@ -245,6 +246,10 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               RequestSpecificPayment(), RequestSpecificPaymentViewPageConfig);
           break;
+        case Pages.RequestSpecificPaymentDetailsView:
+          _addPageData(RequestSpecificPaymentDetails(),
+              RequestSpecificPaymentDetailsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -404,6 +409,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
       case Pages.RequestSpecificPaymentView:
         RequestSpecificPaymentViewPageConfig.currentPageAction = action;
         break;
+      case Pages.RequestSpecificPaymentDetailsView:
+        RequestSpecificPaymentDetailsViewPageConfig.currentPageAction = action;
+        break;
       default:
         break;
     }
@@ -516,39 +524,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
             _createPage(const FingerPrint(), FingerprintPageConfig),
           ]);
           break;
-        case 'home':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
         case 'webview':
           setPath([
             _createPage(TrovoWebView(), WebViewPageConfig),
-          ]);
-          break;
-        case 'qrscanner':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        case 'searchview':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        case 'notificationsview':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        case 'createSubWalletSuccessView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        case 'walletDetailsView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
           ]);
           break;
         case 'assetDetailsView':
@@ -564,11 +542,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
             _createPage(const SendAsset(), SendAssetViewPageConfig),
           ]);
           break;
-        case 'requestSpecificPaymentView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
         case 'confirmTransactionView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
@@ -576,46 +549,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
             _createPage(const SendAsset(), SendAssetViewPageConfig),
             _createPage(
                 const ConfirmTransaction(), ConfirmTransactionViewPageConfig),
-          ]);
-          break;
-        case 'transactionSuccessView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        case 'recieveAssetView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        case 'pendingAssetDetailsView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        case 'PaymentHistoryView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        case 'PaymentDetailsView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        case 'SwapAssetsView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        case 'ConfirmSwapView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        case 'SwapSuccessView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
           ]);
           break;
         case 'ProfileDetailsView':
@@ -650,6 +583,26 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case 'AuthorizeActionView':
           setPath([
             _createPage(AuthorizeActionView(), AuthorizeActionViewPageConfig),
+          ]);
+          break;
+        case 'home':
+        case 'qrscanner':
+        case 'searchview':
+        case 'notificationsview':
+        case 'walletDetailsView':
+        case 'transactionSuccessView':
+        case 'createSubWalletSuccessView':
+        case 'recieveAssetView':
+        case 'requestSpecificPaymentView':
+        case 'requestSpecificPaymentDetatilsView':
+        case 'pendingAssetDetailsView':
+        case 'PaymentHistoryView':
+        case 'PaymentDetailsView':
+        case 'SwapAssetsView':
+        case 'ConfirmSwapView':
+        case 'SwapSuccessView':
+          setPath([
+            _createPage(const BottomHome(), BottomHomePageConfig),
           ]);
           break;
         default:
