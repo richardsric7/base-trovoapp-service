@@ -877,6 +877,54 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
+	router.POST("/v1/verify-answers", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		var answers userModels.UserSecretAnswer
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &answers)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		if len(answers.A1) == 0 || len(answers.A2) == 0 || len(answers.A3) == 0 || answers.Q1 == 0 || answers.Q2 == 0 || answers.Q3 == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Questions/Answers must be 3"})
+			return
+		}
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/verify-answers %v", user.Username), gc.DB)
+
+		if !userServices.ValidateSecretAnswers(&user, answers, gc) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "The answers provided are invalid."})
+			return
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
 	router.GET("/v1/secret-questions", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 

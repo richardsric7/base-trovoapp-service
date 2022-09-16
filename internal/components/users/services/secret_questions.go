@@ -77,3 +77,16 @@ func GetSecretQuestions(user *userModels.User, gc *sharedconfig.GlobalConfig) (q
 	}
 	return questions
 }
+
+func ValidateSecretAnswers(user *userModels.User, answer userModels.UserSecretAnswer, gc *sharedconfig.GlobalConfig) bool {
+
+	storedAnswers, err := GetUserSecretAnswers(user, gc)
+	if err != nil {
+		return false
+	}
+	if storedAnswers.A1 != answer.A1 || storedAnswers.A2 != answer.A2 || storedAnswers.A3 != answer.A3 {
+		return false
+	}
+
+	return true
+}
