@@ -281,6 +281,20 @@ class Payment_HistoryState extends State<PaymentHistory>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    SizedBox(
+                      width: width / 50,
+                    ),
+                    Text(
+                      formatAmount(transactionType, amount, assetCode),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: transactionType == TransactionType.Send
+                            ? Colors.red
+                            : notifier.getgreencolor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -293,20 +307,20 @@ class Payment_HistoryState extends State<PaymentHistory>
                             fontFamily: fontbody,
                           ),
                         ),
-                        SizedBox(
-                          width: width / 50,
-                        ),
-                        Text(
-                          formatAmount(transactionType, amount, assetCode),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400,
-                            color: transactionType == TransactionType.Send
-                                ? Colors.red
-                                : notifier.getgreencolor,
-                            fontFamily: fontbody,
-                          ),
-                        ),
+                        // SizedBox(
+                        //   width: width / 50,
+                        // ),
+                        // Text(
+                        //   formatAmount(transactionType, amount, assetCode),
+                        //   style: TextStyle(
+                        //     fontSize: 15,
+                        //     fontWeight: FontWeight.w400,
+                        //     color: transactionType == TransactionType.Send
+                        //         ? Colors.red
+                        //         : notifier.getgreencolor,
+                        //     fontFamily: fontbody,
+                        //   ),
+                        // ),
                       ],
                     ),
                     SizedBox(

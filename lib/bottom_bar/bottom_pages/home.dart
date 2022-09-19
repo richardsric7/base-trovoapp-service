@@ -449,6 +449,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset(
                             'assets/images/trovo.png',
+                            width: width / 9,
                           );
                         },
                       ),

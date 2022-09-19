@@ -120,6 +120,12 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                               width: width / 5.3,
                               // height: width / 10,
                               fit: BoxFit.fill,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/trovo.png',
+                                  width: width / 9,
+                                );
+                              },
                             ),
                           ),
                         )),
@@ -350,107 +356,107 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                   SizedBox(
                                     width: 10,
                                   ),
-                                  GestureDetector(
-                                    onTap: () {},
-                                    child: Text(
-                                      LanguageEn.edit,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w400,
-                                        color: notifier.getbluewhitecolor,
-                                        fontFamily: fontbody,
-                                      ),
-                                    ),
-                                  ),
+                                  // GestureDetector(
+                                  //   onTap: () {},
+                                  //   child: Text(
+                                  //     LanguageEn.edit,
+                                  //     style: TextStyle(
+                                  //       fontSize: 13,
+                                  //       fontWeight: FontWeight.w400,
+                                  //       color: notifier.getbluewhitecolor,
+                                  //       fontFamily: fontbody,
+                                  //     ),
+                                  //   ),
+                                  // ),
                                 ],
                               )
                             ],
                           ),
                         ),
-                        Container(
-                          child: Column(
-                            children: [
-                              Text(
-                                LanguageEn.unverified,
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
-                              ),
-                              SizedBox(
-                                height: 5,
-                              ),
-                              GestureDetector(
-                                onTap: () {},
-                                child: Text(
-                                  LanguageEn.taptoverify,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w400,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody,
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        )
+                        // Container(
+                        //   child: Column(
+                        //     children: [
+                        //       Text(
+                        //         LanguageEn.unverified,
+                        //         style: TextStyle(
+                        //             fontSize: 11,
+                        //             fontWeight: FontWeight.w600,
+                        //             color: notifier.getbluewhitecolor,
+                        //             fontFamily: fontsemibold),
+                        //       ),
+                        //       SizedBox(
+                        //         height: 5,
+                        //       ),
+                        //       GestureDetector(
+                        //         onTap: () {},
+                        //         child: Text(
+                        //           LanguageEn.taptoverify,
+                        //           style: TextStyle(
+                        //             fontSize: 10,
+                        //             fontWeight: FontWeight.w400,
+                        //             color: notifier.getbluewhitecolor,
+                        //             fontFamily: fontbody,
+                        //           ),
+                        //         ),
+                        //       )
+                        //     ],
+                        //   ),
+                        // )
                       ],
                     ),
                   ),
                   // Advanced KYC
-                  SizedBox(
-                    height: height / 25,
-                  ),
-                  Container(
-                    width: width / 1.29,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          child: Text(
-                            LanguageEn.advancedkyc,
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold),
-                          ),
-                        ),
-                        Container(
-                          child: Column(
-                            children: [
-                              Text(
-                                LanguageEn.unverified,
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
-                              ),
-                              SizedBox(
-                                height: 5,
-                              ),
-                              GestureDetector(
-                                onTap: () {},
-                                child: Text(
-                                  LanguageEn.taptostart,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w400,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody,
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
+                  // SizedBox(
+                  //   height: height / 25,
+                  // ),
+                  // Container(
+                  //   width: width / 1.29,
+                  //   child: Row(
+                  //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //     crossAxisAlignment: CrossAxisAlignment.center,
+                  //     children: [
+                  //       Container(
+                  //         child: Text(
+                  //           LanguageEn.advancedkyc,
+                  //           style: TextStyle(
+                  //               fontSize: 16,
+                  //               fontWeight: FontWeight.w600,
+                  //               color: notifier.getbluewhitecolor,
+                  //               fontFamily: fontsemibold),
+                  //         ),
+                  //       ),
+                  //       Container(
+                  //         child: Column(
+                  //           children: [
+                  //             Text(
+                  //               LanguageEn.unverified,
+                  //               style: TextStyle(
+                  //                   fontSize: 11,
+                  //                   fontWeight: FontWeight.w600,
+                  //                   color: notifier.getbluewhitecolor,
+                  //                   fontFamily: fontsemibold),
+                  //             ),
+                  //             SizedBox(
+                  //               height: 5,
+                  //             ),
+                  //             GestureDetector(
+                  //               onTap: () {},
+                  //               child: Text(
+                  //                 LanguageEn.taptostart,
+                  //                 style: TextStyle(
+                  //                   fontSize: 10,
+                  //                   fontWeight: FontWeight.w400,
+                  //                   color: notifier.getbluewhitecolor,
+                  //                   fontFamily: fontbody,
+                  //                 ),
+                  //               ),
+                  //             )
+                  //           ],
+                  //         ),
+                  //       )
+                  //     ],
+                  //   ),
+                  // ),
                   SizedBox(height: 2),
                 ],
               ),

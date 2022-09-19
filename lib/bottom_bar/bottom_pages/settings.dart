@@ -82,6 +82,12 @@ class _SettingsState extends State<Settings> {
                           width: width / 5.3,
                           // height: width / 10,
                           fit: BoxFit.fill,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/trovo.png',
+                              width: width / 9,
+                            );
+                          },
                         ),
                       ),
                     )),

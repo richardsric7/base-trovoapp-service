@@ -61,6 +61,7 @@ class CustomTextFormField {
     inputFormatters,
     controller,
     buildCounter,
+    readOnly = false,
     key,
   }) {
     return ScreenUtilInit(
@@ -71,6 +72,7 @@ class CustomTextFormField {
         child: TextFormField(
           key: key,
           maxLength: maxLength,
+          readOnly: readOnly,
           style: TextStyle(color: textcolor, fontFamily: fontbody),
           initialValue: initialValue,
           cursorColor: lablecolor,
