@@ -31,7 +31,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	// 	return &tErrors.CustomError{Param: "username", Err: "error invalid secret answers", ErrMessage: "Answers to the secret questions are invalid."}
 	// }
 	var userAccount horizon.Account
-	if userAccount, e = userBc.GetBlockchainAccountDetail(user.Username); e != nil {
+	if userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey); e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
 			return &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
 		}
