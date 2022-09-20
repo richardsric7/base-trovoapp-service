@@ -3,6 +3,7 @@ package users
 import (
 	"log"
 	"strings"
+	bc "trovo-wallet-api/internal/blockchainalgofuncs"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -21,6 +22,13 @@ func SaveUserSecretQuestions(user *userModels.User, answer userModels.UserSecret
 	if e != nil {
 		// possibly does not exist
 		answer.Username = user.Username
+
+		{
+			answer.A1 = bc.EncodeSha256(strings.ToLower(answer.A1))
+			answer.A2 = bc.EncodeSha256(strings.ToLower(answer.A2))
+			answer.A3 = bc.EncodeSha256(strings.ToLower(answer.A3))
+		}
+
 		e := gc.DB.Save(&answer).Error
 		if e != nil {
 			log.Printf("[SaveSecretQuestions] error creating answers [%v]", e)
@@ -36,11 +44,16 @@ func SaveUserSecretQuestions(user *userModels.User, answer userModels.UserSecret
 	}
 
 	//existing answer
-	existingAnswer.A1 = answer.A1
+	// existingAnswer.A1 = answer.A1
+	{
+		existingAnswer.A1 = bc.EncodeSha256(strings.ToLower(answer.A1))
+		existingAnswer.A2 = bc.EncodeSha256(strings.ToLower(answer.A2))
+		existingAnswer.A3 = bc.EncodeSha256(strings.ToLower(answer.A3))
+	}
 	existingAnswer.Q1 = answer.Q1
-	existingAnswer.A2 = answer.A2
+	// existingAnswer.A2 = answer.A2
 	existingAnswer.Q2 = answer.Q2
-	existingAnswer.A3 = answer.A3
+	// existingAnswer.A3 = answer.A3
 	existingAnswer.Q3 = answer.Q3
 	e = gc.DB.Save(&existingAnswer).Error
 	if e != nil {
@@ -85,7 +98,7 @@ func ValidateSecretAnswers(user *userModels.User, answer userModels.UserSecretAn
 	if err != nil {
 		return false
 	}
-	if !strings.EqualFold(storedAnswers.A1, answer.A1) || !strings.EqualFold(storedAnswers.A2, answer.A2) || !strings.EqualFold(storedAnswers.A3, answer.A3) {
+	if storedAnswers.A1 != bc.EncodeSha256(strings.ToLower(answer.A1)) || storedAnswers.A2 != bc.EncodeSha256(strings.ToLower(answer.A2)) || storedAnswers.A3 != bc.EncodeSha256(strings.ToLower(answer.A3)) {
 		return false
 	}
 

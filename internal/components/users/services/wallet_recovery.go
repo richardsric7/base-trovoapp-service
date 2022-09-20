@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 	bc "trovo-wallet-api/internal/blockchainalgofuncs"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -27,9 +28,24 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	if user.HasSecretQuestions == 0 {
 		return &tErrors.CustomError{Param: "username", Err: "error secret answers not set", ErrMessage: "Secret answers has not been set for this account."}
 	}
+	if user.WalletRecoveryEnabled == 1 {
+		return &tErrors.CustomError{Param: "username", Err: "error account recovery already enabled.", ErrMessage: "Account recovery already enabled."}
+	}
 	// if !ValidateSecretAnswers(user, answer, gc) {
 	// 	return &tErrors.CustomError{Param: "username", Err: "error invalid secret answers", ErrMessage: "Answers to the secret questions are invalid."}
 	// }
+
+	dbtx := gc.DB.Begin()
+	defer dbtx.Rollback()
+	user.WalletRecoveryEnabled = 1
+	exp := time.Now().AddDate(1, 0, 0)
+	user.WalletRecoveryExpiresOn = &exp
+	dbErr := dbtx.Save(user).Error
+	if dbErr != nil {
+		log.Printf("[EnableAccountRecovery] Error saving account recovery state: %v\n", dbErr)
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+
 	var userAccount horizon.Account
 	if userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey); e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
@@ -115,13 +131,13 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 				}
 			}
 			if !userBc.SignerIsValid(w.ID, recoveryAddress) {
-				//recovery not a signer to the sub wallet.
+				//recovery not a signer to the sub wallet. add it
 				ops = append(ops, &txnbuild.SetOptions{
 					Signer: &txnbuild.Signer{
 						Address: recoveryAddress,
 						Weight:  1,
 					},
-					SourceAccount: user.PublicKey,
+					SourceAccount: w.ID,
 				})
 			}
 
@@ -141,6 +157,10 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	memo := "Enabling Account Recovery"
 	log.Println("[EnableAccountRecovery] Memo:", memo)
 
+	if len(ops) == 0 {
+		return &tErrors.CustomError{Param: "username", Err: "error no operations to perform", ErrMessage: "Could not find any operations to perform for this action."}
+
+	}
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount:        &userAccount,
@@ -180,12 +200,200 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	txnHash, err := network.SubmitXdrWithSignature(client, user.PrimarySigner, xdrBase64, payload.TransactionSignature)
 	if err != nil {
 		logDiscordFailedRecovery(fmt.Sprintf("Error submitting account recovery enable [%+v] transaction: %s", payload, err.Error()))
+		return
 	}
 	payload.TransactionID = txnHash
+	dbtx.Commit()
 	if err == nil && len(multiAccessWallets) > 0 {
 		log.Printf("Skipped wallets %+v\n", multiAccessWallets)
 	}
-	return err
+	return nil
+
+}
+func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccountRecoveryPayload, gc *sharedconfig.GlobalConfig) (err error) {
+	var e error
+	client := gc.BantuExpansionClient
+	multiAccessWallets := make([]userModels.UserWallet, 0)
+	ops := make([]txnbuild.Operation, 0)
+	messages := make([]string, 0)
+	payload.Messages = make([]string, 0)
+	if user.HasSecretQuestions == 0 {
+		return &tErrors.CustomError{Param: "username", Err: "error secret answers not set", ErrMessage: "Secret answers has not been set for this account."}
+	}
+	if user.WalletRecoveryEnabled == 0 {
+		return &tErrors.CustomError{Param: "username", Err: "error account recovery not enabled.", ErrMessage: "Account recovery not enabled."}
+	}
+	dbtx := gc.DB.Begin()
+	defer dbtx.Rollback()
+	user.WalletRecoveryEnabled = 0
+	// exp := time.Now().AddDate(1, 0, 0)
+	user.WalletRecoveryExpiresOn = nil
+	dbErr := dbtx.Save(user).Error
+	if dbErr != nil {
+		log.Printf("[DisableAccountRecovery] Error saving account recovery state: %v\n", dbErr)
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if !ValidateSecretAnswers(user, payload.SecretAnswers, gc) {
+		return &tErrors.CustomError{Param: "username", Err: "error invalid secret answers", ErrMessage: "Answers to the secret questions are invalid."}
+	}
+	var userAccount horizon.Account
+	if userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey); e != nil {
+		if e.Error() == "error-blockchain-account-not-activated" {
+			return &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
+		}
+		log.Printf("[DisableAccountRecovery] Error on blockchain validating primary account %v\n", e)
+		return &tErrors.ErrorTemporaryServerError{}
+
+	}
+	for _, v := range userAccount.Balances {
+		if v.Code == "" && decimal.RequireFromString(v.Balance).LessThan(decimal.RequireFromString(os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"))) {
+			return &tErrors.CustomError{Param: "username", Err: "error primary wallet needs funding", ErrMessage: fmt.Sprintf("Primary wallet needs minimum of 50 %v to proceed.", os.Getenv("NATIVE_ASSET_CODE"))}
+
+		}
+	}
+
+	//get the recovery keypair
+	recoveryAddress := bc.GetRecoveryAccountAddress(user.Username, user.PublicKey)
+	if len(recoveryAddress) == 0 {
+		return &tErrors.CustomError{Param: "username", Err: "error generating recovery address", ErrMessage: "Could not generate valid recovery address for account."}
+
+	}
+	//activate recovery Address and add signer to primary key
+	_, e = userBc.GetBlockchainAccountDetail(recoveryAddress)
+	if e != nil {
+		// if e.Error() == "error-blockchain-account-not-activated" {
+		// 	//activate account
+		// 	ops = append(ops, &txnbuild.CreateAccount{
+		// 		Destination:   recoveryAddress,
+		// 		Amount:        os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"),
+		// 		SourceAccount: user.PublicKey,
+		// 	})
+		// 	messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your unique recovery key on the blockchain.", os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), user.Username))
+
+		// }
+		return &tErrors.CustomError{Param: "username", Err: "error feature not enabled previously", ErrMessage: fmt.Sprintf("Feature not enabled previously on account [%v].", user.Username)}
+
+	}
+	//  else {
+	// 	//account already active
+	// 	ops = append(ops, &txnbuild.Payment{
+	// 		Destination:   recoveryAddress,
+	// 		Amount:        "6",
+	// 		Asset:         txnbuild.NativeAsset{},
+	// 		SourceAccount: user.PublicKey,
+	// 	})
+	// }
+
+	//check for all wallets
+	wallets := user.GetAllWallets(gc)
+	if len(wallets) > 0 {
+		//has subwallets other than the primary wallet, which has already be added to the ops
+		for _, w := range wallets {
+
+			if w.ManagedAccessEnabled == 1 {
+				if !WalletHasViewOnlyAccess(&w, gc) {
+					// wallet does not have only view-only access, so we need to add it to the multiaccessWallets list
+					multiAccessWallets = append(multiAccessWallets, w)
+					continue
+				}
+			}
+			//a subwallet, not primary wallet
+			//activate subwallet Address and add signer to subwallet key
+			_, e = userBc.GetBlockchainAccountDetail(w.ID)
+			if e != nil {
+				// if e.Error() == "error-blockchain-account-not-activated" {
+				// 	//activate account
+				// 	ops = append(ops, &txnbuild.CreateAccount{
+				// 		Destination:   w.ID,
+				// 		Amount:        os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"),
+				// 		SourceAccount: user.PublicKey,
+				// 	})
+				// 	messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your subwallet [%v] on the blockchain.", os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), user.Username, w.Alias))
+
+				// }
+				continue
+
+			}
+
+			if userBc.SignerIsValid(w.ID, recoveryAddress) {
+				//recovery a signer to the wallet. remove it
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: recoveryAddress,
+						Weight:  0,
+					},
+					SourceAccount: w.ID,
+				})
+			}
+
+			{ //add fee for transaction
+
+			}
+
+		}
+	}
+	var xdrBase64 string
+	payload.Messages = messages
+	payload.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
+	// oldTrx := payload.Transaction
+
+	// generate new transaction
+
+	memo := "Disabling Account Recovery"
+	log.Println("[DisableAccountRecovery] Memo:", memo)
+	if len(ops) == 0 {
+		return &tErrors.CustomError{Param: "username", Err: "error no operations to perform", ErrMessage: "Could not find any operations to perform for this action."}
+
+	}
+
+	tx, err := txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        &userAccount,
+			IncrementSequenceNum: true,
+			Operations:           ops,
+			BaseFee:              2000,
+			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+			Memo:                 txnbuild.MemoText(memo),
+		},
+	)
+
+	if err != nil {
+		log.Println("[DisableAccountRecovery]error constructing transaction ", err)
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+
+	xdrBase64, err = tx.Base64()
+	if err != nil {
+		log.Println("[DisableAccountRecovery] error getting txn base64", err)
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	if len(payload.Transaction) == 0 || len(payload.TransactionSignature) == 0 {
+		payload.Transaction = xdrBase64
+
+		return nil
+	}
+
+	// if oldTrx != payload.Transaction {
+	// 	return &tErrors.ErrorInvalidTransaction{}
+	// }
+
+	if len(payload.TransactionSignature) == 0 {
+		return &tErrors.CustomError{Param: "TransactionSignature", Err: "error transaction signature is required", ErrMessage: "Transaction signature is required."}
+	}
+	//submit to blockchain
+
+	txnHash, err := network.SubmitXdrWithSignature(client, user.PrimarySigner, xdrBase64, payload.TransactionSignature)
+	if err != nil {
+		logDiscordFailedRecovery(fmt.Sprintf("Error submitting disable account recovery [%+v] transaction: %s", payload, err.Error()))
+		return
+	}
+	payload.TransactionID = txnHash
+	dbtx.Commit()
+	if err == nil && len(multiAccessWallets) > 0 {
+		log.Printf("Skipped wallets %+v\n", multiAccessWallets)
+	}
+	return nil
 
 }
 

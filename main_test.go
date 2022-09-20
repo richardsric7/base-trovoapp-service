@@ -273,11 +273,12 @@ type AnswerResp struct {
 }
 
 type UserAccountRecoveryPayload struct {
-	Transaction          string   `json:"transaction"`
-	TransactionSignature string   `json:"transactionSignature"`
-	TransactionID        string   `json:"transactionId"`
-	NetworkPassPhrase    string   `json:"networkPassPhrase"`
-	Messages             []string `json:"messages"`
+	Transaction          string           `json:"transaction"`
+	TransactionSignature string           `json:"transactionSignature"`
+	TransactionID        string           `json:"transactionId"`
+	NetworkPassPhrase    string           `json:"networkPassPhrase"`
+	Messages             []string         `json:"messages"`
+	SecretAnswers        UserSecretAnswer `json:"secretAnswers"`
 }
 
 func TestAccountEnableRecovery(t *testing.T) {
@@ -286,7 +287,7 @@ func TestAccountEnableRecovery(t *testing.T) {
 	// secretKey := "SDBLGMM6HVLYSUUR2TIKC6E7GZHQA5VJUUGBVOGDC5KQHTJVC2KK3EXK"
 	pk := os.Getenv("RICPK")
 	secretKey := os.Getenv("RICSC")
-	channelAccountSK := ""
+	// channelAccountSK := ""
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
@@ -311,7 +312,7 @@ func TestAccountEnableRecovery(t *testing.T) {
 
 	payload := UserAccountRecoveryPayload{}
 	errorResponse := new(ErrorResponse)
-	payResponse := new(PaymentInfo)
+	payResponse := new(UserAccountRecoveryPayload)
 
 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
 		Set("X-TW-PUBLIC-KEY", kp.Address()).
@@ -339,19 +340,7 @@ func TestAccountEnableRecovery(t *testing.T) {
 		//run the payment signing and submission
 		p := *payResponse
 		//sign transaction
-		if len(p.ChannelAccount) == 56 {
-			ckp := keypair.MustParseFull(channelAccountSK)
 
-			dsigned, err := middleware.SignBase64Txn(ckp.Seed(), p.Transaction, p.NetworkPassPhrase)
-			if err != nil {
-				log.Println("[TestAccountEnableRecovery]request error:", err)
-				t.Errorf(err.Error())
-
-				return
-			}
-			p.ChannelAccountSignature = dsigned
-
-		}
 		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 		if err != nil {
 			log.Println("[TestAccountEnableRecovery] makePayment error:", err)
@@ -387,6 +376,113 @@ func TestAccountEnableRecovery(t *testing.T) {
 	}
 	log.Println("[TestAccountEnableRecovery] completed")
 	time.Sleep(time.Second * 20)
+
+}
+func TestAccountDisableRecovery(t *testing.T) {
+
+	// pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	// secretKey := "SDBLGMM6HVLYSUUR2TIKC6E7GZHQA5VJUUGBVOGDC5KQHTJVC2KK3EXK"
+	pk := os.Getenv("RICPK")
+	secretKey := os.Getenv("RICSC")
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	baseURL := devURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/users/account/recovery"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	payload := UserAccountRecoveryPayload{
+		SecretAnswers: UserSecretAnswer{
+			A1: "test",
+			A2: "test",
+			A3: "test",
+		},
+	}
+	errorResponse := new(ErrorResponse)
+	payResponse := new(UserAccountRecoveryPayload)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Delete(fullPath).BodyJSON(payload).Receive(payResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestAccountDisableRecovery] server response error:", *errorResponse)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestAccountDisableRecovery]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Response:[%+v]\n", payResponse)
+
+	{
+		//run the payment signing and submission
+		p := *payResponse
+		//sign transaction
+		// p.SecretAnswers = UserSecretAnswer{
+		// 	A1: "test",
+		// 	A2: "test",
+		// 	A3: "test",
+		// }
+
+		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
+		if err != nil {
+			log.Println("[TestAccountDisableRecovery] confirm transaction error:", err)
+			t.Errorf(err.Error())
+
+			return
+		}
+
+		p.TransactionSignature = signedBase64
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", kp.Address()).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Delete(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+
+		log.Printf("Disable Recovery Response:[%+v]\n", payResponse)
+	}
+	log.Println("[TestAccountDisableRecovery] completed")
 
 }
 func TestAccountSetSecretAnswer(t *testing.T) {

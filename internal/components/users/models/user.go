@@ -29,7 +29,7 @@ type User struct {
 	MembershipExpiry        *time.Time   `json:"membershipExpiry"`
 	KYCVerified             uint         `gorm:"type:integer;not null; default:0" json:"kycVerified"`
 	WalletRecoveryEnabled   uint         `gorm:"type:integer;not null; default:0" json:"walletRecoveryEnabled"`
-	WalletRecoveryExpiresOn *time.Time   `gorm:"type:integer;null" json:"walletRecoveryExpiresOn"`
+	WalletRecoveryExpiresOn *time.Time   `gorm:"null" json:"walletRecoveryExpiresOn"`
 	UserWallets             []UserWallet `json:"userWallets"`
 	PublicIP                string       `gorm:"size:45" json:"publicIP"`
 	CountryCode             *string      `gorm:"size:2;null"`
@@ -161,17 +161,18 @@ type UserSecretAnswer struct {
 	UpdatedAt time.Time `json:"-"`
 	Username  string    `gorm:"size:20;not null; index:unique_user_secret_answer,unique" json:"-"`
 	Q1        uint64    `gorm:"not null;" json:"q1"`
-	A1        string    `gorm:"size:50;not null;" json:"a1"`
+	A1        string    `gorm:"size:150;not null;" json:"a1"`
 	Q2        uint64    `gorm:"not null;" json:"q2"`
-	A2        string    `gorm:"size:50;not null;" json:"a2"`
+	A2        string    `gorm:"size:150;not null;" json:"a2"`
 	Q3        uint64    `gorm:"not null;" json:"q3"`
-	A3        string    `gorm:"size:50;not null;" json:"a3"`
+	A3        string    `gorm:"size:150;not null;" json:"a3"`
 }
 
 type UserAccountRecoveryPayload struct {
-	Transaction          string   `json:"transaction"`
-	TransactionSignature string   `json:"transactionSignature"`
-	TransactionID        string   `json:"transactionId"`
-	NetworkPassPhrase    string   `json:"networkPassPhrase"`
-	Messages             []string `json:"messages"`
+	Transaction          string           `json:"transaction"`
+	TransactionSignature string           `json:"transactionSignature"`
+	TransactionID        string           `json:"transactionId"`
+	NetworkPassPhrase    string           `json:"networkPassPhrase"`
+	Messages             []string         `json:"messages"`
+	SecretAnswers        UserSecretAnswer `json:"secretAnswers"`
 }

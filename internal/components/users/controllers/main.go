@@ -1013,6 +1013,72 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		//At this point, there was no error.
+		if len(payload.TransactionID) > 4 {
+			if user.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["none"] = ""
+				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Enabled!", fmt.Sprintf("Congratulations! You have successfully enabled account recovery feature on your account [%v]. Your subscription will expire on %v. We will notify you when it is time to renew the subscription to keep this wonderful feature active on your wallet.", user.Username, user.WalletRecoveryExpiresOn.Format("01-02-2006 15:04:05")), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+		}
+
+		c.JSON(http.StatusOK, payload)
+	})
+
+	router.DELETE("/v1/users/account/recovery", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		var payload userModels.UserAccountRecoveryPayload
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &payload)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/users/account/recovery  %v", user.Username), gc.DB)
+		err = userServices.DisableAccountRecovery(&user, &payload, gc)
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		//At this point, there was no error.
+		if len(payload.TransactionID) > 4 {
+			if user.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["none"] = ""
+				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Disabled!", fmt.Sprintf("Congratulations! You have successfully disabled account recovery feature on your account [%v].", user.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+		}
 
 		c.JSON(http.StatusOK, payload)
 	})
