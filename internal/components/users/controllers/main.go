@@ -965,4 +965,56 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
+	router.POST("/v1/users/account/recovery", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		var payload userModels.UserAccountRecoveryPayload
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &payload)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/account/recovery  %v", user.Username), gc.DB)
+		err = userServices.EnableAccountRecovery(&user, &payload, gc)
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, payload)
+	})
+
 }

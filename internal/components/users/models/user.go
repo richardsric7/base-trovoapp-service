@@ -167,3 +167,11 @@ type UserSecretAnswer struct {
 	Q3        uint64    `gorm:"not null;" json:"q3"`
 	A3        string    `gorm:"size:50;not null;" json:"a3"`
 }
+
+type UserAccountRecoveryPayload struct {
+	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	NetworkPassPhrase    string   `json:"networkPassPhrase"`
+	Messages             []string `json:"messages"`
+}

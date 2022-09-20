@@ -662,3 +662,10 @@ func HasAccessToPublicKey(ownerPublicKey, targetPublicKey string, gc *sharedconf
 
 	return false
 }
+
+func GetUserwallets(user userModels.User, gc *sharedconfig.GlobalConfig) (wallets []userModels.UserWallet) {
+	wallets = make([]userModels.UserWallet, 0)
+	gc.DB.Where("user_id = ?", user.ID).Find(&wallets)
+	return
+
+}

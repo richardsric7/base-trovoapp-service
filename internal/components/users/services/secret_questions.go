@@ -2,6 +2,7 @@ package users
 
 import (
 	"log"
+	"strings"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -84,7 +85,7 @@ func ValidateSecretAnswers(user *userModels.User, answer userModels.UserSecretAn
 	if err != nil {
 		return false
 	}
-	if storedAnswers.A1 != answer.A1 || storedAnswers.A2 != answer.A2 || storedAnswers.A3 != answer.A3 {
+	if !strings.EqualFold(storedAnswers.A1, answer.A1) || !strings.EqualFold(storedAnswers.A2, answer.A2) || !strings.EqualFold(storedAnswers.A3, answer.A3) {
 		return false
 	}
 

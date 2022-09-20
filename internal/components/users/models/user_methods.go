@@ -77,7 +77,7 @@ func (u *UserWallet) GetSignersWA(account *horizon.Account) (signers map[string]
 	return
 }
 
-//SignerIsValidWA checks if the signerKey is valid for this user public key
+// SignerIsValidWA checks if the signerKey is valid for this user public key
 func (u *User) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
 	signer, ok := u.GetSignersWA(account)[signerKey]
 	if !ok || signer.Weight < 1 {
@@ -87,7 +87,7 @@ func (u *User) SignerIsValidWA(signerKey string, account *horizon.Account) bool 
 	return true
 }
 
-//SignerIsValidWA checks if the signerKey is valid for this user public key
+// SignerIsValidWA checks if the signerKey is valid for this user public key
 func (u *UserWallet) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
 	signer, ok := u.GetSignersWA(account)[signerKey]
 	if !ok || signer.Weight < 1 {
@@ -97,7 +97,7 @@ func (u *UserWallet) SignerIsValidWA(signerKey string, account *horizon.Account)
 	return true
 }
 
-//SignerIsValid checks if the signerKey is valid for this user public key
+// SignerIsValid checks if the signerKey is valid for this user public key
 func (u *UserWallet) SignerIsValid(signerKey string, temp bool) bool {
 	signer, ok := u.GetSigners(temp)[signerKey]
 	if !ok || signer.Weight < 1 {
@@ -107,7 +107,7 @@ func (u *UserWallet) SignerIsValid(signerKey string, temp bool) bool {
 	return true
 }
 
-//SignerIsValid checks if the signerKey is valid for this user public key
+// SignerIsValid checks if the signerKey is valid for this user public key
 func (u *User) SignerIsValid(signerKey string, temp bool) bool {
 	for _, w := range u.UserWallets {
 		if w.ID == w.Signer {
@@ -122,7 +122,7 @@ func (u *User) SignerIsValid(signerKey string, temp bool) bool {
 	return false
 }
 
-//GetBalance gets user wallet blockchain balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
+// GetBalance gets user wallet blockchain balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
 func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances map[string]Balance, err error) {
 	balances = make(map[string]Balance)
 	cacheKey := fmt.Sprintf("GetBalance_%s", u.ID)
@@ -234,7 +234,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 	return balances, nil
 }
 
-//GetNFTs gets user wallet blockchain NFT balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
+// GetNFTs gets user wallet blockchain NFT balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
 func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []NFT, err error) {
 	nfts = make([]NFT, 0)
 	cacheKey := fmt.Sprintf("GetNFTs_%s", u.ID)
@@ -308,7 +308,7 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 	return nfts, nil
 }
 
-//GetSortedUserBalance gets user blockchain balance
+// GetSortedUserBalance gets user blockchain balance
 func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances []Balance, err error) {
 
 	//GetBalance
@@ -345,7 +345,7 @@ func (u *UserWallet) GetAccountThresholds(temp bool) (thresholds horizon.Account
 	return account.Thresholds
 }
 
-//GetBlockchainAccountDetail fetches the bantu account information using public key
+// GetBlockchainAccountDetail fetches the bantu account information using public key
 func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizon.Account, destinationAccountExists bool, err error) {
 	client := network.GetBlockchainClient()
 	var accountRequest horizonclient.AccountRequest
@@ -432,7 +432,7 @@ func (u *User) VerifyEmailOnMailgun() (validationResult mailgun.EmailVerificatio
 	return
 }
 
-//GetBlockchainAccountDataKey fetches the bantu account information using public key
+// GetBlockchainAccountDataKey fetches the bantu account information using public key
 func (u *UserWallet) GetBlockchainAccountDataKey(temp bool, keys ...string) (dataValues map[string]string) {
 	dataValues = make(map[string]string)
 	account, _, err := u.GetBlockchainAccountDetail(temp)
@@ -672,8 +672,13 @@ func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalCon
 
 	return false
 }
+func (u *User) GetAllWallets(gc *sharedconfig.GlobalConfig) (wallets []UserWallet) {
+	wallets = make([]UserWallet, 0)
+	gc.DB.Where("user_id = ?", u.ID).Find(&wallets)
+	return
+}
 
-//Fetch3rdPartyWallets fetches all 3rd party wallets that the user is assigned to manage
+// Fetch3rdPartyWallets fetches all 3rd party wallets that the user is assigned to manage
 func (u *User) Fetch3rdPartyWallets(gc *sharedconfig.GlobalConfig) (thirdPartyWallets []ThirdPartyWalletAccess) {
 	var walletPermissions []WalletAccess
 	thirdPartyWallets = make([]ThirdPartyWalletAccess, 0)
