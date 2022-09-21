@@ -12,6 +12,7 @@ import (
 	paymentsDB "trovo-wallet-api/internal/components/payments/db"
 	tPayErrors "trovo-wallet-api/internal/components/payments/errors"
 	payments "trovo-wallet-api/internal/components/payments/models"
+	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	users "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
@@ -649,7 +650,7 @@ func processDestinationAssetDoesNotTrustAsset(destinationUser paymentsDB.User, c
 		return ops, tempAccountKeypair, &tErrors.ErrorTemporaryServerError{}
 	}
 
-	var tempAccount txnbuild.Account = &txnbuild.SimpleAccount{AccountID: tempAccountKeypair.Address(), Sequence: 0}
+	// var tempAccount txnbuild.Account = &txnbuild.SimpleAccount{AccountID: tempAccountKeypair.Address(), Sequence: 0}
 
 	tempAccountExists, tempAccountTrustsAsset, _, _, tempAccountSource, tempAccountError :=
 		network.BlockchainAccountProperties(client, tempAccountKeypair.FromAddress().Address(), asset)
@@ -722,10 +723,8 @@ func processDestinationAssetDoesNotTrustAsset(destinationUser paymentsDB.User, c
 				Address: destinationWallet.Signer,
 				Weight:  1,
 			},
-			SourceAccount: tempAccount.GetAccountID(),
+			SourceAccount: tempAccountKeypair.Address(),
 		})
-
-
 
 		signerKeyPairToReturn = tempAccountKeypair
 	}
@@ -735,7 +734,7 @@ func processDestinationAssetDoesNotTrustAsset(destinationUser paymentsDB.User, c
 		if destinationUser.WalletRecoveryEnabled == 1 {
 			recoveryKeyAddress := algofuncs.GetRecoveryAccountAddress(destinationUser.Username, destinationUser.PublicKey)
 			if len(recoveryKeyAddress) > 0 {
-				if !destinationWallet.SignerIsValidWA(recoveryKeyAddress, tempAccountSource) {
+				if !userBc.SignerIsValid(tempAccountKeypair.Address(), recoveryKeyAddress) {
 
 					//just make the recovery key a signer
 
@@ -744,7 +743,7 @@ func processDestinationAssetDoesNotTrustAsset(destinationUser paymentsDB.User, c
 							Address: recoveryKeyAddress,
 							Weight:  1,
 						},
-						SourceAccount: tempAccount.GetAccountID(),
+						SourceAccount: tempAccountKeypair.Address(),
 					})
 
 					signerKeyPairToReturn = tempAccountKeypair
@@ -764,7 +763,7 @@ func processDestinationAssetDoesNotTrustAsset(destinationUser paymentsDB.User, c
 				Address: destinationWallet.Signer,
 				Weight:  1,
 			},
-			SourceAccount: tempAccount.GetAccountID(),
+			SourceAccount: tempAccountKeypair.Address(),
 		})
 
 		signerKeyPairToReturn = tempAccountKeypair
@@ -782,7 +781,7 @@ func processDestinationAssetDoesNotTrustAsset(destinationUser paymentsDB.User, c
 		ops = append(ops, &txnbuild.ChangeTrust{
 			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
 			Limit:         "900000000000",
-			SourceAccount: tempAccount.GetAccountID(),
+			SourceAccount: tempAccountKeypair.Address(),
 		})
 
 		signerKeyPairToReturn = tempAccountKeypair
