@@ -725,22 +725,7 @@ func processDestinationAssetDoesNotTrustAsset(destinationUser paymentsDB.User, c
 			SourceAccount: tempAccount.GetAccountID(),
 		})
 
-		//add the recovery address if enabled
-		if len(destinationUser.Username) > 0 {
-			if destinationUser.WalletRecoveryEnabled == 1 {
-				recoveryKeyAddress := algofuncs.GetRecoveryAccountAddress(destinationUser.Username, destinationUser.PublicKey)
-				if len(recoveryKeyAddress) > 0 {
-					ops = append(ops, &txnbuild.SetOptions{
-						Signer: &txnbuild.Signer{
-							Address: recoveryKeyAddress,
-							Weight:  1,
-						},
-						SourceAccount: tempAccount.GetAccountID(),
-					})
-				}
 
-			}
-		}
 
 		signerKeyPairToReturn = tempAccountKeypair
 	}
@@ -750,7 +735,7 @@ func processDestinationAssetDoesNotTrustAsset(destinationUser paymentsDB.User, c
 		if destinationUser.WalletRecoveryEnabled == 1 {
 			recoveryKeyAddress := algofuncs.GetRecoveryAccountAddress(destinationUser.Username, destinationUser.PublicKey)
 			if len(recoveryKeyAddress) > 0 {
-				if tempAccountExists && !destinationWallet.SignerIsValidWA(recoveryKeyAddress, tempAccountSource) {
+				if !destinationWallet.SignerIsValidWA(recoveryKeyAddress, tempAccountSource) {
 
 					//just make the recovery key a signer
 

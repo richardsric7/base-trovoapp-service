@@ -291,7 +291,7 @@ func TestAccountEnableRecovery(t *testing.T) {
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := devURL
+	baseURL := prodURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -388,7 +388,7 @@ func TestAccountDisableRecovery(t *testing.T) {
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := devURL
+	baseURL := prodURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -507,7 +507,7 @@ func TestAccountSetSecretAnswer(t *testing.T) {
 	}
 	kp := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
-	baseURL := devURL
+	baseURL := prodURL
 	fullPath := "/v1/secret-questions"
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000

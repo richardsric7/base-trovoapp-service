@@ -162,11 +162,12 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizo
 
 // GetSigners returns user signers
 func (u *UserWallet) GetSigners(temp bool) (signers map[string]Signer) {
+	signers = make(map[string]Signer)
 	account, _, err := u.GetBlockchainAccountDetail(temp)
 	if err != nil {
 		return signers
 	}
-	signers = make(map[string]Signer)
+
 	for _, v := range account.Signers {
 		signers[v.Key] = Signer{
 			Weight:  int(v.Weight),
@@ -180,8 +181,11 @@ func (u *UserWallet) GetSigners(temp bool) (signers map[string]Signer) {
 
 // GetSignersWA returns user signers
 func (u *User) GetSignersWA(account *horizon.Account) (signers map[string]Signer) {
-
 	signers = make(map[string]Signer)
+	if account == nil {
+		return signers
+	}
+
 	for _, v := range account.Signers {
 		signers[v.Key] = Signer{
 			Weight:  int(v.Weight),
@@ -197,6 +201,9 @@ func (u *User) GetSignersWA(account *horizon.Account) (signers map[string]Signer
 func (u *UserWallet) GetSignersWA(account *horizon.Account) (signers map[string]Signer) {
 
 	signers = make(map[string]Signer)
+	if account == nil {
+		return signers
+	}
 	for _, v := range account.Signers {
 		signers[v.Key] = Signer{
 			Weight:  int(v.Weight),
@@ -210,6 +217,9 @@ func (u *UserWallet) GetSignersWA(account *horizon.Account) (signers map[string]
 
 // SignerIsValidWA checks if the signerKey is valid for this user public key
 func (u *User) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
+	if account == nil {
+		return false
+	}
 	signer, ok := u.GetSignersWA(account)[signerKey]
 	if !ok || signer.Weight < 1 {
 		return false
@@ -220,6 +230,9 @@ func (u *User) SignerIsValidWA(signerKey string, account *horizon.Account) bool 
 
 // SignerIsValidWA checks if the signerKey is valid for this user public key
 func (u *UserWallet) SignerIsValidWA(signerKey string, account *horizon.Account) bool {
+	if account == nil {
+		return false
+	}
 	signer, ok := u.GetSignersWA(account)[signerKey]
 	if !ok || signer.Weight < 1 {
 		return false
@@ -230,7 +243,11 @@ func (u *UserWallet) SignerIsValidWA(signerKey string, account *horizon.Account)
 
 // SignerIsValid checks if the signerKey is valid for this user public key
 func (u *UserWallet) SignerIsValid(signerKey string, temp bool) bool {
-	signer, ok := u.GetSigners(temp)[signerKey]
+	signers := u.GetSigners(temp)
+	if signers == nil {
+		return false
+	}
+	signer, ok := signers[signerKey]
 	if !ok || signer.Weight < 1 {
 		return false
 	}
@@ -238,20 +255,20 @@ func (u *UserWallet) SignerIsValid(signerKey string, temp bool) bool {
 	return true
 }
 
-// SignerIsValid checks if the signerKey is valid for this user public key
-func (u *User) SignerIsValid(signerKey string, temp bool) bool {
-	for _, w := range u.UserWallets {
-		if w.ID == w.Signer {
-			signer, ok := w.GetSigners(temp)[signerKey]
-			if !ok || signer.Weight < 1 {
-				return false
-			}
+// // SignerIsValid checks if the signerKey is valid for this user public key
+// func (u *User) SignerIsValid(signerKey string, temp bool) bool {
+// 	for _, w := range u.UserWallets {
+// 		if w.ID == w.Signer {
+// 			signer, ok := w.GetSigners(temp)[signerKey]
+// 			if !ok || signer.Weight < 1 {
+// 				return false
+// 			}
 
-			return true
-		}
-	}
-	return false
-}
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 func GetUser(userInfo string, db *gorm.DB) (user User, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)

@@ -5,9 +5,10 @@ import (
 	"log"
 	"os"
 	"strings"
+	bc "trovo-wallet-api/internal/blockchainalgofuncs"
+	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	userDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
-
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -261,6 +262,26 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
 
 	}
+
+	//add recovery key if account recovery is enabled
+	if user.WalletRecoveryEnabled == 1 {
+		recoveryKeyAddress := bc.GetRecoveryAccountAddress(user.Username, user.PublicKey)
+
+		if len(recoveryKeyAddress) == 56 {
+			if !userBc.SignerIsValid(subWalletInfo.PublicKey, recoveryKeyAddress) {
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: recoveryKeyAddress,
+						Weight:  1,
+					},
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			}
+
+		}
+
+	}
+
 	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
 
 	// Construct the transaction that holds the operations to execute on the network
@@ -427,6 +448,25 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 			Code:       400,
 		}
 		return "", subWalletObj, err
+	}
+
+	//add recovery key if account recovery is enabled
+	if user.WalletRecoveryEnabled == 1 {
+		recoveryKeyAddress := bc.GetRecoveryAccountAddress(user.Username, user.PublicKey)
+
+		if len(recoveryKeyAddress) == 56 {
+			if !userBc.SignerIsValid(subWalletInfo.PublicKey, recoveryKeyAddress) {
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: recoveryKeyAddress,
+						Weight:  1,
+					},
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			}
+
+		}
+
 	}
 	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
 
