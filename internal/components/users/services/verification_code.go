@@ -23,10 +23,30 @@ import (
 
 const saltInCode = "7HrtrGCRUPp8j5Gze"
 
-//NumberOfCharactersInVerificationCode num of chars for verification code
+// NumberOfCharactersInVerificationCode num of chars for verification code
 const NumberOfCharactersInVerificationCode = 6
 
-//GenerateEmailVerificationCode generates email verification code
+// GenerateAccountRecoveryEmailOTP generates email verification code
+func GenerateAccountRecoveryEmailOTP(userInfo *users.User) string {
+	salt := os.Getenv("VERIFICATION_CODE_SALT")
+	dateReference := time.Now().String()
+
+	tohash := sha256.New()
+	tohash.Write([]byte(userInfo.Email))
+	tohash.Write([]byte(userInfo.PublicKey))
+	tohash.Write([]byte(userInfo.Username))
+	tohash.Write([]byte(dateReference))
+	tohash.Write([]byte(saltInCode))
+	tohash.Write([]byte(salt))
+	hashed := tohash.Sum(nil)
+	data := binary.BigEndian.Uint32(hashed)
+
+	s := strconv.FormatUint(uint64(data), 10)
+
+	return s[0:NumberOfCharactersInVerificationCode]
+}
+
+// GenerateEmailVerificationCode generates email verification code
 func GenerateEmailVerificationCode(userInfo users.UserRegistrationInfo, salt string) string {
 
 	dateReference := time.Now().Format("2006-01-02")
@@ -46,7 +66,7 @@ func GenerateEmailVerificationCode(userInfo users.UserRegistrationInfo, salt str
 	return s[0:NumberOfCharactersInVerificationCode]
 }
 
-//GeneratePhoneVerificationCode generates email verification code
+// GeneratePhoneVerificationCode generates email verification code
 func GeneratePhoneVerificationCode(userInfo *users.User, salt string) string {
 
 	dateReference := time.Now().Format("2006-01-02")
@@ -66,7 +86,7 @@ func GeneratePhoneVerificationCode(userInfo *users.User, salt string) string {
 	return s[0:NumberOfCharactersInVerificationCode]
 }
 
-//CheckAndSendVerificationCode checks and sends verification code
+// CheckAndSendVerificationCode checks and sends verification code
 func CheckAndSendVerificationCode(userInfo users.UserRegistrationInfo) (bool, string, error) {
 	//Verification code checks
 	salt := os.Getenv("VERIFICATION_CODE_SALT")
@@ -103,7 +123,7 @@ func CheckAndSendVerificationCode(userInfo users.UserRegistrationInfo) (bool, st
 
 }
 
-//UpdatePhoneNumber updates phone number
+// UpdatePhoneNumber updates phone number
 func UpdatePhoneNumber(userInfo *users.User, mobileCountryCode, mobile string, db *gorm.DB, redisCache *cache.RedisCache) error {
 
 	if len(mobile) == 0 {
@@ -197,7 +217,7 @@ func UpdatePhoneNumber(userInfo *users.User, mobileCountryCode, mobile string, d
 
 }
 
-//CheckhoneVerificationCode checks and sends verification code
+// CheckhoneVerificationCode checks and sends verification code
 func CheckPhoneVerificationCode(userInfo *users.User, verificationCode string, db *gorm.DB, c *gin.Context) error {
 	if userInfo.MobileVerified == 1 {
 		//phone already verified. exit with error
@@ -265,7 +285,50 @@ func CheckPhoneVerificationCode(userInfo *users.User, verificationCode string, d
 
 }
 
-//SendPhoneVerificationCode checks and sends verification code
+// CheckAccountRecoveryEmailOTP checks and sends verification code
+func CheckAccountRecoveryEmailOTP(userInfo *users.User, verificationCode string, db *gorm.DB, c *gin.Context) error {
+
+	if len(verificationCode) == 0 {
+		//phone already verified. exit with error
+		return &tErrors.CustomError{
+			Param:      "email",
+			Err:        "no verification code provided",
+			ErrMessage: "no verification code provided",
+		}
+
+	}
+
+	var userVerification users.UserAccountRecoveryEmailVerification
+	//get the verificationRecord
+	errDB := db.First(&userVerification, "user_id = ?", userInfo.ID).Error
+
+	if errDB != nil {
+		//check error if server error
+		if !errors.Is(errDB, gorm.ErrRecordNotFound) {
+			log.Printf("[CheckAccountRecoveryEmailOTP] Failed to fetch verification for user %v at this time due to Error: %s\n", userInfo.Username, errDB.Error())
+
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		//no record found, check conditions
+		return &tErrors.CustomError{
+			Param:      "mobile",
+			Err:        "no verification code requested",
+			ErrMessage: "Your have not requested for verification code before. Please press 'send code' to request for verification code",
+		}
+
+	}
+	//record is found, check if it matches the expected verification code
+	if userVerification.VerificationCode != verificationCode {
+		return &tErrors.ErrorInvalidVerificationCode{}
+	}
+
+	//verification code matches
+
+	return nil
+
+}
+
+// SendPhoneVerificationCode checks and sends verification code
 func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *cache.RedisCache) error {
 	if userInfo.MobileVerified == 1 {
 		//phone already verified. exit with error
@@ -378,6 +441,92 @@ func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *ca
 			Err:        "error-cannot-send-sms-to-mobile",
 			ErrMessage: "Unable to send OTP to your registered mobile phone at this time. Please ensure your mobile number is correct and then try again later.",
 		}
+	}
+	tx.Commit()
+	return nil
+}
+
+// SendAccountRecoveryEmailOTP checks and sends verification code
+func SendAccountRecoveryEmailOTP(userInfo *users.User, db *gorm.DB) error {
+
+	if userInfo.Email == "" {
+
+		return &tErrors.CustomError{
+			Param:      "email",
+			Err:        "no email attached to account",
+			ErrMessage: "No email attached to account. Please contact support.",
+		}
+
+	}
+
+	var userVerification users.UserAccountRecoveryEmailVerification
+	//get the verification Record
+	errDB := db.First(&userVerification, "user_id = ?", userInfo.ID).Error
+
+	tx := db.Begin()
+	defer tx.Rollback()
+
+	if errDB != nil {
+		//check error if server error
+		if !errors.Is(errDB, gorm.ErrRecordNotFound) {
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		verificationCode := GenerateAccountRecoveryEmailOTP(userInfo)
+		//record not found...create new record
+		userVerification = users.UserAccountRecoveryEmailVerification{
+			UserID:           userInfo.ID,
+			Email:            userInfo.Email,
+			VerificationCode: verificationCode,
+		}
+
+		errDB = tx.Create(&userVerification).Error
+		if errDB != nil {
+			//could not create verification code
+			log.Printf("[SendAccountRecoveryEmailOTP] Error creating verification code for user %s. Error: %s\n", userInfo.Username, errDB.Error())
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		//send TOP
+
+		_, _, errSendVerificationCode := tMail.SendEmailVerificationCode(userInfo.Email, verificationCode)
+
+		if errSendVerificationCode != nil {
+			return errSendVerificationCode
+		}
+
+		tx.Commit()
+		return nil
+
+	}
+	//record is found
+	//check when last request was made
+	log.Printf("[SendAccountRecoveryEmailOTP] username: %s, requested date: %s, reference Date: %s\n", userInfo.Username, userVerification.RequestDate.Format("2006-01-02"), time.Now().Format("2006-01-02"))
+
+	if userVerification.RequestDate.Format("2006-01-02") == time.Now().Format("2006-01-02") {
+		return &tErrors.CustomError{
+			Param:      "mobile",
+			Err:        "daily request quota exceeded",
+			ErrMessage: "You have already exhausted your request quota for the day. Wait till you recieve the code or you wait for another day",
+		}
+	}
+
+	verificationCode := GenerateAccountRecoveryEmailOTP(userInfo)
+
+	//update the record
+	userVerification.RequestDate = time.Now()
+	userVerification.VerificationCode = verificationCode
+	errDB = tx.Save(&userVerification).Error
+	if errDB != nil {
+		//could not update verification code
+		log.Printf("[SendAccountRecoveryEmailOTP] Error updating verification code for user %s. Error: %s\n", userInfo.Username, errDB.Error())
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	//updated successfully
+	//send OTP
+
+	_, _, errSendVerificationCode := tMail.SendEmailVerificationCode(userInfo.Email, verificationCode)
+
+	if errSendVerificationCode != nil {
+		return errSendVerificationCode
 	}
 	tx.Commit()
 	return nil

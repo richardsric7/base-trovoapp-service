@@ -1017,7 +1017,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			if user.PushNotificationToken != nil {
 				dataPayload := make(map[string]string)
 				dataPayload["none"] = ""
-				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Enabled!", fmt.Sprintf("Congratulations! You have successfully enabled account recovery service on your account [%v]. Your account will be recovered by Trovotech should you lose your secret key. The service will expire on %v. We will notify you when it is time to renew the service to keep your account recovery active.", user.Username, user.WalletRecoveryExpiresOn.Format("01-02-2006 15:04:05")), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Enabled!", fmt.Sprintf("Congratulations! You have successfully enabled account recovery service on your account [%v]. Your account will be recovered by Trovotech should you lose your secret key. The service will expire on %v. We will notify you when it is time to renew the service to keep your account recovery active.", user.Username, user.AccountRecoveryExpiresOn.Format("01-02-2006 15:04:05")), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 			}
 		}
 

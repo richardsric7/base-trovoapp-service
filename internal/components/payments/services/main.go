@@ -731,7 +731,7 @@ func processDestinationAssetDoesNotTrustAsset(destinationUser paymentsDB.User, c
 
 	//add the recovery address if enabled and account exists but recovery is not already signer key
 	if len(destinationUser.Username) > 0 {
-		if destinationUser.WalletRecoveryEnabled == 1 {
+		if destinationUser.AccountRecoveryEnabled == 1 {
 			recoveryKeyAddress := algofuncs.GetRecoveryAccountAddress(destinationUser.Username, destinationUser.PublicKey)
 			if len(recoveryKeyAddress) > 0 {
 				if !userBc.SignerIsValid(tempAccountKeypair.Address(), recoveryKeyAddress) {

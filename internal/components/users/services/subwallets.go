@@ -264,7 +264,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 	}
 
 	//add recovery key if account recovery is enabled
-	if user.WalletRecoveryEnabled == 1 {
+	if user.AccountRecoveryEnabled == 1 {
 		recoveryKeyAddress := bc.GetRecoveryAccountAddress(user.Username, user.PublicKey)
 
 		if len(recoveryKeyAddress) == 56 {
@@ -451,7 +451,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 	}
 
 	//add recovery key if account recovery is enabled
-	if user.WalletRecoveryEnabled == 1 {
+	if user.AccountRecoveryEnabled == 1 {
 		recoveryKeyAddress := bc.GetRecoveryAccountAddress(user.Username, user.PublicKey)
 
 		if len(recoveryKeyAddress) == 56 {

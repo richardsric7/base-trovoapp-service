@@ -21,7 +21,7 @@ type UserJSON struct {
 	MembershipType        uint             `json:"membershipType"`
 	MembershipExpiry      time.Time        `json:"membershipExpiry"`
 	KYCVerified           uint             `json:"kycVerified"`
-	WalletRecoveryEnabled uint             `json:"walletRecoveryEnabled"`
+	AccountRecoveryEnabled uint             `json:"accountRecoveryEnabled"`
 	UserWallets           []UserWalletJSON `json:"userWallets"`
 	Verified              int              `json:"verified"`
 	Suspended             int              `json:"suspended"`

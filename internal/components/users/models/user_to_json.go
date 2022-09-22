@@ -11,7 +11,7 @@ func (u *User) ToJSON() (jsonObj UserJSON) {
 	jsonObj.MobileVerified = u.MobileVerified
 	jsonObj.MembershipType = u.MembershipType
 	jsonObj.KYCVerified = u.KYCVerified
-	jsonObj.WalletRecoveryEnabled = u.WalletRecoveryEnabled
+	jsonObj.AccountRecoveryEnabled = u.AccountRecoveryEnabled
 	jsonObj.Verified = u.Verified
 	jsonObj.Suspended = u.Suspended
 	jsonObj.HasSecretQuestions = u.HasSecretQuestions

@@ -28,7 +28,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	if user.HasSecretQuestions == 0 {
 		return &tErrors.CustomError{Param: "username", Err: "error secret answers not set", ErrMessage: "Secret answers has not been set for this account."}
 	}
-	if user.WalletRecoveryEnabled == 1 {
+	if user.AccountRecoveryEnabled == 1 {
 		return &tErrors.CustomError{Param: "username", Err: "error account recovery already enabled.", ErrMessage: "Account recovery already enabled."}
 	}
 	wallet, _ := userModels.UserWalletID(user.PublicKey).GetWallet(gc.DB)
@@ -41,9 +41,9 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 
 	dbtx := gc.DB.Begin()
 	defer dbtx.Rollback()
-	user.WalletRecoveryEnabled = 1
+	user.AccountRecoveryEnabled = 1
 	exp := time.Now().AddDate(1, 0, 0)
-	user.WalletRecoveryExpiresOn = &exp
+	user.AccountRecoveryExpiresOn = &exp
 	dbErr := dbtx.Save(user).Error
 	if dbErr != nil {
 		log.Printf("[EnableAccountRecovery] Error saving account recovery state: %v\n", dbErr)
@@ -224,14 +224,14 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	if user.HasSecretQuestions == 0 {
 		return &tErrors.CustomError{Param: "username", Err: "error secret answers not set", ErrMessage: "Secret answers has not been set for this account."}
 	}
-	if user.WalletRecoveryEnabled == 0 {
+	if user.AccountRecoveryEnabled == 0 {
 		return &tErrors.CustomError{Param: "username", Err: "error account recovery not enabled.", ErrMessage: "Account recovery not enabled."}
 	}
 	dbtx := gc.DB.Begin()
 	defer dbtx.Rollback()
-	user.WalletRecoveryEnabled = 0
+	user.AccountRecoveryEnabled = 0
 	// exp := time.Now().AddDate(1, 0, 0)
-	user.WalletRecoveryExpiresOn = nil
+	user.AccountRecoveryExpiresOn = nil
 	dbErr := dbtx.Save(user).Error
 	if dbErr != nil {
 		log.Printf("[DisableAccountRecovery] Error saving account recovery state: %v\n", dbErr)
@@ -398,6 +398,150 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 		log.Printf("Skipped wallets %+v\n", multiAccessWallets)
 	}
 	return nil
+
+}
+
+func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecoveryRequest, gc *sharedconfig.GlobalConfig) (err error) {
+	var e error
+	client := gc.BantuExpansionClient
+	multiAccessWallets := make([]userModels.UserWallet, 0)
+	ops := make([]txnbuild.Operation, 0)
+	messages := make([]string, 0)
+	payload.Messages = make([]string, 0)
+	// if user.HasSecretQuestions == 0 {
+	// 	return &tErrors.CustomError{Param: "username", Err: "error secret answers not set", ErrMessage: "Secret answers has not been set for this account."}
+	// }
+	if user.AccountRecoveryEnabled == 0 {
+		return &tErrors.CustomError{Param: "username", Err: "error account recovery not enabled.", ErrMessage: "Account recovery not enabled."}
+	}
+	dbtx := gc.DB.Begin()
+	defer dbtx.Rollback()
+
+	if !ValidateSecretAnswers(user, payload.SecretAnswers, gc) {
+		return &tErrors.CustomError{Param: "username", Err: "error invalid secret answers", ErrMessage: "Answers to the secret questions are invalid."}
+	}
+	var userAccount horizon.Account
+	if userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey); e != nil {
+		if e.Error() == "error-blockchain-account-not-activated" {
+			return &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
+		}
+		log.Printf("[DisableAccountRecovery] Error on blockchain validating primary account %v\n", e)
+		return &tErrors.ErrorTemporaryServerError{}
+
+	}
+	for _, v := range userAccount.Balances {
+		if v.Code == "" && decimal.RequireFromString(v.Balance).LessThan(decimal.RequireFromString(os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"))) {
+			return &tErrors.CustomError{Param: "username", Err: "error primary wallet needs funding", ErrMessage: fmt.Sprintf("Primary wallet needs minimum of %v %v to proceed.", os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"), os.Getenv("NATIVE_ASSET_CODE"))}
+
+		}
+	}
+
+	//get the recovery keypair
+	recoveryKeyPair, _ := bc.RecoveryAccountKeypair(user.Username, user.PublicKey)
+	recoveryAddress := recoveryKeyPair.Address()
+	if len(recoveryAddress) == 0 {
+		return &tErrors.CustomError{Param: "username", Err: "error generating recovery address", ErrMessage: "Could not generate valid recovery address for account."}
+
+	}
+	//activate new signer Address and add signer to primary key
+	_, e = userBc.GetBlockchainAccountDetail(payload.NewSignerPubliKey)
+	if e != nil {
+		if e.Error() == "error-blockchain-account-not-activated" {
+			//activate account
+			ops = append(ops, &txnbuild.CreateAccount{
+				Destination:   recoveryAddress,
+				Amount:        os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"),
+				SourceAccount: user.PublicKey,
+			})
+			messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your new signer key on the blockchain.", os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), user.Username))
+
+		} else {
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+	}
+
+	if !userBc.SignerIsValid(user.PublicKey, payload.NewSignerPubliKey) {
+		//newsigner not a signer to the primary wallet.
+		ops = append(ops, &txnbuild.SetOptions{
+			Signer: &txnbuild.Signer{
+				Address: recoveryAddress,
+				Weight:  1,
+			},
+			SourceAccount: user.PublicKey,
+		})
+	}
+
+	//check for subwallets
+	wallets := user.GetAllWallets(gc)
+	if len(wallets) > 1 {
+		//has subwallets other than the primary wallet, which has already be added to the ops
+		for _, w := range wallets {
+			if w.Alias != user.Username {
+				if w.ManagedAccessEnabled == 1 {
+					if !WalletHasViewOnlyAccess(&w, gc) {
+						// wallet does not have only view-only access, so we need to add it to the multiaccessWallets list
+						multiAccessWallets = append(multiAccessWallets, w)
+						continue
+					}
+				}
+				//a subwallet, not primary wallet
+				//activate subwallet Address and add signer to subwallet key
+				_, e = userBc.GetBlockchainAccountDetail(w.ID)
+				if e != nil {
+					if e.Error() == "error-blockchain-account-not-activated" {
+						//activate account
+						ops = append(ops, &txnbuild.CreateAccount{
+							Destination:   w.ID,
+							Amount:        os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"),
+							SourceAccount: user.PublicKey,
+						})
+						messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your subwallet [%v] on the blockchain.", os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), user.Username, w.Alias))
+
+					}
+				}
+			}
+			if !userBc.SignerIsValid(w.ID, payload.NewSignerPubliKey) {
+				//recovery not a signer to the sub wallet. add it
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: payload.NewSignerPubliKey,
+						Weight:  1,
+					},
+					SourceAccount: w.ID,
+				})
+			}
+			if userBc.SignerIsValid(w.ID, user.PrimarySigner) {
+				//former signer exists. remove it
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: user.PrimarySigner,
+						Weight:  0,
+					},
+					SourceAccount: w.ID,
+				})
+			}
+
+			{ //add fee for transaction
+
+			}
+
+		}
+	}
+
+	//last operation
+
+	if userBc.SignerIsValid(user.PublicKey, user.PrimarySigner) && payload.DiableSignerFromPrimaryWallet == 1 {
+		//remove old signer directive is enabled. remove old signer
+		ops = append(ops, &txnbuild.SetOptions{
+			Signer: &txnbuild.Signer{
+				Address: user.PrimarySigner,
+				Weight:  0,
+			},
+			SourceAccount: user.PublicKey,
+		})
+		messages = append(messages, "You have chosen to remove old signer from your account.This will remove your previous signer and it will not be able to authorize any more transactions on your account ever again.")
+	}
 
 }
 
