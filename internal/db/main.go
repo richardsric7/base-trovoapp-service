@@ -167,6 +167,11 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating ReservedName: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&users.UserAccountRecoveryEmailVerification{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserAccountRecoveryEmailVerification: ", errMigrate)
+		}
+
 		errMigrate = gormDB.AutoMigrate(&users.UserMobilePhoneVerification{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserMobilePhoneVerification: ", errMigrate)
