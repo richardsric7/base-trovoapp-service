@@ -285,8 +285,8 @@ func CheckPhoneVerificationCode(userInfo *users.User, verificationCode string, d
 
 }
 
-// CheckAccountRecoveryEmailOTP checks and sends verification code
-func CheckAccountRecoveryEmailOTP(userInfo *users.User, verificationCode string, db *gorm.DB, c *gin.Context) error {
+// CheckAccountRecoveryEmailOTP checks verification code
+func CheckAccountRecoveryEmailOTP(userInfo *users.User, verificationCode string, db *gorm.DB) error {
 
 	if len(verificationCode) == 0 {
 		//phone already verified. exit with error
@@ -323,6 +323,48 @@ func CheckAccountRecoveryEmailOTP(userInfo *users.User, verificationCode string,
 	}
 
 	//verification code matches
+
+	return nil
+
+} // CheckAccountRecoveryEmailOTP checks verification code
+func RemoveAccountRecoveryEmailOTP(userInfo *users.User, verificationCode string, db *gorm.DB) error {
+
+	if len(verificationCode) == 0 {
+		//phone already verified. exit with error
+		return &tErrors.CustomError{
+			Param:      "email",
+			Err:        "no verification code provided",
+			ErrMessage: "no verification code provided",
+		}
+
+	}
+
+	var userVerification users.UserAccountRecoveryEmailVerification
+	//get the verificationRecord
+	errDB := db.First(&userVerification, "user_id = ?", userInfo.ID).Error
+
+	if errDB != nil {
+		//check error if server error
+		if !errors.Is(errDB, gorm.ErrRecordNotFound) {
+			log.Printf("[CheckAccountRecoveryEmailOTP] Failed to fetch verification for user %v at this time due to Error: %s\n", userInfo.Username, errDB.Error())
+
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		//no record found, check conditions
+		return &tErrors.CustomError{
+			Param:      "mobile",
+			Err:        "no verification code requested",
+			ErrMessage: "Your have not requested for verification code before. Please press 'send code' to request for verification code",
+		}
+
+	}
+	//record is found, check if it matches the expected verification code
+	if userVerification.VerificationCode != verificationCode {
+		return &tErrors.ErrorInvalidVerificationCode{}
+	}
+
+	//verification code matches
+	db.Delete(&userVerification)
 
 	return nil
 

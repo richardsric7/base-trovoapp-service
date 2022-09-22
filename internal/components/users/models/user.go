@@ -179,10 +179,12 @@ type UserAccountRecoveryPayload struct {
 }
 
 type AccountRecoveryRequest struct {
-	NewSignerPubliKey                string           `json:"newSignerPublicKey"`
-	DiableSignerFromPrimaryWallet uint64           `json:"disablesOldSignerFromPrimaryWallet"`
-	Messages                         []string         `json:"messages"`
-	SecretAnswers                    UserSecretAnswer `json:"secretAnswers"`
-	EmailOTP                         string           `json:"emailOtp"`
-	Username                         string           `json:"username"`
+	NewSignerPublicKey                string           `json:"newSignerPublicKey"`
+	DisableOldSignerFromPrimaryWallet uint64           `json:"disableOldSignerFromPrimaryWallet"`
+	Commit                            uint64           `json:"commit"`
+	Messages                          []string         `json:"messages"`
+	SecretAnswers                     UserSecretAnswer `json:"secretAnswers"`
+	EmailOTP                          string           `json:"emailOtp"`
+	Username                          string           `json:"username"`
+	TransactionID                     string           `json:"transactionId"`
 }

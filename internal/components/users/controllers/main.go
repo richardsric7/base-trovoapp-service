@@ -877,9 +877,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
-	router.POST("/v1/verify-answers", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/verify-answers/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
-
+		targetUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		var answers userModels.UserSecretAnswer
 		// var err error
 
@@ -898,7 +898,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+		user, err := usersDB.GetUser(targetUser, gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -913,10 +913,50 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/verify-answers %v", user.Username), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/verify-answers/%v", user.Username), gc.DB)
 
 		if !userServices.ValidateSecretAnswers(&user, answers, gc) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "The answers provided are invalid."})
+			return
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	router.POST("/v1/verify-email-otp/:targetUser/:otp", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+		otp := strings.TrimSpace(c.Param("otp"))
+		targetUser := strings.TrimSpace(c.Param("targetUser"))
+
+		user, err := usersDB.GetUser(targetUser, gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/verify-email-otp/%v/%v", user.Username, otp), gc.DB)
+
+		if userServices.CheckAccountRecoveryEmailOTP(&user, otp, gc.DB) != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
 			return
 		}
 
@@ -1077,6 +1117,67 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				dataPayload := make(map[string]string)
 				dataPayload["none"] = ""
 				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Disabled!", fmt.Sprintf("Congratulations! You have successfully disabled account recovery feature on your account [%v].", user.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+		}
+
+		c.JSON(http.StatusOK, payload)
+	})
+
+	router.POST("/v1/users/account/recover", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		var payload userModels.AccountRecoveryRequest
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &payload)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		user, err := usersDB.GetUser(payload.Username, gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/account/recover  %v", user.Username), gc.DB)
+		_, err = userServices.DoAccountRecovery(&user, &payload, gc)
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		//At this point, there was no error.
+		if payload.Commit == 1 {
+			//send email
+
+			if user.PushNotificationToken != nil {
+				dataPayload := make(map[string]string)
+				dataPayload["none"] = ""
+				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Successful!", fmt.Sprintf("Congratulations! You have successfully recovered your account [%v]. Please import the new secret key using the same username specified.", user.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 			}
 		}
 
