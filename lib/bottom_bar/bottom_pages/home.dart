@@ -439,19 +439,26 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   child: CircleAvatar(
                     radius: 30,
                     backgroundColor: notifier.getbluecolor70,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(100.0),
-                      child: Image.network(
-                        appState.userInfo!.imageThumbnailURL!,
-                        width: width / 6.8,
-                        // height: width / 10,
-                        fit: BoxFit.fill,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/images/trovo.png',
-                            width: width / 9,
-                          );
-                        },
+                    child: GestureDetector(
+                      onTap: () {
+                        appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: ProfileDetailsViewPageConfig);
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100.0),
+                        child: Image.network(
+                          appState.userInfo!.imageThumbnailURL!,
+                          width: width / 6.8,
+                          // height: width / 10,
+                          fit: BoxFit.fill,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/trovo.png',
+                              width: width / 9,
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),

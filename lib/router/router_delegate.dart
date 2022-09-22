@@ -14,6 +14,7 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottombar.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/account_recovery_success.dart';
 import 'package:trovo_wallet/screens/Auth/AuthorizeActionView.dart';
 import 'package:trovo_wallet/screens/Auth/AuthorizeLoginView.dart';
 import 'package:trovo_wallet/screens/Auth/create_password.dart';
@@ -31,6 +32,8 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment.d
 import 'package:trovo_wallet/screens/Send_and_Recieve/send_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/request_otp.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../screens/Auth/fingerprint.dart';
@@ -250,6 +253,16 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(RequestSpecificPaymentDetails(),
               RequestSpecificPaymentDetailsViewPageConfig);
           break;
+        case Pages.SecurityQuestionsView:
+          _addPageData(SecurityQuestions(), SecurityQuestionsViewPageConfig);
+          break;
+        case Pages.RequestOtpView:
+          _addPageData(RequestOtp(), RequestOtpViewPageConfig);
+          break;
+        case Pages.AccountRecoverySuccessView:
+          _addPageData(
+              AccountRecoverySuccess(), AccountRecoverySuccessViewPageConfig);
+          break;
         default:
           break;
       }
@@ -411,6 +424,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.RequestSpecificPaymentDetailsView:
         RequestSpecificPaymentDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SecurityQuestionsView:
+        SecurityQuestionsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.RequestOtpView:
+        RequestOtpViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AccountRecoverySuccessView:
+        AccountRecoverySuccessViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -601,6 +623,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case 'SwapAssetsView':
         case 'ConfirmSwapView':
         case 'SwapSuccessView':
+        case 'SecurityQuestionsView':
+        case 'RequestOtpView':
+        case 'AccountRecoverySuccessView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
           ]);

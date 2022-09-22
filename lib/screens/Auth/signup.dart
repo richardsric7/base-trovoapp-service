@@ -87,36 +87,35 @@ class _SignUpState extends State<SignUp> {
                   Form(
                     key: _formKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      // crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Create Account
+                        SizedBox(height: height / 50),
                         Text(
-                          LanguageEn.signup,
+                          LanguageEn.ittakesaminute1,
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: notifier.getblck,
-                              fontSize: 26.sp,
+                              color: notifier.getbluecolor,
+                              fontSize: 30.sp,
                               fontFamily: fontsemibold),
                         ),
-                        SizedBox(height: height / 35),
-                        // It only takes a minute to create your
-                        // account
                         Text(
-                          LanguageEn.ittakesaminute,
+                          LanguageEn.ittakesaminute2,
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                              fontSize: 14.sp,
-                              color: notifier.getgrey,
-                              fontFamily: fontbody),
+                              color: notifier.getbluecolor80,
+                              fontSize: 30.sp,
+                              fontFamily: fontsemibold),
                         ),
-                        SizedBox(height: height / 50),
-                        // Account Type
-                        Text(
-                          LanguageEn.accounttype,
-                          style: TextStyle(
-                              fontSize: height / 55,
-                              color: notifier.getgrey,
-                              fontFamily: fontbody),
-                        ),
-                        SizedBox(height: height / 70),
+                        SizedBox(height: height / 20),
+                        // // Account Type
+                        // Text(
+                        //   LanguageEn.accounttype,
+                        //   style: TextStyle(
+                        //       fontSize: height / 55,
+                        //       color: notifier.getgrey,
+                        //       fontFamily: fontbody),
+                        // ),
+                        // SizedBox(height: height / 70),
                         ToggleSwitch(
                           minHeight: height / 16,
                           customWidths: [
@@ -269,7 +268,9 @@ class _SignUpState extends State<SignUp> {
                     child: Text(
                       ' ' + LanguageEn.signin,
                       style: TextStyle(
-                          color: notifier.getbluecolor50,
+                          color: notifier.isDark
+                              ? notifier.getbluecolor50
+                              : notifier.getbluecolor90,
                           fontSize: 13.sp,
                           fontFamily: fontbody),
                     ),

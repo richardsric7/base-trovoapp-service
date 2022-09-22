@@ -38,6 +38,9 @@ const String AuthorizeActionViewPath = '/AuthorizeActionView';
 const String RequestSpecificPaymentViewPath = '/RequestSpecificPaymentView';
 const String RequestSpecificPaymentDetailsViewPath =
     '/RequestSpecificPaymentDetailsView';
+const String SecurityQuestionsViewPath = '/SecurityQuestionsView';
+const String RequestOtpViewPath = '/RequestOtpView';
+const String AccountRecoverySuccessViewPath = '/AccountRecoverySuccessView';
 
 enum Pages {
   Splash,
@@ -77,6 +80,9 @@ enum Pages {
   AuthorizeActionView,
   RequestSpecificPaymentView,
   RequestSpecificPaymentDetailsView,
+  SecurityQuestionsView,
+  RequestOtpView,
+  AccountRecoverySuccessView,
 }
 
 class PageConfiguration {
@@ -278,3 +284,18 @@ PageConfiguration RequestSpecificPaymentDetailsViewPageConfig =
         path: RequestSpecificPaymentDetailsViewPath,
         uiPage: Pages.RequestSpecificPaymentDetailsView,
         currentPageAction: null);
+PageConfiguration SecurityQuestionsViewPageConfig = PageConfiguration(
+    key: 'SecurityQuestionsView',
+    path: SecurityQuestionsViewPath,
+    uiPage: Pages.SecurityQuestionsView,
+    currentPageAction: null);
+PageConfiguration RequestOtpViewPageConfig = PageConfiguration(
+    key: 'RequestOtpView',
+    path: RequestOtpViewPath,
+    uiPage: Pages.RequestOtpView,
+    currentPageAction: null);
+PageConfiguration AccountRecoverySuccessViewPageConfig = PageConfiguration(
+    key: 'AccountRecoverySuccessView',
+    path: AccountRecoverySuccessViewPath,
+    uiPage: Pages.AccountRecoverySuccessView,
+    currentPageAction: null);

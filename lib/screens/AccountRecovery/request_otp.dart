@@ -1,0 +1,229 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../Custom_BlocObserver/button/custtom_button.dart';
+import '../../Custom_BlocObserver/fonts.dart';
+import '../../storage/state.dart';
+import '../../utils/medeiaqury/medeiaqury.dart';
+
+class RequestOtp extends StatefulWidget {
+  const RequestOtp({Key? key}) : super(key: key);
+
+  @override
+  State<RequestOtp> createState() => _RequestOtp();
+}
+
+class _RequestOtp extends State<RequestOtp> {
+  late ColorNotifier notifier;
+  bool isChecked = false;
+  final _formKey = GlobalKey<FormState>();
+  late DataProvider appState;
+  String email = '';
+  String otp = '';
+
+  getdarkmodepreviousstate() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool? previusstate = prefs.getBool("setIsDark");
+    if (previusstate == null) {
+      notifier.setIsDark = false;
+    } else {
+      notifier.setIsDark = previusstate;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getdarkmodepreviousstate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
+    appState = Provider.of<DataProvider>(context, listen: true);
+    return ScreenUtilInit(
+      builder: (context, child) => Scaffold(
+        appBar: CustomAppBar(
+            context, notifier.getwihitecolor, "", notifier.getblck,
+            height: height / 20),
+        backgroundColor: notifier.getwihitecolor,
+        body: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                SizedBox(height: height / 50),
+                Text(
+                  LanguageEn.account,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: notifier.getbluecolor,
+                      fontSize: 30.sp,
+                      fontFamily: fontsemibold),
+                ),
+                Text(
+                  LanguageEn.recovery,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: notifier.getbluecolor80,
+                      fontSize: 30.sp,
+                      fontFamily: fontsemibold),
+                ),
+                SizedBox(height: height / 20),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(15.0)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0, vertical: 15.0),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: width / 1.3,
+                                child: Text(
+                                  LanguageEn.requestotpwarn,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontbody),
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: height / 50),
+                CustomTextFormField.textField(
+                  LanguageEn.enteryouremailaddress,
+                  notifier.getbluecolor,
+                  Icons.email,
+                  notifier.getgrey,
+                  notifier.getprefixicon,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  70.sp,
+                  300.sp,
+                  // validator: validateEmail,
+                  onSaved: (value) {
+                    print('email: $value');
+                    // email = value.trim().replaceAll(' ', '');
+                  },
+                  keyboardtype: TextInputType.emailAddress,
+                ),
+                Button(
+                  LanguageEn.requestotp,
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () {},
+                ),
+                SizedBox(height: height / 50),
+                CustomTextFormField.textField(
+                  LanguageEn.enterotp,
+                  notifier.getbluecolor,
+                  Icons.numbers,
+                  notifier.getgrey,
+                  notifier.getprefixicon,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  70.sp,
+                  300.sp,
+                  // validator: validateEmail,
+                  onSaved: (value) {
+                    print('email: $value');
+                    // email = value.trim().replaceAll(' ', '');
+                  },
+                  keyboardtype: TextInputType.number,
+                ),
+                Button(
+                  LanguageEn.confirmotp,
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: AccountRecoverySuccessViewPageConfig);
+                  },
+                ),
+                SizedBox(height: height / 10),
+                Padding(
+                    padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String? validatePassword(value) {
+    print('password: $value');
+    if (value.isEmpty) {
+      //return "Enter a password";
+      return LanguageEn.passwordemptyerror;
+    }
+
+    if (value.trim().replaceAll(' ', '').length < 6) {
+      //return 'Use 6 characters or more for your password';
+      return LanguageEn.hinterrorpassword;
+    }
+
+    return null;
+  }
+
+  String? validateConfirmPassword(value) {
+    print('confirm password: ${value.trim().replaceAll(' ', '')} & $otp');
+    if (value.isEmpty) {
+      // return "Confirm your password";
+      return LanguageEn.confirmpasswordemptyerror;
+    }
+
+    if (value.trim().replaceAll(' ', '').length < 6) {
+      // return 'Use 6 characters or more for your password';
+      return LanguageEn.hinterrorpassword;
+    }
+
+    if (otp != value.trim().replaceAll(' ', '')) {
+      //  return 'Those passwords didn\’t match. Try again.';
+      return LanguageEn.passwordmismatcherror;
+    }
+
+    return null;
+  }
+
+  bool validate() {
+    final form = _formKey.currentState;
+    if (form!.validate()) {
+      form.save();
+      return true;
+    }
+    return false;
+  }
+
+  void saveAndProceed() async {}
+}

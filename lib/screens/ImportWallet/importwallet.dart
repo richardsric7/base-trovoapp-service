@@ -79,23 +79,37 @@ class _ImportWalletState extends State<ImportWallet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: height / 10),
+              SizedBox(height: height / 20),
               Row(
                 children: [
                   SizedBox(width: width / 15),
                   Form(
                     key: _formKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      // crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          LanguageEn.importwallet,
-                          style: TextStyle(
-                              color: notifier.getblck,
-                              fontSize: 26.sp,
-                              fontFamily: fontsemibold),
+                        Row(
+                          children: [
+                            Text(
+                              LanguageEn.import,
+                              style: TextStyle(
+                                  color: notifier.getbluecolor,
+                                  fontSize: 26.sp,
+                                  fontFamily: fontsemibold),
+                            ),
+                            SizedBox(
+                              width: width / 50,
+                            ),
+                            Text(
+                              LanguageEn.wallet,
+                              style: TextStyle(
+                                  color: notifier.getbluecolor80,
+                                  fontSize: 26.sp,
+                                  fontFamily: fontsemibold),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: height / 10),
+                        SizedBox(height: height / 15),
                         // Email address
                         CustomTextFormField.textField(
                           LanguageEn.usernameoremail,
@@ -120,7 +134,14 @@ class _ImportWalletState extends State<ImportWallet> {
                           onSaved: storeUsernameOrEmail,
                           keyboardtype: TextInputType.emailAddress,
                         ),
-                        checkUsePassphrase(),
+                        Row(
+                          children: [
+                            Container(
+                              width: width / 1.2,
+                              child: checkUsePassphrase(),
+                            ),
+                          ],
+                        ),
                         if (usePassPhrase) ...[
                           // Pass phrase/Mnemonic
                           passPhraseInput(

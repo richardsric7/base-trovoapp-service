@@ -14,6 +14,21 @@ class LanguageEn {
 
   static String get request => 'Request';
 
+  static String get account => 'Account';
+
+  static String get recovery => 'Recovery';
+
+  static String get requestotp => 'Request OTP';
+
+  static String get confirmotp => 'Confirm OTP';
+
+  static String get requestotpwarn =>
+      'Please provide accurate information in the fields below to ensure a successful account recovery process';
+
+  static String get enteryouremailaddress => 'Enter your email address';
+
+  static String get enterotp => 'Enter OTP here';
+
   static String get receivingwallet => 'Receiving Wallet';
 
   static String get receivefromnontrovowallet =>
@@ -40,6 +55,10 @@ class LanguageEn {
   static String get minutes => 'minutes';
 
   static String get chooseasset => 'Choose asset';
+
+  static String get choosequestion => 'Choose question';
+
+  static String get enteranswer => 'Enter answer';
 
   static String get swapfrom => 'Swap From';
 
@@ -96,6 +115,8 @@ class LanguageEn {
 
   static String get importwallet => "Import Wallet";
 
+  static String get import => "Import";
+
   static String get share => "Share";
 
   static String get enterpassphraseempty => 'Please enter your pass phrase';
@@ -112,7 +133,9 @@ class LanguageEn {
 
   static String get invalidcredentials => 'Your credential is invalid';
 
-  static String get enterpassword => "Create Password";
+  static String get letsgetyoustarted1 => "Let's get you";
+
+  static String get letsgetyoustarted2 => "started";
 
   static String get enteryourpassword =>
       "Create Password To Secure Your Wallet";
@@ -195,8 +218,9 @@ class LanguageEn {
 
   static String get referrer => "Referrer's username";
 
-  static String get ittakesaminute =>
-      "It only takes a minute to create your account";
+  static String get ittakesaminute1 => "It takes just";
+
+  static String get ittakesaminute2 => "one minute!";
 
   static String get fanme => "Firstname";
 
@@ -207,6 +231,9 @@ class LanguageEn {
   static String get entitygrade => "Entity Grade";
 
   static String get emailadress => "Email address";
+
+  static String get setupsecurityquestionsdescription =>
+      "This will be required if you wish to make modifications to your account in the future, and if you ever wish to opt in for our account recovery service. \n\nPLEASE DO NOT FORGET THE ANSWERS YOU PROVIDED, FOR FUTURE USE.";
 
   static String get usernameoremail => "Username or Email address";
 
@@ -312,6 +339,9 @@ class LanguageEn {
       "Subwallet successfully added!";
 
   static String get congratulations => "Congratulations ";
+
+  static String get otpcongratulationsdetails =>
+      "You have successfully recovered your account. Please copy your secret key below to import your wallet afresh from your device.";
 
   static String get walletcreatesuccess =>
       "Your wallet has been successfully created. \n\n\nWe strongly recommend that you backup your wallet before proceeding.\n\n\nBacking up your wallet is the only way to restore your wallet if you lose your device";
@@ -638,7 +668,13 @@ class LanguageEn {
 
   static String get walletmode => "Wallet Mode";
 
+  static String get accountrecovery => "Account Recovery";
+
   static String get more => "More";
+
+  static String get setup => "Setup";
+
+  static String get securityquestions => "Security Questions";
 
   static String get helpandsupport => "Help and Support";
 
