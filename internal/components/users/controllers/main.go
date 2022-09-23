@@ -927,7 +927,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	router.POST("/v1/request-email-otp/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
-		// otp := strings.TrimSpace(c.Param("otp"))
+
 		targetUser := strings.TrimSpace(c.Param("targetUser"))
 
 		user, err := usersDB.GetUser(targetUser, gc.DB)
