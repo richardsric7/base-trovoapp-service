@@ -543,11 +543,18 @@ func SendAccountRecoveryEmailOTP(userInfo *users.User, db *gorm.DB) error {
 	//check when last request was made
 	log.Printf("[SendAccountRecoveryEmailOTP] username: %s, requested date: %s, reference Date: %s\n", userInfo.Username, userVerification.RequestDate.Format("2006-01-02"), time.Now().Format("2006-01-02"))
 
-	if userVerification.RequestDate.Format("2006-01-02") == time.Now().Format("2006-01-02") {
+	// if userVerification.RequestDate.Format("2006-01-02") == time.Now().Format("2006-01-02") {
+	// 	return &tErrors.CustomError{
+	// 		Param:      "mobile",
+	// 		Err:        "daily request quota exceeded",
+	// 		ErrMessage: "You have already exhausted your request quota for the day. Wait till you recieve the code or you wait for another day",
+	// 	}
+	// }
+	if time.Now().Before(userVerification.RequestDate.Add(60 * time.Minute)) {
 		return &tErrors.CustomError{
 			Param:      "mobile",
 			Err:        "daily request quota exceeded",
-			ErrMessage: "You have already exhausted your request quota for the day. Wait till you recieve the code or you wait for another day",
+			ErrMessage: "You have already exhausted your request quota for the hour. Wait till you recieve the code or you wait for another hour",
 		}
 	}
 
