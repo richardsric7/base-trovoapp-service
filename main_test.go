@@ -281,6 +281,17 @@ type UserAccountRecoveryPayload struct {
 	SecretAnswers        UserSecretAnswer `json:"secretAnswers"`
 }
 
+type AccountRecoveryRequest struct {
+	NewSignerPublicKey                string           `json:"newSignerPublicKey"`
+	DisableOldSignerFromPrimaryWallet uint64           `json:"disableOldSignerFromPrimaryWallet"`
+	Commit                            uint64           `json:"commit"`
+	Messages                          []string         `json:"messages"`
+	SecretAnswers                     UserSecretAnswer `json:"secretAnswers"`
+	EmailOTP                          string           `json:"emailOtp"`
+	Username                          string           `json:"username"`
+	TransactionID                     string           `json:"transactionId"`
+}
+
 func TestAccountEnableRecovery(t *testing.T) {
 
 	// pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"

@@ -818,7 +818,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		var answers userModels.UserSecretAnswer
 		// var err error
-
 		data, _ := io.ReadAll(c.Request.Body)
 
 		err = json.Unmarshal(data, &answers)
@@ -875,6 +874,46 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
+	router.GET("/v1/secret-questions/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		// var err error
+		targetUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
+		user, err := usersDB.GetUser(targetUser, gc.DB)
+
+		if err != nil {
+			log.Println("[GET QUESTIONS] error for user:", targetUser, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("secret-questions %v", user.Username), gc.DB)
+
+		secretQuestions := userServices.GetSecretQuestions(&user, gc)
+
+		userSecretAnswers, _ := userServices.GetUserSecretAnswers(&user, gc)
+		userSecretAnswers.A1 = ""
+		userSecretAnswers.A2 = ""
+		userSecretAnswers.A3 = ""
+
+		c.JSON(http.StatusOK, gin.H{"secretQuestions": secretQuestions, "userSecretAnswers": userSecretAnswers})
+
 	})
 
 	router.POST("/v1/verify-answers/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
@@ -1003,46 +1042,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
-	})
-
-	router.GET("/v1/secret-questions", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
-		// var err error
-
-		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
-
-		if err != nil {
-			log.Println("[GET QUESTIONS] error for signer:", middleware.ExtractSigner(c), "error: ", err)
-
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			var statusCode int = 0
-			var response interface{}
-
-			if ok {
-				statusCode = ex.HTTPCode()
-				response = ex.JSONError()
-			} else {
-				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
-			}
-
-			c.JSON(statusCode, response)
-			return
-		}
-
-		conDB.PrintDBStats(fmt.Sprintf("secret-questions %v", signerUser.Username), gc.DB)
-
-		secretQuestions := userServices.GetSecretQuestions(&signerUser, gc)
-
-		userSecretAnswers, _ := userServices.GetUserSecretAnswers(&signerUser, gc)
-		userSecretAnswers.A1 = ""
-		userSecretAnswers.A2 = ""
-		userSecretAnswers.A3 = ""
-
-		c.JSON(http.StatusOK, gin.H{"secretQuestions": secretQuestions, "userSecretAnswers": userSecretAnswers})
-
 	})
 
 	router.POST("/v1/users/account/recovery", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
