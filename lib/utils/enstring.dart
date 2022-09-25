@@ -258,6 +258,9 @@ class LanguageEn {
   static String get iunderstandall =>
       "I have read and understood all the above.";
 
+  static String get iagreeviewaccess =>
+      "I agree that these users will now be able to view details of the selected wallet and only authorized personnel (initiators and approvers for wallets with multisig enabled) will be able to revoke this access once granted.";
+
   static String get termsofservices => "Terms of Service ";
 
   static String get and => "and";
@@ -292,6 +295,8 @@ class LanguageEn {
   static String get formemo => 'For';
 
   static String get copy => 'Copy';
+
+  static String get add => 'Add';
 
   static String get blockchainproof => 'Blockchain Proof (Transaction ID)';
 
@@ -656,6 +661,8 @@ class LanguageEn {
 
   static String get myprofile => "My Profile";
 
+  static String get sharedaccess => "Shared Access";
+
   static String get myreferrals => "My Referrals";
 
   static String get hidebalance => "Hide My Balance";
@@ -711,6 +718,19 @@ class LanguageEn {
   static String get taptoconnect => "Tap to connect";
 
   static String get referrals => "Referrals";
+
+  static String get grantaccess => "Grant Access";
+
+  static String get choosewallet => "Choose Wallet";
+
+  static String get accesstype => "Access Type";
+
+  static String get sortby => "Sort by";
+
+  static String get enteraccountsusername =>
+      "Enter the usernames of all accounts that require viewer access to this wallet";
+
+  static String get accesslist => "Access List";
 
   static String get rewards => "Rewards";
 

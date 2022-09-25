@@ -41,6 +41,7 @@ const String RequestSpecificPaymentDetailsViewPath =
 const String SecurityQuestionsViewPath = '/SecurityQuestionsView';
 const String RequestOtpViewPath = '/RequestOtpView';
 const String AccountRecoverySuccessViewPath = '/AccountRecoverySuccessView';
+const String SharedAccessViewPath = '/SharedAccessView';
 
 enum Pages {
   Splash,
@@ -83,6 +84,7 @@ enum Pages {
   SecurityQuestionsView,
   RequestOtpView,
   AccountRecoverySuccessView,
+  SharedAccessView,
 }
 
 class PageConfiguration {
@@ -298,4 +300,9 @@ PageConfiguration AccountRecoverySuccessViewPageConfig = PageConfiguration(
     key: 'AccountRecoverySuccessView',
     path: AccountRecoverySuccessViewPath,
     uiPage: Pages.AccountRecoverySuccessView,
+    currentPageAction: null);
+PageConfiguration SharedAccessViewPageConfig = PageConfiguration(
+    key: 'SharedAccessView',
+    path: SharedAccessViewPath,
+    uiPage: Pages.SharedAccessView,
     currentPageAction: null);

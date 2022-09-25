@@ -34,6 +34,7 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/request_otp.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../screens/Auth/fingerprint.dart';
@@ -263,6 +264,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               AccountRecoverySuccess(), AccountRecoverySuccessViewPageConfig);
           break;
+        case Pages.SharedAccessView:
+          _addPageData(SharedAccess(), SharedAccessViewPageConfig);
+          break;
         default:
           break;
       }
@@ -433,6 +437,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.AccountRecoverySuccessView:
         AccountRecoverySuccessViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SharedAccessView:
+        SharedAccessViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -626,6 +633,7 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case 'SecurityQuestionsView':
         case 'RequestOtpView':
         case 'AccountRecoverySuccessView':
+        case 'SharedAccessView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
           ]);

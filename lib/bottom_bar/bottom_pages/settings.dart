@@ -11,7 +11,6 @@ import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/BottomTabPage.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -188,6 +187,8 @@ class _SettingsState extends State<Settings> {
               ),
               SizedBox(height: height / 50),
               GestureDetector(
+                onTap: () => appState.currentAction = PageAction(
+                    state: PageState.addPage, page: SharedAccessViewPageConfig),
                 child: iteamlist(
                     "assets/images/access.png", "", LanguageEn.access),
               ),

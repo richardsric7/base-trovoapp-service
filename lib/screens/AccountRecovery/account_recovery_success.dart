@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -179,7 +178,7 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                                             notifier.getbluecolor!),
                                   ),
                                   child: Text(
-                                    'Copy',
+                                    LanguageEn.copy,
                                     style: TextStyle(
                                       fontFamily: fontsemibold,
                                     ),
