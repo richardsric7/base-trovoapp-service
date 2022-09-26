@@ -554,8 +554,8 @@ func SendAccountRecoveryEmailOTP(userInfo *users.User, db *gorm.DB) error {
 	// }
 	if time.Now().Before(userVerification.RequestDate.Add(60 * time.Minute)) {
 		return &tErrors.CustomError{
-			Param:      "mobile",
-			Err:        "daily request quota exceeded",
+			Param:      "email",
+			Err:        "error request quota exceeded",
 			ErrMessage: "You have already exhausted your request quota for the hour. Wait till you recieve the code or you wait for another hour",
 		}
 	}

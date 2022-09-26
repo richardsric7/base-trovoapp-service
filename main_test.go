@@ -357,7 +357,7 @@ func TestCreateAccount(t *testing.T) {
 	time.Sleep(time.Second * 10)
 
 }
-func TestRequestEmailOTP(t *testing.T) {
+func TestRequestAccountRecoveryEmailOTP(t *testing.T) {
 	// use the new signer key pairs for the request
 	pk := "GCFM3WOKRTURPZMQDINQRJA6LOLK3SKDN6W4JDAOIOAOBBYL7YVYGT6Z"
 	secretKey := "SC6XAWBZQY6QEEGRRXFN5BX66HE6HHR4TYFZ5JA7PFKBEMG74TMFSN5M"
@@ -635,7 +635,7 @@ func TestDoAccountRecovery(t *testing.T) {
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// newSigner := "SA4JYDZJSOVWHOWWLGEZV3NSSE3YRS2BVRNDQM2O6UREN53RJTTHUS4P"
-	newSigner := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
+	newSigner := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
 	// pk := os.Getenv("RICPK")
 	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
@@ -1601,8 +1601,8 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
 	subwalletPayload := SubWalletInfo{
 		PublicKey:         subPK,
-		WalletTag:         "b",
-		WalletDescription: "Sub wallet B",
+		WalletTag:         "c",
+		WalletDescription: "Sub wallet C",
 	}
 	errorResponse := new(ErrorResponse)
 	subWalletResponse := new(SubWalletInfo)
