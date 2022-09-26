@@ -241,7 +241,8 @@ class Payment_HistoryState extends State<PaymentHistory>
 
     if (transaction.transactionType!.contains('SWAP')) {
       transactionType = TransactionType.Swap;
-      var splitResult = transaction.memo!.split('>');
+      var splitResult =
+          transaction.transactionType!.replaceAll('SWAP', '').trim().split('>');
       name = "Swapped ${splitResult[0]} to ${splitResult[1]}";
     }
 
