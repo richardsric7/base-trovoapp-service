@@ -41,7 +41,7 @@ type User struct {
 	RegionName               *string      `gorm:"null;size:100"`
 	TimeZone                 *string      `gorm:"null;size:100"`
 	ISP                      *string      `gorm:"null;size:150"`
-	HasSecretQuestions       int          `gorm:"type:integer;not null;default:0" json:"hasSecretQuestions"`
+	HasSecurityQuestions     int          `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
 	Verified                 int          `gorm:"type:integer;not null;default:0" json:"verified"`
 	Suspended                int          `gorm:"type:integer;not null;default:0" json:"suspended"`
 	SuspensionReason         *string      `gorm:"null" json:"suspensionReason"`
@@ -151,16 +151,16 @@ type SubWalletInfo struct {
 	Messages                []string `json:"messages"`
 }
 
-type SecretQuestion struct {
+type SecurityQuestion struct {
 	ID       uint64
 	Question string
 }
 
-type UserSecretAnswer struct {
+type UserSecurityAnswer struct {
 	ID        uint64    `json:"id"`
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
-	Username  string    `gorm:"size:20;not null; index:unique_user_secret_answer,unique" json:"-"`
+	Username  string    `gorm:"size:20;not null; index:unique_user_security_answer,unique" json:"-"`
 	Q1        uint64    `gorm:"not null;" json:"q1"`
 	A1        string    `gorm:"size:150;not null;" json:"a1"`
 	Q2        uint64    `gorm:"not null;" json:"q2"`
@@ -170,21 +170,21 @@ type UserSecretAnswer struct {
 }
 
 type UserAccountRecoveryPayload struct {
-	Transaction          string           `json:"transaction"`
-	TransactionSignature string           `json:"transactionSignature"`
-	TransactionID        string           `json:"transactionId"`
-	NetworkPassPhrase    string           `json:"networkPassPhrase"`
-	Messages             []string         `json:"messages"`
-	SecretAnswers        UserSecretAnswer `json:"secretAnswers"`
+	Transaction          string             `json:"transaction"`
+	TransactionSignature string             `json:"transactionSignature"`
+	TransactionID        string             `json:"transactionId"`
+	NetworkPassPhrase    string             `json:"networkPassPhrase"`
+	Messages             []string           `json:"messages"`
+	SecurityAnswers      UserSecurityAnswer `json:"securityAnswers"`
 }
 
 type AccountRecoveryRequest struct {
-	NewSignerPublicKey                string           `json:"newSignerPublicKey"`
-	DisableOldSignerFromPrimaryWallet uint64           `json:"disableOldSignerFromPrimaryWallet"`
-	Commit                            uint64           `json:"commit"`
-	Messages                          []string         `json:"messages"`
-	SecretAnswers                     UserSecretAnswer `json:"secretAnswers"`
-	EmailOTP                          string           `json:"emailOtp"`
-	Username                          string           `json:"username"`
-	TransactionID                     string           `json:"transactionId"`
+	NewSignerPublicKey                string             `json:"newSignerPublicKey"`
+	DisableOldSignerFromPrimaryWallet uint64             `json:"disableOldSignerFromPrimaryWallet"`
+	Commit                            uint64             `json:"commit"`
+	Messages                          []string           `json:"messages"`
+	SecurityAnswers                   UserSecurityAnswer `json:"securityAnswers"`
+	EmailOTP                          string             `json:"emailOtp"`
+	Username                          string             `json:"username"`
+	TransactionID                     string             `json:"transactionId"`
 }

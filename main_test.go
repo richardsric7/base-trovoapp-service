@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"testing"
 	"time"
-
 	"trovo-wallet-api/internal/middleware"
+	pns "trovo-wallet-api/internal/pns"
 
 	"github.com/dghubble/sling"
 	"github.com/shopspring/decimal"
@@ -102,7 +103,7 @@ type UserJSON struct {
 	UserWallets           []UserWalletJSON `json:"userWallets"`
 	Verified              int              `json:"verified"`
 	Suspended             int              `json:"suspended"`
-	HasSecretQuestions    int              `json:"hasSecretQuestions"`
+	HasSecurityQuestions  int              `json:"hasSecurityQuestions"`
 }
 
 type UserWalletJSON struct {
@@ -243,12 +244,12 @@ type PendingAssetToClaim struct {
 	NetworkPassPhrase    string `json:"networkPassPhrase"`
 }
 
-type SecretQuestion struct {
+type SecurityQuestion struct {
 	ID       uint64
 	Question string
 }
 
-type UserSecretAnswer struct {
+type UserSecurityAnswer struct {
 	ID uint64 `json:"id"`
 	Q1 uint64 `gorm:"not null;" json:"q1"`
 	A1 string `gorm:"size:50;not null;" json:"a1"`
@@ -258,51 +259,173 @@ type UserSecretAnswer struct {
 	A3 string `gorm:"size:50;not null;" json:"a3"`
 }
 
-//	type UserSecretAnswerResponse struct {
-//		ID        uint64
-//		Q1        uint64 `gorm:"not null;" json:"q1"`
-//		A1        string `gorm:"size:50;not null;" json:"a1"`
-//		Q2        uint64 `gorm:"not null;" json:"q2"`
-//		A2        string `gorm:"size:50;not null;" json:"a2"`
-//		Q3        uint64 `gorm:"not null;" json:"q3"`
-//		A3        string `gorm:"size:50;not null;" json:"a3"`
-//	}
 type AnswerResp struct {
-	Questions   []SecretQuestion  `json:"secretQuestions"`
-	UserAnswers *UserSecretAnswer `json:"userSecretAnswers"`
+	Questions   []SecurityQuestion  `json:"securityQuestions"`
+	UserAnswers *UserSecurityAnswer `json:"userSecurityAnswers"`
 }
 
 type UserAccountRecoveryPayload struct {
-	Transaction          string           `json:"transaction"`
-	TransactionSignature string           `json:"transactionSignature"`
-	TransactionID        string           `json:"transactionId"`
-	NetworkPassPhrase    string           `json:"networkPassPhrase"`
-	Messages             []string         `json:"messages"`
-	SecretAnswers        UserSecretAnswer `json:"secretAnswers"`
+	Transaction          string             `json:"transaction"`
+	TransactionSignature string             `json:"transactionSignature"`
+	TransactionID        string             `json:"transactionId"`
+	NetworkPassPhrase    string             `json:"networkPassPhrase"`
+	Messages             []string           `json:"messages"`
+	SecurityAnswers      UserSecurityAnswer `json:"securityAnswers"`
 }
 
 type AccountRecoveryRequest struct {
-	NewSignerPublicKey                string           `json:"newSignerPublicKey"`
-	DisableOldSignerFromPrimaryWallet uint64           `json:"disableOldSignerFromPrimaryWallet"`
-	Commit                            uint64           `json:"commit"`
-	Messages                          []string         `json:"messages"`
-	SecretAnswers                     UserSecretAnswer `json:"secretAnswers"`
-	EmailOTP                          string           `json:"emailOtp"`
-	Username                          string           `json:"username"`
-	TransactionID                     string           `json:"transactionId"`
+	NewSignerPublicKey                string             `json:"newSignerPublicKey"`
+	DisableOldSignerFromPrimaryWallet uint64             `json:"disableOldSignerFromPrimaryWallet"`
+	Commit                            uint64             `json:"commit"`
+	Messages                          []string           `json:"messages"`
+	SecurityAnswers                   UserSecurityAnswer `json:"securityAnswers"`
+	EmailOTP                          string             `json:"emailOtp"`
+	Username                          string             `json:"username"`
+	TransactionID                     string             `json:"transactionId"`
 }
 
-func TestAccountEnableRecovery(t *testing.T) {
+func TestCreateAccount(t *testing.T) {
 
-	// pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
-	// secretKey := "SDBLGMM6HVLYSUUR2TIKC6E7GZHQA5VJUUGBVOGDC5KQHTJVC2KK3EXK"
-	pk := os.Getenv("RICPK")
-	secretKey := os.Getenv("RICSC")
+	pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := prodURL
+	baseURL := devURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/users"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	payload := UserRegistrationInfo{
+		Username:          "ric1",
+		Email:             "chukwunenyeo@gmail.com",
+		FirstName:         "Second",
+		LastName:          "Account",
+		Mobile:            "+234-8050564391",
+		MobileCountryCode: "NG",
+		PublicKey:         pk,
+		Referrer:          "ric",
+		VerificationCode:  "247701",
+	}
+	errorResponse := new(ErrorResponse)
+	rResponse := new(map[string]string)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(payload).Receive(rResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestCreateAccount] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
+		return
+
+	}
+
+	if err != nil {
+		log.Println("[TestCreateAccount]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Response:[%+v]\n", rResponse)
+
+	log.Println("[TestCreateAccount] completed")
+	time.Sleep(time.Second * 10)
+
+}
+func TestRequestEmailOTP(t *testing.T) {
+	// use the new signer key pairs for the request
+	pk := "GCFM3WOKRTURPZMQDINQRJA6LOLK3SKDN6W4JDAOIOAOBBYL7YVYGT6Z"
+	secretKey := "SC6XAWBZQY6QEEGRRXFN5BX66HE6HHR4TYFZ5JA7PFKBEMG74TMFSN5M"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
+	// channelAccountSK := ""
+	ownerUsername := "ric1"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	baseURL := devURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	// fullPath := "/v1/account/recovery/request-email-otp/:targetUser"
+	fullPath := fmt.Sprintf("/v1/account/recovery/request-email-otp/%s", ownerUsername)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	payload := UserAccountRecoveryPayload{}
+	errorResponse := new(ErrorResponse)
+	payResponse := new(map[string]string)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(payload).Receive(payResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestRequestEmailOTP] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestRequestEmailOTP]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Response:[%+v]\n", payResponse)
+
+	log.Println("[TestRequestEmailOTP] completed")
+	time.Sleep(time.Second * 1)
+
+}
+func TestEnableAccountRecovery(t *testing.T) {
+
+	pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	baseURL := devURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -335,11 +458,12 @@ func TestAccountEnableRecovery(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestAccountEnableRecovery] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
 		return
 
 	}
 	if err != nil {
-		log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
+		log.Println("[TestAccountEnableRecovery]request error:", err)
 		t.Errorf(err.Error())
 
 		return
@@ -386,20 +510,20 @@ func TestAccountEnableRecovery(t *testing.T) {
 		log.Printf("Enable Recovery Response:[%+v]\n", payResponse)
 	}
 	log.Println("[TestAccountEnableRecovery] completed")
-	time.Sleep(time.Second * 20)
+	time.Sleep(time.Second * 1)
 
 }
-func TestAccountDisableRecovery(t *testing.T) {
+func TestDisableAccountRecovery(t *testing.T) {
 
-	// pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
-	// secretKey := "SDBLGMM6HVLYSUUR2TIKC6E7GZHQA5VJUUGBVOGDC5KQHTJVC2KK3EXK"
-	pk := os.Getenv("RICPK")
-	secretKey := os.Getenv("RICSC")
+	pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := prodURL
+	baseURL := devURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -419,7 +543,7 @@ func TestAccountDisableRecovery(t *testing.T) {
 	}
 
 	payload := UserAccountRecoveryPayload{
-		SecretAnswers: UserSecretAnswer{
+		SecurityAnswers: UserSecurityAnswer{
 			A1: "test",
 			A2: "test",
 			A3: "test",
@@ -438,6 +562,7 @@ func TestAccountDisableRecovery(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestAccountDisableRecovery] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
 		return
 
 	}
@@ -485,6 +610,12 @@ func TestAccountDisableRecovery(t *testing.T) {
 			Set("X-TW-TIMESTAMP", tsString).
 			Base(baseURL).
 			Delete(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
+		if len(errorResponse.Error) > 0 {
+			log.Println("[TestAccountDisableRecovery] server response error:", *errorResponse)
+			t.Errorf(errorResponse.Error)
+			return
+
+		}
 		if err != nil {
 			t.Errorf(err.Error())
 			return
@@ -496,9 +627,117 @@ func TestAccountDisableRecovery(t *testing.T) {
 	log.Println("[TestAccountDisableRecovery] completed")
 
 }
-func TestAccountSetSecretAnswer(t *testing.T) {
 
-	answers := UserSecretAnswer{
+func TestDoAccountRecovery(t *testing.T) {
+
+	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// newSigner := "SA4JYDZJSOVWHOWWLGEZV3NSSE3YRS2BVRNDQM2O6UREN53RJTTHUS4P"
+	newSigner := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
+	// channelAccountSK := ""
+	ownerUsername := "ric1"
+	kp := keypair.MustParseFull(newSigner)
+	// log.Println(kp.Address())
+	baseURL := devURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/users/account/recover"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	payload := AccountRecoveryRequest{
+		Username:                          ownerUsername,
+		EmailOTP:                          "392671",
+		NewSignerPublicKey:                kp.Address(),
+		DisableOldSignerFromPrimaryWallet: 1,
+		Commit:                            0,
+		SecurityAnswers: UserSecurityAnswer{
+			A1: "test",
+			A2: "test",
+			A3: "test",
+		},
+	}
+	errorResponse := new(ErrorResponse)
+	rResponse := new(AccountRecoveryRequest)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(payload).Receive(rResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestDoAccountRecovery] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestDoAccountRecovery]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Response:[%+v]\n", rResponse)
+
+	{
+		//run the payment signing and submission
+		p := *rResponse
+		p.Commit = 1
+		//sign transaction
+		log.Println("set commit = 1")
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", kp.Address()).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Post(fullPath).BodyJSON(p).Receive(rResponse, errorResponse)
+		if len(errorResponse.Error) > 0 {
+			log.Println("[TestDoAccountRecovery] server response error:", *errorResponse)
+			t.Errorf(errorResponse.Error)
+			return
+
+		}
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+
+		log.Printf("Disable Recovery Response:[%+v]\n", rResponse)
+	}
+	log.Println("[TestAccountDisableRecovery] completed")
+
+}
+func TestAccountSetSecurityAnswer(t *testing.T) {
+
+	answers := UserSecurityAnswer{
 		Q1: 1,
 		Q2: 2,
 		Q3: 7,
@@ -508,8 +747,11 @@ func TestAccountSetSecretAnswer(t *testing.T) {
 	}
 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-	primaryPK := os.Getenv("RICPK")
-	primarySecretKey := os.Getenv("RICSC")
+
+	primaryPK := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	primarySecretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// primaryPK := os.Getenv("RICPK")
+	// primarySecretKey := os.Getenv("RICSC")
 	if len(primarySecretKey) == 0 || len(primaryPK) == 0 {
 		log.Println("No primary secret or public key specified")
 		time.Sleep(20 * time.Second)
@@ -518,8 +760,8 @@ func TestAccountSetSecretAnswer(t *testing.T) {
 	}
 	kp := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
-	baseURL := prodURL
-	fullPath := "/v1/secret-questions"
+	baseURL := devURL
+	fullPath := "/v1/security-questions"
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
 
@@ -546,13 +788,13 @@ func TestAccountSetSecretAnswer(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestAccountSetSecretAnswer] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
 		return
 
 	}
 	if err != nil {
 		log.Println("[TestAccountSetSecretAnswer]request error:", err)
 		t.Errorf(err.Error())
-
 		return
 	}
 
@@ -627,21 +869,25 @@ func TestAccountProfileUpdate(t *testing.T) {
 
 }
 
-func TestGetSecretAnswers(t *testing.T) {
+func TestGetSecurityAnswers(t *testing.T) {
 
 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-	primaryPK := os.Getenv("RICPK")
-	primarySecretKey := os.Getenv("RICSC")
+	primaryPK := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	primarySecretKey := "SA4JYDZJSOVWHOWWLGEZV3NSSE3YRS2BVRNDQM2O6UREN53RJTTHUS4P"
+	// primaryPK := os.Getenv("RICPK")
+	// primarySecretKey := os.Getenv("RICSC")
 	kp := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
+	ownerUsername := "ric1"
 	baseURL := devURL
-	fullPath := "/v1/secret-questions"
+	fullPath := "/v1/security-questions/" + ownerUsername
 	ts := time.Now().Unix() / 1000
 
 	tsString := fmt.Sprintf("%v", ts)
-	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, kp.Seed())
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -660,35 +906,39 @@ func TestGetSecretAnswers(t *testing.T) {
 		Get(fullPath).Receive(resultResponse, errorResponse)
 	//get payload string
 	if len(errorResponse.Error) > 0 {
-		log.Println("[TestGetSecretAnswers] server response error:", *errorResponse)
+		log.Println("[TestGetSecurityAnswers] server response error:", *errorResponse)
 		return
 
 	}
 	if err != nil {
-		log.Println("[TestGetSecretAnswers]request error:", err)
+		log.Println("[TestGetSecurityAnswers]request error:", err)
 		t.Errorf(err.Error())
 
 		return
 	}
 
-	log.Printf("[TestGetSecretAnswers] Result:[%+v\n %+v]\n", resultResponse.Questions, resultResponse.UserAnswers)
-
+	log.Printf("[TestGetSecurityAnswers] Result:[Questions: %+v\n Answers: %+v]\n", resultResponse.Questions, resultResponse.UserAnswers)
+	log.Println("[TestGetSecurityAnswers] completed.")
 }
 func TestGetUserInfo(t *testing.T) {
 
 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-	primaryPK := os.Getenv("RICPK")
-	primarySecretKey := os.Getenv("RICSC")
+	primaryPK := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	primarySecretKey := "SA4JYDZJSOVWHOWWLGEZV3NSSE3YRS2BVRNDQM2O6UREN53RJTTHUS4P"
+	// primaryPK := os.Getenv("RICPK")
+	// primarySecretKey := os.Getenv("RICSC")
+	ownerUsername := "ric1"
 	kp := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
 	baseURL := devURL
-	fullPath := fmt.Sprintf("/v1/users/%s", "ric")
+	fullPath := fmt.Sprintf("/v1/users/%s", ownerUsername)
 	ts := time.Now().Unix() / 1000
 
 	tsString := fmt.Sprintf("%v", ts)
-	signedHttpHeader, err := middleware.SignHttp(fullPath, primaryPK+tsString, kp.Seed())
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -731,18 +981,24 @@ func TestGetPaymentHistory(t *testing.T) {
 
 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-	pk := os.Getenv("RICPK")
-	secretKey := os.Getenv("RICSC")
+	publickey := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
+	// primaryPK := os.Getenv("RICPK")
+	// primarySecretKey := os.Getenv("RICSC")
+	// ownerUsername := "ric1"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
-	baseURL := prodURL
+	baseURL := devURL
 	// baseURL := prodURL
-	fullPath := fmt.Sprintf("/v1/users/payments/%v", kp.Address())
+	fullPath := fmt.Sprintf("/v1/users/payments/%v", publickey)
 	ts := time.Now().Unix() / 1000
 
 	tsString := fmt.Sprintf("%v", ts)
-	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -753,7 +1009,7 @@ func TestGetPaymentHistory(t *testing.T) {
 	resultResponse := new(PaginatedPaymentHistory)
 
 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-PUBLIC-KEY", publickey).
 		Set("X-TW-SIGNER", kp.Address()).
 		Set("X-TW-SIGNATURE", signedHttpHeader).
 		Set("X-TW-TIMESTAMP", tsString).
@@ -776,50 +1032,50 @@ func TestGetPaymentHistory(t *testing.T) {
 
 }
 
-// func TestSendPushNotificationMessage(t *testing.T) {
-// 	ric := "dWLRIQWuSm-sqAKA-ABwhS:APA91bGJt8PE4KBS0OPIJOVp4JsWbpiJMK1DrIJIhZM7hlOVeLo6OUGlN5PbbsttT3Oq0YNXZZ8P0zDEcVD6wQkdoFOfrTSFq0q9A1XZU605ZhTpaLLfqwqONniRQKoj4I-YdMgxXoJc"
-// 	// kennis := "eNCa_XRaTr2NnXX4pnzhN3:APA91bF9OfBO9IEFJcPOtO-83Qu41_7zZ3ef7qC3i5ySPvT8arcQ1gwnRXYnSZ5uJ9mT4uOW7rgPp5F0hTsqvoqQL9oR02fQtiCyco2DVsNBT6JIgqgVHO1ZTPod7ypm-MpSzA95MRRZ"
-// 	title := "TROVO: Testing Push Notification Service"
-// 	body := `This is a test message to ascertain how the push notification appears`
-// 	imageURL := "https://trovotech.io/img/Trovotech-colored.png"
-// 	dataPayload := make(map[string]string)
-// 	dataPayload["route"] = "announcements"
-// 	dataPayload["openLink"] = "https://trovowallet.page.link"
-// 	ctx := context.Background()
-// 	client, _, err := fb.GetFirebaseMessagingClient(ctx)
-// 	if err != nil {
-// 		log.Println("[TestGetUserInfo]request error:", err)
-// 		t.Errorf(err.Error())
-// 		return
-// 	}
-// 	response, _ := fb.SendFirebaseMessage(ric, title, body, imageURL, dataPayload, client, ctx)
-// 	// response, _ := fb.SendFirebaseMessage(ric, title, body, imageURL, nil, nil)
+func TestSendPushNotificationMessage(t *testing.T) {
+	ric := "dWLRIQWuSm-sqAKA-ABwhS:APA91bGJt8PE4KBS0OPIJOVp4JsWbpiJMK1DrIJIhZM7hlOVeLo6OUGlN5PbbsttT3Oq0YNXZZ8P0zDEcVD6wQkdoFOfrTSFq0q9A1XZU605ZhTpaLLfqwqONniRQKoj4I-YdMgxXoJc"
+	// kennis := "eNCa_XRaTr2NnXX4pnzhN3:APA91bF9OfBO9IEFJcPOtO-83Qu41_7zZ3ef7qC3i5ySPvT8arcQ1gwnRXYnSZ5uJ9mT4uOW7rgPp5F0hTsqvoqQL9oR02fQtiCyco2DVsNBT6JIgqgVHO1ZTPod7ypm-MpSzA95MRRZ"
+	title := "TROVO: Testing Push Notification Service"
+	body := `This is a test message to ascertain how the push notification appears`
+	imageURL := "https://trovotech.io/img/Trovotech-colored.png"
+	dataPayload := make(map[string]string)
+	dataPayload["route"] = "announcements"
+	dataPayload["openLink"] = "https://trovowallet.page.link"
+	ctx := context.Background()
+	client, _, err := pns.GetFirebaseMessagingClient(ctx)
+	if err != nil {
+		log.Println("[TestGetUserInfo]request error:", err)
+		t.Errorf(err.Error())
+		return
+	}
+	response, _ := pns.SendFirebaseMessage(ric, title, body, imageURL, dataPayload, client, ctx)
+	// response, _ := fb.SendFirebaseMessage(ric, title, body, imageURL, nil, nil)
 
-// 	log.Printf("Result:[%+v]\n", response)
+	log.Printf("Result:[%+v]\n", response)
 
-// }
+}
 
-// func TestSendPushNotificationBroadcast(t *testing.T) {
+func TestSendPushNotificationBroadcast(t *testing.T) {
 
-// ric := "dqmlIz2eT-CTEX1cesc3za:APA91bGDuSBPzGSZAjYfFMU12eV_gpMw7JdF7gxhhsaPc0XGmgYu9RokVyLfEpH6_Yfg9mYrmuhYlcLRScvolUbfRVftR3QK4d6psgVOY0382fNW3Q1BND8kTbPAThBOXe60DHSXO9hD"
-// kennis := "eNCa_XRaTr2NnXX4pnzhN3:APA91bF9OfBO9IEFJcPOtO-83Qu41_7zZ3ef7qC3i5ySPvT8arcQ1gwnRXYnSZ5uJ9mT4uOW7rgPp5F0hTsqvoqQL9oR02fQtiCyco2DVsNBT6JIgqgVHO1ZTPod7ypm-MpSzA95MRRZ"
+	// ric := "dqmlIz2eT-CTEX1cesc3za:APA91bGDuSBPzGSZAjYfFMU12eV_gpMw7JdF7gxhhsaPc0XGmgYu9RokVyLfEpH6_Yfg9mYrmuhYlcLRScvolUbfRVftR3QK4d6psgVOY0382fNW3Q1BND8kTbPAThBOXe60DHSXO9hD"
+	// kennis := "eNCa_XRaTr2NnXX4pnzhN3:APA91bF9OfBO9IEFJcPOtO-83Qu41_7zZ3ef7qC3i5ySPvT8arcQ1gwnRXYnSZ5uJ9mT4uOW7rgPp5F0hTsqvoqQL9oR02fQtiCyco2DVsNBT6JIgqgVHO1ZTPod7ypm-MpSzA95MRRZ"
 
-// receipients := []string{godswill, tunde, onoja, cryptoking, ric, mavol}
-// 	title := "TESTING THE PUSH NOTIFICATION BROADCAST"
-// 	body := `This is a test message to ascertain how the push notification appears`
-// 	imageURL := "https://trovotech.io/img/Trovotech-colored.png"
-// 	ctx := context.TODO()
-// 	client, _, err := fb.GetFirebaseMessagingClient(ctx)
-// 	if err != nil {
-// 		log.Println("[TestGetUserInfo]request error:", err)
-// 		t.Errorf(err.Error())
-// 		return
-// 	}
-// 	response, _ := fb.SendFirebaseBroadcast(receipients, title, body, imageURL, client, ctx)
+	receipients := []string{"godswill", "tunde", "onoja", "cryptoking", "ric", "mavol"}
+	title := "TESTING THE PUSH NOTIFICATION BROADCAST"
+	body := `This is a test message to ascertain how the push notification appears`
+	imageURL := "https://trovotech.io/img/Trovotech-colored.png"
+	ctx := context.TODO()
+	client, _, err := pns.GetFirebaseMessagingClient(ctx)
+	if err != nil {
+		log.Println("[TestGetUserInfo]request error:", err)
+		t.Errorf(err.Error())
+		return
+	}
+	response, _ := pns.SendFirebaseBroadcast(receipients, title, body, imageURL, nil, client, ctx)
 
-// 	log.Printf("Result:[%+v]\n", response)
+	log.Printf("Result:[%+v]\n", response)
 
-// }
+}
 
 /**
 2022/06/30 18:37:43 Full Path With Query:[/v1/users/payment] KeyParam:[GCWNKFHXYJ7XW6ZL3UFTKXBSRFK7EKBLXXRZQR6PIK3N2KBKQ74I3RIC1656614] Signature: [WnEUUYVAjhVRSvqJ/ndOf8TMlIil45Gua2Cn2PGmZULrb5RGVcZuOxYskp0BiHWqGKpRpRi+6Kfhf/DA4jrpCA==]
@@ -828,12 +1084,15 @@ func TestGetPaymentHistory(t *testing.T) {
 // TestSendPaymentMultiAccessDisabled sends payment from primary wallet
 func TestAcceptAssetMultiAccessDisabled(t *testing.T) {
 
-	fromWallet := "GDW6UKK6RI2LBTGHTDKKXYZKCGPDFBRFDTYSZKGGGE6SC5TCSG3MMJST"
-	pk := os.Getenv("RICPK")
-	secretKey := os.Getenv("RICSC")
+	pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	fromWallet := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// fromWallet := "GDW6UKK6RI2LBTGHTDKKXYZKCGPDFBRFDTYSZKGGGE6SC5TCSG3MMJST"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
 
 	kp := keypair.MustParseFull(secretKey)
-	baseURL := prodURL
+	baseURL := devURL
 
 	fullPath := "/v1/users/actions/claim-asset"
 	ts := time.Now().Unix() / 1000
@@ -845,9 +1104,19 @@ func TestAcceptAssetMultiAccessDisabled(t *testing.T) {
 
 	}
 
+	// claimPayload := PendingAssetToClaim{
+	// 	AssetCode:   "ABC",
+	// 	AssetIssuer: "GAD3DZNQY4SXJEUJOPLJZEK3OWTASEUK2LZYT3V7C52UN5QYOFP3PM5P",
+	// }
+
+	// claimPayload := PendingAssetToClaim{
+	// 	AssetCode:   "YAM",
+	// 	AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
+	// }
+
 	claimPayload := PendingAssetToClaim{
-		AssetCode:   "YAM",
-		AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
+		AssetCode:   "LUMI",
+		AssetIssuer: "GBGUHXVAK32BZTWRBML7RNIQ3532QDR5RRXOJ2P2MGEPHC3YJREMRTLE",
 	}
 	errorResponse := new(ErrorResponse)
 	claimResponse := new(PendingAssetToClaim)
@@ -927,7 +1196,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := prodURL
+	baseURL := devURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -947,28 +1216,36 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	}
 
 	// paymentPayload := PaymentInfo{
-	// 	Destination: "obi",
+	// 	Destination: "ric1",
 	// 	Memo:        "Test Payment",
-	// 	Amount:      "200",
-	// 	AssetCode:   "YAM",
-	// 	AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
+	// 	Amount:      "2000",
+	// 	AssetCode:   "",
+	// 	AssetIssuer: "",
 	// }
 
+	paymentPayload := PaymentInfo{
+		Destination: "ric1",
+		Memo:        "Test Payment",
+		Amount:      "200",
+		AssetCode:   "YAM",
+		AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
+	}
+
 	// paymentPayload := PaymentInfo{
-	// 	Destination: "onoja",
+	// 	Destination: "ric1",
 	// 	Memo:        "Test Payment",
-	// 	Amount:      "200",
+	// 	Amount:      "2000",
 	// 	AssetCode:   "ABC",
 	// 	AssetIssuer: "GAD3DZNQY4SXJEUJOPLJZEK3OWTASEUK2LZYT3V7C52UN5QYOFP3PM5P",
 	// }
 
-	paymentPayload := PaymentInfo{
-		Destination: "obi",
-		Memo:        "Test Payment",
-		Amount:      "120",
-		AssetCode:   "LUMI",
-		AssetIssuer: "GBGUHXVAK32BZTWRBML7RNIQ3532QDR5RRXOJ2P2MGEPHC3YJREMRTLE",
-	}
+	// paymentPayload := PaymentInfo{
+	// 	Destination: "ric1",
+	// 	Memo:        "Test Payment",
+	// 	Amount:      "100",
+	// 	AssetCode:   "LUMI",
+	// 	AssetIssuer: "GBGUHXVAK32BZTWRBML7RNIQ3532QDR5RRXOJ2P2MGEPHC3YJREMRTLE",
+	// }
 	errorResponse := new(ErrorResponse)
 	payResponse := new(PaymentInfo)
 
@@ -1280,10 +1557,13 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	// subSecretKey := "SDOSD4PD6RE7PG2TSGIGVRUXCSLQBTSJH3FBBLODPHEQNTBNFR3CIF2F"
 	// subPK := "GBDC4XVY2BVLHOCCRC5A6PJO4GFZ3JT4K3QD65HJQM655QTQ6UHU2GSP"
 	// subSecretKey := "SAHXHVXR63DS3LDOYXBO3ENXDK7AFL67NDBYDXHXLMZQ5DHSVQ75C5HU"
-	subPK := "GBPAFGAOQ65ODZEH7XKLGVFAHUPPADALTK3AS2ISSI65NXDXH6CXAKA7"
-	subSecretKey := "SCCNAU4JKDVJP5O7Y4RJDLGARCNTQVUBK5L5OXI5VOIZYHPBJLESZJML"
-	primaryPK := os.Getenv("RICPK")
-	primarySecretKey := os.Getenv("RICSC")
+	subPK := "GDQF3BDD5JQN5N7HRMFBEKU42DYDJI4WMZHXMPCGYVZKCE7QRN6Y3ERH"
+	subSecretKey := "SB2LEXZ6UBRXTGBGIDXXXE6VAU333FBTHSXV6KEKES3WO3NNTKTMMF3C"
+	// primaryPK := os.Getenv("RICPK")
+	// primarySecretKey := os.Getenv("RICSC")
+
+	primaryPK := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	primarySecretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// primaryPK := "GD36GHMT65T2O5YOSFE57TLF4VTSI67IAQXSUT4L5SNBKPNMV5R5R6VV"
 	// primarySecretKey := "SAWWK6BIPRALRRHVHELHI2Q3U66KBZLTLOPE7DVGJYRKZYFZGBCZZALY"
 	channelAccountSK := ""
@@ -1291,8 +1571,8 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	// subKP := keypair.MustParseFull(subSecretKey)
 	// primaryKP := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
-	baseURL := prodURL
-	// baseURL := devURL
+	// baseURL := prodURL
+	baseURL := devURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -1314,8 +1594,8 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
 	subwalletPayload := SubWalletInfo{
 		PublicKey:         subPK,
-		WalletTag:         "sub4",
-		WalletDescription: "Sub wallet Four",
+		WalletTag:         "c",
+		WalletDescription: "Sub wallet c",
 	}
 	errorResponse := new(ErrorResponse)
 	subWalletResponse := new(SubWalletInfo)
@@ -1348,7 +1628,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
 	log.Printf("[TestCreateSubWalletMultiAccessDisabled] Request Subwallet Response:[%+v]\n", subWalletResponse)
 	log.Println("==========waiting for 15seconds to before confirmation==============")
-	time.Sleep(time.Second * 15)
+	time.Sleep(time.Second * 2)
 	log.Println("==========Confirming Subwallet creation==============")
 
 	{
@@ -1409,7 +1689,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 		log.Printf("Create Subwallet Response:[%+v]\n", subWalletResponse)
 	}
 	log.Println("COMPLETED TEST: TestCreateSubWalletMultiAccessDisabled")
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 1)
 
 }
 

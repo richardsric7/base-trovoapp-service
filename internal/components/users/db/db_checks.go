@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//UserRegistrationInfoToUser populates user information with registration information
+// UserRegistrationInfoToUser populates user information with registration information
 func UserRegistrationInfoToUser(userInfo usermodels.UserRegistrationInfo, user *usermodels.User) {
 	user.PublicKey = strings.TrimSpace(strings.ToUpper(userInfo.PublicKey))
 	user.PrimarySigner = strings.TrimSpace(strings.ToUpper(userInfo.PublicKey))
@@ -51,7 +51,7 @@ func UserRegistrationInfoToUser(userInfo usermodels.UserRegistrationInfo, user *
 	user.PublicIP = userInfo.PublicIP
 }
 
-//UserRegistrationDbChecks checks validaty of user data
+// UserRegistrationDbChecks checks validaty of user data
 func UserRegistrationDbChecks(userInfo usermodels.UserRegistrationInfo, db *gorm.DB) (*usermodels.User, error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("REGISTRATION_ERROR_WEBHOOK")) > 50 {
@@ -70,6 +70,11 @@ func UserRegistrationDbChecks(userInfo usermodels.UserRegistrationInfo, db *gorm
 	}
 	//
 	_, err = PublicKeyAlreadyExists(userInfo.PublicKey, db)
+	if err != nil {
+		return nil, err
+	}
+	//
+	_, err = PrimarySignerAlreadyExists(userInfo.PublicKey, db)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +134,7 @@ func UserRegistrationDbChecks(userInfo usermodels.UserRegistrationInfo, db *gorm
 
 //UserUpdateDbChecks checks validity of user data
 
-//UsernameIsReserved check is name is reserved. Status = 0 means not available (reserved). Status = 1 means available
+// UsernameIsReserved check is name is reserved. Status = 0 means not available (reserved). Status = 1 means available
 func UsernameIsReserved(username string, db *gorm.DB) (reserved bool, err error) {
 
 	username = strings.TrimSpace(username)
@@ -142,7 +147,7 @@ func UsernameIsReserved(username string, db *gorm.DB) (reserved bool, err error)
 	return true, &tErrors.ErrorUsernameIsReserved{}
 }
 
-//PublicKeyIAlreadyExists check if public key already exists
+// PublicKeyIAlreadyExists check if public key already exists
 func PublicKeyAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err error) {
 	// discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	// if len(os.Getenv("IMPORT_ERROR_WEBHOOK")) > 50 {
@@ -163,7 +168,7 @@ func PublicKeyAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err err
 
 }
 
-//PrimarySignerAlreadyExists check if public key already exists
+// PrimarySignerAlreadyExists check if public key already exists
 func PrimarySignerAlreadyExists(publicKey string, db *gorm.DB) (exists bool, err error) {
 	// discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	// if len(os.Getenv("IMPORT_ERROR_WEBHOOK")) > 50 {

@@ -17,7 +17,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-//RegisterUser registers user information
+// RegisterUser registers user information
 func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.GlobalConfig) (userModels.UserRegistrationInfo, bool, error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("REGISTRATION_ERROR_WEBHOOK")) > 50 {
@@ -45,6 +45,7 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 	errValidation := ValidateUserRegistrationInfo(userInfo)
 
 	if errValidation != nil {
+		log.Printf("[RegisterUser]  Validation failed for user:%v, Error:%v", userInfo.Username, errValidation)
 		discord.Say(fmt.Sprintf("[RegisterUser]  Validation failed for user:%v, Error:%v", userInfo.Username, errValidation))
 		return userInfo, false, errValidation
 	}

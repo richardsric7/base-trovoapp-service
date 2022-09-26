@@ -3,29 +3,29 @@ package users
 import "time"
 
 type UserJSON struct {
-	ID                    string           `json:"-"`
-	Username              string           `json:"username"`
-	Email                 string           `json:"email"`
-	ImageThumbnailURL     string           `json:"imageThumbnailURL"`
-	FirstName             string           `json:"firstName"`
-	LastName              string           `json:"lastName"`
-	Mobile                string           `json:"mobile"`
-	PublicKey             string           `json:"publicKey"`
-	PrimarySigner         string           `json:"primarySigner"`
-	Referrer              string           `json:"referrer"`
-	ReferralLink          string           `json:"referralLink"`
-	ReferralQrCode        string           `json:"referralQrCode"`
-	PushNotificationToken string           `json:"pushNotificationToken"`
-	Corporate             uint             `json:"corporate"`
-	MobileVerified        uint             `json:"mobileVerified"`
-	MembershipType        uint             `json:"membershipType"`
-	MembershipExpiry      time.Time        `json:"membershipExpiry"`
-	KYCVerified           uint             `json:"kycVerified"`
+	ID                     string           `json:"-"`
+	Username               string           `json:"username"`
+	Email                  string           `json:"email"`
+	ImageThumbnailURL      string           `json:"imageThumbnailURL"`
+	FirstName              string           `json:"firstName"`
+	LastName               string           `json:"lastName"`
+	Mobile                 string           `json:"mobile"`
+	PublicKey              string           `json:"publicKey"`
+	PrimarySigner          string           `json:"primarySigner"`
+	Referrer               string           `json:"referrer"`
+	ReferralLink           string           `json:"referralLink"`
+	ReferralQrCode         string           `json:"referralQrCode"`
+	PushNotificationToken  string           `json:"pushNotificationToken"`
+	Corporate              uint             `json:"corporate"`
+	MobileVerified         uint             `json:"mobileVerified"`
+	MembershipType         uint             `json:"membershipType"`
+	MembershipExpiry       time.Time        `json:"membershipExpiry"`
+	KYCVerified            uint             `json:"kycVerified"`
 	AccountRecoveryEnabled uint             `json:"accountRecoveryEnabled"`
-	UserWallets           []UserWalletJSON `json:"userWallets"`
-	Verified              int              `json:"verified"`
-	Suspended             int              `json:"suspended"`
-	HasSecretQuestions    int              `json:"hasSecretQuestions"`
+	UserWallets            []UserWalletJSON `json:"userWallets"`
+	Verified               int              `json:"verified"`
+	Suspended              int              `json:"suspended"`
+	HasSecurityQuestions   int              `json:"hasSecurityQuestions"`
 }
 
 type UserWalletJSON struct {

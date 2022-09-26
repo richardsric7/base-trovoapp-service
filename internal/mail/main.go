@@ -44,7 +44,7 @@ func SendEmailVerificationCode(email, verificationCode string) (id, resp string,
 	if err != nil {
 		log.Printf("failed to send to:%s due to %v\n", email, err)
 		err = &tErrors.CustomError{Param: "email",
-			Err:        err.Error(),
+			Err:        "error could not send verification message",
 			ErrMessage: "Could not send verification code at this time. Please try again later",
 			Code:       400}
 		return

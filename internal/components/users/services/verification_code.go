@@ -524,7 +524,7 @@ func SendAccountRecoveryEmailOTP(userInfo *users.User, db *gorm.DB) error {
 		errDB = tx.Create(&userVerification).Error
 		if errDB != nil {
 			//could not create verification code
-			log.Printf("[SendAccountRecoveryEmailOTP] Error creating verification code for user %s. Error: %s\n", userInfo.Username, errDB.Error())
+			log.Printf("[SendAccountRecoveryEmailOTP] Error creating verification code for user %s. Error: %s. obj: %+v\n", userInfo.Username, errDB.Error(), userVerification)
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 		//send TOP
@@ -532,6 +532,8 @@ func SendAccountRecoveryEmailOTP(userInfo *users.User, db *gorm.DB) error {
 		_, _, errSendVerificationCode := tMail.SendEmailVerificationCode(userInfo.Email, verificationCode)
 
 		if errSendVerificationCode != nil {
+			log.Printf("[SendAccountRecoveryEmailOTP] Error sending verification code for user %s. Error: %s. obj: %+v\n", userInfo.Username, errSendVerificationCode.Error(), userVerification)
+
 			return errSendVerificationCode
 		}
 
@@ -566,7 +568,7 @@ func SendAccountRecoveryEmailOTP(userInfo *users.User, db *gorm.DB) error {
 	errDB = tx.Save(&userVerification).Error
 	if errDB != nil {
 		//could not update verification code
-		log.Printf("[SendAccountRecoveryEmailOTP] Error updating verification code for user %s. Error: %s\n", userInfo.Username, errDB.Error())
+		log.Printf("[SendAccountRecoveryEmailOTP] Error updating verification code for user %s. Error: %s. Obj: %+v\n", userInfo.Username, errDB.Error(), userVerification)
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	//updated successfully
@@ -575,6 +577,7 @@ func SendAccountRecoveryEmailOTP(userInfo *users.User, db *gorm.DB) error {
 	_, _, errSendVerificationCode := tMail.SendEmailVerificationCode(userInfo.Email, verificationCode)
 
 	if errSendVerificationCode != nil {
+		log.Printf("[SendAccountRecoveryEmailOTP] Error sending verification code for user %s. Error: %s. obj: %+v\n", userInfo.Username, errSendVerificationCode.Error(), userVerification)
 		return errSendVerificationCode
 	}
 	tx.Commit()

@@ -813,10 +813,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	router.POST("/v1/secret-questions", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/security-questions", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
-		var answers userModels.UserSecretAnswer
+		var answers userModels.UserSecurityAnswer
 		// var err error
 		data, _ := io.ReadAll(c.Request.Body)
 
@@ -848,9 +848,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/secret-questions %v", user.Username), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/security-questions %v", user.Username), gc.DB)
 
-		err = userServices.SaveUserSecretQuestions(&user, answers, gc)
+		err = userServices.SaveUserSecurityQuestions(&user, answers, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -876,7 +876,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
-	router.GET("/v1/secret-questions/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.GET("/v1/security-questions/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 		targetUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		user, err := usersDB.GetUser(targetUser, gc.DB)
@@ -903,23 +903,23 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("secret-questions %v", user.Username), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("security-questions %v", user.Username), gc.DB)
 
-		secretQuestions := userServices.GetSecretQuestions(&user, gc)
+		securityQuestions := userServices.GetSecurityQuestions(&user, gc)
 
-		userSecretAnswers, _ := userServices.GetUserSecretAnswers(&user, gc)
-		userSecretAnswers.A1 = ""
-		userSecretAnswers.A2 = ""
-		userSecretAnswers.A3 = ""
+		userSecurityAnswers, _ := userServices.GetUserSecurityAnswers(&user, gc)
+		userSecurityAnswers.A1 = ""
+		userSecurityAnswers.A2 = ""
+		userSecurityAnswers.A3 = ""
 
-		c.JSON(http.StatusOK, gin.H{"secretQuestions": secretQuestions, "userSecretAnswers": userSecretAnswers})
+		c.JSON(http.StatusOK, gin.H{"securityQuestions": securityQuestions, "userSecurityAnswers": userSecurityAnswers})
 
 	})
 
 	router.POST("/v1/verify-answers/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 		targetUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
-		var answers userModels.UserSecretAnswer
+		var answers userModels.UserSecurityAnswer
 		// var err error
 
 		data, _ := io.ReadAll(c.Request.Body)
@@ -954,7 +954,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/verify-answers/%v", user.Username), gc.DB)
 
-		if !userServices.ValidateSecretAnswers(&user, answers, gc) {
+		if !userServices.ValidateSecurityAnswers(&user, answers, gc) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "The answers provided are invalid."})
 			return
 		}
@@ -964,7 +964,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
-	router.POST("/v1/request-email-otp/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/account/recovery/request-email-otp/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
 		targetUser := strings.TrimSpace(c.Param("targetUser"))
@@ -984,9 +984,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/request-email-otp/%v", user.Username), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/account/recovery/request-email-otp/%v", user.Username), gc.DB)
 
-		if userServices.SendAccountRecoveryEmailOTP(&user, gc.DB) != nil {
+		if err = userServices.SendAccountRecoveryEmailOTP(&user, gc.DB); err != nil {
 			var ex tErrors.GenericError
 			var ok bool
 
@@ -1026,7 +1026,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/verify-email-otp/%v/%v", user.Username, otp), gc.DB)
 
-		if userServices.CheckAccountRecoveryEmailOTP(&user, otp, gc.DB) != nil {
+		if err = userServices.CheckAccountRecoveryEmailOTP(&user, otp, gc.DB); err != nil {
 			var ex tErrors.GenericError
 			var ok bool
 
@@ -1079,6 +1079,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/account/recovery  %v", user.Username), gc.DB)
 		err = userServices.EnableAccountRecovery(&user, &payload, gc)
 		if err != nil {
+			log.Printf("Failed to enable account recovery: %v\n", err)
 			var ex tErrors.GenericError
 			var ok bool
 

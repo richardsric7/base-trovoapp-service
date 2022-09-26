@@ -9,8 +9,8 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 )
 
-func SaveUserSecretQuestions(user *userModels.User, answer userModels.UserSecretAnswer, gc *sharedconfig.GlobalConfig) error {
-	var existingAnswer userModels.UserSecretAnswer
+func SaveUserSecurityQuestions(user *userModels.User, answer userModels.UserSecurityAnswer, gc *sharedconfig.GlobalConfig) error {
+	var existingAnswer userModels.UserSecurityAnswer
 	// check if  questions where repeated
 	if answer.Q1 == answer.Q2 || answer.Q1 == answer.Q3 || answer.Q2 == answer.Q3 {
 		return &tErrors.CustomError{Param: "username",
@@ -31,11 +31,11 @@ func SaveUserSecretQuestions(user *userModels.User, answer userModels.UserSecret
 
 		e := gc.DB.Save(&answer).Error
 		if e != nil {
-			log.Printf("[SaveSecretQuestions] error creating answers [%v]", e)
-			return &tErrors.CustomError{Param: "id", Err: "error saving secret answers", ErrMessage: "Unable to save secret answers at this time"}
+			log.Printf("[SaveUserSecurityQuestions] error creating answers [%v]", e)
+			return &tErrors.CustomError{Param: "id", Err: "error saving security answers", ErrMessage: "Unable to save security answers at this time"}
 		}
-		if user.HasSecretQuestions == 0 {
-			user.HasSecretQuestions = 1
+		if user.HasSecurityQuestions == 0 {
+			user.HasSecurityQuestions = 1
 			gc.DB.Save(user)
 		}
 
@@ -57,44 +57,44 @@ func SaveUserSecretQuestions(user *userModels.User, answer userModels.UserSecret
 	existingAnswer.Q3 = answer.Q3
 	e = gc.DB.Save(&existingAnswer).Error
 	if e != nil {
-		log.Printf("[SaveSecretQuestions] error saving answers [%v]\n", e)
+		log.Printf("[SaveUserSecurityQuestions] error saving answers [%v]\n", e)
 		return &tErrors.CustomError{Param: "id", Err: "error saving secret answers", ErrMessage: "Unable to save secret answers at this time"}
 	}
-	if user.HasSecretQuestions == 0 {
-		user.HasSecretQuestions = 1
+	if user.HasSecurityQuestions == 0 {
+		user.HasSecurityQuestions = 1
 		gc.DB.Save(user)
 	}
 	return nil
 
 }
 
-func GetUserSecretAnswers(user *userModels.User, gc *sharedconfig.GlobalConfig) (answer userModels.UserSecretAnswer, err error) {
-	if user.HasSecretQuestions == 0 {
+func GetUserSecurityAnswers(user *userModels.User, gc *sharedconfig.GlobalConfig) (answer userModels.UserSecurityAnswer, err error) {
+	if user.HasSecurityQuestions == 0 {
 		return answer, &tErrors.CustomError{Param: "username",
-			Err:        "error-no-secret answers exist for user",
-			ErrMessage: "No secret answers yet",
+			Err:        "error-no-security-answers-exist-for-user",
+			ErrMessage: "No security answers yet",
 		}
 	}
 	if e := gc.DB.Where("username = ?", user.Username).First(&answer).Error; e != nil {
 		return answer, &tErrors.CustomError{Param: "username",
-			Err:        "error-no-secret answers exist for user",
-			ErrMessage: "No secret answers yet",
+			Err:        "error-no-security answers exist for user",
+			ErrMessage: "No security answers yet",
 		}
 	}
 	return answer, nil
 }
 
-func GetSecretQuestions(user *userModels.User, gc *sharedconfig.GlobalConfig) (questions []userModels.SecretQuestion) {
+func GetSecurityQuestions(user *userModels.User, gc *sharedconfig.GlobalConfig) (questions []userModels.SecurityQuestion) {
 
 	if e := gc.DB.Order("question ASC").Find(&questions).Error; e != nil {
-		return make([]userModels.SecretQuestion, 0)
+		return make([]userModels.SecurityQuestion, 0)
 	}
 	return questions
 }
 
-func ValidateSecretAnswers(user *userModels.User, answer userModels.UserSecretAnswer, gc *sharedconfig.GlobalConfig) bool {
+func ValidateSecurityAnswers(user *userModels.User, answer userModels.UserSecurityAnswer, gc *sharedconfig.GlobalConfig) bool {
 
-	storedAnswers, err := GetUserSecretAnswers(user, gc)
+	storedAnswers, err := GetUserSecurityAnswers(user, gc)
 	if err != nil {
 		return false
 	}

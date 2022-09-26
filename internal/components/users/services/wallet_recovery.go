@@ -27,8 +27,8 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	ops := make([]txnbuild.Operation, 0)
 	messages := make([]string, 0)
 	payload.Messages = make([]string, 0)
-	if user.HasSecretQuestions == 0 {
-		return &tErrors.CustomError{Param: "username", Err: "error secret answers not set", ErrMessage: "Secret answers has not been set for this account."}
+	if user.HasSecurityQuestions == 0 {
+		return &tErrors.CustomError{Param: "username", Err: "error security answers not set", ErrMessage: "security answers has not been set for this account."}
 	}
 	if user.AccountRecoveryEnabled == 1 {
 		return &tErrors.CustomError{Param: "username", Err: "error account recovery already enabled.", ErrMessage: "Account recovery already enabled."}
@@ -37,9 +37,6 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	if wallet.ManagedAccessEnabled == 1 && !WalletHasViewOnlyAccess(&wallet, gc) {
 		return &tErrors.CustomError{Param: "username", Err: "error primary wallet has shared access.", ErrMessage: "Primary wallet has shared access enabled! Only primary wallets without shared access or with view only shared access can participate in account recovery at this time."}
 	}
-	// if !ValidateSecretAnswers(user, answer, gc) {
-	// 	return &tErrors.CustomError{Param: "username", Err: "error invalid secret answers", ErrMessage: "Answers to the secret questions are invalid."}
-	// }
 
 	dbtx := gc.DB.Begin()
 	defer dbtx.Rollback()
@@ -112,6 +109,10 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	if len(wallets) > 1 {
 		//has subwallets other than the primary wallet, which has already be added to the ops
 		for _, w := range wallets {
+			if w.Alias == user.Username {
+				// ensures the primary walletis not added to the ops
+				continue
+			}
 			if w.Alias != user.Username {
 				if w.ManagedAccessEnabled == 1 {
 					if !WalletHasViewOnlyAccess(&w, gc) {
@@ -135,24 +136,26 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 
 					}
 				}
-			}
-			if !userBc.SignerIsValid(w.ID, recoveryAddress) {
-				//recovery not a signer to the sub wallet. add it
-				ops = append(ops, &txnbuild.SetOptions{
-					Signer: &txnbuild.Signer{
-						Address: recoveryAddress,
-						Weight:  1,
-					},
-					SourceAccount: w.ID,
-				})
-			}
 
-			{ //add fee for transaction
-
+				if !userBc.SignerIsValid(w.ID, recoveryAddress) {
+					//recovery not a signer to the sub wallet. add it
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: recoveryAddress,
+							Weight:  1,
+						},
+						SourceAccount: w.ID,
+					})
+				}
 			}
 
 		}
 	}
+
+	{ //add fee for transaction
+
+	}
+
 	var xdrBase64 string
 	payload.Messages = messages
 	payload.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
@@ -223,8 +226,8 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	ops := make([]txnbuild.Operation, 0)
 	messages := make([]string, 0)
 	payload.Messages = make([]string, 0)
-	if user.HasSecretQuestions == 0 {
-		return &tErrors.CustomError{Param: "username", Err: "error secret answers not set", ErrMessage: "Secret answers has not been set for this account."}
+	if user.HasSecurityQuestions == 0 {
+		return &tErrors.CustomError{Param: "username", Err: "error security answers not set", ErrMessage: "Security answers has not been set for this account."}
 	}
 	if user.AccountRecoveryEnabled == 0 {
 		return &tErrors.CustomError{Param: "username", Err: "error account recovery not enabled.", ErrMessage: "Account recovery not enabled."}
@@ -240,8 +243,8 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	if !ValidateSecretAnswers(user, payload.SecretAnswers, gc) {
-		return &tErrors.CustomError{Param: "username", Err: "error invalid secret answers", ErrMessage: "Answers to the secret questions are invalid."}
+	if !ValidateSecurityAnswers(user, payload.SecurityAnswers, gc) {
+		return &tErrors.CustomError{Param: "username", Err: "error invalid security answers", ErrMessage: "Answers to the security questions are invalid."}
 	}
 	var userAccount horizon.Account
 	if userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey); e != nil {
@@ -304,20 +307,10 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 					continue
 				}
 			}
-			//a subwallet, not primary wallet
-			//activate subwallet Address and add signer to subwallet key
+
 			_, e = userBc.GetBlockchainAccountDetail(w.ID)
 			if e != nil {
-				// if e.Error() == "error-blockchain-account-not-activated" {
-				// 	//activate account
-				// 	ops = append(ops, &txnbuild.CreateAccount{
-				// 		Destination:   w.ID,
-				// 		Amount:        os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"),
-				// 		SourceAccount: user.PublicKey,
-				// 	})
-				// 	messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your subwallet [%v] on the blockchain.", os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), user.Username, w.Alias))
 
-				// }
 				continue
 
 			}
@@ -333,9 +326,9 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 				})
 			}
 
-			{ //add fee for transaction
+		}
 
-			}
+		{ //add fee for transaction
 
 		}
 	}
@@ -430,8 +423,8 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	dbtx := gc.DB.Begin()
 	defer dbtx.Rollback()
 
-	if !ValidateSecretAnswers(user, payload.SecretAnswers, gc) {
-		return multiAccessWallets, &tErrors.CustomError{Param: "username", Err: "error invalid secret answers", ErrMessage: "Answers to the secret questions are invalid."}
+	if !ValidateSecurityAnswers(user, payload.SecurityAnswers, gc) {
+		return multiAccessWallets, &tErrors.CustomError{Param: "username", Err: "error invalid security answers", ErrMessage: "Answers to the security questions are invalid."}
 	}
 	if CheckAccountRecoveryEmailOTP(user, payload.EmailOTP, gc.DB) != nil {
 		return multiAccessWallets, &tErrors.CustomError{Param: "username", Err: "error invalid email otp", ErrMessage: "Email OTP is invalid."}
@@ -493,7 +486,12 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	wallets := user.GetAllWallets(gc)
 	if len(wallets) > 1 {
 		//has subwallets other than the primary wallet, which has already be added to the ops
+
 		for _, w := range wallets {
+			if w.Alias == user.Username {
+				//skip primary wallet
+				continue
+			}
 			if w.Alias != user.Username {
 				if w.ManagedAccessEnabled == 1 {
 					if !WalletHasViewOnlyAccess(&w, gc) {
@@ -517,57 +515,60 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 
 					}
 				}
+				if !userBc.SignerIsValid(w.ID, payload.NewSignerPublicKey) {
+					//recovery not a signer to the sub wallet. add it
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: payload.NewSignerPublicKey,
+							Weight:  1,
+						},
+						SourceAccount: w.ID,
+					})
+				}
+
+				if userBc.SignerIsValid(w.ID, user.PrimarySigner) {
+					//former signer exists. remove it
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: user.PrimarySigner,
+							Weight:  0,
+						},
+						SourceAccount: w.ID,
+					})
+				}
 			}
-			if !userBc.SignerIsValid(w.ID, payload.NewSignerPublicKey) {
-				//recovery not a signer to the sub wallet. add it
+
+		}
+
+	}
+
+	{ //add fee for transaction
+
+	}
+	//last operation
+	if payload.DisableOldSignerFromPrimaryWallet == 1 {
+
+		if userBc.SignerIsValid(user.PublicKey, user.PrimarySigner) {
+			//remove old signer directive is enabled. remove old signer
+			if user.PublicKey == user.PrimarySigner {
+				//it is the master key you need to disable
+				masterWeight := txnbuild.Threshold(0)
 				ops = append(ops, &txnbuild.SetOptions{
-					Signer: &txnbuild.Signer{
-						Address: payload.NewSignerPublicKey,
-						Weight:  1,
-					},
-					SourceAccount: w.ID,
+					MasterWeight:  &masterWeight,
+					SourceAccount: user.PublicKey,
 				})
-			}
-			if userBc.SignerIsValid(w.ID, user.PrimarySigner) {
-				//former signer exists. remove it
+			} else {
 				ops = append(ops, &txnbuild.SetOptions{
 					Signer: &txnbuild.Signer{
 						Address: user.PrimarySigner,
 						Weight:  0,
 					},
-					SourceAccount: w.ID,
+					SourceAccount: user.PublicKey,
 				})
 			}
 
-			{ //add fee for transaction
-
-			}
-
+			messages = append(messages, "You have chosen to remove old signer from your account. This will remove your previous signer and it will not be able to authorize any more transactions on your account ever again.")
 		}
-	}
-
-	//last operation
-
-	if userBc.SignerIsValid(user.PublicKey, user.PrimarySigner) && payload.DisableOldSignerFromPrimaryWallet == 1 {
-		//remove old signer directive is enabled. remove old signer
-		if user.PublicKey == user.PrimarySigner {
-			//it is the master key you need to disable
-			masterWeight := txnbuild.Threshold(0)
-			ops = append(ops, &txnbuild.SetOptions{
-				MasterWeight:  &masterWeight,
-				SourceAccount: user.PublicKey,
-			})
-		} else {
-			ops = append(ops, &txnbuild.SetOptions{
-				Signer: &txnbuild.Signer{
-					Address: user.PrimarySigner,
-					Weight:  0,
-				},
-				SourceAccount: user.PublicKey,
-			})
-		}
-
-		messages = append(messages, "You have chosen to remove old signer from your account. This will remove your previous signer and it will not be able to authorize any more transactions on your account ever again.")
 	}
 
 	if payload.Commit == 0 {
