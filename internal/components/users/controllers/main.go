@@ -1004,6 +1004,46 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
+	router.POST("/v1/account/recovery/verify-email-otp/:targetUser/:otp", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+		otp := strings.TrimSpace(c.Param("otp"))
+		targetUser := strings.TrimSpace(c.Param("targetUser"))
+
+		user, err := usersDB.GetUser(targetUser, gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/verify-email-otp/%v/%v", user.Username, otp), gc.DB)
+
+		if err = userServices.CheckAccountRecoveryEmailOTP(&user, otp, gc.DB); err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+	})
+
 	router.POST("/v1/verify-email-otp/:targetUser/:otp", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 		otp := strings.TrimSpace(c.Param("otp"))
