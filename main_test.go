@@ -367,7 +367,7 @@ func TestRequestAccountRecoveryEmailOTP(t *testing.T) {
 	ownerUsername := "ric1"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := devURL
+	baseURL := prodURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -642,7 +642,7 @@ func TestDoAccountRecovery(t *testing.T) {
 	ownerUsername := "ric1"
 	kp := keypair.MustParseFull(newSigner)
 	// log.Println(kp.Address())
-	baseURL := devURL
+	baseURL := prodURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -663,7 +663,7 @@ func TestDoAccountRecovery(t *testing.T) {
 
 	payload := AccountRecoveryRequest{
 		Username:                          ownerUsername,
-		EmailOTP:                          "392671",
+		EmailOTP:                          "342474",
 		NewSignerPublicKey:                kp.Address(),
 		DisableOldSignerFromPrimaryWallet: 1,
 		Commit:                            0,
@@ -1218,29 +1218,29 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 
 	}
 
-	paymentPayload := PaymentInfo{
-		Destination: "ric1",
-		Memo:        "Test Payment",
-		Amount:      "20000",
-		AssetCode:   "",
-		AssetIssuer: "",
-	}
+	// paymentPayload := PaymentInfo{
+	// 	Destination: "ric1",
+	// 	Memo:        "Test Payment",
+	// 	Amount:      "20000",
+	// 	AssetCode:   "",
+	// 	AssetIssuer: "",
+	// }
 
 	// paymentPayload := PaymentInfo{
 	// 	Destination: "ric1",
 	// 	Memo:        "Test Payment",
-	// 	Amount:      "200",
+	// 	Amount:      "10",
 	// 	AssetCode:   "YAM",
 	// 	AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
 	// }
 
-	// paymentPayload := PaymentInfo{
-	// 	Destination: "ric1",
-	// 	Memo:        "Test Payment",
-	// 	Amount:      "2000",
-	// 	AssetCode:   "ABC",
-	// 	AssetIssuer: "GAD3DZNQY4SXJEUJOPLJZEK3OWTASEUK2LZYT3V7C52UN5QYOFP3PM5P",
-	// }
+	paymentPayload := PaymentInfo{
+		Destination: "ric1_a",
+		Memo:        "Test Payment",
+		Amount:      "2000",
+		AssetCode:   "ABC",
+		AssetIssuer: "GAD3DZNQY4SXJEUJOPLJZEK3OWTASEUK2LZYT3V7C52UN5QYOFP3PM5P",
+	}
 
 	// paymentPayload := PaymentInfo{
 	// 	Destination: "ric1",

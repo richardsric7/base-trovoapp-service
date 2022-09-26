@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
-
+	announcementModels "trovo-wallet-api/internal/components/announcements/models"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
+	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	users "trovo-wallet-api/internal/components/users/models"
 	SMS "trovo-wallet-api/internal/sms"
 
@@ -207,6 +207,14 @@ func MigrateDB(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&paymentModels.PaymentHistory{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating PaymentHistory: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&announcementModels.Announcement{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating Announcement: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&announcementModels.AppVersion{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating AppVersion: ", errMigrate)
 		}
 		// errMigrate = UserTriggers(gormDB)
 		// if errMigrate != nil {
