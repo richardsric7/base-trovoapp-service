@@ -503,10 +503,10 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 	if len(walletDescription) == 0 {
 		walletDescription = walletTag
 	}
-
+	userWallets := u.GetAllWallets(gc)
 	{
 		//check to ensure sub-wallet does not already exist
-		for _, wallet := range u.UserWallets {
+		for _, wallet := range userWallets {
 			if wallet.ID == subWalletPublicKey {
 				log.Printf("[BuildNewSubWallet] wallet [%v] already exists in your account\n", subWalletPublicKey)
 				return userWallet, &tErrors.CustomError{
@@ -517,7 +517,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 				}
 			}
 			if wallet.Tag != nil {
-				if *wallet.Tag == walletTag {
+				if strings.EqualFold(*wallet.Tag, walletTag) {
 					log.Printf("[BuildNewSubWallet] wallet tag [%v] already exists in your account\n", walletTag)
 					return userWallet, &tErrors.CustomError{
 						Param:      "id",
