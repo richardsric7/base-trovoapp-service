@@ -126,7 +126,8 @@ func (u *User) SignerIsValid(signerKey string, temp bool) bool {
 func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances map[string]Balance, err error) {
 	balances = make(map[string]Balance)
 	xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
-	log.Println("xbnUsdPrice", xbnUsdPrice)
+	xbnNativePrice := "1"
+	// log.Println("xbnUsdPrice", xbnUsdPrice)
 	cacheKey := fmt.Sprintf("GetBalance_%s", u.ID)
 	if temp {
 		cacheKey = fmt.Sprintf("GetBalance_%s", *u.TempPublicKey)
@@ -143,8 +144,12 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			for k, v := range b {
 				mi := v.(map[string]interface{})
 				usdPrice := "0"
+				nativePrice := "0"
 				if len(mi["usdPrice"].(string)) > 0 {
 					usdPrice = mi["usdPrice"].(string)
+				}
+				if len(mi["nativePrice"].(string)) > 0 {
+					nativePrice = mi["nativePrice"].(string)
 				}
 				balances[k] = Balance{
 					AssetIssuer: mi["assetIssuer"].(string),
@@ -153,6 +158,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					QRCode:      mi["qrCode"].(string),
 					ImageURL:    mi["imageUrl"].(string),
 					UsdPrice:    usdPrice,
+					NativePrice: nativePrice,
 				}
 
 			}
@@ -179,6 +185,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			QRCode:      qrCode,
 			ImageURL:    os.Getenv("XBN_ASSET_IMAGE_URL"),
 			UsdPrice:    xbnUsdPrice,
+			NativePrice: xbnNativePrice,
 		}
 
 		if !temp && err.Error() == "error-blockchain-account-not-activated" {
@@ -204,7 +211,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			defer wg.Done()
 			amount, _ := decimal.NewFromString(bal.Balance)
 
-			nativePrice := "0"
+			assetNativePrice := "0"
 			assetUsdPrice := "0"
 			if (temp && (amount.IsZero())) || (bal.Code == "" && temp) {
 				//if nft or if it has NFT we skip
@@ -222,14 +229,15 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			availableBalance := amount.Sub(sellingLiabilities.Add(buyingLiabilities))
 			// availableBalance := availableBal.Truncate(7).String()
 			if bal.Issuer != "" && bal.Code != "" {
-				nativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer)
+				assetNativePrice, _ := blockchain.GetNativeAskPrice(bal.Code, bal.Issuer)
 
 				xbnUsdPriceDec := decimal.RequireFromString(xbnUsdPrice)
-				nativePriceDec := decimal.RequireFromString(nativePrice)
+				nativePriceDec := decimal.RequireFromString(assetNativePrice)
 				assetUsdPrice = nativePriceDec.Mul(xbnUsdPriceDec).Truncate(7).String()
 			}
 			if bal.Issuer == "" && bal.Code == "" {
 				assetUsdPrice = xbnUsdPrice
+				assetNativePrice = xbnNativePrice
 			}
 
 			qrCode := ""
@@ -242,11 +250,12 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			}
 			imageUrl := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}.GetAssetImageFromIssuer(gc)
 			balance := Balance{AssetIssuer: bal.Issuer,
-				AssetCode: bal.Code,
-				Amount:    availableBalance,
-				QRCode:    qrCode,
-				ImageURL:  imageUrl,
-				UsdPrice:  assetUsdPrice,
+				AssetCode:   bal.Code,
+				Amount:      availableBalance,
+				QRCode:      qrCode,
+				ImageURL:    imageUrl,
+				UsdPrice:    assetUsdPrice,
+				NativePrice: assetNativePrice,
 			}
 			// log.Printf("[BALANCE] balance: %+v\n", bal)
 

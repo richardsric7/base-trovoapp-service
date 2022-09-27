@@ -10,6 +10,7 @@ type Balance struct {
 	QRCode      string          `json:"qrCode"`
 	ImageURL    string          `json:"imageUrl"`
 	UsdPrice    string          `json:"usdPrice"`
+	NativePrice string          `json:"nativePrice"`
 }
 
 type NFT struct {
