@@ -16,6 +16,7 @@ import (
 
 	payments "trovo-wallet-api/internal/components/payments/controllers"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
+	rates "trovo-wallet-api/internal/components/rates/controllers"
 	root "trovo-wallet-api/internal/components/root/controllers"
 	serviceLinks "trovo-wallet-api/internal/components/servicelinks/controllers"
 	swaps "trovo-wallet-api/internal/components/swaps/controllers"
@@ -74,7 +75,7 @@ func main() {
 			"REDIS_HOST", "REDIS_PORT", "DYNAMIC_LINKS_API_KEY", "DYNAMIC_LINKS_DOMAIN_PREFIX", "DYNAMIC_LINKS_ANDROID_PACKAGE_NAME",
 			"DYNAMIC_LINKS_IOS_BUNDLE_ID", "DYNAMIC_LINKS_FALLBACK_BASE_URL", "FBDL_SERVICE_URLS", "MAILGUN_DOMAIN", "XBN_ASSET_IMAGE_URL",
 			"GC", "GOOGLE_PROJECT_ID", "ACCOUNT_RECOVERY_SALT", "MNEMONIC_ACCOUNT_RECOVERY", "RECOVERY_SIGNER_ACTIVATION_AMOUNT",
-			"NATIVE_ASSET_CODE","ACCOUNT_RECOVERY_MINIMUM_BALANCE",
+			"NATIVE_ASSET_CODE", "ACCOUNT_RECOVERY_MINIMUM_BALANCE",
 		}
 
 		for _, requiredEnvironmentVariable := range requiredEnvironmentVariables {
@@ -255,6 +256,11 @@ func main() {
 			UploadPath: os.Getenv("STORAGE_BUCKET_NAME"),
 		},
 	}
+	// clear cache
+	cacheKey := "[GET] /v1/rates"
+	globalConfig.RedisCache.InvalidateCachedHttpResponse(cacheKey)
+	globalConfig.RedisCache.DeleteFromCache(cacheKey)
+
 	//setup router
 
 	if os.Getenv("GIN_MODE") == "release" {
@@ -276,6 +282,9 @@ func main() {
 
 	serviceLinks.Init(router, &globalConfig)
 	log.Println("##serviceLinks services initialized##")
+
+	rates.Init(router, &globalConfig)
+	log.Println("##rates services initialized##")
 
 	//run app
 	log.Println("##service started##")
