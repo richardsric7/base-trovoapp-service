@@ -484,6 +484,7 @@ func (u *User) BuildPrimaryWallet() {
 		Alias:         u.Username,
 		Signer:        u.PublicKey,
 		UserID:        u.ID,
+		PrimaryWallet: 1,
 	}
 	u.UserWallets = append(u.UserWallets, userWallet)
 }
