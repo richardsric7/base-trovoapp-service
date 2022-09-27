@@ -151,6 +151,7 @@ type Balance struct {
 	Amount      decimal.Decimal `json:"amount"`
 	QRCode      string          `json:"qrCode"`
 	UsdPrice    string          `json:"usdPrice"`
+	NativePrice string          `json:"nativePrice"`
 }
 
 // Signer model for user
