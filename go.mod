@@ -5,7 +5,6 @@ go 1.18
 require (
 	cloud.google.com/go/storage v1.10.0
 	firebase.google.com/go v3.12.0+incompatible
-	github.com/bantublockchain/bantupaysdk-go v1.1.9
 	github.com/bantublockchain/push-notification-service v1.0.1
 	github.com/dghubble/sling v1.4.0
 	github.com/ecnepsnai/discord v1.2.1
@@ -21,6 +20,7 @@ require (
 	github.com/nyaruka/phonenumbers v1.0.75
 	github.com/shopspring/decimal v1.3.1
 	github.com/stellar/go v0.0.0-20220527172504-97da5a558772
+	github.com/toorop/go-bittrex v0.0.5
 	github.com/yeqown/go-qrcode v1.5.10
 	google.golang.org/api v0.50.0
 	gorm.io/driver/postgres v1.3.7
@@ -77,6 +77,7 @@ require (
 	github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee // indirect
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.1 // indirect
+	github.com/thebotguys/signalr v0.0.0-20190119054324-787ebe6729fc // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/yeqown/reedsolomon v1.0.0 // indirect
 	gitlab.com/pennersr/redq v0.0.0-20210323185356-5c672ce9cd53 // indirect

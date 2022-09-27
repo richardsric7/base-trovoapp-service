@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 	announcementModels "trovo-wallet-api/internal/components/announcements/models"
+	assetModels "trovo-wallet-api/internal/components/assets/models"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	users "trovo-wallet-api/internal/components/users/models"
@@ -208,6 +209,17 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating PaymentHistory: ", errMigrate)
 		}
+
+		errMigrate = gormDB.AutoMigrate(&paymentModels.CurrencyRates{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating CurrencyRates: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&assetModels.XbnDollarPrice{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating XbnDollarPrice: ", errMigrate)
+		}
+
 		errMigrate = gormDB.AutoMigrate(&announcementModels.Announcement{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating Announcement: ", errMigrate)

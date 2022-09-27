@@ -150,6 +150,7 @@ type Balance struct {
 	AssetCode   string          `json:"assetCode"`
 	Amount      decimal.Decimal `json:"amount"`
 	QRCode      string          `json:"qrCode"`
+	UsdPrice    string          `json:"usdPrice"`
 }
 
 // Signer model for user
@@ -927,9 +928,10 @@ func TestGetUserInfo(t *testing.T) {
 
 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
+	// primaryPK := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	primaryPK := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
-	primarySecretKey := "SA4JYDZJSOVWHOWWLGEZV3NSSE3YRS2BVRNDQM2O6UREN53RJTTHUS4P"
+	primarySecretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
 	// primaryPK := os.Getenv("RICPK")
 	// primarySecretKey := os.Getenv("RICSC")
 	ownerUsername := "ric1"

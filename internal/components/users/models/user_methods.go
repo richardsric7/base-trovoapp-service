@@ -1,23 +1,23 @@
 package users
 
 import (
-	"encoding/base64"
-	"fmt"
-	"net/http"
-	"sort"
-	dl "trovo-wallet-api/internal/dynamiclinks"
-	tErrors "trovo-wallet-api/internal/errors"
-	pns "trovo-wallet-api/internal/pns"
-	"trovo-wallet-api/internal/sharedconfig"
-
 	"context"
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
+	blockchain "trovo-wallet-api/internal/components/assets/blockchain"
+	dl "trovo-wallet-api/internal/dynamiclinks"
+	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
+	pns "trovo-wallet-api/internal/pns"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/mailgun/mailgun-go/v4"
 	"github.com/shopspring/decimal"
@@ -125,6 +125,8 @@ func (u *User) SignerIsValid(signerKey string, temp bool) bool {
 // GetBalance gets user wallet blockchain balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
 func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances map[string]Balance, err error) {
 	balances = make(map[string]Balance)
+	xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
+	log.Println("xbnUsdPrice", xbnUsdPrice)
 	cacheKey := fmt.Sprintf("GetBalance_%s", u.ID)
 	if temp {
 		cacheKey = fmt.Sprintf("GetBalance_%s", *u.TempPublicKey)
@@ -140,12 +142,17 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			b := response.(map[string]interface{})
 			for k, v := range b {
 				mi := v.(map[string]interface{})
+				usdPrice := "0"
+				if len(mi["usdPrice"].(string)) > 0 {
+					usdPrice = mi["usdPrice"].(string)
+				}
 				balances[k] = Balance{
 					AssetIssuer: mi["assetIssuer"].(string),
 					AssetCode:   mi["assetCode"].(string),
 					Amount:      decimal.RequireFromString(mi["amount"].(string)),
 					QRCode:      mi["qrCode"].(string),
 					ImageURL:    mi["imageUrl"].(string),
+					UsdPrice:    usdPrice,
 				}
 
 			}
@@ -163,6 +170,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			if e == nil {
 				qrCode = p.QRCode
 			}
+
 		}
 		balances[":"] = Balance{
 			AssetIssuer: "",
@@ -170,6 +178,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			Amount:      decimal.Zero,
 			QRCode:      qrCode,
 			ImageURL:    os.Getenv("XBN_ASSET_IMAGE_URL"),
+			UsdPrice:    xbnUsdPrice,
 		}
 
 		if !temp && err.Error() == "error-blockchain-account-not-activated" {
@@ -194,6 +203,9 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			// log.Printf("[BALANCE]%+v\n", v)
 			defer wg.Done()
 			amount, _ := decimal.NewFromString(bal.Balance)
+
+			nativePrice := "0"
+			assetUsdPrice := "0"
 			if (temp && (amount.IsZero())) || (bal.Code == "" && temp) {
 				//if nft or if it has NFT we skip
 				return
@@ -209,6 +221,17 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			// availableBalance := amount.Sub(sellingLiabilities)
 			availableBalance := amount.Sub(sellingLiabilities.Add(buyingLiabilities))
 			// availableBalance := availableBal.Truncate(7).String()
+			if bal.Issuer != "" && bal.Code != "" {
+				nativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer)
+
+				xbnUsdPriceDec := decimal.RequireFromString(xbnUsdPrice)
+				nativePriceDec := decimal.RequireFromString(nativePrice)
+				assetUsdPrice = nativePriceDec.Mul(xbnUsdPriceDec).Truncate(7).String()
+			}
+			if bal.Issuer == "" && bal.Code == "" {
+				assetUsdPrice = xbnUsdPrice
+			}
+
 			qrCode := ""
 			if !temp {
 
@@ -218,8 +241,13 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 				}
 			}
 			imageUrl := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}.GetAssetImageFromIssuer(gc)
-			balance := Balance{AssetIssuer: bal.Issuer, AssetCode: bal.Code,
-				Amount: availableBalance, QRCode: qrCode, ImageURL: imageUrl}
+			balance := Balance{AssetIssuer: bal.Issuer,
+				AssetCode: bal.Code,
+				Amount:    availableBalance,
+				QRCode:    qrCode,
+				ImageURL:  imageUrl,
+				UsdPrice:  assetUsdPrice,
+			}
 			// log.Printf("[BALANCE] balance: %+v\n", bal)
 
 			m.Lock()

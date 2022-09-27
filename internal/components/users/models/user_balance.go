@@ -2,13 +2,14 @@ package users
 
 import "github.com/shopspring/decimal"
 
-//Balance model for user
+// Balance model for user
 type Balance struct {
 	AssetIssuer string          `json:"assetIssuer"`
 	AssetCode   string          `json:"assetCode"`
 	Amount      decimal.Decimal `json:"amount"`
 	QRCode      string          `json:"qrCode"`
 	ImageURL    string          `json:"imageUrl"`
+	UsdPrice    string          `json:"usdPrice"`
 }
 
 type NFT struct {
@@ -19,7 +20,7 @@ type NFT struct {
 	NFTImageURI    string `json:"nftImageURI"`
 }
 
-//Signer model for user
+// Signer model for user
 type Signer struct {
 	Weight  int    `json:"weight"`
 	Key     string `json:"key"`
@@ -27,23 +28,23 @@ type Signer struct {
 	Sponsor string `json:"sponsor"`
 }
 
-//Signer model for user
+// Signer model for user
 type Thresholds struct {
 	LowThreshold    string `json:"low_threshold"`
 	MediumThreshold string `json:"medium_threshold"`
 	HighThreshold   string `json:"high_threshold"`
 }
 
-//AssetBalances holds user balances
+// AssetBalances holds user balances
 type AssetBalances struct {
 	Claimed   []Balance `json:"claimed"`
 	Unclaimed []Balance `json:"unclaimed"`
 }
 
-//MappedNFTBalance holds user NFTs per mapped public key
+// MappedNFTBalance holds user NFTs per mapped public key
 type MappedNFTBalance map[string][]NFT
 
-//UserBalanceForMerchant holds user balances
+// UserBalanceForMerchant holds user balances
 type UserBalanceForMerchant struct {
 	Balances []Balance `json:"balances"`
 }
