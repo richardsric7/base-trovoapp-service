@@ -41,9 +41,9 @@ type User struct {
 	RegionName               *string      `gorm:"null;size:100"`
 	TimeZone                 *string      `gorm:"null;size:100"`
 	ISP                      *string      `gorm:"null;size:150"`
-	HasSecurityQuestions     int          `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
-	Verified                 int          `gorm:"type:integer;not null;default:0" json:"verified"`
-	Suspended                int          `gorm:"type:integer;not null;default:0" json:"suspended"`
+	HasSecurityQuestions     uint         `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
+	Verified                 uint         `gorm:"type:integer;not null;default:0" json:"verified"`
+	Suspended                uint         `gorm:"type:integer;not null;default:0" json:"suspended"`
 	SuspensionReason         *string      `gorm:"null" json:"suspensionReason"`
 }
 
@@ -59,7 +59,8 @@ type UserWallet struct {
 	UserID                  string                  `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
 	ManagedAccessEnabled    uint                    `gorm:"type:integer;not null; default:0" json:"managedAccessEnabled"`
 	UserWalletManagedAccess UserWalletManagedAccess `json:"userWalletManagedAccess"`
-	Tracked                 int                     `gorm:"type:integer;not null;default:0" json:"-"`
+	Tracked                 uint                    `gorm:"type:integer;not null;default:0" json:"-"`
+	PrimaryWallet           uint                    `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
 }
 
 type UserWalletManagedAccess struct {

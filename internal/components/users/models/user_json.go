@@ -23,9 +23,9 @@ type UserJSON struct {
 	KYCVerified            uint             `json:"kycVerified"`
 	AccountRecoveryEnabled uint             `json:"accountRecoveryEnabled"`
 	UserWallets            []UserWalletJSON `json:"userWallets"`
-	Verified               int              `json:"verified"`
-	Suspended              int              `json:"suspended"`
-	HasSecurityQuestions   int              `json:"hasSecurityQuestions"`
+	Verified               uint             `json:"verified"`
+	Suspended              uint             `json:"suspended"`
+	HasSecurityQuestions   uint             `json:"hasSecurityQuestions"`
 }
 
 type UserWalletJSON struct {

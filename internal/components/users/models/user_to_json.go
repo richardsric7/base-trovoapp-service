@@ -1,5 +1,7 @@
 package users
 
+import "strings"
+
 func (u *User) ToJSON() (jsonObj UserJSON) {
 	jsonObj.ID = u.ID
 	jsonObj.Username = u.Username
@@ -84,9 +86,11 @@ func (uw *UserWallet) ToJSON() (jsonObj UserWalletJSON) {
 		}
 
 	}
-	if uw.Signer == uw.ID {
+	jsonObj.PrimaryWallet = uw.PrimaryWallet
+	if uw.Tag == nil && !strings.Contains(uw.Alias, "_") {
 		jsonObj.PrimaryWallet = 1
 	}
+
 	return
 }
 
