@@ -42,6 +42,8 @@ const String SecurityQuestionsViewPath = '/SecurityQuestionsView';
 const String RequestOtpViewPath = '/RequestOtpView';
 const String AccountRecoverySuccessViewPath = '/AccountRecoverySuccessView';
 const String SharedAccessViewPath = '/SharedAccessView';
+const String SetupAccountRecoveryViewPath = '/SetupAccountRecoveryView';
+const String DisableAccountRecoveryViewPath = '/DisableAccountRecoveryView';
 
 enum Pages {
   Splash,
@@ -85,6 +87,8 @@ enum Pages {
   RequestOtpView,
   AccountRecoverySuccessView,
   SharedAccessView,
+  SetupAccountRecoveryView,
+  DisableAccountRecoveryView,
 }
 
 class PageConfiguration {
@@ -305,4 +309,14 @@ PageConfiguration SharedAccessViewPageConfig = PageConfiguration(
     key: 'SharedAccessView',
     path: SharedAccessViewPath,
     uiPage: Pages.SharedAccessView,
+    currentPageAction: null);
+PageConfiguration SetupAccountRecoveryViewPageConfig = PageConfiguration(
+    key: 'SetupAccountRecoveryView',
+    path: SetupAccountRecoveryViewPath,
+    uiPage: Pages.SetupAccountRecoveryView,
+    currentPageAction: null);
+PageConfiguration DisableAccountRecoveryViewPageConfig = PageConfiguration(
+    key: 'DisableAccountRecoveryView',
+    path: DisableAccountRecoveryViewPath,
+    uiPage: Pages.DisableAccountRecoveryView,
     currentPageAction: null);

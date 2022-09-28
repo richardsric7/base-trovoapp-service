@@ -4,6 +4,8 @@ class UserInfo {
   String? username;
   String? firstName;
   String? lastName;
+  int? hasSecretQuestions;
+  int? accountRecoveryEnabled;
   String? email;
   String? mobile;
   int? mobileVerified;
@@ -45,6 +47,8 @@ class UserInfo {
     this.verified,
     this.suspended,
     this.wallets,
+    this.hasSecretQuestions,
+    this.accountRecoveryEnabled,
   });
 
   toJSONEncodable() {
@@ -55,6 +59,8 @@ class UserInfo {
       "email": email,
       "mobile": mobile,
       "mobileVerified": mobileVerified,
+      "hasSecretQuestions": hasSecretQuestions,
+      "accountRecoveryEnabled": accountRecoveryEnabled,
       "countryCode": countryCode,
       "referrer": referrer,
       "referralLink": referralLink,
@@ -96,6 +102,8 @@ class UserInfo {
       email: m['email'],
       mobile: m['mobile'],
       mobileVerified: m['mobileVerified'],
+      hasSecretQuestions: m['hasSecretQuestions'],
+      accountRecoveryEnabled: m['accountRecoveryEnabled'],
       countryCode: m['countryCode'],
       referrer: m['referrer'],
       referralLink: m['referralLink'],

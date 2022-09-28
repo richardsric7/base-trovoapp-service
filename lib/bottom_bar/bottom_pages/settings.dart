@@ -55,6 +55,10 @@ class _SettingsState extends State<Settings> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    print(
+        '=============accountRecoveryEnabled: ${appState.userInfo!.accountRecoveryEnabled}');
+    print(
+        '=============hasSecretQuestions: ${appState.userInfo!.hasSecretQuestions}');
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -248,7 +252,10 @@ class _SettingsState extends State<Settings> {
               GestureDetector(
                 onTap: () => appState.currentAction = PageAction(
                     state: PageState.addPage,
-                    page: SecurityQuestionsViewPageConfig),
+                    // page: SecurityQuestionsViewPageConfig),
+                    // page: DisableAccountRecoveryViewPageConfig),
+                    // page: SetupAccountRecoveryViewPageConfig),
+                    page: RequestOtpViewPageConfig),
                 child: iteamlist("assets/images/history.png", "",
                     LanguageEn.accountrecovery),
               ),

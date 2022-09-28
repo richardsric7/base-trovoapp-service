@@ -71,27 +71,6 @@ class _SecurityQuestions extends State<SecurityQuestions> {
         primaryWallet.publicKey, appState.userInfo!.username);
   }
 
-  Future<List<Map>> fetchQuestions(
-      signer, secretKey, publicKey, username) async {
-    Map responseData = await makeGetRequest(
-      uri: '/v1/secret-questions/$username',
-      signer: signer,
-      secretKey: secretKey, // the primary wallet secret key
-      publicKey: publicKey!,
-    );
-
-    print('response: ${responseData}');
-    var questionsList = <Map>[];
-
-    if (responseData['statusCode'] == 200) {
-      var questions = responseData['data']['secretQuestions'];
-      for (var i = 0; i < questions.length; i++) {
-        questionsList.add(responseData['data']['secretQuestions'][i]);
-      }
-    }
-    return questionsList;
-  }
-
   @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
@@ -179,7 +158,43 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                       } else if (snapshot.connectionState ==
                           ConnectionState.done) {
                         if (snapshot.hasError) {
-                          return const Text('Error');
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                Text(
+                                  LanguageEn.somethingwentwrong,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontbody),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      questions = fetchQuestions(
+                                          primaryWallet.signer,
+                                          appState.secretKeys[0],
+                                          primaryWallet.publicKey,
+                                          appState.userInfo!.username);
+                                    });
+                                  },
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        MaterialStateProperty.all<Color>(
+                                            notifier.getbluecolor!),
+                                  ),
+                                  child: Text(
+                                    LanguageEn.retry,
+                                    style: TextStyle(
+                                      fontFamily: fontsemibold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
                         } else if (snapshot.hasData) {
                           return Column(
                             children: [
@@ -378,7 +393,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
       print('this is request body $requestBody');
 
       Map responseData = await makePostRequest(
-        uri: '/v1/secret-questions',
+        uri: '/v1/security-questions',
         body: requestBody,
         signer: primaryWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
@@ -399,5 +414,26 @@ class _SecurityQuestions extends State<SecurityQuestions> {
       print(e);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
+  }
+
+  Future<List<Map>> fetchQuestions(
+      signer, secretKey, publicKey, username) async {
+    Map responseData = await makeGetRequest(
+      uri: '/v1/security-questions/$username',
+      signer: signer,
+      secretKey: secretKey, // the primary wallet secret key
+      publicKey: publicKey!,
+    );
+
+    print('response: ${responseData}');
+    var questionsList = <Map>[];
+
+    if (responseData['statusCode'] == 200) {
+      var questions = responseData['data']['securityQuestions'];
+      for (var i = 0; i < questions.length; i++) {
+        questionsList.add(responseData['data']['securityQuestions'][i]);
+      }
+    }
+    return questionsList;
   }
 }

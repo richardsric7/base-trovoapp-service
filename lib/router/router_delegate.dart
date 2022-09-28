@@ -15,6 +15,8 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottombar.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/account_recovery_success.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/disable_account_recovery.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/setup_account_recovery.dart';
 import 'package:trovo_wallet/screens/Auth/AuthorizeActionView.dart';
 import 'package:trovo_wallet/screens/Auth/AuthorizeLoginView.dart';
 import 'package:trovo_wallet/screens/Auth/create_password.dart';
@@ -267,6 +269,14 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.SharedAccessView:
           _addPageData(SharedAccess(), SharedAccessViewPageConfig);
           break;
+        case Pages.SetupAccountRecoveryView:
+          _addPageData(
+              SetupAccountRecovery(), SetupAccountRecoveryViewPageConfig);
+          break;
+        case Pages.DisableAccountRecoveryView:
+          _addPageData(
+              DisableAccountRecovery(), DisableAccountRecoveryViewPageConfig);
+          break;
         default:
           break;
       }
@@ -440,6 +450,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.SharedAccessView:
         SharedAccessViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SetupAccountRecoveryView:
+        SetupAccountRecoveryViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.DisableAccountRecoveryView:
+        DisableAccountRecoveryViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -634,6 +650,8 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case 'RequestOtpView':
         case 'AccountRecoverySuccessView':
         case 'SharedAccessView':
+        case 'SetupAccountRecoveryView':
+        case 'DisableAccountRecoveryView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
           ]);

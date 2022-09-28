@@ -111,8 +111,9 @@ class _SplashScreenState extends State<SplashScreen>
         print(
             '-------------------hidewalletlist: ${List.filled(6, appState.hideWalletList)}');
         print('....................this is nfts: ${appState.nfts}');
-        var primaryWallet = appState.userInfo!.wallets!
-            .firstWhere((wallet) => wallet.primaryWallet == 1);
+        var primaryWallet = appState.userInfo!.wallets!.firstWhere(
+            (wallet) => wallet.primaryWallet == 1,
+            orElse: () => appState.userInfo!.wallets![0]);
         updateUserInfo(primaryWallet.signer, appState.secretKeys[0],
             primaryWallet.publicKey, appState.userInfo!.username!, appState);
         appState.activeWallet = primaryWallet;

@@ -235,6 +235,9 @@ class LanguageEn {
   static String get setupsecurityquestionsdescription =>
       "This will be required if you wish to make modifications to your account in the future, and if you ever wish to opt in for our account recovery service. \n\nPLEASE DO NOT FORGET THE ANSWERS YOU PROVIDED, FOR FUTURE USE.";
 
+  static String get disableaccountrecoverydescription =>
+      "Lorem Ipsum whara whara what what. Bla bla bla and some more bla bla bla.\n Something something backup your secret keys.";
+
   static String get usernameoremail => "Username or Email address";
 
   static String get secretkey => "Secret Key";
@@ -298,6 +301,8 @@ class LanguageEn {
 
   static String get add => 'Add';
 
+  static String get retry => 'Retry';
+
   static String get blockchainproof => 'Blockchain Proof (Transaction ID)';
 
   static String get proceed => 'Proceed';
@@ -308,6 +313,8 @@ class LanguageEn {
       "Invite friends to earn TROV tokens when they transact";
 
   static String get youhavebeenmissed => "You have been missed";
+
+  static String get resendotp => "Resend OTP?";
 
   static String get forgotpassword => "Forgot Password?";
 
@@ -433,6 +440,9 @@ class LanguageEn {
   static String get skipBiometrics => 'Skip Biometrics';
 
   static String get goahead => "Continue";
+
+  static String get taptoenableaccountrecovery =>
+      "Tap to enable account recovery";
 
   static String get createnewpin => "Create New Pin";
 
@@ -680,6 +690,8 @@ class LanguageEn {
   static String get more => "More";
 
   static String get setup => "Setup";
+
+  static String get disable => "Disable";
 
   static String get securityquestions => "Security Questions";
 

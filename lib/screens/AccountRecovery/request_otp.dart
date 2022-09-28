@@ -4,11 +4,14 @@ import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.d
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../storage/state.dart';
@@ -23,7 +26,7 @@ class RequestOtp extends StatefulWidget {
 
 class _RequestOtp extends State<RequestOtp> {
   late ColorNotifier notifier;
-  bool isChecked = false;
+  bool otpSent = false;
   final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
   String email = '';
@@ -117,58 +120,11 @@ class _RequestOtp extends State<RequestOtp> {
                     ),
                   ),
                 ),
-                SizedBox(height: height / 50),
-                CustomTextFormField.textField(
-                  LanguageEn.enteryouremailaddress,
-                  notifier.getbluecolor,
-                  Icons.email,
-                  notifier.getgrey,
-                  notifier.getprefixicon,
-                  notifier.getblck,
-                  notifier.getgrey,
-                  70.sp,
-                  300.sp,
-                  // validator: validateEmail,
-                  onSaved: (value) {
-                    print('email: $value');
-                    // email = value.trim().replaceAll(' ', '');
-                  },
-                  keyboardtype: TextInputType.emailAddress,
-                ),
-                Button(
-                  LanguageEn.requestotp,
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () {},
-                ),
-                SizedBox(height: height / 50),
-                CustomTextFormField.textField(
-                  LanguageEn.enterotp,
-                  notifier.getbluecolor,
-                  Icons.numbers,
-                  notifier.getgrey,
-                  notifier.getprefixicon,
-                  notifier.getblck,
-                  notifier.getgrey,
-                  70.sp,
-                  300.sp,
-                  // validator: validateEmail,
-                  onSaved: (value) {
-                    print('email: $value');
-                    // email = value.trim().replaceAll(' ', '');
-                  },
-                  keyboardtype: TextInputType.number,
-                ),
-                Button(
-                  LanguageEn.confirmotp,
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () {
-                    appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: AccountRecoverySuccessViewPageConfig);
-                  },
-                ),
+                if (otpSent) ...[
+                  enterOTP(),
+                ] else ...[
+                  requestOTP(),
+                ],
                 SizedBox(height: height / 10),
                 Padding(
                     padding: EdgeInsets.only(
@@ -181,49 +137,150 @@ class _RequestOtp extends State<RequestOtp> {
     );
   }
 
-  String? validatePassword(value) {
-    print('password: $value');
-    if (value.isEmpty) {
-      //return "Enter a password";
-      return LanguageEn.passwordemptyerror;
+  Widget requestOTP() {
+    return Column(
+      children: [
+        SizedBox(height: height / 20),
+        CustomTextFormField.textField(
+          LanguageEn.enteryouremailaddress,
+          notifier.getbluecolor,
+          Icons.email,
+          notifier.getgrey,
+          notifier.getprefixicon,
+          notifier.getblck,
+          notifier.getgrey,
+          70.sp,
+          300.sp,
+          validator: validateEmail,
+          onSaved: (value) {
+            print('email: $value');
+            email = value.trim().replaceAll(' ', '');
+          },
+          keyboardtype: TextInputType.emailAddress,
+        ),
+        SizedBox(height: height / 40),
+        Button(
+          LanguageEn.requestotp,
+          notifier.getbluecolor,
+          wihitecolor,
+          onTap: () {
+            // setState(() {
+            //   otpSent = true;
+            // });
+            validateAndProceed();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget enterOTP() {
+    return Column(
+      children: [
+        SizedBox(height: height / 20),
+        CustomTextFormField.textField(
+          LanguageEn.enterotp,
+          notifier.getbluecolor,
+          Icons.numbers,
+          notifier.getgrey,
+          notifier.getprefixicon,
+          notifier.getblck,
+          notifier.getgrey,
+          70.sp,
+          300.sp,
+          onSaved: (value) {
+            print('email: $value');
+          },
+          keyboardtype: TextInputType.number,
+        ),
+        SizedBox(height: height / 40),
+        Button(
+          LanguageEn.confirmotp,
+          notifier.getbluecolor,
+          wihitecolor,
+          onTap: () {
+            appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: AccountRecoverySuccessViewPageConfig);
+          },
+        ),
+        SizedBox(height: height / 70),
+        TextButton(
+          onPressed: () {
+            setState(() {
+              otpSent = false;
+            });
+          },
+          child: Text(
+            LanguageEn.resendotp,
+            style: TextStyle(
+                color: notifier.getdarkgrey,
+                fontSize: 15.sp,
+                fontFamily: fontbody),
+          ),
+        ),
+        SizedBox(width: width / 10),
+      ],
+    );
+  }
+
+  String? validateEmail(String? value) {
+    String pattern =
+        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+    RegExp regex = new RegExp(pattern);
+
+    if (value!.trim().replaceAll(' ', '').isEmpty) {
+      return LanguageEn.emailvalidateempty;
     }
 
-    if (value.trim().replaceAll(' ', '').length < 6) {
-      //return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
+    if (!regex.hasMatch(value.trim().replaceAll(' ', ''))) {
+      return LanguageEn.emailvalidateinvalid;
     }
 
     return null;
   }
 
-  String? validateConfirmPassword(value) {
-    print('confirm password: ${value.trim().replaceAll(' ', '')} & $otp');
-    if (value.isEmpty) {
-      // return "Confirm your password";
-      return LanguageEn.confirmpasswordemptyerror;
-    }
-
-    if (value.trim().replaceAll(' ', '').length < 6) {
-      // return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
-    }
-
-    if (otp != value.trim().replaceAll(' ', '')) {
-      //  return 'Those passwords didn\’t match. Try again.';
-      return LanguageEn.passwordmismatcherror;
-    }
-
-    return null;
-  }
-
-  bool validate() {
+  validateAndProceed() {
     final form = _formKey.currentState;
-    if (form!.validate()) {
-      form.save();
-      return true;
+    if (!form!.validate()) {
+      return;
     }
-    return false;
+
+    form.save();
+    sendOTPRequest();
   }
 
-  void saveAndProceed() async {}
+  void sendOTPRequest() async {
+    print('sending otp request.............');
+
+    try {
+      showLoader(context);
+
+      var primaryWallet = appState.userInfo!.wallets!
+          .firstWhere((wallet) => wallet.primaryWallet == 1);
+
+      Map responseData = await makePostRequest(
+        uri: '/v1/request-email-otp/${appState.userInfo!.username}',
+        body: "",
+        signer: primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: primaryWallet.publicKey!,
+      );
+
+      print('response: $responseData');
+      hideLoader(context);
+
+      if (responseData['statusCode'] == 200) {
+        setState(() {
+          otpSent = true;
+        });
+      } else {
+        popup(context,
+            title: LanguageEn.error, message: responseData['data']['message']);
+      }
+    } catch (e) {
+      print(e);
+      popup(context, title: LanguageEn.error, message: e.toString());
+    }
+  }
 }

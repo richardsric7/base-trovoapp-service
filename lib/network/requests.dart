@@ -448,6 +448,90 @@ Future<Map> makePutRequestForMultipartFile({
   }
 }
 
+Future<Map> makeDeleteRequest({
+  required String uri,
+  required String body,
+  required String signer,
+  required String secretKey,
+  required String publicKey,
+}) async {
+  Map<String, String> headers = await getRequestHeader(
+    uri: uri,
+    signer: signer,
+    publicKey: publicKey,
+    secretKey: secretKey,
+  );
+
+  //print('frist body: $body, pubkey: $publicKey, url: $baseUrlTest$uri');
+
+  try {
+    http.Response response = await http
+        .delete(Uri.parse(getTrovoBaseURL() + uri),
+            body: body, headers: headers)
+        .timeout(Duration(seconds: 60));
+    // print("The statucode is: ${response.statusCode}");
+    // print("The Response Body is: ${response.body}");
+    return {
+      'statusCode': response.statusCode,
+      'data': json.decode(response.body)
+    };
+  } on SocketException catch (e) {
+    print("The Catch Error on makeDeleteRequest() Is: $e");
+    // print('No Internet connection 😑');
+    // return {'statusCode': 505, 'data': 'No Internet connection'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "SocketException",
+      "message": "No Internet connection"
+    };
+    return {'statusCode': 505, 'data': errorResponse};
+  } on HttpException catch (e) {
+    print("The Catch Error on makeDeleteRequest() Is: $e");
+    // print("Couldn't find the post 😱");
+    // return {'statusCode': 505, 'data': "Couldn't find the post. Try again"};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "HttpException",
+      "message": "Couldn't find the post"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on FormatException catch (e) {
+    print("The Catch Error on makeDeleteRequest() Is: $e");
+    // print("Bad response format 👎");
+    // return {'statusCode': 505, 'data': 'Bad response format'};
+
+    Map errorResponse = {
+      "data": "$e",
+      "error": "FormatException",
+      "message": "Bad response format"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on TimeoutException catch (e) {
+    print("The Catch Error on makeDeleteRequest() Is: $e");
+    print("Request Time Out");
+    // return {'statusCode': 505, 'data': 'Request Time Out'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "TimeoutException",
+      "message": "Request Time Out"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  } on Exception catch (e) {
+    print("The Catch Error on makeDeleteRequest() Is: $e");
+    // return {'statusCode': 505, 'data': 'Request failed. Try again'};
+    Map errorResponse = {
+      "data": "$e",
+      "error": "UnknownException",
+      "message": "Unknown error. Try again"
+    };
+
+    return {'statusCode': 505, 'data': errorResponse};
+  }
+}
+
 getRequestHeader({uri, signer, publicKey, secretKey}) async {
   var deviceID = await getDeviceDetails();
   var ms = (new DateTime.now().toUtc()).millisecondsSinceEpoch;
