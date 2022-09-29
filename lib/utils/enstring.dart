@@ -22,6 +22,8 @@ class LanguageEn {
 
   static String get confirmotp => 'Confirm OTP';
 
+  static String get alreadyhaveotp => 'Already received OTP?';
+
   static String get requestotpwarn =>
       'Please provide accurate information in the fields below to ensure a successful account recovery process';
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:otp_text_field/otp_text_field.dart';
+import 'package:otp_text_field/style.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
@@ -170,6 +172,21 @@ class _RequestOtp extends State<RequestOtp> {
             validateAndProceed();
           },
         ),
+        SizedBox(height: height / 70),
+        TextButton(
+          onPressed: () {
+            setState(() {
+              otpSent = true;
+            });
+          },
+          child: Text(
+            LanguageEn.alreadyhaveotp,
+            style: TextStyle(
+                color: notifier.getdarkgrey,
+                fontSize: 15.sp,
+                fontFamily: fontbody),
+          ),
+        ),
       ],
     );
   }
@@ -178,31 +195,26 @@ class _RequestOtp extends State<RequestOtp> {
     return Column(
       children: [
         SizedBox(height: height / 20),
-        CustomTextFormField.textField(
-          LanguageEn.enterotp,
-          notifier.getbluecolor,
-          Icons.numbers,
-          notifier.getgrey,
-          notifier.getprefixicon,
-          notifier.getblck,
-          notifier.getgrey,
-          70.sp,
-          300.sp,
-          onSaved: (value) {
-            print('email: $value');
-          },
-          keyboardtype: TextInputType.number,
-        ),
-        SizedBox(height: height / 40),
-        Button(
-          LanguageEn.confirmotp,
-          notifier.getbluecolor,
-          wihitecolor,
-          onTap: () {
-            appState.currentAction = PageAction(
-                state: PageState.addPage,
-                page: AccountRecoverySuccessViewPageConfig);
-          },
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: OTPTextField(
+            length: 6,
+            width: MediaQuery.of(context).size.width,
+            fieldWidth: 40,
+            style: TextStyle(color: notifier.getblck, fontFamily: fontbody),
+            textFieldAlignment: MainAxisAlignment.spaceAround,
+            fieldStyle: FieldStyle.box,
+            otpFieldStyle: OtpFieldStyle(
+              borderColor: Colors.black38,
+            ),
+            onChanged: (pin) {
+              otp = pin;
+            },
+            onCompleted: (pin) {
+              otp = pin;
+              verifyOTPAndProceed();
+            },
+          ),
         ),
         SizedBox(height: height / 70),
         TextButton(
@@ -260,7 +272,8 @@ class _RequestOtp extends State<RequestOtp> {
           .firstWhere((wallet) => wallet.primaryWallet == 1);
 
       Map responseData = await makePostRequest(
-        uri: '/v1/request-email-otp/${appState.userInfo!.username}',
+        uri:
+            '/v1/account/recovery/request-email-otp/${appState.userInfo!.username}',
         body: "",
         signer: primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
@@ -273,6 +286,49 @@ class _RequestOtp extends State<RequestOtp> {
       if (responseData['statusCode'] == 200) {
         setState(() {
           otpSent = true;
+        });
+      } else {
+        popup(context,
+            title: LanguageEn.error, message: responseData['data']['message']);
+      }
+    } catch (e) {
+      print(e);
+      popup(context, title: LanguageEn.error, message: e.toString());
+    }
+  }
+
+  void verifyOTPAndProceed() async {
+    print('sending otp request.............');
+
+    try {
+      showLoader(context);
+
+      var primaryWallet = appState.userInfo!.wallets!
+          .firstWhere((wallet) => wallet.primaryWallet == 1);
+
+      Map responseData = await makePostRequest(
+        uri:
+            '/v1/account/recovery/verify-email-otp/${appState.userInfo!.username}/$otp',
+        body: "",
+        signer: primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: primaryWallet.publicKey!,
+      );
+
+      print('response: $responseData');
+      hideLoader(context);
+
+      if (responseData['statusCode'] == 200) {
+        setState(() {
+          if (appState.userInfo!.accountRecoveryEnabled == 0) {
+            appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: SetupAccountRecoveryViewPageConfig);
+          } else {
+            appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: DisableAccountRecoveryViewPageConfig);
+          }
         });
       } else {
         popup(context,

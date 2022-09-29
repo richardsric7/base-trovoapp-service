@@ -138,10 +138,13 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
       );
 
       print('response: $responseData');
+      hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        sendFullDataToServer(responseData['data']);
-        // print('sending full data to server.........');
+        var messageLength = responseData['data']['messages'].length;
+        var messageShown = 0;
+
+        postProcessData(messageShown, messageLength, responseData['data']);
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
@@ -152,6 +155,27 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
       popup(context, title: LanguageEn.error, message: e.toString());
       hideLoader(context);
     }
+  }
+
+  postProcessData(messageShown, messageLength, data) {
+    print('messageShown: $messageShown messageLength $messageLength');
+    // we would like to display all messages returned from the initial
+    // request to server using a popup. In order to achieve that we
+    // employ the use of a little recursion here. Please recursive
+    // functions can turn into a nightmare fast so be carefull here.
+    if (messageShown <= messageLength - 1) {
+      showResponseMessage(
+          context,
+          data['messages'][messageShown],
+          () => {
+                print('postProcessData: $messageShown'),
+                postProcessData(messageShown, messageLength, data),
+              });
+
+      messageShown++;
+      return;
+    }
+    sendFullDataToServer(data);
   }
 
   void sendFullDataToServer(responseBody) async {

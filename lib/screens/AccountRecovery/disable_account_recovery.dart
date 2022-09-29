@@ -203,7 +203,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                             ),
                           );
                         } else if (snapshot.hasData) {
-                          var rel = 1;
                           var securityQuestions =
                               snapshot.data!['securityQuestions'];
                           var userSecurityAnswers =
@@ -214,13 +213,19 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                                   i < securityQuestions!.length;
                                   i++) ...[
                                 if (securityQuestions[i]['ID'] ==
-                                        userSecurityAnswers['q1'] ||
-                                    securityQuestions[i]['ID'] ==
-                                        userSecurityAnswers['q2'] ||
-                                    securityQuestions[i]['ID'] ==
-                                        userSecurityAnswers['q3']) ...[
+                                    userSecurityAnswers['q1']) ...[
                                   questionView(securityQuestions[i]['Question'],
-                                      securityQuestions[i]['ID'], rel++),
+                                      securityQuestions[i]['ID'], 1),
+                                ],
+                                if (securityQuestions[i]['ID'] ==
+                                    userSecurityAnswers['q2']) ...[
+                                  questionView(securityQuestions[i]['Question'],
+                                      securityQuestions[i]['ID'], 2),
+                                ],
+                                if (securityQuestions[i]['ID'] ==
+                                    userSecurityAnswers['q3']) ...[
+                                  questionView(securityQuestions[i]['Question'],
+                                      securityQuestions[i]['ID'], 3),
                                 ]
                               ]
                             ],
@@ -238,9 +243,6 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () {
-                    // appState.currentAction = PageAction(
-                    //     state: PageState.addPage,
-                    //     page: RequestOtpViewPageConfig);
                     trySubmit();
                   },
                 ),
@@ -258,42 +260,51 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
 
   Widget questionView(question, int qNumber, int rel) {
     questionsMap[rel]!['q'] = qNumber;
-    ;
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Text(
-            'Q$rel: $question',
-            style: TextStyle(
-                fontSize: 16,
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody),
-          ),
+        Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+              child: Container(
+                width: width / 1.2,
+                child: Text(
+                  '$question',
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody),
+                ),
+              ),
+            ),
+          ],
         ),
         SizedBox(height: height / 50),
-        CustomTextFormField.textField(
-          LanguageEn.enteranswer,
-          notifier.getbluecolor,
-          Icons.question_answer_outlined,
-          notifier.getgrey,
-          notifier.getprefixicon,
-          notifier.getblck,
-          notifier.getgrey,
-          70.sp,
-          300.sp,
-          // validator: validateEmail,
-          onSaved: (value) {
-            questionsMap[rel]!['a'] = value;
-            print('email: $questionsMap');
-          },
-          validator: (value) {
-            if (value.toString().isEmpty) {
-              return 'Please enter anwser to the question';
-            }
-            return null;
-          },
-          keyboardtype: TextInputType.text,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: CustomTextFormField.textField(
+            LanguageEn.enteranswer,
+            notifier.getbluecolor,
+            Icons.question_answer_outlined,
+            notifier.getgrey,
+            notifier.getprefixicon,
+            notifier.getblck,
+            notifier.getgrey,
+            70.sp,
+            300.sp,
+            // validator: validateEmail,
+            onSaved: (value) {
+              questionsMap[rel]!['a'] = value;
+              print('email: $questionsMap');
+            },
+            validator: (value) {
+              if (value.toString().isEmpty) {
+                return 'Please enter anwser to the question';
+              }
+              return null;
+            },
+            keyboardtype: TextInputType.text,
+          ),
         ),
       ],
     );
@@ -307,6 +318,27 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
 
     form.save();
     sendToServer();
+  }
+
+  postProcessData(messageShown, messageLength, data) {
+    print('messageShown: $messageShown messageLength $messageLength');
+    // we would like to display all messages returned from the initial
+    // request to server using a popup. In order to achieve that we
+    // employ the use of a little recursion here. Please recursive
+    // functions can turn into a nightmare fast so be carefull here.
+    if (messageShown <= messageLength - 1) {
+      showResponseMessage(
+          context,
+          data['messages'][messageShown],
+          () => {
+                print('postProcessData: $messageShown'),
+                postProcessData(messageShown, messageLength, data),
+              });
+
+      messageShown++;
+      return;
+    }
+    sendFullDataToServer(data);
   }
 
   sendToServer() async {
@@ -343,9 +375,11 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        Navigator.of(context).pop(); // dismiss dialog,
-        // showSuccessAlert(context, onTap: () {});
-        sendFullDataToServer(responseData['data']);
+        // sendFullDataToServer(responseData['data']);
+        var messageLength = responseData['data']['messages'].length;
+        var messageShown = 0;
+
+        postProcessData(messageShown, messageLength, responseData['data']);
       } else {
         hideLoader(context);
         popup(context,
@@ -386,6 +420,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(primaryWallet.signer!, appState.secretKeys[0],
             primaryWallet.publicKey!, appState.userInfo!.username, appState);
+        hideLoader(context);
         showSuccessAlert(context, onTap: () {
           appState.currentAction = PageAction(
               state: PageState.replaceAll, page: BottomHomePageConfig);

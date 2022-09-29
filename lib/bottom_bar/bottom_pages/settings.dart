@@ -252,8 +252,6 @@ class _SettingsState extends State<Settings> {
               GestureDetector(
                 onTap: () => appState.currentAction = PageAction(
                     state: PageState.addPage,
-                    // page: SecurityQuestionsViewPageConfig),
-                    // page: DisableAccountRecoveryViewPageConfig),
                     // page: SetupAccountRecoveryViewPageConfig),
                     page: RequestOtpViewPageConfig),
                 child: iteamlist("assets/images/history.png", "",

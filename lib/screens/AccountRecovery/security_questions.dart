@@ -216,9 +216,6 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () {
-                    // appState.currentAction = PageAction(
-                    //     state: PageState.addPage,
-                    //     page: RequestOtpViewPageConfig);
                     trySubmit();
                   },
                 ),
@@ -404,7 +401,6 @@ class _SecurityQuestions extends State<SecurityQuestions> {
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        Navigator.of(context).pop(); // dismiss dialog,
         showSuccessAlert(context, onTap: () {});
       } else {
         popup(context,
