@@ -58,7 +58,7 @@ func SaveUserSecurityQuestions(user *userModels.User, answer userModels.UserSecu
 	e = gc.DB.Save(&existingAnswer).Error
 	if e != nil {
 		log.Printf("[SaveUserSecurityQuestions] error saving answers [%v]\n", e)
-		return &tErrors.CustomError{Param: "id", Err: "error saving secret answers", ErrMessage: "Unable to save secret answers at this time"}
+		return &tErrors.CustomError{Param: "id", Err: "error saving security answers", ErrMessage: "Unable to save security answers at this time"}
 	}
 	if user.HasSecurityQuestions == 0 {
 		user.HasSecurityQuestions = 1
