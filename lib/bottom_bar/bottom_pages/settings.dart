@@ -58,7 +58,7 @@ class _SettingsState extends State<Settings> {
     print(
         '=============accountRecoveryEnabled: ${appState.userInfo!.accountRecoveryEnabled}');
     print(
-        '=============hasSecretQuestions: ${appState.userInfo!.hasSecretQuestions}');
+        '=============hasSecurityQuestions: ${appState.userInfo!.hasSecurityQuestions}');
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -250,10 +250,21 @@ class _SettingsState extends State<Settings> {
               walletMode(
                   "assets/images/walletmode.png", "", LanguageEn.walletmode),
               GestureDetector(
-                onTap: () => appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    // page: SetupAccountRecoveryViewPageConfig),
-                    page: RequestOtpViewPageConfig),
+                onTap: () {
+                  if (appState.userInfo!.hasSecurityQuestions == 0) {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: SecurityQuestionsViewPageConfig);
+                  } else if (appState.userInfo!.accountRecoveryEnabled == 0) {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: SetupAccountRecoveryViewPageConfig);
+                  } else {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: DisableAccountRecoveryInfoViewPageConfig);
+                  }
+                },
                 child: iteamlist("assets/images/history.png", "",
                     LanguageEn.accountrecovery),
               ),

@@ -7,6 +7,8 @@ import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/network/requests.dart';
+import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -325,7 +327,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
             // validator: validateEmail,
             onSaved: (value) {
               print('email: $value');
-              questionsMap[rel]!['a'] = value;
+              questionsMap[rel]!['a'] = value.toString().trim();
             },
             validator: (value) {
               if (value.toString().isEmpty) {
@@ -401,7 +403,10 @@ class _SecurityQuestions extends State<SecurityQuestions> {
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        showSuccessAlert(context, onTap: () {});
+        showSuccessAlert(context, onTap: () {
+          appState.currentAction = PageAction(
+              state: PageState.replaceAll, page: BottomHomePageConfig);
+        });
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);

@@ -4,7 +4,7 @@ class UserInfo {
   String? username;
   String? firstName;
   String? lastName;
-  int? hasSecretQuestions;
+  int? hasSecurityQuestions;
   int? accountRecoveryEnabled;
   String? email;
   String? mobile;
@@ -47,7 +47,7 @@ class UserInfo {
     this.verified,
     this.suspended,
     this.wallets,
-    this.hasSecretQuestions,
+    this.hasSecurityQuestions,
     this.accountRecoveryEnabled,
   });
 
@@ -59,7 +59,7 @@ class UserInfo {
       "email": email,
       "mobile": mobile,
       "mobileVerified": mobileVerified,
-      "hasSecretQuestions": hasSecretQuestions,
+      "hasSecurityQuestions": hasSecurityQuestions,
       "accountRecoveryEnabled": accountRecoveryEnabled,
       "countryCode": countryCode,
       "referrer": referrer,
@@ -102,7 +102,7 @@ class UserInfo {
       email: m['email'],
       mobile: m['mobile'],
       mobileVerified: m['mobileVerified'],
-      hasSecretQuestions: m['hasSecretQuestions'],
+      hasSecurityQuestions: m['hasSecurityQuestions'],
       accountRecoveryEnabled: m['accountRecoveryEnabled'],
       countryCode: m['countryCode'],
       referrer: m['referrer'],

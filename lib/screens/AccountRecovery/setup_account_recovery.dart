@@ -67,10 +67,9 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
             height: height / 15),
         body: SingleChildScrollView(
           child: Column(
-            // crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                LanguageEn.setup,
+                LanguageEn.enable,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluecolor,
@@ -86,30 +85,63 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
                     fontFamily: fontsemibold),
               ),
               SizedBox(height: height / 45),
-              Center(
-                child: Text(
-                  LanguageEn.unlockfinger,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 16.sp,
-                      color: notifier.getgrey,
-                      fontFamily: fontbody),
-                ),
-              ),
-              SizedBox(height: height / 20),
-              Center(
-                child: Image.asset("assets/images/palm-recognition.png",
-                    height: height / 2.8),
-              ),
+              // Center(
+              //   child: Image.asset("assets/images/palm-recognition.png",
+              //       height: height / 2.8),
+              // ),
+              description(LanguageEn.enableaccountrecoverydescription1),
+              description(LanguageEn.enableaccountrecoverydescription2),
+              description(LanguageEn.enableaccountrecoverydescription3),
+              description(LanguageEn.enableaccountrecoverydescription4),
               SizedBox(height: height / 20),
               Button(
                 LanguageEn.taptoenableaccountrecovery,
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: _handleSubmit,
-              )
+              ),
+              SizedBox(height: height / 15),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget description(String desc) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              child: Column(
+                children: [
+                  Container(
+                    width: width / 1.3,
+                    child: Text(
+                      desc,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody),
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -319,17 +319,7 @@ class _RequestOtp extends State<RequestOtp> {
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        setState(() {
-          if (appState.userInfo!.accountRecoveryEnabled == 0) {
-            appState.currentAction = PageAction(
-                state: PageState.addPage,
-                page: SetupAccountRecoveryViewPageConfig);
-          } else {
-            appState.currentAction = PageAction(
-                state: PageState.addPage,
-                page: DisableAccountRecoveryViewPageConfig);
-          }
-        });
+        setState(() {});
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);

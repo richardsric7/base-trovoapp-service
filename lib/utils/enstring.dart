@@ -252,8 +252,23 @@ class LanguageEn {
   static String get setupsecurityquestionsdescription =>
       "This will be required if you wish to make modifications to your account in the future, and if you ever wish to opt in for our account recovery service. \n\nPLEASE DO NOT FORGET THE ANSWERS YOU PROVIDED, FOR FUTURE USE.";
 
+  static String get enableaccountrecoverydescription1 =>
+      "You are about to opt in for and enable account recovery service, once account recovery service is enabled on your account, Trovotech will be able to recover your account should you lose your secret key within the time the recovery service is active on your account.";
+
+  static String get enableaccountrecoverydescription2 =>
+      "The account recovery is a paid service and is only limited to recovery of your account and the wallet(s) on your account, the payment for this service is renewable on an annual basis.";
+
+  static String get enableaccountrecoverydescription3 =>
+      "Trovotech does not have access to your secret key, therefore will not be liable for any missing asset in your wallet(s).";
+
+  static String get enableaccountrecoverydescription4 =>
+      "As long as your secret key remains safe on your side, your assets are safe, therefore, ensure that you keep your secret key safe always.";
+
   static String get disableaccountrecoverydescription =>
-      "Lorem Ipsum whara whara what what. Bla bla bla and some more bla bla bla.\n Something something backup your secret keys.";
+      "Account Recovery is already active on your Account.\n\nIf you disable it, Trovotech will no longer recover your account should you lose your secret key.\n\nYou can enable the service at any time in the future should you have a need for it.\n\nIf you wish to proceed with disabling account recovery service, please tap on the button below.";
+
+  static String get answersecurityquestionstodisableaccountrecovery =>
+      "Please answer the following security questions to disable account recovery";
 
   static String get answersecurityquestionsdescription =>
       "Please answer the following security questions to proceed to the next step.";
@@ -727,6 +742,8 @@ class LanguageEn {
   static String get more => "More";
 
   static String get setup => "Setup";
+
+  static String get enable => "Enable";
 
   static String get disable => "Disable";
 

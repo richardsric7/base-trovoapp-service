@@ -134,7 +134,8 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                               Container(
                                 width: width / 1.3,
                                 child: Text(
-                                  LanguageEn.disableaccountrecoverydescription,
+                                  LanguageEn
+                                      .answersecurityquestionstodisableaccountrecovery,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 16,
@@ -239,7 +240,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                     }),
                 SizedBox(height: height / 20),
                 Button(
-                  LanguageEn.continuee,
+                  '${LanguageEn.disable} ${LanguageEn.accountrecovery}',
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () {
@@ -294,12 +295,12 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
             300.sp,
             // validator: validateEmail,
             onSaved: (value) {
-              questionsMap[rel]!['a'] = value;
+              questionsMap[rel]!['a'] = value.toString().trim();
               print('email: $questionsMap');
             },
             validator: (value) {
               if (value.toString().isEmpty) {
-                return 'Please enter anwser to the question';
+                return 'Please enter answer to the question';
               }
               return null;
             },
