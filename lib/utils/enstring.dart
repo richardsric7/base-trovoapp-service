@@ -29,7 +29,7 @@ class LanguageEn {
 
   static String get enteryouremailaddress => 'Enter your email address';
 
-  static String get enterotp => 'Enter OTP here';
+  static String get enterotp => 'Enter OTP for user: ';
 
   static String get receivingwallet => 'Receiving Wallet';
 
@@ -212,11 +212,26 @@ class LanguageEn {
 
   static String get signup => "Create Account";
 
+  static String get recoveraccount => "Recover Account";
+
   static String get username => "Username";
+
+  static String get enteryourusername => "Enter username";
+
+  static String get backupnewsecretkeygenerated =>
+      """Your account has been successfully recovered!\n\nPlease ensure that you backup the account information that is about to be displayed especially the secret key because you will use it to import your account.\n\nIf you fail to save the secret key, you will have to start the account recovery process afresh""";
+
+  static String get taptobackup => "Tap to backup";
 
   static String get phonenumber => "Phone number";
 
+  static String get completeaccountrecovery =>
+      "Tap to complete account recovery";
+
   static String get termsofserviceerror => "You need to accept terms";
+
+  static String get invalidateoldsigner =>
+      "Invalidate old signer from primary wallet";
 
   static String get referrer => "Referrer's username";
 
@@ -240,6 +255,14 @@ class LanguageEn {
   static String get disableaccountrecoverydescription =>
       "Lorem Ipsum whara whara what what. Bla bla bla and some more bla bla bla.\n Something something backup your secret keys.";
 
+  static String get answersecurityquestionsdescription =>
+      "Please answer the following security questions to proceed to the next step.";
+
+  static String get provideusernameforaccountrecovery =>
+      "Please provide the username of the account that you want to recover in order to commence the account recovery process.";
+
+  static String get pleaseenteranswer => "Please enter answer to the question";
+
   static String get usernameoremail => "Username or Email address";
 
   static String get secretkey => "Secret Key";
@@ -260,8 +283,17 @@ class LanguageEn {
 
   static String get iagreetothe => "I agree to the Trovo";
 
+  static String get ensurebackedup =>
+      "Please ensure that you have backed up your new account then tick the checkbox above!";
+
   static String get iunderstandall =>
       "I have read and understood all the above.";
+
+  static String get haveyoubackedup =>
+      "Before completing account recovery please confirm that you have backed up the new account information";
+
+  static String get ihavebackedupmywallet =>
+      "I have securely backed up my new account information.";
 
   static String get iagreeviewaccess =>
       "I agree that these users will now be able to view details of the selected wallet and only authorized personnel (initiators and approvers for wallets with multisig enabled) will be able to revoke this access once granted.";
@@ -353,6 +385,9 @@ class LanguageEn {
       "Subwallet successfully added!";
 
   static String get congratulations => "Congratulations ";
+
+  static String get otpsentinfo =>
+      "An OTP has successfully been sent to your email. Please check your inbox (possibly the spam folder) to get the OTP and then enter it into the text fields below.";
 
   static String get otpcongratulationsdetails =>
       "You have successfully recovered your account. Please copy your secret key below to import your wallet afresh from your device.";
@@ -694,6 +729,8 @@ class LanguageEn {
   static String get setup => "Setup";
 
   static String get disable => "Disable";
+
+  static String get answer => "Answer";
 
   static String get securityquestions => "Security Questions";
 

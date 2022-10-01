@@ -44,6 +44,11 @@ const String AccountRecoverySuccessViewPath = '/AccountRecoverySuccessView';
 const String SharedAccessViewPath = '/SharedAccessView';
 const String SetupAccountRecoveryViewPath = '/SetupAccountRecoveryView';
 const String DisableAccountRecoveryViewPath = '/DisableAccountRecoveryView';
+const String RecoverAccountViewPath = '/RecoverAccountView';
+const String AnswerSecurityQuestionsViewPath = '/AnswerSecurityQuestionsView';
+const String RequestBackupViewPath = '/RequestBackupView';
+const String BackupRecoverySecretViewPath = '/BackupRecoverySecretView';
+const String CompleteAccountRecoveryViewPath = '/CompleteAccountRecoveryView';
 
 enum Pages {
   Splash,
@@ -89,6 +94,11 @@ enum Pages {
   SharedAccessView,
   SetupAccountRecoveryView,
   DisableAccountRecoveryView,
+  RecoverAccountView,
+  AnswerSecurityQuestionsView,
+  RequestBackupView,
+  BackupRecoverySecretView,
+  CompleteAccountRecoveryView,
 }
 
 class PageConfiguration {
@@ -319,4 +329,29 @@ PageConfiguration DisableAccountRecoveryViewPageConfig = PageConfiguration(
     key: 'DisableAccountRecoveryView',
     path: DisableAccountRecoveryViewPath,
     uiPage: Pages.DisableAccountRecoveryView,
+    currentPageAction: null);
+PageConfiguration RecoverAccountViewPageConfig = PageConfiguration(
+    key: 'RecoverAccountView',
+    path: RecoverAccountViewPath,
+    uiPage: Pages.RecoverAccountView,
+    currentPageAction: null);
+PageConfiguration AnswerSecurityQuestionsViewPageConfig = PageConfiguration(
+    key: 'AnswerSecurityQuestionsView',
+    path: AnswerSecurityQuestionsViewPath,
+    uiPage: Pages.AnswerSecurityQuestionsView,
+    currentPageAction: null);
+PageConfiguration RequestBackupViewPageConfig = PageConfiguration(
+    key: 'RequestBackupView',
+    path: RequestBackupViewPath,
+    uiPage: Pages.RequestBackupView,
+    currentPageAction: null);
+PageConfiguration BackupRecoverySecretViewPageConfig = PageConfiguration(
+    key: 'BackupRecoverySecretView',
+    path: BackupRecoverySecretViewPath,
+    uiPage: Pages.BackupRecoverySecretView,
+    currentPageAction: null);
+PageConfiguration CompleteAccountRecoveryViewPageConfig = PageConfiguration(
+    key: 'CompleteAccountRecoveryView',
+    path: CompleteAccountRecoveryViewPath,
+    uiPage: Pages.CompleteAccountRecoveryView,
     currentPageAction: null);

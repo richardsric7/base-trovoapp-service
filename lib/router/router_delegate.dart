@@ -15,7 +15,12 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottombar.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/account_recovery_success.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/answer_security_questions.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/backup_recovery_secret.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/complete_account_recovery.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/disable_account_recovery.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/recover_account.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/request_backup.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/setup_account_recovery.dart';
 import 'package:trovo_wallet/screens/Auth/AuthorizeActionView.dart';
 import 'package:trovo_wallet/screens/Auth/AuthorizeLoginView.dart';
@@ -277,6 +282,24 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               DisableAccountRecovery(), DisableAccountRecoveryViewPageConfig);
           break;
+        case Pages.RecoverAccountView:
+          _addPageData(RecoverAccount(), RecoverAccountViewPageConfig);
+          break;
+        case Pages.AnswerSecurityQuestionsView:
+          _addPageData(
+              AnswerSecurityQuestions(), AnswerSecurityQuestionsViewPageConfig);
+          break;
+        case Pages.RequestBackupView:
+          _addPageData(RequestBackup(), RequestBackupViewPageConfig);
+          break;
+        case Pages.BackupRecoverySecretView:
+          _addPageData(
+              BackupRecoverySecret(), BackupRecoverySecretViewPageConfig);
+          break;
+        case Pages.CompleteAccountRecoveryView:
+          _addPageData(
+              CompleteAccountRecovery(), CompleteAccountRecoveryViewPageConfig);
+          break;
         default:
           break;
       }
@@ -456,6 +479,21 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.DisableAccountRecoveryView:
         DisableAccountRecoveryViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.RecoverAccountView:
+        RecoverAccountViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AnswerSecurityQuestionsView:
+        AnswerSecurityQuestionsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.RequestBackupView:
+        RequestBackupViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.BackupRecoverySecretView:
+        BackupRecoverySecretViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.CompleteAccountRecoveryView:
+        CompleteAccountRecoveryViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
@@ -652,6 +690,11 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case 'SharedAccessView':
         case 'SetupAccountRecoveryView':
         case 'DisableAccountRecoveryView':
+        case 'AnswerSecurityQuestions':
+        case 'RequestBackupView':
+        case 'BackupRecoverySecretView':
+        case 'CompleteAccountRecoveryView':
+        case 'RecoverAccountView':
           setPath([
             _createPage(const BottomHome(), BottomHomePageConfig),
           ]);

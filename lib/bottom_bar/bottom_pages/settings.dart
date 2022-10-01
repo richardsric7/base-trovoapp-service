@@ -239,7 +239,7 @@ class _SettingsState extends State<Settings> {
                   // go to the definition of appState.viewData
                   // to learn more about viewData
                   appState.viewData![EnsurePrivacyPageConfig.key] = {
-                    'backupAll': true
+                    'rel': 'backupAll',
                   };
                   appState.currentAction = PageAction(
                       state: PageState.addPage, page: EnsurePrivacyPageConfig);

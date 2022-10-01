@@ -84,6 +84,12 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  String tempUsername = '';
+  set setTempUsername(value) {
+    tempUsername = value;
+    notifyListeners();
+  }
+
   String tempPassword = '';
   set setTempPassword(value) {
     tempPassword = value;
@@ -99,6 +105,24 @@ class DataProvider with ChangeNotifier {
   String tempSecretKey = '';
   set setTempSecretKey(value) {
     tempSecretKey = value;
+    notifyListeners();
+  }
+
+  bool tempInvalidateOldSigner = true;
+  set setTempInvalidateOldSigner(value) {
+    tempInvalidateOldSigner = value;
+    notifyListeners();
+  }
+
+  String tempEmailOtp = '';
+  set setTempEmailOtp(value) {
+    tempEmailOtp = value;
+    notifyListeners();
+  }
+
+  Map tempSecurityQuestionsAndAnswers = {};
+  set setTempSecurityQuestionsAndAnswers(value) {
+    tempSecurityQuestionsAndAnswers = value;
     notifyListeners();
   }
 

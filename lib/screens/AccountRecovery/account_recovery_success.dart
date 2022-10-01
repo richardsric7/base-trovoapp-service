@@ -4,6 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,21 +65,27 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
             child: Column(
               children: [
                 SizedBox(height: height / 50),
-                Text(
-                  LanguageEn.account,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: notifier.getbluecolor,
-                      fontSize: 30.sp,
-                      fontFamily: fontsemibold),
-                ),
-                Text(
-                  LanguageEn.recovery,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: notifier.getbluecolor80,
-                      fontSize: 30.sp,
-                      fontFamily: fontsemibold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      LanguageEn.account,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: notifier.getbluecolor,
+                          fontSize: 30.sp,
+                          fontFamily: fontsemibold),
+                    ),
+                    SizedBox(width: width / 50),
+                    Text(
+                      LanguageEn.recovery,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: notifier.getbluecolor80,
+                          fontSize: 30.sp,
+                          fontFamily: fontsemibold),
+                    ),
+                  ],
                 ),
                 Image.asset("assets/images/startup-launch.png",
                     height: height / 3.5),
@@ -101,7 +110,7 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                             child: Column(
                               children: [
                                 Text(
-                                  LanguageEn.congratulations,
+                                  '${LanguageEn.congratulations} ${appState.tempUsername}',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 16,
@@ -149,7 +158,7 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Secret key for Ogbonge Wallet',
+                                  '${LanguageEn.secretkey} for ${appState.tempUsername}',
                                   style: TextStyle(
                                       fontSize: 16,
                                       color: notifier.getbluewhitecolor,
@@ -157,7 +166,7 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                                 ),
                                 SizedBox(height: 2),
                                 Text(
-                                  'ASKONRWINOT-949I0IWRINEKLNFSKNFSDPG0J3-9JGRNKNGKN0J34INORGSDFW4W4WWEKLNDKLSFWKLNREKONELN4T4U48T53UONGKNGKLNK34T34WRKLGNKLGNREGKLNRKENGKLRNGEL',
+                                  appState.tempSecretKey,
                                   style: TextStyle(
                                       fontSize: 14,
                                       color: notifier.getbluewhitecolor,
@@ -167,10 +176,8 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                                 ElevatedButton(
                                   onPressed: () => {
                                     Clipboard.setData(ClipboardData(
-                                      text:
-                                          'ASKONRWINOT-949I0IWRINEKLNFSKNFSDPG0J3-9JGRNKNGKN0J34INORGSDFW4W4WWEKLNDKLSFWKLNREKONELN4T4U48T53UONGKNGKLNK34T34WRKLGNKLGNREGKLNRKENGKLRNGEL',
-                                    )),
-                                    showSnackBar('Wallet Details', context),
+                                        text: appState.tempSecretKey)),
+                                    showSnackBar(LanguageEn.secretkey, context),
                                   },
                                   style: ButtonStyle(
                                     backgroundColor:
@@ -199,10 +206,21 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                   LanguageEn.done,
                   notifier.getbluecolor,
                   wihitecolor,
-                  onTap: () {
-                    // appState.currentAction = PageAction(
-                    //     state: PageState.addPage,
-                    //     page: AccountRecoverySuccessViewPageConfig);
+                  onTap: () async {
+                    bool isFirstTime =
+                        await StoreData().storeGetData('isFirstTime') ?? true;
+                    if (isFirstTime) {
+                      setState(() {
+                        appState.currentAction = PageAction(
+                            state: PageState.replaceAll,
+                            page: OnboardingPageConfig);
+                      });
+                    } else {
+                      setState(() {
+                        appState.currentAction = PageAction(
+                            state: PageState.replaceAll, page: LoginPageConfig);
+                      });
+                    }
                   },
                 ),
                 SizedBox(height: height / 10),

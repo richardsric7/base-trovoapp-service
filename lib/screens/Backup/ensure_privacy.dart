@@ -159,9 +159,12 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
   gotoNext() async {
     var data = appState.viewData![EnsurePrivacyPageConfig.key];
     print('gotoNext: $data');
-    if (data != null && data['backupAll']) {
+    if (data != null && data['rel'] == 'backupAll') {
       appState.currentAction =
           PageAction(state: PageState.addPage, page: BackupAllViewPageConfig);
+    } else if (data != null && data['rel'] == 'accountRecovery') {
+      appState.currentAction = PageAction(
+          state: PageState.addPage, page: BackupRecoverySecretViewPageConfig);
     } else {
       appState.currentAction =
           PageAction(state: PageState.addPage, page: BackupPageConfig);

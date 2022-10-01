@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/screens/page_view/onbonding_two.dart';
@@ -90,7 +91,7 @@ class _SwiperState extends State<Swiper> {
               ],
             ),
           ),
-          SizedBox(height: height / 20.5),
+          // SizedBox(height: height / 20.5),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -118,6 +119,18 @@ class _SwiperState extends State<Swiper> {
                       state: PageState.addPage, page: ImportWalletPageConfig);
                 },
               ),
+              SizedBox(height: height / 50),
+              ButtonOutlined(
+                LanguageEn.recoveraccount,
+                notifier.getbluecolor80,
+                wihitecolor,
+                onTap: () {
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: RecoverAccountViewPageConfig);
+                },
+              ),
+              SizedBox(height: height / 50),
             ],
           ),
         ],
