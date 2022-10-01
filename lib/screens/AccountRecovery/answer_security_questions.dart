@@ -288,7 +288,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
             300.sp,
             // validator: validateEmail,
             onSaved: (value) {
-              questionsMap[rel]!['a'] = value;
+              questionsMap[rel]!['a'] = value.toString().trim();
               print('email: $questionsMap');
             },
             validator: (value) {

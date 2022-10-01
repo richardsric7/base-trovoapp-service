@@ -30,7 +30,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
   @override
   Widget build(BuildContext context) {
     var notifier = Provider.of<ColorNotifier>(context, listen: true);
-    state = Provider.of<DataProvider>(context, listen: false);
+    state = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
