@@ -68,12 +68,12 @@ type UserWalletManagedAccess struct {
 	UpdatedAt           time.Time      `json:"updatedAt"`
 	ID                  string         `gorm:"" json:"accessId"`
 	UserWalletID        string         `gorm:"size:56; index:idx_manage_access_user_wallet_id" json:"publicKey"`
-	NumberOfAuthorizers uint           `gorm:"type:integer; default:1" json:"numberOfAuthorizers"`
+	NumberOfApprovers uint           `gorm:"type:integer; default:1" json:"numberOfApprovers"`
 	AccessList          []WalletAccess `json:"accessList"`
 }
 type UserWalletManagedAccessInfo struct {
 	UserWalletManagedAccessID string             `json:"userWalletManagedAccessId"`
-	NumberOfAuthorizers       uint               `json:"numberOfAuthorizers"`
+	NumberOfApprovers       uint               `json:"numberOfApprovers"`
 	PublicKey                 string             `json:"publicKey"`
 	AccessList                []WalletAccessInfo `json:"accessList"`
 	Transaction               string             `json:"transaction"`

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	bc "trovo-wallet-api/internal/blockchainalgofuncs"
+	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -110,13 +112,9 @@ func PublicKeyHasViewOnlyAccess(publicKey string, gc *sharedconfig.GlobalConfig)
 	return
 }
 
-func PublicKeyHasViewOnlyAccessWACL(publicKey string, walletsAccess []userModels.WalletAccessInfo, gc *sharedconfig.GlobalConfig) (viewOnly bool) {
+func PublicKeyHasViewOnlyAccessWACL(publicKey string, accessList []userModels.WalletAccessInfo, gc *sharedconfig.GlobalConfig) (viewOnly bool) {
 	viewOnly = true
 	if publicKey == "" {
-		return false
-	}
-	accessList := userModels.UserWalletID(publicKey).GetAccessList(gc.DB)
-	if len(accessList) == 0 {
 		return false
 	}
 
@@ -129,7 +127,20 @@ func PublicKeyHasViewOnlyAccessWACL(publicKey string, walletsAccess []userModels
 	return
 }
 
-func PublicKeyCountAuthorizerAccess(publicKey string, gc *sharedconfig.GlobalConfig) (accessCount uint) {
+func PublicKeyCountApproverAccessWACL(publicKey string, accessList []userModels.WalletAccessInfo, gc *sharedconfig.GlobalConfig) (accessCount uint) {
+	if publicKey == "" {
+		return 0
+	}
+
+	for _, access := range accessList {
+		if access.AccessLevel == "APPROVER" {
+			accessCount++
+		}
+	}
+
+	return
+}
+func PublicKeyCountApproverAccess(publicKey string, gc *sharedconfig.GlobalConfig) (accessCount uint) {
 	if publicKey == "" {
 		return 0
 	}
@@ -142,7 +153,7 @@ func PublicKeyCountAuthorizerAccess(publicKey string, gc *sharedconfig.GlobalCon
 		return 0
 	}
 	for _, access := range wallet.UserWalletManagedAccess.AccessList {
-		if access.AccessLevel == "AUTHORIZER" {
+		if access.AccessLevel == "APPROVER" {
 			accessCount++
 		}
 	}
@@ -183,8 +194,8 @@ func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Use
 		}
 	}
 	var accessList []userModels.WalletAccess
-	var numOfAuthorizers, selfAuthorizer uint
-	var authorizerUsers []*userModels.User
+	var numOfApprovers, selfApprover uint
+	var approverUsers []*userModels.User
 	uuid, _ := uuid.NewV4()
 	accessID := uuid.String()
 
@@ -205,7 +216,6 @@ func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Use
 		if !errors.Is(e, gorm.ErrRecordNotFound) {
 			return managedAccess, &tErrors.ErrorTemporaryServerError{}
 		}
-
 
 		walletOwner, e := userModels.UserWalletID(accessInfo.PublicKey).GetWalletOwner(gc.DB)
 		if e != nil {
@@ -257,37 +267,37 @@ func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Use
 				AccessLevel:               v.AccessLevel,
 				PublicKey:                 wallet.ID,
 			})
-			if v.AccessLevel == "AUTHORIZER" {
-				numOfAuthorizers++
+			if v.AccessLevel == "APPROVER" {
+				numOfApprovers++
 				if v.Username == walletOwner.Username {
-					selfAuthorizer = 1
+					selfApprover = 1
 				}
 			}
 
-			authorizerUsers = append(authorizerUsers, &u)
+			approverUsers = append(approverUsers, &u)
 		}
-		if numOfAuthorizers < accessInfo.NumberOfAuthorizers {
+		if numOfApprovers <= accessInfo.NumberOfApprovers {
 			//number of authorizers does not reach the minimum threshold needed. cannot proceed so as to prevent account lockout
 			return managedAccess, &tErrors.CustomError{
-				Param:      "numberOfAuthorizers",
-				Err:        "error-authorizers-not-enough",
-				ErrMessage: fmt.Sprintf("Authorizers (%v) assigned to wallet are less than the number (%v) required to authorize transaction. Try specifying the number of authorizers are reduce the number of authorizers required to %v", numOfAuthorizers, accessInfo.NumberOfAuthorizers, numOfAuthorizers),
+				Param:      "numberOfApprovers",
+				Err:        "error-approvers-not-enough",
+				ErrMessage: fmt.Sprintf("[%v] Approver(s) assigned to wallet are less than the number [%v] required to approve transaction. Please ensure that your list of approvers are greater than the minimum number required to approve a transaction [%v]", numOfApprovers, accessInfo.NumberOfApprovers, accessInfo.NumberOfApprovers),
 				Code:       http.StatusForbidden,
 			}
 		}
 
 		managedAccess = userModels.UserWalletManagedAccess{
-			ID:                  accessID,
-			UserWalletID:        accessInfo.PublicKey,
-			NumberOfAuthorizers: accessInfo.NumberOfAuthorizers,
-			AccessList:          accessList,
+			ID:                accessID,
+			UserWalletID:      accessInfo.PublicKey,
+			NumberOfApprovers: accessInfo.NumberOfApprovers,
+			AccessList:        accessList,
 		}
-		// if authorizers exists, then owner must sign transaction to add them as signers
-		if (numOfAuthorizers - selfAuthorizer) > 0 {
+		// if approver exists, then owner must sign transaction to add them as signers
+		if (numOfApprovers - selfApprover) > 0 {
 			accessInfo.SignatureRequired = 1
 
 		}
-		xdrBase64, messages, walletMustSign, errGenXdr := generateCreateSharedAccessXdr(&wallet, authorizerUsers, int(accessInfo.NumberOfAuthorizers), gc)
+		xdrBase64, messages, walletMustSign, errGenXdr := generateCreateSharedAccessXdr(&wallet, &walletOwner, approverUsers, accessInfo.AccessList, accessInfo.NumberOfApprovers, gc)
 		if errGenXdr != nil {
 			return managedAccess, errGenXdr
 		}
@@ -302,6 +312,7 @@ func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Use
 		if len(accessInfo.TransactionSignature) == 0 {
 			return managedAccess, nil
 		}
+		// extract signature and submit transaction
 
 	}
 	//existing access was retrieved
@@ -314,139 +325,7 @@ func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Use
 	}
 }
 
-func UpdateMultiWalletAccess(signerPublicKey string, accessInfo *userModels.UserWalletManagedAccessInfo, gc *sharedconfig.GlobalConfig) (managedAccess userModels.UserWalletManagedAccess, err error) {
-	// var managedAccess userModels.UserWalletManagedAccess
-
-	if len(accessInfo.AccessList) == 0 {
-		return managedAccess, &tErrors.CustomError{
-			Param:      "accessList",
-			Err:        "error-access-list-is-empty",
-			ErrMessage: "Access list is empty",
-			Code:       http.StatusBadRequest,
-		}
-	}
-	var accessList []userModels.WalletAccess
-	var numOfAuthorizers uint
-	e := gc.DB.Preload(clause.Associations).Where("user_wallet_id = ?", accessInfo.PublicKey).First(&managedAccess).Error
-
-	if err != nil {
-		if !errors.Is(e, gorm.ErrRecordNotFound) {
-			return managedAccess, &tErrors.ErrorTemporaryServerError{}
-		}
-		//record not found. needs to create it
-		// var accessList []userModels.WalletAccess
-		// var numOfAuthorizers uint
-		for _, v := range accessInfo.AccessList {
-			//check if username is valid
-			v.Username = strings.ToLower(v.Username)
-			if strings.Contains(v.Username, "_") {
-
-				//it is a subwallet and cannot be given access
-				return managedAccess, &tErrors.CustomError{
-					Param:      "username",
-					Err:        "error-subwallet-not-allowed",
-					ErrMessage: fmt.Sprintf("Access can only be granted to trovo wallet account, not a subwallet [%v]", v.Username),
-					Code:       http.StatusForbidden,
-				}
-			}
-			u, e := usersDB.GetUser(v.Username, gc.DB)
-			if e != nil {
-				return managedAccess, &tErrors.CustomError{
-					Param:      "username",
-					Err:        "error-trovo-wallet-account-invalid",
-					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated at this time.", v.Username),
-					Code:       http.StatusForbidden,
-				}
-			}
-			if u.Username != v.Username {
-				if e != nil {
-					return managedAccess, &tErrors.CustomError{
-						Param:      "username",
-						Err:        "error-trovo-wallet-account-invalid",
-						ErrMessage: fmt.Sprintf("Trovo wallet account [%v] is not Trovo wallet account username.", v.Username),
-						Code:       http.StatusForbidden,
-					}
-				}
-			}
-
-		}
-		if numOfAuthorizers < accessInfo.NumberOfAuthorizers {
-			//number of authorizers does not reach the minimum threshold needed. cannot proceed so as to prevent account lockout
-			return managedAccess, &tErrors.CustomError{
-				Param:      "numberOfAuthorizers",
-				Err:        "error-authorizers-not-enough",
-				ErrMessage: fmt.Sprintf("Authorizers (%v) assigned to wallet are less than the number (%v) required to authorize transaction. Try specifying the number of authorizers are reduce the number of authorizers required to %v", numOfAuthorizers, accessInfo.NumberOfAuthorizers, numOfAuthorizers),
-				Code:       http.StatusForbidden,
-			}
-		}
-		uuid, _ := uuid.NewV4()
-		accessID := uuid.String()
-		managedAccess = userModels.UserWalletManagedAccess{
-			ID:                  accessID,
-			UserWalletID:        accessInfo.PublicKey,
-			NumberOfAuthorizers: accessInfo.NumberOfAuthorizers,
-			AccessList:          accessList,
-		}
-	}
-	//existing access was retrieved
-	if managedAccess.ID != accessInfo.UserWalletManagedAccessID {
-		return managedAccess, &tErrors.CustomError{
-			Param:      "userWalletManagedAccessID",
-			Err:        "error-user-wallet-managed-access-id-mismatch",
-			ErrMessage: "Access ID mismatch",
-			Code:       http.StatusBadRequest,
-		}
-	}
-	for _, v := range accessInfo.AccessList {
-		//check if username is valid
-		v.Username = strings.ToLower(v.Username)
-		if strings.Contains(v.Username, "_") {
-
-			//it is a subwallet and cannot be given access
-			return managedAccess, &tErrors.CustomError{
-				Param:      "username",
-				Err:        "error-subwallet-not-allowed",
-				ErrMessage: fmt.Sprintf("Access can only be granted to trovo wallet account, not a subwallet [%v]", v.Username),
-				Code:       http.StatusForbidden,
-			}
-		}
-		u, e := usersDB.GetUser(v.Username, gc.DB)
-		if e != nil {
-			return managedAccess, &tErrors.CustomError{
-				Param:      "username",
-				Err:        "error-trovo-wallet-account-invalid",
-				ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated at this time.", v.Username),
-				Code:       http.StatusForbidden,
-			}
-		}
-		if u.Username != v.Username {
-			if e != nil {
-				return managedAccess, &tErrors.CustomError{
-					Param:      "username",
-					Err:        "error-trovo-wallet-account-invalid",
-					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] is not Trovo wallet account username.", v.Username),
-					Code:       http.StatusForbidden,
-				}
-			}
-		}
-
-		if v.AccessLevel == "AUTHORIZER" {
-			numOfAuthorizers++
-		}
-	}
-	if numOfAuthorizers < accessInfo.NumberOfAuthorizers {
-		//number of authorizers does not reach the minimum threshold needed. cannot proceed so as to prevent account lockout
-		return managedAccess, &tErrors.CustomError{
-			Param:      "numberOfAuthorizers",
-			Err:        "error-authorizers-not-enough",
-			ErrMessage: fmt.Sprintf("Authorizers (%v) assigned to wallet are less than the number (%v) specified as required to authorize transaction. Try specifying the number of authorizers to be at least equal the number of required %v", numOfAuthorizers, accessInfo.NumberOfAuthorizers, numOfAuthorizers),
-			Code:       http.StatusForbidden,
-		}
-	}
-	return
-}
-
-func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, authorizers []*userModels.User, authThreshold int, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, walletMustSign bool, err error) {
+func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, approvers []*userModels.User, accessInfo []userModels.WalletAccessInfo, authThreshold uint, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, walletMustSign bool, err error) {
 	client := gc.BantuExpansionClient
 	ops := make([]txnbuild.Operation, 0)
 	messages = make([]string, 0)
@@ -460,18 +339,15 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, authorizers []
 		minBalance = decimal.RequireFromString(os.Getenv("WALLET_MINIMUM_BALANCE"))
 	}
 
-	if len(authorizers) == 0 {
+	if len(approvers) == 0 {
 		err = &tErrors.CustomError{
-			Param:      "numberOfAuthorizers",
-			Err:        "error-no-authorizers-specified",
+			Param:      "numberOfApprover",
+			Err:        "error-no-approver-specified",
 			ErrMessage: fmt.Sprintf("%v account does not have enough XBN balance to perform this operation", wallet.Alias),
 			Code:       404,
 		}
 		return "", messages, walletMustSign, err
 	}
-	//check if it is first call to create sub-wallet
-
-	//populate the subwallet Info and generate the transaction
 
 	//check if primary account has native enough native balance
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
@@ -492,12 +368,34 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, authorizers []
 		}
 		return "", messages, walletMustSign, err
 	}
+	{
+		//check if account recovery is enabled, then disable it on the wallet.
+		if walletOwner.AccountRecoveryEnabled == 1 && !PublicKeyHasViewOnlyAccessWACL(wallet.ID, accessInfo, gc) && PublicKeyCountApproverAccessWACL(wallet.ID, accessInfo, gc) > 1 {
+			// get the recovery keypair
+			recoveryAddress := bc.GetRecoveryAccountAddress(walletOwner.Username, walletOwner.PublicKey)
+
+			if userBc.SignerIsValid(wallet.ID, recoveryAddress) {
+				//recovery a signer to the wallet. remove it
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: recoveryAddress,
+						Weight:  0,
+					},
+					SourceAccount: wallet.ID,
+				})
+
+				//add message about disabling recovery on that wallet
+				messages = append(messages, "Account Recovery on this wallet has to be disabled so as to enable shared access.")
+			}
+		}
+	}
+
 	//check access list to know if you would activate the user wallets before proceeding.
-	for _, user3p := range authorizers {
+	for _, user3p := range approvers {
 		var totalUsersToFund int64
 		//ensure u r using the account signer, since the account may have been recovered, or may be recovered in the future, changing the signer, but retaining the primary key
-		authorizerAccountExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, user3p.PrimarySigner, nativeAsset)
-		if !authorizerAccountExists {
+		approverAccountExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, user3p.PrimarySigner, nativeAsset)
+		if !approverAccountExists {
 			//if subwallet is not activated
 			//build transaction that will activate the primary signer from the assigning wallet
 
@@ -523,7 +421,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, authorizers []
 
 		}
 
-		if authorizerAccountExists {
+		if approverAccountExists {
 			//account exists, check if it already it a signer in the wallet
 
 			//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
@@ -575,7 +473,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, authorizers []
 			Preconditions: txnbuild.Preconditions{
 				TimeBounds: txnbuild.NewInfiniteTimeout(),
 			},
-			Memo: txnbuild.MemoText("Create Signers"),
+			Memo: txnbuild.MemoText("Create Approvers"),
 		},
 	)
 	if err != nil {
@@ -590,7 +488,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, authorizers []
 		log.Println("[generateCreateMultiWalletAccessXdr] error getting txn base64", err)
 		return "", messages, walletMustSign, err
 	}
-	messages = append(messages, fmt.Sprintf("Important: %v XBN will be deducted from wallet %v to be used to activate/fund the authorizer(s).", totalNativeBalanceNeeded.String(), wallet.Alias))
+	messages = append(messages, fmt.Sprintf("Important: %v XBN will be deducted from wallet %v to be used to activate/fund the approver(s).", totalNativeBalanceNeeded.String(), wallet.Alias))
 
 	return xdrBase64, messages, walletMustSign, nil
 

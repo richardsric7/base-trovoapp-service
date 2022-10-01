@@ -657,6 +657,25 @@ func (u UserWallet) GetAccessList(db *gorm.DB) (accessList []WalletAccess) {
 	return
 }
 
+func (u *UserWallet) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
+	viewOnly = true
+	if u.ID == "" {
+		return false
+	}
+	accessList := UserWalletID(u.ID).GetAccessList(gc.DB)
+	if len(accessList) == 0 {
+		return false
+	}
+
+	for _, access := range accessList {
+		if access.AccessLevel != "VIEW-ONLY" {
+			return false
+		}
+	}
+
+	return
+}
+
 func (id UserWalletID) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
 	e := db.Preload(clause.Associations).Where("id = ?", string(id)).First(&wallet).Error
 	if e != nil {
