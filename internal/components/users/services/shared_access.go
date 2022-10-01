@@ -353,12 +353,12 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	walletAccountExists, _, walletAccountNativeBalance, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, wallet.ID, nativeAsset)
 	if errWalletAct != nil {
-		log.Printf("[generateCreateMultiWalletAccessXdr] by [%v] for MultiAccess Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
+		log.Printf("[generateCreateMultiWalletAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
 
 		return "", messages, walletMustSign, errWalletAct
 	}
 	if !walletAccountExists || (walletAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
-		log.Printf("[generateCreateMultiWalletAccessXdr] by [%v] MultiAccess WalletAccount underfunded \n", wallet.Alias)
+		log.Printf("[generateCreateMultiWalletAccessXdr] by [%v] shared WalletAccount underfunded \n", wallet.Alias)
 
 		err = &tErrors.CustomError{
 			Param:      "publicKey",
