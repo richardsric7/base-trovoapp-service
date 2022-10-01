@@ -87,7 +87,8 @@ type WalletAccess struct {
 	CreatedAt                 time.Time `json:"createdAt"`
 	UpdatedAt                 time.Time `json:"updatedAt"`
 	ID                        string
-	Username                  string `gorm:"size:16;not null; index:access_level_permission,unique" json:"username"`
+	PublicKey                 string `gorm:"size:16;not null; index:access_level_public_key_unique; index:idx_public_key_shared" json:"publicKey"`
+	Username                  string `gorm:"size:16;not null; index:access_level_permission,unique;index:access_level_public_key_unique" json:"username"`
 	AccessLevel               string `gorm:"size:10;not null; index:access_level_permission,unique" json:"accessLevel"`
 	UserWalletManagedAccessID string `gorm:"not null;index:idx_wallet_access_wallet_access_id" json:"userWalletManagedAccessId"`
 }

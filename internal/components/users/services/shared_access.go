@@ -96,15 +96,31 @@ func PublicKeyHasViewOnlyAccess(publicKey string, gc *sharedconfig.GlobalConfig)
 	if publicKey == "" {
 		return false
 	}
-	wallet, err := userModels.UserWalletID(publicKey).GetWallet(gc.DB)
-	if err != nil {
+	accessList := userModels.UserWalletID(publicKey).GetAccessList(gc.DB)
+	if len(accessList) == 0 {
 		return false
 	}
 
-	if wallet.ManagedAccessEnabled == 0 {
+	for _, access := range accessList {
+		if access.AccessLevel != "VIEW-ONLY" {
+			return false
+		}
+	}
+
+	return
+}
+
+func PublicKeyHasViewOnlyAccessWACL(publicKey string, walletsAccess []userModels.WalletAccessInfo, gc *sharedconfig.GlobalConfig) (viewOnly bool) {
+	viewOnly = true
+	if publicKey == "" {
 		return false
 	}
-	for _, access := range wallet.UserWalletManagedAccess.AccessList {
+	accessList := userModels.UserWalletID(publicKey).GetAccessList(gc.DB)
+	if len(accessList) == 0 {
+		return false
+	}
+
+	for _, access := range accessList {
 		if access.AccessLevel != "VIEW-ONLY" {
 			return false
 		}
@@ -155,7 +171,7 @@ func PublicKeyCountInitiatorAccess(publicKey string, gc *sharedconfig.GlobalConf
 	return
 }
 
-func CreateMultiWalletAccess(signerPublicKey string, accessInfo *userModels.UserWalletManagedAccessInfo, gc *sharedconfig.GlobalConfig) (managedAccess userModels.UserWalletManagedAccess, err error) {
+func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.UserWalletManagedAccessInfo, gc *sharedconfig.GlobalConfig) (managedAccess userModels.UserWalletManagedAccess, err error) {
 	// var managedAccess userModels.UserWalletManagedAccess
 
 	if len(accessInfo.AccessList) == 0 {
@@ -169,16 +185,28 @@ func CreateMultiWalletAccess(signerPublicKey string, accessInfo *userModels.User
 	var accessList []userModels.WalletAccess
 	var numOfAuthorizers, selfAuthorizer uint
 	var authorizerUsers []*userModels.User
-	e := gc.DB.Preload(clause.Associations).Where("user_wallet_id = ?", accessInfo.PublicKey).First(&managedAccess).Error
 	uuid, _ := uuid.NewV4()
 	accessID := uuid.String()
-	if err != nil {
+
+	wallet, e := userModels.UserWalletID(accessInfo.PublicKey).GetWallet(gc.DB)
+	if e != nil {
+		return managedAccess, &tErrors.ErrorInvalidWallet{
+			PublicKey: accessInfo.PublicKey,
+		}
+	}
+
+	if wallet.PrimaryWallet == 1 {
+		if !PublicKeyHasViewOnlyAccessWACL(accessInfo.PublicKey, accessInfo.AccessList, gc) {
+			return managedAccess, &tErrors.ErrorOnlyViewAccessAllowedInPrimaryWallet{}
+		}
+	}
+	e = gc.DB.Preload(clause.Associations).Where("user_wallet_id = ?", accessInfo.PublicKey).First(&managedAccess).Error
+	if e != nil {
 		if !errors.Is(e, gorm.ErrRecordNotFound) {
 			return managedAccess, &tErrors.ErrorTemporaryServerError{}
 		}
-		//record not found. needs to create it
-		// var accessList []userModels.WalletAccess
-		// var numOfAuthorizers uint
+
+
 		walletOwner, e := userModels.UserWalletID(accessInfo.PublicKey).GetWalletOwner(gc.DB)
 		if e != nil {
 			return managedAccess, &tErrors.CustomError{
@@ -188,16 +216,9 @@ func CreateMultiWalletAccess(signerPublicKey string, accessInfo *userModels.User
 				Code:       http.StatusForbidden,
 			}
 		}
-		wallet, e := userModels.UserWalletID(accessInfo.PublicKey).GetWallet(gc.DB)
-		if e != nil {
-			return managedAccess, &tErrors.CustomError{
-				Param:      "username",
-				Err:        "error-confirming-wallet",
-				ErrMessage: "Unable to confirm wallet at this time. Please try again after some minutes.",
-				Code:       http.StatusForbidden,
-			}
-		}
+
 		for _, v := range accessInfo.AccessList {
+
 			//check if username is valid
 			v.Username = strings.ToLower(v.Username)
 			if strings.Contains(v.Username, "_") {
@@ -234,6 +255,7 @@ func CreateMultiWalletAccess(signerPublicKey string, accessInfo *userModels.User
 				UserWalletManagedAccessID: accessID,
 				Username:                  v.Username,
 				AccessLevel:               v.AccessLevel,
+				PublicKey:                 wallet.ID,
 			})
 			if v.AccessLevel == "AUTHORIZER" {
 				numOfAuthorizers++
@@ -265,7 +287,7 @@ func CreateMultiWalletAccess(signerPublicKey string, accessInfo *userModels.User
 			accessInfo.SignatureRequired = 1
 
 		}
-		xdrBase64, messages, walletMustSign, errGenXdr := generateCreateMultiWalletAccessXdr(&wallet, authorizerUsers, int(accessInfo.NumberOfAuthorizers), gc)
+		xdrBase64, messages, walletMustSign, errGenXdr := generateCreateSharedAccessXdr(&wallet, authorizerUsers, int(accessInfo.NumberOfAuthorizers), gc)
 		if errGenXdr != nil {
 			return managedAccess, errGenXdr
 		}
@@ -424,7 +446,7 @@ func UpdateMultiWalletAccess(signerPublicKey string, accessInfo *userModels.User
 	return
 }
 
-func generateCreateMultiWalletAccessXdr(wallet *userModels.UserWallet, authorizers []*userModels.User, authThreshold int, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, walletMustSign bool, err error) {
+func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, authorizers []*userModels.User, authThreshold int, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, walletMustSign bool, err error) {
 	client := gc.BantuExpansionClient
 	ops := make([]txnbuild.Operation, 0)
 	messages = make([]string, 0)

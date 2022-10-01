@@ -23,6 +23,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/stellar/go/protocols/horizon"
 )
@@ -642,21 +643,54 @@ func (id UserWalletManagedAccessID) GetAccessAssignment(db *gorm.DB) (assignment
 	return
 }
 
+func (id UserWalletID) GetAccessList(db *gorm.DB) (accessList []WalletAccess) {
+	accessList = make([]WalletAccess, 0)
+	db.Preload(clause.Associations).Where("public_key = ?", string(id)).Find(&accessList)
+
+	return
+}
+
+func (u UserWallet) GetAccessList(db *gorm.DB) (accessList []WalletAccess) {
+	accessList = make([]WalletAccess, 0)
+	db.Preload(clause.Associations).Where("public_key = ?", u.ID).Find(&accessList)
+
+	return
+}
+
 func (id UserWalletID) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
-	e := db.Where("id = ?", string(id)).First(&wallet).Error
+	e := db.Preload(clause.Associations).Where("id = ?", string(id)).First(&wallet).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
-			err = &tErrors.CustomError{
-				Param:      "id",
-				Err:        "error-wallet-not-found",
-				ErrMessage: "Wallet not found",
-				Code:       404,
+			err = &tErrors.ErrorInvalidWallet{
+				PublicKey: string(id),
 			}
 			return
 		}
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
+	return
+}
+
+func (id UserWalletID) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
+	viewOnly = true
+	if id == "" {
+		return false
+	}
+	wallet, err := id.GetWallet(gc.DB)
+	if err != nil {
+		return false
+	}
+
+	if wallet.ManagedAccessEnabled == 0 {
+		return false
+	}
+	for _, access := range wallet.UserWalletManagedAccess.AccessList {
+		if access.AccessLevel != "VIEW-ONLY" {
+			return false
+		}
+	}
+
 	return
 }
 
