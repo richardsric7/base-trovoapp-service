@@ -16,16 +16,16 @@ type UserJSON struct {
 	ReferralLink           string           `json:"referralLink"`
 	ReferralQrCode         string           `json:"referralQrCode"`
 	PushNotificationToken  string           `json:"pushNotificationToken"`
-	Corporate              uint             `json:"corporate"`
-	MobileVerified         uint             `json:"mobileVerified"`
-	MembershipType         uint             `json:"membershipType"`
+	Corporate              int              `json:"corporate"`
+	MobileVerified         int              `json:"mobileVerified"`
+	MembershipType         int              `json:"membershipType"`
 	MembershipExpiry       time.Time        `json:"membershipExpiry"`
-	KYCVerified            uint             `json:"kycVerified"`
-	AccountRecoveryEnabled uint             `json:"accountRecoveryEnabled"`
+	KYCVerified            int              `json:"kycVerified"`
+	AccountRecoveryEnabled int              `json:"accountRecoveryEnabled"`
 	UserWallets            []UserWalletJSON `json:"userWallets"`
-	Verified               uint             `json:"verified"`
-	Suspended              uint             `json:"suspended"`
-	HasSecurityQuestions   uint             `json:"hasSecurityQuestions"`
+	Verified               int              `json:"verified"`
+	Suspended              int              `json:"suspended"`
+	HasSecurityQuestions   int              `json:"hasSecurityQuestions"`
 }
 
 type UserWalletJSON struct {
@@ -37,8 +37,8 @@ type UserWalletJSON struct {
 	Alias                  string                      `json:"alias"`  //primaryUsername_tag for sub wallets
 	Signer                 string                      `json:"signer"` //if ID is same as signer, then it is a primary wallet
 	UserID                 string                      `json:"userId"`
-	SharedAccessEnabled    uint                        `json:"sharedAccessEnabled"`
-	PrimaryWallet          uint                        `json:"primaryWallet"`
+	SharedAccessEnabled    int                         `json:"sharedAccessEnabled"`
+	PrimaryWallet          int                         `json:"primaryWallet"`
 	UserWalletSharedAccess *UserWalletSharedAccessJSON `json:"userWalletSharedAccess,omitempty"`
 }
 
@@ -47,7 +47,7 @@ type UserWalletSharedAccessJSON struct {
 	UpdatedAt         time.Time          `json:"updatedAt"`
 	ID                string             `json:"accessId"`
 	UserWalletID      string             `json:"walletPublicKey"`
-	NumberOfApprovers uint               `json:"numberOfApprovers"`
+	NumberOfApprovers int                `json:"numberOfApprovers"`
 	AccessList        []WalletAccessJSON `json:"accessList"`
 }
 

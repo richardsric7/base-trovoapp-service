@@ -24,12 +24,12 @@ type User struct {
 	ReferralLink             *string      `json:"referralLink"`
 	ReferralQrCode           *string      `json:"referralQrCode"`
 	PushNotificationToken    *string      `json:"pushNotificationToken"`
-	Corporate                uint         `gorm:"type:integer;not null; default:0" json:"corporate"`
-	MobileVerified           uint         `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
-	MembershipType           uint         `gorm:"type:integer;not null; default:0" json:"membershipType"`
+	Corporate                int          `gorm:"type:integer;not null; default:0" json:"corporate"`
+	MobileVerified           int          `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
+	MembershipType           int          `gorm:"type:integer;not null; default:0" json:"membershipType"`
 	MembershipExpiry         *time.Time   `json:"membershipExpiry"`
-	KYCVerified              uint         `gorm:"type:integer;not null; default:0" json:"kycVerified"`
-	AccountRecoveryEnabled   uint         `gorm:"type:integer;not null; default:0" json:"accountRecoveryEnabled"`
+	KYCVerified              int          `gorm:"type:integer;not null; default:0" json:"kycVerified"`
+	AccountRecoveryEnabled   int          `gorm:"type:integer;not null; default:0" json:"accountRecoveryEnabled"`
 	AccountRecoveryExpiresOn *time.Time   `gorm:"null" json:"accountRecoveryExpiresOn"`
 	UserWallets              []UserWallet `json:"userWallets"`
 	PublicIP                 string       `gorm:"size:45" json:"publicIP"`
@@ -41,9 +41,9 @@ type User struct {
 	RegionName               *string      `gorm:"null;size:100"`
 	TimeZone                 *string      `gorm:"null;size:100"`
 	ISP                      *string      `gorm:"null;size:150"`
-	HasSecurityQuestions     uint         `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
-	Verified                 uint         `gorm:"type:integer;not null;default:0" json:"verified"`
-	Suspended                uint         `gorm:"type:integer;not null;default:0" json:"suspended"`
+	HasSecurityQuestions     int          `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
+	Verified                 int          `gorm:"type:integer;not null;default:0" json:"verified"`
+	Suspended                int          `gorm:"type:integer;not null;default:0" json:"suspended"`
 	SuspensionReason         *string      `gorm:"null" json:"suspensionReason"`
 }
 
@@ -57,10 +57,10 @@ type UserWallet struct {
 	Alias                  string                 `gorm:"size:27; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
 	Signer                 string                 `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
 	UserID                 string                 `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
-	SharedAccessEnabled    uint                   `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
+	SharedAccessEnabled    int                    `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
 	UserWalletSharedAccess UserWalletSharedAccess `json:"userWalletSharedAccess"`
-	Tracked                uint                   `gorm:"type:integer;not null;default:0" json:"-"`
-	PrimaryWallet          uint                   `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
+	Tracked                int                    `gorm:"type:integer;not null;default:0" json:"-"`
+	PrimaryWallet          int                    `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
 }
 
 type UserWalletSharedAccess struct {
@@ -85,6 +85,16 @@ type UserWalletSharedAccessInfo struct {
 	WalletPublicKey          string             `json:"walletPublicKey"`
 	NumberOfApprovers        int                `json:"numberOfApprovers"`
 	AccessList               []WalletAccessInfo `json:"accessList"`
+	Transaction              string             `json:"transaction"`
+	TransactionSignature     string             `json:"transactionSignature"`
+	TransactionID            string             `json:"transactionId"`
+	NetworkPassPhrase        string             `json:"networkPassPhrase"`
+	Messages                 []string           `json:"messages"`
+	SignatureRequired        int                `json:"signatureRequired"`
+}
+type DisableSharedAccessInfo struct {
+	UserWalletSharedAccessID string             `json:"userWalletSharedAccessId"`
+	WalletPublicKey          string             `json:"walletPublicKey"`
 	Transaction              string             `json:"transaction"`
 	TransactionSignature     string             `json:"transactionSignature"`
 	TransactionID            string             `json:"transactionId"`
