@@ -403,10 +403,14 @@ class _SecurityQuestions extends State<SecurityQuestions> {
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        showSuccessAlert(context, onTap: () {
-          appState.currentAction = PageAction(
-              state: PageState.replaceAll, page: BottomHomePageConfig);
-        });
+        appState.viewData = {
+          SuccessViewPageConfig.key: {
+            'title': LanguageEn.success,
+            'message': LanguageEn.securityquestionssuccessmessage,
+          }
+        };
+        appState.currentAction = PageAction(
+            state: PageState.replaceAll, page: SuccessViewPageConfig);
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);

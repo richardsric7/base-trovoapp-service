@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,6 +20,7 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/WalletSlides.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -52,6 +55,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     _tabController = TabController(length: tabLength, vsync: this);
     _tabController.addListener(tabListener);
     _refreshController = RefreshController(initialRefresh: false);
+    Timer(const Duration(seconds: 10), checkSecurityQuestion);
   }
 
   void tabListener() {
@@ -855,6 +859,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       _refreshController.refreshCompleted();
     } catch (e) {
       _refreshController.refreshFailed();
+    }
+  }
+
+  void checkSecurityQuestion() {
+    if (userInfo.hasSecurityQuestions == 0) {
+      showSetSecurityQuestionsPopup(context);
     }
   }
 }

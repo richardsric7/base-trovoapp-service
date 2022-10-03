@@ -238,10 +238,14 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(primaryWallet.signer!, appState.secretKeys[0],
             primaryWallet.publicKey!, appState.userInfo!.username, appState);
-        showSuccessAlert(context, onTap: () {
-          appState.currentAction = PageAction(
-              state: PageState.replaceAll, page: BottomHomePageConfig);
-        });
+        appState.viewData = {
+          SuccessViewPageConfig.key: {
+            'title': LanguageEn.success,
+            'message': LanguageEn.enableaccountrecoverysuccess,
+          }
+        };
+        appState.currentAction =
+            PageAction(state: PageState.replace, page: SuccessViewPageConfig);
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);

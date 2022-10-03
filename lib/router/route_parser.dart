@@ -105,6 +105,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return CompleteAccountRecoveryViewPageConfig;
       case DisableAccountRecoveryInfoViewPath:
         return DisableAccountRecoveryInfoViewPageConfig;
+      case SuccessViewPath:
+        return SuccessViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -213,6 +215,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
       case Pages.DisableAccountRecoveryInfoView:
         return const RouteInformation(
             location: DisableAccountRecoveryInfoViewPath);
+      case Pages.SuccessView:
+        return const RouteInformation(location: SuccessViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

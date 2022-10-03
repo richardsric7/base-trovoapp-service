@@ -1,35 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class AccountRecoverySuccess extends StatefulWidget {
-  const AccountRecoverySuccess({Key? key}) : super(key: key);
+class SuccessView extends StatefulWidget {
+  const SuccessView({Key? key}) : super(key: key);
 
   @override
-  State<AccountRecoverySuccess> createState() => _AccountRecoverySuccess();
+  State<SuccessView> createState() => _SuccessView();
 }
 
-class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
+class _SuccessView extends State<SuccessView> {
   late ColorNotifier notifier;
   bool isChecked = false;
   final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
-  String email = '';
-  String otp = '';
+  late String title;
+  late String message;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -45,6 +42,10 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    title = appState.viewData![SuccessViewPageConfig.key]['title'].toString();
+    message =
+        appState.viewData![SuccessViewPageConfig.key]['message'].toString();
   }
 
   @override
@@ -55,37 +56,21 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
     appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
-        appBar: CustomAppBar(
-            context, notifier.getwihitecolor, "", notifier.getblck,
-            height: height / 20),
+        resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
           child: Form(
             key: _formKey,
             child: Column(
               children: [
-                SizedBox(height: height / 50),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      LanguageEn.account,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: notifier.getbluecolor,
-                          fontSize: 30.sp,
-                          fontFamily: fontsemibold),
-                    ),
-                    SizedBox(width: width / 50),
-                    Text(
-                      LanguageEn.recovery,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: notifier.getbluecolor80,
-                          fontSize: 30.sp,
-                          fontFamily: fontsemibold),
-                    ),
-                  ],
+                SizedBox(height: height / 10),
+                Text(
+                  LanguageEn.success,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: notifier.getbluecolor,
+                      fontSize: 30.sp,
+                      fontFamily: fontsemibold),
                 ),
                 Image.asset("assets/images/startup-launch.png",
                     height: height / 3.5),
@@ -110,7 +95,7 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                             child: Column(
                               children: [
                                 Text(
-                                  '${LanguageEn.congratulations} ${appState.tempUsername}',
+                                  LanguageEn.congratulations,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 16,
@@ -119,7 +104,7 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                                 ),
                                 SizedBox(height: 2),
                                 Text(
-                                  LanguageEn.otpcongratulationsdetails,
+                                  message,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 16,
@@ -144,20 +129,9 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () async {
-                    bool isFirstTime =
-                        await StoreData().storeGetData('isFirstTime') ?? true;
-                    if (isFirstTime) {
-                      setState(() {
-                        appState.currentAction = PageAction(
-                            state: PageState.replaceAll,
-                            page: OnboardingPageConfig);
-                      });
-                    } else {
-                      setState(() {
-                        appState.currentAction = PageAction(
-                            state: PageState.replaceAll, page: LoginPageConfig);
-                      });
-                    }
+                    appState.currentAction = PageAction(
+                        state: PageState.replaceAll,
+                        page: BottomHomePageConfig);
                   },
                 ),
                 SizedBox(height: height / 10),
@@ -171,50 +145,4 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
       ),
     );
   }
-
-  String? validatePassword(value) {
-    print('password: $value');
-    if (value.isEmpty) {
-      //return "Enter a password";
-      return LanguageEn.passwordemptyerror;
-    }
-
-    if (value.trim().replaceAll(' ', '').length < 6) {
-      //return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
-    }
-
-    return null;
-  }
-
-  String? validateConfirmPassword(value) {
-    print('confirm password: ${value.trim().replaceAll(' ', '')} & $otp');
-    if (value.isEmpty) {
-      // return "Confirm your password";
-      return LanguageEn.confirmpasswordemptyerror;
-    }
-
-    if (value.trim().replaceAll(' ', '').length < 6) {
-      // return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
-    }
-
-    if (otp != value.trim().replaceAll(' ', '')) {
-      //  return 'Those passwords didn\’t match. Try again.';
-      return LanguageEn.passwordmismatcherror;
-    }
-
-    return null;
-  }
-
-  bool validate() {
-    final form = _formKey.currentState;
-    if (form!.validate()) {
-      form.save();
-      return true;
-    }
-    return false;
-  }
-
-  void saveAndProceed() async {}
 }

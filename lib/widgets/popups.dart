@@ -733,6 +733,106 @@ void warnSkipBackupDialog(context, onSkip) {
       });
 }
 
+void showSetSecurityQuestionsPopup(context) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var appState = Provider.of<DataProvider>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(23),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                    child: Center(
+                      child: Text(
+                        "${LanguageEn.setup} ${LanguageEn.securityquestions}",
+                        style: TextStyle(
+                            color: notifier.getblck,
+                            fontSize: 18,
+                            fontFamily: fontsemibold),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 5,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 5.0),
+                            child: Text(
+                              LanguageEn.pleasesetupsecurityquestions,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w300,
+                                color: notifier.getbluecolor,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 5.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: SecurityQuestionsViewPageConfig);
+                        Navigator.of(context).pop();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        LanguageEn.proceed,
+                        style:
+                            TextStyle(color: wihitecolor, fontFamily: fontbody),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ));
+      });
+}
+
 void showResponseMessage(context, message, successAction) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;

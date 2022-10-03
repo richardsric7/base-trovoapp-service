@@ -46,7 +46,8 @@ class _AssetDetailsState extends State<AssetDetails>
             getAssetCode(asset['assetCode']),
             overflow: TextOverflow.ellipsis,
           ),
-          value: getAssetIssuer(asset['assetIssuer'])));
+          value:
+              '${getAssetCode(asset['assetCode'])}|${getAssetIssuer(asset['assetIssuer'])}'));
     }
     return menuItems;
   }
@@ -81,9 +82,11 @@ class _AssetDetailsState extends State<AssetDetails>
     claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
     activeAsset = appState.viewData![AssetDetailsViewPageConfig.key];
     if (appState.viewData![AssetDetailsViewPageConfig.key] != null) {
-      selectedAsset = getAssetIssuer(
+      selectedAsset = "${getAssetCode(
+        appState.viewData![AssetDetailsViewPageConfig.key]['assetCode'],
+      )}|${getAssetIssuer(
         appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
-      );
+      )}";
     }
 
     return ScreenUtilInit(
@@ -206,14 +209,16 @@ class _AssetDetailsState extends State<AssetDetails>
                                     ? ''
                                     : newValue;
                                 for (var asset in claimedAssets) {
-                                  if (asset['assetIssuer'] == newValue) {
+                                  var splitNewValue =
+                                      newValue.toString().split('|');
+                                  if (asset['assetCode'] == splitNewValue[0] &&
+                                      asset['assetIssuer'] ==
+                                          splitNewValue[1]) {
                                     appState.viewData![
                                         AssetDetailsViewPageConfig.key] = asset;
                                   }
                                 }
                               });
-                              print(
-                                  'this is new viewdata: ${appState.viewData}');
                             },
                             borderRadius: BorderRadius.all(
                               Radius.circular(15),

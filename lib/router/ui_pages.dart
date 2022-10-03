@@ -51,6 +51,7 @@ const String BackupRecoverySecretViewPath = '/BackupRecoverySecretView';
 const String CompleteAccountRecoveryViewPath = '/CompleteAccountRecoveryView';
 const String DisableAccountRecoveryInfoViewPath =
     '/DisableAccountRecoveryInfoView';
+const String SuccessViewPath = '/SuccessView';
 
 enum Pages {
   Splash,
@@ -102,6 +103,7 @@ enum Pages {
   BackupRecoverySecretView,
   CompleteAccountRecoveryView,
   DisableAccountRecoveryInfoView,
+  SuccessView,
 }
 
 class PageConfiguration {
@@ -362,4 +364,9 @@ PageConfiguration DisableAccountRecoveryInfoViewPageConfig = PageConfiguration(
     key: 'DisableAccountRecoveryInfoView',
     path: DisableAccountRecoveryInfoViewPath,
     uiPage: Pages.DisableAccountRecoveryInfoView,
+    currentPageAction: null);
+PageConfiguration SuccessViewPageConfig = PageConfiguration(
+    key: 'SuccessView',
+    path: SuccessViewPath,
+    uiPage: Pages.SuccessView,
     currentPageAction: null);

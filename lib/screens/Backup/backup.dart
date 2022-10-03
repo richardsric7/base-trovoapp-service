@@ -80,48 +80,9 @@ class _BackupState extends State<Backup> {
                   ),
                 ),
               ],
-              // SizedBox(height: height / 50),
-              // Container(
-              //   width: width / 1.2,
-              //   child: Text(
-              //     LanguageEn.writeitasfollows,
-              //     style: TextStyle(
-              //         color: notifier.getgrey,
-              //         fontSize: 15.sp,
-              //         fontFamily: fontbody),
-              //   ),
-              // ),
               SizedBox(height: height / 20),
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(horizontal: 30),
-              //   child: TextButton(
-              //     onPressed: () {
-              //       setState(() {
-              //         showAll = !showAll;
-              //       });
-              //     },
-              //     child: Text(
-              //       showAll
-              //           ? LanguageEn.taptorevealsecretkeys
-              //           : LanguageEn.taptohidesecretkeys,
-              //       style: TextStyle(
-              //           color: notifier.getbluecolor,
-              //           fontSize: 15.sp,
-              //           fontFamily: fontbody),
-              //     ),
-              //   ),
-              // ),
-              // for (var wallet in getUserWallets()) ...[
-              //   Secret(wallet.alias!, wallet.secretKey!)
-              // ],
-
               Secret(state.activeWallet!.alias!, state.activeWallet!.secretKey!,
                   state.activeWallet!.publicKey!),
-              // Secret(
-              //     'Kenmaddy_kennis',
-              //     'SAV232SDWDS4SRFVXGHYUIOLJY653DRT67HN8JMKIU654EDFRTGV56Y',
-              //     'SAV232SDWDS4SRFVXGHYUIOLJY653DRT67HN8JMKIU654EDFRTGV56Y'),
-
               SizedBox(height: height / 20),
               Button(
                 LanguageEn.continuee,
@@ -141,19 +102,6 @@ class _BackupState extends State<Backup> {
       ),
     );
   }
-
-  // List<Wallet> getUserWallets() {
-  //   var wallets = <Wallet>[];
-  //   secrets.forEach((secret) {
-  //     print(secret);
-  //     Account account = TrovoWalletSDK().parseSecretKey(secret);
-  //     var wlt = user.wallets!
-  //         .firstWhere((wallet) => wallet.publicKey == account.publicKey);
-  //     wlt.secretKey = secret;
-  //     wallets.add(wlt);
-  //   });
-  //   return wallets;
-  // }
 
   gotoNext() async {
     var isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;

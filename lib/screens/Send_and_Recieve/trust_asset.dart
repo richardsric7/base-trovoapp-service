@@ -142,8 +142,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      // '${activeAsset['assetCode']} is not yet part of your approved assets to be received on wallet ${activeWallet!.alias}. ' +
-                      //     'Do you wish to start receiving this asset?',
                       LanguageEn.pendingassetwarning
                           .replaceAll('assetCode', activeAsset['assetCode'])
                           .replaceAll('walletAlias', activeWallet!.alias!),
@@ -315,10 +313,15 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(activeWallet!.signer!, appState.secretKeys[0],
             activeWallet!.publicKey!, userInfo.username, appState);
-        showSuccessAlert(context, onTap: () {
-          appState.currentAction = PageAction(
-              state: PageState.replaceAll, page: BottomHomePageConfig);
-        });
+        appState.viewData = {
+          SuccessViewPageConfig.key: {
+            'title': LanguageEn.success,
+            'message': LanguageEn.trustassetsuccess
+                .replaceAll('asset', activeAsset['assetCode']),
+          }
+        };
+        appState.currentAction = PageAction(
+            state: PageState.replaceAll, page: SuccessViewPageConfig);
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);

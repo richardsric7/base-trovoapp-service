@@ -27,12 +27,10 @@ class _BottomHomeState extends State<BottomHome> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
     // set the page controller to appState
     appState.bottomTabPageController = _controller;
-    print('---------initing bottombar-----------');
   }
 
   @override
@@ -202,32 +200,31 @@ class _BottomHomeState extends State<BottomHome> {
     Settings(),
   ];
 
-  Map<String, WidgetBuilder> _routeBuilders(BuildContext context, int index) {
-    return {
-      '/': (context) {
-        return [
-          Home(onButtonPressed: changeTabMethod),
-          Wallets(),
-          PaymentHistory(),
-          SwapAssets(),
-          Settings(),
-        ].elementAt(index);
-      },
-    };
-  }
+  // Map<String, WidgetBuilder> _routeBuilders(BuildContext context, int index) {
+  //   return {
+  //     '/': (context) {
+  //       return [
+  //         Home(onButtonPressed: changeTabMethod),
+  //         Wallets(),
+  //         PaymentHistory(),
+  //         SwapAssets(),
+  //         Settings(),
+  //       ].elementAt(index);
+  //     },
+  //   };
+  // }
+  // Widget _buildOffstageNavigator(int index) {
+  //   var routeBuilders = _routeBuilders(context, index);
 
-  Widget _buildOffstageNavigator(int index) {
-    var routeBuilders = _routeBuilders(context, index);
-
-    return Offstage(
-      offstage: _selectedIndex != index,
-      child: Navigator(
-        onGenerateRoute: (routeSettings) {
-          return MaterialPageRoute(
-            builder: (context) => routeBuilders[routeSettings.name]!(context),
-          );
-        },
-      ),
-    );
-  }
+  //   return Offstage(
+  //     offstage: _selectedIndex != index,
+  //     child: Navigator(
+  //       onGenerateRoute: (routeSettings) {
+  //         return MaterialPageRoute(
+  //           builder: (context) => routeBuilders[routeSettings.name]!(context),
+  //         );
+  //       },
+  //     ),
+  //   );
+  // }
 }

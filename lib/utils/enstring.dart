@@ -305,7 +305,7 @@ class LanguageEn {
       "I have read and understood all the above.";
 
   static String get haveyoubackedup =>
-      "Before completing account recovery please confirm that you have backed up the new account information";
+      "Before completing account recovery please confirm that you have backed up the new account information. If you have not backed it up, kindly tap the back button and back it up.";
 
   static String get ihavebackedupmywallet =>
       "I have securely backed up my new account information.";
@@ -405,7 +405,7 @@ class LanguageEn {
       "An OTP has successfully been sent to your email. Please check your inbox (possibly the spam folder) to get the OTP and then enter it into the text fields below.";
 
   static String get otpcongratulationsdetails =>
-      "You have successfully recovered your account. Please copy your secret key below to import your wallet afresh from your device.";
+      "You have successfully recovered your account. Please use your new secret key to import your wallet on your device.";
 
   static String get walletcreatesuccess =>
       "Your wallet has been successfully created. \n\n\nWe strongly recommend that you backup your wallet before proceeding.\n\n\nBacking up your wallet is the only way to restore your wallet if you lose your device";
@@ -685,6 +685,18 @@ class LanguageEn {
 
   static String get success => "Success!";
 
+  static String get trustassetsuccess =>
+      "You have successfully activated asset on your wallet. You will now be able to send, receive and perform other transactions with asset.";
+
+  static String get securityquestionssuccessmessage =>
+      'You have successfully setup your secret questons. \n\nPLEASE DO NOT FORGET THE ANSWERS YOU PROVIDED FOR FUTURE USE.';
+
+  static String get enableaccountrecoverysuccess =>
+      "Account recovery has been successfully enabled on your account. Trovowallet will now be able to recover your account if you lose your secret key.";
+
+  static String get disableaccountrecoverysuccess =>
+      "Account recovery has been successfully disabled on your account. \n\nTrovowallet will no longer be able to recover your account should you lose your secret key.\n\n You can enable the service at any time in the future should you have a need for it.";
+
   static String get hasbeenexchange => "Has been exchange from ETH to DAI";
 
   static String get youpay => "You Pay";
@@ -750,6 +762,9 @@ class LanguageEn {
   static String get answer => "Answer";
 
   static String get securityquestions => "Security Questions";
+
+  static String get pleasesetupsecurityquestions =>
+      "Please setup your security questions.\nSecurity questions add an extra layer of security to your account and is also a requirement for using some of the Trovowallet services.";
 
   static String get helpandsupport => "Help and Support";
 

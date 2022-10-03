@@ -1,16 +1,12 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/screens/Auth/AuthorizeLoginView.dart';
-import 'package:trovo_wallet/screens/notifications/firebase_dynamic_links.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/User.dart';
 import '../../router/PageActions.dart';
