@@ -695,7 +695,7 @@ func HasAccessToPublicKey(ownerPublicKey, targetPublicKey string, gc *sharedconf
 		return false
 	}
 	for _, walletAccess := range walletPermissions {
-		if walletAccess.PublicKey == targetPublicKey {
+		if walletAccess.WalletPublicKey == targetPublicKey {
 			return true
 		}
 	}

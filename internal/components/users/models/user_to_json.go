@@ -67,10 +67,10 @@ func (uw *UserWallet) ToJSON() (jsonObj UserWalletJSON) {
 	jsonObj.Alias = uw.Alias
 	jsonObj.Signer = uw.Signer
 	jsonObj.UserID = uw.UserID
-	jsonObj.ManagedAccessEnabled = uw.ManagedAccessEnabled
-	if uw.ManagedAccessEnabled == 1 {
-		majson := uw.UserWalletManagedAccess.ToJSON()
-		jsonObj.UserWalletManagedAccess = &majson
+	jsonObj.SharedAccessEnabled = uw.SharedAccessEnabled
+	if uw.SharedAccessEnabled == 1 {
+		majson := uw.UserWalletSharedAccess.ToJSON()
+		jsonObj.UserWalletSharedAccess = &majson
 	}
 
 	//nullable
@@ -94,7 +94,7 @@ func (uw *UserWallet) ToJSON() (jsonObj UserWalletJSON) {
 	return
 }
 
-func (uwma *UserWalletManagedAccess) ToJSON() (jsonObj UserWalletManagedAccessJSON) {
+func (uwma *UserWalletSharedAccess) ToJSON() (jsonObj UserWalletSharedAccessJSON) {
 	jsonObj.CreatedAt = uwma.CreatedAt
 	jsonObj.UpdatedAt = uwma.UpdatedAt
 	jsonObj.ID = uwma.ID
@@ -108,8 +108,9 @@ func (uwma *UserWalletManagedAccess) ToJSON() (jsonObj UserWalletManagedAccessJS
 func (wa *WalletAccess) ToJSON() (jsonObj WalletAccessJSON) {
 	jsonObj.CreatedAt = wa.CreatedAt
 	jsonObj.UpdatedAt = wa.UpdatedAt
-	jsonObj.Username = wa.Username
+	jsonObj.WalletPublicKey = wa.WalletPublicKey
+	jsonObj.Username = wa.TargetUsername
 	jsonObj.AccessLevel = wa.AccessLevel
-	jsonObj.UserWalletManagedAccessID = wa.UserWalletManagedAccessID
+	jsonObj.UserWalletSharedAccessID = wa.UserWalletSharedAccessID
 	return
 }

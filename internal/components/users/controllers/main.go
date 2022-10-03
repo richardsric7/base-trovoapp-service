@@ -1138,15 +1138,17 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		//At this point, there was no error.
-		if len(payload.TransactionID) > 4 {
+		if len(payload.TransactionID) > 0 {
 			if user.PushNotificationToken != nil {
 				dataPayload := make(map[string]string)
 				dataPayload["none"] = ""
 				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Enabled!", fmt.Sprintf("Congratulations! You have successfully enabled account recovery service on your account [%v]. Your account will be recovered by Trovotech should you lose your secret key. The service will expire on %v. We will notify you when it is time to renew the service to keep your account recovery active.", user.Username, user.AccountRecoveryExpiresOn.Format("01-02-2006 15:04:05")), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+				c.JSON(http.StatusOK, payload)
 			}
+		} else {
+			c.JSON(http.StatusAccepted, payload)
 		}
 
-		c.JSON(http.StatusOK, payload)
 	})
 
 	router.DELETE("/v1/users/account/recovery", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
@@ -1197,15 +1199,17 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 
 		//At this point, there was no error.
-		if len(payload.TransactionID) > 4 {
+		if len(payload.TransactionID) > 0 {
 			if user.PushNotificationToken != nil {
 				dataPayload := make(map[string]string)
 				dataPayload["none"] = ""
 				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Disabled!", fmt.Sprintf("Congratulations! You have successfully disabled account recovery feature on your account [%v].", user.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 			}
+			c.JSON(http.StatusOK, payload)
+		} else {
+			c.JSON(http.StatusAccepted, payload)
 		}
 
-		c.JSON(http.StatusOK, payload)
 	})
 
 	router.POST("/v1/users/account/recover", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
@@ -1257,16 +1261,115 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		//At this point, there was no error.
 		if payload.Commit == 1 {
-			//send email
+			c.JSON(http.StatusOK, payload)
 
 			if user.PushNotificationToken != nil {
 				dataPayload := make(map[string]string)
 				dataPayload["none"] = ""
 				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Successful!", fmt.Sprintf("Congratulations! You have successfully recovered your account [%v]. Please import the new secret key using the same username specified.", user.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 			}
+		} else {
+			c.JSON(http.StatusAccepted, payload)
 		}
 
-		c.JSON(http.StatusOK, payload)
+	})
+
+	router.POST("/v1/users/account/shared-access", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		_, err = usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/account/shared-access %v", middleware.ExtractPublicKey(c)), gc.DB)
+
+		var sharedAccessInfo userModels.UserWalletSharedAccessInfo
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+		log.Println(string(data))
+		err = json.Unmarshal(data, &sharedAccessInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
+		log.Printf("[DEBUG] sharedAccess %+v\n", sharedAccessInfo)
+		_, err = userServices.CreateSharedWalletAccess(middleware.ExtractSigner(c), &sharedAccessInfo, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		var ownerBalanceCacheKey, tempCacheKey, sNFT string
+
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+
+		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+
+		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
+		log.Printf("[CREATE SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
+		if len(sharedAccessInfo.TransactionID) > 0 {
+			c.JSON(http.StatusOK, sharedAccessInfo)
+		} else {
+			c.JSON(http.StatusAccepted, sharedAccessInfo)
+		}
+
 	})
 
 }

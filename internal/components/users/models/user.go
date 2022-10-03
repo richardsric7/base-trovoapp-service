@@ -48,56 +48,57 @@ type User struct {
 }
 
 type UserWallet struct {
-	CreatedAt               time.Time               `json:"createdAt"`
-	UpdatedAt               time.Time               `json:"updatedAt"`
-	ID                      string                  `gorm:"size:56" json:"publicKey"`
-	TempPublicKey           *string                 `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
-	Tag                     *string                 `gorm:"null;size:16" json:"tag"`
-	Description             *string                 `gorm:"null;size:100" json:"description"`
-	Alias                   string                  `gorm:"size:27; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
-	Signer                  string                  `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
-	UserID                  string                  `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
-	ManagedAccessEnabled    uint                    `gorm:"type:integer;not null; default:0" json:"managedAccessEnabled"`
-	UserWalletManagedAccess UserWalletManagedAccess `json:"userWalletManagedAccess"`
-	Tracked                 uint                    `gorm:"type:integer;not null;default:0" json:"-"`
-	PrimaryWallet           uint                    `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
+	CreatedAt              time.Time              `json:"createdAt"`
+	UpdatedAt              time.Time              `json:"updatedAt"`
+	ID                     string                 `gorm:"size:56" json:"publicKey"`
+	TempPublicKey          *string                `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
+	Tag                    *string                `gorm:"null;size:16" json:"tag"`
+	Description            *string                `gorm:"null;size:100" json:"description"`
+	Alias                  string                 `gorm:"size:27; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
+	Signer                 string                 `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
+	UserID                 string                 `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
+	SharedAccessEnabled    uint                   `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
+	UserWalletSharedAccess UserWalletSharedAccess `json:"userWalletSharedAccess"`
+	Tracked                uint                   `gorm:"type:integer;not null;default:0" json:"-"`
+	PrimaryWallet          uint                   `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
 }
 
-type UserWalletManagedAccess struct {
-	CreatedAt           time.Time      `json:"createdAt"`
-	UpdatedAt           time.Time      `json:"updatedAt"`
-	ID                  string         `gorm:"" json:"accessId"`
-	UserWalletID        string         `gorm:"size:56; index:idx_manage_access_user_wallet_id" json:"publicKey"`
-	NumberOfApprovers uint           `gorm:"type:integer; default:1" json:"numberOfApprovers"`
-	AccessList          []WalletAccess `json:"accessList"`
-}
-type UserWalletManagedAccessInfo struct {
-	UserWalletManagedAccessID string             `json:"userWalletManagedAccessId"`
-	NumberOfApprovers       uint               `json:"numberOfApprovers"`
-	PublicKey                 string             `json:"publicKey"`
-	AccessList                []WalletAccessInfo `json:"accessList"`
-	Transaction               string             `json:"transaction"`
-	TransactionSignature      string             `json:"transactionSignature"`
-	TransactionID             string             `json:"transactionId"`
-	NetworkPassPhrase         string             `json:"networkPassPhrase"`
-	Messages                  []string           `json:"messages"`
-	SignatureRequired         uint               `json:"signatureRequired"`
+type UserWalletSharedAccess struct {
+	CreatedAt         time.Time      `json:"createdAt"`
+	UpdatedAt         time.Time      `json:"updatedAt"`
+	ID                string         `gorm:"" json:"accessId"`
+	UserWalletID      string         `gorm:"size:56; index:idx_manage_access_user_wallet_id,unique" json:"walletPublicKey"`
+	NumberOfApprovers int            `gorm:"type:integer; default:0" json:"numberOfApprovers"`
+	AccessList        []WalletAccess `json:"accessList"`
 }
 type WalletAccess struct {
-	CreatedAt                 time.Time `json:"createdAt"`
-	UpdatedAt                 time.Time `json:"updatedAt"`
-	ID                        string
-	PublicKey                 string `gorm:"size:16;not null; index:access_level_public_key_unique; index:idx_public_key_shared" json:"publicKey"`
-	Username                  string `gorm:"size:16;not null; index:access_level_permission,unique;index:access_level_public_key_unique" json:"username"`
-	AccessLevel               string `gorm:"size:10;not null; index:access_level_permission,unique" json:"accessLevel"`
-	UserWalletManagedAccessID string `gorm:"not null;index:idx_wallet_access_wallet_access_id" json:"userWalletManagedAccessId"`
+	CreatedAt                time.Time `json:"-"`
+	UpdatedAt                time.Time `json:"-"`
+	ID                       string
+	WalletPublicKey          string `gorm:"size:90;not null; index:access_level_permission,unique;index:idx_public_key_shared" json:"walletPublicKey"`
+	TargetUsername           string `gorm:"size:16;not null; index:access_level_permission,unique;" json:"targetUsername"`
+	AccessLevel              string `gorm:"size:10;not null; index:access_level_permission,unique" json:"accessLevel"`
+	UserWalletSharedAccessID string `gorm:"not null;index:idx_wallet_access_wallet_access_id" json:"userWalletSharedAccessId"`
+}
+type UserWalletSharedAccessInfo struct {
+	UserWalletSharedAccessID string             `json:"userWalletSharedAccessId"`
+	WalletPublicKey          string             `json:"walletPublicKey"`
+	NumberOfApprovers        int                `json:"numberOfApprovers"`
+	AccessList               []WalletAccessInfo `json:"accessList"`
+	Transaction              string             `json:"transaction"`
+	TransactionSignature     string             `json:"transactionSignature"`
+	TransactionID            string             `json:"transactionId"`
+	NetworkPassPhrase        string             `json:"networkPassPhrase"`
+	Messages                 []string           `json:"messages"`
+	SignatureRequired        int                `json:"signatureRequired"`
 }
 type WalletAccessInfo struct {
-	ID                        string
-	Username                  string `json:"username"`
-	AccessLevel               string `json:"accessLevel"`
-	UserWalletManagedAccessID string `json:"userWalletManagedAccessId"`
-	Name                      string `json:"name"`
+	ID                       string `json:"Id"`
+	UserWalletSharedAccessID string `json:"userWalletSharedAccessId"`
+	WalletPublicKey          string `json:"walletPublicKey"`
+	Username                 string `json:"username"`
+	Name                     string `json:"name"`
+	AccessLevel              string `json:"accessLevel"`
 }
 
 type AccessLevel struct {
@@ -120,8 +121,8 @@ type UserRegistrationInfo struct {
 	PublicIP              string `json:"-"`
 }
 
-// UserWalletManagedAccessID is type for wallet access id
-type UserWalletManagedAccessID string
+// UserWalletsharedAccessID is type for wallet access id
+type UserWalletSharedAccessID string
 
 // UserWalletID is type for wallet/sub-wallet Public Key
 type UserWalletID string

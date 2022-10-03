@@ -34,7 +34,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 		return &tErrors.CustomError{Param: "username", Err: "error account recovery already enabled.", ErrMessage: "Account recovery already enabled."}
 	}
 	wallet, _ := userModels.UserWalletID(user.PublicKey).GetWallet(gc.DB)
-	if wallet.ManagedAccessEnabled == 1 && !WalletHasViewOnlyAccess(&wallet, gc) {
+	if wallet.SharedAccessEnabled == 1 && !WalletHasViewOnlyAccess(&wallet, gc) {
 		return &tErrors.CustomError{Param: "username", Err: "error primary wallet has shared access.", ErrMessage: "Primary wallet has shared access enabled! Only primary wallets without shared access or with view only shared access can participate in account recovery at this time."}
 	}
 
@@ -114,7 +114,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 				continue
 			}
 			if w.Alias != user.Username {
-				if w.ManagedAccessEnabled == 1 {
+				if w.SharedAccessEnabled == 1 {
 					if !WalletHasViewOnlyAccess(&w, gc) {
 						// wallet does not have only view-only access, so we need to add it to the multiaccessWallets list
 						multiAccessWallets = append(multiAccessWallets, w)
@@ -300,7 +300,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 		//has subwallets other than the primary wallet, which has already be added to the ops
 		for _, w := range wallets {
 
-			if w.ManagedAccessEnabled == 1 {
+			if w.SharedAccessEnabled == 1 {
 				if !WalletHasViewOnlyAccess(&w, gc) {
 					// wallet does not have only view-only access, so we need to add it to the multiaccessWallets list
 					multiAccessWallets = append(multiAccessWallets, w)
@@ -493,7 +493,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 				continue
 			}
 			if w.Alias != user.Username {
-				if w.ManagedAccessEnabled == 1 {
+				if w.SharedAccessEnabled == 1 {
 					if !WalletHasViewOnlyAccess(&w, gc) {
 						// wallet does not have only view-only access, so we need to add it to the multiaccessWallets list
 						multiAccessWallets = append(multiAccessWallets, w)

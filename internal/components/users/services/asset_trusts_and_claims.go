@@ -314,7 +314,7 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, assetCode, asset
 
 func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (*userModels.Trustline, error) {
 	trustLineInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
-	if wallet.ManagedAccessEnabled == 0 {
+	if wallet.SharedAccessEnabled == 0 {
 		//managed access not enabled
 		if wallet.Signer != signerUser.PrimarySigner {
 			return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
@@ -346,7 +346,7 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 		}
 		trustLineInfo.TransactionID = txnHash
 		return trustLineInfo, nil
-	} else if wallet.ManagedAccessEnabled == 1 {
+	} else if wallet.SharedAccessEnabled == 1 {
 		//perform managed access operation and save to table
 		return trustLineInfo, nil
 	}
@@ -356,7 +356,7 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 
 func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (*userModels.Trustline, error) {
 	trustLineInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
-	if wallet.ManagedAccessEnabled == 0 {
+	if wallet.SharedAccessEnabled == 0 {
 		//managed access not enabled
 		if wallet.Signer != signerUser.PrimarySigner {
 			return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
@@ -388,7 +388,7 @@ func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet
 		}
 		trustLineInfo.TransactionID = txnHash
 		return trustLineInfo, nil
-	} else if wallet.ManagedAccessEnabled == 1 {
+	} else if wallet.SharedAccessEnabled == 1 {
 		//perform managed access operation and save to table
 		return trustLineInfo, nil
 	}

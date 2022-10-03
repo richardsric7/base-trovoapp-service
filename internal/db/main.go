@@ -141,9 +141,9 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserWallet: ", errMigrate)
 		}
-		errMigrate = gormDB.AutoMigrate(&users.UserWalletManagedAccess{})
+		errMigrate = gormDB.AutoMigrate(&users.UserWalletSharedAccess{})
 		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating UserWalletManagedAccess: ", errMigrate)
+			log.Fatalln("[OpenDb]Error Migrating UserWalletSharedAccess: ", errMigrate)
 		}
 		errMigrate = gormDB.AutoMigrate(&users.WalletAccess{})
 		if errMigrate != nil {

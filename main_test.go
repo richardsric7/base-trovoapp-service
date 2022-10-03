@@ -285,6 +285,27 @@ type AccountRecoveryRequest struct {
 	Username                          string             `json:"username"`
 	TransactionID                     string             `json:"transactionId"`
 }
+type UserWalletSharedAccessInfo struct {
+	UserWalletSharedAccessID string             `json:"userWalletSharedAccessId,omitempty"`
+	WalletPublicKey          string             `json:"walletPublicKey,omitempty"`
+	NumberOfApprovers        int                `json:"numberOfApprovers,omitempty"`
+	AccessList               []WalletAccessInfo `json:"accessList,omitempty"`
+	Transaction              string             `json:"transaction,omitempty"`
+	TransactionSignature     string             `json:"transactionSignature,omitempty"`
+	TransactionID            string             `json:"transactionId,omitempty"`
+	NetworkPassPhrase        string             `json:"networkPassPhrase,omitempty"`
+	Messages                 []string           `json:"messages,omitempty"`
+	SignatureRequired        int                `json:"signatureRequired,omitempty"`
+	// Commit                   int                `json:"commit,omitempty"`
+}
+type WalletAccessInfo struct {
+	ID                       string `json:"Id,omitempty"`
+	UserWalletSharedAccessID string `json:"userWalletSharedAccessId,omitempty"`
+	WalletPublicKey          string `json:"walletPublicKey,omitempty"`
+	Username                 string `json:"username,omitempty"`
+	Name                     string `json:"name,omitempty"`
+	AccessLevel              string `json:"accessLevel,omitempty"`
+}
 
 func TestCreateAccount(t *testing.T) {
 
@@ -1939,5 +1960,132 @@ func TestRemoveTrustAssetMultiAccessDisabled(t *testing.T) {
 
 		log.Printf("REMOVE TRUSTLINE Response:[%+v]\n", trustLineResponse)
 	}
+
+}
+
+func TestCreateSharedAccess(t *testing.T) {
+
+	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// pk :=  os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
+	pk := "GCC3HG535RVZ3MPTDBANZH7V2HRDEQH3LZXDPBEKPJKZBI2UYJR3OJGF"
+	secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
+	accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	baseURL := devURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/users/account/shared-access"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+	var accessList []WalletAccessInfo
+	payload := UserWalletSharedAccessInfo{
+		NumberOfApprovers: 1,
+		// Commit:            1,
+	}
+	accessList = append(accessList,
+		WalletAccessInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "ric",
+			AccessLevel:     "VIEW-ONLY"},
+		WalletAccessInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "ric",
+			AccessLevel:     "INITIATOR"}, WalletAccessInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "ric",
+			AccessLevel:     "APPROVER"})
+	payload.AccessList = accessList
+
+	log.Printf("[DEBUG] Payload: %+v\n", payload)
+	errorResponse := new(ErrorResponse)
+	payResponse := new(UserWalletSharedAccessInfo)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", accessToWallet).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(payload).Receive(payResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestCreateSharedAccess] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestCreateSharedAccess]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Response:[%+v]\n", payResponse)
+
+	{
+		//run the payment signing and submission
+		p := *payResponse
+		// p.Commit = 1
+		//sign transaction
+		if p.SignatureRequired == 1 {
+			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
+			if err != nil {
+				log.Println("[TestCreateSharedAccess] confirm transaction error:", err)
+				t.Errorf(err.Error())
+
+				return
+			}
+
+			p.TransactionSignature = signedBase64
+		}
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", accessToWallet).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
+		if len(errorResponse.Error) > 0 {
+			log.Println("[TestCreateSharedAccess] server 2nd response error:", *errorResponse)
+			t.Errorf(errorResponse.Error)
+			return
+
+		}
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+
+		log.Printf("Shared Access Response:[%+v]\n", payResponse)
+	}
+	log.Println("[TestCreateSharedAccess] completed")
 
 }
