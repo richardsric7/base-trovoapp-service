@@ -997,7 +997,7 @@ func HasInitiatorPermissionToPublicKey(ownerSignerPublicKey, targetPublicKey str
 		return false
 	}
 	for _, walletAccess := range walletPermissions {
-		if walletAccess.WalletPublicKey == targetPublicKey {
+		if walletAccess.WalletPublicKey == targetPublicKey && walletAccess.Permission == "INITIATOR" {
 			return true
 		}
 	}
@@ -1012,7 +1012,7 @@ func SignerHasInitiatorPermissionToPublicKey(signerOwner userModels.User, target
 		return false
 	}
 	for _, walletAccess := range walletPermissions {
-		if walletAccess.WalletPublicKey == targetPublicKey {
+		if walletAccess.WalletPublicKey == targetPublicKey && walletAccess.Permission == "INITIATOR" {
 			return true
 		}
 	}
