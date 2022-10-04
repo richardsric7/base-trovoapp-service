@@ -77,6 +77,8 @@ class _SplashScreenState extends State<SplashScreen>
       bool isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
       initialDynamicLink = await StoreData().storeGetData('initialDynamicLink');
       appState.timeout = await StoreData().storeGetData('timeOut') ?? '5';
+      appState.setDefaultCurrency =
+          await StoreData().storeGetData('defaultCurrency') ?? 'USD';
       appState.sethideWalletList = List.filled(6, appState.hideBalances);
 
       if (!appState.appIsOpen) appState.initFirebaseListener();
@@ -100,9 +102,6 @@ class _SplashScreenState extends State<SplashScreen>
         appState.assetBalances =
             await StoreData().storeGetData('assetBalances');
         appState.setNFTs = await StoreData().storeGetData('nfts');
-        // appState.setFiatRate = await StoreData().storeGetData('fiatRate');
-        appState.setDefaultCurrency =
-            await StoreData().storeGetData('defaultCurrency') ?? 'USD';
         appState.sethideWalletList =
             await StoreData().storeGetData('hideWalletList') ??
                 List.filled(6, appState.hideBalances);

@@ -5,6 +5,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/services/push_fcm_service.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -419,6 +420,8 @@ class _ImportWalletState extends State<ImportWallet> {
         print('response: ${responseData}');
 
         if (responseData['statusCode'] == 200) {
+          getFiatRates(creds.publicKey, creds.secretKey, creds.publicKey,
+              username, appState);
           storeUserInfo(responseData['data']);
           appState.currentAction =
               PageAction(state: PageState.addPage, page: FingerprintPageConfig);

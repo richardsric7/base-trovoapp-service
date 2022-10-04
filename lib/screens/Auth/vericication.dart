@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otp_text_field/otp_text_field.dart';
 import 'package:otp_text_field/style.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -230,6 +231,8 @@ class _VeryficationState extends State<Veryfication> {
     print('response: ${responseData}');
 
     if (responseData['statusCode'] == 200) {
+      getFiatRates(publicKey, secretKey, publicKey,
+          state.userInfo!.username!.trim().replaceAll(' ', ''), state);
       await storeUserInfo(responseData['data']);
       hideLoader(context);
     } else if (responseData['statusCode'] == 404) {
