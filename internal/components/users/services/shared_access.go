@@ -292,6 +292,8 @@ func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Use
 				Name:                     name,
 				Permission:               v.Permission,
 				WalletPublicKey:          wallet.ID,
+				WalletAlias:              wallet.Alias,
+				PushNotificationToken:    u.PushNotificationToken,
 			})
 			accessList = append(accessList, userModels.WalletPermission{
 				ID:                       walletAccessID,

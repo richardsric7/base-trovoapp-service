@@ -104,12 +104,14 @@ type DisableSharedAccessInfo struct {
 	MultiParty               int      `json:"multiParty"`
 }
 type WalletPermissionInfo struct {
-	ID                       string `json:"Id"`
-	UserWalletSharedAccessID string `json:"userWalletSharedAccessId"`
-	WalletPublicKey          string `json:"walletPublicKey"`
-	Username                 string `json:"username"`
-	Name                     string `json:"name"`
-	Permission               string `json:"permission"`
+	ID                       string  `json:"Id"`
+	UserWalletSharedAccessID string  `json:"userWalletSharedAccessId"`
+	WalletPublicKey          string  `json:"walletPublicKey"`
+	WalletAlias              string  `json:"walletAlias"`
+	Username                 string  `json:"username"`
+	Name                     string  `json:"name"`
+	Permission               string  `json:"permission"`
+	PushNotificationToken    *string `json:"-"`
 }
 
 type Permissions struct {

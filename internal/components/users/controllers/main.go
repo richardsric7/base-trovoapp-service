@@ -1365,7 +1365,16 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[CREATE SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
 		if len(sharedAccessInfo.TransactionID) > 0 {
+			for _, v := range sharedAccessInfo.Permissions {
+
+				if v.PushNotificationToken != nil {
+					dataPayload := make(map[string]string)
+					dataPayload["none"] = ""
+					pns.SendFirebaseMessage(*v.PushNotificationToken, fmt.Sprintf("%v permission granted on wallet %v!", v.Permission, v.WalletAlias), fmt.Sprintf("You have been granted %v permission on the wallet [%v]. Please navigate to the section for third-party wallet access whenever you wish to perform tasks relating to this wallet.", v.Permission, v.WalletAlias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+				}
+			}
 			c.JSON(http.StatusOK, sharedAccessInfo)
+
 		} else {
 			c.JSON(http.StatusAccepted, sharedAccessInfo)
 		}
