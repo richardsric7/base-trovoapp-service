@@ -148,10 +148,11 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                         page: WalletDetailsViewPageConfig);
                   },
                   child: walletListItem(
-                      mainWallet!.alias!.capitalizeFirst,
-                      '4,014 USD',
-                      notifier.getstructuredbluecolor,
-                      assetBalances[mainWallet!.publicKey]['claimed'][0]),
+                    mainWallet!.alias!.capitalizeFirst,
+                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, assetBalances[mainWallet!.publicKey]['claimed'])} USD',
+                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, assetBalances[mainWallet!.publicKey]['claimed'])} ${appState.defaultCurrency}',
+                    notifier.getstructuredbluecolor,
+                  ),
                 ),
                 SizedBox(
                   height: height / 50,
@@ -266,12 +267,13 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     page: WalletDetailsViewPageConfig);
               },
               child: walletTile(
-                  wallets![i].alias!.capitalizeFirst!,
-                  '4,014 USD',
-                  i % 2 == 0
-                      ? colors[((i + 1) % colors.length)]
-                      : colors[((i) % colors.length)],
-                  assetBalances[wallets![i].publicKey]['claimed'][0]),
+                wallets![i].alias!.capitalizeFirst!,
+                '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, assetBalances[wallets![i].publicKey]['claimed'])} USD',
+                '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, assetBalances[wallets![i].publicKey]['claimed'])} ${appState.defaultCurrency}',
+                i % 2 == 0
+                    ? colors[((i + 1) % colors.length)]
+                    : colors[((i) % colors.length)],
+              ),
             ),
           ]
         ],
@@ -279,9 +281,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget walletTile(walletName, usdBal, WalletTileColor color, asset) {
-    var balance =
-        "${formatHistoryNumber(double.parse(asset['amount']))} ${asset["assetCode"].toString().isEmpty ? 'XBN' : asset["assetCode"]}";
+  Widget walletTile(
+      walletName, usdBal, preferredFiatBal, WalletTileColor color) {
     return Card(
       elevation: 5,
       shadowColor: Colors.black,
@@ -321,7 +322,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   padding:
                       const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                   child: Text(
-                    appState.hideBalances ? hideBalanceText : balance,
+                    appState.hideBalances ? hideBalanceText : preferredFiatBal,
                     style: TextStyle(
                       fontSize: 18,
                       fontFamily: fontbody,
@@ -390,10 +391,11 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   state: PageState.addPage, page: WalletDetailsViewPageConfig);
             },
             child: walletListItem(
-                wallets![i].alias!.capitalizeFirst!,
-                '4,014 USD',
-                colors[((i + 1) % colors.length)],
-                assetBalances[wallets![i].publicKey]['claimed'][0]),
+              wallets![i].alias!.capitalizeFirst!,
+              '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, assetBalances[wallets![i].publicKey]['claimed'])} USD',
+              '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, assetBalances[wallets![i].publicKey]['claimed'])} ${appState.defaultCurrency}',
+              colors[((i + 1) % colors.length)],
+            ),
           ),
           SizedBox(
             height: height / 50,
@@ -406,9 +408,12 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget walletListItem(walletName, balanceUsd, WalletTileColor color, asset) {
-    var balance =
-        "${formatHistoryNumber(double.parse(asset['amount']))} ${asset["assetCode"].toString().isEmpty ? 'XBN' : asset["assetCode"]}";
+  Widget walletListItem(
+    walletName,
+    balanceUsd,
+    preferredFiatBal,
+    WalletTileColor color,
+  ) {
     return Container(
       height: height / 6.6,
       margin: EdgeInsets.symmetric(horizontal: 20),
@@ -457,7 +462,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               Row(
                 children: [
                   Text(
-                    appState.hideBalances ? hideBalanceText : balance,
+                    appState.hideBalances ? hideBalanceText : preferredFiatBal,
                     style: TextStyle(
                       fontSize: 20,
                       color: color.foreColor,

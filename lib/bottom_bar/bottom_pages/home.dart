@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
@@ -680,8 +681,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 backColor: colors[wallets.indexOf(wallet)],
                 foreColor: getColor(context, indexOfWallet),
                 alias: wallet.alias!.capitalizeFirst!,
-                totalBalance: '2,082,898 NGN',
-                fiatBalance: '4,014 USD',
+                totalBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
+                fiatBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
                 initialHiddenState: appState.hideWalletList[indexOfWallet],
                 onHiddenStateChanged: (state) => {
                   setState(
@@ -770,7 +773,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             title: Row(
               children: [
                 Image.network(
-                  "https://drive.google.com/uc?export=view&id=103fw13pcBoCO2hkTPFX73BUKeWWkVpGZ",
+                  asset["imageUrl"],
                   height: 35,
                   width: 35,
                   errorBuilder: (context, error, stackTrace) {
@@ -796,7 +799,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                       child: Text(
-                        '25 NGN',
+                        "${getFiatRate(asset["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
                         style: TextStyle(
                           fontSize: 9,
                           fontFamily: fontbody,
@@ -824,7 +827,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
-                    getBalance('146,875 NGN', indexOfWallet),
+                    getBalance(
+                        '${calculateFiatValue(asset["amount"], asset["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                        indexOfWallet),
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,
@@ -839,8 +844,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   String getBalance(String balance, indexOfWallet) {
-    // print(
-    //     'getting bal for active wallet... ${appState.hideActiveWalletBalance}');
     String text;
     if (appState.hideBalances) text = hideBalanceText;
 

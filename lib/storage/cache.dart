@@ -39,3 +39,20 @@ Future<void> storeUserInfo(userInfoMap, appState) async {
   appState.setassetBalances = assetBalances;
   print('stored new user data.................');
 }
+
+Future<void> getFiatRates(
+    signer, secretKey, publicKey, username, appState) async {
+  Map responseData = await makeGetRequest(
+    uri: '/v1/rates',
+    signer: signer,
+    secretKey: secretKey, // the primary wallet secret key
+    publicKey: publicKey!,
+  );
+
+  print('response: ${responseData}');
+
+  if (responseData['statusCode'] == 200) {
+    appState.setFiatRate = responseData['data'];
+    await StoreData().storeInsertData('fiatRate', responseData['data']);
+  }
+}

@@ -7,6 +7,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 
 void showSnackBar(String rel, BuildContext context) {
@@ -115,4 +116,28 @@ void handleDynamicLinkData(Uri parsedUri) {
   print('targetUser: ${parsedUri.queryParameters['targetUser']}');
   print('ownerUsername: ${parsedUri.queryParameters['ownerUsername']}');
   print('serviceShortName: ${parsedUri.queryParameters['serviceShortName']}');
+}
+
+String calculateFiatValue(String assetBalance, String usdPrice, String currency,
+        DataProvider appState) =>
+    formatNumber(double.parse(getFiatRate(usdPrice, currency, appState)) *
+            double.parse(assetBalance))
+        .toString();
+
+String getFiatRate(String usdPrice, String currency, DataProvider appState) =>
+    NumberFormat("#,##0.00000", "en_US")
+        .format(appState.fiatRate[currency] * double.parse(usdPrice))
+        .toString();
+
+String getTotalFiatBalanceOfAllAssetsInWallet(
+    String currency, DataProvider appState, dynamic assets) {
+  double balance = 0;
+  if (assets.length > 0) {
+    for (var asset in assets) {
+      balance += double.parse(calculateFiatValue(asset['amount'].toString(),
+              asset['usdPrice'].toString(), currency, appState)
+          .replaceAll(',', ''));
+    }
+  }
+  return formatNumber(balance);
 }

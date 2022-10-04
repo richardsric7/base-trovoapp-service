@@ -172,6 +172,18 @@ class DataProvider with ChangeNotifier {
         PageAction(state: PageState.addPage, page: WebViewPageConfig);
   }
 
+  Map fiatRate = {};
+  set setFiatRate(value) {
+    fiatRate = value;
+    notifyListeners();
+  }
+
+  String defaultCurrency = '';
+  set setDefaultCurrency(value) {
+    defaultCurrency = value;
+    notifyListeners();
+  }
+
   Future<void> refreshData() async {
     try {
       await updateUserInfo(userInfo!.wallets![0].signer, secretKeys[0],

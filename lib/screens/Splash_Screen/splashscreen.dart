@@ -100,7 +100,9 @@ class _SplashScreenState extends State<SplashScreen>
         appState.assetBalances =
             await StoreData().storeGetData('assetBalances');
         appState.setNFTs = await StoreData().storeGetData('nfts');
-
+        // appState.setFiatRate = await StoreData().storeGetData('fiatRate');
+        appState.setDefaultCurrency =
+            await StoreData().storeGetData('defaultCurrency') ?? 'USD';
         appState.sethideWalletList =
             await StoreData().storeGetData('hideWalletList') ??
                 List.filled(6, appState.hideBalances);
@@ -111,6 +113,8 @@ class _SplashScreenState extends State<SplashScreen>
             (wallet) => wallet.primaryWallet == 1,
             orElse: () => appState.userInfo!.wallets![0]);
         updateUserInfo(primaryWallet.signer, appState.secretKeys[0],
+            primaryWallet.publicKey, appState.userInfo!.username!, appState);
+        getFiatRates(primaryWallet.signer, appState.secretKeys[0],
             primaryWallet.publicKey, appState.userInfo!.username!, appState);
         appState.activeWallet = primaryWallet;
         // check if app was not already open

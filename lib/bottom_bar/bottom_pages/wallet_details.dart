@@ -95,8 +95,10 @@ class _WalletDetailsState extends State<WalletDetails>
                 backColor: notifier.getbluecolor,
                 foreColor: wihitecolor,
                 alias: activeWallet!.alias!.capitalizeFirst!,
-                totalBalance: '2,082,898 NGN',
-                fiatBalance: '4,014 USD',
+                totalBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
+                fiatBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
                 initialHiddenState: appState.hideBalances,
                 onHiddenStateChanged: (state) => {
                   setState(
@@ -252,6 +254,9 @@ class _WalletDetailsState extends State<WalletDetails>
                                           state: PageState.replaceAll,
                                           page: BottomHomePageConfig);
                                     },
+                                  ),
+                                  SizedBox(
+                                    height: height / 10,
                                   ),
                                 ],
                               ),
@@ -562,7 +567,7 @@ class _WalletDetailsState extends State<WalletDetails>
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                       child: Text(
-                        '25 NGN',
+                        "${getFiatRate(asset["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
                         style: TextStyle(
                           fontSize: 9,
                           fontFamily: fontbody,
@@ -589,7 +594,8 @@ class _WalletDetailsState extends State<WalletDetails>
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
-                    getBalance('146,875 NGN'),
+                    getBalance(
+                        '${calculateFiatValue(asset["amount"], asset["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}'),
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,

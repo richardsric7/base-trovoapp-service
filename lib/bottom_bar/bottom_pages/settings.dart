@@ -33,6 +33,7 @@ class Settings extends StatefulWidget {
 class _SettingsState extends State<Settings> {
   late ColorNotifier notifier;
   late DataProvider appState;
+
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -41,6 +42,20 @@ class _SettingsState extends State<Settings> {
     } else {
       notifier.setIsDark = previusstate;
     }
+  }
+
+  List<DropdownMenuItem<String>> get getCurrencies {
+    List<DropdownMenuItem<String>> currencies = [];
+    appState.fiatRate.forEach((key, value) {
+      print('===============key: $key, value: $value');
+      currencies.add(DropdownMenuItem(
+          child: Text(
+            key,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: key));
+    });
+    return currencies;
   }
 
   @override
@@ -169,7 +184,7 @@ class _SettingsState extends State<Settings> {
                     "assets/images/languages.png", "", LanguageEn.languages),
               ),
               GestureDetector(
-                child: iteamlist(
+                child: currency(
                     "assets/images/currency.png", "", LanguageEn.currency),
               ),
               GestureDetector(
@@ -578,6 +593,79 @@ class _SettingsState extends State<Settings> {
                             ),
                             value: '15'),
                       ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: width / 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget currency(image, txt, name) {
+    return Container(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: Row(
+          children: [
+            SizedBox(width: width / 25),
+            Image.asset(
+              image,
+              height: height / 30,
+              width: 30,
+              color: notifier.getbluewhitecolor,
+            ),
+            SizedBox(width: width / 40),
+            Text(
+              name,
+              style: TextStyle(
+                  color: notifier.getblck,
+                  fontSize: 13.sp,
+                  fontFamily: fontsemibold),
+            ),
+            const Spacer(),
+            SizedBox(width: width / 100),
+            Container(
+              width: width / 5.9,
+              height: 20,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField(
+                      isExpanded: true,
+                      dropdownColor: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                      value: appState.defaultCurrency,
+                      icon: Visibility(
+                          visible: false, child: Icon(Icons.arrow_downward)),
+                      decoration: InputDecoration(
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      elevation: 0,
+                      style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      onChanged: (newValue) async {
+                        await StoreData().storeInsertData(
+                            'defaultCurrency', newValue.toString());
+                        appState.setDefaultCurrency = newValue.toString();
+                      },
+                      items: getCurrencies,
                     ),
                   ),
                 ],

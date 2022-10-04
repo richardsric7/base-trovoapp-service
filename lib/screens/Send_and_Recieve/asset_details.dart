@@ -258,8 +258,10 @@ class _AssetDetailsState extends State<AssetDetails>
                 backColor: notifier.getbluecolor,
                 foreColor: wihitecolor,
                 alias: activeWallet!.alias!.capitalizeFirst!,
-                totalBalance: '2,082,898 NGN',
-                fiatBalance: '4,014 USD',
+                totalBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
+                fiatBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
                 initialHiddenState: appState.hideBalances,
               ),
               SizedBox(
