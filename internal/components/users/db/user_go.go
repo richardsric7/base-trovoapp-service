@@ -90,8 +90,8 @@ func GetWallet(identifier string, db *gorm.DB) (userWallet userModels.UserWallet
 	return userWallet, temp, nil
 
 }
-func GetAccessList(publicKey string, db *gorm.DB) (accessList []userModels.WalletAccess) {
-	accessList = make([]userModels.WalletAccess, 0)
+func GetPermissionList(publicKey string, db *gorm.DB) (accessList []userModels.WalletPermission) {
+	accessList = make([]userModels.WalletPermission, 0)
 	db.Preload(clause.Associations).Where("public_key = ?", publicKey).Find(&accessList)
 
 	return

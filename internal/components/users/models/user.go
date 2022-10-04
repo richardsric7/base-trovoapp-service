@@ -64,56 +64,57 @@ type UserWallet struct {
 }
 
 type UserWalletSharedAccess struct {
-	CreatedAt         time.Time      `json:"createdAt"`
-	UpdatedAt         time.Time      `json:"updatedAt"`
-	ID                string         `gorm:"" json:"accessId"`
-	UserWalletID      string         `gorm:"size:56; index:idx_manage_access_user_wallet_id,unique" json:"walletPublicKey"`
-	NumberOfApprovers int            `gorm:"type:integer; default:0" json:"numberOfApprovers"`
-	AccessList        []WalletAccess `json:"accessList"`
+	CreatedAt         time.Time          `json:"createdAt"`
+	UpdatedAt         time.Time          `json:"updatedAt"`
+	ID                string             `gorm:"" json:"accessId"`
+	UserWalletID      string             `gorm:"size:56; index:idx_manage_access_user_wallet_id,unique" json:"walletPublicKey"`
+	NumberOfApprovers int                `gorm:"type:integer; default:0" json:"numberOfApprovers"`
+	Permissions       []WalletPermission `json:"permissions"`
 }
-type WalletAccess struct {
+type WalletPermission struct {
 	CreatedAt                time.Time `json:"-"`
 	UpdatedAt                time.Time `json:"-"`
 	ID                       string
 	WalletPublicKey          string `gorm:"size:90;not null; index:access_level_permission,unique;index:idx_public_key_shared" json:"walletPublicKey"`
 	TargetUsername           string `gorm:"size:16;not null; index:access_level_permission,unique;" json:"targetUsername"`
-	AccessLevel              string `gorm:"size:10;not null; index:access_level_permission,unique" json:"accessLevel"`
+	Permission               string `gorm:"size:10;not null; index:access_level_permission,unique" json:"permission"`
 	UserWalletSharedAccessID string `gorm:"not null;index:idx_wallet_access_wallet_access_id" json:"userWalletSharedAccessId"`
 }
 type UserWalletSharedAccessInfo struct {
-	UserWalletSharedAccessID string             `json:"userWalletSharedAccessId"`
-	WalletPublicKey          string             `json:"walletPublicKey"`
-	NumberOfApprovers        int                `json:"numberOfApprovers"`
-	AccessList               []WalletAccessInfo `json:"accessList"`
-	Transaction              string             `json:"transaction"`
-	TransactionSignature     string             `json:"transactionSignature"`
-	TransactionID            string             `json:"transactionId"`
-	NetworkPassPhrase        string             `json:"networkPassPhrase"`
-	Messages                 []string           `json:"messages"`
-	SignatureRequired        int                `json:"signatureRequired"`
+	UserWalletSharedAccessID string                 `json:"userWalletSharedAccessId"`
+	WalletPublicKey          string                 `json:"walletPublicKey"`
+	NumberOfApprovers        int                    `json:"numberOfApprovers"`
+	Permissions              []WalletPermissionInfo `json:"permissions"`
+	Transaction              string                 `json:"transaction"`
+	TransactionSignature     string                 `json:"transactionSignature"`
+	TransactionID            string                 `json:"transactionId"`
+	NetworkPassPhrase        string                 `json:"networkPassPhrase"`
+	Messages                 []string               `json:"messages"`
+	SignatureRequired        int                    `json:"signatureRequired"`
 }
 type DisableSharedAccessInfo struct {
-	UserWalletSharedAccessID string             `json:"userWalletSharedAccessId"`
-	WalletPublicKey          string             `json:"walletPublicKey"`
-	Transaction              string             `json:"transaction"`
-	TransactionSignature     string             `json:"transactionSignature"`
-	TransactionID            string             `json:"transactionId"`
-	NetworkPassPhrase        string             `json:"networkPassPhrase"`
-	Messages                 []string           `json:"messages"`
-	SignatureRequired        int                `json:"signatureRequired"`
+	UserWalletSharedAccessID string   `json:"userWalletSharedAccessId"`
+	WalletPublicKey          string   `json:"walletPublicKey"`
+	Transaction              string   `json:"transaction"`
+	TransactionSignature     string   `json:"transactionSignature"`
+	TransactionID            string   `json:"transactionId"`
+	NetworkPassPhrase        string   `json:"networkPassPhrase"`
+	Messages                 []string `json:"messages"`
+	SignatureRequired        int      `json:"signatureRequired"`
+	MultiParty               int      `json:"multiParty"`
 }
-type WalletAccessInfo struct {
+type WalletPermissionInfo struct {
 	ID                       string `json:"Id"`
 	UserWalletSharedAccessID string `json:"userWalletSharedAccessId"`
 	WalletPublicKey          string `json:"walletPublicKey"`
 	Username                 string `json:"username"`
 	Name                     string `json:"name"`
-	AccessLevel              string `json:"accessLevel"`
+	Permission               string `json:"permission"`
 }
 
-type AccessLevel struct {
-	ID          uint64
-	AccessLevel string `gorm:"size:text" json:"accessList"`
+type Permissions struct {
+	ID         uint64
+	Permission string `gorm:"size:text" json:"permission"`
 }
 
 type UserRegistrationInfo struct {

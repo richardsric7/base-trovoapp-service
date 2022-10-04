@@ -628,7 +628,7 @@ func (id UserWalletID) String() string {
 	return string(id)
 }
 
-func (id UserWalletSharedAccessID) GetAccessAssignment(db *gorm.DB) (assignment UserWalletSharedAccess, err error) {
+func (id UserWalletSharedAccessID) GetPermissionAssignment(db *gorm.DB) (assignment UserWalletSharedAccess, err error) {
 	e := db.Where("id = ?", string(id)).First(&assignment).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -646,15 +646,15 @@ func (id UserWalletSharedAccessID) GetAccessAssignment(db *gorm.DB) (assignment 
 	return
 }
 
-func (id UserWalletID) GetAccessList(db *gorm.DB) (accessList []WalletAccess) {
-	accessList = make([]WalletAccess, 0)
+func (id UserWalletID) GetPermissionList(db *gorm.DB) (accessList []WalletPermission) {
+	accessList = make([]WalletPermission, 0)
 	db.Preload(clause.Associations).Where("wallet_public_key = ?", string(id)).Find(&accessList)
 
 	return
 }
 
-func (u UserWallet) GetAccessList(db *gorm.DB) (accessList []WalletAccess) {
-	accessList = make([]WalletAccess, 0)
+func (u UserWallet) GetPermissionList(db *gorm.DB) (accessList []WalletPermission) {
+	accessList = make([]WalletPermission, 0)
 	db.Preload(clause.Associations).Where("wallet_public_key = ?", u.ID).Find(&accessList)
 
 	return
@@ -665,13 +665,13 @@ func (u *UserWallet) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (
 	if u.ID == "" {
 		return false
 	}
-	accessList := UserWalletID(u.ID).GetAccessList(gc.DB)
+	accessList := UserWalletID(u.ID).GetPermissionList(gc.DB)
 	if len(accessList) == 0 {
 		return false
 	}
 
 	for _, access := range accessList {
-		if access.AccessLevel != "VIEW-ONLY" {
+		if access.Permission != "VIEW-ONLY" {
 			return false
 		}
 	}
@@ -707,8 +707,8 @@ func (id UserWalletID) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig)
 	if wallet.SharedAccessEnabled == 0 {
 		return false
 	}
-	for _, access := range wallet.UserWalletSharedAccess.AccessList {
-		if access.AccessLevel != "VIEW-ONLY" {
+	for _, access := range wallet.UserWalletSharedAccess.Permissions {
+		if access.Permission != "VIEW-ONLY" {
 			return false
 		}
 	}
@@ -754,7 +754,7 @@ func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner User, err error)
 }
 
 func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	walletPermissions := u.Fetch3rdPartyWallets(gc)
+	walletPermissions := u.Fetch3rdPartyWalletPermissions(gc)
 	if len(walletPermissions) == 0 {
 		return false
 	}
@@ -766,6 +766,7 @@ func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalCon
 
 	return false
 }
+
 func (u *User) GetAllWallets(gc *sharedconfig.GlobalConfig) (wallets []UserWallet) {
 	wallets = make([]UserWallet, 0)
 	gc.DB.Where("user_id = ?", u.ID).Find(&wallets)
@@ -773,8 +774,8 @@ func (u *User) GetAllWallets(gc *sharedconfig.GlobalConfig) (wallets []UserWalle
 }
 
 // Fetch3rdPartyWallets fetches all 3rd party wallets that the user is assigned to manage
-func (u *User) Fetch3rdPartyWallets(gc *sharedconfig.GlobalConfig) (thirdPartyWallets []ThirdPartyWalletAccess) {
-	var walletPermissions []WalletAccess
+func (u *User) Fetch3rdPartyWalletPermissions(gc *sharedconfig.GlobalConfig) (thirdPartyWallets []ThirdPartyWalletAccess) {
+	var walletPermissions []WalletPermission
 	thirdPartyWallets = make([]ThirdPartyWalletAccess, 0)
 	cacheKey := fmt.Sprintf("Fetch3rdPartyWallets_%s", u.ID)
 
@@ -790,8 +791,8 @@ func (u *User) Fetch3rdPartyWallets(gc *sharedconfig.GlobalConfig) (thirdPartyWa
 				w3i := w3.(map[string]interface{})
 				thirdPartyWallets = append(thirdPartyWallets, ThirdPartyWalletAccess{
 					Owner:             w3i["owner"].(string),
-					WalletPublicKey:         w3i["walletPublicKey"].(string),
-					AccessLevel:       w3i["accessLevel"].(string),
+					WalletPublicKey:   w3i["walletPublicKey"].(string),
+					Permission:        w3i["permission"].(string),
 					WalletAlias:       w3i["walletAlias"].(string),
 					WalletDescription: w3i["walletDescription"].(string),
 				})
@@ -811,31 +812,30 @@ func (u *User) Fetch3rdPartyWallets(gc *sharedconfig.GlobalConfig) (thirdPartyWa
 	}
 	for _, assignedPermission := range walletPermissions {
 		//Get the permission assignment
-		sharedAccess, err := UserWalletSharedAccessID(assignedPermission.UserWalletSharedAccessID).GetAccessAssignment(gc.DB)
 		thirdPartyWallet := ThirdPartyWalletAccess{
-			AccessLevel: assignedPermission.AccessLevel,
+			Permission: assignedPermission.Permission,
 		}
+
+		//use it to fetch wallet details
+		wallet, err := UserWalletID(assignedPermission.WalletPublicKey).GetWallet(gc.DB)
 		if err == nil {
-			//use it to fetch wallet details
-			wallet, err := UserWalletID(sharedAccess.UserWalletID).GetWallet(gc.DB)
-			if err == nil {
-				thirdPartyWallet.WalletPublicKey = wallet.ID
-				thirdPartyWallet.WalletAlias = wallet.Alias
-				if wallet.Description != nil {
-					thirdPartyWallet.WalletDescription = *wallet.Description
-				}
-			}
-			//use it to fetch wallet owner details
-			owner, err := UserWalletID(sharedAccess.UserWalletID).GetWalletOwner(gc.DB)
-			if err == nil {
-				thirdPartyWallet.Owner = owner.Username
+			thirdPartyWallet.WalletPublicKey = wallet.ID
+			thirdPartyWallet.WalletAlias = wallet.Alias
+			if wallet.Description != nil {
+				thirdPartyWallet.WalletDescription = *wallet.Description
 			}
 		}
+		//use it to fetch wallet owner details
+		owner, err := UserWalletID(assignedPermission.WalletPublicKey).GetWalletOwner(gc.DB)
+		if err == nil {
+			thirdPartyWallet.Owner = owner.Username
+		}
+
 		thirdPartyWallets = append(thirdPartyWallets, thirdPartyWallet)
 
 	}
 	//save to cache
-	gc.RedisCache.StoreResultToCache(cacheKey, thirdPartyWallets, 4000)
+	gc.RedisCache.StoreResultToCache(cacheKey, thirdPartyWallets, 120)
 
 	return
 }

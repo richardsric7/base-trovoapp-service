@@ -99,18 +99,18 @@ func (uwma *UserWalletSharedAccess) ToJSON() (jsonObj UserWalletSharedAccessJSON
 	jsonObj.UpdatedAt = uwma.UpdatedAt
 	jsonObj.ID = uwma.ID
 	jsonObj.UserWalletID = uwma.UserWalletID
-	for _, uwmaAL := range uwma.AccessList {
-		jsonObj.AccessList = append(jsonObj.AccessList, uwmaAL.ToJSON())
+	for _, uwmaAL := range uwma.Permissions {
+		jsonObj.Permissions = append(jsonObj.Permissions, uwmaAL.ToJSON())
 	}
 	return
 }
 
-func (wa *WalletAccess) ToJSON() (jsonObj WalletAccessJSON) {
+func (wa *WalletPermission) ToJSON() (jsonObj WalletPermissionJSON) {
 	jsonObj.CreatedAt = wa.CreatedAt
 	jsonObj.UpdatedAt = wa.UpdatedAt
 	jsonObj.WalletPublicKey = wa.WalletPublicKey
 	jsonObj.Username = wa.TargetUsername
-	jsonObj.AccessLevel = wa.AccessLevel
+	jsonObj.Permission = wa.Permission
 	jsonObj.UserWalletSharedAccessID = wa.UserWalletSharedAccessID
 	return
 }

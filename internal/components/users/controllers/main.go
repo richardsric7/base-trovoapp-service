@@ -111,10 +111,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 			//check if the owner is the one accessing it or if the one accessing it has access to access it.
 
-			if signerUser.PrimarySigner != middleware.ExtractSigner(c) && !userServices.HasAccessToPublicKey(signerUser.PublicKey, targetPublicKeyForHistory, gc) {
+			if !userServices.SignerHasInitiatorPermissionToPublicKey(signerUser, targetPublicKeyForHistory, gc) {
 				te := &tErrors.ErrorInvalidAuthorization{}
 
-				log.Println("[GET HISTORY] Invalid signer for user:", signerUser.Username, "error: ", err)
+				log.Println("[GET HISTORY] Invalid access for user:", signerUser.Username, "error: ", te.Error())
 				c.JSON(te.HTTPCode(), te.JSONError())
 				return
 			}
@@ -1364,6 +1364,104 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[CREATE SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
+		if len(sharedAccessInfo.TransactionID) > 0 {
+			c.JSON(http.StatusOK, sharedAccessInfo)
+		} else {
+			c.JSON(http.StatusAccepted, sharedAccessInfo)
+		}
+
+	})
+
+	router.DELETE("/v1/users/account/shared-access", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		_, err = usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/users/account/shared-access %v", middleware.ExtractPublicKey(c)), gc.DB)
+
+		var sharedAccessInfo userModels.DisableSharedAccessInfo
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+		log.Println(string(data))
+		err = json.Unmarshal(data, &sharedAccessInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
+		log.Printf("[DEBUG] sharedAccess %+v\n", sharedAccessInfo)
+		err = userServices.RemoveSharedWalletAccess(middleware.ExtractSigner(c), &sharedAccessInfo, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		var ownerBalanceCacheKey, tempCacheKey, sNFT string
+
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+
+		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+
+		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
+		log.Printf("[REMOVED SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
 		if len(sharedAccessInfo.TransactionID) > 0 {
 			c.JSON(http.StatusOK, sharedAccessInfo)
 		} else {

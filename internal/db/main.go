@@ -145,9 +145,9 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserWalletSharedAccess: ", errMigrate)
 		}
-		errMigrate = gormDB.AutoMigrate(&users.WalletAccess{})
+		errMigrate = gormDB.AutoMigrate(&users.WalletPermission{})
 		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating WalletAccess: ", errMigrate)
+			log.Fatalln("[OpenDb]Error Migrating WalletPermission: ", errMigrate)
 		}
 		errMigrate = gormDB.AutoMigrate(&users.SecurityQuestion{})
 		if errMigrate != nil {
@@ -158,9 +158,9 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating UserSecretAnswer: ", errMigrate)
 		}
 
-		errMigrate = gormDB.AutoMigrate(&users.AccessLevel{})
+		errMigrate = gormDB.AutoMigrate(&users.Permissions{})
 		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating AccessLevel: ", errMigrate)
+			log.Fatalln("[OpenDb]Error Migrating Permissions: ", errMigrate)
 		}
 
 		errMigrate = gormDB.AutoMigrate(&users.ReservedName{})

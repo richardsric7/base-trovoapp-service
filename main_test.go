@@ -115,31 +115,31 @@ type UserWalletJSON struct {
 	Alias                   string                      `json:"alias"`  //primaryUsername_tag for sub wallets
 	Signer                  string                      `json:"signer"` //if ID is same as signer, then it is a primary wallet
 	UserID                  string                      `json:"userId"`
-	ManagedAccessEnabled    uint                        `json:"managedAccessEnabled"`
+	SharedAccessEnabled    uint                        `json:"sharedAccessEnabled"`
 	PrimaryWallet           uint                        `json:"primaryWallet"`
-	UserWalletManagedAccess UserWalletManagedAccessJSON `json:"userWalletManagedAccess"`
+	UserWalletSharedAccess UserWalletSharedAccessJSON `json:"userWalletSharedAccess"`
 }
 
-type UserWalletManagedAccessJSON struct {
+type UserWalletSharedAccessJSON struct {
 	CreatedAt           time.Time          `json:"createdAt"`
 	UpdatedAt           time.Time          `json:"updatedAt"`
 	ID                  string             `json:"accessId"`
 	UserWalletID        string             `json:"publicKey"`
-	NumberOfAuthorizers uint               `json:"numberOfAuthorizers"`
-	AccessList          []WalletAccessJSON `json:"accessList"`
+	NumberOfApprovers uint               `json:"numberOfApprovers"`
+	Permissions          []WalletPermissionJSON `json:"permissions"`
 }
 
-type WalletAccessJSON struct {
+type WalletPermissionJSON struct {
 	CreatedAt                 time.Time `json:"createdAt"`
 	UpdatedAt                 time.Time `json:"updatedAt"`
 	Username                  string    `json:"username"`
-	AccessLevel               string    `json:"accessLevel"`
+	Permission                string    `json:"permission"`
 	UserWalletManagedAccessID string    `json:"userWalletManagedAccessId"`
 }
 type ThirdPartyWalletAccess struct {
 	Owner             string `json:"owner"`
 	PublicKey         string `json:"publicKey"`
-	AccessLevel       string `json:"accessLevel"`
+	Permission        string `json:"permission"`
 	WalletAlias       string `json:"walletAlias"`
 	WalletDescription string `json:"walletDescription"`
 }
@@ -286,25 +286,25 @@ type AccountRecoveryRequest struct {
 	TransactionID                     string             `json:"transactionId"`
 }
 type UserWalletSharedAccessInfo struct {
-	UserWalletSharedAccessID string             `json:"userWalletSharedAccessId,omitempty"`
-	WalletPublicKey          string             `json:"walletPublicKey,omitempty"`
-	NumberOfApprovers        int                `json:"numberOfApprovers,omitempty"`
-	AccessList               []WalletAccessInfo `json:"accessList,omitempty"`
-	Transaction              string             `json:"transaction,omitempty"`
-	TransactionSignature     string             `json:"transactionSignature,omitempty"`
-	TransactionID            string             `json:"transactionId,omitempty"`
-	NetworkPassPhrase        string             `json:"networkPassPhrase,omitempty"`
-	Messages                 []string           `json:"messages,omitempty"`
-	SignatureRequired        int                `json:"signatureRequired,omitempty"`
+	UserWalletSharedAccessID string                 `json:"userWalletSharedAccessId,omitempty"`
+	WalletPublicKey          string                 `json:"walletPublicKey,omitempty"`
+	NumberOfApprovers        int                    `json:"numberOfApprovers,omitempty"`
+	Permissions              []WalletPermissionInfo `json:"permissions,omitempty"`
+	Transaction              string                 `json:"transaction,omitempty"`
+	TransactionSignature     string                 `json:"transactionSignature,omitempty"`
+	TransactionID            string                 `json:"transactionId,omitempty"`
+	NetworkPassPhrase        string                 `json:"networkPassPhrase,omitempty"`
+	Messages                 []string               `json:"messages,omitempty"`
+	SignatureRequired        int                    `json:"signatureRequired,omitempty"`
 	// Commit                   int                `json:"commit,omitempty"`
 }
-type WalletAccessInfo struct {
+type WalletPermissionInfo struct {
 	ID                       string `json:"Id,omitempty"`
 	UserWalletSharedAccessID string `json:"userWalletSharedAccessId,omitempty"`
 	WalletPublicKey          string `json:"walletPublicKey,omitempty"`
 	Username                 string `json:"username,omitempty"`
 	Name                     string `json:"name,omitempty"`
-	AccessLevel              string `json:"accessLevel,omitempty"`
+	Permission               string `json:"permission,omitempty"`
 }
 
 func TestCreateAccount(t *testing.T) {
@@ -951,12 +951,12 @@ func TestGetUserInfo(t *testing.T) {
 	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
 	// primaryPK := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
-	primaryPK := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// primaryPK := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
-	primarySecretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
-	// primaryPK := os.Getenv("RICPK")
-	// primarySecretKey := os.Getenv("RICSC")
-	ownerUsername := "ric1"
+	// primarySecretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
+	primaryPK := os.Getenv("RICPK")
+	primarySecretKey := os.Getenv("RICSC")
+	ownerUsername := "ric"
 	kp := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
@@ -1994,24 +1994,24 @@ func TestCreateSharedAccess(t *testing.T) {
 		return
 
 	}
-	var accessList []WalletAccessInfo
+	var accessList []WalletPermissionInfo
 	payload := UserWalletSharedAccessInfo{
 		NumberOfApprovers: 1,
 		// Commit:            1,
 	}
 	accessList = append(accessList,
-		WalletAccessInfo{
+		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			Username:        "ric",
-			AccessLevel:     "VIEW-ONLY"},
-		WalletAccessInfo{
+			Permission:      "VIEW-ONLY"},
+		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			Username:        "ric",
-			AccessLevel:     "INITIATOR"}, WalletAccessInfo{
+			Permission:      "INITIATOR"}, WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			Username:        "ric",
-			AccessLevel:     "APPROVER"})
-	payload.AccessList = accessList
+			Permission:      "APPROVER"})
+	payload.Permissions = accessList
 
 	log.Printf("[DEBUG] Payload: %+v\n", payload)
 	errorResponse := new(ErrorResponse)

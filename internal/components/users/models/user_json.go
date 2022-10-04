@@ -43,19 +43,19 @@ type UserWalletJSON struct {
 }
 
 type UserWalletSharedAccessJSON struct {
-	CreatedAt         time.Time          `json:"createdAt"`
-	UpdatedAt         time.Time          `json:"updatedAt"`
-	ID                string             `json:"accessId"`
-	UserWalletID      string             `json:"walletPublicKey"`
-	NumberOfApprovers int                `json:"numberOfApprovers"`
-	AccessList        []WalletAccessJSON `json:"accessList"`
+	CreatedAt         time.Time              `json:"createdAt"`
+	UpdatedAt         time.Time              `json:"updatedAt"`
+	ID                string                 `json:"accessId"`
+	UserWalletID      string                 `json:"walletPublicKey"`
+	NumberOfApprovers int                    `json:"numberOfApprovers"`
+	Permissions       []WalletPermissionJSON `json:"permissions"`
 }
 
-type WalletAccessJSON struct {
+type WalletPermissionJSON struct {
 	CreatedAt                time.Time `json:"createdAt"`
 	UpdatedAt                time.Time `json:"updatedAt"`
 	WalletPublicKey          string    `json:"walletPublicKey"`
 	Username                 string    `json:"username"`
-	AccessLevel              string    `json:"accessLevel"`
+	Permission               string    `json:"permission"`
 	UserWalletSharedAccessID string    `json:"userWalletSharedAccessId"`
 }

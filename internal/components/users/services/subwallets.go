@@ -7,7 +7,6 @@ import (
 	"strings"
 	bc "trovo-wallet-api/internal/blockchainalgofuncs"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
-	userDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
@@ -682,25 +681,6 @@ func SubmitSubWalletXdrForChannelAccountWithSignature(client *horizonclient.Clie
 
 	return txnResult.Hash, nil
 
-}
-
-func HasAccessToPublicKey(ownerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	user, err := userDB.GetUser(ownerPublicKey, gc.DB)
-
-	if err != nil {
-		return false
-	}
-	walletPermissions := user.Fetch3rdPartyWallets(gc)
-	if len(walletPermissions) == 0 {
-		return false
-	}
-	for _, walletAccess := range walletPermissions {
-		if walletAccess.WalletPublicKey == targetPublicKey {
-			return true
-		}
-	}
-
-	return false
 }
 
 func GetUserwallets(user userModels.User, gc *sharedconfig.GlobalConfig) (wallets []userModels.UserWallet) {

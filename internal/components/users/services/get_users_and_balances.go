@@ -71,7 +71,7 @@ func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Contex
 		userInfo.ThirdPartyWalletAccess = make([]userModels.ThirdPartyWalletAccess, 0)
 		//Get ThirdParty Wallet Access
 
-		userInfo.ThirdPartyWalletAccess = user.Fetch3rdPartyWallets(gc)
+		userInfo.ThirdPartyWalletAccess = user.Fetch3rdPartyWalletPermissions(gc)
 
 		userInfo.DefaultAssets = user.GetDefaultAssets(gc)
 	}
