@@ -107,26 +107,26 @@ type UserJSON struct {
 }
 
 type UserWalletJSON struct {
-	CreatedAt               time.Time                   `json:"createdAt"`
-	ID                      string                      `json:"publicKey"`
-	TempPublicKey           string                      `json:"-"`
-	Tag                     string                      `json:"tag"`
-	Description             string                      `json:"description"`
-	Alias                   string                      `json:"alias"`  //primaryUsername_tag for sub wallets
-	Signer                  string                      `json:"signer"` //if ID is same as signer, then it is a primary wallet
-	UserID                  string                      `json:"userId"`
-	SharedAccessEnabled    uint                        `json:"sharedAccessEnabled"`
-	PrimaryWallet           uint                        `json:"primaryWallet"`
+	CreatedAt              time.Time                  `json:"createdAt"`
+	ID                     string                     `json:"publicKey"`
+	TempPublicKey          string                     `json:"-"`
+	Tag                    string                     `json:"tag"`
+	Description            string                     `json:"description"`
+	Alias                  string                     `json:"alias"`  //primaryUsername_tag for sub wallets
+	Signer                 string                     `json:"signer"` //if ID is same as signer, then it is a primary wallet
+	UserID                 string                     `json:"userId"`
+	SharedAccessEnabled    uint                       `json:"sharedAccessEnabled"`
+	PrimaryWallet          uint                       `json:"primaryWallet"`
 	UserWalletSharedAccess UserWalletSharedAccessJSON `json:"userWalletSharedAccess"`
 }
 
 type UserWalletSharedAccessJSON struct {
-	CreatedAt           time.Time          `json:"createdAt"`
-	UpdatedAt           time.Time          `json:"updatedAt"`
-	ID                  string             `json:"accessId"`
-	UserWalletID        string             `json:"publicKey"`
-	NumberOfApprovers uint               `json:"numberOfApprovers"`
-	Permissions          []WalletPermissionJSON `json:"permissions"`
+	CreatedAt         time.Time              `json:"createdAt"`
+	UpdatedAt         time.Time              `json:"updatedAt"`
+	ID                string                 `json:"accessId"`
+	UserWalletID      string                 `json:"publicKey"`
+	NumberOfApprovers uint                   `json:"numberOfApprovers"`
+	Permissions       []WalletPermissionJSON `json:"permissions"`
 }
 
 type WalletPermissionJSON struct {
@@ -1969,14 +1969,17 @@ func TestCreateSharedAccess(t *testing.T) {
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk :=  os.Getenv("RICPK")
 	// secretKey := os.Getenv("RICSC")
-	pk := "GCC3HG535RVZ3MPTDBANZH7V2HRDEQH3LZXDPBEKPJKZBI2UYJR3OJGF"
-	secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
-	accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
+	// pk := "GCC3HG535RVZ3MPTDBANZH7V2HRDEQH3LZXDPBEKPJKZBI2UYJR3OJGF"
+	// pk := "GDBWYZWLYASCZ6KP4AIRNRY5WQ5OX6H2T6WASG7WFAEEYO6R6AC4GXRM"
+	// secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
+	secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
+	// accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
+	accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := devURL
+	baseURL := prodURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -1988,7 +1991,7 @@ func TestCreateSharedAccess(t *testing.T) {
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
 	tsString := fmt.Sprintf("%v", ts)
-	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -1996,21 +1999,58 @@ func TestCreateSharedAccess(t *testing.T) {
 	}
 	var accessList []WalletPermissionInfo
 	payload := UserWalletSharedAccessInfo{
-		NumberOfApprovers: 1,
+		NumberOfApprovers: 2,
 		// Commit:            1,
 	}
 	accessList = append(accessList,
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
-			Username:        "ric",
-			Permission:      "VIEW-ONLY"},
+			Username:        "onoja",
+			Permission:      "INITIATOR"},
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			Username:        "ric",
-			Permission:      "INITIATOR"}, WalletPermissionInfo{
+			Permission:      "INITIATOR"},
+		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			Username:        "ric",
-			Permission:      "APPROVER"})
+			Permission:      "APPROVER"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "obi",
+			Permission:      "APPROVER"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "kenmaddy",
+			Permission:      "APPROVER"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "kenmaddy",
+			Permission:      "INITIATOR"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "thundeyy",
+			Permission:      "INITIATOR"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "thundeyy",
+			Permission:      "APPROVER"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "onoja",
+			Permission:      "APPROVER"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "efizee",
+			Permission:      "APPROVER"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "efizee",
+			Permission:      "INITIATOR"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			Username:        "obi",
+			Permission:      "INITIATOR"})
 	payload.Permissions = accessList
 
 	log.Printf("[DEBUG] Payload: %+v\n", payload)
@@ -2059,7 +2099,7 @@ func TestCreateSharedAccess(t *testing.T) {
 
 		ts := time.Now().Unix() / 1000
 		tsString := fmt.Sprintf("%v", ts)
-		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
 			t.Errorf(err.Error())
 			return
