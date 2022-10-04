@@ -102,7 +102,31 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 
 			c.JSON(statusCode, response)
-			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		targetOwnerUser, err := usersDB.GetUser(targetPublicKeyForHistory, gc.DB)
+
+		if err != nil {
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
 
@@ -111,7 +135,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 			//check if the owner is the one accessing it or if the one accessing it has access to access it.
 
-			if !userServices.SignerHasInitiatorPermissionToPublicKey(signerUser, targetPublicKeyForHistory, gc) {
+			if (signerUser.Username != targetOwnerUser.Username) && !userServices.HasAccessToPublicKey(signerUser.PrimarySigner, targetPublicKeyForHistory, gc) {
 				te := &tErrors.ErrorInvalidAuthorization{}
 
 				log.Println("[GET HISTORY] Invalid access for user:", signerUser.Username, "error: ", te.Error())
