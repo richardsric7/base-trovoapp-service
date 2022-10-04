@@ -179,7 +179,7 @@ class _BottomHomeState extends State<BottomHome> {
     setState(() {
       if (_selectedIndex != ButtomTabPage.TransactionHistory.index &&
           index == ButtomTabPage.TransactionHistory.index) {
-        appState.getHistory();
+        appState.getHistory(context);
       }
       _selectedIndex = index;
       appState.currentBottomTabIndex = _selectedIndex;

@@ -9,6 +9,8 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/screens/Auth/AuthorizeActionView.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import '../Models/User.dart';
 import '../Models/WalletsListViewData.dart';
 import '../router/PageActions.dart';
@@ -203,14 +205,15 @@ class DataProvider with ChangeNotifier {
   int currentPage = 1;
   int? totalRecords = 0;
 
-  getHistory() async {
-    await fetchHistory(limit);
+  getHistory(context) async {
+    await fetchHistory(context, limit);
     notifyListeners();
   }
 
-  Future<void> fetchHistory(limit) async {
+  Future<void> fetchHistory(context, limit) async {
     try {
       print('fetching history for: ${activeWallet!.publicKey!}');
+      showLoader(context);
       Map responseData = await makeGetRequest(
           uri: '/v1/users/payments/${activeWallet!.publicKey}?limit=$limit',
           signer: activeWallet!.signer!,
@@ -231,8 +234,14 @@ class DataProvider with ChangeNotifier {
 
         historyData = transactions;
         notifyListeners();
+        hideLoader(context);
+      } else {
+        hideLoader(context);
+        popup(context,
+            title: LanguageEn.error, message: responseData['data']['message']);
       }
     } catch (e) {
+      hideLoader(context);
       print('................................in transaction history: $e');
     }
   }

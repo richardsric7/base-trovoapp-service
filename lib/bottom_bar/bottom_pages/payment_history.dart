@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
@@ -33,10 +32,12 @@ class Payment_HistoryState extends State<PaymentHistory>
   List<Wallet>? wallets;
   Wallet? activeWallet;
   dynamic selectedWallet = '';
+  var claimedAssets;
   late List<TransactionInfo>? historyData;
+  var filterTypes = <String>["Date Range", "Amount Range", "Username"];
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
-    return wallets!
+    var dropdownItems = wallets!
         .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,6 +51,83 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
             value: wallet.publicKey))
         .toList();
+
+    // dropdownItems.add(DropdownMenuItem(
+    //     child: Column(
+    //       crossAxisAlignment: CrossAxisAlignment.start,
+    //       mainAxisAlignment: MainAxisAlignment.center,
+    //       children: [
+    //         Text(
+    //           'All Wallets',
+    //           overflow: TextOverflow.ellipsis,
+    //         ),
+    //       ],
+    //     ),
+    //     value: 'all'));
+
+    return dropdownItems;
+  }
+
+  List<DropdownMenuItem<String>> get filterTypeDropdownItems {
+    return filterTypes
+        .map<DropdownMenuItem<String>>((type) => DropdownMenuItem(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  type,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+            value: type))
+        .toList();
+  }
+
+  List<DropdownMenuItem<String>> get assetsDropdownItems {
+    return claimedAssets.map<DropdownMenuItem<String>>((asset) {
+      return DropdownMenuItem<String>(
+        value: '${asset['assetIssuer']}|${asset["assetCode"]}',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              asset["assetCode"].toString().isEmpty
+                  ? 'XBN'
+                  : asset["assetCode"],
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+        // Row(
+        //   children: [
+        //     CircleAvatar(
+        //       maxRadius: 15,
+        //       child: SvgPicture.asset(
+        //         "assets/images/swapicon.svg",
+        //         // height: height / 40,
+        //       ),
+        //     ),
+        //     Padding(
+        //       padding: const EdgeInsets.fromLTRB(8.0, 0, 0, 0),
+        //       child: Text(
+        //         asset["assetCode"].toString().isEmpty
+        //             ? 'XBN'
+        //             : asset["assetCode"],
+        //         style: TextStyle(
+        //           fontSize: 15,
+        //           // fontWeight: FontWeight.bold,
+        //           color: notifier.getbluewhitecolor,
+        //           fontFamily: fontbody,
+        //         ),
+        //       ),
+        //     ),
+        //   ],
+        // ),
+      );
+    }).toList();
   }
 
   @override
@@ -71,6 +149,8 @@ class Payment_HistoryState extends State<PaymentHistory>
     }
     selectedWallet = activeWallet!.publicKey;
     historyData = appState.historyData;
+    var assetBalances = appState.assetBalances;
+    claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
 
     return ScreenUtilInit(
       builder: (context, child) => DefaultTabController(
@@ -98,60 +178,115 @@ class Payment_HistoryState extends State<PaymentHistory>
                   SizedBox(
                     height: height / 50,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: DropdownButtonFormField(
-                      isDense: true,
-                      isExpanded: true,
-                      dropdownColor: notifier.isDark
-                          ? darktilewhitecolor
-                          : notifier.getaddsubwalletgrey,
-                      decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(10),
+                  Container(
+                    width: width,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: width / 50,
                         ),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(10),
+                        Expanded(
+                          flex: 2,
+                          child: dropdown(
+                            (newValue) async {
+                              selectedWallet = newValue!;
+                              appState.activeWallet = wallets!.firstWhere(
+                                  (wallet) => wallet.publicKey == newValue);
+                              showLoader(context);
+                              appState.limit = 20;
+                              appState.totalRecords = 0;
+                              appState.currentPage = 1;
+                              await appState.fetchHistory(
+                                  context, appState.limit);
+                              hideLoader(context);
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            },
+                            walletDropdownItems,
+                            selectedWallet,
+                            null,
+                          ),
                         ),
-                        filled: true,
-                        fillColor: notifier.isDark
-                            ? darktilewhitecolor
-                            : notifier.getaddsubwalletgrey,
-                      ),
-                      value: selectedWallet,
-                      icon: Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                      elevation: 0,
-                      style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      onChanged: (newValue) async {
-                        selectedWallet = newValue!;
-                        appState.activeWallet = wallets!.firstWhere(
-                            (wallet) => wallet.publicKey == newValue);
-                        showLoader(context);
-                        appState.limit = 20;
-                        appState.totalRecords = 0;
-                        appState.currentPage = 1;
-                        await appState.fetchHistory(appState.limit);
-                        hideLoader(context);
-                        if (mounted) {
-                          setState(() {});
-                        }
-                      },
-                      items: walletDropdownItems,
+                        Expanded(
+                          flex: 2,
+                          child: dropdown((newValue) async {
+                            selectedWallet = newValue!;
+                            appState.activeWallet = wallets!.firstWhere(
+                                (wallet) => wallet.publicKey == newValue);
+                            showLoader(context);
+                            appState.limit = 20;
+                            appState.totalRecords = 0;
+                            appState.currentPage = 1;
+                            await appState.fetchHistory(
+                                context, appState.limit);
+                            hideLoader(context);
+                            if (mounted) {
+                              setState(() {});
+                            }
+                          }, assetsDropdownItems, null, 'Assets'),
+                        ),
+                        SizedBox(
+                          width: width / 50,
+                        ),
+                      ],
                     ),
                   ),
-                  // walletTile(),
+                  SizedBox(height: height / 50),
+                  Container(
+                    width: width,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: width / 50,
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: dropdown(
+                            (newValue) async {
+                              selectedWallet = newValue!;
+                              appState.activeWallet = wallets!.firstWhere(
+                                  (wallet) => wallet.publicKey == newValue);
+                              showLoader(context);
+                              appState.limit = 20;
+                              appState.totalRecords = 0;
+                              appState.currentPage = 1;
+                              await appState.fetchHistory(
+                                  context, appState.limit);
+                              hideLoader(context);
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            },
+                            filterTypeDropdownItems,
+                            null,
+                            'Date Range',
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: dropdown((newValue) async {
+                            selectedWallet = newValue!;
+                            appState.activeWallet = wallets!.firstWhere(
+                                (wallet) => wallet.publicKey == newValue);
+                            showLoader(context);
+                            appState.limit = 20;
+                            appState.totalRecords = 0;
+                            appState.currentPage = 1;
+                            await appState.fetchHistory(
+                                context, appState.limit);
+                            hideLoader(context);
+                            if (mounted) {
+                              setState(() {});
+                            }
+                          }, assetsDropdownItems, null, 'Enter Range'),
+                        ),
+                        SizedBox(
+                          width: width / 50,
+                        ),
+                      ],
+                    ),
+                  ),
                   SizedBox(height: height / 50),
                   listHistory(),
                   SizedBox(
@@ -175,7 +310,7 @@ class Payment_HistoryState extends State<PaymentHistory>
           isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {
             appState.limit += 20;
-            await appState.fetchHistory(appState.limit);
+            await appState.fetchHistory(context, appState.limit);
             return historyData!.length <= appState.totalRecords!;
           },
           textBuilder: (LoadMoreStatus status) {
@@ -211,12 +346,29 @@ class Payment_HistoryState extends State<PaymentHistory>
     return Container(
       height: height / 1.8,
       child: Center(
-        child: CircularProgressIndicator(
-          backgroundColor: notifier.getbluecolor,
-          valueColor: new AlwaysStoppedAnimation<Color>(
-            notifier.getgreencolor,
-          ),
-          strokeWidth: 3.0,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              LanguageEn.somethingwentwrong,
+              overflow: TextOverflow.ellipsis,
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await appState.fetchHistory(context, appState.limit);
+              },
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+              ),
+              child: Text(
+                LanguageEn.retry,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -372,12 +524,75 @@ class Payment_HistoryState extends State<PaymentHistory>
   refreshData() async {
     try {
       showLoader(context);
-      await appState.fetchHistory(appState.limit);
+      await appState.fetchHistory(context, appState.limit);
       hideLoader(context);
       _refreshController.refreshCompleted();
     } catch (e) {
       _refreshController.refreshFailed();
     }
+  }
+
+  Widget dropdown(void Function(Object?) onChanged,
+      List<DropdownMenuItem<String>> items, String? value, String? hint) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+      child: DropdownButtonFormField(
+        isDense: true,
+        isExpanded: true,
+        hint: Container(
+          // width: 150, //and here
+          child: hint != null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      hint,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                )
+              : null,
+        ),
+        dropdownColor:
+            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          filled: true,
+          fillColor: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
+        ),
+        value: value,
+        icon: Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: notifier.getbluewhitecolor,
+        ),
+        elevation: 0,
+        style: TextStyle(
+          color: notifier.getbluewhitecolor,
+          fontSize: 15,
+          fontFamily: fontsemibold,
+          fontWeight: FontWeight.w500,
+        ),
+        onChanged: onChanged,
+        items: items,
+      ),
+    );
   }
 
   String? extractUsername(String data) {
