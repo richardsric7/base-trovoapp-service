@@ -1196,3 +1196,217 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
             ));
       });
 }
+
+customDateRangePopup(context) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            // scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(0),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(23),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        'Enter the date range below',
+                        style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontbody),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    constraints: BoxConstraints(
+                        maxHeight: height / 1.7, minWidth: width / 1.1),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Wrap(
+                            children: [
+                              quickDateRange(context, 'Past week', () {}),
+                              quickDateRange(context, 'Past month', () {}),
+                              quickDateRange(context, 'Past 3 months', () {}),
+                            ],
+                          ),
+                          SizedBox(
+                            height: height / 70,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 5.0),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Start Date',
+                                  textAlign: TextAlign.start,
+                                  style: TextStyle(
+                                      color: notifier.getbluewhitecolor,
+                                      fontSize: 15,
+                                      fontFamily: fontbody),
+                                ),
+                                SizedBox(
+                                  height: height / 70,
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(10.0)),
+                                    color: notifier.isDark
+                                        ? darktilewhitecolor
+                                        : notifier.getaddsubwalletgrey,
+                                  ),
+                                  child: TextButton(
+                                    onPressed: () {
+                                      showDatePicker(
+                                          context: context,
+                                          initialDate: DateTime(2021),
+                                          firstDate: DateTime(2021),
+                                          lastDate: DateTime(2022));
+                                    },
+                                    child: Text(
+                                      DateTime(2021).toString(),
+                                      textAlign: TextAlign.start,
+                                      style: TextStyle(
+                                          color: notifier.getbluewhitecolor,
+                                          fontSize: 15,
+                                          fontFamily: fontsemibold),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 5.0),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'End Date',
+                                  textAlign: TextAlign.start,
+                                  style: TextStyle(
+                                      color: notifier.getbluewhitecolor,
+                                      fontSize: 15,
+                                      fontFamily: fontbody),
+                                ),
+                                SizedBox(
+                                  height: height / 70,
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(10.0)),
+                                    color: notifier.isDark
+                                        ? darktilewhitecolor
+                                        : notifier.getaddsubwalletgrey,
+                                  ),
+                                  child: TextButton(
+                                    onPressed: () {
+                                      showDatePicker(
+                                          context: context,
+                                          initialDate: DateTime(2021),
+                                          firstDate: DateTime(2021),
+                                          lastDate: DateTime(2022));
+                                    },
+                                    child: Text(
+                                      DateTime(2021).toString(),
+                                      textAlign: TextAlign.start,
+                                      style: TextStyle(
+                                          color: notifier.getbluewhitecolor,
+                                          fontSize: 15,
+                                          fontFamily: fontsemibold),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                      onPressed: () =>
+                          Navigator.of(context).pop(), // dismiss dialog,
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        LanguageEn.done,
+                        style:
+                            TextStyle(color: wihitecolor, fontFamily: fontbody),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ));
+      });
+}
+
+Widget quickDateRange(
+    BuildContext context, String text, void Function() onPressed) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return Padding(
+    padding: const EdgeInsets.all(3.0),
+    child: Container(
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+        color:
+            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+      ),
+      child: Wrap(
+        children: [
+          TextButton(
+            onPressed: onPressed,
+            child: Text(
+              text,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 10.sp),
+            ),
+          )
+        ],
+      ),
+    ),
+  );
+}

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
@@ -12,6 +13,7 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../Custom_BlocObserver/notifire_clor.dart';
@@ -34,7 +36,20 @@ class Payment_HistoryState extends State<PaymentHistory>
   dynamic selectedWallet = '';
   var claimedAssets;
   late List<TransactionInfo>? historyData;
-  var filterTypes = <String>["Date Range", "Amount Range", "Username"];
+  var filterTypesMap = {
+    FilterType.DateRange: "Date range",
+    FilterType.AmountRange: "Amount range",
+    FilterType.Username: "Username"
+  };
+
+  FilterType filterType = FilterType.DateRange;
+
+  var dateRangeItems = <String>[
+    "Past week",
+    "Past month",
+    "Past 3 months",
+    "Custom"
+  ];
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
     var dropdownItems = wallets!
@@ -68,8 +83,30 @@ class Payment_HistoryState extends State<PaymentHistory>
     return dropdownItems;
   }
 
-  List<DropdownMenuItem<String>> get filterTypeDropdownItems {
-    return filterTypes
+  List<DropdownMenuItem<FilterType>> get filterTypeDropdownItems {
+    List<DropdownMenuItem<FilterType>> items = [];
+    filterTypesMap.forEach((key, value) {
+      items.add(
+        DropdownMenuItem(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  value,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+            value: key),
+      );
+    });
+
+    return items;
+  }
+
+  List<DropdownMenuItem<String>> get dateRangeDropdownItems {
+    return dateRangeItems
         .map<DropdownMenuItem<String>>((type) => DropdownMenuItem(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,42 +281,18 @@ class Payment_HistoryState extends State<PaymentHistory>
                           flex: 2,
                           child: dropdown(
                             (newValue) async {
-                              selectedWallet = newValue!;
-                              appState.activeWallet = wallets!.firstWhere(
-                                  (wallet) => wallet.publicKey == newValue);
-                              showLoader(context);
-                              appState.limit = 20;
-                              appState.totalRecords = 0;
-                              appState.currentPage = 1;
-                              await appState.fetchHistory(
-                                  context, appState.limit);
-                              hideLoader(context);
-                              if (mounted) {
-                                setState(() {});
-                              }
+                              setState(() {
+                                filterType = newValue as FilterType;
+                              });
                             },
                             filterTypeDropdownItems,
                             null,
-                            'Date Range',
+                            filterTypesMap[filterType],
                           ),
                         ),
                         Expanded(
                           flex: 2,
-                          child: dropdown((newValue) async {
-                            selectedWallet = newValue!;
-                            appState.activeWallet = wallets!.firstWhere(
-                                (wallet) => wallet.publicKey == newValue);
-                            showLoader(context);
-                            appState.limit = 20;
-                            appState.totalRecords = 0;
-                            appState.currentPage = 1;
-                            await appState.fetchHistory(
-                                context, appState.limit);
-                            hideLoader(context);
-                            if (mounted) {
-                              setState(() {});
-                            }
-                          }, assetsDropdownItems, null, 'Enter Range'),
+                          child: getContent(filterType),
                         ),
                         SizedBox(
                           width: width / 50,
@@ -533,7 +546,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   }
 
   Widget dropdown(void Function(Object?) onChanged,
-      List<DropdownMenuItem<String>> items, String? value, String? hint) {
+      List<DropdownMenuItem<Object>> items, Object? value, String? hint) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),
       child: DropdownButtonFormField(
@@ -606,10 +619,112 @@ class Payment_HistoryState extends State<PaymentHistory>
     }
     return null;
   }
+
+  Widget getContent(FilterType type) {
+    switch (type) {
+      case FilterType.Username:
+        return CustomTextFormField.textFieldWithoutIcon(
+          'enter username',
+          notifier.getbluecolor,
+          notifier.getgrey,
+          notifier.getprefixicon,
+          notifier.getblck,
+          notifier.getgrey,
+          35.sp,
+          300.sp,
+          onChanged: (value) {
+            if (value != null && value.toString().isNotEmpty) {
+              setState(() {
+                // amount = double.tryParse(value) ?? 0.0;
+              });
+            }
+          },
+          keyboardtype: TextInputType.text,
+          // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
+        );
+      case FilterType.AmountRange:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  popup(context, title: 'title', message: 'message');
+                });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Enter range',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 15,
+                        fontFamily: fontsemibold),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      // FilterType.DateRange
+      default:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                customDateRangePopup(context);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Enter range',
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 15,
+                        fontFamily: fontsemibold),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+    }
+  }
 }
 
 enum TransactionType {
   Send,
   Receive,
   Swap,
+}
+
+enum FilterType {
+  DateRange,
+  AmountRange,
+  Username,
 }
