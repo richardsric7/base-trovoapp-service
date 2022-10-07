@@ -121,16 +121,16 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 
 	}
 
-	if len(dateBetween) == 21 && strings.Contains(dateBetween, ";") {
-		// 2020-01-01:2020-02-31 full range date
-		dateRange := strings.Split(dateBetween, ";")
+	if len(dateBetween) == 21 && strings.Contains(dateBetween, "|") {
+		// 2020-01-01|2020-02-31 full range date
+		dateRange := strings.Split(dateBetween, "|")
 		query = query.Where("transaction_date::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
 		countQuery = countQuery.Where("transaction_date::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
 
 	}
-	if len(amountBetween) > 2 && strings.Contains(amountBetween, ";") {
-		// 0;1
-		amountRange := strings.Split(amountBetween, ";")
+	if len(amountBetween) > 2 && strings.Contains(amountBetween, "|") {
+		// 0|1
+		amountRange := strings.Split(amountBetween, "|")
 		query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
 		countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
 
