@@ -1006,22 +1006,23 @@ func TestGetUserInfo(t *testing.T) {
 */
 func TestGetPaymentHistory(t *testing.T) {
 
-	// pk := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
+	// p k := "GCATEXQ3TNQU7IYBOCXMAKTWJ4FXXZ5POUZ4VS4VMVU2H43XLNFAJJUF"
 	// secretKey := "SDZZHRY6BJ5MHMOZCVZC5TT3XKOXGPDVJRE7CK7NZHR35ORDGGZ2VJGP"
-	publickey := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// publickey := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
-	secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
-	// primaryPK := os.Getenv("RICPK")
+	// secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
+	primaryPK := os.Getenv("RICPK")
+	addressToViewHistory := os.Getenv("RICPK")
 	// primarySecretKey := os.Getenv("RICSC")
 	// ownerUsername := "ric1"
 	// pk := os.Getenv("RICPK")
-	// secretKey := os.Getenv("RICSC")
+	secretKey := os.Getenv("RICSC")
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
-	baseURL := devURL
-	// baseURL := prodURL
-	fullPath := fmt.Sprintf("/v1/users/payments/%v", publickey)
+	// baseURL := devURL
+	baseURL := prodURL
+	fullPath := fmt.Sprintf("/v1/users/payments/%v", addressToViewHistory)
 	ts := time.Now().Unix() / 1000
 
 	tsString := fmt.Sprintf("%v", ts)
@@ -1036,7 +1037,7 @@ func TestGetPaymentHistory(t *testing.T) {
 	resultResponse := new(PaginatedPaymentHistory)
 
 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-		Set("X-TW-PUBLIC-KEY", publickey).
+		Set("X-TW-PUBLIC-KEY", primaryPK).
 		Set("X-TW-SIGNER", kp.Address()).
 		Set("X-TW-SIGNATURE", signedHttpHeader).
 		Set("X-TW-TIMESTAMP", tsString).

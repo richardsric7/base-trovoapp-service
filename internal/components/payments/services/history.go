@@ -89,8 +89,8 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	}
 	if len(name) > 2 {
 
-		query = query.Where("lower(from) LIKE '%?%'", strings.ToLower(name)).Or("lower(to) LIKE '%?%'", strings.ToLower(name))
-		countQuery = countQuery.Where("lower(from) LIKE '%?%'", strings.ToLower(name)).Or("lower(to) LIKE '%?%'", strings.ToLower(name))
+		query = query.Where(`lower("from") LIKE '%?%'`, strings.ToLower(name)).Or(`lower("to") LIKE '%?%'`, strings.ToLower(name))
+		countQuery = countQuery.Where(`lower("from") LIKE '%?%'`, strings.ToLower(name)).Or(`lower("to") LIKE '%?%'`, strings.ToLower(name))
 
 	}
 	if len(memo) > 2 {
