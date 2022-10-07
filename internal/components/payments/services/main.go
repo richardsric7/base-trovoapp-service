@@ -108,7 +108,7 @@ func Pay(owner *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *pay
 		return paymentInfo, nil, &tPayErrors.ErrorTransactionMismatch{Detail: "signature for channel account does not validate"}
 	}
 
-	if wallet.ManagedAccessEnabled == 0 {
+	if wallet.SharedAccessEnabled == 0 {
 		//maker checker not enabled. submit to network is possible
 		var txnHash string
 		if len(paymentInfo.ChannelAccountSignature) > 0 && len(paymentInfo.ChannelAccount) == 56 {

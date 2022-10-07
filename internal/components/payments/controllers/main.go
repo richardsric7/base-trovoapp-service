@@ -217,7 +217,20 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 
 		}
+		{
+			//prevent wallets with approver from using this endpoint
+			if userWallet.SharedAccessEnabled == 1 && userWallet.WalletCountApproverAccess(gc) > 0 {
+				errAccountIsTemp := &tErrors.CustomError{
+					Param:      "ID",
+					Err:        "error-shared-access-wallet-not-allowed-in-sole-access",
+					ErrMessage: "This wallet has approver access enabled. Please let someone with an INITIATOR access submit the request.",
+					Code:       http.StatusForbidden,
+				}
 
+				c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
+				return
+			}
+		}
 		var destinationUser paymentsDB.User
 		var destinationWallet paymentsDB.UserWallet
 		var getDestinationUserError, getDestinationWalletError error
