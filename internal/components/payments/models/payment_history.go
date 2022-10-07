@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-//PaymentHistory holds payment information
+// PaymentHistory holds payment information
 type PaymentHistory struct {
 	ID              string
 	TransactionType string    `gorm:"index:idx_payment_history_unique_key,unique"`
@@ -21,7 +21,7 @@ type PaymentHistory struct {
 	PT              string    `json:"-" gorm:"size:70;not null;index:idx_payment_history_unique_key,unique;"`
 }
 
-//PaymentHistoryJSON holds payment information in json format
+// PaymentHistoryJSON holds payment information in json format
 type PaymentHistoryJSON struct {
 	TransactionDate time.Time `json:"transactionDate"`
 	TransactionType string    `json:"transactionType"`

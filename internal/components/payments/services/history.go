@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
+	db "trovo-wallet-api/internal/db"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
@@ -16,14 +17,21 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	var err error
 	var paymentHistories []paymentModels.PaymentHistory
 	records.Records = make([]paymentModels.PaymentHistoryJSON, 0)
-	DB := gc.DB
-	DBC := gc.DB
+	DB, _ := db.OpenDb()
+	DBC, _ := db.OpenDb()
+
+	// if err != nil {
+	// 	log.Fatalf("[main]Error opening DB %s", err)
+	// 	return
+	// }
+	// DB := gc.DB
+	// DBC := gc.DB
 	var query *gorm.DB
 	var countQuery *gorm.DB
 	oD := "ASC"
 	transactionType := c.Query("transactionType")
-	fromPublicKey := c.Query("fromPublicKey")
-	toPublicKey := c.Query("toPublicKey")
+	fromPublicKey := strings.ToUpper(c.Query("fromPublicKey"))
+	toPublicKey := strings.ToUpper(c.Query("toPublicKey"))
 	name := c.Query("name")
 	memo := c.Query("memo")
 	limitU, _ := strconv.ParseUint(c.DefaultQuery("limit", "25"), 10, 64)
@@ -31,13 +39,14 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	pageU, _ := strconv.ParseUint(c.DefaultQuery("page", "1"), 10, 64)
 	page := int(pageU)
 	assetIssuer := strings.ToUpper(c.Query("assetIssuer"))
-	var assetIssuerVal *string
+	// var assetIssuerVal *string
 	assetCode := strings.ToUpper(c.Query("assetCode"))
-	if strings.EqualFold(assetCode, "XBN") {
-		assetIssuerVal = nil
-	} else if len(assetCode) > 1 && len(assetIssuer) == 56 {
-		assetIssuerVal = &assetIssuer
-	}
+	// if strings.EqualFold(assetCode, "XBN") {
+	// 	assetIssuerVal = nil
+	// }
+	// if len(assetCode) > 1 && len(assetIssuer) == 56 {
+	// 	assetIssuerVal = &assetIssuer
+	// }
 	transactionID := c.Query("transactionID")
 	amountBetween := c.Query("amount")
 	dateBetween := c.Query("dateBetween")
@@ -61,8 +70,8 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	}
 
 	{
-		query = query.Where("from_public_key = ?", targetPublicKey).Or("to_public_key = ?", targetPublicKey)
-		countQuery = countQuery.Where("from_public_key = ?", targetPublicKey).Or("to_public_key = ?", targetPublicKey)
+		query = query.Where("(from_public_key = ? OR to_public_key = ?)", targetPublicKey, targetPublicKey)
+		countQuery = countQuery.Where("(from_public_key = ? OR to_public_key = ?)", targetPublicKey, targetPublicKey)
 
 	}
 
@@ -77,32 +86,32 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 		countQuery = countQuery.Where("to_public_key = ?", toPublicKey)
 
 	}
-	if strings.EqualFold(assetCode, "XBN") {
-		query = query.Where("asset_code = ?", assetCode)
-		countQuery = countQuery.Where("asset_code = ?", assetCode)
+	if len(assetCode) > 0 {
+		query = query.Where("asset_code = ?", strings.ToUpper(assetCode))
+		countQuery = countQuery.Where("asset_code = ?", strings.ToUpper(assetCode))
 
 	}
 	if len(assetIssuer) == 56 {
-		query = query.Where("asset_issuer = ?", assetIssuerVal)
-		countQuery = countQuery.Where("asset_issuer = ?", assetIssuerVal)
+		query = query.Where("asset_issuer = ?", assetIssuer)
+		countQuery = countQuery.Where("asset_issuer = ?", assetIssuer)
 
 	}
 	if len(name) > 2 {
 
-		query = query.Where(`lower("from") LIKE '%?%'`, strings.ToLower(name)).Or(`lower("to") LIKE '%?%'`, strings.ToLower(name))
-		countQuery = countQuery.Where(`lower("from") LIKE '%?%'`, strings.ToLower(name)).Or(`lower("to") LIKE '%?%'`, strings.ToLower(name))
+		query = query.Where(`(lower("from") LIKE ? OR lower("to") LIKE ?)`, "%"+strings.ToLower(name)+"%", "%"+strings.ToLower(name)+"%")
+		countQuery = countQuery.Where(`(lower("from") LIKE ? OR lower("to") LIKE ?)`, "%"+strings.ToLower(name)+"%", "%"+strings.ToLower(name)+"%")
 
 	}
 	if len(memo) > 2 {
 
-		query = query.Where("lower(memo) LIKE '%?%'", strings.ToLower(memo))
-		countQuery = countQuery.Where("lower(memo) LIKE '%?%'", strings.ToLower(memo))
+		query = query.Where("lower(memo) LIKE ?", strings.ToLower(memo)+"%")
+		countQuery = countQuery.Where("lower(memo) LIKE ?", strings.ToLower(memo)+"%")
 
 	}
 	if len(transactionType) > 4 {
 
-		query = query.Where("lower(transaction_type) LIKE '?%'", strings.ToLower(transactionType))
-		countQuery = countQuery.Where("lower(transaction_type) LIKE '?%'", strings.ToLower(transactionType))
+		query = query.Where("lower(transaction_type) LIKE ?", strings.ToUpper(transactionType)+"%")
+		countQuery = countQuery.Where("lower(transaction_type) LIKE ?", strings.ToUpper(transactionType)+"%")
 
 	}
 	if len(transactionID) > 4 {

@@ -66,17 +66,17 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
 		cacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", targetPublicKeyForHistory)
 		cacheKeyParameters := c.Request.URL.RequestURI()
-		{
-			// check cache
-			ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
+		// {
+		// 	// check cache
+		// 	ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
 
-			if ok {
-				log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
-				c.JSON(status, response)
-				return
-			}
+		// 	if ok {
+		// 		log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+		// 		c.JSON(status, response)
+		// 		return
+		// 	}
 
-		}
+		// }
 		// cacheDurationInSeconds := 1 * 60 //1 minutes
 		cacheDurationInSeconds := 60 //1 minutes
 		conDB.PrintDBStats(fmt.Sprintf("/v1/users/payments/%v", targetPublicKeyForHistory), gc.DB)
@@ -148,7 +148,8 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		historyRecords := paymentServices.GetPaymentHistory(targetPublicKeyForHistory, gc, c)
 
 		c.JSON(http.StatusOK, historyRecords)
-		gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
+		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
+		gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
 
 	})
 

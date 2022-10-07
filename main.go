@@ -289,6 +289,6 @@ func main() {
 
 	//run app
 	log.Println("##service started##")
-	router.Run()
+	log.Println(router.Run())
 
 }
