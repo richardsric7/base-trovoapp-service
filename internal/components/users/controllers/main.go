@@ -78,7 +78,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		}
 		// cacheDurationInSeconds := 1 * 60 //1 minutes
-		cacheDurationInSeconds := 60 //1 minutes
+		cacheDurationInSeconds := 20 //in seconds
 		conDB.PrintDBStats(fmt.Sprintf("/v1/users/payments/%v", targetPublicKeyForHistory), gc.DB)
 
 		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
