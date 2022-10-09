@@ -1,15 +1,12 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/Auth/AuthorizeActionView.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
-import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../Models/User.dart';
 import '../Models/WalletsListViewData.dart';
@@ -186,13 +183,65 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> refreshData() async {
-    try {
-      await updateUserInfo(userInfo!.wallets![0].signer, secretKeys[0],
-          userInfo!.wallets![0].publicKey, userInfo!.username, this);
-    } catch (e) {
-      print(e);
-    }
+// region transaction history filter
+  DateTime? filterStartDate;
+  set setFilterStartDate(value) {
+    filterStartDate = value;
+    notifyListeners();
+  }
+
+  DateTime? filterEndDate;
+  set setFilterEndDate(value) {
+    filterEndDate = value;
+    notifyListeners();
+  }
+
+  String? filterMinAmount;
+  set setFilterMinAmount(value) {
+    filterMinAmount = value;
+    notifyListeners();
+  }
+
+  String? filterMaxAmount;
+  set setFilterMaxAmount(value) {
+    filterMaxAmount = value;
+    notifyListeners();
+  }
+
+  String? filterUsername;
+  set setFilterUsername(value) {
+    filterUsername = value;
+    notifyListeners();
+  }
+
+  String? filterFromPublicKey;
+  set setFilterFromPublicKey(value) {
+    filterFromPublicKey = value;
+    notifyListeners();
+  }
+
+  String? filterToPublicKey;
+  set setFilterToPublicKey(value) {
+    filterToPublicKey = value;
+    notifyListeners();
+  }
+
+  String? filterUserFullName;
+  set setFilterUserFullName(value) {
+    filterUserFullName = value;
+    notifyListeners();
+  }
+
+  String filterAsset = "*|*";
+  set setFilterAsset(value) {
+    filterAsset = value;
+    notifyListeners();
+  }
+
+  String filterQuery = "";
+  set setFilterQuery(value) {
+    filterQuery = value;
+    notifyListeners();
   }
 
   // used to keep track of the current bottom navigation index
@@ -206,16 +255,26 @@ class DataProvider with ChangeNotifier {
   int? totalRecords = 0;
 
   getHistory(context) async {
-    await fetchHistory(context, limit);
+    await fetchHistory(context, limit: limit.toString(), query: filterQuery);
     notifyListeners();
   }
 
-  Future<void> fetchHistory(context, limit) async {
+  Future<void> fetchHistory(
+    context, {
+    String? limit,
+    String? query,
+  }) async {
     try {
       print('fetching history for: ${activeWallet!.publicKey!}');
-      showLoader(context);
+      var uri =
+          '/v1/users/payments/${activeWallet!.publicKey}?limit=$limit${query}';
+      if (!filterAsset.contains("*")) {
+        var splitAssetInfo = filterAsset.split("|");
+        uri +=
+            "&assetIssuer=${splitAssetInfo[0].isEmpty ? "%02%03" : splitAssetInfo[0]}&assetCode=${splitAssetInfo[1].isEmpty ? "%02%03" : splitAssetInfo[1]}";
+      }
       Map responseData = await makeGetRequest(
-          uri: '/v1/users/payments/${activeWallet!.publicKey}?limit=$limit',
+          uri: uri,
           signer: activeWallet!.signer!,
           publicKey: activeWallet!.publicKey!,
           secretKey: secretKeys[0]);
@@ -234,15 +293,22 @@ class DataProvider with ChangeNotifier {
 
         historyData = transactions;
         notifyListeners();
-        hideLoader(context);
       } else {
-        hideLoader(context);
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
       }
     } catch (e) {
-      hideLoader(context);
       print('................................in transaction history: $e');
+    }
+  }
+// end region transaction history filter
+
+  Future<void> refreshData() async {
+    try {
+      await updateUserInfo(userInfo!.wallets![0].signer, secretKeys[0],
+          userInfo!.wallets![0].publicKey, userInfo!.username, this);
+    } catch (e) {
+      print(e);
     }
   }
 

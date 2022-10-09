@@ -150,7 +150,10 @@ class CustomTextFormField {
           key: key,
           maxLength: maxLength,
           readOnly: readOnly,
-          style: TextStyle(color: textcolor, fontFamily: fontbody),
+          style: TextStyle(
+              color: textcolor,
+              overflow: TextOverflow.visible,
+              fontFamily: fontbody),
           initialValue: initialValue,
           cursorColor: lablecolor,
           onChanged: onChanged,
