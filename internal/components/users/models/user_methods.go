@@ -659,6 +659,15 @@ func (u UserWallet) GetPermissionList(db *gorm.DB) (accessList []WalletPermissio
 
 	return
 }
+func (u UserWallet) GetSharedAccess(db *gorm.DB) (sharedAccess UserWalletSharedAccess, err error) {
+
+	e := db.Preload(clause.Associations).Where("user_wallet_id = ?", u.ID).First(&sharedAccess).Error
+	if e != nil {
+		err = errors.New("Error getting shared access: " + e.Error())
+		return sharedAccess, err
+	}
+	return
+}
 
 func (u *UserWallet) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
 	viewOnly = true
@@ -770,6 +779,24 @@ func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalCon
 func (u *User) GetAllWallets(gc *sharedconfig.GlobalConfig) (wallets []UserWallet) {
 	wallets = make([]UserWallet, 0)
 	gc.DB.Where("user_id = ?", u.ID).Find(&wallets)
+	return
+}
+
+func (wp *WalletPermission) ToWalletPermissionInfo(user *User, w *UserWallet) (wpInfo WalletPermissionInfo) {
+	name := user.FirstName
+	if user.LastName != nil {
+		name = name + " " + *user.LastName
+	}
+
+	wpInfo = WalletPermissionInfo{
+		ID:                       wp.ID,
+		UserWalletSharedAccessID: wp.UserWalletSharedAccessID,
+		WalletPublicKey:          wp.WalletPublicKey,
+		WalletAlias:              w.Alias,
+		Username:                 wp.TargetUsername,
+		Name:                     name,
+		PushNotificationToken:    user.PushNotificationToken,
+	}
 	return
 }
 

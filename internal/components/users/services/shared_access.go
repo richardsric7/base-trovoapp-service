@@ -424,23 +424,23 @@ func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Use
 	}
 }
 
-func RemoveSharedWalletAccess(signerPublicKey string, accessInfo *userModels.DisableSharedAccessInfo, gc *sharedconfig.GlobalConfig) (err error) {
+func RemoveSharedWalletAccess(signerPublicKey string, wallet *userModels.UserWallet, accessList []userModels.WalletPermission, accessInfo *userModels.DisableSharedAccessInfo, gc *sharedconfig.GlobalConfig) (err error) {
 	var managedAccess userModels.UserWalletSharedAccess
 
-	accessList := make([]userModels.WalletPermission, 0)
+	// accessList := make([]userModels.WalletPermission, 0)
 	var numberOfApprovers int
 	// var numberOfSubmittedInitiators int
 	var selfApprover int
 	var approverUsers []*userModels.User
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
-	wallet, e := userModels.UserWalletID(accessInfo.WalletPublicKey).GetWallet(dbTX)
-	if e != nil {
-		log.Println("invalid wallet address: ", accessInfo.WalletPublicKey)
-		return &tErrors.ErrorInvalidWallet{
-			PublicKey: accessInfo.WalletPublicKey,
-		}
-	}
+	// wallet, e := userModels.UserWalletID(accessInfo.WalletPublicKey).GetWallet(dbTX)
+	// if e != nil {
+	// 	log.Println("invalid wallet address: ", accessInfo.WalletPublicKey)
+	// 	return &tErrors.ErrorInvalidWallet{
+	// 		PublicKey: accessInfo.WalletPublicKey,
+	// 	}
+	// }
 	if wallet.SharedAccessEnabled == 0 {
 		return &tErrors.CustomError{
 			Param:      "id",
@@ -451,7 +451,7 @@ func RemoveSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Dis
 	}
 	wallet.SharedAccessEnabled = 0
 	dbTX.Save(&wallet)
-	e = dbTX.Where("user_wallet_id = ?", accessInfo.WalletPublicKey).First(&managedAccess).Error
+	e := dbTX.Where("user_wallet_id = ?", accessInfo.WalletPublicKey).First(&managedAccess).Error
 
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -465,19 +465,19 @@ func RemoveSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Dis
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	e = dbTX.Where("wallet_public_key = ?", accessInfo.WalletPublicKey).Find(&accessList).Error
+	// e = dbTX.Where("wallet_public_key = ?", accessInfo.WalletPublicKey).Find(&accessList).Error
 
-	if e != nil {
-		if errors.Is(e, gorm.ErrRecordNotFound) {
-			return &tErrors.CustomError{
-				Param:      "Id",
-				Err:        "error-could-not-find-access-list",
-				ErrMessage: "Could not find access list for wallet.",
-				Code:       http.StatusForbidden,
-			}
-		}
-		return &tErrors.ErrorTemporaryServerError{}
-	}
+	// if e != nil {
+	// 	if errors.Is(e, gorm.ErrRecordNotFound) {
+	// 		return &tErrors.CustomError{
+	// 			Param:      "Id",
+	// 			Err:        "error-could-not-find-access-list",
+	// 			ErrMessage: "Could not find access list for wallet.",
+	// 			Code:       http.StatusForbidden,
+	// 		}
+	// 	}
+	// 	return &tErrors.ErrorTemporaryServerError{}
+	// }
 
 	walletOwner, e := userModels.UserWalletID(accessInfo.WalletPublicKey).GetWalletOwner(dbTX)
 	if e != nil {
@@ -506,12 +506,15 @@ func RemoveSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Dis
 			}
 			approverUsers = append(approverUsers, &u)
 		}
+		{
+			accessInfo.Permissions = append(accessInfo.Permissions, v.ToWalletPermissionInfo(&u, wallet))
+		}
 
 	}
 
 	e = dbTX.Delete(&accessList).Error
 	if e != nil {
-		log.Println("error deleting access list", e)
+		log.Println("[RemoveSharedWalletAccess] error deleting access list", e)
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
@@ -523,11 +526,11 @@ func RemoveSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Dis
 
 	errDB := dbTX.Delete(&managedAccess).Error
 	if err != nil {
-		log.Printf("[CreateSharedWalletAccess] error saving shared access:%v\n sharedAccess:%+v\n", errDB, managedAccess)
+		log.Printf("[RemoveSharedWalletAccess] error removing shared access:%v\n sharedAccess:%+v\n", errDB, managedAccess)
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	xdrBase64, messages, walletMustSign, multipartySign, errGenXdr := generateRemoveSharedAccessXdr(&wallet, &walletOwner, approverUsers, gc)
+	xdrBase64, messages, walletMustSign, multipartySign, errGenXdr := generateRemoveSharedAccessXdr(wallet, &walletOwner, approverUsers, gc)
 	if errGenXdr != nil {
 		return errGenXdr
 	}
@@ -556,6 +559,7 @@ func RemoveSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Dis
 		return nil
 	}
 	// extract signature and submit transaction
+	//getting here means it does not contain approvers
 	//submit to blockchain
 
 	txnHash, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, wallet.Signer, xdrBase64, accessInfo.TransactionSignature)
@@ -830,7 +834,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				})
 
 				//add message about disabling recovery on that wallet
-				messages = append(messages, "Account Recovery on this wallet has been enabled.")
+				messages = append(messages, "Account Recovery on this wallet will be enabled.")
 				walletMustSign = true
 			}
 		}

@@ -91,17 +91,21 @@ type UserWalletSharedAccessInfo struct {
 	NetworkPassPhrase        string                 `json:"networkPassPhrase"`
 	Messages                 []string               `json:"messages"`
 	SignatureRequired        int                    `json:"signatureRequired"`
+	Approvers                []User                 `json:"-"`
+	Initiators               []User                 `json:"-"`
+	Viewers                  []User                 `json:"-"`
 }
 type DisableSharedAccessInfo struct {
-	UserWalletSharedAccessID string   `json:"userWalletSharedAccessId"`
-	WalletPublicKey          string   `json:"walletPublicKey"`
-	Transaction              string   `json:"transaction"`
-	TransactionSignature     string   `json:"transactionSignature"`
-	TransactionID            string   `json:"transactionId"`
-	NetworkPassPhrase        string   `json:"networkPassPhrase"`
-	Messages                 []string `json:"messages"`
-	SignatureRequired        int      `json:"signatureRequired"`
-	MultiParty               int      `json:"multiParty"`
+	UserWalletSharedAccessID string                 `json:"userWalletSharedAccessId"`
+	WalletPublicKey          string                 `json:"walletPublicKey"`
+	Transaction              string                 `json:"transaction"`
+	TransactionSignature     string                 `json:"transactionSignature"`
+	TransactionID            string                 `json:"transactionId"`
+	NetworkPassPhrase        string                 `json:"networkPassPhrase"`
+	Messages                 []string               `json:"messages"`
+	SignatureRequired        int                    `json:"signatureRequired"`
+	MultiParty               int                    `json:"multiParty"`
+	Permissions              []WalletPermissionInfo `json:"-"`
 }
 type WalletPermissionInfo struct {
 	ID                       string  `json:"Id"`

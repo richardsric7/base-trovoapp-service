@@ -30,6 +30,7 @@ func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Contex
 	if err != nil {
 		return userModels.UserInfo{}, err
 	}
+
 	if user.Suspended == 1 {
 		return userInfo, &tErrors.ErrorUsernameIsSuspended{
 			Username: user.Username,
@@ -41,8 +42,9 @@ func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Contex
 
 	//set userInfo
 	// log.Printf("[GetUserInfo] retrieved User record:[%+v]\n", user)
-	userData := user.ToJSON()
+	userData := user.ToJSON(gc)
 	// log.Printf("[GetUserInfo] userData:[%+v]\n", userData)
+
 	userInfo.UserData = userData
 
 	if !owner {

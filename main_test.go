@@ -1969,13 +1969,14 @@ func TestCreateSharedAccess(t *testing.T) {
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk :=  os.Getenv("RICPK")
-	// secretKey := os.Getenv("RICSC")
+	secretKey := os.Getenv("RICSC")
 	// pk := "GCC3HG535RVZ3MPTDBANZH7V2HRDEQH3LZXDPBEKPJKZBI2UYJR3OJGF"
 	// pk := "GDBWYZWLYASCZ6KP4AIRNRY5WQ5OX6H2T6WASG7WFAEEYO6R6AC4GXRM"
 	// secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
-	secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
+	// secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
 	// accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
-	accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
+	// accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
+	accessToWallet := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
@@ -1988,7 +1989,7 @@ func TestCreateSharedAccess(t *testing.T) {
 	// } else {
 	// 	sEnc = ownerUsername
 	// }
-	fullPath := "/v1/users/account/shared-access"
+	fullPath := "/v1/shared-access/users/account"
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
 	tsString := fmt.Sprintf("%v", ts)
@@ -2000,58 +2001,30 @@ func TestCreateSharedAccess(t *testing.T) {
 	}
 	var accessList []WalletPermissionInfo
 	payload := UserWalletSharedAccessInfo{
-		NumberOfApprovers: 2,
+		NumberOfApprovers: 0,
 		// Commit:            1,
 	}
 	accessList = append(accessList,
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
-			Username:        "onoja",
-			Permission:      "INITIATOR"},
-		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			Username:        "ric",
-			Permission:      "INITIATOR"},
-		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			Username:        "ric",
-			Permission:      "APPROVER"},
-		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			Username:        "obi",
-			Permission:      "APPROVER"},
-		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
 			Username:        "kenmaddy",
-			Permission:      "APPROVER"},
-		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			Username:        "kenmaddy",
-			Permission:      "INITIATOR"},
+			Permission:      "VIEW-ONLY"},
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			Username:        "thundeyy",
-			Permission:      "INITIATOR"},
-		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			Username:        "thundeyy",
-			Permission:      "APPROVER"},
+			Permission:      "VIEW-ONLY"},
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			Username:        "onoja",
-			Permission:      "APPROVER"},
+			Permission:      "VIEW-ONLY"},
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			Username:        "efizee",
-			Permission:      "APPROVER"},
-		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			Username:        "efizee",
-			Permission:      "INITIATOR"},
+			Permission:      "VIEW-ONLY"},
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			Username:        "obi",
-			Permission:      "INITIATOR"})
+			Permission:      "VIEW-ONLY"})
 	payload.Permissions = accessList
 
 	log.Printf("[DEBUG] Payload: %+v\n", payload)

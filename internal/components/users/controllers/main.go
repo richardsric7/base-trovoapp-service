@@ -1299,7 +1299,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	router.POST("/v1/users/account/shared-access", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/shared-access/users/account", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
 		_, err = usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
@@ -1345,7 +1345,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/account/shared-access %v", middleware.ExtractPublicKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/users/account %v", middleware.ExtractPublicKey(c)), gc.DB)
 
 		var sharedAccessInfo userModels.UserWalletSharedAccessInfo
 		// var err error
@@ -1406,10 +1406,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	router.DELETE("/v1/users/account/shared-access", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.DELETE("/v1/shared-access/users/account", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
-		_, err = usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1437,6 +1437,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 			return
 		}
+
 		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
 		if err != nil {
@@ -1452,7 +1453,43 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/users/account/shared-access %v", middleware.ExtractPublicKey(c)), gc.DB)
+		//check if owner is the initiator
+		var isInitiator bool
+		isViewOnly := true
+		pl := wallet.GetPermissionList(gc.DB)
+		if len(pl) == 0 {
+			//reject request
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-permissions-not-found", "message": "Could not determine permissions on this wallet at this time. Please try again later."})
+			return
+		}
+		if wallet.SharedAccessEnabled == 0 {
+			//reject request
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-shared-access-not-enabled", "message": "Shared access is not currently enabled on this wallet."})
+			return
+		}
+		for _, p := range pl {
+			if p.Permission == "INITIATOR" || p.Permission == "APPROVER" {
+				isViewOnly = false
+			}
+			if p.Permission == "INITIATOR" && p.TargetUsername == signerUser.Username {
+				isInitiator = true
+
+			}
+
+		}
+		if signerUser.Username == walletOwner.Username && !isViewOnly && !isInitiator {
+			//reject request
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-not-an-initiator", "message": "You do not have initiator permission on this wallet. Only an initiator can submit this transaction."})
+			return
+		}
+
+		if signerUser.Username != walletOwner.Username && !isInitiator {
+			//reject request
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error-not-an-initiator", "message": "You do not have initiator permission on this wallet. Only an initiator can submit this transaction."})
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/shared-access/users/account %v", middleware.ExtractPublicKey(c)), gc.DB)
 
 		var sharedAccessInfo userModels.DisableSharedAccessInfo
 		// var err error
@@ -1469,7 +1506,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
 		log.Printf("[DEBUG] sharedAccess %+v\n", sharedAccessInfo)
-		err = userServices.RemoveSharedWalletAccess(middleware.ExtractSigner(c), &sharedAccessInfo, gc)
+		err = userServices.RemoveSharedWalletAccess(middleware.ExtractSigner(c), &wallet, pl, &sharedAccessInfo, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1497,6 +1534,21 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[REMOVED SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
 		if len(sharedAccessInfo.TransactionID) > 0 {
+			if sharedAccessInfo.TransactionID == "AUTH_PENDING" {
+				//saved to pending auth table for disabling shared access
+				c.JSON(http.StatusAccepted, sharedAccessInfo)
+			} else {
+				//transaction was completed successfully
+				for _, v := range sharedAccessInfo.Permissions {
+
+					if v.PushNotificationToken != nil {
+						dataPayload := make(map[string]string)
+						dataPayload["none"] = ""
+						pns.SendFirebaseMessage(*v.PushNotificationToken, fmt.Sprintf("Your %v permission on wallet %v has been removed!", v.Permission, v.WalletAlias), fmt.Sprintf("Your %v permission on the wallet [%v] has been removed as shared access has been disabled on the wallet. the wallet is no longer available on your list of shared access wallets.", v.Permission, v.WalletAlias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+					}
+				}
+				c.JSON(http.StatusOK, sharedAccessInfo)
+			}
 			c.JSON(http.StatusOK, sharedAccessInfo)
 		} else {
 			c.JSON(http.StatusAccepted, sharedAccessInfo)

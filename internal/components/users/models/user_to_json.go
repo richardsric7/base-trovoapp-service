@@ -1,8 +1,11 @@
 package users
 
-import "strings"
+import (
+	"strings"
+	"trovo-wallet-api/internal/sharedconfig"
+)
 
-func (u *User) ToJSON() (jsonObj UserJSON) {
+func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 	jsonObj.ID = u.ID
 	jsonObj.Username = u.Username
 	jsonObj.Email = u.Email
@@ -50,7 +53,11 @@ func (u *User) ToJSON() (jsonObj UserJSON) {
 		// log.Println("[UserToJSON] started user wallets json")
 
 		for _, uw := range u.UserWallets {
-			uwJson := uw.ToJSON()
+			//get user permissions
+			if uw.SharedAccessEnabled == 1 {
+
+			}
+			uwJson := uw.ToJSON(gc)
 			// log.Printf("[UserToJSON] added user wallet [%+v]\n", uwJson)
 			jsonObj.UserWallets = append(jsonObj.UserWallets, uwJson)
 
@@ -61,7 +68,7 @@ func (u *User) ToJSON() (jsonObj UserJSON) {
 	return jsonObj
 }
 
-func (uw *UserWallet) ToJSON() (jsonObj UserWalletJSON) {
+func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJSON) {
 	jsonObj.CreatedAt = uw.CreatedAt
 	jsonObj.ID = uw.ID
 	jsonObj.Alias = uw.Alias
@@ -69,8 +76,14 @@ func (uw *UserWallet) ToJSON() (jsonObj UserWalletJSON) {
 	jsonObj.UserID = uw.UserID
 	jsonObj.SharedAccessEnabled = uw.SharedAccessEnabled
 	if uw.SharedAccessEnabled == 1 {
-		majson := uw.UserWalletSharedAccess.ToJSON()
-		jsonObj.UserWalletSharedAccess = &majson
+		//get shared access
+		sa, e := uw.GetSharedAccess(gc.DB)
+		if e == nil {
+			uw.UserWalletSharedAccess = sa
+			majson := uw.UserWalletSharedAccess.ToJSON()
+			jsonObj.UserWalletSharedAccess = &majson
+		}
+
 	}
 
 	//nullable

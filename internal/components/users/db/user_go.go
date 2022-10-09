@@ -31,7 +31,7 @@ func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 		e = db.Preload(clause.Associations).Where("id = (?)", subQuery).First(&user).Error
 
 	} else {
-		//search by ID and phone number, username, email
+		
 
 		e = db.Preload(clause.Associations).Where("id = ?", userInfo).Or("username = ?", strings.ToLower(userInfo)).Or("mobile = ?", &userInfo).Or("email = ?", userInfo).First(&user).Error
 	}
