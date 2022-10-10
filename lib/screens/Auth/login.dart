@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/recover_account.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -61,6 +65,17 @@ class _LoginState extends State<Login> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         resizeToAvoidBottomInset: false,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            appState.currentAction =
+                PageAction(state: PageState.addPage, page: QrScannerPageConfig);
+          },
+          backgroundColor: notifier.getbluecolor,
+          child: SvgPicture.asset(
+            "assets/images/scan.svg",
+            color: wihitecolor,
+          ),
+        ),
         body: SingleChildScrollView(
           child: Stack(children: [
             Container(
@@ -275,6 +290,25 @@ class _LoginState extends State<Login> {
                         state: PageState.addPage,
                         page: CreatePasswordPageConfig);
                   },
+                ),
+                SizedBox(height: height / 50),
+                ButtonOutlined(
+                  LanguageEn.recoveraccount,
+                  notifier.getbluecolor80,
+                  wihitecolor,
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: RecoverAccountViewPageConfig);
+                  },
+                ),
+                SizedBox(height: height / 50),
+                Text(
+                  '${LanguageEn.version} $appVersion',
+                  style: TextStyle(
+                      color: notifier.getdarkgrey,
+                      fontSize: 13.5.sp,
+                      fontFamily: fontbody),
                 ),
                 SizedBox(height: height / 20),
                 Padding(

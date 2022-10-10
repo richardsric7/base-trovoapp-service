@@ -33,6 +33,25 @@ const String ProfileDetailsViewPath = '/ProfileDetailsView';
 const String ReferralInfoViewPath = '/ReferralInfoView';
 const String PasswordMgtViewPath = '/PasswordMgtView';
 const String BackupAllViewPath = '/BackupAllView';
+const String AuthorizeLoginViewPath = '/AuthorizeLoginView';
+const String AuthorizeActionViewPath = '/AuthorizeActionView';
+const String RequestSpecificPaymentViewPath = '/RequestSpecificPaymentView';
+const String RequestSpecificPaymentDetailsViewPath =
+    '/RequestSpecificPaymentDetailsView';
+const String SecurityQuestionsViewPath = '/SecurityQuestionsView';
+const String RequestOtpViewPath = '/RequestOtpView';
+const String AccountRecoverySuccessViewPath = '/AccountRecoverySuccessView';
+const String SharedAccessViewPath = '/SharedAccessView';
+const String SetupAccountRecoveryViewPath = '/SetupAccountRecoveryView';
+const String DisableAccountRecoveryViewPath = '/DisableAccountRecoveryView';
+const String RecoverAccountViewPath = '/RecoverAccountView';
+const String AnswerSecurityQuestionsViewPath = '/AnswerSecurityQuestionsView';
+const String RequestBackupViewPath = '/RequestBackupView';
+const String BackupRecoverySecretViewPath = '/BackupRecoverySecretView';
+const String CompleteAccountRecoveryViewPath = '/CompleteAccountRecoveryView';
+const String DisableAccountRecoveryInfoViewPath =
+    '/DisableAccountRecoveryInfoView';
+const String SuccessViewPath = '/SuccessView';
 
 enum Pages {
   Splash,
@@ -68,6 +87,23 @@ enum Pages {
   ReferralInfoView,
   PasswordMgtView,
   BackupAllView,
+  AuthorizeLoginView,
+  AuthorizeActionView,
+  RequestSpecificPaymentView,
+  RequestSpecificPaymentDetailsView,
+  SecurityQuestionsView,
+  RequestOtpView,
+  AccountRecoverySuccessView,
+  SharedAccessView,
+  SetupAccountRecoveryView,
+  DisableAccountRecoveryView,
+  RecoverAccountView,
+  AnswerSecurityQuestionsView,
+  RequestBackupView,
+  BackupRecoverySecretView,
+  CompleteAccountRecoveryView,
+  DisableAccountRecoveryInfoView,
+  SuccessView,
 }
 
 class PageConfiguration {
@@ -247,4 +283,90 @@ PageConfiguration BackupAllViewPageConfig = PageConfiguration(
     key: 'BackupAllView',
     path: BackupAllViewPath,
     uiPage: Pages.BackupAllView,
+    currentPageAction: null);
+PageConfiguration AuthorizeLoginViewPageConfig = PageConfiguration(
+    key: 'AuthorizeLoginView',
+    path: AuthorizeLoginViewPath,
+    uiPage: Pages.AuthorizeLoginView,
+    currentPageAction: null);
+PageConfiguration AuthorizeActionViewPageConfig = PageConfiguration(
+    key: 'AuthorizeActionView',
+    path: AuthorizeActionViewPath,
+    uiPage: Pages.AuthorizeActionView,
+    currentPageAction: null);
+PageConfiguration RequestSpecificPaymentViewPageConfig = PageConfiguration(
+    key: 'RequestSpecificPaymentView',
+    path: RequestSpecificPaymentViewPath,
+    uiPage: Pages.RequestSpecificPaymentView,
+    currentPageAction: null);
+PageConfiguration RequestSpecificPaymentDetailsViewPageConfig =
+    PageConfiguration(
+        key: 'RequestSpecificPaymentDetailsView',
+        path: RequestSpecificPaymentDetailsViewPath,
+        uiPage: Pages.RequestSpecificPaymentDetailsView,
+        currentPageAction: null);
+PageConfiguration SecurityQuestionsViewPageConfig = PageConfiguration(
+    key: 'SecurityQuestionsView',
+    path: SecurityQuestionsViewPath,
+    uiPage: Pages.SecurityQuestionsView,
+    currentPageAction: null);
+PageConfiguration RequestOtpViewPageConfig = PageConfiguration(
+    key: 'RequestOtpView',
+    path: RequestOtpViewPath,
+    uiPage: Pages.RequestOtpView,
+    currentPageAction: null);
+PageConfiguration AccountRecoverySuccessViewPageConfig = PageConfiguration(
+    key: 'AccountRecoverySuccessView',
+    path: AccountRecoverySuccessViewPath,
+    uiPage: Pages.AccountRecoverySuccessView,
+    currentPageAction: null);
+PageConfiguration SharedAccessViewPageConfig = PageConfiguration(
+    key: 'SharedAccessView',
+    path: SharedAccessViewPath,
+    uiPage: Pages.SharedAccessView,
+    currentPageAction: null);
+PageConfiguration SetupAccountRecoveryViewPageConfig = PageConfiguration(
+    key: 'SetupAccountRecoveryView',
+    path: SetupAccountRecoveryViewPath,
+    uiPage: Pages.SetupAccountRecoveryView,
+    currentPageAction: null);
+PageConfiguration DisableAccountRecoveryViewPageConfig = PageConfiguration(
+    key: 'DisableAccountRecoveryView',
+    path: DisableAccountRecoveryViewPath,
+    uiPage: Pages.DisableAccountRecoveryView,
+    currentPageAction: null);
+PageConfiguration RecoverAccountViewPageConfig = PageConfiguration(
+    key: 'RecoverAccountView',
+    path: RecoverAccountViewPath,
+    uiPage: Pages.RecoverAccountView,
+    currentPageAction: null);
+PageConfiguration AnswerSecurityQuestionsViewPageConfig = PageConfiguration(
+    key: 'AnswerSecurityQuestionsView',
+    path: AnswerSecurityQuestionsViewPath,
+    uiPage: Pages.AnswerSecurityQuestionsView,
+    currentPageAction: null);
+PageConfiguration RequestBackupViewPageConfig = PageConfiguration(
+    key: 'RequestBackupView',
+    path: RequestBackupViewPath,
+    uiPage: Pages.RequestBackupView,
+    currentPageAction: null);
+PageConfiguration BackupRecoverySecretViewPageConfig = PageConfiguration(
+    key: 'BackupRecoverySecretView',
+    path: BackupRecoverySecretViewPath,
+    uiPage: Pages.BackupRecoverySecretView,
+    currentPageAction: null);
+PageConfiguration CompleteAccountRecoveryViewPageConfig = PageConfiguration(
+    key: 'CompleteAccountRecoveryView',
+    path: CompleteAccountRecoveryViewPath,
+    uiPage: Pages.CompleteAccountRecoveryView,
+    currentPageAction: null);
+PageConfiguration DisableAccountRecoveryInfoViewPageConfig = PageConfiguration(
+    key: 'DisableAccountRecoveryInfoView',
+    path: DisableAccountRecoveryInfoViewPath,
+    uiPage: Pages.DisableAccountRecoveryInfoView,
+    currentPageAction: null);
+PageConfiguration SuccessViewPageConfig = PageConfiguration(
+    key: 'SuccessView',
+    path: SuccessViewPath,
+    uiPage: Pages.SuccessView,
     currentPageAction: null);

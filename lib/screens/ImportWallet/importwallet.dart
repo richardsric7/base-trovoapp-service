@@ -5,6 +5,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/services/push_fcm_service.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -79,23 +80,37 @@ class _ImportWalletState extends State<ImportWallet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: height / 10),
+              SizedBox(height: height / 20),
               Row(
                 children: [
                   SizedBox(width: width / 15),
                   Form(
                     key: _formKey,
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      // crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          LanguageEn.importwallet,
-                          style: TextStyle(
-                              color: notifier.getblck,
-                              fontSize: 26.sp,
-                              fontFamily: fontsemibold),
+                        Row(
+                          children: [
+                            Text(
+                              LanguageEn.import,
+                              style: TextStyle(
+                                  color: notifier.getbluecolor,
+                                  fontSize: 26.sp,
+                                  fontFamily: fontsemibold),
+                            ),
+                            SizedBox(
+                              width: width / 50,
+                            ),
+                            Text(
+                              LanguageEn.wallet,
+                              style: TextStyle(
+                                  color: notifier.getbluecolor80,
+                                  fontSize: 26.sp,
+                                  fontFamily: fontsemibold),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: height / 10),
+                        SizedBox(height: height / 15),
                         // Email address
                         CustomTextFormField.textField(
                           LanguageEn.usernameoremail,
@@ -120,7 +135,14 @@ class _ImportWalletState extends State<ImportWallet> {
                           onSaved: storeUsernameOrEmail,
                           keyboardtype: TextInputType.emailAddress,
                         ),
-                        checkUsePassphrase(),
+                        Row(
+                          children: [
+                            Container(
+                              width: width / 1.2,
+                              child: checkUsePassphrase(),
+                            ),
+                          ],
+                        ),
                         if (usePassPhrase) ...[
                           // Pass phrase/Mnemonic
                           passPhraseInput(
@@ -248,8 +270,14 @@ class _ImportWalletState extends State<ImportWallet> {
                 Radius.circular(5.sp),
               ),
             ),
-            activeColor: notifier.getbluecolor50,
-            side: BorderSide(color: notifier.getbluecolor50),
+            activeColor: notifier.isDark
+                ? notifier.getbluecolor50
+                : notifier.getbluecolor90,
+            side: BorderSide(
+              color: notifier.isDark
+                  ? notifier.getbluecolor50
+                  : notifier.getbluecolor90,
+            ),
             value: usePassPhrase,
             onChanged: (bool? value) {
               setState(() {
@@ -392,6 +420,8 @@ class _ImportWalletState extends State<ImportWallet> {
         print('response: ${responseData}');
 
         if (responseData['statusCode'] == 200) {
+          getFiatRates(creds.publicKey, creds.secretKey, creds.publicKey,
+              username, appState);
           storeUserInfo(responseData['data']);
           appState.currentAction =
               PageAction(state: PageState.addPage, page: FingerprintPageConfig);

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -21,8 +23,10 @@ class TrovoWebView extends StatefulWidget {
 class TrovoWebViewState extends State<TrovoWebView> {
   late ColorNotifier notifier;
   late DataProvider appState;
-  String username = 'kent2cky';
   bool isLoading = false;
+  final Set<Factory<OneSequenceGestureRecognizer>> gestureRecognizers = {
+    Factory(() => EagerGestureRecognizer())
+  };
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -58,6 +62,7 @@ class TrovoWebViewState extends State<TrovoWebView> {
             children: [
               WebView(
                 javascriptMode: JavascriptMode.unrestricted,
+                gestureRecognizers: gestureRecognizers,
                 initialUrl: appState.initialUrl,
                 onPageStarted: (value) => {
                   print('loading... $value'),

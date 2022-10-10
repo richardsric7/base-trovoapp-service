@@ -73,6 +73,40 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return PasswordMgtViewPageConfig;
       case BackupAllViewPath:
         return BackupAllViewPageConfig;
+      case AuthorizeLoginViewPath:
+        return AuthorizeLoginViewPageConfig;
+      case AuthorizeActionViewPath:
+        return AuthorizeActionViewPageConfig;
+      case RequestSpecificPaymentViewPath:
+        return RequestSpecificPaymentViewPageConfig;
+      case RequestSpecificPaymentDetailsViewPath:
+        return RequestSpecificPaymentDetailsViewPageConfig;
+      case SecurityQuestionsViewPath:
+        return SecurityQuestionsViewPageConfig;
+      case RequestOtpViewPath:
+        return RequestOtpViewPageConfig;
+      case AccountRecoverySuccessViewPath:
+        return AccountRecoverySuccessViewPageConfig;
+      case SharedAccessViewPath:
+        return SharedAccessViewPageConfig;
+      case SetupAccountRecoveryViewPath:
+        return SetupAccountRecoveryViewPageConfig;
+      case DisableAccountRecoveryViewPath:
+        return DisableAccountRecoveryViewPageConfig;
+      case RecoverAccountViewPath:
+        return RecoverAccountViewPageConfig;
+      case AnswerSecurityQuestionsViewPath:
+        return AnswerSecurityQuestionsViewPageConfig;
+      case RequestBackupViewPath:
+        return RequestBackupViewPageConfig;
+      case BackupRecoverySecretViewPath:
+        return BackupRecoverySecretViewPageConfig;
+      case CompleteAccountRecoveryViewPath:
+        return CompleteAccountRecoveryViewPageConfig;
+      case DisableAccountRecoveryInfoViewPath:
+        return DisableAccountRecoveryInfoViewPageConfig;
+      case SuccessViewPath:
+        return SuccessViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -145,6 +179,44 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: PasswordMgtViewPath);
       case Pages.BackupAllView:
         return const RouteInformation(location: BackupAllViewPath);
+      case Pages.AuthorizeLoginView:
+        return const RouteInformation(location: AuthorizeLoginViewPath);
+      case Pages.AuthorizeActionView:
+        return const RouteInformation(location: AuthorizeActionViewPath);
+      case Pages.RequestSpecificPaymentView:
+        return const RouteInformation(location: RequestSpecificPaymentViewPath);
+      case Pages.RequestSpecificPaymentDetailsView:
+        return const RouteInformation(
+            location: RequestSpecificPaymentDetailsViewPath);
+      case Pages.SecurityQuestionsView:
+        return const RouteInformation(location: SecurityQuestionsViewPath);
+      case Pages.RequestOtpView:
+        return const RouteInformation(location: RequestOtpViewPath);
+      case Pages.AccountRecoverySuccessView:
+        return const RouteInformation(location: AccountRecoverySuccessViewPath);
+      case Pages.SharedAccessView:
+        return const RouteInformation(location: SharedAccessViewPath);
+      case Pages.SetupAccountRecoveryView:
+        return const RouteInformation(location: SetupAccountRecoveryViewPath);
+      case Pages.DisableAccountRecoveryView:
+        return const RouteInformation(location: DisableAccountRecoveryViewPath);
+      case Pages.RecoverAccountView:
+        return const RouteInformation(location: RecoverAccountViewPath);
+      case Pages.AnswerSecurityQuestionsView:
+        return const RouteInformation(
+            location: AnswerSecurityQuestionsViewPath);
+      case Pages.RequestBackupView:
+        return const RouteInformation(location: RequestBackupViewPath);
+      case Pages.BackupRecoverySecretView:
+        return const RouteInformation(location: BackupRecoverySecretViewPath);
+      case Pages.CompleteAccountRecoveryView:
+        return const RouteInformation(
+            location: CompleteAccountRecoveryViewPath);
+      case Pages.DisableAccountRecoveryInfoView:
+        return const RouteInformation(
+            location: DisableAccountRecoveryInfoViewPath);
+      case Pages.SuccessView:
+        return const RouteInformation(location: SuccessViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

@@ -32,7 +32,8 @@ class ColorNotifier with ChangeNotifier {
   WalletTileColor get getstructuredbluecolor80 => WalletTileColor(
       backColor: isDark ? darkblue80 : trovoblue80, foreColor: wihitecolor);
   WalletTileColor get getstructuredbluecolor70 => WalletTileColor(
-      backColor: isDark ? darkblue70 : trovoblue70, foreColor: wihitecolor);
+      backColor: isDark ? darkblue70 : trovoblue70,
+      foreColor: getbluewhitecolor);
   WalletTileColor get getstructuredbluecolor60 => WalletTileColor(
       backColor: isDark ? darkblue60 : trovoblue60,
       foreColor: getbluewhitecolor);
@@ -41,43 +42,43 @@ class ColorNotifier with ChangeNotifier {
       foreColor: getbluewhitecolor);
 
   WalletTileColor get getpinkcolor =>
-      WalletTileColor(backColor: colorPink, foreColor: darkgrey);
+      WalletTileColor(backColor: colorPink, foreColor: forecolorblue);
   WalletTileColor get getpinkcolor90 =>
-      WalletTileColor(backColor: colorPink90, foreColor: darkgrey);
+      WalletTileColor(backColor: colorPink90, foreColor: forecolorblue);
   WalletTileColor get getpinkcolor80 =>
-      WalletTileColor(backColor: colorPink80, foreColor: darkgrey);
+      WalletTileColor(backColor: colorPink80, foreColor: forecolorblue);
   WalletTileColor get getpinkcolor70 =>
-      WalletTileColor(backColor: colorPink70, foreColor: darkgrey);
+      WalletTileColor(backColor: colorPink70, foreColor: forecolorblue);
   WalletTileColor get getpinkcolor60 =>
-      WalletTileColor(backColor: colorPink60, foreColor: darkgrey);
+      WalletTileColor(backColor: colorPink60, foreColor: forecolorblue);
   WalletTileColor get getpinkcolor50 =>
-      WalletTileColor(backColor: colorPink50, foreColor: darkgrey);
+      WalletTileColor(backColor: colorPink50, foreColor: forecolorblue);
 
   WalletTileColor get getstructuredgreencolor =>
-      WalletTileColor(backColor: colorGreen, foreColor: darkgrey);
+      WalletTileColor(backColor: colorGreen, foreColor: forecolorblue);
   WalletTileColor get getstructuredgreencolor90 =>
-      WalletTileColor(backColor: colorGreen90, foreColor: darkgrey);
+      WalletTileColor(backColor: colorGreen90, foreColor: forecolorblue);
   WalletTileColor get getstructuredgreencolor80 =>
-      WalletTileColor(backColor: colorGreen80, foreColor: darkgrey);
+      WalletTileColor(backColor: colorGreen80, foreColor: forecolorblue);
   WalletTileColor get getstructuredgreencolor70 =>
-      WalletTileColor(backColor: colorGreen70, foreColor: darkgrey);
+      WalletTileColor(backColor: colorGreen70, foreColor: forecolorblue);
   WalletTileColor get getstructuredgreencolor60 =>
-      WalletTileColor(backColor: colorGreen60, foreColor: darkgrey);
+      WalletTileColor(backColor: colorGreen60, foreColor: forecolorblue);
   WalletTileColor get getstructuredgreencolor50 =>
-      WalletTileColor(backColor: colorGreen50, foreColor: darkgrey);
+      WalletTileColor(backColor: colorGreen50, foreColor: forecolorblue);
 
   WalletTileColor get getorangecolor =>
-      WalletTileColor(backColor: colorOrange, foreColor: darkgrey);
+      WalletTileColor(backColor: colorOrange, foreColor: forecolorblue);
   WalletTileColor get getorangecolor90 =>
-      WalletTileColor(backColor: colorOrange90, foreColor: darkgrey);
+      WalletTileColor(backColor: colorOrange90, foreColor: forecolorblue);
   WalletTileColor get getorangecolor80 =>
-      WalletTileColor(backColor: colorOrange80, foreColor: darkgrey);
+      WalletTileColor(backColor: colorOrange80, foreColor: forecolorblue);
   WalletTileColor get getorangecolor70 =>
-      WalletTileColor(backColor: colorOrange70, foreColor: darkgrey);
+      WalletTileColor(backColor: colorOrange70, foreColor: forecolorblue);
   WalletTileColor get getorangecolor60 =>
-      WalletTileColor(backColor: colorOrange60, foreColor: darkgrey);
+      WalletTileColor(backColor: colorOrange60, foreColor: forecolorblue);
   WalletTileColor get getorangecolor50 =>
-      WalletTileColor(backColor: colorOrange50, foreColor: darkgrey);
+      WalletTileColor(backColor: colorOrange50, foreColor: forecolorblue);
 
   // get getbluecolor => isDark ? blue : darkblue;
 

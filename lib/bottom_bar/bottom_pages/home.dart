@@ -1,26 +1,33 @@
+import 'dart:async';
+
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/Models/BottomTabPage.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/WalletSlides.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class Home extends StatefulWidget {
-  final void Function(int) onButtonPressed;
-  const Home({Key? key, required this.onButtonPressed}) : super(key: key);
+  final void Function(int)? onButtonPressed;
+  const Home({Key? key, this.onButtonPressed}) : super(key: key);
 
   @override
   State<Home> createState() => _HomeState();
@@ -41,6 +48,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   var unclaimedAssets;
   int tabLength = 2;
   int activeTabIndex = 0;
+  int activeWalletIndex = 0;
 
   @override
   void initState() {
@@ -48,6 +56,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     _tabController = TabController(length: tabLength, vsync: this);
     _tabController.addListener(tabListener);
     _refreshController = RefreshController(initialRefresh: false);
+    Timer(const Duration(seconds: 10), checkSecurityQuestion);
   }
 
   void tabListener() {
@@ -102,7 +111,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
     print(
         'tablength: $tabLength, tabcontroller.length: ${_tabController.length}');
-    print('activeTabIndex: $activeTabIndex');
+    print('hideWalletList: ${appState.hideWalletList}');
 
     // keep track of the active tab to avoid having it changed
     // on each page rebuild
@@ -179,7 +188,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           Tab(
                             height: 20,
                             text:
-                                '${LanguageEn.pendingassets} (${unclaimedAssets.length})',
+                                '${LanguageEn.pending} (${unclaimedAssets.length})',
                           ),
                         ],
                         Tab(
@@ -225,6 +234,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                               .firstWhere((wallet) =>
                                                   wallet.publicKey ==
                                                   activeWallet);
+
                                           appState.viewData = {
                                             // since the original asset object
                                             // is immutable I create a new assetObj and
@@ -245,7 +255,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                             page: AssetDetailsViewPageConfig,
                                           );
                                         },
-                                        child: tiles(asset),
+                                        child: tiles(asset, activeWalletIndex),
                                       ),
                                     ],
                                   ] else ...[
@@ -322,7 +332,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                                   PendingAssetDetailsViewPageConfig,
                                             );
                                           },
-                                          child: tiles(asset),
+                                          child:
+                                              tiles(asset, activeWalletIndex),
                                         ),
                                       ],
                                     ] else ...[
@@ -429,12 +440,34 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             Row(
               children: [
                 Padding(
-                    padding: EdgeInsets.fromLTRB(width / 18, 0, 0, 0),
-                    child: CircleAvatar(
-                      radius: 30,
-                      backgroundColor: notifier.getwihitecolor,
-                      foregroundImage: AssetImage("assets/images/obi.png"),
-                    )),
+                  padding: EdgeInsets.fromLTRB(width / 18, 0, 0, 0),
+                  child: CircleAvatar(
+                    radius: 30,
+                    backgroundColor: notifier.getbluecolor70,
+                    child: GestureDetector(
+                      onTap: () {
+                        appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: ProfileDetailsViewPageConfig);
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100.0),
+                        child: Image.network(
+                          appState.userInfo!.imageThumbnailURL!,
+                          width: width / 6.8,
+                          // height: width / 10,
+                          fit: BoxFit.fill,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/trovo.png',
+                              width: width / 9,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 SizedBox(
                   width: width / 70,
                 ),
@@ -625,7 +658,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         onPageChanged: ((index, reason) => {
               setState(
                 () => {
-                  activeWallet = wallets[index].publicKey,
+                  activeWalletIndex = index == 6 ? index - 1 : index,
+                  activeWallet = wallets[activeWalletIndex].publicKey,
                   claimedAssets = assetBalances[activeWallet]['claimed'],
                   unclaimedAssets = assetBalances[activeWallet]['unclaimed'],
                   print('activeWallet: $activeWallet'),
@@ -643,97 +677,29 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         return Builder(
           builder: (BuildContext context) {
             if (indexOfWallet < 6) {
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                    // color: colors[0],
-                    color: colors[wallets.indexOf(wallet)],
-                  ),
-                  child: Stack(children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 35.0, horizontal: 20),
-                          child: Image.asset(
-                            'assets/images/trovo_white.png',
-                            color: getColor(context, indexOfWallet),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0, vertical: 25.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            wallet.alias!.capitalizeFirst!,
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: getColor(context, indexOfWallet),
-                                fontFamily: fontsemibold),
-                          ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                LanguageEn.totalbalance,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w400,
-                                  color: getColor(context, indexOfWallet),
-                                  fontFamily: fontbody,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: height / 98.0,
-                          ),
-                          Text(
-                            appState.hideBalances
-                                ? hideBalanceText
-                                : '2,082,898 NGN',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: getColor(context, indexOfWallet),
-                              fontFamily: fontsemibold,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            appState.hideBalances
-                                ? hideBalanceText
-                                : '4,014 USD',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w300,
-                              fontSize: 13,
-                              color: getColor(context, indexOfWallet),
-                              fontFamily: fontbody,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ]),
-                ),
+              return WalletSlide(
+                backColor: colors[wallets.indexOf(wallet)],
+                foreColor: getColor(context, indexOfWallet),
+                alias: wallet.alias!.capitalizeFirst!,
+                totalBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
+                fiatBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
+                initialHiddenState: appState.hideWalletList[indexOfWallet],
+                onHiddenStateChanged: (state) => {
+                  setState(
+                    () => {
+                      appState.hideWalletList[indexOfWallet] = state,
+                      StoreData().storeInsertData(
+                          'hideWalletList', appState.hideWalletList)
+                    },
+                  )
+                },
               );
             }
 
             return GestureDetector(
-              onTap: () {
-                // moves user to the wallets list tab
-                widget.onButtonPressed(1);
-              },
+              onTap: () => changeTabPage(appState, ButtomTabPage.Wallets.index),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -792,7 +758,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget tiles(asset) {
+  Widget tiles(asset, indexOfWallet) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
@@ -807,7 +773,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             title: Row(
               children: [
                 Image.network(
-                  "https://drive.google.com/uc?export=view&id=103fw13pcBoCO2hkTPFX73BUKeWWkVpGZ",
+                  asset["imageUrl"],
                   height: 35,
                   width: 35,
                   errorBuilder: (context, error, stackTrace) {
@@ -833,7 +799,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                       child: Text(
-                        '25 NGN',
+                        "${getFiatRate(asset["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
                         style: TextStyle(
                           fontSize: 9,
                           fontFamily: fontbody,
@@ -850,9 +816,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  appState.hideBalances
-                      ? hideBalanceText
-                      : formatNumber(double.parse(asset["amount"])),
+                  getBalance(formatNumber(double.parse(asset["amount"])),
+                      indexOfWallet),
                   style: TextStyle(
                     fontSize: 12,
                     fontFamily: fontsemibold,
@@ -862,7 +827,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
-                    appState.hideBalances ? hideBalanceText : '146,875 NGN',
+                    getBalance(
+                        '${calculateFiatValue(asset["amount"], asset["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                        indexOfWallet),
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,
@@ -876,12 +843,31 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
+  String getBalance(String balance, indexOfWallet) {
+    String text;
+    if (appState.hideBalances) text = hideBalanceText;
+
+    if (indexOfWallet < appState.hideWalletList.length &&
+        appState.hideWalletList[indexOfWallet])
+      text = hideBalanceText;
+    else
+      text = balance;
+
+    return text;
+  }
+
   void refreshData() async {
     try {
       await appState.refreshData();
       _refreshController.refreshCompleted();
     } catch (e) {
       _refreshController.refreshFailed();
+    }
+  }
+
+  void checkSecurityQuestion() {
+    if (userInfo.hasSecurityQuestions == 0) {
+      showSetSecurityQuestionsPopup(context);
     }
   }
 }

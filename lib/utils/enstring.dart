@@ -6,9 +6,32 @@ class LanguageEn {
 
   static String get createnewwallet => 'Create new wallet';
 
+  static String get requestspecificamount => 'Request Specific Amount';
+
   static String get importexistingwallet => 'Import existing wallet';
 
   static String get chooseamethod => 'Choose a method';
+
+  static String get request => 'Request';
+
+  static String get account => 'Account';
+
+  static String get recovery => 'Recovery';
+
+  static String get requestotp => 'Request OTP';
+
+  static String get confirmotp => 'Confirm OTP';
+
+  static String get alreadyhaveotp => 'Already received OTP?';
+
+  static String get requestotpwarn =>
+      'Please provide accurate information in the fields below to ensure a successful account recovery process';
+
+  static String get enteryouremailaddress => 'Enter your email address';
+
+  static String get enterotp => 'Enter OTP for user: ';
+
+  static String get receivingwallet => 'Receiving Wallet';
 
   static String get receivefromnontrovowallet =>
       'Receive from non Trovo wallet';
@@ -34,6 +57,10 @@ class LanguageEn {
   static String get minutes => 'minutes';
 
   static String get chooseasset => 'Choose asset';
+
+  static String get choosequestion => 'Choose question';
+
+  static String get enteranswer => 'Enter answer';
 
   static String get swapfrom => 'Swap From';
 
@@ -90,6 +117,8 @@ class LanguageEn {
 
   static String get importwallet => "Import Wallet";
 
+  static String get import => "Import";
+
   static String get share => "Share";
 
   static String get enterpassphraseempty => 'Please enter your pass phrase';
@@ -106,7 +135,9 @@ class LanguageEn {
 
   static String get invalidcredentials => 'Your credential is invalid';
 
-  static String get enterpassword => "Create Password";
+  static String get letsgetyoustarted1 => "Let's get you";
+
+  static String get letsgetyoustarted2 => "started";
 
   static String get enteryourpassword =>
       "Create Password To Secure Your Wallet";
@@ -181,16 +212,32 @@ class LanguageEn {
 
   static String get signup => "Create Account";
 
+  static String get recoveraccount => "Recover Account";
+
   static String get username => "Username";
+
+  static String get enteryourusername => "Enter username";
+
+  static String get backupnewsecretkeygenerated =>
+      """Your account has been successfully recovered!\n\nPlease ensure that you backup the account information that is about to be displayed especially the secret key because you will use it to import your account.\n\nIf you fail to save the secret key, you will have to start the account recovery process afresh""";
+
+  static String get taptobackup => "Tap to backup";
 
   static String get phonenumber => "Phone number";
 
+  static String get completeaccountrecovery =>
+      "Tap to complete account recovery";
+
   static String get termsofserviceerror => "You need to accept terms";
+
+  static String get invalidateoldsigner =>
+      "Invalidate old signer from primary wallet";
 
   static String get referrer => "Referrer's username";
 
-  static String get ittakesaminute =>
-      "It only takes a minute to create your account";
+  static String get ittakesaminute1 => "It takes just";
+
+  static String get ittakesaminute2 => "one minute!";
 
   static String get fanme => "Firstname";
 
@@ -201,6 +248,35 @@ class LanguageEn {
   static String get entitygrade => "Entity Grade";
 
   static String get emailadress => "Email address";
+
+  static String get setupsecurityquestionsdescription =>
+      "This will be required if you wish to make modifications to your account in the future, and if you ever wish to opt in for our account recovery service. \n\nPLEASE DO NOT FORGET THE ANSWERS YOU PROVIDED, FOR FUTURE USE.";
+
+  static String get enableaccountrecoverydescription1 =>
+      "You are about to opt in for and enable account recovery service, once account recovery service is enabled on your account, Trovotech will be able to recover your account should you lose your secret key within the time the recovery service is active on your account.";
+
+  static String get enableaccountrecoverydescription2 =>
+      "The account recovery is a paid service and is only limited to recovery of your account and the wallet(s) on your account, the payment for this service is renewable on an annual basis.";
+
+  static String get enableaccountrecoverydescription3 =>
+      "Trovotech does not have access to your secret key, therefore will not be liable for any missing asset in your wallet(s).";
+
+  static String get enableaccountrecoverydescription4 =>
+      "As long as your secret key remains safe on your side, your assets are safe, therefore, ensure that you keep your secret key safe always.";
+
+  static String get disableaccountrecoverydescription =>
+      "Account Recovery is already active on your Account.\n\nIf you disable it, Trovotech will no longer recover your account should you lose your secret key.\n\nYou can enable the service at any time in the future should you have a need for it.\n\nIf you wish to proceed with disabling account recovery service, please tap on the button below.";
+
+  static String get answersecurityquestionstodisableaccountrecovery =>
+      "Please answer the following security questions to disable account recovery";
+
+  static String get answersecurityquestionsdescription =>
+      "Please answer the following security questions to proceed to the next step.";
+
+  static String get provideusernameforaccountrecovery =>
+      "Please provide the username of the account that you want to recover in order to commence the account recovery process.";
+
+  static String get pleaseenteranswer => "Please enter answer to the question";
 
   static String get usernameoremail => "Username or Email address";
 
@@ -222,8 +298,20 @@ class LanguageEn {
 
   static String get iagreetothe => "I agree to the Trovo";
 
+  static String get ensurebackedup =>
+      "Please ensure that you have backed up your new account then tick the checkbox above!";
+
   static String get iunderstandall =>
       "I have read and understood all the above.";
+
+  static String get haveyoubackedup =>
+      "Before completing account recovery please confirm that you have backed up the new account information. If you have not backed it up, kindly tap the back button and back it up.";
+
+  static String get ihavebackedupmywallet =>
+      "I have securely backed up my new account information.";
+
+  static String get iagreeviewaccess =>
+      "I agree that these users will now be able to view details of the selected wallet and only authorized personnel (initiators and approvers for wallets with multisig enabled) will be able to revoke this access once granted.";
 
   static String get termsofservices => "Terms of Service ";
 
@@ -260,6 +348,10 @@ class LanguageEn {
 
   static String get copy => 'Copy';
 
+  static String get add => 'Add';
+
+  static String get retry => 'Retry';
+
   static String get blockchainproof => 'Blockchain Proof (Transaction ID)';
 
   static String get proceed => 'Proceed';
@@ -270,6 +362,8 @@ class LanguageEn {
       "Invite friends to earn TROV tokens when they transact";
 
   static String get youhavebeenmissed => "You have been missed";
+
+  static String get resendotp => "Resend OTP?";
 
   static String get forgotpassword => "Forgot Password?";
 
@@ -307,6 +401,12 @@ class LanguageEn {
 
   static String get congratulations => "Congratulations ";
 
+  static String get otpsentinfo =>
+      "An OTP has successfully been sent to your email. Please check your inbox (possibly the spam folder) to get the OTP and then enter it into the text fields below.";
+
+  static String get otpcongratulationsdetails =>
+      "You have successfully recovered your account. Please use your new secret key to import your wallet on your device.";
+
   static String get walletcreatesuccess =>
       "Your wallet has been successfully created. \n\n\nWe strongly recommend that you backup your wallet before proceeding.\n\n\nBacking up your wallet is the only way to restore your wallet if you lose your device";
 
@@ -338,7 +438,7 @@ class LanguageEn {
       "I understand that I need to securely store my secret key and that if this app is deleted or moved to another device, I can only restore my wallet with the secret key.";
 
   static String get iunderstandliability =>
-      "I understand that if I lose my secret key. Trovo is not liable to any loss and that my funds are securely held and controlled on this device not by Trovo.";
+      "I understand that if I lose my secret key. Trovotech is not liable to any loss and that my funds are securely held and controlled on this device not by Trovotech.";
 
   static String get maynotbedisplayedagain =>
       "This wallet's secret key will only be available while this app in not yet unistalled from this device.";
@@ -392,6 +492,9 @@ class LanguageEn {
   static String get skipBiometrics => 'Skip Biometrics';
 
   static String get goahead => "Continue";
+
+  static String get taptoenableaccountrecovery =>
+      "Tap to enable account recovery";
 
   static String get createnewpin => "Create New Pin";
 
@@ -453,7 +556,17 @@ class LanguageEn {
 
   static String get assets => "ASSETS";
 
-  static String get pendingassets => "PENDING";
+  static String get pendingassets => "Pending Asset ";
+
+  static String get pendingassetwarning =>
+      "assetCode is not yet part of your approved assets to be received on wallet walletAlias. Do you wish to start receiving this asset?";
+
+  static String get pendingassetwarning2 =>
+      'Claiming this asset will enable you to continue to receive it in the future and will add it to the list of assets on your wallet.';
+
+  static String get version => "Version";
+
+  static String get pending => "PENDING";
 
   static String get nfts => "NFT";
 
@@ -572,6 +685,18 @@ class LanguageEn {
 
   static String get success => "Success!";
 
+  static String get trustassetsuccess =>
+      "You have successfully activated asset on your wallet. You will now be able to send, receive and perform other transactions with asset.";
+
+  static String get securityquestionssuccessmessage =>
+      'You have successfully setup your secret questons. \n\nPLEASE DO NOT FORGET THE ANSWERS YOU PROVIDED FOR FUTURE USE.';
+
+  static String get enableaccountrecoverysuccess =>
+      "Account recovery has been successfully enabled on your account. Trovowallet will now be able to recover your account if you lose your secret key.";
+
+  static String get disableaccountrecoverysuccess =>
+      "Account recovery has been successfully disabled on your account. \n\nTrovowallet will no longer be able to recover your account should you lose your secret key.\n\n You can enable the service at any time in the future should you have a need for it.";
+
   static String get hasbeenexchange => "Has been exchange from ETH to DAI";
 
   static String get youpay => "You Pay";
@@ -610,6 +735,8 @@ class LanguageEn {
 
   static String get myprofile => "My Profile";
 
+  static String get sharedaccess => "Shared Access";
+
   static String get myreferrals => "My Referrals";
 
   static String get hidebalance => "Hide My Balance";
@@ -622,7 +749,22 @@ class LanguageEn {
 
   static String get walletmode => "Wallet Mode";
 
+  static String get accountrecovery => "Account Recovery";
+
   static String get more => "More";
+
+  static String get setup => "Setup";
+
+  static String get enable => "Enable";
+
+  static String get disable => "Disable";
+
+  static String get answer => "Answer";
+
+  static String get securityquestions => "Security Questions";
+
+  static String get pleasesetupsecurityquestions =>
+      "Please setup your security questions.\nSecurity questions add an extra layer of security to your account and is also a requirement for using some of the Trovowallet services.";
 
   static String get helpandsupport => "Help and Support";
 
@@ -659,6 +801,19 @@ class LanguageEn {
   static String get taptoconnect => "Tap to connect";
 
   static String get referrals => "Referrals";
+
+  static String get grantaccess => "Grant Access";
+
+  static String get choosewallet => "Choose Wallet";
+
+  static String get accesstype => "Access Type";
+
+  static String get sortby => "Sort by";
+
+  static String get enteraccountsusername =>
+      "Enter the usernames of all accounts that require viewer access to this wallet";
+
+  static String get accesslist => "Access List";
 
   static String get rewards => "Rewards";
 

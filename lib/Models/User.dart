@@ -4,6 +4,8 @@ class UserInfo {
   String? username;
   String? firstName;
   String? lastName;
+  int? hasSecurityQuestions;
+  int? accountRecoveryEnabled;
   String? email;
   String? mobile;
   int? mobileVerified;
@@ -14,7 +16,7 @@ class UserInfo {
   String? publicKey;
   int? corporate;
   String? pushNotificationToken;
-  String? imageThumbNail;
+  String? imageThumbnailURL;
   int? membershipType;
   DateTime? membershipExpiry;
   int? kycVerified;
@@ -37,7 +39,7 @@ class UserInfo {
     this.referralQRCode,
     this.corporate,
     this.pushNotificationToken,
-    this.imageThumbNail,
+    this.imageThumbnailURL,
     this.membershipType,
     this.membershipExpiry,
     this.kycVerified,
@@ -45,6 +47,8 @@ class UserInfo {
     this.verified,
     this.suspended,
     this.wallets,
+    this.hasSecurityQuestions,
+    this.accountRecoveryEnabled,
   });
 
   toJSONEncodable() {
@@ -55,6 +59,8 @@ class UserInfo {
       "email": email,
       "mobile": mobile,
       "mobileVerified": mobileVerified,
+      "hasSecurityQuestions": hasSecurityQuestions,
+      "accountRecoveryEnabled": accountRecoveryEnabled,
       "countryCode": countryCode,
       "referrer": referrer,
       "referralLink": referralLink,
@@ -62,9 +68,9 @@ class UserInfo {
       "publicKey": publicKey,
       "corporate": corporate,
       "pushNotificationToken": pushNotificationToken,
-      "imageThumbNail": imageThumbNail,
+      "imageThumbnailURL": imageThumbnailURL,
       "membershipType": membershipType,
-      "membershipExpiry": membershipExpiry,
+      "membershipExpiry": membershipExpiry!.toIso8601String(),
       "kycVerified": kycVerified,
       "walletRecoveryEnabled": walletRecoveryEnabled,
       "verified": verified,
@@ -96,6 +102,8 @@ class UserInfo {
       email: m['email'],
       mobile: m['mobile'],
       mobileVerified: m['mobileVerified'],
+      hasSecurityQuestions: m['hasSecurityQuestions'],
+      accountRecoveryEnabled: m['accountRecoveryEnabled'],
       countryCode: m['countryCode'],
       referrer: m['referrer'],
       referralLink: m['referralLink'],
@@ -103,7 +111,7 @@ class UserInfo {
       publicKey: m['publicKey'],
       corporate: m['corporate'],
       pushNotificationToken: m['pushNotificationToken'],
-      imageThumbNail: m['imageThumbNail'],
+      imageThumbnailURL: m['imageThumbnailURL'],
       membershipType: m['membershipType'],
       membershipExpiry: DateTime.tryParse(m['membershipExpiry']),
       kycVerified: m['kycVerified'],

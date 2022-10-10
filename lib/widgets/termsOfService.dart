@@ -51,8 +51,14 @@ class _TermsOfServiceState extends State<TermsOfService> {
                     Radius.circular(5.sp),
                   ),
                 ),
-                activeColor: notifier.getbluecolor50,
-                side: BorderSide(color: notifier.getbluecolor50),
+                activeColor: notifier.isDark
+                    ? notifier.getbluecolor50
+                    : notifier.getbluecolor90,
+                side: BorderSide(
+                  color: notifier.isDark
+                      ? notifier.getbluecolor50
+                      : notifier.getbluecolor90,
+                ),
                 value: widget.value,
                 onChanged: widget.onChanged,
               ),
@@ -76,9 +82,12 @@ class _TermsOfServiceState extends State<TermsOfService> {
                       child: Text(
                         ' ' + LanguageEn.termsofservices,
                         style: TextStyle(
-                            fontFamily: fontbody,
-                            fontSize: height / 55,
-                            color: notifier.getbluecolor50),
+                          fontFamily: fontbody,
+                          fontSize: height / 55,
+                          color: notifier.isDark
+                              ? notifier.getbluecolor50
+                              : notifier.getbluecolor90,
+                        ),
                       ),
                     ),
                   ],
@@ -102,9 +111,12 @@ class _TermsOfServiceState extends State<TermsOfService> {
                       child: Text(
                         LanguageEn.privacypolicy,
                         style: TextStyle(
-                            fontFamily: fontbody,
-                            fontSize: height / 55,
-                            color: notifier.getbluecolor50),
+                          fontFamily: fontbody,
+                          fontSize: height / 55,
+                          color: notifier.isDark
+                              ? notifier.getbluecolor50
+                              : notifier.getbluecolor90,
+                        ),
                       ),
                     ),
                   ],

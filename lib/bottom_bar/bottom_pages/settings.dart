@@ -4,14 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
-import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/Models/BottomTabPage.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/profile/faq.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -33,6 +33,7 @@ class Settings extends StatefulWidget {
 class _SettingsState extends State<Settings> {
   late ColorNotifier notifier;
   late DataProvider appState;
+
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -43,11 +44,24 @@ class _SettingsState extends State<Settings> {
     }
   }
 
+  List<DropdownMenuItem<String>> get getCurrencies {
+    List<DropdownMenuItem<String>> currencies = [];
+    appState.fiatRate.forEach((key, value) {
+      print('===============key: $key, value: $value');
+      currencies.add(DropdownMenuItem(
+          child: Text(
+            key,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: key));
+    });
+    return currencies;
+  }
+
   @override
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
-    appState = Provider.of<DataProvider>(context, listen: false);
   }
 
   @override
@@ -56,6 +70,10 @@ class _SettingsState extends State<Settings> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    print(
+        '=============accountRecoveryEnabled: ${appState.userInfo!.accountRecoveryEnabled}');
+    print(
+        '=============hasSecurityQuestions: ${appState.userInfo!.hasSecurityQuestions}');
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -67,21 +85,43 @@ class _SettingsState extends State<Settings> {
                 height: height / 10,
               ),
               Center(
-                child: Image.asset(
-                  "assets/images/obi.png",
-                  height: height / 10,
-                  fit: BoxFit.fill,
-                ),
+                child: CircleAvatar(
+                    radius: width / 10,
+                    backgroundColor: notifier.getbluecolor70,
+                    child: GestureDetector(
+                      onTap: () {
+                        appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: ProfileDetailsViewPageConfig);
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(100.0),
+                        child: Image.network(
+                          appState.userInfo!.imageThumbnailURL!,
+                          width: width / 5.3,
+                          // height: width / 10,
+                          fit: BoxFit.fill,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.asset(
+                              'assets/images/trovo.png',
+                              width: width / 9,
+                            );
+                          },
+                        ),
+                      ),
+                    )),
               ),
-              SizedBox(height: height / 70),
+              SizedBox(
+                height: height / 80,
+              ),
               Text(
                 '${appState.userInfo!.firstName} ${appState.userInfo!.lastName}',
                 style: TextStyle(
-                    color: notifier.getblck,
+                    color: notifier.getbluecolor,
                     fontFamily: fontsemibold,
-                    fontSize: 16.sp),
+                    fontSize: 18.sp),
               ),
-              SizedBox(height: height / 20),
+              SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () {
                   share();
@@ -144,7 +184,7 @@ class _SettingsState extends State<Settings> {
                     "assets/images/languages.png", "", LanguageEn.languages),
               ),
               GestureDetector(
-                child: iteamlist(
+                child: currency(
                     "assets/images/currency.png", "", LanguageEn.currency),
               ),
               GestureDetector(
@@ -166,6 +206,8 @@ class _SettingsState extends State<Settings> {
               ),
               SizedBox(height: height / 50),
               GestureDetector(
+                onTap: () => appState.currentAction = PageAction(
+                    state: PageState.addPage, page: SharedAccessViewPageConfig),
                 child: iteamlist(
                     "assets/images/access.png", "", LanguageEn.access),
               ),
@@ -212,7 +254,7 @@ class _SettingsState extends State<Settings> {
                   // go to the definition of appState.viewData
                   // to learn more about viewData
                   appState.viewData![EnsurePrivacyPageConfig.key] = {
-                    'backupAll': true
+                    'rel': 'backupAll',
                   };
                   appState.currentAction = PageAction(
                       state: PageState.addPage, page: EnsurePrivacyPageConfig);
@@ -222,6 +264,25 @@ class _SettingsState extends State<Settings> {
               ),
               walletMode(
                   "assets/images/walletmode.png", "", LanguageEn.walletmode),
+              GestureDetector(
+                onTap: () {
+                  if (appState.userInfo!.hasSecurityQuestions == 0) {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: SecurityQuestionsViewPageConfig);
+                  } else if (appState.userInfo!.accountRecoveryEnabled == 0) {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: SetupAccountRecoveryViewPageConfig);
+                  } else {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: DisableAccountRecoveryInfoViewPageConfig);
+                  }
+                },
+                child: iteamlist("assets/images/history.png", "",
+                    LanguageEn.accountrecovery),
+              ),
               SizedBox(height: height / 25),
               Row(
                 children: [
@@ -286,35 +347,37 @@ class _SettingsState extends State<Settings> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             LayoutBuilder(builder: (context, constraints) {
-              return Container(
-                height: height / 10,
-                width: width / 1.1,
-                decoration: BoxDecoration(
-                  color: colorbutton!,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Image.asset("assets/images/referrals.png",
-                        height: height / 30),
-                    Container(
-                      width: width / 1.7,
-                      child: Text(
-                        buttontext!,
-                        textAlign: TextAlign.start,
-                        style: TextStyle(
-                            fontFamily: fontbody,
-                            fontSize: 13.sp,
-                            color: buttontextcolor),
+              return ScreenUtilInit(
+                builder: (context, child) => Container(
+                  height: height / 10,
+                  width: width / 1.1,
+                  decoration: BoxDecoration(
+                    color: colorbutton!,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Image.asset("assets/images/referrals.png",
+                          height: height / 30),
+                      Container(
+                        width: width / 1.7,
+                        child: Text(
+                          buttontext!,
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                              fontFamily: fontbody,
+                              fontSize: 13.sp,
+                              color: buttontextcolor),
+                        ),
                       ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 12.sp,
-                      color: wihitecolor,
-                    )
-                  ],
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 12.sp,
+                        color: wihitecolor,
+                      )
+                    ],
+                  ),
                 ),
               );
             }),
@@ -542,6 +605,79 @@ class _SettingsState extends State<Settings> {
     );
   }
 
+  Widget currency(image, txt, name) {
+    return Container(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: Row(
+          children: [
+            SizedBox(width: width / 25),
+            Image.asset(
+              image,
+              height: height / 30,
+              width: 30,
+              color: notifier.getbluewhitecolor,
+            ),
+            SizedBox(width: width / 40),
+            Text(
+              name,
+              style: TextStyle(
+                  color: notifier.getblck,
+                  fontSize: 13.sp,
+                  fontFamily: fontsemibold),
+            ),
+            const Spacer(),
+            SizedBox(width: width / 100),
+            Container(
+              width: width / 5.9,
+              height: 20,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField(
+                      isExpanded: true,
+                      dropdownColor: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                      value: appState.defaultCurrency,
+                      icon: Visibility(
+                          visible: false, child: Icon(Icons.arrow_downward)),
+                      decoration: InputDecoration(
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      elevation: 0,
+                      style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      onChanged: (newValue) async {
+                        await StoreData().storeInsertData(
+                            'defaultCurrency', newValue.toString());
+                        appState.setDefaultCurrency = newValue.toString();
+                      },
+                      items: getCurrencies,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: width / 20),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget logout(image, txt, name) {
     return Container(
       color: Colors.transparent,
@@ -679,11 +815,10 @@ class _SettingsState extends State<Settings> {
                 activeColor: notifier.getgreencolor,
                 value: appState.hideBalances,
                 onChanged: (val) async {
-                  setState(() {
-                    appState.hideBalances = !appState.hideBalances;
-                    StoreData()
-                        .storeInsertData('hideBalances', appState.hideBalances);
-                  });
+                  if (val)
+                    toggleHideBalances();
+                  else
+                    authenticateAndUnhideBalances();
                 },
               ),
             ),
@@ -699,8 +834,9 @@ class _SettingsState extends State<Settings> {
       bool result = await Authenticator().authenticateMe();
       if (result) {
         setState(() {
-          StoreData().storeInsertData('biometricsEnabled', result);
           appState.biometricEnabled = !appState.biometricEnabled;
+          StoreData()
+              .storeInsertData('biometricsEnabled', appState.biometricEnabled);
         });
       }
     } on PlatformException catch (e) {
@@ -709,5 +845,36 @@ class _SettingsState extends State<Settings> {
         biometricsErrorAlert(context);
       }
     }
+  }
+
+  void authenticateAndUnhideBalances() async {
+    if (appState.biometricEnabled) {
+      try {
+        bool result = await Authenticator().authenticateMe();
+        if (result) {
+          toggleHideBalances();
+          return;
+        }
+      } on PlatformException catch (e) {
+        if (e.code == auth_error.notEnrolled ||
+            e.code == auth_error.notAvailable) {
+          biometricsErrorAlert(context);
+        }
+      }
+    }
+
+    showPasswordDialog(context, () {
+      toggleHideBalances();
+    });
+  }
+
+  void toggleHideBalances() {
+    setState(() {
+      appState.sethideBalances = !appState.hideBalances;
+      appState.sethideWalletList = List.filled(6, appState.hideBalances);
+      StoreData().storeInsertData('hideBalances', appState.hideBalances);
+      StoreData().storeInsertData('hideWalletList', appState.hideWalletList);
+      changeTabPage(appState, ButtomTabPage.Dashboard.index);
+    });
   }
 }

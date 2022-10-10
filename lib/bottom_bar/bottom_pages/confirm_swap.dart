@@ -48,6 +48,8 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    activeWallet = appState.activeWallet;
   }
 
   @override
@@ -360,7 +362,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
       } else {
         hideLoader(context);
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: LanguageEn.error, message: responseData['data']['error']);
       }
     } catch (e) {
       print(e);

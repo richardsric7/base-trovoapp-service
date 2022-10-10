@@ -57,33 +57,33 @@ class _CreatePassword extends State<CreatePassword> {
       builder: (context, child) => Scaffold(
         appBar: CustomAppBar(
             context, notifier.getwihitecolor, "", notifier.getblck,
-            height: height / 15),
+            height: height / 20),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
           child: Form(
             key: _formKey,
             child: Column(
               children: [
-                SizedBox(height: height / 15.5),
-                Center(
-                  child: Icon(
-                    CupertinoIcons.lock,
-                    color: notifier.isDark
-                        ? notifier.getbluecolor50
-                        : notifier.getbluecolor,
-                    size: 200.sp,
-                  ),
-                ),
-                SizedBox(height: height / 50),
                 Text(
-                  LanguageEn.enterpassword,
+                  LanguageEn.letsgetyoustarted1,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getblck,
-                      fontSize: 25.sp,
+                      color: notifier.getbluecolor,
+                      fontSize: 30.sp,
                       fontFamily: fontsemibold),
                 ),
-                SizedBox(height: height / 30),
+                Text(
+                  LanguageEn.letsgetyoustarted2,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: notifier.getbluecolor80,
+                      fontSize: 30.sp,
+                      fontFamily: fontsemibold),
+                ),
+                Center(
+                  child: Image.asset("assets/images/palm-recognition.png",
+                      height: height / 2.8),
+                ),
                 Text(
                   LanguageEn.enteryourpassword,
                   textAlign: TextAlign.center,

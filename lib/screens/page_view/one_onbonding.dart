@@ -48,7 +48,7 @@ class _OneonbondingState extends State<Oneonbonding> {
               Image.asset("assets/images/crypto-p2p.png", height: height / 2.5),
               SizedBox(height: height / 20),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: width / 40),
+                padding: EdgeInsets.symmetric(horizontal: width / 15),
                 child: Column(children: [
                   Text(
                     LanguageEn.welcometotrovowallet,

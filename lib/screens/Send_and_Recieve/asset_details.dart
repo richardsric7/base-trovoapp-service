@@ -13,6 +13,7 @@ import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/WalletSlides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -45,7 +46,8 @@ class _AssetDetailsState extends State<AssetDetails>
             getAssetCode(asset['assetCode']),
             overflow: TextOverflow.ellipsis,
           ),
-          value: getAssetIssuer(asset['assetIssuer'])));
+          value:
+              '${getAssetCode(asset['assetCode'])}|${getAssetIssuer(asset['assetIssuer'])}'));
     }
     return menuItems;
   }
@@ -80,9 +82,11 @@ class _AssetDetailsState extends State<AssetDetails>
     claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
     activeAsset = appState.viewData![AssetDetailsViewPageConfig.key];
     if (appState.viewData![AssetDetailsViewPageConfig.key] != null) {
-      selectedAsset = getAssetIssuer(
+      selectedAsset = "${getAssetCode(
+        appState.viewData![AssetDetailsViewPageConfig.key]['assetCode'],
+      )}|${getAssetIssuer(
         appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
-      );
+      )}";
     }
 
     return ScreenUtilInit(
@@ -205,14 +209,16 @@ class _AssetDetailsState extends State<AssetDetails>
                                     ? ''
                                     : newValue;
                                 for (var asset in claimedAssets) {
-                                  if (asset['assetIssuer'] == newValue) {
+                                  var splitNewValue =
+                                      newValue.toString().split('|');
+                                  if (asset['assetCode'] == splitNewValue[0] &&
+                                      asset['assetIssuer'] ==
+                                          splitNewValue[1]) {
                                     appState.viewData![
                                         AssetDetailsViewPageConfig.key] = asset;
                                   }
                                 }
                               });
-                              print(
-                                  'this is new viewdata: ${appState.viewData}');
                             },
                             borderRadius: BorderRadius.all(
                               Radius.circular(15),
@@ -248,7 +254,16 @@ class _AssetDetailsState extends State<AssetDetails>
                   ),
                 ],
               ),
-              walletSlides(),
+              WalletSlide(
+                backColor: notifier.getbluecolor,
+                foreColor: wihitecolor,
+                alias: activeWallet!.alias!.capitalizeFirst!,
+                totalBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
+                fiatBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
+                initialHiddenState: appState.hideBalances,
+              ),
               SizedBox(
                 height: height / 30,
               ),

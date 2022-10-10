@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
+import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'router_delegate.dart';
 
 class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
@@ -9,6 +14,21 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
 
   @override
   Future<bool> didPopRoute() async {
+    var appState = Provider.of<DataProvider>(
+        _routerDelegate.navigatorKey.currentContext!,
+        listen: false);
+
+    // check if any dialog is open when the back button is pressed
+    if (appState.dialogOpen) {
+      Navigator.of(
+        _routerDelegate.navigatorKey.currentContext!,
+        rootNavigator: true,
+      ).pop(true);
+      appState.dialogOpen = false;
+      return true;
+    }
+
+    // check if the close app dialog is open
     if (_routerDelegate.pages.length <= 1) {
       if (dialogOpen) {
         Navigator.of(
@@ -18,6 +38,23 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
         dialogOpen = false;
         return true;
       }
+
+      if (appState.currentBottomTabIndex == 1) {
+        if (appState.walletView.view == WalletView.addSubWallet) {
+          appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
+          appState.walletView.actionText = LanguageEn.addsubwallet;
+          appState.walletView.view = WalletView.listWallets;
+          appState.updateListeners();
+          return true;
+        } else if (appState.walletView.view == WalletView.confirmAddSubWallet) {
+          appState.walletView.actionIcon = Icons.cancel_outlined;
+          appState.walletView.actionText = LanguageEn.cancel;
+          appState.walletView.view = WalletView.addSubWallet;
+          appState.updateListeners();
+          return true;
+        }
+      }
+
       dialogOpen = true;
       return await _confirmAppExit() ?? true;
     } else {
@@ -36,7 +73,7 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
               TextButton(
                 child: Text(
                   'Yes',
-                  style: TextStyle(fontSize: 16.0, color: Colors.orange[800]),
+                  style: TextStyle(fontSize: 16.0, color: trovoblue90),
                 ),
                 onPressed: () => Navigator.of(
                   context,
@@ -46,7 +83,7 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
               TextButton(
                   child: Text(
                     'No',
-                    style: TextStyle(fontSize: 16.0, color: Colors.orange[800]),
+                    style: TextStyle(fontSize: 16.0, color: trovoblue90),
                   ),
                   onPressed: () {
                     Navigator.of(

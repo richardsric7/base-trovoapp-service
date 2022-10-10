@@ -66,9 +66,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       print('deeplink is here....$deeplinkInfo');
       toController.text = deeplinkInfo['receiver'];
       amountController.text = deeplinkInfo['amount'];
-      // amountController.text = '34';
-      // amountController.selection = TextSelection.fromPosition(
-      //     TextPosition(offset: amountController.text.length));
+      amount = deeplinkInfo['amount'];
       _utf8TextController.text = deeplinkInfo['memo'];
       asset['deepLinkInfo'] = null;
     }
@@ -214,6 +212,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       70.sp,
                       300.sp,
                       controller: toController,
+                      readOnly: deeplinkInfo != null,
                       validator: validateTo,
                       onSaved: (value) => to = value.trim().replaceAll(' ', ''),
                     ),
@@ -238,6 +237,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                         });
                       },
                       controller: amountController,
+                      readOnly: deeplinkInfo != null,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                       validator: validateAmount,
@@ -259,6 +259,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       onSaved: (value) => memo = value,
                       maxLength: 28,
                       controller: _utf8TextController,
+                      readOnly: deeplinkInfo != null,
                       buildCounter: (context,
                           {currentLength, isFocused, maxLength}) {
                         int utf8Length =

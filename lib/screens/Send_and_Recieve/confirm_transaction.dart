@@ -362,14 +362,19 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 30.0),
-                  child: Text(
-                    viewData['memo'],
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 17.sp,
-                      fontFamily: fontbody,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 30.0, horizontal: 15),
+                  child: Container(
+                    width: width / 1.3,
+                    child: Text(
+                      viewData['memo'],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 17.sp,
+                        fontFamily: fontbody,
+                      ),
                     ),
                   ),
                 ),

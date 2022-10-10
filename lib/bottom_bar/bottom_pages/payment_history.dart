@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
@@ -13,6 +15,7 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../Custom_BlocObserver/notifire_clor.dart';
@@ -33,10 +36,30 @@ class Payment_HistoryState extends State<PaymentHistory>
   List<Wallet>? wallets;
   Wallet? activeWallet;
   dynamic selectedWallet = '';
+  var claimedAssets;
   late List<TransactionInfo>? historyData;
+  var filterTypesMap = {
+    FilterType.AllRecords: "All records",
+    FilterType.DateRange: "Date range",
+    FilterType.AmountRange: "Amount range",
+    FilterType.Username: "Username",
+    FilterType.FromPublicKey: "From public key",
+    FilterType.ToPublicKey: "To public key",
+  };
+
+  Timer? timer;
+
+  FilterType filterType = FilterType.DateRange;
+
+  var dateRangeItems = <String>[
+    "Past week",
+    "Past month",
+    "Past 3 months",
+    "Custom"
+  ];
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
-    return wallets!
+    var dropdownItems = wallets!
         .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,6 +73,84 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
             value: wallet.publicKey))
         .toList();
+
+    return dropdownItems;
+  }
+
+  List<DropdownMenuItem<FilterType>> get filterTypeDropdownItems {
+    List<DropdownMenuItem<FilterType>> items = [];
+    filterTypesMap.forEach((key, value) {
+      items.add(
+        DropdownMenuItem(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  value,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+            value: key),
+      );
+    });
+
+    return items;
+  }
+
+  List<DropdownMenuItem<String>> get dateRangeDropdownItems {
+    return dateRangeItems
+        .map<DropdownMenuItem<String>>((type) => DropdownMenuItem(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  type,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+            value: type))
+        .toList();
+  }
+
+  List<DropdownMenuItem<String>> get assetsDropdownItems {
+    var items = <DropdownMenuItem<String>>[];
+    items.add(DropdownMenuItem<String>(
+      value: '*|*',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            "All assets",
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    ));
+
+    items.addAll(claimedAssets.map<DropdownMenuItem<String>>((asset) {
+      return DropdownMenuItem<String>(
+        value: '${asset['assetIssuer']}|${asset["assetCode"]}',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              asset["assetCode"].toString().isEmpty
+                  ? 'XBN'
+                  : asset["assetCode"],
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      );
+    }).toList());
+
+    return items;
   }
 
   @override
@@ -71,6 +172,8 @@ class Payment_HistoryState extends State<PaymentHistory>
     }
     selectedWallet = activeWallet!.publicKey;
     historyData = appState.historyData;
+    var assetBalances = appState.assetBalances;
+    claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
 
     return ScreenUtilInit(
       builder: (context, child) => DefaultTabController(
@@ -98,60 +201,87 @@ class Payment_HistoryState extends State<PaymentHistory>
                   SizedBox(
                     height: height / 50,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: DropdownButtonFormField(
-                      isDense: true,
-                      isExpanded: true,
-                      dropdownColor: notifier.isDark
-                          ? darktilewhitecolor
-                          : notifier.getaddsubwalletgrey,
-                      decoration: InputDecoration(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(10),
+                  Container(
+                    width: width,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: width / 50,
                         ),
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(10),
+                        Expanded(
+                          flex: 2,
+                          child: dropdown(
+                            (newValue) async {
+                              selectedWallet = newValue!;
+                              appState.activeWallet = wallets!.firstWhere(
+                                  (wallet) => wallet.publicKey == newValue);
+                              showLoader(context);
+                              appState.limit = 20;
+                              appState.totalRecords = 0;
+                              appState.currentPage = 1;
+                              await appState.getHistory(context);
+                              hideLoader(context);
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            },
+                            walletDropdownItems,
+                            selectedWallet,
+                            null,
+                          ),
                         ),
-                        filled: true,
-                        fillColor: notifier.isDark
-                            ? darktilewhitecolor
-                            : notifier.getaddsubwalletgrey,
-                      ),
-                      value: selectedWallet,
-                      icon: Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                      elevation: 0,
-                      style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      onChanged: (newValue) async {
-                        selectedWallet = newValue!;
-                        appState.activeWallet = wallets!.firstWhere(
-                            (wallet) => wallet.publicKey == newValue);
-                        showLoader(context);
-                        appState.limit = 20;
-                        appState.totalRecords = 0;
-                        appState.currentPage = 1;
-                        await appState.fetchHistory(appState.limit);
-                        hideLoader(context);
-                        if (mounted) {
-                          setState(() {});
-                        }
-                      },
-                      items: walletDropdownItems,
+                        Expanded(
+                          flex: 2,
+                          child: dropdown((newValue) async {
+                            print(newValue);
+                            showLoader(context);
+                            appState.limit = 20;
+                            appState.totalRecords = 0;
+                            appState.currentPage = 1;
+                            appState.setFilterAsset = newValue.toString();
+                            await appState.getHistory(context);
+                            hideLoader(context);
+                          }, assetsDropdownItems, appState.filterAsset,
+                              'Assets'),
+                        ),
+                        SizedBox(
+                          width: width / 50,
+                        ),
+                      ],
                     ),
                   ),
-                  // walletTile(),
+                  SizedBox(height: height / 50),
+                  Container(
+                    width: width,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: width / 50,
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: dropdown(
+                            (newValue) async {
+                              setState(() {
+                                filterType = newValue as FilterType;
+                                showPopup(newValue);
+                              });
+                            },
+                            filterTypeDropdownItems,
+                            null,
+                            filterTypesMap[filterType],
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: getContent(filterType),
+                        ),
+                        SizedBox(
+                          width: width / 50,
+                        ),
+                      ],
+                    ),
+                  ),
                   SizedBox(height: height / 50),
                   listHistory(),
                   SizedBox(
@@ -175,7 +305,7 @@ class Payment_HistoryState extends State<PaymentHistory>
           isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {
             appState.limit += 20;
-            await appState.fetchHistory(appState.limit);
+            await appState.getHistory(context);
             return historyData!.length <= appState.totalRecords!;
           },
           textBuilder: (LoadMoreStatus status) {
@@ -211,12 +341,30 @@ class Payment_HistoryState extends State<PaymentHistory>
     return Container(
       height: height / 1.8,
       child: Center(
-        child: CircularProgressIndicator(
-          backgroundColor: notifier.getbluecolor,
-          valueColor: new AlwaysStoppedAnimation<Color>(
-            notifier.getgreencolor,
-          ),
-          strokeWidth: 3.0,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              LanguageEn.somethingwentwrong,
+              overflow: TextOverflow.ellipsis,
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await appState.fetchHistory(context,
+                    limit: appState.limit.toString());
+              },
+              style: ButtonStyle(
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+              ),
+              child: Text(
+                LanguageEn.retry,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -241,7 +389,8 @@ class Payment_HistoryState extends State<PaymentHistory>
 
     if (transaction.transactionType!.contains('SWAP')) {
       transactionType = TransactionType.Swap;
-      var splitResult = transaction.memo!.split('>');
+      var splitResult =
+          transaction.transactionType!.replaceAll('SWAP', '').trim().split('>');
       name = "Swapped ${splitResult[0]} to ${splitResult[1]}";
     }
 
@@ -265,22 +414,36 @@ class Payment_HistoryState extends State<PaymentHistory>
           ),
           child: Padding(
             padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
             child: Row(
               children: [
                 Image.asset(
                   getIcon(transactionType),
-                  width: width / 8,
+                  width: width / 12,
                   color: notifier.getbluewhitecolor,
                   height: 25,
                 ),
                 SizedBox(
-                  width: 15,
+                  width: width / 50,
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    SizedBox(
+                      width: width / 50,
+                    ),
+                    Text(
+                      formatAmount(transactionType, amount, assetCode),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: transactionType == TransactionType.Send
+                            ? Colors.red
+                            : notifier.getgreencolor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -293,20 +456,20 @@ class Payment_HistoryState extends State<PaymentHistory>
                             fontFamily: fontbody,
                           ),
                         ),
-                        SizedBox(
-                          width: 10,
-                        ),
-                        Text(
-                          formatAmount(transactionType, amount, assetCode),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400,
-                            color: transactionType == TransactionType.Send
-                                ? Colors.red
-                                : notifier.getgreencolor,
-                            fontFamily: fontbody,
-                          ),
-                        ),
+                        // SizedBox(
+                        //   width: width / 50,
+                        // ),
+                        // Text(
+                        //   formatAmount(transactionType, amount, assetCode),
+                        //   style: TextStyle(
+                        //     fontSize: 15,
+                        //     fontWeight: FontWeight.w400,
+                        //     color: transactionType == TransactionType.Send
+                        //         ? Colors.red
+                        //         : notifier.getgreencolor,
+                        //     fontFamily: fontbody,
+                        //   ),
+                        // ),
                       ],
                     ),
                     SizedBox(
@@ -326,7 +489,6 @@ class Payment_HistoryState extends State<PaymentHistory>
                         ),
                       ],
                     ),
-                    SizedBox(height: 2),
                   ],
                 ),
               ],
@@ -358,12 +520,75 @@ class Payment_HistoryState extends State<PaymentHistory>
   refreshData() async {
     try {
       showLoader(context);
-      await appState.fetchHistory(appState.limit);
+      await appState.fetchHistory(context, limit: appState.limit.toString());
       hideLoader(context);
       _refreshController.refreshCompleted();
     } catch (e) {
       _refreshController.refreshFailed();
     }
+  }
+
+  Widget dropdown(void Function(Object?) onChanged,
+      List<DropdownMenuItem<Object>> items, Object? value, String? hint) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+      child: DropdownButtonFormField(
+        isDense: true,
+        isExpanded: true,
+        hint: Container(
+          // width: 150, //and here
+          child: hint != null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      hint,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                )
+              : null,
+        ),
+        dropdownColor:
+            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          filled: true,
+          fillColor: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
+        ),
+        value: value,
+        icon: Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: notifier.getbluewhitecolor,
+        ),
+        elevation: 0,
+        style: TextStyle(
+          color: notifier.getbluewhitecolor,
+          fontSize: 15,
+          fontFamily: fontsemibold,
+          fontWeight: FontWeight.w500,
+        ),
+        onChanged: onChanged,
+        items: items,
+      ),
+    );
   }
 
   String? extractUsername(String data) {
@@ -377,10 +602,355 @@ class Payment_HistoryState extends State<PaymentHistory>
     }
     return null;
   }
+
+  Widget getContent(FilterType type) {
+    switch (type) {
+      case FilterType.Username:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                textFieldPopup(context, rel: FilterType.Username,
+                    onDone: (value) {
+                  print('timer fired! $value');
+                  appState.setFilterUsername = value;
+                  if (value != null && value.isNotEmpty) {
+                    appState.setFilterQuery = "&name=${value}";
+                    appState.getHistory(context);
+                  }
+                });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: width / 2.9,
+                    ),
+                    child: Text(
+                      appState.filterUsername == null
+                          ? "Enter username"
+                          : appState.filterUsername!,
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: appState.filterMinAmount != null &&
+                                  appState.filterMaxAmount != null
+                              ? 12
+                              : 15,
+                          fontFamily: fontsemibold),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      case FilterType.FromPublicKey:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                textFieldPopup(context, rel: FilterType.FromPublicKey,
+                    onDone: (value) {
+                  if (value != null && value.toString().isNotEmpty) {
+                    appState.setFilterFromPublicKey = value;
+                    appState.setFilterQuery = "&fromPublicKey=$value";
+                    appState.getHistory(context);
+                  }
+                });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: width / 2.9,
+                    ),
+                    child: Text(
+                      getTruncatedPublicKey(appState.filterFromPublicKey),
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize:
+                              appState.filterFromPublicKey != null ? 12 : 15,
+                          fontFamily: fontsemibold),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      case FilterType.ToPublicKey:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                textFieldPopup(context, rel: FilterType.ToPublicKey,
+                    onDone: (value) {
+                  if (value != null && value.toString().isNotEmpty) {
+                    appState.setFilterToPublicKey = value;
+                    appState.setFilterQuery = "&toPublicKey=$value";
+                    appState.getHistory(context);
+                  }
+                });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: width / 2.9,
+                    ),
+                    child: Text(
+                      getTruncatedPublicKey(appState.filterToPublicKey),
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize:
+                              appState.filterToPublicKey != null ? 12 : 15,
+                          fontFamily: fontsemibold),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      case FilterType.AmountRange:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                amountRangePopup(context, onDone: () {
+                  if (appState.filterMinAmount != null &&
+                      appState.filterMaxAmount != null) {
+                    appState.setFilterQuery =
+                        "&amount=${appState.filterMinAmount}|${appState.filterMaxAmount}";
+                    appState.getHistory(context);
+                  }
+                });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: width / 2.9,
+                    ),
+                    child: Text(
+                      getAmountRangeValue(),
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: appState.filterMinAmount != null &&
+                                  appState.filterMaxAmount != null
+                              ? 12
+                              : 15,
+                          fontFamily: fontsemibold),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      case FilterType.DateRange:
+      // FilterType.AllRecords
+      default:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                customDateRangePopup(context, onDone: () {
+                  appState.setFilterQuery =
+                      "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+                  appState.getHistory(context);
+                });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    getDateRangeValue(),
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: appState.filterStartDate != null &&
+                                appState.filterEndDate != null
+                            ? 12
+                            : 15,
+                        fontFamily: fontsemibold),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        break;
+    }
+  }
+
+  getDateRangeValue() {
+    if (appState.filterStartDate != null && appState.filterEndDate != null) {
+      return "${DateFormat('dd/MM/yy').format(appState.filterStartDate!)} - ${DateFormat('dd/MM/yy').format(appState.filterEndDate!)} ";
+    }
+
+    return 'Enter range';
+  }
+
+  getAmountRangeValue() {
+    if (appState.filterMinAmount != null && appState.filterMaxAmount != null) {
+      return "${appState.filterMinAmount} - ${appState.filterMaxAmount} ";
+    }
+
+    return 'Enter range';
+  }
+
+  getTruncatedPublicKey(String? publicKey) {
+    if (publicKey == null) return "Enter public key";
+    if (publicKey.length <= 7) return publicKey;
+    return truncate(publicKey, length: 7) +
+        publicKey.substring(publicKey.length - 7);
+  }
+
+  // void resetValues() {
+  //   appState.setFilterEndDate = null;
+  //   appState.setFilterStartDate = null;
+  //   appState.setFilterFromPublicKey = null;
+  //   appState.setFilterToPublicKey = null;
+  //   appState.setFilterMaxAmount = null;
+  //   appState.setFilterMinAmount = null;
+  //   appState.setFilterUsername = null;
+  // }
+
+  void showPopup(FilterType filterType) {
+    switch (filterType) {
+      case FilterType.Username:
+        textFieldPopup(context, rel: FilterType.Username, onDone: (value) {
+          print('timer fired! $value');
+          appState.setFilterUsername = value;
+          if (value != null && value.isNotEmpty) {
+            appState.setFilterQuery = "&name=${value}";
+            appState.getHistory(context);
+          }
+        });
+        break;
+      case FilterType.FromPublicKey:
+        textFieldPopup(context, rel: FilterType.FromPublicKey, onDone: (value) {
+          if (value != null && value.toString().isNotEmpty) {
+            appState.setFilterFromPublicKey = value;
+            appState.setFilterQuery = "&fromPublicKey=$value";
+            appState.getHistory(context);
+          }
+        });
+        break;
+      case FilterType.ToPublicKey:
+        textFieldPopup(context, rel: FilterType.ToPublicKey, onDone: (value) {
+          if (value != null && value.toString().isNotEmpty) {
+            appState.setFilterToPublicKey = value;
+            appState.setFilterQuery = "&toPublicKey=$value";
+            appState.getHistory(context);
+          }
+        });
+        break;
+      case FilterType.AmountRange:
+        amountRangePopup(context, onDone: () {
+          if (appState.filterMinAmount != null &&
+              appState.filterMaxAmount != null) {
+            appState.setFilterQuery =
+                "&amount=${appState.filterMinAmount}|${appState.filterMaxAmount}";
+            appState.getHistory(context);
+          }
+        });
+        break;
+      case FilterType.DateRange:
+        customDateRangePopup(context, onDone: () {
+          appState.setFilterQuery =
+              "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+          appState.getHistory(context);
+        });
+        break;
+      default:
+        appState.setFilterQuery = "";
+        appState.setFilterAsset = "*|*";
+        appState.getHistory(context);
+        break;
+    }
+  }
 }
 
 enum TransactionType {
   Send,
   Receive,
   Swap,
+}
+
+enum FilterType {
+  AllRecords,
+  DateRange,
+  AmountRange,
+  Username,
+  FromPublicKey,
+  ToPublicKey,
 }

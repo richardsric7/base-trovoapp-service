@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/screens/notifications/firebase_dynamic_links.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
@@ -28,6 +26,7 @@ class _SplashScreenState extends State<SplashScreen>
   late ColorNotifier notifier;
   late DataProvider appState;
   late AnimationController controller;
+  String? initialDynamicLink;
   PageAction landingPage =
       PageAction(state: PageState.replaceAll, page: LoginPageConfig);
 
@@ -43,17 +42,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {
+    runAsync();
     super.initState();
     getdarkmodepreviousstate();
-    runAsync();
-
-    FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
-      // Navigator.pushNamed(context, dynamicLinkData.link.path);
-      print('this is dynamicLinkData: $dynamicLinkData');
-    }).onError((error) {
-      // Handle errors
-      print('this is dynamicLink error: $error');
-    });
 
     controller = AnimationController(
       vsync: this,
@@ -66,8 +57,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     controller.repeat();
     Timer(const Duration(seconds: 4), () {
-      appState.currentAction = landingPage;
-      appState.setSplashFinished();
+      if (appState.splashFinished) {
+        appState.currentAction = landingPage;
+      }
     });
   }
 
@@ -81,8 +73,15 @@ class _SplashScreenState extends State<SplashScreen>
 
   getVal() async {
     try {
+      print('one 2');
       bool isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
+      initialDynamicLink = await StoreData().storeGetData('initialDynamicLink');
       appState.timeout = await StoreData().storeGetData('timeOut') ?? '5';
+      appState.setDefaultCurrency =
+          await StoreData().storeGetData('defaultCurrency') ?? 'USD';
+      appState.sethideWalletList = List.filled(6, appState.hideBalances);
+
+      if (!appState.appIsOpen) appState.initFirebaseListener();
 
       print('first time here: $isFirstTime');
 
@@ -90,6 +89,7 @@ class _SplashScreenState extends State<SplashScreen>
         print('first time here indeed: $isFirstTime');
         landingPage =
             PageAction(state: PageState.replaceAll, page: OnboardingPageConfig);
+        appState.setSplashFinished();
       } else {
         var data = await StoreData().storeGetData('userInfo');
         appState.setUser = UserInfo().deserializeJson(data);
@@ -102,14 +102,30 @@ class _SplashScreenState extends State<SplashScreen>
         appState.assetBalances =
             await StoreData().storeGetData('assetBalances');
         appState.setNFTs = await StoreData().storeGetData('nfts');
-        landingPage =
-            PageAction(state: PageState.replaceAll, page: LoginPageConfig);
+        appState.sethideWalletList =
+            await StoreData().storeGetData('hideWalletList') ??
+                List.filled(6, appState.hideBalances);
+        print(
+            '-------------------hidewalletlist: ${List.filled(6, appState.hideWalletList)}');
         print('....................this is nfts: ${appState.nfts}');
-        var primaryWallet = appState.userInfo!.wallets!
-            .firstWhere((wallet) => wallet.primaryWallet == 1);
+        var primaryWallet = appState.userInfo!.wallets!.firstWhere(
+            (wallet) => wallet.primaryWallet == 1,
+            orElse: () => appState.userInfo!.wallets![0]);
         updateUserInfo(primaryWallet.signer, appState.secretKeys[0],
             primaryWallet.publicKey, appState.userInfo!.username!, appState);
+        getFiatRates(primaryWallet.signer, appState.secretKeys[0],
+            primaryWallet.publicKey, appState.userInfo!.username!, appState);
         appState.activeWallet = primaryWallet;
+        // check if app was not already open
+        // if app was not already open then move to the next view
+        // else wait for the dynamiclink handler to take over
+        print(
+            '----------------------------------------appIsOpen = $initialDynamicLink');
+        landingPage = initialDynamicLink == null
+            ? PageAction(state: PageState.replaceAll, page: LoginPageConfig)
+            : appState.getDeepLinkView(Uri.parse(initialDynamicLink!));
+        appState.setSplashFinished();
+        appState.appIsOpen = true;
       }
     } catch (e) {
       print('[getVal]getVal exception:' + e.toString());
@@ -118,11 +134,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   initFirebaseTools() async {
     try {
-      // initialize firebase dynamic link
-      PendingDynamicLinkData? initialLink =
-          await FirebaseDynamicLinkInitializer().getInitialLink();
-      print('initialLink: $initialLink');
-
       // initialize firebase remote config
       final remoteConfig = FirebaseRemoteConfig.instance;
       await remoteConfig.setConfigSettings(RemoteConfigSettings(

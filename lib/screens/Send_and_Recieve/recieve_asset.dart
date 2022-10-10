@@ -13,6 +13,7 @@ import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -267,9 +268,22 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                 height: height / 20,
               ),
               Button(
-                LanguageEn.dashboard,
+                LanguageEn.requestspecificamount,
                 notifier.getbluecolor,
                 wihitecolor,
+                onTap: () {
+                  appState.viewData![RequestSpecificPaymentViewPageConfig.key] =
+                      appState.viewData![ReceiveAssetViewPageConfig.key];
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: RequestSpecificPaymentViewPageConfig);
+                },
+              ),
+              SizedBox(height: height / 50.5),
+              ButtonOutlined(
+                LanguageEn.dashboard,
+                notifier.getwihitecolor,
+                notifier.getbluewhitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
                       state: PageState.replaceAll, page: BottomHomePageConfig);
