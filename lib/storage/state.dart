@@ -215,6 +215,12 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  String? filterMemo;
+  set setFilterMemo(value) {
+    filterMemo = value;
+    notifyListeners();
+  }
+
   String? filterFromPublicKey;
   set setFilterFromPublicKey(value) {
     filterFromPublicKey = value;
@@ -224,12 +230,6 @@ class DataProvider with ChangeNotifier {
   String? filterToPublicKey;
   set setFilterToPublicKey(value) {
     filterToPublicKey = value;
-    notifyListeners();
-  }
-
-  String? filterUserFullName;
-  set setFilterUserFullName(value) {
-    filterUserFullName = value;
     notifyListeners();
   }
 

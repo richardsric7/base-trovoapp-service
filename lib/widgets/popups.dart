@@ -1496,15 +1496,15 @@ amountRangePopup(context, {required void Function() onDone}) async {
   width = MediaQuery.of(context).size.width;
   var minAmountTextController = TextEditingController();
   var maxAmountTextController = TextEditingController();
+  var appState = Provider.of<DataProvider>(context, listen: false);
+  minAmountTextController.text = appState.filterMinAmount ?? "";
+  maxAmountTextController.text = appState.filterMaxAmount ?? "";
 
   return showDialog(
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setStateForDialog) {
-          var appState = Provider.of<DataProvider>(context, listen: false);
-          minAmountTextController.text = appState.filterMinAmount ?? "";
-          maxAmountTextController.text = appState.filterMaxAmount ?? "";
           return AlertDialog(
               // scrollable: true,
               backgroundColor: Colors.transparent,
@@ -1650,6 +1650,10 @@ textFieldPopup(context,
               textController.text = appState.filterFromPublicKey ?? "";
               textValue = appState.filterFromPublicKey ?? "";
               break;
+            case FilterType.Memo:
+              textController.text = appState.filterMemo ?? "";
+              textValue = appState.filterMemo ?? "";
+              break;
             default: // FilterType.ToPublicKey
               textController.text = appState.filterToPublicKey ?? "";
               textValue = appState.filterToPublicKey ?? "";
@@ -1690,9 +1694,7 @@ textFieldPopup(context,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 35.0),
                           child: CustomTextFormField.textFieldWithoutIcon(
-                            rel == FilterType.Username
-                                ? "username"
-                                : "public key",
+                            getPlaceholder(rel),
                             notifier.getbluecolor,
                             notifier.getgrey,
                             notifier.getprefixicon,
@@ -1752,13 +1754,113 @@ textFieldPopup(context,
       });
 }
 
+transactionTypePopup(context) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          var appState = Provider.of<DataProvider>(context, listen: false);
+          return AlertDialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          'Select transaction type',
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Wrap(
+                              children: [
+                                quickDateRange(context, text: 'All',
+                                    onPressed: () {
+                                  appState.setFilterQuery = "";
+                                  appState.getHistory(context);
+                                  Navigator.of(context)
+                                      .pop(); // dismiss dialog,
+                                }),
+                                quickDateRange(context, text: 'Swap',
+                                    onPressed: () {
+                                  appState.setFilterQuery =
+                                      "&transactionType=swap";
+                                  appState.getHistory(context);
+                                  Navigator.of(context)
+                                      .pop(); // dismiss dialog,
+                                }),
+                                quickDateRange(context, text: 'Payment',
+                                    onPressed: () {
+                                  appState.setFilterQuery =
+                                      "&transactionType=payment";
+                                  appState.getHistory(context);
+                                  Navigator.of(context)
+                                      .pop(); // dismiss dialog,
+                                }),
+                              ],
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
 String getLabelText(FilterType rel) {
   switch (rel) {
     case FilterType.FromPublicKey:
       return 'Enter from public key below';
     case FilterType.ToPublicKey:
       return 'Enter to public key below';
+    case FilterType.Memo:
+      return 'Enter to memo text below';
     default:
       return 'Enter username or full name below';
+  }
+}
+
+String getPlaceholder(FilterType rel) {
+  switch (rel) {
+    case FilterType.FromPublicKey:
+      return 'from public key';
+    case FilterType.ToPublicKey:
+      return 'to public key';
+    case FilterType.Memo:
+      return 'memo';
+    default:
+      return 'username';
   }
 }
