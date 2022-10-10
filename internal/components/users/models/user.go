@@ -211,3 +211,30 @@ type AccountRecoveryRequest struct {
 	Username                          string             `json:"username"`
 	TransactionID                     string             `json:"transactionId"`
 }
+
+type PendingAuth struct {
+	CreatedAt                    time.Time                     `json:"createdAt"`
+	UpdatedAt                    time.Time                     `gorm:"default:now()" json:"updatedAt"`
+	ID                           string                        `gorm:"size:56" json:"id"`
+	Initiator                    string                        `gorm:"size:20;not null;index:idx_pending_auth_initiator" json:"initiator"`
+	InitiatorSignerPublicKey     string                        `gorm:"size:56;not null;index:idx_pending_auth_signer_public_key" json:"initiatorSignerPublicKey"`
+	WalletPublicKey              string                        `gorm:"size:56;not null;index:idx_pending_auth_wallet_public_key" json:"walletPublicKey"`
+	TransactionType              string                        `gorm:"size:28;not null;index:idx_pending_auth_transaction_type" json:"transactionType"`
+	Description                  string                        `gorm:"not null;" json:"description"`
+	ApprovalsNeeded              int                           `gorm:"not null;" json:"approvalsNeeded"`
+	ApprovalsGotten              int                           `gorm:"not null;default:0" json:"approvalsGotten"`
+	TransactionStatus            string                        `gorm:"size:20;not null;default:'PENDING';index:idx_pending_auth_transaction_status" json:"transactionStatus"`
+	RejectedBy                   *string                       `gorm:"size:20;null;index:idx_pending_auth_rejected_by" json:"rejectedBy"`
+	ReasonForRejection           *string                       `gorm:"size:200;null;" json:"reasonForRejection"`
+	TransactionXdr               string                        `gorm:"not null;" json:"transactionXdr"`
+	TransactionID                *string                       `gorm:"size:70;null;index:idx_pending_auth_transaction_id" json:"transactionID"`
+	PendingTransactionSignatures []PendingTransactionSignature `json:"pendingTransactionSignatures"`
+}
+type PendingTransactionSignature struct {
+	CreatedAt                time.Time `json:"createdAt"`
+	ID                       string    `gorm:"size:56"`
+	PendingAuthID            string    `gorm:"size:56;not null;index:idx_pending_trxsig_pending_auth_id"`
+	Approver                 string    `gorm:"size:20;not null;index:idx_pending_trxsig_approver" json:"approver"`
+	ApproverSignerPublicKey  string    `gorm:"size:56;not null;index:idx_pending_trxsig_approver_signer" json:"approverSignerPublicKey"`
+	TransactionWithSignature []byte    `gorm:"not null" json:"transactionWithSignature"`
+}

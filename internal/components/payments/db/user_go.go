@@ -912,7 +912,26 @@ func (u *UserWallet) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (
 	if u.ID == "" {
 		return false
 	}
-	accessList := UserWalletID(u.ID).GetPermissionList(gc.DB)
+	accessList := u.GetPermissionList(gc.DB)
+	if len(accessList) == 0 {
+		return false
+	}
+
+	for _, access := range accessList {
+		if access.Permission != "VIEW-ONLY" {
+			return false
+		}
+	}
+
+	return
+}
+
+func (u *UserWallet) HasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
+	viewOnly = true
+	if u.ID == "" {
+		return false
+	}
+	accessList := u.GetPermissionList(gc.DB)
 	if len(accessList) == 0 {
 		return false
 	}

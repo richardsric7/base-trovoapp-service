@@ -55,11 +55,10 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 		for _, uw := range u.UserWallets {
 			//get user permissions
 			if uw.SharedAccessEnabled == 1 {
-
+				uwJson := uw.ToJSON(gc)
+				// log.Printf("[UserToJSON] added user wallet [%+v]\n", uwJson)
+				jsonObj.UserWallets = append(jsonObj.UserWallets, uwJson)
 			}
-			uwJson := uw.ToJSON(gc)
-			// log.Printf("[UserToJSON] added user wallet [%+v]\n", uwJson)
-			jsonObj.UserWallets = append(jsonObj.UserWallets, uwJson)
 
 		}
 

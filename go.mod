@@ -22,6 +22,7 @@ require (
 	github.com/stellar/go v0.0.0-20220527172504-97da5a558772
 	github.com/toorop/go-bittrex v0.0.5
 	github.com/yeqown/go-qrcode v1.5.10
+	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	google.golang.org/api v0.50.0
 	gorm.io/driver/postgres v1.3.7
 	gorm.io/gorm v1.23.5
@@ -82,7 +83,6 @@ require (
 	github.com/yeqown/reedsolomon v1.0.0 // indirect
 	gitlab.com/pennersr/redq v0.0.0-20210323185356-5c672ce9cd53 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.4.2 // indirect

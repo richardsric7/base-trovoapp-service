@@ -1,4 +1,4 @@
-package users
+package blockchainalgofuncs
 
 import (
 	"crypto/sha256"

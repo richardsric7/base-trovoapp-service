@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//PaymentInfo holds payment information
+// PaymentInfo holds payment information
 type PaymentInfo struct {
 	Destination             string            `json:"destination"`
 	Memo                    string            `json:"memo"`
@@ -23,13 +23,14 @@ type PaymentInfo struct {
 	DestinationLastName     string            `json:"destinationLastName"`
 	DestinationThumbnail    string            `json:"destinationThumbnail"`
 	DestinationVerified     int               `json:"destinationVerified"`
+	Multiparty              int               `json:"-"`
 	ChannelAccount          string            `json:"channelAccount"`
 	ChannelAccountSignature string            `json:"channelAccountSignature"`
 	Messages                []string          `json:"messages"`
 	CallbackURLS            map[string]string `json:"-"`
 }
 
-//PaymentLog holds payment information for logging
+// PaymentLog holds payment information for logging
 type PaymentLog struct {
 	CreatedAt            time.Time
 	Sender               string   `gorm:"size:56;not null"`
@@ -55,7 +56,7 @@ type PaymentLog struct {
 	ISP                  *string  `gorm:"null;size:150"`
 }
 
-//PaymentChanObject holds data for faucet payments
+// PaymentChanObject holds data for faucet payments
 type PaymentChanObject struct {
 	Secret         string
 	Destination    string `json:"destination"`
@@ -66,7 +67,7 @@ type PaymentChanObject struct {
 	SourceUsername string `json:"sourceUsername"`
 }
 
-//DBPaymentChanObject holds data for faucet payments from SQLite Database
+// DBPaymentChanObject holds data for faucet payments from SQLite Database
 type DBPaymentObject struct {
 	ID             uint64 `gorm:"primaryKey" json:"-"`
 	Secret         string `gorm:"size:56;not null"`

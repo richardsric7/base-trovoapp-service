@@ -15,7 +15,7 @@ import (
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/txnbuild"
 	"gorm.io/gorm"
@@ -190,7 +190,7 @@ func PublicKeyCountInitiatorAccess(publicKey string, gc *sharedconfig.GlobalConf
 	return
 }
 
-func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.UserWalletSharedAccessInfo, gc *sharedconfig.GlobalConfig) (managedAccess userModels.UserWalletSharedAccess, err error) {
+func CreateSharedWalletAccess(signerUser *userModels.User, accessInfo *userModels.UserWalletSharedAccessInfo, gc *sharedconfig.GlobalConfig) (managedAccess userModels.UserWalletSharedAccess, err error) {
 	// var managedAccess userModels.UserWalletSharedAccess
 
 	if len(accessInfo.Permissions) == 0 {
@@ -207,8 +207,8 @@ func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Use
 	var numberOfSubmittedInitiators int
 	var selfApprover int
 	var approverUsers []*userModels.User
-	uuidSharedAccess, _ := uuid.NewV4()
-	sharedAccessID := uuidSharedAccess.String()
+
+	sharedAccessID := uuid.NewString()
 
 	wallet, e := userModels.UserWalletID(accessInfo.WalletPublicKey).GetWallet(gc.DB)
 	if e != nil {
@@ -248,8 +248,8 @@ func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Use
 		}
 
 		for _, v := range accessInfo.Permissions {
-			uuidAccess, _ := uuid.NewV4()
-			walletAccessID := uuidAccess.String()
+
+			walletAccessID := uuid.NewString()
 			//check if username is valid
 			v.Username = strings.ToLower(v.Username)
 			if strings.Contains(v.Username, "_") {
@@ -424,7 +424,7 @@ func CreateSharedWalletAccess(signerPublicKey string, accessInfo *userModels.Use
 	}
 }
 
-func RemoveSharedWalletAccess(signerPublicKey string, wallet *userModels.UserWallet, accessList []userModels.WalletPermission, accessInfo *userModels.DisableSharedAccessInfo, gc *sharedconfig.GlobalConfig) (err error) {
+func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.UserWallet, accessList []userModels.WalletPermission, accessInfo *userModels.DisableSharedAccessInfo, gc *sharedconfig.GlobalConfig) (err error) {
 	var managedAccess userModels.UserWalletSharedAccess
 
 	// accessList := make([]userModels.WalletPermission, 0)
@@ -449,7 +449,7 @@ func RemoveSharedWalletAccess(signerPublicKey string, wallet *userModels.UserWal
 			Code:       http.StatusForbidden,
 		}
 	}
-	wallet.SharedAccessEnabled = 0
+
 	dbTX.Save(&wallet)
 	e := dbTX.Where("user_wallet_id = ?", accessInfo.WalletPublicKey).First(&managedAccess).Error
 
@@ -464,21 +464,9 @@ func RemoveSharedWalletAccess(signerPublicKey string, wallet *userModels.UserWal
 		}
 		return &tErrors.ErrorTemporaryServerError{}
 	}
-
-	// e = dbTX.Where("wallet_public_key = ?", accessInfo.WalletPublicKey).Find(&accessList).Error
-
-	// if e != nil {
-	// 	if errors.Is(e, gorm.ErrRecordNotFound) {
-	// 		return &tErrors.CustomError{
-	// 			Param:      "Id",
-	// 			Err:        "error-could-not-find-access-list",
-	// 			ErrMessage: "Could not find access list for wallet.",
-	// 			Code:       http.StatusForbidden,
-	// 		}
-	// 	}
-	// 	return &tErrors.ErrorTemporaryServerError{}
-	// }
-
+	wallet.SharedAccessEnabled = 0
+	approvalsNeeded := managedAccess.NumberOfApprovers
+	userPermissions := make([]string, 0)
 	walletOwner, e := userModels.UserWalletID(accessInfo.WalletPublicKey).GetWalletOwner(dbTX)
 	if e != nil {
 		return &tErrors.CustomError{
@@ -509,6 +497,7 @@ func RemoveSharedWalletAccess(signerPublicKey string, wallet *userModels.UserWal
 		{
 			accessInfo.Permissions = append(accessInfo.Permissions, v.ToWalletPermissionInfo(&u, wallet))
 		}
+		userPermissions = append(userPermissions, fmt.Sprintf("%s - (%v)", v.TargetUsername, v.Permission))
 
 	}
 
@@ -556,6 +545,28 @@ func RemoveSharedWalletAccess(signerPublicKey string, wallet *userModels.UserWal
 		accessInfo.MultiParty = 1
 		accessInfo.TransactionID = "PENDING_AUTH"
 		//TODO: queue transaction and notify signers
+		id := uuid.New().String()
+		description := fmt.Sprintf("Disabling shared access on wallet [%v].\nThis will remove permissions Permissions: [%v]", wallet.Alias, userPermissions)
+		pendingAuth := userModels.PendingAuth{
+			ID:                       id,
+			Initiator:                signerUser.Username,
+			InitiatorSignerPublicKey: signerUser.PrimarySigner,
+			WalletPublicKey:          wallet.ID,
+			TransactionType:          "DISABLE_SHARED_ACCESS",
+			Description:              description,
+			ApprovalsNeeded:          approvalsNeeded,
+			TransactionXdr:           xdrBase64,
+		}
+
+		// rollback all the other changes since the changes can only apply when approvals are completed.
+		dbTX.Rollback()
+		//save and commit this to database
+		e := gc.DB.Create(&pendingAuth).Error
+		if e != nil {
+			log.Printf("Error saving disable shared access txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
 		return nil
 	}
 	// extract signature and submit transaction
@@ -564,7 +575,7 @@ func RemoveSharedWalletAccess(signerPublicKey string, wallet *userModels.UserWal
 
 	txnHash, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, wallet.Signer, xdrBase64, accessInfo.TransactionSignature)
 	if err != nil {
-		log.Printf("Error submitting disable shared access txn [%+v] transaction: %s\n", accessInfo, err.Error())
+		log.Printf("[RemoveSharedWalletAccess] Error submitting disable shared access txn [%+v] transaction: %s\n", accessInfo, err.Error())
 		// logDiscordFailedRecovery(fmt.Sprintf("Error submitting shared access txn [%+v] transaction: %s", accessInfo, err.Error()))
 		return &tErrors.ErrorTemporaryServerError{}
 	}

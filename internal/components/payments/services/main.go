@@ -16,7 +16,9 @@ import (
 	users "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
+	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 
@@ -27,8 +29,8 @@ import (
 )
 
 // Pay function sends a payment from user to another user
-func Pay(owner *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *payments.PaymentInfo, db *gorm.DB) (*payments.PaymentInfo, *paymentsDB.User, error) {
-
+func Pay(signerUser *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *payments.PaymentInfo, gc *sharedconfig.GlobalConfig) (*payments.PaymentInfo, *paymentsDB.User, error) {
+	db := gc.DB
 	client := network.GetBlockchainClient()
 	var xdrBase64 string
 	var destinationUser *paymentsDB.User
@@ -80,14 +82,14 @@ func Pay(owner *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *pay
 
 	if len(paymentInfo.ChannelAccount) == 56 {
 		//payment is with channel account
-		xdrBase64, destinationUser, err = generatePaymentXdrWithChannelAccountPK(client, owner, wallet, paymentInfo, db)
+		xdrBase64, destinationUser, err = generatePaymentXdrWithChannelAccountPK(client, signerUser, wallet, paymentInfo, db)
 
 		if err != nil {
 			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdrWithChannelAccountPK error:[%v] \n", wallet.Alias, paymentInfo.Destination, err)
 		}
 	} else {
 
-		xdrBase64, destinationUser, err = generatePaymentXdr(client, owner, wallet, paymentInfo, db)
+		xdrBase64, destinationUser, err = generatePaymentXdr(client, signerUser, wallet, paymentInfo, db)
 		if err != nil {
 			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdr error:[%v] \n", wallet.ID, paymentInfo.Destination, err)
 		}
@@ -125,11 +127,54 @@ func Pay(owner *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo *pay
 		}
 		paymentInfo.TransactionID = txnHash
 		return paymentInfo, destinationUser, err
-	} else {
-		//put routine for managed access > 0
-		log.Printf("managed access enabled for %v \n", wallet.Alias)
 	}
-	return paymentInfo, destinationUser, err
+	walletHasViewOnlyAccess := wallet.HasViewOnlyAccess(gc)
+	//put routine for shared access > 0
+	//check to be sure wallet permission includes approval
+	if walletHasViewOnlyAccess {
+		//maker checker not enabled. submit to network is possible
+		var txnHash string
+		if len(paymentInfo.ChannelAccountSignature) > 0 && len(paymentInfo.ChannelAccount) == 56 {
+			txnHash, err = network.SubmitXdrWithSignatureChannelAccounts(client, wallet.Signer, paymentInfo.ChannelAccount, xdrBase64, paymentInfo.TransactionSignature, paymentInfo.ChannelAccountSignature)
+			if err != nil {
+				log.Println("#############################submit with channel account throws error:", err)
+
+			}
+		} else {
+			txnHash, err = network.SubmitXdrWithSignature(client, wallet.Signer, xdrBase64, paymentInfo.TransactionSignature)
+			if err != nil {
+				log.Printf("[Pay] from [%v] to [%v] SubmitXdrWithSignature error:[%v] \n", wallet.Alias, paymentInfo.Destination, err)
+			}
+		}
+		paymentInfo.TransactionID = txnHash
+		return paymentInfo, destinationUser, err
+	}
+	log.Printf("[Pay]shared access with approver permission enabled for %v \n", wallet.Alias)
+	id := uuid.New().String()
+	assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
+	if len(paymentInfo.AssetIssuer) == 56 {
+		assetOfPayment = fmt.Sprintf("%v:%v...%v", paymentInfo.AssetCode, paymentInfo.AssetIssuer[0:4], paymentInfo.AssetIssuer[51:55])
+	}
+	description := fmt.Sprintf("Sending Payment from wallet [%v].\nTo: [%v].\nAmount: %v [%v].\nMemo: %v\nImportant Messages: %v\n", wallet.Alias, paymentInfo.Destination, paymentInfo.Amount, assetOfPayment, paymentInfo.Memo, paymentInfo.Messages)
+	pendingAuth := users.PendingAuth{
+		ID:                       id,
+		Initiator:                signerUser.Username,
+		InitiatorSignerPublicKey: signerUser.PrimarySigner,
+		WalletPublicKey:          wallet.ID,
+		TransactionType:          "PAYMENT",
+		Description:              description,
+		ApprovalsNeeded:          wallet.UserWalletSharedAccess.NumberOfApprovers,
+		TransactionXdr:           xdrBase64,
+	}
+	//save and commit this to database
+	e := db.Create(&pendingAuth).Error
+	if e != nil {
+		log.Printf("[Pay] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+		err = &tErrors.ErrorTemporaryServerError{}
+		return paymentInfo, destinationUser, err
+	}
+
+	return paymentInfo, destinationUser, nil
 
 }
 

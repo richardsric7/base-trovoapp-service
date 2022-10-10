@@ -1346,7 +1346,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.POST("/v1/shared-access/users/account", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
-		_, err = usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1406,7 +1406,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
 		log.Printf("[DEBUG] sharedAccess %+v\n", sharedAccessInfo)
-		_, err = userServices.CreateSharedWalletAccess(middleware.ExtractSigner(c), &sharedAccessInfo, gc)
+		_, err = userServices.CreateSharedWalletAccess(&signerUser, &sharedAccessInfo, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1550,7 +1550,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
 		log.Printf("[DEBUG] sharedAccess %+v\n", sharedAccessInfo)
-		err = userServices.RemoveSharedWalletAccess(middleware.ExtractSigner(c), &wallet, pl, &sharedAccessInfo, gc)
+		err = userServices.RemoveSharedWalletAccess(&signerUser, &wallet, pl, &sharedAccessInfo, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError

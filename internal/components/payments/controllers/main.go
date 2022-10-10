@@ -283,7 +283,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				return
 			}
 		}
-		paymentInfoReturned, returnedDestination, paymentError := payments.Pay(&accountSignerUser, &userWallet, &paymentInfo, gc.DB)
+		paymentInfoReturned, returnedDestination, paymentError := payments.Pay(&accountSignerUser, &userWallet, &paymentInfo, gc)
 		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
@@ -348,6 +348,37 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverPaymentHistoryCacheKey, senderBalanceCacheKey, receiverBalanceCacheKey)
 			}
 			gc.RedisCache.InvalidateCachedHttpResponse(senderBalanceCacheKey, senderTempCacheKey, receiverBalanceCacheKey, receiverTempCacheKey, sNFT, rNTF)
+
+			if paymentInfoReturned.TransactionID == "PENDING_AUTH" {
+				c.JSON(http.StatusOK, paymentInfoReturned)
+
+				{
+					accessList := userWallet.GetPermissionList(gc.DB)
+					// send push notifications
+					assetCode := paymentInfo.AssetCode
+					if assetCode == "" {
+						assetCode = "XBN"
+					}
+					dataPayload := make(map[string]string)
+					dataPayload["route"] = "pendingAuth"
+					for _, a := range accessList {
+
+						if a.Permission == "APPROVER" {
+							ph, e := paymentsDB.GetUser(a.TargetUsername, gc.DB)
+							if e == nil {
+								ph.SendPushMessage("Trovo: Payment request awaiting approval!", fmt.Sprintf("You have a payment transaction of %v %v to %v initiated by %v from the wallet with alias %v, which is now awaiting approval from you or any other approver.", paymentInfo.Amount, assetCode, paymentInfo.Destination, accountSignerUser.Username, userWallet.Alias), "", dataPayload, gc)
+
+							}
+
+						}
+					}
+					accountSignerUser.SendPushMessage("Trovo: Payment Request Submitted!", fmt.Sprintf("You have successfully submitted payment request of %v %v to %v on the wallet with alias %v. The listed approvers have been notifed to attend to the request.", paymentInfo.Amount, assetCode, paymentInfo.Destination, userWallet.Alias), "", dataPayload, gc)
+
+				}
+
+				return
+			}
+
 			c.JSON(http.StatusOK, paymentInfoReturned)
 
 			{
@@ -385,7 +416,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 						TransactionID:   paymentInfoReturned.TransactionID,
 						TransactionMemo: paymentInfoReturned.Memo,
 						TransactionTime: time.Now(),
-						DeviceID:        c.GetHeader("X-TrovoWallet-DEVICE-ID"),
+						DeviceID:        c.GetHeader("X-TW-DEVICE-ID"),
 					}
 					/////
 					body, err := json.Marshal(jsonPayload)
