@@ -7,6 +7,7 @@ import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../Models/User.dart';
 import '../Models/WalletsListViewData.dart';
@@ -255,8 +256,10 @@ class DataProvider with ChangeNotifier {
   int? totalRecords = 0;
 
   getHistory(context) async {
+    showLoader(context);
     await fetchHistory(context, limit: limit.toString(), query: filterQuery);
     notifyListeners();
+    hideLoader(context);
   }
 
   Future<void> fetchHistory(
@@ -271,7 +274,7 @@ class DataProvider with ChangeNotifier {
       if (!filterAsset.contains("*")) {
         var splitAssetInfo = filterAsset.split("|");
         uri +=
-            "&assetIssuer=${splitAssetInfo[0].isEmpty ? "%02%03" : splitAssetInfo[0]}&assetCode=${splitAssetInfo[1].isEmpty ? "%02%03" : splitAssetInfo[1]}";
+            "&assetIssuer=${splitAssetInfo[0]}&assetCode=${splitAssetInfo[1].isEmpty ? "XBN" : splitAssetInfo[1]}";
       }
       Map responseData = await makeGetRequest(
           uri: uri,

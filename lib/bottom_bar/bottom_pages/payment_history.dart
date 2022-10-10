@@ -37,6 +37,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   Wallet? activeWallet;
   dynamic selectedWallet = '';
   var claimedAssets;
+  bool showFilter = false;
   late List<TransactionInfo>? historyData;
   var filterTypesMap = {
     FilterType.AllRecords: "All records",
@@ -183,10 +184,28 @@ class Payment_HistoryState extends State<PaymentHistory>
           backgroundColor: notifier.getwihitecolor,
           appBar: AppBar(
             centerTitle: true,
-            title: Text(
-              LanguageEn.transactionHistory,
-              style:
-                  TextStyle(color: notifier.getblck, fontFamily: fontsemibold),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                SizedBox(width: width / 15),
+                Text(
+                  LanguageEn.transactionHistory,
+                  style: TextStyle(
+                      color: notifier.getblck, fontFamily: fontsemibold),
+                ),
+                TextButton(
+                    onPressed: () {
+                      setState(() {
+                        showFilter = !showFilter;
+                      });
+                    },
+                    child: Container(
+                      child: Image.asset(
+                        "assets/images/filter-list.png",
+                        height: height / 35,
+                      ),
+                    ))
+              ],
             ),
             backgroundColor: notifier.getfavorites,
             elevation: 0,
@@ -195,12 +214,12 @@ class Payment_HistoryState extends State<PaymentHistory>
             enablePullDown: true,
             controller: _refreshController,
             onRefresh: refreshData,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: height / 50,
-                  ),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: height / 35,
+                ),
+                if (showFilter) ...[
                   Container(
                     width: width,
                     child: Row(
@@ -213,6 +232,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                           child: dropdown(
                             (newValue) async {
                               selectedWallet = newValue!;
+                              appState.filterAsset = "*|*";
                               appState.activeWallet = wallets!.firstWhere(
                                   (wallet) => wallet.publicKey == newValue);
                               showLoader(context);
@@ -282,13 +302,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                       ],
                     ),
                   ),
-                  SizedBox(height: height / 50),
-                  listHistory(),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 35),
                 ],
-              ),
+                listHistory(),
+              ],
             ),
           ),
         ),
@@ -299,8 +316,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   Widget listHistory() {
     if (historyData != null && historyData!.length > 0) {
       return Container(
-        height: height / 1.343,
-        // color: Colors.black,
+        height: showFilter ? height / 1.5523 : height / 1.24,
         child: LoadMore(
           isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {
@@ -345,20 +361,26 @@ class Payment_HistoryState extends State<PaymentHistory>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              LanguageEn.somethingwentwrong,
+              'Sorry no results here',
               overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                // color: notifier.getbluecolor,
+              ),
+            ),
+            SizedBox(
+              height: height / 90,
             ),
             ElevatedButton(
               onPressed: () async {
-                await appState.fetchHistory(context,
-                    limit: appState.limit.toString());
+                await appState.getHistory(context);
               },
               style: ButtonStyle(
                 backgroundColor:
                     MaterialStateProperty.all<Color>(notifier.getbluecolor!),
               ),
               child: Text(
-                LanguageEn.retry,
+                'Refresh',
                 style: TextStyle(
                   fontFamily: fontsemibold,
                 ),
@@ -456,20 +478,6 @@ class Payment_HistoryState extends State<PaymentHistory>
                             fontFamily: fontbody,
                           ),
                         ),
-                        // SizedBox(
-                        //   width: width / 50,
-                        // ),
-                        // Text(
-                        //   formatAmount(transactionType, amount, assetCode),
-                        //   style: TextStyle(
-                        //     fontSize: 15,
-                        //     fontWeight: FontWeight.w400,
-                        //     color: transactionType == TransactionType.Send
-                        //         ? Colors.red
-                        //         : notifier.getgreencolor,
-                        //     fontFamily: fontbody,
-                        //   ),
-                        // ),
                       ],
                     ),
                     SizedBox(
@@ -520,7 +528,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   refreshData() async {
     try {
       showLoader(context);
-      await appState.fetchHistory(context, limit: appState.limit.toString());
+      await appState.getHistory(context);
       hideLoader(context);
       _refreshController.refreshCompleted();
     } catch (e) {
@@ -639,7 +647,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                           ? "Enter username"
                           : appState.filterUsername!,
                       textAlign: TextAlign.start,
-                      overflow: TextOverflow.visible,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           color: notifier.getbluewhitecolor,
                           fontSize: appState.filterMinAmount != null &&
@@ -783,7 +791,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                       maxWidth: width / 2.9,
                     ),
                     child: Text(
-                      getAmountRangeValue(),
+                      truncate(getAmountRangeValue(), length: 30),
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.visible,
                       style: TextStyle(
@@ -805,8 +813,6 @@ class Payment_HistoryState extends State<PaymentHistory>
           ),
         );
       case FilterType.DateRange:
-      // FilterType.AllRecords
-      default:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: Container(
@@ -834,7 +840,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                         color: notifier.getbluewhitecolor,
                         fontSize: appState.filterStartDate != null &&
                                 appState.filterEndDate != null
-                            ? 12
+                            ? 13
                             : 15,
                         fontFamily: fontsemibold),
                   ),
@@ -847,7 +853,35 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
           ),
         );
-        break;
+      // FilterType.AllRecords
+      default:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {},
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "All records",
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 15,
+                        fontFamily: fontsemibold),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
     }
   }
 
@@ -873,16 +907,6 @@ class Payment_HistoryState extends State<PaymentHistory>
     return truncate(publicKey, length: 7) +
         publicKey.substring(publicKey.length - 7);
   }
-
-  // void resetValues() {
-  //   appState.setFilterEndDate = null;
-  //   appState.setFilterStartDate = null;
-  //   appState.setFilterFromPublicKey = null;
-  //   appState.setFilterToPublicKey = null;
-  //   appState.setFilterMaxAmount = null;
-  //   appState.setFilterMinAmount = null;
-  //   appState.setFilterUsername = null;
-  // }
 
   void showPopup(FilterType filterType) {
     switch (filterType) {
