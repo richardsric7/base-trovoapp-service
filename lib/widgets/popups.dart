@@ -1,10 +1,13 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import '../Custom_BlocObserver/notifire_clor.dart';
 import '../router/PageActions.dart';
@@ -1195,4 +1198,519 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
               ),
             ));
       });
+}
+
+customDateRangePopup(context, {required void Function() onDone}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          var appState = Provider.of<DataProvider>(context, listen: false);
+          var initialDate = DateTime.now();
+          var startDate = appState.filterStartDate ??
+              DateTime.now().subtract(Duration(days: 1));
+          var endDate = appState.filterEndDate ?? DateTime.now();
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          'Enter the date range below',
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Wrap(
+                              children: [
+                                quickDateRange(context, text: 'Past week',
+                                    onPressed: () {
+                                  appState.setFilterStartDate = DateTime.now()
+                                      .subtract(Duration(days: 7));
+                                  appState.setFilterEndDate = DateTime.now();
+                                }),
+                                quickDateRange(context, text: 'Past month',
+                                    onPressed: () {
+                                  var date = DateTime.now();
+                                  appState.setFilterEndDate = date;
+                                  appState.setFilterStartDate = DateTime(
+                                      date.year, date.month - 1, date.day);
+                                }),
+                                quickDateRange(context, text: 'Past 3 months',
+                                    onPressed: () {
+                                  var date = DateTime.now();
+                                  appState.setFilterEndDate = date;
+                                  appState.setFilterStartDate = DateTime(
+                                      date.year, date.month - 3, date.day);
+                                }),
+                              ],
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 5.0),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Start Date',
+                                    textAlign: TextAlign.start,
+                                    style: TextStyle(
+                                        color: notifier.getbluewhitecolor,
+                                        fontSize: 15,
+                                        fontFamily: fontbody),
+                                  ),
+                                  SizedBox(
+                                    height: height / 70,
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(10.0)),
+                                      color: notifier.isDark
+                                          ? darktilewhitecolor
+                                          : notifier.getaddsubwalletgrey,
+                                    ),
+                                    child: TextButton(
+                                      onPressed: () async {
+                                        appState.setFilterStartDate =
+                                            await showDatePicker(
+                                                  context: context,
+                                                  initialDate: appState
+                                                          .filterStartDate ??
+                                                      initialDate,
+                                                  firstDate: DateTime
+                                                      .fromMicrosecondsSinceEpoch(
+                                                          1000),
+                                                  lastDate: DateTime.now(),
+                                                ) ??
+                                                appState.filterStartDate;
+                                      },
+                                      child: Text(
+                                        DateFormat('MMMM dd, yyyy')
+                                            .format(startDate),
+                                        textAlign: TextAlign.start,
+                                        style: TextStyle(
+                                            color: notifier.getbluewhitecolor,
+                                            fontSize: 15,
+                                            fontFamily: fontsemibold),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 5.0),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'End Date',
+                                    textAlign: TextAlign.start,
+                                    style: TextStyle(
+                                        color: notifier.getbluewhitecolor,
+                                        fontSize: 15,
+                                        fontFamily: fontbody),
+                                  ),
+                                  SizedBox(
+                                    height: height / 70,
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(10.0)),
+                                      color: notifier.isDark
+                                          ? darktilewhitecolor
+                                          : notifier.getaddsubwalletgrey,
+                                    ),
+                                    child: TextButton(
+                                      onPressed: () async {
+                                        appState.setFilterEndDate =
+                                            await showDatePicker(
+                                                  context: context,
+                                                  initialDate:
+                                                      appState.filterEndDate ??
+                                                          initialDate,
+                                                  firstDate: DateTime
+                                                      .fromMicrosecondsSinceEpoch(
+                                                          1000),
+                                                  lastDate: DateTime.now(),
+                                                ) ??
+                                                appState.filterEndDate;
+                                      },
+                                      child: Text(
+                                        DateFormat('MMMM dd, yyyy')
+                                            .format(endDate),
+                                        textAlign: TextAlign.start,
+                                        style: TextStyle(
+                                            color: notifier.getbluewhitecolor,
+                                            fontSize: 15,
+                                            fontFamily: fontsemibold),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          appState.setFilterStartDate =
+                              appState.filterStartDate == null
+                                  ? startDate
+                                  : appState.filterStartDate;
+                          appState.setFilterEndDate =
+                              appState.filterEndDate == null
+                                  ? endDate
+                                  : appState.filterEndDate;
+                          Navigator.of(context).pop(); // dismiss dialog,
+                          onDone();
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          LanguageEn.done,
+                          style: TextStyle(
+                              color: wihitecolor, fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: height / 50),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
+Widget quickDateRange(BuildContext context,
+    {required String text, required void Function() onPressed}) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return Padding(
+    padding: const EdgeInsets.all(3.0),
+    child: Container(
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+        color:
+            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+      ),
+      child: Wrap(
+        children: [
+          TextButton(
+            onPressed: onPressed,
+            child: Text(
+              text,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 10.sp),
+            ),
+          )
+        ],
+      ),
+    ),
+  );
+}
+
+amountRangePopup(context, {required void Function() onDone}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          var appState = Provider.of<DataProvider>(context, listen: false);
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          'Enter the amount range below',
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CustomTextFormField.textFieldWithoutIcon(
+                                'minimum amount',
+                                notifier.getbluecolor,
+                                notifier.getgrey,
+                                notifier.getprefixicon,
+                                notifier.getblck,
+                                notifier.getgrey,
+                                50.sp,
+                                300.sp,
+                                onChanged: (value) {
+                                  if (value != null &&
+                                      value.toString().isNotEmpty) {
+                                    appState.setFilterMinAmount = value;
+                                  }
+                                },
+                                keyboardtype: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
+                              ),
+                              SizedBox(
+                                height: height / 30,
+                              ),
+                              CustomTextFormField.textFieldWithoutIcon(
+                                'maximum amount',
+                                notifier.getbluecolor,
+                                notifier.getgrey,
+                                notifier.getprefixicon,
+                                notifier.getblck,
+                                notifier.getgrey,
+                                50.sp,
+                                300.sp,
+                                onChanged: (value) {
+                                  if (value != null &&
+                                      value.toString().isNotEmpty) {
+                                    appState.setFilterMaxAmount = value;
+                                  }
+                                },
+                                keyboardtype: TextInputType.numberWithOptions(
+                                    decimal: true),
+                                // onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 30,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          onDone();
+                          Navigator.of(context).pop(); // dismiss dialog,
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          LanguageEn.done,
+                          style: TextStyle(
+                              color: wihitecolor, fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: height / 50),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
+textFieldPopup(context,
+    {required FilterType rel, required void Function(String?) onDone}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  String? textValue;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          getLabelText(rel),
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                          child: CustomTextFormField.textFieldWithoutIcon(
+                            rel == FilterType.Username
+                                ? "username"
+                                : "public key",
+                            notifier.getbluecolor,
+                            notifier.getgrey,
+                            notifier.getprefixicon,
+                            notifier.getblck,
+                            notifier.getgrey,
+                            55.sp,
+                            300.sp,
+                            onChanged: (value) {
+                              if (value != null &&
+                                  value.toString().isNotEmpty) {
+                                textValue = value;
+                              }
+                            },
+                            keyboardtype: TextInputType.text,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 30,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          onDone(textValue);
+                          Navigator.of(context).pop(); // dismiss dialog,
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          LanguageEn.done,
+                          style: TextStyle(
+                              color: wihitecolor, fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: height / 50),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
+String getLabelText(FilterType rel) {
+  switch (rel) {
+    case FilterType.FromPublicKey:
+      return 'Enter from public key below';
+    case FilterType.ToPublicKey:
+      return 'Enter to public key below';
+    default:
+      return 'Enter username or full name below';
+  }
 }
