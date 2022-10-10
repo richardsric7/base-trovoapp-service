@@ -973,23 +973,24 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 }
 
-func HasAccessToPublicKey(ownerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	user, err := usersDB.GetUserFromPrimarySigner(ownerPublicKey, gc.DB)
+func HasAccessToPublicKey(signerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+	signerUser, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB)
 
 	if err != nil {
 		return false
 	}
-	walletPermissions := user.Fetch3rdPartyWalletPermissions(gc)
-	if len(walletPermissions) == 0 {
+	wallet, temp, err := usersDB.GetWallet(targetPublicKey, gc.DB)
+	if err != nil {
 		return false
 	}
-	for _, walletAccess := range walletPermissions {
-		if walletAccess.WalletPublicKey == targetPublicKey {
-			return true
-		}
+	if temp {
+		return false
 	}
+	if wallet.SharedAccessEnabled == 0 {
+		return false
+	}
+	return wallet.SignerHasAccess(&signerUser, gc)
 
-	return false
 }
 
 func HasInitiatorPermissionToPublicKey(ownerSignerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {

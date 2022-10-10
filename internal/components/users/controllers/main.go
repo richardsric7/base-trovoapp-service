@@ -22,6 +22,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
+	"github.com/stellar/go/keypair"
 )
 
 // Init initializes /v1/users endpoint
@@ -64,6 +65,16 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		// var err error
 
 		targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
+
+		_, err := keypair.ParseAddress(targetPublicKeyForHistory)
+		if err != nil {
+
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error invalid address", "message": "Only valid addresses are allowed"}
+
+			c.JSON(statusCode, response)
+			return
+		}
 		cacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", targetPublicKeyForHistory)
 		cacheKeyParameters := c.Request.URL.RequestURI()
 		{
@@ -98,13 +109,46 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				response = ex.JSONError()
 			} else {
 				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
 			c.JSON(statusCode, response)
 			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
+		wallet, temp, err := usersDB.GetWallet(targetPublicKeyForHistory, gc.DB)
+
+		if err != nil {
+			log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		if temp {
+
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error only main wallets allowed", "message": "Only main wallets are allowed. The address you provided is not a main wallet."}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
 		targetOwnerUser, err := usersDB.GetUser(targetPublicKeyForHistory, gc.DB)
 
 		if err != nil {
@@ -122,7 +166,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				response = ex.JSONError()
 			} else {
 				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
 			c.JSON(statusCode, response)
@@ -135,7 +179,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 			//check if the owner is the one accessing it or if the one accessing it has access to access it.
 
-			if (signerUser.Username != targetOwnerUser.Username) && !userServices.HasAccessToPublicKey(signerUser.PrimarySigner, targetPublicKeyForHistory, gc) {
+			if (signerUser.Username != targetOwnerUser.Username) && !wallet.SignerHasAccess(&signerUser, gc) {
 				te := &tErrors.ErrorInvalidAuthorization{}
 
 				log.Println("[GET HISTORY] Invalid access for user:", signerUser.Username, "error: ", te.Error())

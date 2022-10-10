@@ -144,6 +144,9 @@ type UserWalletSharedAccessID string
 // UserWalletID is type for wallet/sub-wallet Public Key
 type UserWalletID string
 
+// UserSigner is type for signer Public Key
+type UserSigner string
+
 type TrackedWallet struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
 	PublicKey string    `gorm:"index:idx_tracked_wallet_public_key,unique"`

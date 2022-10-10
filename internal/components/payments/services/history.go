@@ -29,29 +29,29 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	var query *gorm.DB
 	var countQuery *gorm.DB
 	oD := "ASC"
-	transactionType := c.Query("transactionType")
-	fromPublicKey := strings.ToUpper(c.Query("fromPublicKey"))
-	toPublicKey := strings.ToUpper(c.Query("toPublicKey"))
-	name := c.Query("name")
-	memo := c.Query("memo")
-	limitU, _ := strconv.ParseUint(c.DefaultQuery("limit", "25"), 10, 64)
+	transactionType := strings.TrimSpace(c.Query("transactionType"))
+	fromPublicKey := strings.TrimSpace(strings.ToUpper(c.Query("fromPublicKey")))
+	toPublicKey := strings.TrimSpace(strings.ToUpper(c.Query("toPublicKey")))
+	name := strings.TrimSpace(c.Query("name"))
+	memo := strings.TrimSpace(c.Query("memo"))
+	limitU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("limit", "25")), 10, 64)
 	limit := int(limitU)
-	pageU, _ := strconv.ParseUint(c.DefaultQuery("page", "1"), 10, 64)
+	pageU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("page", "1")), 10, 64)
 	page := int(pageU)
-	assetIssuer := strings.ToUpper(c.Query("assetIssuer"))
+	assetIssuer := strings.TrimSpace(strings.ToUpper(c.Query("assetIssuer")))
 	// var assetIssuerVal *string
-	assetCode := strings.ToUpper(c.Query("assetCode"))
+	assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
 	// if strings.EqualFold(assetCode, "XBN") {
 	// 	assetIssuerVal = nil
 	// }
 	// if len(assetCode) > 1 && len(assetIssuer) == 56 {
 	// 	assetIssuerVal = &assetIssuer
 	// }
-	transactionID := c.Query("transactionID")
-	amountBetween := c.Query("amount")
-	dateBetween := c.Query("dateBetween")
+	transactionID := strings.ToLower(strings.TrimSpace(c.Query("transactionID")))
+	amountBetween := strings.TrimSpace(c.Query("amount"))
+	dateBetween := strings.TrimSpace(c.Query("dateBetween"))
 
-	orderBy := c.DefaultQuery("orderby", "transaction_date")
+	orderBy := strings.TrimSpace(c.DefaultQuery("orderby", "transaction_date"))
 	orderDirection := c.DefaultQuery("order", "DESC")
 
 	query = DB.Preload(clause.Associations)
@@ -104,17 +104,24 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	}
 	if len(memo) > 2 {
 
-		query = query.Where("lower(memo) LIKE ?", strings.ToLower(memo)+"%")
-		countQuery = countQuery.Where("lower(memo) LIKE ?", strings.ToLower(memo)+"%")
+		query = query.Where("lower(memo) LIKE ?", "%"+strings.ToLower(memo)+"%")
+		countQuery = countQuery.Where("lower(memo) LIKE ?", "%"+strings.ToLower(memo)+"%")
 
 	}
-	if len(transactionType) > 4 {
+	if len(transactionType) > 3 {
+		if strings.EqualFold(transactionType, "payment") {
+			query = query.Where("transaction_type = ?", strings.ToUpper(transactionType))
+			countQuery = countQuery.Where("transaction_type = ?", strings.ToUpper(transactionType))
 
-		query = query.Where("lower(transaction_type) LIKE ?", strings.ToUpper(transactionType)+"%")
-		countQuery = countQuery.Where("lower(transaction_type) LIKE ?", strings.ToUpper(transactionType)+"%")
+		}
+		if strings.EqualFold(transactionType, "swap") {
+			query = query.Where("transaction_type LIKE ?", strings.ToUpper(transactionType)+"%")
+			countQuery = countQuery.Where("transaction_type LIKE ?", strings.ToUpper(transactionType)+"%")
+
+		}
 
 	}
-	if len(transactionID) > 4 {
+	if len(transactionID) > 40 {
 
 		query = query.Where("transaction_id = ?", strings.TrimSpace(transactionID))
 		countQuery = countQuery.Where("transaction_id = ?", strings.TrimSpace(transactionID))

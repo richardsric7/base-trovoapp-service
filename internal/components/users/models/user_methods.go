@@ -628,6 +628,28 @@ func (id UserWalletID) String() string {
 	return string(id)
 }
 
+func (publicKey UserSigner) String() string {
+	return string(publicKey)
+}
+
+func (publicKey UserSigner) GetOwner(db *gorm.DB) (signerOwner User, err error) {
+	e := db.Where("primary_signer = ?", string(publicKey)).First(&signerOwner).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-account-not-found",
+				ErrMessage: "Account not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
 func (id UserWalletSharedAccessID) GetPermissionAssignment(db *gorm.DB) (assignment UserWalletSharedAccess, err error) {
 	e := db.Where("id = ?", string(id)).First(&assignment).Error
 	if e != nil {
@@ -682,6 +704,169 @@ func (u *UserWallet) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (
 	for _, access := range accessList {
 		if access.Permission != "VIEW-ONLY" {
 			return false
+		}
+	}
+
+	return
+}
+
+func (u *UserWallet) SignerHasAccess(signer *User, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+	hasAccess = false
+	if u == nil {
+		return false
+	}
+	if signer == nil {
+		return false
+	}
+	if u.SharedAccessEnabled == 0 {
+		return false
+	}
+	permList := u.GetPermissionList(gc.DB)
+	if len(permList) == 0 {
+		return false
+	}
+
+	for _, access := range permList {
+		if access.TargetUsername == signer.Username {
+			return true
+		}
+	}
+
+	return
+}
+
+func (u *UserWallet) SignerHasInitatorAccess(signer *User, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+	hasAccess = false
+	if u == nil {
+		return false
+	}
+	if signer == nil {
+		return false
+	}
+	if u.SharedAccessEnabled == 0 {
+		return false
+	}
+	permList := u.GetPermissionList(gc.DB)
+	if len(permList) == 0 {
+		return false
+	}
+
+	for _, access := range permList {
+		if (access.TargetUsername == signer.Username) && (access.Permission == "INITIATOR") {
+			return true
+		}
+	}
+
+	return
+}
+
+func (u *UserWallet) SignerHasApproverAccess(signer *User, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+	hasAccess = false
+	if u == nil {
+		return false
+	}
+	if signer == nil {
+		return false
+	}
+	if u.SharedAccessEnabled == 0 {
+		return false
+	}
+	permList := u.GetPermissionList(gc.DB)
+	if len(permList) == 0 {
+		return false
+	}
+
+	for _, access := range permList {
+		if (access.TargetUsername == signer.Username) && (access.Permission == "APPROVER") {
+			return true
+		}
+	}
+
+	return
+}
+
+func (u *UserWallet) SignerKeyHasAccess(signerKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+	hasAccess = false
+	if u == nil {
+		return false
+	}
+	if signerKey == "" {
+		return false
+	}
+	if u.SharedAccessEnabled == 0 {
+		return false
+	}
+
+	signer, err := UserSigner(signerKey).GetOwner(gc.DB)
+	if err != nil {
+		return false
+	}
+	permList := u.GetPermissionList(gc.DB)
+	if len(permList) == 0 {
+		return false
+	}
+
+	for _, access := range permList {
+		if access.TargetUsername == signer.Username {
+			return true
+		}
+	}
+
+	return
+}
+
+func (u *UserWallet) SignerKeyHasInitatorAccess(signerKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+	hasAccess = false
+	if u == nil {
+		return false
+	}
+	if signerKey == "" {
+		return false
+	}
+	if u.SharedAccessEnabled == 0 {
+		return false
+	}
+	signer, err := UserSigner(signerKey).GetOwner(gc.DB)
+	if err != nil {
+		return false
+	}
+	permList := u.GetPermissionList(gc.DB)
+	if len(permList) == 0 {
+		return false
+	}
+
+	for _, access := range permList {
+		if (access.TargetUsername == signer.Username) && (access.Permission == "INITIATOR") {
+			return true
+		}
+	}
+
+	return
+}
+
+func (u *UserWallet) SignerKeyHasapproverAccess(signerKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
+	hasAccess = false
+	if u == nil {
+		return false
+	}
+	if signerKey == "" {
+		return false
+	}
+	if u.SharedAccessEnabled == 0 {
+		return false
+	}
+	signer, err := UserSigner(signerKey).GetOwner(gc.DB)
+	if err != nil {
+		return false
+	}
+	permList := u.GetPermissionList(gc.DB)
+	if len(permList) == 0 {
+		return false
+	}
+
+	for _, access := range permList {
+		if (access.TargetUsername == signer.Username) && (access.Permission == "APPROVER") {
+			return true
 		}
 	}
 
