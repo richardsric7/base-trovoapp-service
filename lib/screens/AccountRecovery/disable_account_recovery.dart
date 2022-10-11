@@ -375,7 +375,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
       print('response: $responseData');
       hideLoader(context);
 
-      if (responseData['statusCode'] == 200) {
+      if (responseData['statusCode'] == 202) {
         // sendFullDataToServer(responseData['data']);
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;

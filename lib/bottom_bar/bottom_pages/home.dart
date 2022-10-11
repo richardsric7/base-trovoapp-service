@@ -1,11 +1,9 @@
 import 'dart:async';
-
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
@@ -491,8 +489,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       style: TextStyle(
                         color: notifier.getbluewhitecolor,
                         fontSize: 17.sp,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: fontbody,
+                        fontFamily: fontsemibold,
                       ),
                     ),
                   ],

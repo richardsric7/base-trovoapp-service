@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
@@ -37,19 +35,21 @@ class Payment_HistoryState extends State<PaymentHistory>
   Wallet? activeWallet;
   dynamic selectedWallet = '';
   var claimedAssets;
+  bool showFilter = false;
   late List<TransactionInfo>? historyData;
   var filterTypesMap = {
-    FilterType.AllRecords: "All records",
+    FilterType.TransactionType: "Transaction type",
     FilterType.DateRange: "Date range",
     FilterType.AmountRange: "Amount range",
     FilterType.Username: "Username",
     FilterType.FromPublicKey: "From public key",
     FilterType.ToPublicKey: "To public key",
+    FilterType.Memo: "Memo",
   };
 
-  Timer? timer;
+  ScrollController scrollController = new ScrollController();
 
-  FilterType filterType = FilterType.DateRange;
+  FilterType filterType = FilterType.TransactionType;
 
   var dateRangeItems = <String>[
     "Past week",
@@ -157,6 +157,17 @@ class Payment_HistoryState extends State<PaymentHistory>
   void initState() {
     super.initState();
     _refreshController = RefreshController(initialRefresh: false);
+    appState = Provider.of<DataProvider>(context, listen: false);
+    appState.filterAsset = "*|*";
+    appState.filterEndDate = null;
+    appState.filterStartDate = null;
+    appState.filterFromPublicKey = null;
+    appState.filterToPublicKey = null;
+    appState.filterUsername = null;
+    appState.filterQuery = "";
+    appState.filterMaxAmount = null;
+    appState.filterMinAmount = null;
+    appState.filterMemo = null;
   }
 
   @override
@@ -183,10 +194,28 @@ class Payment_HistoryState extends State<PaymentHistory>
           backgroundColor: notifier.getwihitecolor,
           appBar: AppBar(
             centerTitle: true,
-            title: Text(
-              LanguageEn.transactionHistory,
-              style:
-                  TextStyle(color: notifier.getblck, fontFamily: fontsemibold),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                SizedBox(width: width / 15),
+                Text(
+                  LanguageEn.transactionHistory,
+                  style: TextStyle(
+                      color: notifier.getblck, fontFamily: fontsemibold),
+                ),
+                TextButton(
+                    onPressed: () {
+                      setState(() {
+                        showFilter = !showFilter;
+                      });
+                    },
+                    child: Container(
+                      child: Image.asset(
+                        "assets/images/filter-list.png",
+                        height: height / 35,
+                      ),
+                    ))
+              ],
             ),
             backgroundColor: notifier.getfavorites,
             elevation: 0,
@@ -195,12 +224,12 @@ class Payment_HistoryState extends State<PaymentHistory>
             enablePullDown: true,
             controller: _refreshController,
             onRefresh: refreshData,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: height / 50,
-                  ),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: height / 35,
+                ),
+                if (showFilter) ...[
                   Container(
                     width: width,
                     child: Row(
@@ -213,14 +242,19 @@ class Payment_HistoryState extends State<PaymentHistory>
                           child: dropdown(
                             (newValue) async {
                               selectedWallet = newValue!;
+                              appState.filterAsset = "*|*";
                               appState.activeWallet = wallets!.firstWhere(
                                   (wallet) => wallet.publicKey == newValue);
                               showLoader(context);
                               appState.limit = 20;
                               appState.totalRecords = 0;
                               appState.currentPage = 1;
-                              await appState.getHistory(context);
+                              await appState.getHistory(
+                                context,
+                                onDone: () => adjustScrollPosition(),
+                              );
                               hideLoader(context);
+
                               if (mounted) {
                                 setState(() {});
                               }
@@ -239,7 +273,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                             appState.totalRecords = 0;
                             appState.currentPage = 1;
                             appState.setFilterAsset = newValue.toString();
-                            await appState.getHistory(context);
+                            await appState.getHistory(
+                              context,
+                              onDone: () => adjustScrollPosition(),
+                            );
                             hideLoader(context);
                           }, assetsDropdownItems, appState.filterAsset,
                               'Assets'),
@@ -282,13 +319,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                       ],
                     ),
                   ),
-                  SizedBox(height: height / 50),
-                  listHistory(),
-                  SizedBox(
-                    height: height / 50,
-                  ),
+                  SizedBox(height: height / 35),
                 ],
-              ),
+                listHistory(),
+              ],
             ),
           ),
         ),
@@ -299,8 +333,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   Widget listHistory() {
     if (historyData != null && historyData!.length > 0) {
       return Container(
-        height: height / 1.343,
-        // color: Colors.black,
+        height: showFilter ? height / 1.5523 : height / 1.24,
         child: LoadMore(
           isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {
@@ -331,6 +364,7 @@ class Payment_HistoryState extends State<PaymentHistory>
           child: ListView.separated(
               separatorBuilder: (context, int) => Container(),
               itemCount: historyData!.length,
+              controller: scrollController,
               itemBuilder: (context, index) {
                 return tile(historyData![index]);
               }),
@@ -345,20 +379,26 @@ class Payment_HistoryState extends State<PaymentHistory>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              LanguageEn.somethingwentwrong,
+              'Sorry no results here',
               overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                // color: notifier.getbluecolor,
+              ),
+            ),
+            SizedBox(
+              height: height / 90,
             ),
             ElevatedButton(
               onPressed: () async {
-                await appState.fetchHistory(context,
-                    limit: appState.limit.toString());
+                await appState.getHistory(context);
               },
               style: ButtonStyle(
                 backgroundColor:
                     MaterialStateProperty.all<Color>(notifier.getbluecolor!),
               ),
               child: Text(
-                LanguageEn.retry,
+                'Refresh',
                 style: TextStyle(
                   fontFamily: fontsemibold,
                 ),
@@ -456,20 +496,6 @@ class Payment_HistoryState extends State<PaymentHistory>
                             fontFamily: fontbody,
                           ),
                         ),
-                        // SizedBox(
-                        //   width: width / 50,
-                        // ),
-                        // Text(
-                        //   formatAmount(transactionType, amount, assetCode),
-                        //   style: TextStyle(
-                        //     fontSize: 15,
-                        //     fontWeight: FontWeight.w400,
-                        //     color: transactionType == TransactionType.Send
-                        //         ? Colors.red
-                        //         : notifier.getgreencolor,
-                        //     fontFamily: fontbody,
-                        //   ),
-                        // ),
                       ],
                     ),
                     SizedBox(
@@ -520,7 +546,10 @@ class Payment_HistoryState extends State<PaymentHistory>
   refreshData() async {
     try {
       showLoader(context);
-      await appState.fetchHistory(context, limit: appState.limit.toString());
+      await appState.getHistory(
+        context,
+        onDone: () => adjustScrollPosition(),
+      );
       hideLoader(context);
       _refreshController.refreshCompleted();
     } catch (e) {
@@ -618,12 +647,14 @@ class Payment_HistoryState extends State<PaymentHistory>
             child: TextButton(
               onPressed: () {
                 textFieldPopup(context, rel: FilterType.Username,
-                    onDone: (value) {
-                  print('timer fired! $value');
+                    onDone: (value) async {
                   appState.setFilterUsername = value;
                   if (value != null && value.isNotEmpty) {
                     appState.setFilterQuery = "&name=${value}";
-                    appState.getHistory(context);
+                    await appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                   }
                 });
               },
@@ -639,13 +670,62 @@ class Payment_HistoryState extends State<PaymentHistory>
                           ? "Enter username"
                           : appState.filterUsername!,
                       textAlign: TextAlign.start,
-                      overflow: TextOverflow.visible,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                           color: notifier.getbluewhitecolor,
-                          fontSize: appState.filterMinAmount != null &&
-                                  appState.filterMaxAmount != null
-                              ? 12
-                              : 15,
+                          fontSize: appState.filterUsername != null ? 12 : 15,
+                          fontFamily: fontsemibold),
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      case FilterType.Memo:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                textFieldPopup(context, rel: FilterType.Memo,
+                    onDone: (value) async {
+                  appState.setFilterMemo = value;
+                  if (value != null && value.isNotEmpty) {
+                    appState.setFilterQuery = "&memo=${value}";
+                    await appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
+                  }
+                });
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: width / 2.9,
+                    ),
+                    child: Text(
+                      appState.filterMemo == null
+                          ? "Enter memo"
+                          : truncate(appState.filterMemo!, length: 30),
+                      textAlign: TextAlign.start,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: appState.filterMemo != null ? 12 : 15,
                           fontFamily: fontsemibold),
                     ),
                   ),
@@ -671,11 +751,14 @@ class Payment_HistoryState extends State<PaymentHistory>
             child: TextButton(
               onPressed: () {
                 textFieldPopup(context, rel: FilterType.FromPublicKey,
-                    onDone: (value) {
+                    onDone: (value) async {
                   if (value != null && value.toString().isNotEmpty) {
                     appState.setFilterFromPublicKey = value;
                     appState.setFilterQuery = "&fromPublicKey=$value";
-                    appState.getHistory(context);
+                    await appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                   }
                 });
               },
@@ -719,11 +802,14 @@ class Payment_HistoryState extends State<PaymentHistory>
             child: TextButton(
               onPressed: () {
                 textFieldPopup(context, rel: FilterType.ToPublicKey,
-                    onDone: (value) {
+                    onDone: (value) async {
                   if (value != null && value.toString().isNotEmpty) {
                     appState.setFilterToPublicKey = value;
                     appState.setFilterQuery = "&toPublicKey=$value";
-                    appState.getHistory(context);
+                    await appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                   }
                 });
               },
@@ -766,12 +852,15 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
             child: TextButton(
               onPressed: () {
-                amountRangePopup(context, onDone: () {
+                amountRangePopup(context, onDone: () async {
                   if (appState.filterMinAmount != null &&
                       appState.filterMaxAmount != null) {
                     appState.setFilterQuery =
-                        "&amount=${appState.filterMinAmount}|${appState.filterMaxAmount}";
-                    appState.getHistory(context);
+                        "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
+                    await appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                   }
                 });
               },
@@ -783,7 +872,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                       maxWidth: width / 2.9,
                     ),
                     child: Text(
-                      getAmountRangeValue(),
+                      truncate(getAmountRangeValue(), length: 30),
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.visible,
                       style: TextStyle(
@@ -805,8 +894,6 @@ class Payment_HistoryState extends State<PaymentHistory>
           ),
         );
       case FilterType.DateRange:
-      // FilterType.AllRecords
-      default:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: Container(
@@ -818,10 +905,13 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
             child: TextButton(
               onPressed: () {
-                customDateRangePopup(context, onDone: () {
+                customDateRangePopup(context, onDone: () async {
                   appState.setFilterQuery =
-                      "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
-                  appState.getHistory(context);
+                      "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+                  await appState.getHistory(
+                    context,
+                    onDone: () => adjustScrollPosition(),
+                  );
                 });
               },
               child: Row(
@@ -834,7 +924,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                         color: notifier.getbluewhitecolor,
                         fontSize: appState.filterStartDate != null &&
                                 appState.filterEndDate != null
-                            ? 12
+                            ? 13
                             : 15,
                         fontFamily: fontsemibold),
                   ),
@@ -847,8 +937,76 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
           ),
         );
-        break;
+      // FilterType.TransactionType
+      default:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: TextButton(
+              onPressed: () {
+                transactionTypePopup(
+                  context,
+                  onAllSelected: () {
+                    appState.setFilterQuery = "";
+                    appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
+                    Navigator.of(context).pop(); // dismiss dialog,
+                  },
+                  onPaymentSelected: () {
+                    appState.setFilterQuery = "&transactionType=payment";
+                    appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
+                    Navigator.of(context).pop(); // dismiss dialog,
+                  },
+                  onSwapSelected: () {
+                    appState.setFilterQuery = "&transactionType=swap";
+                    appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
+                    Navigator.of(context).pop(); // dismiss dialog,
+                  },
+                );
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    getTransactionTypeValue(),
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: appState.filterStartDate != null &&
+                                appState.filterEndDate != null
+                            ? 13
+                            : 15,
+                        fontFamily: fontsemibold),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
     }
+  }
+
+  adjustScrollPosition() {
+    if (scrollController.hasClients)
+      scrollController.jumpTo(scrollController.position.minScrollExtent);
   }
 
   getDateRangeValue() {
@@ -874,67 +1032,123 @@ class Payment_HistoryState extends State<PaymentHistory>
         publicKey.substring(publicKey.length - 7);
   }
 
-  // void resetValues() {
-  //   appState.setFilterEndDate = null;
-  //   appState.setFilterStartDate = null;
-  //   appState.setFilterFromPublicKey = null;
-  //   appState.setFilterToPublicKey = null;
-  //   appState.setFilterMaxAmount = null;
-  //   appState.setFilterMinAmount = null;
-  //   appState.setFilterUsername = null;
-  // }
+  getTransactionTypeValue() {
+    if (filterType == FilterType.TransactionType) {
+      if (appState.filterQuery.contains('swap')) return "Swap";
+      if (appState.filterQuery.contains('payment')) return "Payment";
+
+      return "All";
+    }
+  }
 
   void showPopup(FilterType filterType) {
     switch (filterType) {
       case FilterType.Username:
-        textFieldPopup(context, rel: FilterType.Username, onDone: (value) {
+        textFieldPopup(context, rel: FilterType.Username,
+            onDone: (value) async {
           print('timer fired! $value');
           appState.setFilterUsername = value;
           if (value != null && value.isNotEmpty) {
             appState.setFilterQuery = "&name=${value}";
-            appState.getHistory(context);
+            await appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
           }
         });
         break;
       case FilterType.FromPublicKey:
-        textFieldPopup(context, rel: FilterType.FromPublicKey, onDone: (value) {
+        textFieldPopup(context, rel: FilterType.FromPublicKey,
+            onDone: (value) async {
           if (value != null && value.toString().isNotEmpty) {
             appState.setFilterFromPublicKey = value;
             appState.setFilterQuery = "&fromPublicKey=$value";
-            appState.getHistory(context);
+            await appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
           }
         });
         break;
       case FilterType.ToPublicKey:
-        textFieldPopup(context, rel: FilterType.ToPublicKey, onDone: (value) {
+        textFieldPopup(context, rel: FilterType.ToPublicKey,
+            onDone: (value) async {
           if (value != null && value.toString().isNotEmpty) {
             appState.setFilterToPublicKey = value;
             appState.setFilterQuery = "&toPublicKey=$value";
-            appState.getHistory(context);
+            await appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
           }
         });
         break;
       case FilterType.AmountRange:
-        amountRangePopup(context, onDone: () {
+        amountRangePopup(context, onDone: () async {
           if (appState.filterMinAmount != null &&
               appState.filterMaxAmount != null) {
             appState.setFilterQuery =
-                "&amount=${appState.filterMinAmount}|${appState.filterMaxAmount}";
-            appState.getHistory(context);
+                "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
+            await appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
           }
         });
         break;
       case FilterType.DateRange:
-        customDateRangePopup(context, onDone: () {
+        customDateRangePopup(context, onDone: () async {
           appState.setFilterQuery =
-              "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
-          appState.getHistory(context);
+              "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+          await appState.getHistory(
+            context,
+            onDone: () => adjustScrollPosition(),
+          );
+        });
+        break;
+      case FilterType.Memo:
+        textFieldPopup(context, rel: FilterType.Memo, onDone: (value) async {
+          appState.setFilterMemo = value;
+          if (value != null && value.isNotEmpty) {
+            appState.setFilterQuery = "&memo=${value}";
+            await appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
+          }
         });
         break;
       default:
-        appState.setFilterQuery = "";
-        appState.setFilterAsset = "*|*";
-        appState.getHistory(context);
+        // appState.setFilterQuery = "";
+        // appState.setFilterAsset = "*|*";
+        // appState.getHistory(context);
+        transactionTypePopup(
+          context,
+          onAllSelected: () {
+            appState.setFilterQuery = "";
+            appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
+            Navigator.of(context).pop(); // dismiss dialog,
+          },
+          onPaymentSelected: () {
+            appState.setFilterQuery = "&transactionType=payment";
+            appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
+            Navigator.of(context).pop(); // dismiss dialog,
+          },
+          onSwapSelected: () {
+            appState.setFilterQuery = "&transactionType=swap";
+            appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
+            Navigator.of(context).pop(); // dismiss dialog,
+          },
+        );
         break;
     }
   }
@@ -947,10 +1161,11 @@ enum TransactionType {
 }
 
 enum FilterType {
-  AllRecords,
+  TransactionType,
   DateRange,
   AmountRange,
   Username,
   FromPublicKey,
   ToPublicKey,
+  Memo,
 }

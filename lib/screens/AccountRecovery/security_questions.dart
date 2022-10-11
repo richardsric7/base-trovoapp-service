@@ -9,6 +9,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -403,6 +404,8 @@ class _SecurityQuestions extends State<SecurityQuestions> {
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
+        await updateUserInfo(primaryWallet!.signer!, appState.secretKeys[0],
+            primaryWallet!.signer!, appState.userInfo!.username, appState);
         appState.viewData = {
           SuccessViewPageConfig.key: {
             'title': LanguageEn.success,

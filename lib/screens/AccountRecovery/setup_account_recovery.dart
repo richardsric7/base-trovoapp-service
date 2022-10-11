@@ -172,7 +172,7 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
       print('response: $responseData');
       hideLoader(context);
 
-      if (responseData['statusCode'] == 200) {
+      if (responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
 
