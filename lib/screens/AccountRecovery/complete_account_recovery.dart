@@ -35,7 +35,6 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
   late DataProvider appState;
   String password = '';
   final formKey = GlobalKey<FormState>();
-  final Authenticator _authenticator = Authenticator();
   var viewData;
   bool hasBackedUp = false;
 

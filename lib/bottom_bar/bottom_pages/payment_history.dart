@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
@@ -158,6 +157,17 @@ class Payment_HistoryState extends State<PaymentHistory>
   void initState() {
     super.initState();
     _refreshController = RefreshController(initialRefresh: false);
+    appState = Provider.of<DataProvider>(context, listen: false);
+    appState.filterAsset = "*|*";
+    appState.filterEndDate = null;
+    appState.filterStartDate = null;
+    appState.filterFromPublicKey = null;
+    appState.filterToPublicKey = null;
+    appState.filterUsername = null;
+    appState.filterQuery = "";
+    appState.filterMaxAmount = null;
+    appState.filterMinAmount = null;
+    appState.filterMemo = null;
   }
 
   @override
@@ -379,8 +389,6 @@ class Payment_HistoryState extends State<PaymentHistory>
             ElevatedButton(
               onPressed: () async {
                 await appState.getHistory(context);
-                scrollController
-                    .jumpTo(scrollController.position.minScrollExtent);
               },
               style: ButtonStyle(
                 backgroundColor:
@@ -839,7 +847,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                   if (appState.filterMinAmount != null &&
                       appState.filterMaxAmount != null) {
                     appState.setFilterQuery =
-                        "&amount=${appState.filterMinAmount}|${appState.filterMaxAmount}";
+                        "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
                     await appState.getHistory(context);
                     scrollController
                         .jumpTo(scrollController.position.minScrollExtent);
@@ -889,7 +897,7 @@ class Payment_HistoryState extends State<PaymentHistory>
               onPressed: () {
                 customDateRangePopup(context, onDone: () async {
                   appState.setFilterQuery =
-                      "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+                      "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
                   await appState.getHistory(context);
                   scrollController
                       .jumpTo(scrollController.position.minScrollExtent);
@@ -931,7 +939,30 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
             child: TextButton(
               onPressed: () {
-                transactionTypePopup(context);
+                transactionTypePopup(
+                  context,
+                  onAllSelected: () {
+                    appState.setFilterQuery = "";
+                    appState.getHistory(context);
+                    Navigator.of(context).pop(); // dismiss dialog,
+                    scrollController
+                        .jumpTo(scrollController.position.minScrollExtent);
+                  },
+                  onPaymentSelected: () {
+                    appState.setFilterQuery = "&transactionType=payment";
+                    appState.getHistory(context);
+                    Navigator.of(context).pop(); // dismiss dialog,
+                    scrollController
+                        .jumpTo(scrollController.position.minScrollExtent);
+                  },
+                  onSwapSelected: () {
+                    appState.setFilterQuery = "&transactionType=swap";
+                    appState.getHistory(context);
+                    Navigator.of(context).pop(); // dismiss dialog,
+                    scrollController
+                        .jumpTo(scrollController.position.minScrollExtent);
+                  },
+                );
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1032,7 +1063,7 @@ class Payment_HistoryState extends State<PaymentHistory>
           if (appState.filterMinAmount != null &&
               appState.filterMaxAmount != null) {
             appState.setFilterQuery =
-                "&amount=${appState.filterMinAmount}|${appState.filterMaxAmount}";
+                "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
             await appState.getHistory(context);
             scrollController.jumpTo(scrollController.position.minScrollExtent);
           }
@@ -1041,7 +1072,7 @@ class Payment_HistoryState extends State<PaymentHistory>
       case FilterType.DateRange:
         customDateRangePopup(context, onDone: () async {
           appState.setFilterQuery =
-              "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+              "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
           await appState.getHistory(context);
           scrollController.jumpTo(scrollController.position.minScrollExtent);
         });
@@ -1060,7 +1091,27 @@ class Payment_HistoryState extends State<PaymentHistory>
         // appState.setFilterQuery = "";
         // appState.setFilterAsset = "*|*";
         // appState.getHistory(context);
-        transactionTypePopup(context);
+        transactionTypePopup(
+          context,
+          onAllSelected: () {
+            appState.setFilterQuery = "";
+            appState.getHistory(context);
+            Navigator.of(context).pop(); // dismiss dialog,
+            scrollController.jumpTo(scrollController.position.minScrollExtent);
+          },
+          onPaymentSelected: () {
+            appState.setFilterQuery = "&transactionType=payment";
+            appState.getHistory(context);
+            Navigator.of(context).pop(); // dismiss dialog,
+            scrollController.jumpTo(scrollController.position.minScrollExtent);
+          },
+          onSwapSelected: () {
+            appState.setFilterQuery = "&transactionType=swap";
+            appState.getHistory(context);
+            Navigator.of(context).pop(); // dismiss dialog,
+            scrollController.jumpTo(scrollController.position.minScrollExtent);
+          },
+        );
         break;
     }
   }

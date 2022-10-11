@@ -1754,7 +1754,10 @@ textFieldPopup(context,
       });
 }
 
-transactionTypePopup(context) async {
+transactionTypePopup(context,
+    {required void Function() onAllSelected,
+    required void Function() onSwapSelected,
+    required void Function() onPaymentSelected}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
@@ -1802,26 +1805,15 @@ transactionTypePopup(context) async {
                               children: [
                                 quickDateRange(context, text: 'All',
                                     onPressed: () {
-                                  appState.setFilterQuery = "";
-                                  appState.getHistory(context);
-                                  Navigator.of(context)
-                                      .pop(); // dismiss dialog,
+                                  onAllSelected();
                                 }),
                                 quickDateRange(context, text: 'Swap',
                                     onPressed: () {
-                                  appState.setFilterQuery =
-                                      "&transactionType=swap";
-                                  appState.getHistory(context);
-                                  Navigator.of(context)
-                                      .pop(); // dismiss dialog,
+                                  onSwapSelected();
                                 }),
                                 quickDateRange(context, text: 'Payment',
                                     onPressed: () {
-                                  appState.setFilterQuery =
-                                      "&transactionType=payment";
-                                  appState.getHistory(context);
-                                  Navigator.of(context)
-                                      .pop(); // dismiss dialog,
+                                  onPaymentSelected();
                                 }),
                               ],
                             ),

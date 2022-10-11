@@ -179,6 +179,7 @@ class _BottomHomeState extends State<BottomHome> {
     setState(() {
       if (_selectedIndex != ButtomTabPage.TransactionHistory.index &&
           index == ButtomTabPage.TransactionHistory.index) {
+        appState.setFilterQuery = "";
         appState.getHistory(context);
       }
       _selectedIndex = index;
