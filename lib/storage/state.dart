@@ -255,11 +255,14 @@ class DataProvider with ChangeNotifier {
   int currentPage = 1;
   int? totalRecords = 0;
 
-  getHistory(context) async {
+  getHistory(context, {void Function()? onDone}) async {
     showLoader(context);
     await fetchHistory(context, limit: limit.toString(), query: filterQuery);
+
     notifyListeners();
     hideLoader(context);
+    // scroll to the top of the list if historyData is not null
+    if (historyData.length > 0 && onDone != null) onDone();
   }
 
   Future<void> fetchHistory(

@@ -249,10 +249,12 @@ class Payment_HistoryState extends State<PaymentHistory>
                               appState.limit = 20;
                               appState.totalRecords = 0;
                               appState.currentPage = 1;
-                              await appState.getHistory(context);
+                              await appState.getHistory(
+                                context,
+                                onDone: () => adjustScrollPosition(),
+                              );
                               hideLoader(context);
-                              scrollController.jumpTo(
-                                  scrollController.position.minScrollExtent);
+
                               if (mounted) {
                                 setState(() {});
                               }
@@ -271,9 +273,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                             appState.totalRecords = 0;
                             appState.currentPage = 1;
                             appState.setFilterAsset = newValue.toString();
-                            await appState.getHistory(context);
-                            scrollController.jumpTo(
-                                scrollController.position.minScrollExtent);
+                            await appState.getHistory(
+                              context,
+                              onDone: () => adjustScrollPosition(),
+                            );
                             hideLoader(context);
                           }, assetsDropdownItems, appState.filterAsset,
                               'Assets'),
@@ -543,8 +546,10 @@ class Payment_HistoryState extends State<PaymentHistory>
   refreshData() async {
     try {
       showLoader(context);
-      await appState.getHistory(context);
-      scrollController.jumpTo(scrollController.position.minScrollExtent);
+      await appState.getHistory(
+        context,
+        onDone: () => adjustScrollPosition(),
+      );
       hideLoader(context);
       _refreshController.refreshCompleted();
     } catch (e) {
@@ -646,9 +651,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                   appState.setFilterUsername = value;
                   if (value != null && value.isNotEmpty) {
                     appState.setFilterQuery = "&name=${value}";
-                    await appState.getHistory(context);
-                    scrollController
-                        .jumpTo(scrollController.position.minScrollExtent);
+                    await appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                   }
                 });
               },
@@ -697,9 +703,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                   appState.setFilterMemo = value;
                   if (value != null && value.isNotEmpty) {
                     appState.setFilterQuery = "&memo=${value}";
-                    await appState.getHistory(context);
-                    scrollController
-                        .jumpTo(scrollController.position.minScrollExtent);
+                    await appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                   }
                 });
               },
@@ -748,9 +755,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                   if (value != null && value.toString().isNotEmpty) {
                     appState.setFilterFromPublicKey = value;
                     appState.setFilterQuery = "&fromPublicKey=$value";
-                    await appState.getHistory(context);
-                    scrollController
-                        .jumpTo(scrollController.position.minScrollExtent);
+                    await appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                   }
                 });
               },
@@ -798,9 +806,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                   if (value != null && value.toString().isNotEmpty) {
                     appState.setFilterToPublicKey = value;
                     appState.setFilterQuery = "&toPublicKey=$value";
-                    await appState.getHistory(context);
-                    scrollController
-                        .jumpTo(scrollController.position.minScrollExtent);
+                    await appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                   }
                 });
               },
@@ -848,9 +857,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                       appState.filterMaxAmount != null) {
                     appState.setFilterQuery =
                         "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
-                    await appState.getHistory(context);
-                    scrollController
-                        .jumpTo(scrollController.position.minScrollExtent);
+                    await appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                   }
                 });
               },
@@ -898,9 +908,10 @@ class Payment_HistoryState extends State<PaymentHistory>
                 customDateRangePopup(context, onDone: () async {
                   appState.setFilterQuery =
                       "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
-                  await appState.getHistory(context);
-                  scrollController
-                      .jumpTo(scrollController.position.minScrollExtent);
+                  await appState.getHistory(
+                    context,
+                    onDone: () => adjustScrollPosition(),
+                  );
                 });
               },
               child: Row(
@@ -943,24 +954,27 @@ class Payment_HistoryState extends State<PaymentHistory>
                   context,
                   onAllSelected: () {
                     appState.setFilterQuery = "";
-                    appState.getHistory(context);
+                    appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                     Navigator.of(context).pop(); // dismiss dialog,
-                    scrollController
-                        .jumpTo(scrollController.position.minScrollExtent);
                   },
                   onPaymentSelected: () {
                     appState.setFilterQuery = "&transactionType=payment";
-                    appState.getHistory(context);
+                    appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                     Navigator.of(context).pop(); // dismiss dialog,
-                    scrollController
-                        .jumpTo(scrollController.position.minScrollExtent);
                   },
                   onSwapSelected: () {
                     appState.setFilterQuery = "&transactionType=swap";
-                    appState.getHistory(context);
+                    appState.getHistory(
+                      context,
+                      onDone: () => adjustScrollPosition(),
+                    );
                     Navigator.of(context).pop(); // dismiss dialog,
-                    scrollController
-                        .jumpTo(scrollController.position.minScrollExtent);
                   },
                 );
               },
@@ -988,6 +1002,11 @@ class Payment_HistoryState extends State<PaymentHistory>
           ),
         );
     }
+  }
+
+  adjustScrollPosition() {
+    if (scrollController.hasClients)
+      scrollController.jumpTo(scrollController.position.minScrollExtent);
   }
 
   getDateRangeValue() {
@@ -1031,8 +1050,10 @@ class Payment_HistoryState extends State<PaymentHistory>
           appState.setFilterUsername = value;
           if (value != null && value.isNotEmpty) {
             appState.setFilterQuery = "&name=${value}";
-            await appState.getHistory(context);
-            scrollController.jumpTo(scrollController.position.minScrollExtent);
+            await appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
           }
         });
         break;
@@ -1042,8 +1063,10 @@ class Payment_HistoryState extends State<PaymentHistory>
           if (value != null && value.toString().isNotEmpty) {
             appState.setFilterFromPublicKey = value;
             appState.setFilterQuery = "&fromPublicKey=$value";
-            await appState.getHistory(context);
-            scrollController.jumpTo(scrollController.position.minScrollExtent);
+            await appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
           }
         });
         break;
@@ -1053,8 +1076,10 @@ class Payment_HistoryState extends State<PaymentHistory>
           if (value != null && value.toString().isNotEmpty) {
             appState.setFilterToPublicKey = value;
             appState.setFilterQuery = "&toPublicKey=$value";
-            await appState.getHistory(context);
-            scrollController.jumpTo(scrollController.position.minScrollExtent);
+            await appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
           }
         });
         break;
@@ -1064,8 +1089,10 @@ class Payment_HistoryState extends State<PaymentHistory>
               appState.filterMaxAmount != null) {
             appState.setFilterQuery =
                 "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
-            await appState.getHistory(context);
-            scrollController.jumpTo(scrollController.position.minScrollExtent);
+            await appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
           }
         });
         break;
@@ -1073,8 +1100,10 @@ class Payment_HistoryState extends State<PaymentHistory>
         customDateRangePopup(context, onDone: () async {
           appState.setFilterQuery =
               "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
-          await appState.getHistory(context);
-          scrollController.jumpTo(scrollController.position.minScrollExtent);
+          await appState.getHistory(
+            context,
+            onDone: () => adjustScrollPosition(),
+          );
         });
         break;
       case FilterType.Memo:
@@ -1082,8 +1111,10 @@ class Payment_HistoryState extends State<PaymentHistory>
           appState.setFilterMemo = value;
           if (value != null && value.isNotEmpty) {
             appState.setFilterQuery = "&memo=${value}";
-            await appState.getHistory(context);
-            scrollController.jumpTo(scrollController.position.minScrollExtent);
+            await appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
           }
         });
         break;
@@ -1095,21 +1126,27 @@ class Payment_HistoryState extends State<PaymentHistory>
           context,
           onAllSelected: () {
             appState.setFilterQuery = "";
-            appState.getHistory(context);
+            appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
             Navigator.of(context).pop(); // dismiss dialog,
-            scrollController.jumpTo(scrollController.position.minScrollExtent);
           },
           onPaymentSelected: () {
             appState.setFilterQuery = "&transactionType=payment";
-            appState.getHistory(context);
+            appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
             Navigator.of(context).pop(); // dismiss dialog,
-            scrollController.jumpTo(scrollController.position.minScrollExtent);
           },
           onSwapSelected: () {
             appState.setFilterQuery = "&transactionType=swap";
-            appState.getHistory(context);
+            appState.getHistory(
+              context,
+              onDone: () => adjustScrollPosition(),
+            );
             Navigator.of(context).pop(); // dismiss dialog,
-            scrollController.jumpTo(scrollController.position.minScrollExtent);
           },
         );
         break;
