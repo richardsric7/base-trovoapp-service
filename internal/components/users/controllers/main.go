@@ -234,7 +234,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		cacheDurationInSeconds := 1 * 60 //1 minutes
 
-		userInfo, err := userServices.GetUserInfo(identifier, gc, c)
+		userInfo, err := userServices.GetUserInfo(identifier, middleware.ExtractSigner(c), gc)
 
 		if err != nil {
 			log.Println("[GET USERINFO] error for user:", identifier, "error: ", err)
@@ -919,7 +919,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/security-questions %v", user.Username), gc.DB)
 
-		err = userServices.SaveUserSecurityQuestions(&user, answers, gc)
+		err = userServices.SaveUserSecurityQuestions(&user, answers, gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1339,6 +1339,65 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 		} else {
 			c.JSON(http.StatusAccepted, payload)
+		}
+
+	})
+
+	router.POST("/v1/users/inactive-account/recover", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		var payload userModels.InactiveAccountRecoveryRequest
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &payload)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		subjectUser, err := usersDB.GetUser(payload.Username, gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/inactive-account/recover  %v", subjectUser.Username), gc.DB)
+		userInfo, err := userServices.DoInactiveAccountRecover(&subjectUser, &payload, gc)
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, userInfo)
+
+		if subjectUser.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["none"] = ""
+			pns.SendFirebaseMessage(*subjectUser.PushNotificationToken, "Account updated successfully!", fmt.Sprintf("Congratulations! You have successfully updated your account [%v] with the new secret key and security questions. Please import the new secret key using the same username specified.", subjectUser.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 
 	})

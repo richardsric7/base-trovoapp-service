@@ -29,31 +29,21 @@ type UserJSON struct {
 }
 
 type UserWalletJSON struct {
-	CreatedAt           time.Time `json:"createdAt"`
-	ID                  string    `json:"publicKey"`
-	TempPublicKey       string    `json:"-"`
-	Tag                 string    `json:"tag"`
-	Description         string    `json:"description"`
-	Alias               string    `json:"alias"`  //primaryUsername_tag for sub wallets
-	Signer              string    `json:"signer"` //if ID is same as signer, then it is a primary wallet
-	UserID              string    `json:"userId"`
-	SharedAccessEnabled int       `json:"sharedAccessEnabled"`
-	PrimaryWallet       int       `json:"primaryWallet"`
-	// UserWalletSharedAccess *UserWalletSharedAccessJSON `json:"userWalletSharedAccess,omitempty"`
-	NumberOfApprovers     int                    `json:"numberOfApprovers"`
-	Permissions           []WalletPermissionJSON `json:"permissions"`
-	SharedAccessCreatedAt time.Time              `json:"sharedAccessCreatedAt"`
-	SharedAccessUpdatedAt time.Time              `json:"sharedAccessUpdatedAt"`
+	CreatedAt               time.Time              `json:"createdAt"`
+	ID                      string                 `json:"publicKey"`
+	TempPublicKey           string                 `json:"-"`
+	Tag                     string                 `json:"tag"`
+	Description             string                 `json:"description"`
+	Alias                   string                 `json:"alias"`  //primaryUsername_tag for sub wallets
+	Signer                  string                 `json:"signer"` //if ID is same as signer, then it is a primary wallet
+	UserID                  string                 `json:"userId"`
+	SharedAccessEnabled     int                    `json:"sharedAccessEnabled"`
+	PrimaryWallet           int                    `json:"primaryWallet"`
+	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
+	Permissions             []WalletPermissionJSON `json:"permissions"`
+	SharedAccessCreatedAt   time.Time              `json:"sharedAccessCreatedAt"`
+	SharedAccessUpdatedAt   time.Time              `json:"sharedAccessUpdatedAt"`
 }
-
-// type UserWalletSharedAccessJSON struct {
-// 	CreatedAt         time.Time              `json:"createdAt"`
-// 	UpdatedAt         time.Time              `json:"updatedAt"`
-// 	ID                string                 `json:"accessId"`
-// 	UserWalletID      string                 `json:"walletPublicKey"`
-// 	NumberOfApprovers int                    `json:"numberOfApprovers"`
-// 	Permissions       []WalletPermissionJSON `json:"permissions"`
-// }
 
 type WalletPermissionJSON struct {
 	CreatedAt       time.Time `json:"createdAt"`

@@ -163,7 +163,7 @@ func Pay(signerUser *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo
 		WalletPublicKey:          wallet.ID,
 		TransactionType:          "PAYMENT",
 		Description:              description,
-		ApprovalsNeeded:          wallet.NumberOfApprovers,
+		ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
 		TransactionXdr:           xdrBase64,
 	}
 	//save and commit this to database

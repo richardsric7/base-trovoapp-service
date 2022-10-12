@@ -5,19 +5,16 @@ import (
 	"sync"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
-	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	tErrors "trovo-wallet-api/internal/errors"
-
-	"github.com/gin-gonic/gin"
 )
 
 // GetUserInfo gets the user Information
-func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Context) (userInfo userModels.UserInfo, err error) {
+func GetUserInfo(identifier string, signerPublicKey string, gc *sharedconfig.GlobalConfig) (userInfo userModels.UserInfo, err error) {
 	var owner bool
 	//get user from DB
-	primarySigner, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+	primarySigner, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB)
 	if err != nil {
 		return userModels.UserInfo{}, &tErrors.CustomError{Param: "primarySigner",
 			Err:        "error invalid primary signer",

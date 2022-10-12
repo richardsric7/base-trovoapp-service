@@ -302,19 +302,19 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		}
 
 	}
-	if numberOfSubmittedApprovers <= accessInfo.NumberOfApprovers && accessInfo.NumberOfApprovers > 1 {
+	if numberOfSubmittedApprovers <= accessInfo.NumberOfApprovalsNeeded && accessInfo.NumberOfApprovalsNeeded > 1 {
 		//number of authorizers does not reach the minimum threshold needed. cannot proceed so as to prevent account lockout
 		return returnedWallet, &tErrors.CustomError{
-			Param:      "numberOfApprovers",
+			Param:      "numberOfApprovalsNeeded",
 			Err:        "error-approvers-not-enough",
-			ErrMessage: fmt.Sprintf("Please ensure that your list of approvers are greater than the minimum number required to approve a transaction [%v]", accessInfo.NumberOfApprovers),
+			ErrMessage: fmt.Sprintf("Please ensure that your list of approvers are greater than the minimum number required to approve a transaction [%v]", accessInfo.NumberOfApprovalsNeeded),
 			Code:       http.StatusForbidden,
 		}
 	}
-	if numberOfSubmittedApprovers > 0 && accessInfo.NumberOfApprovers == 0 {
+	if numberOfSubmittedApprovers > 0 && accessInfo.NumberOfApprovalsNeeded == 0 {
 		//number of APPROVERS does not reach the minimum threshold needed. cannot proceed so as to prevent account lockout
 		return returnedWallet, &tErrors.CustomError{
-			Param:      "numberOfApprovers",
+			Param:      "numberOfApprovalsNeeded",
 			Err:        "error-approvers-not-enough",
 			ErrMessage: "You must specify the number of approvers needed to approve transactions on this wallet",
 			Code:       http.StatusForbidden,
@@ -322,7 +322,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	}
 	if numberOfSubmittedApprovers > 0 && numberOfSubmittedInitiators == 0 {
 		return returnedWallet, &tErrors.CustomError{
-			Param:      "numberOfApprovers",
+			Param:      "numberOfApprovalsNeeded",
 			Err:        "error-initiator-missing",
 			ErrMessage: "You must specify at least one initiator when an approver is specified.",
 			Code:       http.StatusForbidden,
@@ -332,7 +332,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return returnedWallet, &tErrors.CustomError{
 			Param:      "numberOfApprovers",
 			Err:        "error-initiator-missing",
-			ErrMessage: fmt.Sprintf("You must specify at least [%v] approvers when an approver is specified.", accessInfo.NumberOfApprovers+1),
+			ErrMessage: fmt.Sprintf("You must specify at least [%v] approvers when an approver is specified.", accessInfo.NumberOfApprovalsNeeded+1),
 			Code:       http.StatusForbidden,
 		}
 	}
@@ -347,7 +347,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
 	wallet.SharedAccessEnabled = 1
-	wallet.NumberOfApprovers = accessInfo.NumberOfApprovers
+	wallet.NumberOfApprovalsNeeded = accessInfo.NumberOfApprovalsNeeded
 	errDB := dbTX.Create(&accessList).Error
 	if err != nil {
 		log.Printf("[CreateSharedWalletAccess] error saving access list:%v\n AccessList:%+v\n", errDB, accessList)
@@ -360,7 +360,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return returnedWallet, &tErrors.ErrorTemporaryServerError{}
 	}
 
-	xdrBase64, messages, walletMustSign, errGenXdr := generateCreateSharedAccessXdr(wallet, walletOwner, approverUsers, accessInfo.Permissions, accessInfo.NumberOfApprovers, gc)
+	xdrBase64, messages, walletMustSign, errGenXdr := generateCreateSharedAccessXdr(wallet, walletOwner, approverUsers, accessInfo.Permissions, accessInfo.NumberOfApprovalsNeeded, gc)
 	if errGenXdr != nil {
 		return returnedWallet, errGenXdr
 	}
@@ -409,7 +409,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		}
 	}
 
-	approvalsNeeded := wallet.NumberOfApprovers
+	approvalsNeeded := wallet.NumberOfApprovalsNeeded
 	userPermissions := make([]string, 0)
 	walletOwner, e := wallet.GetWalletOwner(gc.DB)
 	if e != nil {

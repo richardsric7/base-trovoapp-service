@@ -81,10 +81,12 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 		for _, permision := range uw.Permissions {
 			jsonObj.Permissions = append(jsonObj.Permissions, permision.ToJSON())
 		}
-		jsonObj.NumberOfApprovers = uw.NumberOfApprovers
+		jsonObj.NumberOfApprovalsNeeded = uw.NumberOfApprovalsNeeded
 		jsonObj.SharedAccessCreatedAt = uw.SharedAccessCreatedAt
 		jsonObj.SharedAccessUpdatedAt = uw.SharedAccessUpdatedAt
 
+	} else {
+		jsonObj.Permissions = make([]WalletPermissionJSON, 0)
 	}
 
 	//nullable
@@ -107,20 +109,6 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 
 	return
 }
-
-// func (uwma *UserWalletSharedAccess) ToJSON() (jsonObj UserWalletSharedAccessJSON) {
-// 	if uwma.ID == "" {
-// 		return
-// 	}
-// 	jsonObj.CreatedAt = uwma.CreatedAt
-// 	jsonObj.UpdatedAt = uwma.UpdatedAt
-// 	jsonObj.ID = uwma.ID
-// 	jsonObj.UserWalletID = uwma.UserWalletID
-// 	for _, uwmaAL := range uwma.Permissions {
-// 		jsonObj.Permissions = append(jsonObj.Permissions, uwmaAL.ToJSON())
-// 	}
-// 	return
-// }
 
 func (wa *WalletPermission) ToJSON() (jsonObj WalletPermissionJSON) {
 	jsonObj.CreatedAt = wa.CreatedAt

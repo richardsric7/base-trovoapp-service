@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 	bc "trovo-wallet-api/internal/blockchainalgofuncs"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
@@ -636,6 +637,92 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		return multiAccessWallets, nil
 	}
 	return multiAccessWallets, &tErrors.ErrorTemporaryServerError{}
+}
+
+func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.InactiveAccountRecoveryRequest, gc *sharedconfig.GlobalConfig) (userInfo userModels.UserInfo, err error) {
+	var e error
+	payload.NewSignerPublicKey = strings.ToUpper(payload.NewSignerPublicKey)
+	answers := payload.SecurityAnswers
+	if len(payload.NewSignerPublicKey) != 56 {
+		return userInfo, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
+	}
+	{
+		// PARSE SIGNER KEY
+		_, e := keypair.ParseAddress(payload.NewSignerPublicKey)
+		if e != nil {
+			return userInfo, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
+		}
+	}
+	if _, e := usersDB.GetUser(payload.NewSignerPublicKey, gc.DB); e == nil {
+		return userInfo, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
+	}
+
+	if subjectUser.AccountRecoveryEnabled == 1 {
+		return userInfo, &tErrors.CustomError{Param: "username", Err: "error option not allowed", ErrMessage: "Account not qualified to use this option. This user is not qualified to use this option of recovery. Please use wallet recovery option."}
+	}
+
+	if subjectUser.PublicKey != subjectUser.PrimarySigner {
+		return userInfo, &tErrors.CustomError{Param: "username", Err: "error option not allowed", ErrMessage: "Account not qualified to use this option. This user is not qualified to use this option of recovery. Please use wallet recovery option."}
+	}
+	wallets := subjectUser.UserWallets
+	_, err = userBc.GetBlockchainAccountDetail(subjectUser.PublicKey)
+	if err == nil {
+		//account already active
+		return userInfo, &tErrors.CustomError{Param: "username", Err: "error option not allowed", ErrMessage: "Account not qualified to use this option. This user is not qualified to use this option of recovery. Please use wallet recovery option."}
+	}
+
+	if err.Error() != "error-blockchain-account-not-activated" {
+		//other blockchain error
+		return userInfo, err
+	}
+
+	if subjectUser.HasSecurityQuestions == 1 {
+		return userInfo, &tErrors.CustomError{Param: "username", Err: "error option not allowed", ErrMessage: "Account not qualified to use this option. This user is not qualified to use this option of recovery. Please use wallet recovery option."}
+	}
+
+	if CheckAccountRecoveryEmailOTP(subjectUser, payload.EmailOTP, gc.DB) != nil {
+		return userInfo, &tErrors.CustomError{Param: "username", Err: "error invalid email otp", ErrMessage: "Email OTP is invalid."}
+	}
+
+	if len(answers.A1) == 0 || len(answers.A2) == 0 || len(answers.A3) == 0 || answers.Q1 == 0 || answers.Q2 == 0 || answers.Q3 == 0 {
+		return userInfo, &tErrors.CustomError{Param: "securityAnswers", Err: "Questions-or-Answers must be 3", ErrMessage: "Questions/Answers must be 3"}
+	}
+
+	dbtx := gc.DB.Begin()
+	defer dbtx.Rollback()
+
+	// if !ValidateSecurityAnswers(&subjectUser, payload.SecurityAnswers, gc) {
+	// 	return userInfo, &tErrors.CustomError{Param: "username", Err: "error invalid security answers", ErrMessage: "Answers to the security questions are invalid."}
+	// }
+	e = dbtx.Delete(&wallets).Error
+	if e != nil {
+		// error saving security questions
+		log.Printf("[DoInactiveAccountRecover] error removing existing user wallet data for %v. error: %v\n", subjectUser.Username, e)
+		return userInfo, &tErrors.ErrorTemporaryServerError{}
+	}
+	subjectUser.PrimarySigner = payload.NewSignerPublicKey
+	subjectUser.PublicKey = payload.NewSignerPublicKey
+	subjectUser.HasSecurityQuestions = 1
+	subjectUser.UserWallets = make([]userModels.UserWallet, 0)
+	subjectUser.BuildPrimaryWallet()
+
+	err = SaveUserSecurityQuestions(subjectUser, answers, dbtx)
+	if err != nil {
+		// error saving security questions
+		return userInfo, err
+	}
+
+	e = dbtx.Save(subjectUser).Error
+	if e != nil {
+		// error saving security questions
+		log.Printf("[DoInactiveAccountRecover] error saving user data for %v. error: %v\n", subjectUser.Username, e)
+		return userInfo, &tErrors.ErrorTemporaryServerError{}
+	}
+	dbtx.Commit()
+	RemoveAccountRecoveryEmailOTP(subjectUser, payload.EmailOTP, dbtx)
+
+	return GetUserInfo(subjectUser.ID, payload.NewSignerPublicKey, gc)
+
 }
 
 func logDiscordFailedRecovery(msg string) {

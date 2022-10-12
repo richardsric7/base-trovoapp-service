@@ -72,22 +72,22 @@ type User struct {
 }
 
 type UserWallet struct {
-	CreatedAt             time.Time          `json:"createdAt"`
-	UpdatedAt             time.Time          `json:"updatedAt"`
-	ID                    string             `gorm:"size:56" json:"publicKey"`
-	TempPublicKey         *string            `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
-	Tag                   *string            `gorm:"null;size:16" json:"tag"`
-	Description           *string            `gorm:"null;size:100" json:"description"`
-	Alias                 string             `gorm:"size:27; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
-	Signer                string             `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
-	UserID                string             `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
-	SharedAccessEnabled   int                `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
-	Tracked               int                `gorm:"type:integer;not null;default:0" json:"-"`
-	PrimaryWallet         int                `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
-	NumberOfApprovers     int                `gorm:"type:integer; default:0" json:"numberOfApprovers"`
-	Permissions           []WalletPermission `gorm:"foreignKey:WalletPublicKey;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"permissions"`
-	SharedAccessCreatedAt time.Time          `json:"sharedAccessCreatedAt"`
-	SharedAccessUpdatedAt time.Time          `json:"sharedAccessUpdatedAt"`
+	CreatedAt               time.Time          `json:"createdAt"`
+	UpdatedAt               time.Time          `json:"updatedAt"`
+	ID                      string             `gorm:"size:56" json:"publicKey"`
+	TempPublicKey           *string            `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
+	Tag                     *string            `gorm:"null;size:16" json:"tag"`
+	Description             *string            `gorm:"null;size:100" json:"description"`
+	Alias                   string             `gorm:"size:27; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
+	Signer                  string             `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
+	UserID                  string             `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
+	SharedAccessEnabled     int                `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
+	Tracked                 int                `gorm:"type:integer;not null;default:0" json:"-"`
+	PrimaryWallet           int                `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
+	NumberOfApprovalsNeeded int                `gorm:"type:integer; default:0" json:"numberOfApprovalsNeeded"`
+	Permissions             []WalletPermission `gorm:"foreignKey:WalletPublicKey;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"permissions"`
+	SharedAccessCreatedAt   time.Time          `json:"sharedAccessCreatedAt"`
+	SharedAccessUpdatedAt   time.Time          `json:"sharedAccessUpdatedAt"`
 }
 
 type WalletPermission struct {
