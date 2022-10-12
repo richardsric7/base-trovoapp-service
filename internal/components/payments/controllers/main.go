@@ -98,7 +98,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		var err error
 
 		//get user DB record
-		accountSignerUser, getUserError := paymentsDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+		accountSignerUser, getUserError := paymentsDB.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB)
 
 		if getUserError != nil {
 			log.Printf("[FAILED PAYMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
@@ -222,7 +222,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			if userWallet.SharedAccessEnabled == 1 && userWallet.WalletCountApproverAccess(gc) > 0 {
 				errAccountIsTemp := &tErrors.CustomError{
 					Param:      "ID",
-					Err:        "error-shared-access-wallet-not-allowed-in-sole-access",
+					Err:        "error-wallet-with-shared-access-not-allowed",
 					ErrMessage: "This wallet has approver access enabled. Please let someone with an INITIATOR access submit the request.",
 					Code:       http.StatusForbidden,
 				}

@@ -1,6 +1,6 @@
 package users
 
-type ThirdPartyWalletAccess struct {
+type WalletsSharedWithUser struct {
 	Owner             string `json:"owner"`
 	WalletPublicKey         string `json:"walletPublicKey"`
 	Permission       string `json:"permission"`

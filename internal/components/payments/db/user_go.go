@@ -30,78 +30,73 @@ import (
 )
 
 type User struct {
-	CreatedAt                time.Time    `json:"createdAt"`
-	UpdatedAt                time.Time    `json:"updatedAt"`
-	LastUpdatedMobileOn      time.Time    `json:"lastUpdatedMobileOn"`
-	LastRecoveredAccountOn   time.Time    `json:"lastRecoveredAccountOn"`
-	ID                       string       `json:"id"`
-	Username                 string       `gorm:"size:16; index:idx_user_unique_username, unique" json:"username"`
-	Email                    string       `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
-	ImageThumbnailURL        *string      `json:"imageThumbnailURL"`
-	FirstName                string       `gorm:"size:50" json:"firstName"`
-	LastName                 *string      `gorm:"size:50" json:"lastName"`
-	Mobile                   *string      `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
-	PublicKey                string       `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
-	PrimarySigner            string       `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
-	Referrer                 *string      `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
-	ReferralLink             *string      `json:"referralLink"`
-	ReferralQrCode           *string      `json:"referralQrCode"`
-	PushNotificationToken    *string      `json:"pushNotificationToken"`
-	Corporate                int          `gorm:"type:integer;not null; default:0" json:"corporate"`
-	MobileVerified           int          `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
-	MembershipType           int          `gorm:"type:integer;not null; default:0" json:"membershipType"`
-	MembershipExpiry         *time.Time   `json:"membershipExpiry"`
-	KYCVerified              int          `gorm:"type:integer;not null; default:0" json:"kycVerified"`
-	AccountRecoveryEnabled   int          `gorm:"type:integer;not null; default:0" json:"accountRecoveryEnabled"`
-	AccountRecoveryExpiresOn *time.Time   `gorm:"null" json:"accountRecoveryExpiresOn"`
-	UserWallets              []UserWallet `json:"userWallets"`
-	PublicIP                 string       `gorm:"size:45" json:"publicIP"`
-	CountryCode              *string      `gorm:"size:2;null"`
-	Latitude                 *float64     `gorm:"null"`
-	Longitude                *float64     `gorm:"null"`
-	City                     *string      `gorm:"null;size:100"`
-	Region                   *string      `gorm:"null;size:100"`
-	RegionName               *string      `gorm:"null;size:100"`
-	TimeZone                 *string      `gorm:"null;size:100"`
-	ISP                      *string      `gorm:"null;size:150"`
-	HasSecurityQuestions     int          `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
-	Verified                 int          `gorm:"type:integer;not null;default:0" json:"verified"`
-	Suspended                int          `gorm:"type:integer;not null;default:0" json:"suspended"`
-	SuspensionReason         *string      `gorm:"null" json:"suspensionReason"`
+	CreatedAt                time.Time          `json:"createdAt"`
+	UpdatedAt                time.Time          `json:"updatedAt"`
+	LastUpdatedMobileOn      time.Time          `json:"lastUpdatedMobileOn"`
+	LastRecoveredAccountOn   time.Time          `json:"lastRecoveredAccountOn"`
+	ID                       string             `json:"id"`
+	Username                 string             `gorm:"size:16; index:idx_user_unique_username, unique" json:"username"`
+	Email                    string             `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
+	ImageThumbnailURL        *string            `json:"imageThumbnailURL"`
+	FirstName                string             `gorm:"size:50" json:"firstName"`
+	LastName                 *string            `gorm:"size:50" json:"lastName"`
+	Mobile                   *string            `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
+	PublicKey                string             `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
+	PrimarySigner            string             `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
+	Referrer                 *string            `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
+	ReferralLink             *string            `json:"referralLink"`
+	ReferralQrCode           *string            `json:"referralQrCode"`
+	PushNotificationToken    *string            `json:"pushNotificationToken"`
+	Corporate                int                `gorm:"type:integer;not null; default:0" json:"corporate"`
+	MobileVerified           int                `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
+	MembershipType           int                `gorm:"type:integer;not null; default:0" json:"membershipType"`
+	MembershipExpiry         *time.Time         `json:"membershipExpiry"`
+	KYCVerified              int                `gorm:"type:integer;not null; default:0" json:"kycVerified"`
+	AccountRecoveryEnabled   int                `gorm:"type:integer;not null; default:0" json:"accountRecoveryEnabled"`
+	AccountRecoveryExpiresOn *time.Time         `gorm:"null" json:"accountRecoveryExpiresOn"`
+	UserWallets              []UserWallet       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userWallets"`
+	PublicIP                 string             `gorm:"size:45" json:"publicIP"`
+	CountryCode              *string            `gorm:"size:2;null"`
+	Latitude                 *float64           `gorm:"null"`
+	Longitude                *float64           `gorm:"null"`
+	City                     *string            `gorm:"null;size:100"`
+	Region                   *string            `gorm:"null;size:100"`
+	RegionName               *string            `gorm:"null;size:100"`
+	TimeZone                 *string            `gorm:"null;size:100"`
+	ISP                      *string            `gorm:"null;size:150"`
+	HasSecurityQuestions     int                `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
+	Verified                 int                `gorm:"type:integer;not null;default:0" json:"verified"`
+	Suspended                int                `gorm:"type:integer;not null;default:0" json:"suspended"`
+	SuspensionReason         *string            `gorm:"null" json:"suspensionReason"`
+	WalletsSharedWithUser    []WalletPermission `gorm:"foreignKey:TargetUsername;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 type UserWallet struct {
-	CreatedAt              time.Time              `json:"createdAt"`
-	UpdatedAt              time.Time              `json:"updatedAt"`
-	ID                     string                 `gorm:"size:56" json:"publicKey"`
-	TempPublicKey          *string                `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
-	Tag                    *string                `gorm:"null;size:16" json:"tag"`
-	Description            *string                `gorm:"null;size:100" json:"description"`
-	Alias                  string                 `gorm:"size:27; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
-	Signer                 string                 `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
-	UserID                 string                 `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
-	SharedAccessEnabled    int                    `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
-	UserWalletSharedAccess UserWalletSharedAccess `json:"userWalletSharedAccess"`
-	Tracked                int                    `gorm:"type:integer;not null;default:0" json:"-"`
-	PrimaryWallet          int                    `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
+	CreatedAt             time.Time          `json:"createdAt"`
+	UpdatedAt             time.Time          `json:"updatedAt"`
+	ID                    string             `gorm:"size:56" json:"publicKey"`
+	TempPublicKey         *string            `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
+	Tag                   *string            `gorm:"null;size:16" json:"tag"`
+	Description           *string            `gorm:"null;size:100" json:"description"`
+	Alias                 string             `gorm:"size:27; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
+	Signer                string             `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
+	UserID                string             `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
+	SharedAccessEnabled   int                `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
+	Tracked               int                `gorm:"type:integer;not null;default:0" json:"-"`
+	PrimaryWallet         int                `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
+	NumberOfApprovers     int                `gorm:"type:integer; default:0" json:"numberOfApprovers"`
+	Permissions           []WalletPermission `gorm:"foreignKey:WalletPublicKey;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"permissions"`
+	SharedAccessCreatedAt time.Time          `json:"sharedAccessCreatedAt"`
+	SharedAccessUpdatedAt time.Time          `json:"sharedAccessUpdatedAt"`
 }
 
-type UserWalletSharedAccess struct {
-	CreatedAt         time.Time          `json:"createdAt"`
-	UpdatedAt         time.Time          `json:"updatedAt"`
-	ID                string             `gorm:"" json:"accessId"`
-	UserWalletID      string             `gorm:"size:56; index:idx_manage_access_user_wallet_id,unique" json:"walletPublicKey"`
-	NumberOfApprovers int                `gorm:"type:integer; default:0" json:"numberOfApprovers"`
-	Permissions       []WalletPermission `json:"permissions"`
-}
 type WalletPermission struct {
-	CreatedAt                time.Time `json:"-"`
-	UpdatedAt                time.Time `json:"-"`
-	ID                       string
-	WalletPublicKey          string `gorm:"size:90;not null; index:access_level_permission,unique;index:idx_public_key_shared" json:"walletPublicKey"`
-	TargetUsername           string `gorm:"size:16;not null; index:access_level_permission,unique;" json:"targetUsername"`
-	Permission               string `gorm:"size:10;not null; index:access_level_permission,unique" json:"permission"`
-	UserWalletSharedAccessID string `gorm:"not null;index:idx_wallet_access_wallet_access_id" json:"userWalletSharedAccessId"`
+	CreatedAt       time.Time `json:"-"`
+	UpdatedAt       time.Time `json:"-"`
+	ID              string
+	WalletPublicKey string `gorm:"size:90;not null; index:access_level_permission,unique;index:idx_public_key_shared" json:"walletPublicKey"`
+	TargetUsername  string `gorm:"size:16;not null; index:access_level_permission,unique;" json:"targetUsername"`
+	Permission      string `gorm:"size:10;not null; index:access_level_permission,unique" json:"permission"`
 }
 
 // ReservedName holds model struct for ReservedName table
@@ -185,7 +180,7 @@ type BantuAsset struct {
 	AssetIssuer string
 }
 type UserWalletSharedAccessID string
-type ThirdPartyWalletAccess struct {
+type WalletsSharedWithUser struct {
 	Owner             string `json:"owner"`
 	WalletPublicKey   string `json:"walletPublicKey"`
 	Permission        string `json:"permission"`
@@ -195,6 +190,10 @@ type ThirdPartyWalletAccess struct {
 
 // UserWalletID is type for wallet/sub-wallet Public Key
 type UserWalletID string
+
+type Username string
+
+type UserSigner string
 
 func (i BantuAsset) GetDataKey(key string, gc *sharedconfig.GlobalConfig) string {
 	client := network.GetBlockchainClient()
@@ -875,22 +874,8 @@ func (id UserWalletID) String() string {
 	return string(id)
 }
 
-func (id UserWalletSharedAccessID) GetPermissionAssignment(db *gorm.DB) (assignment UserWalletSharedAccess, err error) {
-	e := db.Where("id = ?", string(id)).First(&assignment).Error
-	if e != nil {
-		if errors.Is(e, gorm.ErrRecordNotFound) {
-			//no managed access was found
-			err = &tErrors.CustomError{
-				Param:      "id",
-				Err:        "error-access-assignment-not-found",
-				ErrMessage: "Access ID not found",
-				Code:       404,
-			}
-			return
-		}
-		err = &tErrors.ErrorTemporaryServerError{}
-	}
-	return
+func (u Username) String() string {
+	return string(u)
 }
 
 func (id UserWalletID) GetPermissionList(db *gorm.DB) (accessList []WalletPermission) {
@@ -900,7 +885,14 @@ func (id UserWalletID) GetPermissionList(db *gorm.DB) (accessList []WalletPermis
 	return
 }
 
-func (u UserWallet) GetPermissionList(db *gorm.DB) (accessList []WalletPermission) {
+func (u *UserWallet) GetPermissionList(db *gorm.DB) (accessList []WalletPermission) {
+
+	if u.Permissions != nil {
+
+		if len(u.Permissions) > 0 {
+			return u.Permissions
+		}
+	}
 	accessList = make([]WalletPermission, 0)
 	db.Preload(clause.Associations).Where("wallet_public_key = ?", u.ID).Find(&accessList)
 
@@ -909,18 +901,35 @@ func (u UserWallet) GetPermissionList(db *gorm.DB) (accessList []WalletPermissio
 
 func (u *UserWallet) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
 	viewOnly = true
+	// accessList := make([]WalletPermission, 0)
 	if u.ID == "" {
 		return false
 	}
-	accessList := u.GetPermissionList(gc.DB)
-	if len(accessList) == 0 {
-		return false
-	}
+	if u.Permissions != nil {
+		if len(u.Permissions) > 0 {
+			accessList := u.Permissions
+			for _, access := range accessList {
+				if access.Permission != "VIEW-ONLY" {
+					return false
+				}
+			}
 
-	for _, access := range accessList {
-		if access.Permission != "VIEW-ONLY" {
+			return
+		}
+	} else {
+
+		accessList := UserWalletID(u.ID).GetPermissionList(gc.DB)
+		if len(accessList) == 0 {
 			return false
 		}
+		accessList = u.Permissions
+		for _, access := range accessList {
+			if access.Permission != "VIEW-ONLY" {
+				return false
+			}
+		}
+
+		return
 	}
 
 	return
@@ -928,18 +937,35 @@ func (u *UserWallet) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (
 
 func (u *UserWallet) HasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
 	viewOnly = true
+	// accessList := make([]WalletPermission, 0)
 	if u.ID == "" {
 		return false
 	}
-	accessList := u.GetPermissionList(gc.DB)
-	if len(accessList) == 0 {
-		return false
-	}
+	if u.Permissions != nil {
+		if len(u.Permissions) > 0 {
+			accessList := u.Permissions
+			for _, access := range accessList {
+				if access.Permission != "VIEW-ONLY" {
+					return false
+				}
+			}
 
-	for _, access := range accessList {
-		if access.Permission != "VIEW-ONLY" {
+			return
+		}
+	} else {
+
+		accessList := UserWalletID(u.ID).GetPermissionList(gc.DB)
+		if len(accessList) == 0 {
 			return false
 		}
+		accessList = u.Permissions
+		for _, access := range accessList {
+			if access.Permission != "VIEW-ONLY" {
+				return false
+			}
+		}
+
+		return
 	}
 
 	return
@@ -973,7 +999,7 @@ func (id UserWalletID) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig)
 	if wallet.SharedAccessEnabled == 0 {
 		return false
 	}
-	for _, access := range wallet.UserWalletSharedAccess.Permissions {
+	for _, access := range wallet.Permissions {
 		if access.Permission != "VIEW-ONLY" {
 			return false
 		}
@@ -983,7 +1009,7 @@ func (id UserWalletID) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig)
 }
 
 func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet UserWallet, err error) {
-	e := db.Where("id = ?", publicKey).First(&wallet).Error
+	e := db.Preload(clause.Associations).Where("id = ?", publicKey).First(&wallet).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
@@ -1002,7 +1028,7 @@ func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet UserW
 }
 
 func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner User, err error) {
-	e := db.Where("id = (SELECT user_id FROM user_wallets WHERE id = ?)", string(id)).First(&walletOwner).Error
+	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id = (SELECT user_id FROM user_wallets WHERE id = ?)", string(id)).First(&walletOwner).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
@@ -1019,8 +1045,25 @@ func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner User, err error)
 	return
 }
 
+func (publicKey UserSigner) GetOwner(db *gorm.DB) (signerOwner User, err error) {
+	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("primary_signer = ?", string(publicKey)).First(&signerOwner).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-account-not-found",
+				ErrMessage: "Account not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
 func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	walletPermissions := u.Fetch3rdPartyWalletPermissions(gc)
+	walletPermissions := u.FetchWalletsPermissionsSharedWithUser(gc)
 	if len(walletPermissions) == 0 {
 		return false
 	}
@@ -1039,11 +1082,17 @@ func (u *User) GetAllWallets(gc *sharedconfig.GlobalConfig) (wallets []UserWalle
 	return
 }
 
-// Fetch3rdPartyWallets fetches all 3rd party wallets that the user is assigned to manage
-func (u *User) Fetch3rdPartyWalletPermissions(gc *sharedconfig.GlobalConfig) (thirdPartyWallets []ThirdPartyWalletAccess) {
-	var walletPermissions []WalletPermission
-	thirdPartyWallets = make([]ThirdPartyWalletAccess, 0)
-	cacheKey := fmt.Sprintf("Fetch3rdPartyWallets_%s", u.ID)
+// FetchWalletsPermissionsSharedWithUser fetches all 3rd party wallets that the user is assigned to manage
+func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConfig) (thirdPartyWallets []WalletsSharedWithUser) {
+	// var walletPermissions []WalletPermission
+	thirdPartyWallets = make([]WalletsSharedWithUser, 0)
+	if u.WalletsSharedWithUser == nil {
+		return
+	}
+	if len(u.WalletsSharedWithUser) == 0 {
+		return
+	}
+	cacheKey := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", u.ID)
 
 	{
 
@@ -1051,11 +1100,11 @@ func (u *User) Fetch3rdPartyWalletPermissions(gc *sharedconfig.GlobalConfig) (th
 		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 
 		if ok {
-			log.Printf("Fetch3rdPartyWallets [%v], served from cache\n", cacheKey)
+			log.Printf("FetchWalletsPermissionsSharedWithUser [%v], served from cache\n", cacheKey)
 			w3rp := response.([]interface{})
 			for _, w3 := range w3rp {
 				w3i := w3.(map[string]interface{})
-				thirdPartyWallets = append(thirdPartyWallets, ThirdPartyWalletAccess{
+				thirdPartyWallets = append(thirdPartyWallets, WalletsSharedWithUser{
 					Owner:             w3i["owner"].(string),
 					WalletPublicKey:   w3i["walletPublicKey"].(string),
 					Permission:        w3i["permission"].(string),
@@ -1068,34 +1117,32 @@ func (u *User) Fetch3rdPartyWalletPermissions(gc *sharedconfig.GlobalConfig) (th
 		}
 
 	}
-	e := gc.DB.Where("target_username = ?", u.Username).Find(&walletPermissions).Error
-	if e != nil {
-		return
-	}
-	if len(walletPermissions) == 0 {
-		log.Println("[Fetch3rdPartyWallets] no wallet permissions found")
-		return
-	}
-	for _, assignedPermission := range walletPermissions {
+
+	for _, assignedPermission := range u.WalletsSharedWithUser {
 		//Get the permission assignment
-		thirdPartyWallet := ThirdPartyWalletAccess{
+		thirdPartyWallet := WalletsSharedWithUser{
 			Permission: assignedPermission.Permission,
 		}
 
 		//use it to fetch wallet details
 		wallet, err := UserWalletID(assignedPermission.WalletPublicKey).GetWallet(gc.DB)
-		if err == nil {
-			thirdPartyWallet.WalletPublicKey = wallet.ID
-			thirdPartyWallet.WalletAlias = wallet.Alias
-			if wallet.Description != nil {
-				thirdPartyWallet.WalletDescription = *wallet.Description
-			}
+		if err != nil {
+			return
 		}
+
+		thirdPartyWallet.WalletPublicKey = wallet.ID
+		thirdPartyWallet.WalletAlias = wallet.Alias
+		if wallet.Description != nil {
+			thirdPartyWallet.WalletDescription = *wallet.Description
+		}
+
 		//use it to fetch wallet owner details
 		owner, err := UserWalletID(assignedPermission.WalletPublicKey).GetWalletOwner(gc.DB)
-		if err == nil {
-			thirdPartyWallet.Owner = owner.Username
+		if err != nil {
+			return
 		}
+
+		thirdPartyWallet.Owner = owner.Username
 
 		thirdPartyWallets = append(thirdPartyWallets, thirdPartyWallet)
 
@@ -1106,6 +1153,7 @@ func (u *User) Fetch3rdPartyWalletPermissions(gc *sharedconfig.GlobalConfig) (th
 	return
 }
 
+// GetUser gets user data by either wallet id or signer or temporary public key
 func GetUser(userInfo string, db *gorm.DB) (user User, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
 
@@ -1115,16 +1163,15 @@ func GetUser(userInfo string, db *gorm.DB) (user User, err error) {
 		//56 char public key is supplied
 
 		subQuery := db.Table("user_wallets").Where("id = ?", userInfo).Or("temp_public_key = ?", &userInfo).Or("signer = ?", userInfo).Select("user_id")
-		e = db.Preload(clause.Associations).Where("id IN (?)", subQuery).First(&user).Error
+		e = db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id IN (?)", subQuery).First(&user).Error
 	} else if strings.Contains(userInfo, "_") {
 		//alias format is supplied
 		subQuery := db.Table("user_wallets").Where("alias = ?", strings.ToLower(userInfo)).Select("user_id")
-		e = db.Preload(clause.Associations).Where("id = (?)", subQuery).First(&user).Error
+		e = db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id = (?)", subQuery).First(&user).Error
 
 	} else {
-		//search by ID and phone number, username, email
 
-		e = db.Preload(clause.Associations).Where("id = ?", userInfo).Or("username = ?", strings.ToLower(userInfo)).Or("mobile = ?", &userInfo).Or("email = ?", userInfo).First(&user).Error
+		e = db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id = ?", userInfo).Or("username = ?", strings.ToLower(userInfo)).Or("mobile = ?", &userInfo).Or("email = ?", userInfo).First(&user).Error
 	}
 
 	if e != nil {
@@ -1146,7 +1193,7 @@ func GetUser(userInfo string, db *gorm.DB) (user User, err error) {
 
 // GetWallet gets user wallet data by alias or public key or temp public key
 func GetWallet(identifier string, db *gorm.DB) (userWallet UserWallet, temp bool, err error) {
-	conDB.PrintDBStats("GetUserInfo", db)
+	conDB.PrintDBStats("PayymentGetWallet", db)
 
 	//e returns execution errors
 	var e error
@@ -1171,7 +1218,7 @@ func GetWallet(identifier string, db *gorm.DB) (userWallet UserWallet, temp bool
 			err = &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-does-not-exist", ErrMessage: fmt.Sprintf("%v is not assigned to any wallet", identifier)}
 			return
 		}
-		log.Println("[GetUserInfo] error: ", e)
+		log.Println("[PayymentGetUserInfo] error: ", e)
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 
@@ -1180,6 +1227,12 @@ func GetWallet(identifier string, db *gorm.DB) (userWallet UserWallet, temp bool
 	// log.Printf("user for %v is %v\n", userInfo, user)
 	return userWallet, temp, nil
 
+}
+func GetPermissionList(publicKey string, db *gorm.DB) (accessList []WalletPermission) {
+	accessList = make([]WalletPermission, 0)
+	db.Preload(clause.Associations).Where("wallet_public_key = ?", publicKey).Find(&accessList)
+
+	return
 }
 
 // UsernameIsReserved check is name is reserved. Status = 0 means not available (reserved). Status = 1 means available
@@ -1226,32 +1279,17 @@ func (u *User) SendPushMessage(title, body, imageURI string, dataPayload map[str
 
 }
 
-// GetUserFromPrimarySigner fetches the user linked to the primary signer
-func GetUserFromPrimarySigner(publicKey string, db *gorm.DB) (user User, err error) {
-
-	publicKey = strings.TrimSpace(publicKey)
-	// var user usermodels.User
-	if err := db.Where("primary_signer = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&user).Error; err != nil {
-		if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return user, &tErrors.ErrorTemporaryServerError{}
-		}
-		return user, &tErrors.CustomError{Param: "primarySigner",
-			Err:        "error primary signer does not exist",
-			ErrMessage: "Primary Signer does not exist",
-			Code:       http.StatusNotFound,
-		}
-	}
-	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
-
-	return user, nil
-
-}
-
 func (w *UserWallet) WalletCountApproverAccess(gc *sharedconfig.GlobalConfig) (accessCount uint) {
 	if w.SharedAccessEnabled == 0 {
 		return 0
 	}
-	for _, access := range w.UserWalletSharedAccess.Permissions {
+	if w.Permissions == nil {
+		return 0
+	}
+	if len(w.Permissions) == 0 {
+		return 0
+	}
+	for _, access := range w.Permissions {
 		if access.Permission == "APPROVER" {
 			accessCount++
 		}
@@ -1264,7 +1302,10 @@ func (w *UserWallet) WalletCountInitiatorAccess(gc *sharedconfig.GlobalConfig) (
 	if w.SharedAccessEnabled == 0 {
 		return 0
 	}
-	for _, access := range w.UserWalletSharedAccess.Permissions {
+	if w.Permissions == nil {
+		return 0
+	}
+	for _, access := range w.Permissions {
 		if access.Permission == "INITIATOR" {
 			accessCount++
 		}
@@ -1274,12 +1315,12 @@ func (w *UserWallet) WalletCountInitiatorAccess(gc *sharedconfig.GlobalConfig) (
 }
 
 func (w *UserWallet) HasInitiatorPermissionToPublicKey(ownerSignerPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	user, err := GetUserFromPrimarySigner(ownerSignerPublicKey, gc.DB)
+	user, err := UserSigner(ownerSignerPublicKey).GetOwner(gc.DB)
 
 	if err != nil {
 		return false
 	}
-	walletPermissions := user.Fetch3rdPartyWalletPermissions(gc)
+	walletPermissions := user.FetchWalletsPermissionsSharedWithUser(gc)
 	if len(walletPermissions) == 0 {
 		return false
 	}
@@ -1294,7 +1335,7 @@ func (w *UserWallet) HasInitiatorPermissionToPublicKey(ownerSignerPublicKey stri
 
 func (w *UserWallet) SignerHasInitiatorPermissionToPublicKey(signerOwner User, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
 
-	walletPermissions := signerOwner.Fetch3rdPartyWalletPermissions(gc)
+	walletPermissions := signerOwner.FetchWalletsPermissionsSharedWithUser(gc)
 	if len(walletPermissions) == 0 {
 		return false
 	}

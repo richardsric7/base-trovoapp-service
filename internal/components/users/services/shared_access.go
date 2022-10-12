@@ -1,7 +1,6 @@
 package users
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,14 +17,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/txnbuild"
-	"gorm.io/gorm"
 )
 
 func WalletCountViewOnlyAccess(wallet *userModels.UserWallet, gc *sharedconfig.GlobalConfig) (accessCount uint) {
 	if wallet.SharedAccessEnabled == 0 {
 		return 0
 	}
-	for _, access := range wallet.UserWalletSharedAccess.Permissions {
+	for _, access := range wallet.Permissions {
 		if access.Permission == "VIEW-ONLY" {
 			accessCount++
 		}
@@ -39,7 +37,7 @@ func WalletHasViewOnlyAccess(wallet *userModels.UserWallet, gc *sharedconfig.Glo
 	if wallet.SharedAccessEnabled == 0 {
 		return false
 	}
-	for _, access := range wallet.UserWalletSharedAccess.Permissions {
+	for _, access := range wallet.Permissions {
 		if access.Permission != "VIEW-ONLY" {
 			return false
 		}
@@ -52,7 +50,7 @@ func WalletCountApproverAccess(wallet *userModels.UserWallet, gc *sharedconfig.G
 	if wallet.SharedAccessEnabled == 0 {
 		return 0
 	}
-	for _, access := range wallet.UserWalletSharedAccess.Permissions {
+	for _, access := range wallet.Permissions {
 		if access.Permission == "APPROVER" {
 			accessCount++
 		}
@@ -65,7 +63,7 @@ func WalletCountInitiatorAccess(wallet *userModels.UserWallet, gc *sharedconfig.
 	if wallet.SharedAccessEnabled == 0 {
 		return 0
 	}
-	for _, access := range wallet.UserWalletSharedAccess.Permissions {
+	for _, access := range wallet.Permissions {
 		if access.Permission == "INITIATOR" {
 			accessCount++
 		}
@@ -190,17 +188,18 @@ func PublicKeyCountInitiatorAccess(publicKey string, gc *sharedconfig.GlobalConf
 	return
 }
 
-func CreateSharedWalletAccess(signerUser *userModels.User, accessInfo *userModels.UserWalletSharedAccessInfo, gc *sharedconfig.GlobalConfig) (managedAccess userModels.UserWalletSharedAccess, err error) {
-	// var managedAccess userModels.UserWalletSharedAccess
+func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userModels.User, wallet *userModels.UserWallet, accessInfo *userModels.UserWalletSharedAccessInfo, gc *sharedconfig.GlobalConfig) (returnedWallet userModels.UserWallet, err error) {
+	// var  userModels.UserWalletSharedAccess
 
 	if len(accessInfo.Permissions) == 0 {
-		return managedAccess, &tErrors.CustomError{
+		return returnedWallet, &tErrors.CustomError{
 			Param:      "permissions",
 			Err:        "error-permission-list-is-empty",
 			ErrMessage: "Permission list is empty",
 			Code:       http.StatusBadRequest,
 		}
 	}
+
 	var accessListInfo []userModels.WalletPermissionInfo
 	var accessList []userModels.WalletPermission
 	var numberOfSubmittedApprovers int
@@ -208,17 +207,8 @@ func CreateSharedWalletAccess(signerUser *userModels.User, accessInfo *userModel
 	var selfApprover int
 	var approverUsers []*userModels.User
 
-	sharedAccessID := uuid.NewString()
-
-	wallet, e := userModels.UserWalletID(accessInfo.WalletPublicKey).GetWallet(gc.DB)
-	if e != nil {
-		log.Println("invalid wallet address: ", accessInfo.WalletPublicKey)
-		return managedAccess, &tErrors.ErrorInvalidWallet{
-			PublicKey: accessInfo.WalletPublicKey,
-		}
-	}
 	if wallet.SharedAccessEnabled == 1 {
-		return managedAccess, &tErrors.CustomError{
+		return returnedWallet, &tErrors.CustomError{
 			Param:      "id",
 			Err:        "error-shared-access-already-active-on-wallet",
 			ErrMessage: "Shared access already activated on wallet. Use option to update the shared access.",
@@ -228,219 +218,188 @@ func CreateSharedWalletAccess(signerUser *userModels.User, accessInfo *userModel
 
 	if wallet.PrimaryWallet == 1 {
 		if !PublicKeyHasViewOnlyAccessWACL(accessInfo.WalletPublicKey, accessInfo.Permissions, gc) {
-			return managedAccess, &tErrors.ErrorOnlyViewAccessAllowedInPrimaryWallet{}
+			return returnedWallet, &tErrors.ErrorOnlyViewAccessAllowedInPrimaryWallet{}
 		}
 	}
-	e = gc.DB.Where("user_wallet_id = ?", accessInfo.WalletPublicKey).First(&managedAccess).Error
-	if e != nil {
-		if !errors.Is(e, gorm.ErrRecordNotFound) {
-			return managedAccess, &tErrors.ErrorTemporaryServerError{}
+	checkAccess := make(map[string]userModels.WalletPermissionInfo, 0)
+	// uniquePermission := make([]userModels.WalletPermissionInfo, 0)
+
+	for _, v := range accessInfo.Permissions {
+
+		if v.TargetUsername == walletOwner.Username && v.Permission == "VIEW-ONLY" {
+			//skip owners being added as view only access. Owners have view access by default.
+			continue
+		}
+		v.TargetUsername = strings.ToLower(v.TargetUsername)
+		if _, ok := checkAccess[v.TargetUsername+v.Permission]; ok {
+			continue
 		}
 
-		walletOwner, e := userModels.UserWalletID(accessInfo.WalletPublicKey).GetWalletOwner(gc.DB)
-		if e != nil {
-			return managedAccess, &tErrors.CustomError{
+		// checkAccess[v.TargetUsername+v.Permission] = v
+		// uniquePermission = append(uniquePermission, v)
+
+		permissionID := uuid.NewString()
+
+		//check if username is valid
+		if strings.Contains(v.TargetUsername, "_") {
+
+			//it is a subwallet and cannot be given access
+			return returnedWallet, &tErrors.CustomError{
 				Param:      "username",
-				Err:        "error-confirming-wallet-owner",
-				ErrMessage: "Unable to confirm wallet owner at this time. Please try again after some minutes.",
+				Err:        "error-subwallet-not-allowed",
+				ErrMessage: fmt.Sprintf("Access can only be granted to trovo wallet account, not a subwallet [%v]", v.TargetUsername),
 				Code:       http.StatusForbidden,
 			}
 		}
-
-		for _, v := range accessInfo.Permissions {
-
-			walletAccessID := uuid.NewString()
-			//check if username is valid
-			v.Username = strings.ToLower(v.Username)
-			if strings.Contains(v.Username, "_") {
-
-				//it is a subwallet and cannot be given access
-				return managedAccess, &tErrors.CustomError{
-					Param:      "username",
-					Err:        "error-subwallet-not-allowed",
-					ErrMessage: fmt.Sprintf("Access can only be granted to trovo wallet account, not a subwallet [%v]", v.Username),
-					Code:       http.StatusForbidden,
-				}
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+		if e != nil {
+			return returnedWallet, &tErrors.CustomError{
+				Param:      "username",
+				Err:        "error-trovo-wallet-account-invalid",
+				ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated at this time.", v.TargetUsername),
+				Code:       http.StatusForbidden,
 			}
-			u, e := usersDB.GetUser(v.Username, gc.DB)
+		}
+		if u.Username != v.TargetUsername {
 			if e != nil {
-				return managedAccess, &tErrors.CustomError{
+				return returnedWallet, &tErrors.CustomError{
 					Param:      "username",
 					Err:        "error-trovo-wallet-account-invalid",
-					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated at this time.", v.Username),
+					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] is not Trovo wallet account username.", v.TargetUsername),
 					Code:       http.StatusForbidden,
 				}
 			}
-			if u.Username != v.Username {
-				if e != nil {
-					return managedAccess, &tErrors.CustomError{
-						Param:      "username",
-						Err:        "error-trovo-wallet-account-invalid",
-						ErrMessage: fmt.Sprintf("Trovo wallet account [%v] is not Trovo wallet account username.", v.Username),
-						Code:       http.StatusForbidden,
-					}
-				}
+		}
+		name := fmt.Sprintf("%v", u.FirstName)
+		if u.LastName == nil {
+			name = fmt.Sprintf("%v %v", name, *u.LastName)
+		}
+		//infor of shared access users
+		accessListInfo = append(accessListInfo, userModels.WalletPermissionInfo{
+			TargetUsername:        v.TargetUsername,
+			Name:                  name,
+			Permission:            v.Permission,
+			WalletPublicKey:       wallet.ID,
+			WalletAlias:           wallet.Alias,
+			PushNotificationToken: u.PushNotificationToken,
+		})
+		accessList = append(accessList, userModels.WalletPermission{
+			ID:              permissionID,
+			TargetUsername:  v.TargetUsername,
+			Permission:      v.Permission,
+			WalletPublicKey: wallet.ID,
+		})
+		if v.Permission == "APPROVER" {
+			numberOfSubmittedApprovers++
+			if v.TargetUsername == walletOwner.Username {
+				selfApprover = 1
 			}
-			name := fmt.Sprintf("%v", u.FirstName)
-			if u.LastName == nil {
-				name = fmt.Sprintf("%v %v", name, *u.LastName)
-			}
-			//infor of shared access users
-			accessListInfo = append(accessListInfo, userModels.WalletPermissionInfo{
-				UserWalletSharedAccessID: sharedAccessID,
-				Username:                 v.Username,
-				Name:                     name,
-				Permission:               v.Permission,
-				WalletPublicKey:          wallet.ID,
-				WalletAlias:              wallet.Alias,
-				PushNotificationToken:    u.PushNotificationToken,
-			})
-			accessList = append(accessList, userModels.WalletPermission{
-				ID:                       walletAccessID,
-				UserWalletSharedAccessID: sharedAccessID,
-				TargetUsername:           v.Username,
-				Permission:               v.Permission,
-				WalletPublicKey:          wallet.ID,
-			})
-			if v.Permission == "APPROVER" {
-				numberOfSubmittedApprovers++
-				if v.Username == walletOwner.Username {
-					selfApprover = 1
-				}
-				approverUsers = append(approverUsers, &u)
-			}
-			if v.Permission == "INITIATOR" {
-				numberOfSubmittedInitiators++
-				// if v.Username == walletOwner.Username {
-				// 	selfApprover = 1
-				// }
-			}
+			approverUsers = append(approverUsers, &u)
+		}
+		if v.Permission == "INITIATOR" {
+			numberOfSubmittedInitiators++
 
 		}
-		if numberOfSubmittedApprovers <= accessInfo.NumberOfApprovers && accessInfo.NumberOfApprovers > 1 {
-			//number of authorizers does not reach the minimum threshold needed. cannot proceed so as to prevent account lockout
-			return managedAccess, &tErrors.CustomError{
-				Param:      "numberOfApprovers",
-				Err:        "error-approvers-not-enough",
-				ErrMessage: fmt.Sprintf("Please ensure that your list of approvers are greater than the minimum number required to approve a transaction [%v]", accessInfo.NumberOfApprovers),
-				Code:       http.StatusForbidden,
-			}
-		}
-		if numberOfSubmittedApprovers > 0 && accessInfo.NumberOfApprovers == 0 {
-			//number of APPROVERS does not reach the minimum threshold needed. cannot proceed so as to prevent account lockout
-			return managedAccess, &tErrors.CustomError{
-				Param:      "numberOfApprovers",
-				Err:        "error-approvers-not-enough",
-				ErrMessage: "You must specify the number of approvers needed to approve transactions on this wallet",
-				Code:       http.StatusForbidden,
-			}
-		}
-		if numberOfSubmittedApprovers > 0 && numberOfSubmittedInitiators == 0 {
-			return managedAccess, &tErrors.CustomError{
-				Param:      "numberOfApprovers",
-				Err:        "error-initiator-missing",
-				ErrMessage: "You must specify at least one initiator when an approver is specified.",
-				Code:       http.StatusForbidden,
-			}
-		}
-		if numberOfSubmittedApprovers == 0 && numberOfSubmittedInitiators > 0 {
-			return managedAccess, &tErrors.CustomError{
-				Param:      "numberOfApprovers",
-				Err:        "error-initiator-missing",
-				ErrMessage: fmt.Sprintf("You must specify at least [%v] approvers when an approver is specified.", accessInfo.NumberOfApprovers+1),
-				Code:       http.StatusForbidden,
-			}
-		}
-
-		managedAccess = userModels.UserWalletSharedAccess{
-			ID:                sharedAccessID,
-			UserWalletID:      accessInfo.WalletPublicKey,
-			NumberOfApprovers: accessInfo.NumberOfApprovers,
-			// AccessList:        accessList,
-		}
-		accessInfo.Permissions = accessListInfo
-		// if approver exists, then owner must sign transaction to add them as signers
-		if (numberOfSubmittedApprovers - selfApprover) > 0 {
-			accessInfo.SignatureRequired = 1
-
-		}
-		//prepare database execution
-		dbTX := gc.DB.Begin()
-		defer dbTX.Rollback()
-		wallet.SharedAccessEnabled = 1
-		errDB := dbTX.Save(&wallet).Error
-		if err != nil {
-			log.Printf("[CreateSharedWalletAccess] error saving shared access status of the wallet:%v\n sharedAccess:%+v\n", errDB, managedAccess)
-			return managedAccess, &tErrors.ErrorTemporaryServerError{}
-		}
-		errDB = dbTX.Create(&managedAccess).Error
-		if err != nil {
-			log.Printf("[CreateSharedWalletAccess] error saving shared access:%v\n sharedAccess:%+v\n", errDB, managedAccess)
-			return managedAccess, &tErrors.ErrorTemporaryServerError{}
-		}
-		errDB = dbTX.Create(&accessList).Error
-		if err != nil {
-			log.Printf("[CreateSharedWalletAccess] error saving access list:%v\n AccessList:%+v\n", errDB, accessList)
-			return managedAccess, &tErrors.ErrorTemporaryServerError{}
-		}
-		xdrBase64, messages, walletMustSign, errGenXdr := generateCreateSharedAccessXdr(&wallet, &walletOwner, approverUsers, accessInfo.Permissions, accessInfo.NumberOfApprovers, gc)
-		if errGenXdr != nil {
-			return managedAccess, errGenXdr
-		}
-		accessInfo.Messages = messages
-		if walletMustSign {
-			accessInfo.SignatureRequired = 1
-
-		}
-		accessInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
-
-		accessInfo.Transaction = xdrBase64
-
-		if len(accessInfo.TransactionSignature) == 0 {
-			return managedAccess, nil
-		}
-		// extract signature and submit transaction
-		//submit to blockchain
-
-		txnHash, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, wallet.Signer, xdrBase64, accessInfo.TransactionSignature)
-		if err != nil {
-			log.Printf("Error submitting shared access txn [%+v] transaction: %s\n", accessInfo, err.Error())
-			// logDiscordFailedRecovery(fmt.Sprintf("Error submitting shared access txn [%+v] transaction: %s", accessInfo, err.Error()))
-			return managedAccess, &tErrors.ErrorTemporaryServerError{}
-		}
-		accessInfo.TransactionID = txnHash
-
-		dbTX.Commit()
-		return managedAccess, nil
 
 	}
-	//existing access was retrieved
-	log.Printf("[CreateSharedWalletAccess] existing access: %+v", managedAccess)
-	return managedAccess, &tErrors.CustomError{
-		Param:      "id",
-		Err:        "error-shared-access-already-active-on-wallet",
-		ErrMessage: "Shared access already activated on wallet. Use option to update the shared access.",
-		Code:       http.StatusForbidden,
+	if numberOfSubmittedApprovers <= accessInfo.NumberOfApprovers && accessInfo.NumberOfApprovers > 1 {
+		//number of authorizers does not reach the minimum threshold needed. cannot proceed so as to prevent account lockout
+		return returnedWallet, &tErrors.CustomError{
+			Param:      "numberOfApprovers",
+			Err:        "error-approvers-not-enough",
+			ErrMessage: fmt.Sprintf("Please ensure that your list of approvers are greater than the minimum number required to approve a transaction [%v]", accessInfo.NumberOfApprovers),
+			Code:       http.StatusForbidden,
+		}
 	}
+	if numberOfSubmittedApprovers > 0 && accessInfo.NumberOfApprovers == 0 {
+		//number of APPROVERS does not reach the minimum threshold needed. cannot proceed so as to prevent account lockout
+		return returnedWallet, &tErrors.CustomError{
+			Param:      "numberOfApprovers",
+			Err:        "error-approvers-not-enough",
+			ErrMessage: "You must specify the number of approvers needed to approve transactions on this wallet",
+			Code:       http.StatusForbidden,
+		}
+	}
+	if numberOfSubmittedApprovers > 0 && numberOfSubmittedInitiators == 0 {
+		return returnedWallet, &tErrors.CustomError{
+			Param:      "numberOfApprovers",
+			Err:        "error-initiator-missing",
+			ErrMessage: "You must specify at least one initiator when an approver is specified.",
+			Code:       http.StatusForbidden,
+		}
+	}
+	if numberOfSubmittedApprovers == 0 && numberOfSubmittedInitiators > 0 {
+		return returnedWallet, &tErrors.CustomError{
+			Param:      "numberOfApprovers",
+			Err:        "error-initiator-missing",
+			ErrMessage: fmt.Sprintf("You must specify at least [%v] approvers when an approver is specified.", accessInfo.NumberOfApprovers+1),
+			Code:       http.StatusForbidden,
+		}
+	}
+
+	accessInfo.Permissions = accessListInfo
+	// if approver exists, then owner must sign transaction to add them as signers
+	if (numberOfSubmittedApprovers - selfApprover) > 0 {
+		accessInfo.SignatureRequired = 1
+
+	}
+	//prepare database execution
+	dbTX := gc.DB.Begin()
+	defer dbTX.Rollback()
+	wallet.SharedAccessEnabled = 1
+	wallet.NumberOfApprovers = accessInfo.NumberOfApprovers
+	errDB := dbTX.Create(&accessList).Error
+	if err != nil {
+		log.Printf("[CreateSharedWalletAccess] error saving access list:%v\n AccessList:%+v\n", errDB, accessList)
+		return returnedWallet, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	errDB = dbTX.Save(wallet).Error
+	if err != nil {
+		log.Printf("[CreateSharedWalletAccess] error saving shared access status of the wallet:%v\n sharedAccess:%+v\n", errDB, wallet)
+		return returnedWallet, &tErrors.ErrorTemporaryServerError{}
+	}
+
+	xdrBase64, messages, walletMustSign, errGenXdr := generateCreateSharedAccessXdr(wallet, walletOwner, approverUsers, accessInfo.Permissions, accessInfo.NumberOfApprovers, gc)
+	if errGenXdr != nil {
+		return returnedWallet, errGenXdr
+	}
+	accessInfo.Messages = messages
+	if walletMustSign {
+		accessInfo.SignatureRequired = 1
+
+	}
+	accessInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
+
+	accessInfo.Transaction = xdrBase64
+
+	if len(accessInfo.TransactionSignature) == 0 {
+		return returnedWallet, nil
+	}
+	// extract signature and submit transaction
+	//submit to blockchain
+
+	txnHash, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, wallet.Signer, xdrBase64, accessInfo.TransactionSignature)
+	if err != nil {
+		log.Printf("Error submitting shared access txn [%+v] transaction: %s\n", accessInfo, err.Error())
+		// logDiscordFailedRecovery(fmt.Sprintf("Error submitting shared access txn [%+v] transaction: %s", accessInfo, err.Error()))
+		return returnedWallet, &tErrors.ErrorTemporaryServerError{}
+	}
+	accessInfo.TransactionID = txnHash
+
+	dbTX.Commit()
+	return returnedWallet, nil
 }
 
-func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.UserWallet, accessList []userModels.WalletPermission, accessInfo *userModels.DisableSharedAccessInfo, gc *sharedconfig.GlobalConfig) (err error) {
-	var managedAccess userModels.UserWalletSharedAccess
+func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.UserWallet, accessInfo *userModels.DisableSharedAccessInfo, gc *sharedconfig.GlobalConfig) (err error) {
+	// var managedAccess userModels.UserWalletSharedAccess
 
-	// accessList := make([]userModels.WalletPermission, 0)
+	accessList := wallet.Permissions
 	var numberOfApprovers int
 	// var numberOfSubmittedInitiators int
 	var selfApprover int
 	var approverUsers []*userModels.User
-	dbTX := gc.DB.Begin()
-	defer dbTX.Rollback()
-	// wallet, e := userModels.UserWalletID(accessInfo.WalletPublicKey).GetWallet(dbTX)
-	// if e != nil {
-	// 	log.Println("invalid wallet address: ", accessInfo.WalletPublicKey)
-	// 	return &tErrors.ErrorInvalidWallet{
-	// 		PublicKey: accessInfo.WalletPublicKey,
-	// 	}
-	// }
+
 	if wallet.SharedAccessEnabled == 0 {
 		return &tErrors.CustomError{
 			Param:      "id",
@@ -450,24 +409,9 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		}
 	}
 
-	dbTX.Save(&wallet)
-	e := dbTX.Where("user_wallet_id = ?", accessInfo.WalletPublicKey).First(&managedAccess).Error
-
-	if e != nil {
-		if errors.Is(e, gorm.ErrRecordNotFound) {
-			return &tErrors.CustomError{
-				Param:      "Id",
-				Err:        "error-could-not-find-shared-access",
-				ErrMessage: "Could not find shared access records for wallet.",
-				Code:       http.StatusForbidden,
-			}
-		}
-		return &tErrors.ErrorTemporaryServerError{}
-	}
-	wallet.SharedAccessEnabled = 0
-	approvalsNeeded := managedAccess.NumberOfApprovers
+	approvalsNeeded := wallet.NumberOfApprovers
 	userPermissions := make([]string, 0)
-	walletOwner, e := userModels.UserWalletID(accessInfo.WalletPublicKey).GetWalletOwner(dbTX)
+	walletOwner, e := wallet.GetWalletOwner(gc.DB)
 	if e != nil {
 		return &tErrors.CustomError{
 			Param:      "username",
@@ -478,7 +422,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	}
 
 	for _, v := range accessList {
-		u, e := usersDB.GetUser(v.TargetUsername, dbTX)
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
 		if e != nil {
 			return &tErrors.CustomError{
 				Param:      "username",
@@ -495,28 +439,16 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 			approverUsers = append(approverUsers, &u)
 		}
 		{
-			accessInfo.Permissions = append(accessInfo.Permissions, v.ToWalletPermissionInfo(&u, wallet))
+			accessInfo.Permissions = append(accessInfo.Permissions, v.ToWalletPermissionInfo(&u, wallet, gc))
 		}
 		userPermissions = append(userPermissions, fmt.Sprintf("%s - (%v)", v.TargetUsername, v.Permission))
 
-	}
-
-	e = dbTX.Delete(&accessList).Error
-	if e != nil {
-		log.Println("[RemoveSharedWalletAccess] error deleting access list", e)
-		return &tErrors.ErrorTemporaryServerError{}
 	}
 
 	// if approver exists, then owner must sign transaction to add them as signers
 	if (numberOfApprovers - selfApprover) > 0 {
 		accessInfo.SignatureRequired = 1
 
-	}
-
-	errDB := dbTX.Delete(&managedAccess).Error
-	if err != nil {
-		log.Printf("[RemoveSharedWalletAccess] error removing shared access:%v\n sharedAccess:%+v\n", errDB, managedAccess)
-		return &tErrors.ErrorTemporaryServerError{}
 	}
 
 	xdrBase64, messages, walletMustSign, multipartySign, errGenXdr := generateRemoveSharedAccessXdr(wallet, &walletOwner, approverUsers, gc)
@@ -559,7 +491,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		}
 
 		// rollback all the other changes since the changes can only apply when approvals are completed.
-		dbTX.Rollback()
+		// dbTX.Rollback()
 		//save and commit this to database
 		e := gc.DB.Create(&pendingAuth).Error
 		if e != nil {
@@ -568,6 +500,14 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		}
 
 		return nil
+	}
+	dbTX := gc.DB.Begin()
+	defer dbTX.Rollback()
+	wallet.SharedAccessEnabled = 0
+	e = dbTX.Delete(&accessList).Error
+	if e != nil {
+		log.Println("[RemoveSharedWalletAccess] error deleting access list", e)
+		return &tErrors.ErrorTemporaryServerError{}
 	}
 	// extract signature and submit transaction
 	//getting here means it does not contain approvers
@@ -1010,7 +950,7 @@ func HasInitiatorPermissionToPublicKey(ownerSignerPublicKey, targetPublicKey str
 	if err != nil {
 		return false
 	}
-	walletPermissions := user.Fetch3rdPartyWalletPermissions(gc)
+	walletPermissions := user.WalletsSharedWithUser
 	if len(walletPermissions) == 0 {
 		return false
 	}
@@ -1025,7 +965,7 @@ func HasInitiatorPermissionToPublicKey(ownerSignerPublicKey, targetPublicKey str
 
 func SignerHasInitiatorPermissionToPublicKey(signerOwner userModels.User, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
 
-	walletPermissions := signerOwner.Fetch3rdPartyWalletPermissions(gc)
+	walletPermissions := signerOwner.WalletsSharedWithUser
 	if len(walletPermissions) == 0 {
 		return false
 	}

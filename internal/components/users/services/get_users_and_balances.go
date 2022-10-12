@@ -50,8 +50,9 @@ func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Contex
 	if !owner {
 		userInfo.UserData.UserWallets = nil
 		userInfo.AssetBalances = nil
-		userInfo.ThirdPartyWalletAccess = nil
+		userInfo.WalletsSharedWithUser = nil
 		userInfo.DefaultAssets = nil
+		// userInfo.MySharedAccess = nil
 	}
 
 	//Get user wallet balances
@@ -70,10 +71,10 @@ func GetUserInfo(identifier string, gc *sharedconfig.GlobalConfig, c *gin.Contex
 			userInfo.NFTs = userNFTs
 		}
 
-		userInfo.ThirdPartyWalletAccess = make([]userModels.ThirdPartyWalletAccess, 0)
+		userInfo.WalletsSharedWithUser = make([]userModels.WalletsSharedWithUser, 0)
 		//Get ThirdParty Wallet Access
 
-		userInfo.ThirdPartyWalletAccess = user.Fetch3rdPartyWalletPermissions(gc)
+		userInfo.WalletsSharedWithUser = user.FetchWalletsPermissionsSharedWithUser(gc)
 
 		userInfo.DefaultAssets = user.GetDefaultAssets(gc)
 	}

@@ -51,16 +51,20 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 	}
 	if u.UserWallets != nil {
 		// log.Println("[UserToJSON] started user wallets json")
+		if len(u.UserWallets) > 0 {
+			for _, uw := range u.UserWallets {
+				//get user permissions
 
-		for _, uw := range u.UserWallets {
-			//get user permissions
-
-			uwJson := uw.ToJSON(gc)
-			// log.Printf("[UserToJSON] added user wallet [%+v]\n", uwJson)
-			jsonObj.UserWallets = append(jsonObj.UserWallets, uwJson)
+				uwJson := uw.ToJSON(gc)
+				// log.Printf("[UserToJSON] added user wallet [%+v]\n", uwJson)
+				jsonObj.UserWallets = append(jsonObj.UserWallets, uwJson)
+			}
 		}
 
+	} else {
+		jsonObj.UserWallets = make([]UserWalletJSON, 0)
 	}
+
 	// log.Println("[UserToJSON] ended user wallets json and returning data")
 	return jsonObj
 }
@@ -74,12 +78,12 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 	jsonObj.SharedAccessEnabled = uw.SharedAccessEnabled
 	if uw.SharedAccessEnabled == 1 {
 		//get shared access
-		sa, e := uw.GetSharedAccess(gc.DB)
-		if e == nil {
-			uw.UserWalletSharedAccess = sa
-			majson := uw.UserWalletSharedAccess.ToJSON()
-			jsonObj.UserWalletSharedAccess = &majson
+		for _, permision := range uw.Permissions {
+			jsonObj.Permissions = append(jsonObj.Permissions, permision.ToJSON())
 		}
+		jsonObj.NumberOfApprovers = uw.NumberOfApprovers
+		jsonObj.SharedAccessCreatedAt = uw.SharedAccessCreatedAt
+		jsonObj.SharedAccessUpdatedAt = uw.SharedAccessUpdatedAt
 
 	}
 
@@ -104,23 +108,25 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 	return
 }
 
-func (uwma *UserWalletSharedAccess) ToJSON() (jsonObj UserWalletSharedAccessJSON) {
-	jsonObj.CreatedAt = uwma.CreatedAt
-	jsonObj.UpdatedAt = uwma.UpdatedAt
-	jsonObj.ID = uwma.ID
-	jsonObj.UserWalletID = uwma.UserWalletID
-	for _, uwmaAL := range uwma.Permissions {
-		jsonObj.Permissions = append(jsonObj.Permissions, uwmaAL.ToJSON())
-	}
-	return
-}
+// func (uwma *UserWalletSharedAccess) ToJSON() (jsonObj UserWalletSharedAccessJSON) {
+// 	if uwma.ID == "" {
+// 		return
+// 	}
+// 	jsonObj.CreatedAt = uwma.CreatedAt
+// 	jsonObj.UpdatedAt = uwma.UpdatedAt
+// 	jsonObj.ID = uwma.ID
+// 	jsonObj.UserWalletID = uwma.UserWalletID
+// 	for _, uwmaAL := range uwma.Permissions {
+// 		jsonObj.Permissions = append(jsonObj.Permissions, uwmaAL.ToJSON())
+// 	}
+// 	return
+// }
 
 func (wa *WalletPermission) ToJSON() (jsonObj WalletPermissionJSON) {
 	jsonObj.CreatedAt = wa.CreatedAt
 	jsonObj.UpdatedAt = wa.UpdatedAt
 	jsonObj.WalletPublicKey = wa.WalletPublicKey
-	jsonObj.Username = wa.TargetUsername
+	jsonObj.TargetUsername = wa.TargetUsername
 	jsonObj.Permission = wa.Permission
-	jsonObj.UserWalletSharedAccessID = wa.UserWalletSharedAccessID
 	return
 }

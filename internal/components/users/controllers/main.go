@@ -1406,7 +1406,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
 		log.Printf("[DEBUG] sharedAccess %+v\n", sharedAccessInfo)
-		_, err = userServices.CreateSharedWalletAccess(&signerUser, &sharedAccessInfo, gc)
+		_, err = userServices.CreateSharedWalletAccess(&signerUser, &walletOwner, &wallet, &sharedAccessInfo, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -1500,7 +1500,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//check if owner is the initiator
 		var isInitiator bool
 		isViewOnly := true
-		pl := wallet.GetPermissionList(gc.DB)
+		pl := wallet.Permissions
 		if len(pl) == 0 {
 			//reject request
 			c.JSON(http.StatusBadRequest, gin.H{"error": "error-permissions-not-found", "message": "Could not determine permissions on this wallet at this time. Please try again later."})
@@ -1550,7 +1550,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		}
 		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
 		log.Printf("[DEBUG] sharedAccess %+v\n", sharedAccessInfo)
-		err = userServices.RemoveSharedWalletAccess(&signerUser, &wallet, pl, &sharedAccessInfo, gc)
+		err = userServices.RemoveSharedWalletAccess(&signerUser, &wallet, &sharedAccessInfo, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
