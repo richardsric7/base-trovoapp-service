@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/BottomTabPage.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
@@ -64,18 +65,16 @@ class _BottomHomeState extends State<BottomHome> {
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset(
                     "assets/images/home.png",
-                    color: _selectedIndex == ButtomTabPage.Dashboard.index
-                        ? notifire.isDark
-                            ? notifire.getbluecolor60
-                            : notifire.getbluecolor
-                        : notifire.getblck,
+                    color: notifire.isDark
+                        ? wihitecolor
+                        : notifire.getbottombarblue,
                     height: _selectedIndex == ButtomTabPage.Dashboard.index
-                        ? height / 29
-                        : height / 35,
+                        ? height / 37
+                        : height / 45,
                     fit: BoxFit.contain,
                   ),
                 ),
-                label: ''),
+                label: 'Home'),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
                 icon: AnimatedContainer(
@@ -83,52 +82,39 @@ class _BottomHomeState extends State<BottomHome> {
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset(
                     "assets/images/wallets.png",
-                    color: _selectedIndex == ButtomTabPage.Wallets.index
-                        ? notifire.isDark
-                            ? notifire.getbluecolor60
-                            : notifire.getbluecolor
-                        : notifire.getblck,
+                    color: notifire.isDark ? wihitecolor : null,
                     height: _selectedIndex == ButtomTabPage.Wallets.index
-                        ? height / 29
-                        : height / 35,
+                        ? height / 39
+                        : height / 50,
                     fit: BoxFit.fitHeight,
                   ),
                 ),
-                label: ''),
+                label: 'Wallets'),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
                 icon: AnimatedContainer(
                   duration: Duration(milliseconds: 2000),
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset("assets/images/history.png",
-                      color: _selectedIndex ==
-                              ButtomTabPage.TransactionHistory.index
-                          ? notifire.isDark
-                              ? notifire.getbluecolor60
-                              : notifire.getbluecolor
-                          : notifire.getblck,
+                      color: notifire.isDark ? wihitecolor : null,
                       height: _selectedIndex ==
                               ButtomTabPage.TransactionHistory.index
-                          ? height / 29
-                          : height / 35),
+                          ? height / 37
+                          : height / 45),
                 ),
-                label: ''),
+                label: 'History'),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
                 icon: AnimatedContainer(
                   duration: Duration(milliseconds: 2000),
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset("assets/images/swap.png",
-                      color: _selectedIndex == ButtomTabPage.Swap.index
-                          ? notifire.isDark
-                              ? notifire.getbluecolor60
-                              : notifire.getbluecolor
-                          : notifire.getblck,
+                      color: notifire.isDark ? wihitecolor : null,
                       height: _selectedIndex == ButtomTabPage.Swap.index
-                          ? height / 29
-                          : height / 35),
+                          ? height / 37
+                          : height / 45),
                 ),
-                label: ''),
+                label: 'Swap'),
             BottomNavigationBarItem(
               backgroundColor: notifire.getwihitecolor,
               icon: AnimatedContainer(
@@ -136,17 +122,13 @@ class _BottomHomeState extends State<BottomHome> {
                 curve: Curves.fastOutSlowIn,
                 child: Image.asset(
                   "assets/images/settings.png",
-                  color: _selectedIndex == ButtomTabPage.Settings.index
-                      ? notifire.isDark
-                          ? notifire.getbluecolor60
-                          : notifire.getbluecolor
-                      : notifire.getblck,
+                  color: notifire.isDark ? wihitecolor : null,
                   height: _selectedIndex == ButtomTabPage.Settings.index
-                      ? height / 27
-                      : height / 33,
+                      ? height / 37
+                      : height / 43,
                 ),
               ),
-              label: '',
+              label: 'Settings',
             ),
           ],
           // onTap: (index) {

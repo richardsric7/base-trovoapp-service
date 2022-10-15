@@ -87,14 +87,13 @@ class _SignUpState extends State<SignUp> {
                   Form(
                     key: _formKey,
                     child: Column(
-                      // crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: height / 50),
                         Text(
                           LanguageEn.ittakesaminute1,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 30.sp,
                               fontFamily: fontsemibold),
                         ),
@@ -102,7 +101,7 @@ class _SignUpState extends State<SignUp> {
                           LanguageEn.ittakesaminute2,
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: notifier.getbluecolor80,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 30.sp,
                               fontFamily: fontsemibold),
                         ),

@@ -33,7 +33,7 @@ class Congratulations extends StatelessWidget {
               Text(
                 '${LanguageEn.congratulations}',
                 style: TextStyle(
-                    color: notifier.getblck,
+                    color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
                     fontSize: 27.sp),
               ),

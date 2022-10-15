@@ -213,6 +213,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                       child: Image.asset(
                         "assets/images/filter-list.png",
                         height: height / 35,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ))
               ],

@@ -133,9 +133,42 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 SizedBox(
                   height: height / 50,
                 ),
-                walletSlides(wallets!),
+                DefaultTabController(
+                  length: tabLength,
+                  child: Column(
+                    children: [
+                      TabBar(
+                        controller: _tabController,
+                        labelColor: notifier.getbluewhitecolor,
+                        indicatorColor: notifier.getbluewhitecolor,
+                        labelStyle: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: fontsemibold,
+                        ),
+                        tabs: [
+                          Tab(
+                            height: 20,
+                            text: LanguageEn.assets,
+                          ),
+                          if (unclaimedAssets != null && tabLength == 3) ...[
+                            Tab(
+                              height: 20,
+                              text:
+                                  '${LanguageEn.pending} (${unclaimedAssets.length})',
+                            ),
+                          ],
+                          Tab(
+                            height: 20,
+                            text: LanguageEn.nfts,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
                 SizedBox(
-                  height: height / 30,
+                  height: height / 70,
                 ),
                 assetsTabs(),
               ],
@@ -148,259 +181,152 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Widget assetsTabs() {
     return Container(
-      height: height / 1.9,
-      child: Stack(
-        clipBehavior: Clip.none,
+      height: height / 1.33,
+      child: TabBarView(
+        controller: _tabController,
         children: [
-          DefaultTabController(
-            length: tabLength,
-            child: Container(
-              height: height / 10,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(40.0),
-                  topLeft: Radius.circular(40.0),
-                ),
-                color: notifier.getbluecolor,
-              ),
-              // color: Colors.red,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 12.0, 0, 10.0),
-                    child: TabBar(
-                      controller: _tabController,
-                      indicatorColor: Colors.transparent,
-                      labelStyle: TextStyle(
-                        color: notifier.getwihitecolor,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: fontsemibold,
-                      ),
-                      tabs: [
-                        Tab(
-                          height: 20,
-                          text: LanguageEn.assets,
-                        ),
-                        if (unclaimedAssets != null && tabLength == 3) ...[
-                          Tab(
-                            height: 20,
-                            text:
-                                '${LanguageEn.pending} (${unclaimedAssets.length})',
-                          ),
-                        ],
-                        Tab(
-                          height: 20,
-                          text: LanguageEn.nfts,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
+          SingleChildScrollView(
             child: Column(
               children: [
+                walletSlides(wallets!),
+                SizedBox(
+                  height: height / 30,
+                ),
+                if (claimedAssets.length > 0) ...[
+                  for (var asset in claimedAssets) ...[
+                    GestureDetector(
+                      onTap: () {
+                        appState.setActiveWallet = wallets!.firstWhere(
+                            (wallet) => wallet.publicKey == activeWallet);
+
+                        appState.viewData = {
+                          // since the original asset object
+                          // is immutable I create a new assetObj and
+                          // copy all the data into it so that
+                          // I'll be able to change the data
+                          AssetDetailsViewPageConfig.key: {
+                            'assetCode': asset['assetCode'],
+                            'assetIssuer': asset['assetIssuer'],
+                            'amount': asset['amount'],
+                            'qrCode': asset['qrCode'],
+                            'imageUrl': asset['imageUrl'],
+                          }
+                        };
+                        print(appState.viewData);
+                        appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: AssetDetailsViewPageConfig,
+                        );
+                      },
+                      child: tiles(asset, activeWalletIndex),
+                    ),
+                  ],
+                  SizedBox(
+                    height: height / 22,
+                  ),
+                ] else ...[
+                  Container(
+                    height: height / 3,
+                    child: Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
+                        child: Center(
+                          child: Text(
+                            LanguageEn.noassets,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: fontsemibold,
+                              color: notifier.getblck,
+                            ),
+                          ),
+                        )),
+                  ),
+                ],
                 SizedBox(
                   height: height / 22,
                 ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.only(
-                            topRight: Radius.circular(40.0),
-                            topLeft: Radius.circular(40.0),
-                          ),
-                          color: notifier.getwihitecolor,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 28.0, 0, 0),
-                          child: Container(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  if (claimedAssets.length > 0) ...[
-                                    for (var asset in claimedAssets) ...[
-                                      GestureDetector(
-                                        onTap: () {
-                                          appState.setActiveWallet = wallets!
-                                              .firstWhere((wallet) =>
-                                                  wallet.publicKey ==
-                                                  activeWallet);
-
-                                          appState.viewData = {
-                                            // since the original asset object
-                                            // is immutable I create a new assetObj and
-                                            // copy all the data into it so that
-                                            // I'll be able to change the data
-                                            AssetDetailsViewPageConfig.key: {
-                                              'assetCode': asset['assetCode'],
-                                              'assetIssuer':
-                                                  asset['assetIssuer'],
-                                              'amount': asset['amount'],
-                                              'qrCode': asset['qrCode'],
-                                              'imageUrl': asset['imageUrl'],
-                                            }
-                                          };
-                                          print(appState.viewData);
-                                          appState.currentAction = PageAction(
-                                            state: PageState.addPage,
-                                            page: AssetDetailsViewPageConfig,
-                                          );
-                                        },
-                                        child: tiles(asset, activeWalletIndex),
-                                      ),
-                                    ],
-                                  ] else ...[
-                                    Container(
-                                      height: height / 3,
-                                      child: Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              10, 28.0, 10, 0),
-                                          child: Center(
-                                            child: Text(
-                                              LanguageEn.noassets,
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: fontsemibold,
-                                                color: notifier.getblck,
-                                              ),
-                                            ),
-                                          )),
-                                    ),
-                                  ],
-                                  SizedBox(
-                                    height: height / 22,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (tabLength == 3) ...[
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.only(
-                              topRight: Radius.circular(40.0),
-                              topLeft: Radius.circular(40.0),
-                            ),
-                            color: notifier.getwihitecolor,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 28.0, 0, 0),
-                            child: Container(
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  children: [
-                                    if (unclaimedAssets != null &&
-                                        unclaimedAssets.length > 0) ...[
-                                      for (var asset in unclaimedAssets) ...[
-                                        GestureDetector(
-                                          onTap: () {
-                                            appState.setActiveWallet = wallets!
-                                                .firstWhere((wallet) =>
-                                                    wallet.publicKey ==
-                                                    activeWallet);
-                                            appState.viewData = {
-                                              // since the original asset object
-                                              // is immutable I create a new assetObj and
-                                              // copy all the data into it so that
-                                              // I'll be able to change the data
-                                              PendingAssetDetailsViewPageConfig
-                                                  .key: {
-                                                'assetCode': asset['assetCode'],
-                                                'assetIssuer':
-                                                    asset['assetIssuer'],
-                                                'amount': asset['amount'],
-                                                'qrCode': asset['qrCode'],
-                                                'imageUrl': asset['imageUrl'],
-                                              }
-                                            };
-                                            print(appState.viewData);
-                                            appState.currentAction = PageAction(
-                                              state: PageState.addPage,
-                                              page:
-                                                  PendingAssetDetailsViewPageConfig,
-                                            );
-                                          },
-                                          child:
-                                              tiles(asset, activeWalletIndex),
-                                        ),
-                                      ],
-                                    ] else ...[
-                                      Container(
-                                        height: height / 4,
-                                        child: Padding(
-                                            padding: const EdgeInsets.fromLTRB(
-                                                10, 28.0, 10, 0),
-                                            child: Center(
-                                              child: Text(
-                                                LanguageEn.nopendingassets,
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: fontsemibold,
-                                                  color: notifier.getblck,
-                                                ),
-                                              ),
-                                            )),
-                                      ),
-                                    ],
-                                    SizedBox(
-                                      height: height / 22,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
+              ],
+            ),
+          ),
+          if (tabLength == 3) ...[
+            Container(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    if (unclaimedAssets != null &&
+                        unclaimedAssets.length > 0) ...[
+                      for (var asset in unclaimedAssets) ...[
+                        GestureDetector(
+                          onTap: () {
+                            appState.setActiveWallet = wallets!.firstWhere(
+                                (wallet) => wallet.publicKey == activeWallet);
+                            appState.viewData = {
+                              // since the original asset object
+                              // is immutable I create a new assetObj and
+                              // copy all the data into it so that
+                              // I'll be able to change the data
+                              PendingAssetDetailsViewPageConfig.key: {
+                                'assetCode': asset['assetCode'],
+                                'assetIssuer': asset['assetIssuer'],
+                                'amount': asset['amount'],
+                                'qrCode': asset['qrCode'],
+                                'imageUrl': asset['imageUrl'],
+                              }
+                            };
+                            print(appState.viewData);
+                            appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: PendingAssetDetailsViewPageConfig,
+                            );
+                          },
+                          child: tiles(asset, activeWalletIndex),
                         ),
                       ],
+                    ] else ...[
                       Container(
-                        height: height / 2,
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.only(
-                            topRight: Radius.circular(40.0),
-                            topLeft: Radius.circular(40.0),
-                          ),
-                          color: notifier.getwihitecolor,
-                        ),
+                        height: height / 4,
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 0.0, 0, 0),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                // in situations where the blockchain has an issue,
-                                // some values can be returned as null or empty
-                                // so always null check for such situations
-                                if (nfts != null && nfts != {}) ...[
-                                  if (nfts[activeWallet] != null &&
-                                      nfts[activeWallet].length > 0) ...[
-                                    gridView(),
-                                    SizedBox(height: 600),
-                                  ] else ...[
-                                    // showEmptyNFTs(),
-                                    gridView(),
-                                  ]
-                                ] else ...[
-                                  // showEmptyNFTs(),
-                                  gridView(),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
+                            padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
+                            child: Center(
+                              child: Text(
+                                LanguageEn.nopendingassets,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getblck,
+                                ),
+                              ),
+                            )),
                       ),
                     ],
-                  ),
+                    SizedBox(
+                      height: height / 22,
+                    ),
+                  ],
                 ),
+              ),
+            ),
+          ],
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                // in situations where the blockchain has an issue,
+                // some values can be returned as null or empty
+                // so always null check for such situations
+                if (nfts != null && nfts != {}) ...[
+                  if (nfts[activeWallet] != null &&
+                      nfts[activeWallet].length > 0) ...[
+                    gridView(),
+                    SizedBox(height: 600),
+                  ] else ...[
+                    // showEmptyNFTs(),
+                    gridView(),
+                  ]
+                ] else ...[
+                  // showEmptyNFTs(),
+                  gridView(),
+                ],
               ],
             ),
           ),
@@ -473,7 +399,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      LanguageEn.goodevening,
+                      LanguageEn.goodday,
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluewhitecolor,

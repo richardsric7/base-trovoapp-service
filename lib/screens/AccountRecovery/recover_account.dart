@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
-import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../network/requests.dart';
 import '../../router/PageActions.dart';
 import '../../router/ui_pages.dart';
@@ -72,7 +71,6 @@ class _RecoverAccountState extends State<RecoverAccount> {
               Form(
                 key: _formKey,
                 child: Column(
-                  // crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -80,7 +78,7 @@ class _RecoverAccountState extends State<RecoverAccount> {
                         Text(
                           LanguageEn.account,
                           style: TextStyle(
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 26.sp,
                               fontFamily: fontsemibold),
                         ),
@@ -90,7 +88,7 @@ class _RecoverAccountState extends State<RecoverAccount> {
                         Text(
                           LanguageEn.recovery,
                           style: TextStyle(
-                              color: notifier.getbluecolor80,
+                              color: notifier.getbluewhitecolor,
                               fontSize: 26.sp,
                               fontFamily: fontsemibold),
                         ),

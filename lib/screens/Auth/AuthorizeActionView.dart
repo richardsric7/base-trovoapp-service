@@ -6,7 +6,6 @@ import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -53,7 +52,7 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
               Text(
                 '${LanguageEn.authorize} ${viewData!['serviceShortName']}',
                 style: TextStyle(
-                    color: notifier.getblck,
+                    color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
                     fontSize: 27.sp),
               ),

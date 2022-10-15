@@ -48,7 +48,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
               Text(
                 LanguageEn.backupwallet,
                 style: TextStyle(
-                    color: notifier.getblck,
+                    color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
                     fontSize: 27.sp),
               ),

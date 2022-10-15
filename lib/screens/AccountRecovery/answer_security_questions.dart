@@ -6,11 +6,9 @@ import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.d
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -94,7 +92,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                   LanguageEn.answer,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 30.sp,
                       fontFamily: fontsemibold),
                 ),
@@ -102,7 +100,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                   LanguageEn.securityquestions,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluecolor80,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 30.sp,
                       fontFamily: fontsemibold),
                 ),

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
@@ -68,7 +67,7 @@ class _CreatePassword extends State<CreatePassword> {
                   LanguageEn.letsgetyoustarted1,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 30.sp,
                       fontFamily: fontsemibold),
                 ),
@@ -76,7 +75,7 @@ class _CreatePassword extends State<CreatePassword> {
                   LanguageEn.letsgetyoustarted2,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluecolor80,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 30.sp,
                       fontFamily: fontsemibold),
                 ),

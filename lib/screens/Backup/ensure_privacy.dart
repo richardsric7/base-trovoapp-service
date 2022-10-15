@@ -47,7 +47,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
               Text(
                 LanguageEn.backup,
                 style: TextStyle(
-                    color: notifier.getblck,
+                    color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
                     fontSize: 27.sp),
               ),

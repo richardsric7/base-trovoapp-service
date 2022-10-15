@@ -542,7 +542,7 @@ class LanguageEn {
 
   static String get accept => "Accept";
 
-  static String get goodevening => "Good evening,";
+  static String get goodday => "Good day,";
 
   static String get totalbalance => 'Total Balance   ';
 
@@ -568,7 +568,7 @@ class LanguageEn {
 
   static String get pending => "PENDING";
 
-  static String get nfts => "NFT";
+  static String get nfts => "NFTS/TIX";
 
   static String get gocrypto => "GoCrypto";
 
@@ -729,8 +729,6 @@ class LanguageEn {
 
   static String get security => "Security";
 
-  static String get access => "Access";
-
   static String get passwordmanagement => "Password Management";
 
   static String get myprofile => "My Profile";
@@ -774,7 +772,7 @@ class LanguageEn {
 
   static String get abouttrovowallet => "About Trovo Wallet";
 
-  static String get mysubscriptions => "My Subscriptions";
+  static String get trovopatron => "Trovo Patron";
 
   static String get faqsupport => "FAQ & Support";
 

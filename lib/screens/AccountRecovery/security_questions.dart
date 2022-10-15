@@ -96,7 +96,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                   LanguageEn.setup,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 30.sp,
                       fontFamily: fontsemibold),
                 ),
@@ -104,7 +104,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                   LanguageEn.securityquestions,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluecolor80,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 30.sp,
                       fontFamily: fontsemibold),
                 ),

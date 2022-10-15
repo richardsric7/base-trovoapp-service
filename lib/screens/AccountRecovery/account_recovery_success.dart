@@ -72,7 +72,7 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                       LanguageEn.account,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                           fontSize: 30.sp,
                           fontFamily: fontsemibold),
                     ),
@@ -81,7 +81,7 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                       LanguageEn.recovery,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: notifier.getbluecolor80,
+                          color: notifier.getbluewhitecolor,
                           fontSize: 30.sp,
                           fontFamily: fontsemibold),
                     ),

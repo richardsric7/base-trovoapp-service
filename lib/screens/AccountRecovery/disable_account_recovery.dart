@@ -100,7 +100,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                   LanguageEn.disable,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 30.sp,
                       fontFamily: fontsemibold),
                 ),
@@ -108,7 +108,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                   LanguageEn.accountrecovery,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluecolor80,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 30.sp,
                       fontFamily: fontsemibold),
                 ),

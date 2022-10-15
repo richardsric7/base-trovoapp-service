@@ -19,6 +19,7 @@ Color darkblue80 = const Color(0xFF003387);
 Color darkblue70 = const Color(0xFF003a99);
 Color darkblue60 = const Color(0xFF003da2);
 Color darkblue50 = const Color(0xFF0041ab);
+Color bottombarblue = const Color(0xFF336DA0);
 
 Color green = const Color(0xff00a859);
 

@@ -47,7 +47,6 @@ class _SettingsState extends State<Settings> {
   List<DropdownMenuItem<String>> get getCurrencies {
     List<DropdownMenuItem<String>> currencies = [];
     appState.fiatRate.forEach((key, value) {
-      print('===============key: $key, value: $value');
       currencies.add(DropdownMenuItem(
           child: Text(
             key,
@@ -70,10 +69,7 @@ class _SettingsState extends State<Settings> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    print(
-        '=============accountRecoveryEnabled: ${appState.userInfo!.accountRecoveryEnabled}');
-    print(
-        '=============hasSecurityQuestions: ${appState.userInfo!.hasSecurityQuestions}');
+    print('=============thumbNail: ${appState.userInfo!.imageThumbnailURL}');
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -117,7 +113,7 @@ class _SettingsState extends State<Settings> {
               Text(
                 '${appState.userInfo!.firstName} ${appState.userInfo!.lastName}',
                 style: TextStyle(
-                    color: notifier.getbluecolor,
+                    color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
                     fontSize: 18.sp),
               ),
@@ -162,8 +158,8 @@ class _SettingsState extends State<Settings> {
                     LanguageEn.myreferrals),
               ),
               GestureDetector(
-                child: iteamlist("assets/images/trovo-blue.png", "",
-                    LanguageEn.mysubscriptions),
+                child: iteamlist(
+                    "assets/images/trovo-blue.png", "", LanguageEn.trovopatron),
               ),
               SizedBox(height: height / 25),
               Row(
@@ -209,7 +205,7 @@ class _SettingsState extends State<Settings> {
                 onTap: () => appState.currentAction = PageAction(
                     state: PageState.addPage, page: SharedAccessViewPageConfig),
                 child: iteamlist(
-                    "assets/images/access.png", "", LanguageEn.access),
+                    "assets/images/access.png", "", LanguageEn.sharedaccess),
               ),
               GestureDetector(
                 onTap: () => appState.currentAction = PageAction(
