@@ -69,7 +69,6 @@ class _SettingsState extends State<Settings> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    print('=============thumbNail: ${appState.userInfo!.imageThumbnailURL}');
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,

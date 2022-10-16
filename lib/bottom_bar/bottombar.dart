@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/BottomTabPage.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
@@ -50,10 +51,10 @@ class _BottomHomeState extends State<BottomHome> {
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: notifire.getwihitecolor,
           unselectedItemColor: notifire.getgrey.withOpacity(.80),
-          selectedLabelStyle: const TextStyle(fontFamily: 'Gilroy_Medium'),
+          selectedLabelStyle: TextStyle(fontFamily: fontbody),
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: notifire.getbluecolor,
-          unselectedLabelStyle: const TextStyle(fontFamily: 'Gilroy_Medium'),
+          selectedItemColor: notifire.getbluewhitecolor,
+          unselectedLabelStyle: TextStyle(fontFamily: fontbody),
           currentIndex: _selectedIndex,
           showSelectedLabels: true,
           showUnselectedLabels: true,
@@ -65,9 +66,11 @@ class _BottomHomeState extends State<BottomHome> {
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset(
                     "assets/images/home.png",
-                    color: notifire.isDark
-                        ? wihitecolor
-                        : notifire.getbottombarblue,
+                    color: _selectedIndex == ButtomTabPage.Dashboard.index
+                        ? notifire.isDark
+                            ? wihitecolor
+                            : notifire.getbottombarblue
+                        : notifire.getgrey.withOpacity(.80),
                     height: _selectedIndex == ButtomTabPage.Dashboard.index
                         ? height / 37
                         : height / 45,
@@ -82,7 +85,11 @@ class _BottomHomeState extends State<BottomHome> {
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset(
                     "assets/images/wallets.png",
-                    color: notifire.isDark ? wihitecolor : null,
+                    color: _selectedIndex == ButtomTabPage.Wallets.index
+                        ? notifire.isDark
+                            ? wihitecolor
+                            : notifire.getbottombarblue
+                        : notifire.getgrey.withOpacity(.80),
                     height: _selectedIndex == ButtomTabPage.Wallets.index
                         ? height / 39
                         : height / 50,
@@ -96,7 +103,12 @@ class _BottomHomeState extends State<BottomHome> {
                   duration: Duration(milliseconds: 2000),
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset("assets/images/history.png",
-                      color: notifire.isDark ? wihitecolor : null,
+                      color: _selectedIndex ==
+                              ButtomTabPage.TransactionHistory.index
+                          ? notifire.isDark
+                              ? wihitecolor
+                              : notifire.getbottombarblue
+                          : notifire.getgrey.withOpacity(.80),
                       height: _selectedIndex ==
                               ButtomTabPage.TransactionHistory.index
                           ? height / 37
@@ -109,7 +121,11 @@ class _BottomHomeState extends State<BottomHome> {
                   duration: Duration(milliseconds: 2000),
                   curve: Curves.fastOutSlowIn,
                   child: Image.asset("assets/images/swap.png",
-                      color: notifire.isDark ? wihitecolor : null,
+                      color: _selectedIndex == ButtomTabPage.Swap.index
+                          ? notifire.isDark
+                              ? wihitecolor
+                              : notifire.getbottombarblue
+                          : notifire.getgrey.withOpacity(.80),
                       height: _selectedIndex == ButtomTabPage.Swap.index
                           ? height / 37
                           : height / 45),
@@ -122,7 +138,11 @@ class _BottomHomeState extends State<BottomHome> {
                 curve: Curves.fastOutSlowIn,
                 child: Image.asset(
                   "assets/images/settings.png",
-                  color: notifire.isDark ? wihitecolor : null,
+                  color: _selectedIndex == ButtomTabPage.Settings.index
+                      ? notifire.isDark
+                          ? wihitecolor
+                          : notifire.getbottombarblue
+                      : notifire.getgrey.withOpacity(.80),
                   height: _selectedIndex == ButtomTabPage.Settings.index
                       ? height / 37
                       : height / 43,
