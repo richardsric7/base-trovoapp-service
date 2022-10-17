@@ -384,7 +384,7 @@ class Payment_HistoryState extends State<PaymentHistory>
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontFamily: fontsemibold,
-                // color: notifier.getbluecolor,
+                color: notifier.getbluewhitecolor,
               ),
             ),
             SizedBox(

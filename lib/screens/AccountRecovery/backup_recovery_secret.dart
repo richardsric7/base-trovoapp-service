@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/network/requests.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
@@ -31,6 +32,9 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
   Widget build(BuildContext context) {
     var notifier = Provider.of<ColorNotifier>(context, listen: true);
     state = Provider.of<DataProvider>(context, listen: true);
+    var data = state.viewData![EnsurePrivacyPageConfig.key];
+
+    print(data);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -66,45 +70,53 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
               SizedBox(height: height / 20),
               Secret(
                   state.tempUsername, state.tempSecretKey, state.tempPublicKey),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Transform.scale(
-                    scale: 1.sp,
-                    child: Checkbox(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(5.sp),
+              if (data != null &&
+                  data['rel'] != 'restoreUnactivatedAccount') ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Transform.scale(
+                      scale: 1.sp,
+                      child: Checkbox(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(5.sp),
+                          ),
                         ),
+                        activeColor: notifier.getbluecolor,
+                        side: BorderSide(color: notifier.getbluewhitecolor),
+                        value: state.tempInvalidateOldSigner,
+                        onChanged: (value) {
+                          state.setTempInvalidateOldSigner = value;
+                        },
                       ),
-                      activeColor: notifier.getbluecolor,
-                      side: BorderSide(color: notifier.getbluewhitecolor),
-                      value: state.tempInvalidateOldSigner,
-                      onChanged: (value) {
-                        state.setTempInvalidateOldSigner = value;
-                      },
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    width: width / 1.2,
-                    child: Text(
-                      LanguageEn.invalidateoldsigner,
-                      style: TextStyle(
-                          fontSize: height / 55,
-                          color: notifier.getgrey,
-                          fontFamily: fontbody),
-                    ),
-                  )
-                ],
-              ),
+                    Container(
+                      padding: const EdgeInsets.all(16.0),
+                      width: width / 1.2,
+                      child: Text(
+                        LanguageEn.invalidateoldsigner,
+                        style: TextStyle(
+                            fontSize: height / 55,
+                            color: notifier.getgrey,
+                            fontFamily: fontbody),
+                      ),
+                    )
+                  ],
+                ),
+              ],
               SizedBox(height: height / 20),
               Button(
                 LanguageEn.continuee,
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  requestAccountRecovery();
+                  if (data != null &&
+                      data['rel'] == 'restoreUnactivatedAccount') {
+                    restoreInactiveAccountRequest();
+                  } else {
+                    requestAccountRecovery();
+                  }
                 },
               ),
               SizedBox(height: height / 20),
@@ -116,6 +128,45 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
         ),
       ),
     );
+  }
+
+  restoreInactiveAccountRequest() async {
+    try {
+      showLoader(context);
+      // make initial request to the server using the
+      // following credentials
+      Map map = {
+        "newSignerPublicKey": state.tempPublicKey,
+        "emailOtp": state.tempEmailOtp,
+        "username": state.tempUsername,
+        "securityAnswers": state.tempSecurityQuestionsAndAnswers,
+      };
+      String requestBody = jsonEncode(map);
+      print('this is request body $requestBody');
+
+      Map responseData = await makePostRequest(
+        uri: '/v1/users/inactive-account/recover',
+        body: requestBody,
+        signer: state.tempPublicKey,
+        secretKey: state.tempSecretKey, // the primary wallet secret key
+        publicKey: state.tempPublicKey,
+      );
+
+      print('response: $responseData');
+      hideLoader(context);
+
+      if (responseData['statusCode'] == 200) {
+        state.currentAction = PageAction(
+            state: PageState.addPage,
+            page: AccountRecoverySuccessViewPageConfig);
+      } else {
+        popup(context,
+            title: LanguageEn.error, message: responseData['data']['message']);
+      }
+    } catch (e) {
+      print(e);
+      popup(context, title: LanguageEn.error, message: e.toString());
+    }
   }
 
   requestAccountRecovery() async {

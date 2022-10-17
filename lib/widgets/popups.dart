@@ -789,7 +789,7 @@ void showSetSecurityQuestionsPopup(context) {
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -803,8 +803,21 @@ void showSetSecurityQuestionsPopup(context) {
                         horizontal: 10.0, vertical: 5.0),
                     child: ElevatedButton(
                       onPressed: () {
+                        var primaryWallet = appState.userInfo!.wallets!
+                            .firstWhere((wallet) => wallet.primaryWallet == 1);
+                        appState.viewData = {
+                          SecurityQuestionsViewPageConfig.key: {
+                            'signer': primaryWallet.signer,
+                            'publicKey': primaryWallet.publicKey,
+                            'secretKey': appState.secretKeys[0],
+                            'username': appState.userInfo!.username,
+                          }
+                        };
+                        // we want to force all users to setup their security
+                        // questions so let's not allow them out of the security
+                        // questions screen till the fill it out and submit.
                         appState.currentAction = PageAction(
-                            state: PageState.addPage,
+                            state: PageState.replaceAll,
                             page: SecurityQuestionsViewPageConfig);
                         Navigator.of(context).pop();
                       },
@@ -1855,4 +1868,147 @@ String getPlaceholder(FilterType rel) {
     default:
       return 'username';
   }
+}
+
+void haveYouSetupSecurityQuestionsPopup(context,
+    {required void Function() onYes, required void Function() onNo}) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(23),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        LanguageEn.important,
+                        style: TextStyle(
+                            color: notifier.getblck,
+                            fontSize: 18,
+                            fontFamily: fontsemibold),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 4.5,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 5.0),
+                            child: Text(
+                              LanguageEn.haveyousetupsecurityquestions,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w300,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 5.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        onYes();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        LanguageEn.ihavesetupsecurityquestions,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        onNo();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                            notifier.getsplashgrey),
+                        elevation: MaterialStateProperty.all<double>(0),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getwihitecolor!),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                              color: notifier.getgrey,
+                              width: 1,
+                              style: BorderStyle.solid),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        LanguageEn.ihavenotsetupsecurityquestions,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ));
+      });
 }

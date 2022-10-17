@@ -22,6 +22,7 @@ import 'package:trovo_wallet/screens/AccountRecovery/disable_account_recovery.da
 import 'package:trovo_wallet/screens/AccountRecovery/disable_account_recovery_info.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/recover_account.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/request_backup.dart';
+import 'package:trovo_wallet/screens/AccountRecovery/security_questions_for_inactive_accounts.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/setup_account_recovery.dart';
 import 'package:trovo_wallet/screens/Auth/AuthorizeActionView.dart';
 import 'package:trovo_wallet/screens/Auth/AuthorizeLoginView.dart';
@@ -40,7 +41,6 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment.d
 import 'package:trovo_wallet/screens/Send_and_Recieve/send_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
-import 'package:trovo_wallet/screens/AccountRecovery/request_otp.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
@@ -266,9 +266,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.SecurityQuestionsView:
           _addPageData(SecurityQuestions(), SecurityQuestionsViewPageConfig);
           break;
-        case Pages.RequestOtpView:
-          _addPageData(RequestOtp(), RequestOtpViewPageConfig);
-          break;
         case Pages.AccountRecoverySuccessView:
           _addPageData(
               AccountRecoverySuccess(), AccountRecoverySuccessViewPageConfig);
@@ -308,6 +305,10 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.SuccessView:
           _addPageData(SuccessView(), SuccessViewPageConfig);
+          break;
+        case Pages.SecurityQuestionsForInactiveAccountsView:
+          _addPageData(SecurityQuestionsForInactiveAccounts(),
+              SecurityQuestionsForInactiveAccountsViewPageConfig);
           break;
         default:
           break;
@@ -474,9 +475,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
       case Pages.SecurityQuestionsView:
         SecurityQuestionsViewPageConfig.currentPageAction = action;
         break;
-      case Pages.RequestOtpView:
-        RequestOtpViewPageConfig.currentPageAction = action;
-        break;
       case Pages.AccountRecoverySuccessView:
         AccountRecoverySuccessViewPageConfig.currentPageAction = action;
         break;
@@ -509,6 +507,10 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.SuccessView:
         SuccessViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SecurityQuestionsForInactiveAccountsView:
+        SecurityQuestionsForInactiveAccountsViewPageConfig.currentPageAction =
+            action;
         break;
       default:
         break;

@@ -165,6 +165,9 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
     } else if (data != null && data['rel'] == 'accountRecovery') {
       appState.currentAction = PageAction(
           state: PageState.addPage, page: BackupRecoverySecretViewPageConfig);
+    } else if (data != null && data['rel'] == 'restoreUnactivatedAccount') {
+      appState.currentAction = PageAction(
+          state: PageState.addPage, page: BackupRecoverySecretViewPageConfig);
     } else {
       appState.currentAction =
           PageAction(state: PageState.addPage, page: BackupPageConfig);

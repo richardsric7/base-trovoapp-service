@@ -365,6 +365,15 @@ class LanguageEn {
 
   static String get resendotp => "Resend OTP?";
 
+  static String get haveyousetupsecurityquestions =>
+      "Have you setup security questions for this account?";
+
+  static String get ihavesetupsecurityquestions =>
+      "Yes, I have setup security questions";
+
+  static String get ihavenotsetupsecurityquestions =>
+      "No, I have not setup security questions";
+
   static String get forgotpassword => "Forgot Password?";
 
   static String get setupsecondstep => "Set up 2-step verification";

@@ -68,7 +68,7 @@ class RequestBackup extends StatelessWidget {
                     () {
                       Navigator.of(context).pop();
                       appState.viewData![EnsurePrivacyPageConfig.key] = {
-                        'rel': 'accountRecovery'
+                        'rel': 'restoreUnactivatedAccount'
                       };
                       appState.currentAction = PageAction(
                           state: PageState.addPage,
@@ -83,16 +83,5 @@ class RequestBackup extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  gotoNext() async {
-    var isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
-    if (isFirstTime) {
-      appState.currentAction =
-          PageAction(state: PageState.addPage, page: FingerprintPageConfig);
-    } else {
-      appState.currentAction =
-          PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
-    }
   }
 }

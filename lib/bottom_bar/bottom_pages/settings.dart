@@ -262,6 +262,16 @@ class _SettingsState extends State<Settings> {
               GestureDetector(
                 onTap: () {
                   if (appState.userInfo!.hasSecurityQuestions == 0) {
+                    var primaryWallet = appState.userInfo!.wallets!
+                        .firstWhere((wallet) => wallet.primaryWallet == 1);
+                    appState.viewData = {
+                      SecurityQuestionsViewPageConfig.key: {
+                        'signer': primaryWallet.signer,
+                        'publicKey': primaryWallet.publicKey,
+                        'secretKey': appState.secretKeys[0],
+                        'username': appState.userInfo!.username,
+                      }
+                    };
                     appState.currentAction = PageAction(
                         state: PageState.addPage,
                         page: SecurityQuestionsViewPageConfig);

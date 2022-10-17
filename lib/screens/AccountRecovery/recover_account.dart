@@ -262,10 +262,32 @@ class _RecoverAccountState extends State<RecoverAccount> {
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        setState(() {
-          appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: AnswerSecurityQuestionsViewPageConfig);
+        haveYouSetupSecurityQuestionsPopup(context, onYes: () {
+          setState(() {
+            appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: AnswerSecurityQuestionsViewPageConfig);
+          });
+        }, onNo: () {
+          setState(() {
+            appState.viewData = {
+              SecurityQuestionsForInactiveAccountsViewPageConfig.key: {
+                'signer': appState.tempPublicKey,
+                'publicKey': appState.tempPublicKey,
+                'secretKey': appState.tempSecretKey,
+                'username': appState.tempUsername,
+              }
+            };
+            appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: SecurityQuestionsForInactiveAccountsViewPageConfig);
+            appState.viewData![EnsurePrivacyPageConfig.key] = {
+              'rel': 'restoreUnactivatedAccount',
+            };
+            appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: SecurityQuestionsForInactiveAccountsViewPageConfig);
+          });
         });
       } else {
         popup(context,
@@ -436,20 +458,5 @@ class _RecoverAccountState extends State<RecoverAccount> {
       print(e);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
-  }
-
-  String? validatePassword(value) {
-    print('password: $value');
-    if (value.isEmpty) {
-      //return "Enter a password";
-      return LanguageEn.passwordemptyerror;
-    }
-
-    if (value.trim().replaceAll(' ', '').length < 6) {
-      //return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
-    }
-
-    return null;
   }
 }
