@@ -107,7 +107,7 @@ class _SharedAccessState extends State<SharedAccess>
           context,
           notifier.getwihitecolor,
           LanguageEn.sharedaccess,
-          notifier.getblck,
+          notifier.getbluewhitecolor,
           height: height / 15,
         ),
         body: Column(

@@ -5,9 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
-import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -57,7 +55,7 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
                 Text(
                   '${LanguageEn.authorize} Login',
                   style: TextStyle(
-                      color: notifier.getblck,
+                      color: notifier.getbluewhitecolor,
                       fontFamily: fontsemibold,
                       fontSize: 27.sp),
                 ),

@@ -47,7 +47,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
               Text(
                 LanguageEn.backup,
                 style: TextStyle(
-                    color: notifier.getblck,
+                    color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
                     fontSize: 27.sp),
               ),
@@ -163,6 +163,9 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
       appState.currentAction =
           PageAction(state: PageState.addPage, page: BackupAllViewPageConfig);
     } else if (data != null && data['rel'] == 'accountRecovery') {
+      appState.currentAction = PageAction(
+          state: PageState.addPage, page: BackupRecoverySecretViewPageConfig);
+    } else if (data != null && data['rel'] == 'restoreUnactivatedAccount') {
       appState.currentAction = PageAction(
           state: PageState.addPage, page: BackupRecoverySecretViewPageConfig);
     } else {

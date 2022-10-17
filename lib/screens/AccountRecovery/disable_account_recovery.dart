@@ -100,7 +100,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                   LanguageEn.disable,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 30.sp,
                       fontFamily: fontsemibold),
                 ),
@@ -108,7 +108,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                   LanguageEn.accountrecovery,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluecolor80,
+                      color: notifier.getbluewhitecolor,
                       fontSize: 30.sp,
                       fontFamily: fontsemibold),
                 ),
@@ -375,7 +375,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
       print('response: $responseData');
       hideLoader(context);
 
-      if (responseData['statusCode'] == 200) {
+      if (responseData['statusCode'] == 202) {
         // sendFullDataToServer(responseData['data']);
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;

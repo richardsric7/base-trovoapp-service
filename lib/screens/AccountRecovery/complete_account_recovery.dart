@@ -35,7 +35,6 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
   late DataProvider appState;
   String password = '';
   final formKey = GlobalKey<FormState>();
-  final Authenticator _authenticator = Authenticator();
   var viewData;
   bool hasBackedUp = false;
 
@@ -51,7 +50,6 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     viewData = appState.viewData![CompleteAccountRecoveryViewPageConfig.key];
-    print('====================completeAccountRecovery: $viewData');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -72,7 +70,7 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                   Text(
                     LanguageEn.account,
                     style: TextStyle(
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 26.sp,
                         fontFamily: fontsemibold),
                   ),
@@ -82,7 +80,7 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                   Text(
                     LanguageEn.recovery,
                     style: TextStyle(
-                        color: notifier.getbluecolor80,
+                        color: notifier.getbluewhitecolor,
                         fontSize: 26.sp,
                         fontFamily: fontsemibold),
                   ),

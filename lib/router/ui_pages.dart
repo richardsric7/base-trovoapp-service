@@ -52,6 +52,8 @@ const String CompleteAccountRecoveryViewPath = '/CompleteAccountRecoveryView';
 const String DisableAccountRecoveryInfoViewPath =
     '/DisableAccountRecoveryInfoView';
 const String SuccessViewPath = '/SuccessView';
+const String SecurityQuestionsForInactiveAccountsViewPath =
+    '/SecurityQuestionsForInactiveAccounts';
 
 enum Pages {
   Splash,
@@ -104,6 +106,7 @@ enum Pages {
   CompleteAccountRecoveryView,
   DisableAccountRecoveryInfoView,
   SuccessView,
+  SecurityQuestionsForInactiveAccountsView
 }
 
 class PageConfiguration {
@@ -310,11 +313,6 @@ PageConfiguration SecurityQuestionsViewPageConfig = PageConfiguration(
     path: SecurityQuestionsViewPath,
     uiPage: Pages.SecurityQuestionsView,
     currentPageAction: null);
-PageConfiguration RequestOtpViewPageConfig = PageConfiguration(
-    key: 'RequestOtpView',
-    path: RequestOtpViewPath,
-    uiPage: Pages.RequestOtpView,
-    currentPageAction: null);
 PageConfiguration AccountRecoverySuccessViewPageConfig = PageConfiguration(
     key: 'AccountRecoverySuccessView',
     path: AccountRecoverySuccessViewPath,
@@ -370,3 +368,9 @@ PageConfiguration SuccessViewPageConfig = PageConfiguration(
     path: SuccessViewPath,
     uiPage: Pages.SuccessView,
     currentPageAction: null);
+PageConfiguration SecurityQuestionsForInactiveAccountsViewPageConfig =
+    PageConfiguration(
+        key: 'SecurityQuestionsForInactiveAccountsView',
+        path: SecurityQuestionsForInactiveAccountsViewPath,
+        uiPage: Pages.SecurityQuestionsForInactiveAccountsView,
+        currentPageAction: null);

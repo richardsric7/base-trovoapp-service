@@ -25,11 +25,7 @@ class AccountRecoverySuccess extends StatefulWidget {
 
 class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
   late ColorNotifier notifier;
-  bool isChecked = false;
-  final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
-  String email = '';
-  String otp = '';
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -60,161 +56,111 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
             height: height / 20),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                SizedBox(height: height / 50),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      LanguageEn.account,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: notifier.getbluecolor,
-                          fontSize: 30.sp,
-                          fontFamily: fontsemibold),
-                    ),
-                    SizedBox(width: width / 50),
-                    Text(
-                      LanguageEn.recovery,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: notifier.getbluecolor80,
-                          fontSize: 30.sp,
-                          fontFamily: fontsemibold),
-                    ),
-                  ],
-                ),
-                Image.asset("assets/images/startup-launch.png",
-                    height: height / 3.5),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
-                      color: notifier.isDark
-                          ? darktilewhitecolor
-                          : notifier.getaddsubwalletgrey,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 15.0),
-                          child: Container(
-                            width: width / 1.3,
-                            child: Column(
-                              children: [
-                                Text(
-                                  '${LanguageEn.congratulations} ${appState.tempUsername}',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontsemibold),
-                                ),
-                                SizedBox(height: 2),
-                                Text(
-                                  LanguageEn.otpcongratulationsdetails,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody),
-                                ),
-                                SizedBox(height: 2),
-                              ],
-                            ),
+          child: Column(
+            children: [
+              SizedBox(height: height / 50),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    LanguageEn.account,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 30.sp,
+                        fontFamily: fontsemibold),
+                  ),
+                  SizedBox(width: width / 50),
+                  Text(
+                    LanguageEn.recovery,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 30.sp,
+                        fontFamily: fontsemibold),
+                  ),
+                ],
+              ),
+              Image.asset("assets/images/startup-launch.png",
+                  height: height / 3.5),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                    color: notifier.isDark
+                        ? darktilewhitecolor
+                        : notifier.getaddsubwalletgrey,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20.0, vertical: 15.0),
+                        child: Container(
+                          width: width / 1.3,
+                          child: Column(
+                            children: [
+                              Text(
+                                '${LanguageEn.congratulations} ${appState.tempUsername}',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontsemibold),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                LanguageEn.otpcongratulationsdetails,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody),
+                              ),
+                              SizedBox(height: 2),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: height / 30),
-                SizedBox(
-                  height: height / 20,
-                ),
-                Button(
-                  LanguageEn.done,
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () async {
-                    bool isFirstTime =
-                        await StoreData().storeGetData('isFirstTime') ?? true;
-                    if (isFirstTime) {
-                      setState(() {
-                        appState.currentAction = PageAction(
-                            state: PageState.replaceAll,
-                            page: OnboardingPageConfig);
-                      });
-                    } else {
-                      setState(() {
-                        appState.currentAction = PageAction(
-                            state: PageState.replaceAll, page: LoginPageConfig);
-                      });
-                    }
-                  },
-                ),
-                SizedBox(height: height / 10),
-                Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom)),
-              ],
-            ),
+              ),
+              SizedBox(height: height / 30),
+              SizedBox(
+                height: height / 20,
+              ),
+              Button(
+                LanguageEn.done,
+                notifier.getbluecolor,
+                wihitecolor,
+                onTap: () async {
+                  bool isFirstTime =
+                      await StoreData().storeGetData('isFirstTime') ?? true;
+                  if (isFirstTime) {
+                    setState(() {
+                      appState.currentAction = PageAction(
+                          state: PageState.replaceAll,
+                          page: OnboardingPageConfig);
+                    });
+                  } else {
+                    setState(() {
+                      appState.currentAction = PageAction(
+                          state: PageState.replaceAll, page: LoginPageConfig);
+                    });
+                  }
+                },
+              ),
+              SizedBox(height: height / 10),
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+            ],
           ),
         ),
       ),
     );
   }
-
-  String? validatePassword(value) {
-    print('password: $value');
-    if (value.isEmpty) {
-      //return "Enter a password";
-      return LanguageEn.passwordemptyerror;
-    }
-
-    if (value.trim().replaceAll(' ', '').length < 6) {
-      //return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
-    }
-
-    return null;
-  }
-
-  String? validateConfirmPassword(value) {
-    print('confirm password: ${value.trim().replaceAll(' ', '')} & $otp');
-    if (value.isEmpty) {
-      // return "Confirm your password";
-      return LanguageEn.confirmpasswordemptyerror;
-    }
-
-    if (value.trim().replaceAll(' ', '').length < 6) {
-      // return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
-    }
-
-    if (otp != value.trim().replaceAll(' ', '')) {
-      //  return 'Those passwords didn\’t match. Try again.';
-      return LanguageEn.passwordmismatcherror;
-    }
-
-    return null;
-  }
-
-  bool validate() {
-    final form = _formKey.currentState;
-    if (form!.validate()) {
-      form.save();
-      return true;
-    }
-    return false;
-  }
-
-  void saveAndProceed() async {}
 }

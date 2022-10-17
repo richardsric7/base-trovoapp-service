@@ -72,7 +72,7 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
                 LanguageEn.enable,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluecolor,
+                    color: notifier.getbluewhitecolor,
                     fontSize: 30.sp,
                     fontFamily: fontsemibold),
               ),
@@ -80,7 +80,7 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
                 LanguageEn.accountrecovery,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: notifier.getbluecolor80,
+                    color: notifier.getbluewhitecolor,
                     fontSize: 30.sp,
                     fontFamily: fontsemibold),
               ),
@@ -172,7 +172,7 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
       print('response: $responseData');
       hideLoader(context);
 
-      if (responseData['statusCode'] == 200) {
+      if (responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
 

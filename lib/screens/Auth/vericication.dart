@@ -91,7 +91,7 @@ class _VeryficationState extends State<Veryfication> {
                       Text(
                         LanguageEn.enterverification,
                         style: TextStyle(
-                            color: notifier.getblck,
+                            color: notifier.getbluewhitecolor,
                             fontSize: 23.sp,
                             fontFamily: fontsemibold),
                       ),

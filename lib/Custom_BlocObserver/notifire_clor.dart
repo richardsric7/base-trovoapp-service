@@ -24,6 +24,7 @@ class ColorNotifier with ChangeNotifier {
   get getbluecolor70 => isDark ? darkblue70 : trovoblue70;
   get getbluecolor60 => isDark ? darkblue60 : trovoblue60;
   get getbluecolor50 => isDark ? darkblue50 : trovoblue50;
+  get getbottombarblue => isDark ? bottombarblue : bottombarblue;
 
   WalletTileColor get getstructuredbluecolor => WalletTileColor(
       backColor: isDark ? darkblue90 : trovoblue, foreColor: wihitecolor);

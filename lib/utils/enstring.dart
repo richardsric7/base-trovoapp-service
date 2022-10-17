@@ -365,6 +365,15 @@ class LanguageEn {
 
   static String get resendotp => "Resend OTP?";
 
+  static String get haveyousetupsecurityquestions =>
+      "Have you setup security questions for this account?";
+
+  static String get ihavesetupsecurityquestions =>
+      "Yes, I have setup security questions";
+
+  static String get ihavenotsetupsecurityquestions =>
+      "No, I have not setup security questions";
+
   static String get forgotpassword => "Forgot Password?";
 
   static String get setupsecondstep => "Set up 2-step verification";
@@ -542,7 +551,7 @@ class LanguageEn {
 
   static String get accept => "Accept";
 
-  static String get goodevening => "Good evening,";
+  static String get goodday => "Good day,";
 
   static String get totalbalance => 'Total Balance   ';
 
@@ -568,7 +577,7 @@ class LanguageEn {
 
   static String get pending => "PENDING";
 
-  static String get nfts => "NFT";
+  static String get nfts => "NFTS/TIX";
 
   static String get gocrypto => "GoCrypto";
 
@@ -729,8 +738,6 @@ class LanguageEn {
 
   static String get security => "Security";
 
-  static String get access => "Access";
-
   static String get passwordmanagement => "Password Management";
 
   static String get myprofile => "My Profile";
@@ -774,7 +781,7 @@ class LanguageEn {
 
   static String get abouttrovowallet => "About Trovo Wallet";
 
-  static String get mysubscriptions => "My Subscriptions";
+  static String get trovopatron => "Trovo Patron";
 
   static String get faqsupport => "FAQ & Support";
 

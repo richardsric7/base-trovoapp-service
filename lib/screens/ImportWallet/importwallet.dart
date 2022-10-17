@@ -94,7 +94,7 @@ class _ImportWalletState extends State<ImportWallet> {
                             Text(
                               LanguageEn.import,
                               style: TextStyle(
-                                  color: notifier.getbluecolor,
+                                  color: notifier.getbluewhitecolor,
                                   fontSize: 26.sp,
                                   fontFamily: fontsemibold),
                             ),
@@ -104,7 +104,7 @@ class _ImportWalletState extends State<ImportWallet> {
                             Text(
                               LanguageEn.wallet,
                               style: TextStyle(
-                                  color: notifier.getbluecolor80,
+                                  color: notifier.getbluewhitecolor,
                                   fontSize: 26.sp,
                                   fontFamily: fontsemibold),
                             ),

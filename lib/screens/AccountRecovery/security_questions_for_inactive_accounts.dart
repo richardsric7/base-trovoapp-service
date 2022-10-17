@@ -20,14 +20,16 @@ import '../../Custom_BlocObserver/fonts.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class SecurityQuestions extends StatefulWidget {
-  const SecurityQuestions({Key? key}) : super(key: key);
+class SecurityQuestionsForInactiveAccounts extends StatefulWidget {
+  const SecurityQuestionsForInactiveAccounts({Key? key}) : super(key: key);
 
   @override
-  State<SecurityQuestions> createState() => _SecurityQuestions();
+  State<SecurityQuestionsForInactiveAccounts> createState() =>
+      _SecurityQuestionsForInactiveAccounts();
 }
 
-class _SecurityQuestions extends State<SecurityQuestions> {
+class _SecurityQuestionsForInactiveAccounts
+    extends State<SecurityQuestionsForInactiveAccounts> {
   late ColorNotifier notifier;
   bool isChecked = false;
   final _formKey = GlobalKey<FormState>();
@@ -74,13 +76,18 @@ class _SecurityQuestions extends State<SecurityQuestions> {
     appState = Provider.of<DataProvider>(context, listen: false);
     // primaryWallet = appState.userInfo!.wallets!
     //     .firstWhere((wallet) => wallet.primaryWallet == 1);
-    publicKey =
-        appState.viewData![SecurityQuestionsViewPageConfig.key]['publicKey'];
-    signer = appState.viewData![SecurityQuestionsViewPageConfig.key]['signer'];
-    secretKey =
-        appState.viewData![SecurityQuestionsViewPageConfig.key]['secretKey'];
-    username =
-        appState.viewData![SecurityQuestionsViewPageConfig.key]['username'];
+    publicKey = appState
+            .viewData![SecurityQuestionsForInactiveAccountsViewPageConfig.key]
+        ['publicKey'];
+    signer = appState
+            .viewData![SecurityQuestionsForInactiveAccountsViewPageConfig.key]
+        ['signer'];
+    secretKey = appState
+            .viewData![SecurityQuestionsForInactiveAccountsViewPageConfig.key]
+        ['secretKey'];
+    username = appState
+            .viewData![SecurityQuestionsForInactiveAccountsViewPageConfig.key]
+        ['username'];
     questions = fetchQuestions(signer, secretKey, publicKey, username);
   }
 
@@ -92,13 +99,16 @@ class _SecurityQuestions extends State<SecurityQuestions> {
     appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
+        appBar: CustomAppBar(
+            context, notifier.getwihitecolor, "", notifier.getblck,
+            height: height / 20),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
           child: Form(
             key: _formKey,
             child: Column(
               children: [
-                SizedBox(height: height / 10),
+                SizedBox(height: height / 50),
                 Text(
                   LanguageEn.setup,
                   textAlign: TextAlign.center,
@@ -377,54 +387,21 @@ class _SecurityQuestions extends State<SecurityQuestions> {
     }
 
     form.save();
-    sendToServer();
-  }
-
-  sendToServer() async {
-    try {
-      showLoader(context);
-      // make initial request to the server using the
-      // following credentials
-      Map map = {
-        "q1": int.parse(questionsMap[1]!['q'].toString()),
-        "a1": questionsMap[1]!['a'],
-        "q2": int.parse(questionsMap[2]!['q'].toString()),
-        "a2": questionsMap[2]!['a'],
-        "q3": int.parse(questionsMap[3]!['q'].toString()),
-        "a3": questionsMap[3]!['a']
-      };
-      String requestBody = jsonEncode(map);
-      print('this is request body $requestBody');
-
-      Map responseData = await makePostRequest(
-        uri: '/v1/security-questions',
-        body: requestBody,
-        signer: signer!,
-        secretKey: secretKey!, // the primary wallet secret key
-        publicKey: publicKey!,
-      );
-
-      print('response: $responseData');
-      hideLoader(context);
-
-      if (responseData['statusCode'] == 200) {
-        await updateUserInfo(signer, secretKey, publicKey, username, appState);
-        appState.viewData = {
-          SuccessViewPageConfig.key: {
-            'title': LanguageEn.success,
-            'message': LanguageEn.securityquestionssuccessmessage,
-          }
-        };
-        appState.currentAction = PageAction(
-            state: PageState.replaceAll, page: SuccessViewPageConfig);
-      } else {
-        popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
-      }
-    } catch (e) {
-      print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
-    }
+    // sendToServer();
+    var map = {
+      "q1": int.parse(questionsMap[1]!['q'].toString()),
+      "a1": questionsMap[1]!['a'],
+      "q2": int.parse(questionsMap[2]!['q'].toString()),
+      "a2": questionsMap[2]!['a'],
+      "q3": int.parse(questionsMap[3]!['q'].toString()),
+      "a3": questionsMap[3]!['a']
+    };
+    appState.setTempSecurityQuestionsAndAnswers = map;
+    appState.viewData![EnsurePrivacyPageConfig.key] = {
+      'rel': 'restoreUnactivatedAccount',
+    };
+    appState.currentAction =
+        PageAction(state: PageState.addPage, page: RequestBackupViewPageConfig);
   }
 
   Future<List<Map>> fetchQuestions(

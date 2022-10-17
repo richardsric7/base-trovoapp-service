@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/BottomTabPage.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
@@ -49,10 +51,10 @@ class _BottomHomeState extends State<BottomHome> {
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: notifire.getwihitecolor,
           unselectedItemColor: notifire.getgrey.withOpacity(.80),
-          selectedLabelStyle: const TextStyle(fontFamily: 'Gilroy_Medium'),
+          selectedLabelStyle: TextStyle(fontFamily: fontbody),
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: notifire.getbluecolor,
-          unselectedLabelStyle: const TextStyle(fontFamily: 'Gilroy_Medium'),
+          selectedItemColor: notifire.getbluewhitecolor,
+          unselectedLabelStyle: TextStyle(fontFamily: fontbody),
           currentIndex: _selectedIndex,
           showSelectedLabels: true,
           showUnselectedLabels: true,
@@ -66,16 +68,16 @@ class _BottomHomeState extends State<BottomHome> {
                     "assets/images/home.png",
                     color: _selectedIndex == ButtomTabPage.Dashboard.index
                         ? notifire.isDark
-                            ? notifire.getbluecolor60
-                            : notifire.getbluecolor
-                        : notifire.getblck,
+                            ? wihitecolor
+                            : notifire.getbottombarblue
+                        : notifire.getgrey.withOpacity(.80),
                     height: _selectedIndex == ButtomTabPage.Dashboard.index
-                        ? height / 29
-                        : height / 35,
+                        ? height / 37
+                        : height / 45,
                     fit: BoxFit.contain,
                   ),
                 ),
-                label: ''),
+                label: 'Home'),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
                 icon: AnimatedContainer(
@@ -85,16 +87,16 @@ class _BottomHomeState extends State<BottomHome> {
                     "assets/images/wallets.png",
                     color: _selectedIndex == ButtomTabPage.Wallets.index
                         ? notifire.isDark
-                            ? notifire.getbluecolor60
-                            : notifire.getbluecolor
-                        : notifire.getblck,
+                            ? wihitecolor
+                            : notifire.getbottombarblue
+                        : notifire.getgrey.withOpacity(.80),
                     height: _selectedIndex == ButtomTabPage.Wallets.index
-                        ? height / 29
-                        : height / 35,
+                        ? height / 39
+                        : height / 50,
                     fit: BoxFit.fitHeight,
                   ),
                 ),
-                label: ''),
+                label: 'Wallets'),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
                 icon: AnimatedContainer(
@@ -104,15 +106,15 @@ class _BottomHomeState extends State<BottomHome> {
                       color: _selectedIndex ==
                               ButtomTabPage.TransactionHistory.index
                           ? notifire.isDark
-                              ? notifire.getbluecolor60
-                              : notifire.getbluecolor
-                          : notifire.getblck,
+                              ? wihitecolor
+                              : notifire.getbottombarblue
+                          : notifire.getgrey.withOpacity(.80),
                       height: _selectedIndex ==
                               ButtomTabPage.TransactionHistory.index
-                          ? height / 29
-                          : height / 35),
+                          ? height / 37
+                          : height / 45),
                 ),
-                label: ''),
+                label: 'History'),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
                 icon: AnimatedContainer(
@@ -121,14 +123,14 @@ class _BottomHomeState extends State<BottomHome> {
                   child: Image.asset("assets/images/swap.png",
                       color: _selectedIndex == ButtomTabPage.Swap.index
                           ? notifire.isDark
-                              ? notifire.getbluecolor60
-                              : notifire.getbluecolor
-                          : notifire.getblck,
+                              ? wihitecolor
+                              : notifire.getbottombarblue
+                          : notifire.getgrey.withOpacity(.80),
                       height: _selectedIndex == ButtomTabPage.Swap.index
-                          ? height / 29
-                          : height / 35),
+                          ? height / 37
+                          : height / 45),
                 ),
-                label: ''),
+                label: 'Swap'),
             BottomNavigationBarItem(
               backgroundColor: notifire.getwihitecolor,
               icon: AnimatedContainer(
@@ -138,15 +140,15 @@ class _BottomHomeState extends State<BottomHome> {
                   "assets/images/settings.png",
                   color: _selectedIndex == ButtomTabPage.Settings.index
                       ? notifire.isDark
-                          ? notifire.getbluecolor60
-                          : notifire.getbluecolor
-                      : notifire.getblck,
+                          ? wihitecolor
+                          : notifire.getbottombarblue
+                      : notifire.getgrey.withOpacity(.80),
                   height: _selectedIndex == ButtomTabPage.Settings.index
-                      ? height / 27
-                      : height / 33,
+                      ? height / 37
+                      : height / 43,
                 ),
               ),
-              label: '',
+              label: 'Settings',
             ),
           ],
           // onTap: (index) {
@@ -179,6 +181,7 @@ class _BottomHomeState extends State<BottomHome> {
     setState(() {
       if (_selectedIndex != ButtomTabPage.TransactionHistory.index &&
           index == ButtomTabPage.TransactionHistory.index) {
+        appState.setFilterQuery = "";
         appState.getHistory(context);
       }
       _selectedIndex = index;
