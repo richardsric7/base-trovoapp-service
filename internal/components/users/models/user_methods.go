@@ -1053,6 +1053,7 @@ func (wp *WalletPermission) ToWalletPermissionInfo(user *User, w *UserWallet, gc
 		TargetUsername:        wp.TargetUsername,
 		Name:                  name,
 		PushNotificationToken: pushNotificationToken,
+		Permission:            wp.Permission,
 	}
 	return
 }
