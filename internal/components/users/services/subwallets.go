@@ -152,7 +152,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 	}
 	{
 		//check if the sub-wallet passes the validation
-		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, gc)
+		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.AssetIsserWallet, gc)
 		if err != nil {
 			log.Printf("[generateSubWalletXdr] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
 			return "", subWalletObj, err
@@ -326,7 +326,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 	}
 	{
 		//check if the sub-wallet passes the validation
-		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, gc)
+		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.AssetIsserWallet, gc)
 		if err != nil {
 			log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
 

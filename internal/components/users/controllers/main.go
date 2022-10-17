@@ -1511,7 +1511,19 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	router.DELETE("/v1/shared-access/users/account", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
+		var sharedAccessInfo userModels.DisableSharedAccessInfo
+		// var err error
 
+		data, _ := io.ReadAll(c.Request.Body)
+		log.Println(string(data))
+		err = json.Unmarshal(data, &sharedAccessInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
 		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
@@ -1571,6 +1583,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 		for _, p := range pl {
+
 			if p.Permission == "INITIATOR" || p.Permission == "APPROVER" {
 				isViewOnly = false
 			}
@@ -1594,20 +1607,8 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/shared-access/users/account %v", middleware.ExtractPublicKey(c)), gc.DB)
 
-		var sharedAccessInfo userModels.DisableSharedAccessInfo
-		// var err error
-
-		data, _ := io.ReadAll(c.Request.Body)
-		log.Println(string(data))
-		err = json.Unmarshal(data, &sharedAccessInfo)
-
-		var invalidJSON tErrors.ErrorInvalidJSON
-
-		if err != nil {
-			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-			return
-		}
 		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
+
 		log.Printf("[DEBUG] sharedAccess %+v\n", sharedAccessInfo)
 		err = userServices.RemoveSharedWalletAccess(&signerUser, &wallet, &sharedAccessInfo, gc)
 
@@ -1637,17 +1638,19 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[REMOVED SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
 		if len(sharedAccessInfo.TransactionID) > 0 {
-			if sharedAccessInfo.TransactionID == "AUTH_PENDING" {
+			if sharedAccessInfo.TransactionID == "PENDING_AUTH" {
 				//saved to pending auth table for disabling shared access
 				for _, v := range sharedAccessInfo.Permissions {
 
 					if v.PushNotificationToken != nil && v.Permission == "APPROVER" {
+						log.Println("notifying approver:", v.TargetUsername)
 						dataPayload := make(map[string]string)
 						dataPayload["link"] = "authPending"
 						pns.SendFirebaseMessage(*v.PushNotificationToken, fmt.Sprintf("Pending Approval: Disable shared access on wallet %v!", v.WalletAlias), fmt.Sprintf("You have a pending approval to disable shared access on the wallet %v. Please tap to choose the appropriate action.", v.WalletAlias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 					}
 				}
 				c.JSON(http.StatusOK, sharedAccessInfo)
+				return
 			} else {
 				//transaction was completed successfully
 				for _, v := range sharedAccessInfo.Permissions {
@@ -1659,8 +1662,8 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					}
 				}
 				c.JSON(http.StatusOK, sharedAccessInfo)
+				return
 			}
-			c.JSON(http.StatusOK, sharedAccessInfo)
 		} else {
 			c.JSON(http.StatusAccepted, sharedAccessInfo)
 		}

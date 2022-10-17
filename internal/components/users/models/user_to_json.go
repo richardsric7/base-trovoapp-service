@@ -76,6 +76,8 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 	jsonObj.Signer = uw.Signer
 	jsonObj.UserID = uw.UserID
 	jsonObj.SharedAccessEnabled = uw.SharedAccessEnabled
+	jsonObj.AssetIssuerWallet = uw.AssetIssuerWallet
+
 	if uw.SharedAccessEnabled == 1 {
 		//get shared access
 		for _, permision := range uw.Permissions {

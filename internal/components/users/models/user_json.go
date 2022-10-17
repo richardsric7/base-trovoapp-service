@@ -39,6 +39,7 @@ type UserWalletJSON struct {
 	UserID                  string                 `json:"userId"`
 	SharedAccessEnabled     int                    `json:"sharedAccessEnabled"`
 	PrimaryWallet           int                    `json:"primaryWallet"`
+	AssetIssuerWallet       int                    `json:"assetIssuerWallet"`
 	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
 	Permissions             []WalletPermissionJSON `json:"permissions"`
 	SharedAccessCreatedAt   time.Time              `json:"sharedAccessCreatedAt"`

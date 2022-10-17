@@ -527,7 +527,7 @@ func (u *User) BuildPrimaryWallet() {
 	u.UserWallets = append(u.UserWallets, userWallet)
 }
 
-func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
+func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string, assetIssuerWallet int, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
 	walletTag = strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", ""), "%", ""))
 	walletDescription = strings.TrimSpace(walletDescription)
 
@@ -608,13 +608,14 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 
 	alias := fmt.Sprintf("%s_%s", u.Username, walletTag)
 	userSubWallet := UserWallet{
-		ID:            subWalletPublicKey,
-		TempPublicKey: &tempPK,
-		Tag:           &walletTag,
-		Description:   &walletDescription,
-		Alias:         alias,
-		Signer:        u.PublicKey,
-		UserID:        u.ID,
+		ID:                subWalletPublicKey,
+		TempPublicKey:     &tempPK,
+		Tag:               &walletTag,
+		Description:       &walletDescription,
+		Alias:             alias,
+		Signer:            u.PublicKey,
+		UserID:            u.ID,
+		AssetIssuerWallet: assetIssuerWallet,
 	}
 	// u.UserWallets = append(u.UserWallets, userSubWallet)
 	return userSubWallet, nil
