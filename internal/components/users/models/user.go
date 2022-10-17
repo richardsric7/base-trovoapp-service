@@ -99,6 +99,7 @@ type DisableSharedAccessInfo struct {
 	SignatureRequired    int                    `json:"signatureRequired"`
 	MultiParty           int                    `json:"multiParty"`
 	Permissions          []WalletPermissionInfo `json:"-"`
+	Commit               int                    `json:"commit"`
 }
 type WalletPermissionInfo struct {
 	ID                    string  `json:"Id"`

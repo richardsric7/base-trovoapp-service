@@ -1639,7 +1639,15 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		if len(sharedAccessInfo.TransactionID) > 0 {
 			if sharedAccessInfo.TransactionID == "AUTH_PENDING" {
 				//saved to pending auth table for disabling shared access
-				c.JSON(http.StatusAccepted, sharedAccessInfo)
+				for _, v := range sharedAccessInfo.Permissions {
+
+					if v.PushNotificationToken != nil && v.Permission == "APPROVER" {
+						dataPayload := make(map[string]string)
+						dataPayload["link"] = "authPending"
+						pns.SendFirebaseMessage(*v.PushNotificationToken, fmt.Sprintf("Pending Approval: Disable shared access on wallet %v!", v.WalletAlias), fmt.Sprintf("You have a pending approval to disable shared access on the wallet %v. Please tap to choose the appropriate action.", v.WalletAlias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+					}
+				}
+				c.JSON(http.StatusOK, sharedAccessInfo)
 			} else {
 				//transaction was completed successfully
 				for _, v := range sharedAccessInfo.Permissions {

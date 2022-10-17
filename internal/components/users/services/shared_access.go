@@ -397,7 +397,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	accessList := wallet.Permissions
 	var numberOfApprovers int
 	// var numberOfSubmittedInitiators int
-	var selfApprover int
+	// var selfApprover int
 	var approverUsers []*userModels.User
 
 	if wallet.SharedAccessEnabled == 0 {
@@ -433,9 +433,9 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		}
 		if v.Permission == "APPROVER" {
 			numberOfApprovers++
-			if v.TargetUsername == walletOwner.Username {
-				selfApprover = 1
-			}
+			// if v.TargetUsername == walletOwner.Username {
+			// 	selfApprover = 1
+			// }
 			approverUsers = append(approverUsers, &u)
 		}
 		{
@@ -445,13 +445,13 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 
 	}
 
-	// if approver exists, then owner must sign transaction to add them as signers
-	if (numberOfApprovers - selfApprover) > 0 {
-		accessInfo.SignatureRequired = 1
+	// // if approver exists, then owner must sign transaction to add them as signers
+	// if (numberOfApprovers - selfApprover) > 0 {
+	// 	accessInfo.SignatureRequired = 1
 
-	}
+	// }
 
-	xdrBase64, messages, walletMustSign, multipartySign, errGenXdr := generateRemoveSharedAccessXdr(wallet, &walletOwner, approverUsers, gc)
+	xdrBase64, messages, walletMustSign, _, errGenXdr := generateRemoveSharedAccessXdr(wallet, &walletOwner, approverUsers, gc)
 	if errGenXdr != nil {
 		return errGenXdr
 	}
@@ -463,42 +463,54 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	accessInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 
 	accessInfo.Transaction = xdrBase64
-	if multipartySign && len(accessInfo.TransactionSignature) == 0 {
+	if numberOfApprovers > 0 && len(accessInfo.TransactionSignature) == 0 {
 		accessInfo.MultiParty = 1
-		return nil
+		if accessInfo.Commit == 0 {
+			return nil
+		}
+
 	}
 
 	if len(accessInfo.TransactionSignature) == 0 {
+		if accessInfo.Commit == 0 {
+			return nil
+		}
+	}
+
+	if numberOfApprovers > 0 && len(accessInfo.TransactionSignature) > 0 {
+		//SET transaction id to pending auth
+		accessInfo.MultiParty = 1
+		if accessInfo.Commit == 1 {
+			accessInfo.TransactionID = "PENDING_AUTH"
+
+			//TODO: queue transaction and notify signers
+			id := uuid.New().String()
+			description := fmt.Sprintf("Disabling shared access on wallet [%v].\nThis will remove permissions Permissions: [%v]", wallet.Alias, userPermissions)
+			pendingAuth := userModels.PendingAuth{
+				ID:                       id,
+				Initiator:                signerUser.Username,
+				InitiatorSignerPublicKey: signerUser.PrimarySigner,
+				WalletPublicKey:          wallet.ID,
+				TransactionType:          "DISABLE_SHARED_ACCESS",
+				Description:              description,
+				ApprovalsNeeded:          approvalsNeeded,
+				TransactionXdr:           xdrBase64,
+			}
+			// rollback all the other changes since the changes can only apply when approvals are completed.
+			// dbTX.Rollback()
+			//save and commit this to database
+			e := gc.DB.Create(&pendingAuth).Error
+			if e != nil {
+				log.Printf("Error saving disable shared access txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+				return &tErrors.ErrorTemporaryServerError{}
+			}
+
+		}
+
 		return nil
 	}
 
-	if multipartySign && len(accessInfo.TransactionSignature) > 0 {
-		//SET transaction id to pending auth
-		accessInfo.MultiParty = 1
-		accessInfo.TransactionID = "PENDING_AUTH"
-		//TODO: queue transaction and notify signers
-		id := uuid.New().String()
-		description := fmt.Sprintf("Disabling shared access on wallet [%v].\nThis will remove permissions Permissions: [%v]", wallet.Alias, userPermissions)
-		pendingAuth := userModels.PendingAuth{
-			ID:                       id,
-			Initiator:                signerUser.Username,
-			InitiatorSignerPublicKey: signerUser.PrimarySigner,
-			WalletPublicKey:          wallet.ID,
-			TransactionType:          "DISABLE_SHARED_ACCESS",
-			Description:              description,
-			ApprovalsNeeded:          approvalsNeeded,
-			TransactionXdr:           xdrBase64,
-		}
-
-		// rollback all the other changes since the changes can only apply when approvals are completed.
-		// dbTX.Rollback()
-		//save and commit this to database
-		e := gc.DB.Create(&pendingAuth).Error
-		if e != nil {
-			log.Printf("Error saving disable shared access txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
-			return &tErrors.ErrorTemporaryServerError{}
-		}
-
+	if accessInfo.Commit == 0 {
 		return nil
 	}
 	dbTX := gc.DB.Begin()
@@ -766,7 +778,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	}
 	{
 		//check if it is multiparty signature that is required.
-		if PublicKeyCountApproverAccess(wallet.ID, gc) > 0 {
+		if wallet.WalletCountApproverAccess(gc) > 0 {
 			multipartySign = true
 		}
 		//check if account recovery is enabled, then re-enable it on the wallet.
