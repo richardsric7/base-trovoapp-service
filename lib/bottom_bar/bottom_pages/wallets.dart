@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -777,7 +776,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     ),
                   ),
                   Text(
-                    description!,
+                    description ?? '',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,

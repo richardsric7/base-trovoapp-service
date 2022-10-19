@@ -8,6 +8,7 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'bottom_pages/swap_assets.dart';
 import 'bottom_pages/wallets.dart';
@@ -178,6 +179,12 @@ class _BottomHomeState extends State<BottomHome> {
   }
 
   changeTabMethod(index) {
+    // the codes below resets the wallets screen to its default view each time
+    // the user exits the screen
+    appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
+    appState.walletView.actionText = LanguageEn.addsubwallet;
+    appState.walletView.view = WalletView.listWallets;
+    //========================================================================
     setState(() {
       if (_selectedIndex != ButtomTabPage.TransactionHistory.index &&
           index == ButtomTabPage.TransactionHistory.index) {
