@@ -423,8 +423,10 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        sourceAssetRawDropdownValue =
-                            destinationAssetRawDropdownValue = null;
+                        sourceAsset = destinationAsset =
+                            sourceAssetRawDropdownValue =
+                                destinationAssetRawDropdownValue = null;
+                        amount = 0;
                       });
                     },
                     child: Image.asset(
@@ -682,6 +684,10 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
     if (double.tryParse(value) == null) {
       return 'Please enter a valid amount';
+    }
+
+    if (sourceAsset == null) {
+      return 'Please choose assets to swap';
     }
 
     if (double.tryParse(value)! > (double.parse(sourceAsset['amount']) - 6)) {
