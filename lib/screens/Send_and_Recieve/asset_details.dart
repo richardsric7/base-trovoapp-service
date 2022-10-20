@@ -259,9 +259,9 @@ class _AssetDetailsState extends State<AssetDetails>
                 foreColor: wihitecolor,
                 alias: activeWallet!.alias!.capitalizeFirst!,
                 totalBalance:
-                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
+                    '${formatNumber(double.parse(activeAsset['amount']))} ${getAssetCode(activeAsset['assetCode'])}',
                 fiatBalance:
-                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
+                    '${calculateFiatValue(activeAsset['amount'], activeAsset['usdPrice'], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                 initialHiddenState: appState.hideBalances,
               ),
               SizedBox(
@@ -336,87 +336,6 @@ class _AssetDetailsState extends State<AssetDetails>
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget walletSlides() {
-    var colors = [notifier.getbluecolor, Colors.red, Colors.green];
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: colors[0],
-          // color: colors[i - 1],
-        ),
-        child: Stack(children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 35.0, horizontal: 20),
-                child: Image.asset('assets/images/trovo_white.png'),
-              ),
-            ],
-          ),
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  activeWallet!.alias!.capitalizeFirst!,
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: wihitecolor,
-                      fontFamily: fontsemibold),
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                Row(
-                  children: [
-                    Text(
-                      LanguageEn.totalbalance,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                        color: wihitecolor,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: height / 98.0,
-                ),
-                Text(
-                  appState.hideBalances ? hideBalanceText : '2,082,898 NGN',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: wihitecolor,
-                    fontFamily: fontsemibold,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  appState.hideBalances ? hideBalanceText : '4,014 USD',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w300,
-                    fontSize: 13,
-                    color: wihitecolor,
-                    fontFamily: fontbody,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ]),
       ),
     );
   }

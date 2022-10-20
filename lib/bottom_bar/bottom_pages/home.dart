@@ -208,6 +208,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             'assetCode': asset['assetCode'],
                             'assetIssuer': asset['assetIssuer'],
                             'amount': asset['amount'],
+                            'usdPrice': asset['usdPrice'],
                             'qrCode': asset['qrCode'],
                             'imageUrl': asset['imageUrl'],
                           }
@@ -600,24 +601,33 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         return Builder(
           builder: (BuildContext context) {
             if (indexOfWallet < 6) {
-              return WalletSlide(
-                backColor: colors[wallets.indexOf(wallet)],
-                foreColor: getColor(context, indexOfWallet),
-                alias: wallet.alias!.capitalizeFirst!,
-                totalBalance:
-                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
-                fiatBalance:
-                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
-                initialHiddenState: appState.hideWalletList[indexOfWallet],
-                onHiddenStateChanged: (state) => {
-                  setState(
-                    () => {
-                      appState.hideWalletList[indexOfWallet] = state,
-                      StoreData().storeInsertData(
-                          'hideWalletList', appState.hideWalletList)
-                    },
-                  )
+              return GestureDetector(
+                onTap: () {
+                  appState.setActiveWallet = wallets[indexOfWallet];
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: WalletDetailsViewPageConfig);
                 },
+                child: WalletSlide(
+                  backColor: colors[wallets.indexOf(wallet)],
+                  foreColor: getColor(context, indexOfWallet),
+                  alias: wallet.alias!.capitalizeFirst!,
+                  totalBalance:
+                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
+                  fiatBalance: appState.defaultCurrency == 'USD'
+                      ? null
+                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
+                  initialHiddenState: appState.hideWalletList[indexOfWallet],
+                  onHiddenStateChanged: (state) => {
+                    setState(
+                      () => {
+                        appState.hideWalletList[indexOfWallet] = state,
+                        StoreData().storeInsertData(
+                            'hideWalletList', appState.hideWalletList)
+                      },
+                    )
+                  },
+                ),
               );
             }
 
