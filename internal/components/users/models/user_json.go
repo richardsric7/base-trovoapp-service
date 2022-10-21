@@ -52,5 +52,30 @@ type WalletPermissionJSON struct {
 	WalletPublicKey string    `json:"walletPublicKey"`
 	TargetUsername  string    `json:"targetUsername"`
 	Permission      string    `json:"permission"`
-	// UserWalletSharedAccessID string    `json:"userWalletSharedAccessId"`
+}
+
+type AuthJSON struct {
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+	ID                  string    `json:"id"`
+	WalletOwnerUsername string    `json:"walletOwnerUsername"`
+	WalletPublicKey     string    `json:"walletPublicKey"`
+	Alias               string    `json:"alias"`
+	Initiator           string    `json:"initiator"`
+	TransactionType     string    `json:"transactionType"`
+	Description         string    `json:"description"`
+	ApprovalsNeeded     int       `json:"approvalsNeeded"`
+	ApprovalsGotten     int       `gorm:"not null;default:0" json:"approvalsGotten"`
+	TransactionStatus   string    `json:"transactionStatus"`
+	RejectedBy          string    `json:"rejectedBy"`
+	ReasonForRejection  string    `json:"reasonForRejection"`
+	ApprovedBy          string    `json:"approvedBy"`
+}
+
+type PaginatedAuths struct {
+	Pages        int        `json:"pages"`
+	CurrentPage  int        `json:"currentPage"`
+	TotalRecords int        `json:"totalRecords"`
+	Limit        int        `json:"limit"`
+	Records      []AuthJSON `json:"records"`
 }

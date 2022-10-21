@@ -891,6 +891,7 @@ func (u *UserWallet) GetWalletOwner(db *gorm.DB) (walletOwner User, err error) {
 	}
 	return
 }
+
 func (id UserWalletID) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
 	e := db.Preload(clause.Associations).Where("id = ?", string(id)).First(&wallet).Error
 	if e != nil {
@@ -898,6 +899,21 @@ func (id UserWalletID) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
 			//no wallet was found
 			err = &tErrors.ErrorInvalidWallet{
 				PublicKey: string(id),
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
+func (u WalletAlias) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
+	e := db.Preload(clause.Associations).Where("alias = ?", string(u)).First(&wallet).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.ErrorInvalidWallet{
+				PublicKey: string(u),
 			}
 			return
 		}

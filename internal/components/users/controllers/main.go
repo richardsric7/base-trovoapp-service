@@ -1680,4 +1680,5 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
+	//get auth list
 }

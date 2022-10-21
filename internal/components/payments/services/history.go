@@ -65,8 +65,8 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 		countQuery = countQuery.Order(orderBy + " " + oD)
 
 	} else {
-		query = query.Order("transactionDate DESC")
-		countQuery = countQuery.Order("transactionDate DESC")
+		query = query.Order("transaction_date DESC")
+		countQuery = countQuery.Order("transaction_date DESC")
 	}
 
 	{

@@ -1,6 +1,7 @@
 package users
 
 import (
+	"fmt"
 	"strings"
 	"trovo-wallet-api/internal/sharedconfig"
 )
@@ -119,4 +120,57 @@ func (wa *WalletPermission) ToJSON() (jsonObj WalletPermissionJSON) {
 	jsonObj.TargetUsername = wa.TargetUsername
 	jsonObj.Permission = wa.Permission
 	return
+}
+
+func (a *PendingAuth) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj AuthJSON) {
+
+	if a == nil {
+		return
+	}
+	var walletOwnerUsername, walletAlias string
+	// walletOwner,e:=UserWalletID(a.WalletPublicKey).GetWalletOwner(gc.DB)
+	wallet, e := UserWalletID(a.WalletPublicKey).GetWallet(gc.DB)
+	if e == nil {
+		if wallet.Tag != nil {
+			walletOwnerUsername = *wallet.Tag
+		} else {
+			//primary wallet
+			walletOwnerUsername = wallet.Alias
+		}
+		walletAlias = wallet.Alias
+
+	}
+	jsonObj = AuthJSON{
+		CreatedAt:           a.CreatedAt,
+		UpdatedAt:           a.UpdatedAt,
+		ID:                  a.ID,
+		WalletOwnerUsername: walletOwnerUsername,
+		Alias:               walletAlias,
+		Initiator:           a.Initiator,
+		TransactionType:     a.TransactionType,
+		Description:         a.Description,
+		ApprovalsNeeded:     a.ApprovalsNeeded,
+		ApprovalsGotten:     a.ApprovalsGotten,
+		TransactionStatus:   a.TransactionStatus,
+	}
+	if a.RejectedBy != nil {
+		jsonObj.RejectedBy = *a.RejectedBy
+	}
+	if a.ReasonForRejection != nil {
+		jsonObj.ReasonForRejection = *a.ReasonForRejection
+	}
+
+	if a.PendingTransactionSignatures != nil {
+		if len(a.PendingTransactionSignatures) > 0 {
+			for i, sig := range a.PendingTransactionSignatures {
+				jsonObj.ApprovedBy = fmt.Sprintf("%s|%s", sig.Approver, sig.CreatedAt.Format("2006-01-02"))
+				if i < len(a.PendingTransactionSignatures)+1 {
+					jsonObj.ApprovedBy = fmt.Sprintf("%s,\n", jsonObj.ApprovedBy)
+				}
+			}
+		}
+	}
+
+	return jsonObj
+
 }

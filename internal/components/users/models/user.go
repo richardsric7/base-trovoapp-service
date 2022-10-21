@@ -141,6 +141,8 @@ type UserWalletID string
 // Username is a type for username of a user
 type Username string
 
+type WalletAlias string
+
 // UserSigner is type for signer Public Key
 type UserSigner string
 
