@@ -1680,5 +1680,257 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
-	//get auth list
+	//get transaction list
+	router.GET("/v1/shared-access/approvals", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		// var err error
+
+		// cacheKey := fmt.Sprintf("[GET] /v1/shared-access/users/authlist %v", middleware.ExtractSigner(c))
+		// cacheKeyParameters := c.Request.URL.RequestURI()
+		// {
+		// 	// check cache
+		// 	ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
+
+		// 	if ok {
+		// 		log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+		// 		c.JSON(status, response)
+		// 		return
+		// 	}
+
+		// }
+		// cacheDurationInSeconds := 1 * 60 //1 minutes
+		// cacheDurationInSeconds := 20 //in seconds
+		conDB.PrintDBStats(fmt.Sprintf("[GET] /v1/shared-access/approvals %v", middleware.ExtractSigner(c)), gc.DB)
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET GetApprovalRequest] error for signer:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		permittedPublicKeys := make([]string, 0)
+
+		for _, k := range signerUser.WalletsSharedWithUser {
+			if k.Permission == "VIEW-ONLY" {
+				continue
+			}
+			// view only is not permitted to see transactions
+			permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
+		}
+
+		//Get Payment history
+		historyRecords := userServices.GetApprovalList(permittedPublicKeys, gc, c)
+
+		c.JSON(http.StatusOK, historyRecords)
+		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
+		// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
+
+	})
+
+	//get specific transaction
+	router.GET("/v1/shared-access/approval/:ID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		// var err error
+
+		approvalID := c.Param("ID")
+		conDB.PrintDBStats(fmt.Sprintf("[GET] /v1/shared-access/approval/%v", approvalID), gc.DB)
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		permittedPublicKeys := make([]string, 0)
+
+		for _, k := range signerUser.WalletsSharedWithUser {
+			if k.Permission == "VIEW-ONLY" {
+				continue
+			}
+			// view only is not permitted to see transactions
+			permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
+		}
+		if len(permittedPublicKeys) == 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access section."})
+			return
+		}
+
+		//Get Payment history
+		approvalRequestJSON, err := userServices.GetApprovalRequestJSON(approvalID, gc)
+		if err != nil {
+			log.Println("[GET GetApprovalRequest] error for signer:", signerUser.Username, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		c.JSON(http.StatusOK, approvalRequestJSON)
+		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
+		// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
+
+	})
+
+	//submit specific approval signature
+	router.POST("/v1/shared-access/approval/:ID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		// var err error
+
+		var payload userModels.ApprovalPayload
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err := json.Unmarshal(data, &payload)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		approvalID := c.Param("ID")
+		conDB.PrintDBStats(fmt.Sprintf("[POST] /v1/shared-access/approval/%v", approvalID), gc.DB)
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		permittedPublicKeys := make([]string, 0)
+
+		for _, k := range signerUser.WalletsSharedWithUser {
+			if k.Permission != "APPROVER" {
+				continue
+			}
+			// view only is not permitted to see transactions
+			permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
+		}
+		if len(permittedPublicKeys) == 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access section."})
+			return
+		}
+
+		approvalRequest, err := userServices.GetApprovalRequest(approvalID, gc)
+		if err != nil {
+			log.Println("[POST ApproveRequest] error for signer:", signerUser.Username, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+
+		err = userServices.ApproveTransaction(&signerUser,&approvalRequest, &payload, gc)
+		if err != nil {
+			log.Println("[POST ApproveRequest] error for signer:", signerUser.Username, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+
+
+
+		c.JSON(http.StatusOK, approvalRequest)
+		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
+		// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
+
+	})
+
 }

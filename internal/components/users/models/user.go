@@ -146,6 +146,8 @@ type WalletAlias string
 // UserSigner is type for signer Public Key
 type UserSigner string
 
+type ApprovalID string
+
 type TrackedWallet struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
 	PublicKey string    `gorm:"index:idx_tracked_wallet_public_key,unique"`
@@ -242,5 +244,12 @@ type PendingTransactionSignature struct {
 	PendingAuthID            string    `gorm:"size:56;not null;index:idx_pending_trxsig_pending_auth_id"`
 	Approver                 string    `gorm:"size:20;not null;index:idx_pending_trxsig_approver" json:"approver"`
 	ApproverSignerPublicKey  string    `gorm:"size:56;not null;index:idx_pending_trxsig_approver_signer" json:"approverSignerPublicKey"`
-	TransactionWithSignature []byte    `gorm:"not null" json:"transactionWithSignature"`
+	TransactionWithSignature string    `gorm:"not null" json:"transactionWithSignature"`
+}
+
+type ApprovalPayload struct {
+	Transaction          string `json:"transaction"`
+	TransactionSignature string `json:"transactionSignature"`
+	RemainingApprovals   int    `json:"remainingApproval"`
+	NetworkPassPhrase    string `json:"networkPassPhrase"`
 }

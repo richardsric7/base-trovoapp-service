@@ -152,6 +152,7 @@ func (a *PendingAuth) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj AuthJSON) {
 		ApprovalsNeeded:     a.ApprovalsNeeded,
 		ApprovalsGotten:     a.ApprovalsGotten,
 		TransactionStatus:   a.TransactionStatus,
+		Transaction: a.TransactionXdr,
 	}
 	if a.RejectedBy != nil {
 		jsonObj.RejectedBy = *a.RejectedBy

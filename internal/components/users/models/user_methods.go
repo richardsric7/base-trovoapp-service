@@ -922,6 +922,21 @@ func (u WalletAlias) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
 	return
 }
 
+func (a ApprovalID) GetSubmittedTransaction(db *gorm.DB) (pendingAuth PendingAuth, err error) {
+	e := db.Preload(clause.Associations).Where("id = ?", string(a)).First(&pendingAuth).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no approval request was found
+			err = &tErrors.ErrorInvalidRequest{
+				ID: string(a),
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
 func (id UserWalletID) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
 	viewOnly = true
 	if id == "" {
