@@ -71,6 +71,7 @@ type SubWalletInfo struct {
 	ChannelAccount          string   `json:"channelAccount"`
 	ChannelAccountSignature string   `json:"channelAccountSignature"`
 	SubWalletMustSign       int      `json:"subWalletMustSign"`
+	AssetIssuerWallet       int      `json:"assetIssuerWallet"`
 	Messages                []string `json:"messages"`
 }
 type UserInfo struct {
@@ -1253,13 +1254,13 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 
 	}
 
-	// paymentPayload := PaymentInfo{
-	// 	Destination: "ric1",
-	// 	Memo:        "Test Payment",
-	// 	Amount:      "20000",
-	// 	AssetCode:   "",
-	// 	AssetIssuer: "",
-	// }
+	paymentPayload := PaymentInfo{
+		Destination: "ric_joint",
+		Memo:        "Test Payment",
+		Amount:      "20000",
+		AssetCode:   "",
+		AssetIssuer: "",
+	}
 
 	// paymentPayload := PaymentInfo{
 	// 	Destination: "ric1",
@@ -1269,13 +1270,13 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	// 	AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
 	// }
 
-	paymentPayload := PaymentInfo{
-		Destination: "ric1_a",
-		Memo:        "Test Payment",
-		Amount:      "2000",
-		AssetCode:   "ABC",
-		AssetIssuer: "GAD3DZNQY4SXJEUJOPLJZEK3OWTASEUK2LZYT3V7C52UN5QYOFP3PM5P",
-	}
+	// paymentPayload := PaymentInfo{
+	// 	Destination: "ric_joint",
+	// 	Memo:        "Test Payment",
+	// 	Amount:      "2000",
+	// 	AssetCode:   "ABC",
+	// 	AssetIssuer: "GAD3DZNQY4SXJEUJOPLJZEK3OWTASEUK2LZYT3V7C52UN5QYOFP3PM5P",
+	// }
 
 	// paymentPayload := PaymentInfo{
 	// 	Destination: "ric1",
@@ -1360,7 +1361,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 		log.Printf("Make Payment Response:[%+v]\n", payResponse)
 	}
 	log.Println("[TestSendPaymentMultiAccessDisabled] completed")
-	time.Sleep(time.Second * 10)
+	// time.Sleep(time.Second * 10)
 
 }
 
@@ -1599,8 +1600,14 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	// subSecretKey := "SB2LEXZ6UBRXTGBGIDXXXE6VAU333FBTHSXV6KEKES3WO3NNTKTMMF3C"
 	// subPK := "GBAI3QHD73YQO3S5L55OCT62DBTNGVR4JHEI4Q4DYPURT72WHK6U6NWS"
 	// subSecretKey := "SD47WSETFWODYVZXYOBSNL3E5TFMBV7SZZF3YESJRKHYYWVEXPEQC2GT"
-	subPK := "GBQBJFGWYXCKSKTXFCG5WMPKQC3LYJPSPRNADVPQD7W6K5SXSOW744MQ"
-	subSecretKey := "SBSMH2IHU4HHK4DBDP6PUNT2ZZIKJKWYXJAYSEGXL6D6GWXMPQMCDGPM"
+	// subPK := "GBQBJFGWYXCKSKTXFCG5WMPKQC3LYJPSPRNADVPQD7W6K5SXSOW744MQ"
+	// subSecretKey := "SBSMH2IHU4HHK4DBDP6PUNT2ZZIKJKWYXJAYSEGXL6D6GWXMPQMCDGPM"
+
+	// subPK := "GD6IO3P4J2C63Z3VEIH5TVZVDITHKGJMOAKHX6J6TEDA6JEEQCD5GJFN"
+	// subSecretKey := "SDCSU5C6F4HWD5T7QBIG4U2Z3VITF5HY6KC5XPEPIDDGD7GK2UNEYARG"
+
+	subPK := "GAYKJR7KECN57NPKF4ABYQPFLUCELKXMSPD3D7ACEATI77TYFXKJSKRO"
+	subSecretKey := "SAHTUGJVWK7WCERUDZM5VVDJO2JYRUTUQQ7O7CJVLLVSYZ7CTV2SO5IP"
 	primaryPK := os.Getenv("RICPK")
 	primarySecretKey := os.Getenv("RICSC")
 
@@ -1638,8 +1645,9 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
 	subwalletPayload := SubWalletInfo{
 		PublicKey:         subPK,
-		WalletTag:         "shared",
-		WalletDescription: "Sub wallet shared",
+		WalletTag:         "minting",
+		WalletDescription: "Sub wallet minting",
+		AssetIssuerWallet: 1,
 	}
 	errorResponse := new(ErrorResponse)
 	subWalletResponse := new(SubWalletInfo)
@@ -1734,7 +1742,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 		log.Printf("Create Subwallet Response:[%+v]\n", subWalletResponse)
 	}
 	log.Println("COMPLETED TEST: TestCreateSubWalletMultiAccessDisabled")
-	time.Sleep(time.Second * 1)
+	// time.Sleep(time.Second * 1)
 
 }
 
@@ -1988,7 +1996,9 @@ func TestCreateSharedAccess(t *testing.T) {
 	// secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
 	// accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
 	// accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
-	accessToWallet := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	// accessToWallet := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	// accessToWallet := "GD6IO3P4J2C63Z3VEIH5TVZVDITHKGJMOAKHX6J6TEDA6JEEQCD5GJFN"
+	accessToWallet := "GAYKJR7KECN57NPKF4ABYQPFLUCELKXMSPD3D7ACEATI77TYFXKJSKRO"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
@@ -2013,14 +2023,26 @@ func TestCreateSharedAccess(t *testing.T) {
 	}
 	var accessList []WalletPermissionInfo
 	payload := UserWalletSharedAccessInfo{
-		NumberOfApprovalsNeeded: 0,
+		NumberOfApprovalsNeeded: 2,
 		// Commit:            1,
 	}
 	accessList = append(accessList,
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			TargetUsername:  "kenmaddy",
-			Permission:      "VIEW-ONLY"},
+			Permission:      "INITIATOR"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			TargetUsername:  "kenmaddy",
+			Permission:      "APPROVER"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			TargetUsername:  "ric",
+			Permission:      "INITIATOR"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			TargetUsername:  "ric",
+			Permission:      "APPROVER"},
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			TargetUsername:  "thundeyy",
@@ -2036,7 +2058,7 @@ func TestCreateSharedAccess(t *testing.T) {
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			TargetUsername:  "obi",
-			Permission:      "VIEW-ONLY"})
+			Permission:      "APPROVER"})
 	payload.Permissions = accessList
 
 	log.Printf("[DEBUG] Payload: %+v\n", payload)
