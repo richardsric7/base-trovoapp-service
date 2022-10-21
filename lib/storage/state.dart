@@ -38,6 +38,12 @@ class DataProvider with ChangeNotifier {
 
   void updateListeners() => notifyListeners();
 
+  var sharedWallets = [];
+  set setSharedWallets(wallets) {
+    sharedWallets = wallets;
+    notifyListeners();
+  }
+
   // bool hideActiveWalletBalance = false;
   // set toggleActiveBalances(bool value) {
   //   hideActiveWalletBalance = value;

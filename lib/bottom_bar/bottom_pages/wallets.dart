@@ -49,6 +49,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   String? tag;
   String? description;
   String? secretKey;
+  int isAssetIssuerWallet = 0;
   String password = '';
   late Account primaryWalletKeyPair;
   late Account newSubWalletKeyPair;
@@ -487,6 +488,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     );
   }
 
+  // show the add subwallet view as if its a new page
+  // the app's back button dispatcher has been overriden to make this page
+  // behave as if is a new separate page when you press the back button
   Widget addSubwallet() {
     return Form(
       key: _formKey2,
@@ -607,8 +611,57 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               ),
             ),
           ),
-          SizedBox(
-            height: height / 20,
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 35),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      LanguageEn.thisisanassetissuerwallet,
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: notifier.getgrey,
+                          fontFamily: fontbody),
+                    ),
+                    Transform.scale(
+                      scale: 1.sp,
+                      child: Checkbox(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(5.sp),
+                          ),
+                        ),
+                        activeColor: notifier.getbluecolor,
+                        side: BorderSide(color: notifier.getbluewhitecolor),
+                        value: isAssetIssuerWallet == 1,
+                        onChanged: (value) {
+                          setState(() {
+                            isAssetIssuerWallet = value! ? 1 : 0;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                GestureDetector(
+                  onTap: () => appState.goToWebView(
+                      bantuBlockchainExplorerBaseUrl +
+                          'viewData.transactionId'),
+                  child: Text(
+                    'What does it mean?',
+                    style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      color: notifier.getbluewhitecolor,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           // Tag name
           CustomTextFormField.textField(
@@ -708,6 +761,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     );
   }
 
+  // show the confirm add subwallet view as if its a new page
+  // the app's back button dispatcher has been overriden to make this page
+  // behave as if is a separate page when you press the back button
   Widget confirmAddSubwallet() {
     return Column(children: [
       Padding(
@@ -757,7 +813,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w500,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -770,8 +825,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: fontbody,
+                      fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -780,7 +834,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w500,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -793,8 +846,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: fontbody,
+                      fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -805,7 +857,27 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w500,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Text(
+                    LanguageEn.thisisanassetissuerwallet,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  Text(
+                    isAssetIssuerWallet == 1 ? 'true' : 'false',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -818,8 +890,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: fontbody,
+                      fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -830,7 +901,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w500,
                         fontFamily: fontbody,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -989,6 +1059,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         "publickey": newSubWalletKeyPair.publicKey,
         "walletTag": tag,
         "WalletDescription": description,
+        "assetIssuerWallet": isAssetIssuerWallet,
       };
       String requestBody = jsonEncode(map);
 
