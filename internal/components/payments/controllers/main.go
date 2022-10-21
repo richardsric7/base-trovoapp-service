@@ -200,7 +200,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			if ok {
 				c.JSON(ex.HTTPCode(), ex.JSONError())
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
 			}
 			return
 		}
@@ -216,6 +216,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(errAccountIsTemp.HTTPCode(), errAccountIsTemp.JSONError())
 			return
 
+		}
+		if userWallet.AssetIssuerWallet == 1 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-asset-issuer-wallet-forbidden", "message": "Asset issuer wallets are not allowed to be used for payment."})
+			return
 		}
 		{
 			//prevent wallets with approver from using this endpoint

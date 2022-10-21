@@ -168,7 +168,7 @@ type SubWalletInfo struct {
 	ChannelAccount          string   `json:"channelAccount"`
 	ChannelAccountSignature string   `json:"channelAccountSignature"`
 	SubWalletMustSign       int      `json:"subWalletMustSign"`
-	AssetIsserWallet        int      `json:"assetIssuerWallet"`
+	AssetIssuerWallet       int      `json:"assetIssuerWallet"`
 	Messages                []string `json:"messages"`
 }
 

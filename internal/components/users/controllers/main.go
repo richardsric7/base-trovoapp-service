@@ -451,6 +451,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 			return
 		}
+		// io.ReadAll(blobFile)
 		fnameSplit := strings.Split(f.Filename, ".")
 		fileExtension := fnameSplit[len(fnameSplit)-1]
 
@@ -569,7 +570,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 			return
 		}
-
+		if wallet.AssetIssuerWallet == 1 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-asset-issuer-wallet-forbidden", "message": "Operation not allowed on Asset issuer wallets."})
+			return
+		}
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/trust-asset %v", wallet.Alias), gc.DB)
 
 		returnedTrustLineInfo, err := userServices.TrustAsset(&signerUser, &wallet, &trustLineInfo, gc)
@@ -657,7 +661,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 			return
 		}
-
+		if wallet.AssetIssuerWallet == 1 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-asset-issuer-wallet-forbidden", "message": "Operation not allowed on Asset issuer wallets."})
+			return
+		}
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/remove-asset %v", wallet.Alias), gc.DB)
 
 		returnedTrustLineInfo, err := userServices.RemoveAssetTrust(&signerUser, &wallet, &trustLineInfo, gc)
@@ -731,7 +738,10 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 			return
 		}
-
+		if wallet.AssetIssuerWallet == 1 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-asset-issuer-wallet-forbidden", "message": "Operation not allowed on Asset issuer wallets."})
+			return
+		}
 		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/users/actions/claim-asset %v", middleware.ExtractPublicKey(c)), gc.DB)
 
 		var pendingAssetToClaim userModels.PendingAssetToClaim

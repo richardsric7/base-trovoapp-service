@@ -82,6 +82,7 @@ type UserWallet struct {
 	Signer                  string             `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
 	UserID                  string             `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
 	SharedAccessEnabled     int                `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
+	AssetIssuerWallet       int                `gorm:"type:integer; default:0" json:"assetIssuerWallet"`
 	Tracked                 int                `gorm:"type:integer;not null;default:0" json:"-"`
 	PrimaryWallet           int                `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
 	NumberOfApprovalsNeeded int                `gorm:"type:integer; default:0" json:"numberOfApprovalsNeeded"`

@@ -147,12 +147,15 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 	if len(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT")) > 0 {
 		activationAmount = decimal.RequireFromString(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT"))
 	}
+	if len(os.Getenv("ISSUING_SUB_WALLET_ACTIVATION_AMOUNT")) > 0 && subWalletInfo.AssetIssuerWallet == 1 {
+		activationAmount = decimal.RequireFromString(os.Getenv("ISSUING_SUB_WALLET_ACTIVATION_AMOUNT"))
+	}
 	if len(os.Getenv("WALLET_MINIMUM_BALANCE")) > 0 {
 		minBalance = decimal.RequireFromString(os.Getenv("WALLET_MINIMUM_BALANCE"))
 	}
 	{
 		//check if the sub-wallet passes the validation
-		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.AssetIsserWallet, gc)
+		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.AssetIssuerWallet, gc)
 		if err != nil {
 			log.Printf("[generateSubWalletXdr] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
 			return "", subWalletObj, err
@@ -207,8 +210,14 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 			SourceAccount: subWalletInfo.PublicKey,
 		})
 
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to be used to activate the sub-wallet.", activationAmount.String()))
+		if subWalletInfo.AssetIssuerWallet == 0 {
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted from your primary wallet to used to activate the sub-wallet.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
+		}
+		if subWalletInfo.AssetIssuerWallet == 1 {
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet to used to activate it. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+		}
 	}
 
 	if subWalletAccountExists && (subWalletAccountNativeBalance.LessThan(minBalance)) {
@@ -233,8 +242,14 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		} else {
 			subWalletInfo.SubWalletMustSign = 0
 		}
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
+		if subWalletInfo.AssetIssuerWallet == 0 {
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %s will be deducted from your primary wallet and used to topup the balance of the subwallet to complete the sub-wallet process.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
+		}
+		if subWalletInfo.AssetIssuerWallet == 1 {
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and used to topup balance of this subwallet. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+		}
 	}
 	if subWalletAccountExists && (subWalletAccountNativeBalance.GreaterThanOrEqual(minBalance)) {
 		//account exists and native balance is less than needed. add 3 native token to the wallet
@@ -258,7 +273,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		} else {
 			subWalletInfo.SubWalletMustSign = 0
 		}
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %s will be deducted from your primary wallet to topup the subwallet and used to complete the sub-wallet process.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 
@@ -321,12 +336,15 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 	if len(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT")) > 0 {
 		activationAmount = decimal.RequireFromString(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT"))
 	}
+	if len(os.Getenv("ISSUING_SUB_WALLET_ACTIVATION_AMOUNT")) > 0 && subWalletInfo.AssetIssuerWallet == 1 {
+		activationAmount = decimal.RequireFromString(os.Getenv("ISSUING_SUB_WALLET_ACTIVATION_AMOUNT"))
+	}
 	if len(os.Getenv("WALLET_MINIMUM_BALANCE")) > 0 {
 		minBalance = decimal.RequireFromString(os.Getenv("WALLET_MINIMUM_BALANCE"))
 	}
 	{
 		//check if the sub-wallet passes the validation
-		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.AssetIsserWallet, gc)
+		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.AssetIssuerWallet, gc)
 		if err != nil {
 			log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
 
@@ -355,7 +373,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		err = &tErrors.CustomError{
 			Param:      "publicKey",
 			Err:        "error-primary-account-underfunded",
-			ErrMessage: "Primary account does not have enough XBN balance to create sub-wallet",
+			ErrMessage: fmt.Sprintf("Primary account does not have enough %s balance to create sub-wallet", os.Getenv("NATIVE_ASSET_CODE")),
 			Code:       404,
 		}
 		return "", subWalletObj, err
@@ -380,8 +398,14 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 			},
 			SourceAccount: subWalletInfo.PublicKey,
 		})
+		if subWalletInfo.AssetIssuerWallet == 0 {
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted from your primary wallet to used to activate the sub-wallet.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to activate the sub-wallet.", activationAmount.String()))
+		}
+		if subWalletInfo.AssetIssuerWallet == 1 {
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet to used to activate it. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+		}
 
 	}
 
@@ -407,7 +431,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		} else {
 			subWalletInfo.SubWalletMustSign = 0
 		}
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v %s will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 
@@ -433,7 +457,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		} else {
 			subWalletInfo.SubWalletMustSign = 0
 		}
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v XBN will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String()))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Important: %v %s will be deducted from your primary wallet to used to complete the sub-wallet process.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 	channelSourceAccountExists, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(client, subWalletInfo.ChannelAccount, txnbuild.NativeAsset{})
