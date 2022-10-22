@@ -1901,7 +1901,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		err = userServices.ApproveTransaction(&signerUser,&approvalRequest, &payload, gc)
+		err = userServices.ApproveTransaction(&signerUser, &approvalRequest, &payload, gc)
 		if err != nil {
 			log.Println("[POST ApproveRequest] error for signer:", signerUser.Username, "error: ", err)
 
@@ -1924,13 +1924,33 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
+		if len(payload.TransactionSignature) == 0 {
+			c.JSON(http.StatusAccepted, payload)
+			return
+		}
 
-
-
-		c.JSON(http.StatusOK, approvalRequest)
+		c.JSON(http.StatusOK, payload)
 		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
 		// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
-
+		{
+			//start push notificationMessage
+			wallet, e := userModels.UserWalletID(approvalRequest.WalletPublicKey).GetWallet(gc.DB)
+			if e != nil {
+				return
+			}
+			permissionList := wallet.Permissions
+			for _, v := range permissionList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				if e != nil {
+					continue
+				}
+				if u.PushNotificationToken != nil && v.Permission != "VIEW-ONLY" {
+					dataPayload := make(map[string]string)
+					dataPayload["none"] = ""
+					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v Sumitted an approval on wallet %v!", signerUser.Username, wallet.Alias), fmt.Sprintf("%v submitted an approval for Request:\n[%v]\nApproval is now %v/%v", signerUser.Username, approvalRequest.Description, approvalRequest.ApprovalsGotten, approvalRequest.ApprovalsNeeded), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+				}
+			}
+		}
 	})
 
 }
