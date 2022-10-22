@@ -220,8 +220,14 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 	//total approval needed is complete. Process the transaction and submit to network.
 	p.TransactionStatus = "COMPLETED"
+
 	//if transaction fails on blockchain, then reverse all changes.
 	{
+		e = dbTX.Save(p).Error
+		if e != nil {
+			log.Println("[ApproveTransaction]error saving approval state:", e)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
 		//process submission routine here
 		tHash, err := network.SubmitApprovalXdrWithSignature(gc.BantuExpansionClient, p.ID, dbTX)
 		if err != nil {
@@ -234,7 +240,11 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	}
 
 	//blockchain succeeded
-
+	e = dbTX.Save(p).Error
+	if e != nil {
+		log.Println("[ApproveTransaction]error saving approval state:", e)
+		return &tErrors.ErrorTemporaryServerError{}
+	}
 	{
 		//process post blockchcain transaction
 		if p.TransactionType == "DISABLE_SHARED_ACCESS" {
