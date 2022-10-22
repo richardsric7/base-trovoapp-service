@@ -12,7 +12,7 @@ type User struct {
 	LastUpdatedMobileOn      time.Time          `json:"lastUpdatedMobileOn"`
 	LastRecoveredAccountOn   time.Time          `json:"lastRecoveredAccountOn"`
 	ID                       string             `json:"id"`
-	Username                 string             `gorm:"size:16; index:idx_user_unique_username, unique" json:"username"`
+	Username                 string             `gorm:"size:30; index:idx_user_unique_username, unique" json:"username"`
 	Email                    string             `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
 	ImageThumbnailURL        *string            `json:"imageThumbnailURL"`
 	FirstName                string             `gorm:"size:50" json:"firstName"`
@@ -53,9 +53,9 @@ type UserWallet struct {
 	UpdatedAt               time.Time          `json:"updatedAt"`
 	ID                      string             `gorm:"size:56" json:"publicKey"`
 	TempPublicKey           *string            `gorm:"size:56;index:idx_user_wallet_temp_key;null"`
-	Tag                     *string            `gorm:"null;size:16" json:"tag"`
+	Tag                     *string            `gorm:"null;size:12" json:"tag"`
 	Description             *string            `gorm:"null;size:100" json:"description"`
-	Alias                   string             `gorm:"size:27; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
+	Alias                   string             `gorm:"size:30; index:idx_unique_alias, unique" json:"alias"` //primaryUsername_tag for sub wallets
 	Signer                  string             `gorm:"size:56; index:idx_user_wallet_signer" json:"signer"`  //if ID is same as signer, then it is a primary wallet
 	UserID                  string             `gorm:"type:integer;not null; default:0;index:idx_user_wallets_user_id" json:"userId"`
 	SharedAccessEnabled     int                `gorm:"type:integer;not null; default:0" json:"sharedAccessEnabled"`
