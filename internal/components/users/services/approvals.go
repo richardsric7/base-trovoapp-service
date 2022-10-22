@@ -1,6 +1,7 @@
 package users
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	db "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
+	pns "trovo-wallet-api/internal/pns"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
@@ -269,8 +271,24 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 					log.Println("[ApproveTransaction] error saving wallet state:", e.Error())
 				}
 
+				dbTX.Commit()
+				for _, v := range accessList {
+					u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+					if e != nil {
+						continue
+					}
+					if u.PushNotificationToken != nil && v.Permission != "VIEW-ONLY" {
+						dataPayload := make(map[string]string)
+						dataPayload["none"] = ""
+						pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+
+					}
+				}
+				return nil
 			}
 
+			dbTX.Commit()
+			return nil
 		}
 	}
 

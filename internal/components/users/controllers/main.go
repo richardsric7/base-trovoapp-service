@@ -1950,8 +1950,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					if approvalRequest.TransactionStatus != "COMPLETED" {
 						pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v Submitted an approval on wallet %v!", signerUser.Username, wallet.Alias), fmt.Sprintf("%v submitted an approval for request:\n%v\nApproval stage is now %v/%v", signerUser.Username, approvalRequest.Description, approvalRequest.ApprovalsGotten, approvalRequest.ApprovalsNeeded), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
-					} else {
-						pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, approvalRequest.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, approvalRequest.TransactionType, approvalRequest.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 					}
 				}
 			}
