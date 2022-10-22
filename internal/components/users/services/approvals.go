@@ -223,7 +223,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	//if transaction fails on blockchain, then reverse all changes.
 	{
 		//process submission routine here
-		tHash, err := network.SubmitApprovalXdrWithSignature(gc.BantuExpansionClient, p.ID, gc)
+		tHash, err := network.SubmitApprovalXdrWithSignature(gc.BantuExpansionClient, p.ID, dbTX)
 		if err != nil {
 			return err
 		}

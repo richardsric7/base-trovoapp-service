@@ -2521,12 +2521,13 @@ func TestApproveTransaction(t *testing.T) {
 
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
-	pk := os.Getenv("RICPK")
-	secretKey := os.Getenv("RICSC")
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
 	// pk := "GCC3HG535RVZ3MPTDBANZH7V2HRDEQH3LZXDPBEKPJKZBI2UYJR3OJGF"
 	// pk := "GDBWYZWLYASCZ6KP4AIRNRY5WQ5OX6H2T6WASG7WFAEEYO6R6AC4GXRM"
 	// secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
-	// secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
+	secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
+
 	// accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
 	// accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
 	// accessToWallet := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
@@ -2535,6 +2536,7 @@ func TestApproveTransaction(t *testing.T) {
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
+	pk := kp.Address()
 	baseURL := prodURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
@@ -2543,7 +2545,7 @@ func TestApproveTransaction(t *testing.T) {
 	// } else {
 	// 	sEnc = ownerUsername
 	// }
-	approvalID := "22c03640-a147-4f23-a946-d0da774efe78"
+	approvalID := "e9325981-6c99-4560-aa89-9e4f3abe573c"
 	fullPath := "/v1/shared-access/approval/" + approvalID
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000

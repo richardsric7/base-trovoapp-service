@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 	tErrors "trovo-wallet-api/internal/errors"
-	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/ecnepsnai/discord"
 	"github.com/shopspring/decimal"
@@ -17,6 +16,7 @@ import (
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -224,7 +224,7 @@ func SubmitXdrWithSignature(client *horizonclient.Client, signerPublicKey string
 	return txnResult.Hash, nil
 
 }
-func SubmitApprovalXdrWithSignature(client *horizonclient.Client, approvalID string, gc *sharedconfig.GlobalConfig) (string, error) {
+func SubmitApprovalXdrWithSignature(client *horizonclient.Client, approvalID string, db *gorm.DB) (string, error) {
 	type PendingTransactionSignature struct {
 		CreatedAt                time.Time `json:"createdAt"`
 		ID                       string    `gorm:"size:56"`
@@ -253,7 +253,7 @@ func SubmitApprovalXdrWithSignature(client *horizonclient.Client, approvalID str
 		PendingTransactionSignatures []PendingTransactionSignature `json:"pendingTransactionSignatures"`
 	}
 	var pendingAuth PendingAuth
-	e := gc.DB.Preload(clause.Associations).Where("id = ?", approvalID).First(&pendingAuth).Error
+	e := db.Preload(clause.Associations).Where("id = ?", approvalID).First(&pendingAuth).Error
 	if e != nil {
 
 		return "", &tErrors.ErrorTemporaryServerError{}
