@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/ecnepsnai/discord"
 	"github.com/shopspring/decimal"
@@ -15,6 +17,7 @@ import (
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 var kTempAccountSalt string = "j4rkTZQ2mLk3NAhK"
@@ -70,7 +73,7 @@ func TempAccountKeypair(publicKey string) (*keypair.Full, error) {
 
 }
 
-//BlockchainAccountProperties returns whether the account exists , whether the account trusts the asset, the native balance, the asset balance, the account object, and whether there was an error
+// BlockchainAccountProperties returns whether the account exists , whether the account trusts the asset, the native balance, the asset balance, the account object, and whether there was an error
 func BlockchainAccountProperties(client *horizonclient.Client, destinationPublicKey string, asset txnbuild.Asset) (bool, bool, decimal.Decimal, decimal.Decimal, *horizon.Account, error) {
 
 	log.Printf("[BlockchainAccountProperties] obtaining blockchain account properties for  %v \n", destinationPublicKey)
@@ -211,6 +214,118 @@ func SubmitXdrWithSignature(client *horizonclient.Client, signerPublicKey string
 
 		} else {
 			log.Printf("[SubmitXdrWithSignature] not horizon error: %v\n", err)
+
+		}
+
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error operation failed", ErrMessage: "Operation Failed", Code: 500}
+
+	}
+
+	return txnResult.Hash, nil
+
+}
+func SubmitApprovalXdrWithSignature(client *horizonclient.Client, approvalID string, gc *sharedconfig.GlobalConfig) (string, error) {
+	type PendingTransactionSignature struct {
+		CreatedAt                time.Time `json:"createdAt"`
+		ID                       string    `gorm:"size:56"`
+		PendingAuthID            string    `gorm:"size:56;not null;index:idx_pending_trxsig_pending_auth,unique"`
+		Approver                 string    `gorm:"size:20;not null;index:idx_pending_trxsig_pending_auth,unique;index:idx_pending_trxsig_approver" json:"approver"`
+		ApproverSignerPublicKey  string    `gorm:"size:56;not null;index:idx_pending_trxsig_approver_signer" json:"approverSignerPublicKey"`
+		TransactionWithSignature string    `gorm:"not null" json:"transactionWithSignature"`
+	}
+	type PendingAuth struct {
+		CreatedAt                    time.Time                     `json:"createdAt"`
+		UpdatedAt                    time.Time                     `gorm:"default:now()" json:"updatedAt"`
+		ID                           string                        `gorm:"size:56" json:"id"`
+		Initiator                    string                        `gorm:"size:20;not null;index:idx_pending_auth_initiator" json:"initiator"`
+		InitiatorSignerPublicKey     string                        `gorm:"size:56;not null;index:idx_pending_auth_signer_public_key" json:"initiatorSignerPublicKey"`
+		WalletPublicKey              string                        `gorm:"size:56;not null;index:idx_pending_auth_wallet_public_key" json:"walletPublicKey"`
+		TransactionType              string                        `gorm:"size:28;not null;index:idx_pending_auth_transaction_type" json:"transactionType"`
+		Description                  string                        `gorm:"not null;" json:"description"`
+		ApprovalsNeeded              int                           `gorm:"not null;" json:"approvalsNeeded"`
+		ApprovalsGotten              int                           `gorm:"not null;default:0" json:"approvalsGotten"`
+		TransactionStatus            string                        `gorm:"size:20;not null;default:'PENDING';index:idx_pending_auth_transaction_status" json:"transactionStatus"`
+		RejectedBy                   *string                       `gorm:"size:20;null;index:idx_pending_auth_rejected_by" json:"rejectedBy"`
+		ReasonForRejection           *string                       `gorm:"size:200;null;" json:"reasonForRejection"`
+		TransactionXdr               string                        `gorm:"not null;" json:"transactionXdr"`
+		TransactionInfoStr           *string                       `gorm:"null;" json:"transactionInfoStr"`
+		TransactionID                *string                       `gorm:"size:70;null;index:idx_pending_auth_transaction_id" json:"transactionID"`
+		PendingTransactionSignatures []PendingTransactionSignature `json:"pendingTransactionSignatures"`
+	}
+	var pendingAuth PendingAuth
+	e := gc.DB.Preload(clause.Associations).Where("id = ?", approvalID).First(&pendingAuth).Error
+	if e != nil {
+
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+
+	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFb"
+	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
+		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
+	}
+
+	gTxn, err := txnbuild.TransactionFromXDR(pendingAuth.TransactionXdr)
+
+	if err != nil {
+		return "", err
+	}
+
+	txn, ok := gTxn.Transaction()
+
+	if !ok {
+		return "", &tErrors.ErrorInvalidTransaction{}
+	}
+	for _, sig := range pendingAuth.PendingTransactionSignatures {
+
+		txn, err = txn.AddSignatureBase64(GetBlockchainNetworkPassPhrase(), sig.ApproverSignerPublicKey, sig.TransactionWithSignature)
+
+		if err != nil {
+			log.Printf("[SubmitApprovalXdrWithSignature] Failed to verify signature of [%v] on [%v] and [%v] for [%v] on signerPublicKey [%v], error: [%v]\n", sig.Approver, GetBlockchainNetworkPassPhrase(), sig.TransactionWithSignature, pendingAuth.TransactionXdr, sig.ApproverSignerPublicKey, err)
+			return "", err
+		}
+	}
+
+	xdrBase64, err := txn.Base64()
+
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+
+	// log.Println("signed xdr is " + xdrBase64)
+
+	txnResult, err := client.SubmitTransactionXDR(xdrBase64)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
+			discord.Say(fmt.Sprintf("[SubmitApprovalXdrWithSignature] error connecting to expansion service: %v\nXDR: %v", err, xdrBase64))
+		}
+
+		horizonException, ok := err.(*horizonclient.Error)
+
+		if ok {
+
+			extraErrors := horizonException.Problem.Extras
+
+			for key, val := range extraErrors {
+				log.Printf("[SubmitApprovalXdrWithSignature] Extras: %v is %v\nWallet publicKey: %v\n", key, val, pendingAuth.WalletPublicKey)
+				logDiscordFailedPayment(fmt.Sprintf("[SubmitApprovalXdrWithSignature] Extras: %v is %v\nWallet publicKey: %v\n", key, val, pendingAuth.WalletPublicKey))
+
+			}
+
+			resultCodes, errRes := horizonException.ResultCodes()
+			if errRes == nil {
+				for key, val := range resultCodes.OperationCodes {
+					log.Printf("[v] Result code: %v is %v\nWallet publicKey: %v\n", key, val, pendingAuth.WalletPublicKey)
+					logDiscordFailedPayment(fmt.Sprintf("[SubmitApprovalXdrWithSignature] Result code: %v is %v\nWallet publicKey: %v\n", key, val, pendingAuth.WalletPublicKey))
+
+				}
+			} else {
+				log.Printf("[SubmitApprovalXdrWithSignature] Error getting result codes: %v\n", errRes)
+			}
+
+		} else {
+			log.Printf("[SubmitApprovalXdrWithSignature] not horizon error: %v\n", err)
 
 		}
 

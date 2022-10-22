@@ -7,6 +7,7 @@ import (
 	userModels "trovo-wallet-api/internal/components/users/models"
 	db "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
@@ -222,14 +223,47 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	//if transaction fails on blockchain, then reverse all changes.
 	{
 		//process submission routine here
-
+		tHash, err := network.SubmitApprovalXdrWithSignature(gc.BantuExpansionClient, p.ID, gc)
+		if err != nil {
+			return err
+		}
 		//set transaction ID
-		thash := "xxxx"
-		p.TransactionID = &thash
+
+		p.TransactionID = &tHash
 
 	}
 
 	//blockchain succeeded
+
+	{
+		//process post blockchcain transaction
+		if p.TransactionType == "DISABLE_SHARED_ACCESS" {
+			wallet, err := userModels.UserWalletID(p.WalletPublicKey).GetWallet(dbTX)
+			//get wallet
+			if err == nil {
+				accessList := wallet.Permissions
+				// set shared access enabled to 0
+				// delete access list
+				// wallet.SharedAccessEnabled = 0
+				// wallet.NumberOfApprovalsNeeded = 0
+				wallet.SharedAccessEnabled = 0
+				wallet.NumberOfApprovalsNeeded = 0
+				wallet.Permissions = nil
+
+				e = dbTX.Save(&wallet).Error
+				if e != nil {
+					log.Println("[ApproveTransaction] error saving wallet state:", e.Error())
+				}
+				e = dbTX.Delete(&accessList).Error
+				if e != nil {
+					log.Println("[ApproveTransaction] error saving wallet state:", e.Error())
+				}
+
+			}
+
+		}
+	}
+
 	dbTX.Commit()
 	return nil
 }

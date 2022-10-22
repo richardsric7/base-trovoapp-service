@@ -235,14 +235,15 @@ type PendingAuth struct {
 	RejectedBy                   *string                       `gorm:"size:20;null;index:idx_pending_auth_rejected_by" json:"rejectedBy"`
 	ReasonForRejection           *string                       `gorm:"size:200;null;" json:"reasonForRejection"`
 	TransactionXdr               string                        `gorm:"not null;" json:"transactionXdr"`
+	TransactionInfoStr           *string                       `gorm:"null;" json:"transactionInfoStr"`
 	TransactionID                *string                       `gorm:"size:70;null;index:idx_pending_auth_transaction_id" json:"transactionID"`
 	PendingTransactionSignatures []PendingTransactionSignature `json:"pendingTransactionSignatures"`
 }
 type PendingTransactionSignature struct {
 	CreatedAt                time.Time `json:"createdAt"`
 	ID                       string    `gorm:"size:56"`
-	PendingAuthID            string    `gorm:"size:56;not null;index:idx_pending_trxsig_pending_auth_id"`
-	Approver                 string    `gorm:"size:20;not null;index:idx_pending_trxsig_approver" json:"approver"`
+	PendingAuthID            string    `gorm:"size:56;not null;index:idx_pending_trxsig_pending_auth,unique"`
+	Approver                 string    `gorm:"size:20;not null;index:idx_pending_trxsig_pending_auth,unique;index:idx_pending_trxsig_approver" json:"approver"`
 	ApproverSignerPublicKey  string    `gorm:"size:56;not null;index:idx_pending_trxsig_approver_signer" json:"approverSignerPublicKey"`
 	TransactionWithSignature string    `gorm:"not null" json:"transactionWithSignature"`
 }

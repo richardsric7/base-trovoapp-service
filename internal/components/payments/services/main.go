@@ -2,6 +2,7 @@ package payments
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -156,6 +157,8 @@ func Pay(signerUser *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo
 		assetOfPayment = fmt.Sprintf("%v:%v...%v", paymentInfo.AssetCode, paymentInfo.AssetIssuer[0:4], paymentInfo.AssetIssuer[51:55])
 	}
 	description := fmt.Sprintf("Sending Payment from wallet [%v].\nTo: [%v].\nAmount: %v [%v].\nMemo: %v\nImportant Messages: %v\n", wallet.Alias, paymentInfo.Destination, paymentInfo.Amount, assetOfPayment, paymentInfo.Memo, paymentInfo.Messages)
+	transactionByte, _ := json.Marshal(*paymentInfo)
+	transactionStr := string(transactionByte)
 	pendingAuth := users.PendingAuth{
 		ID:                       id,
 		Initiator:                signerUser.Username,
@@ -165,6 +168,7 @@ func Pay(signerUser *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo
 		Description:              description,
 		ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
 		TransactionXdr:           xdrBase64,
+		TransactionInfoStr:       &transactionStr,
 	}
 	//save and commit this to database
 	e := db.Create(&pendingAuth).Error

@@ -1,6 +1,7 @@
 package users
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -486,6 +487,8 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 			//TODO: queue transaction and notify signers
 			id := uuid.New().String()
 			description := fmt.Sprintf("Disabling shared access on wallet [%v].\nThis will remove permissions Permissions: [%v]", wallet.Alias, userPermissions)
+			transactionByte, _ := json.Marshal(*accessInfo)
+			transactionStr := string(transactionByte)
 			pendingAuth := userModels.PendingAuth{
 				ID:                       id,
 				Initiator:                signerUser.Username,
@@ -495,6 +498,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 				Description:              description,
 				ApprovalsNeeded:          approvalsNeeded,
 				TransactionXdr:           xdrBase64,
+				TransactionInfoStr:       &transactionStr,
 			}
 			// rollback all the other changes since the changes can only apply when approvals are completed.
 			// dbTX.Rollback()
@@ -516,6 +520,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
 	wallet.SharedAccessEnabled = 0
+	wallet.NumberOfApprovalsNeeded = 0
 	e = dbTX.Delete(&accessList).Error
 	if e != nil {
 		log.Println("[RemoveSharedWalletAccess] error deleting access list", e)
