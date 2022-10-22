@@ -223,11 +223,13 @@ class _SharedAccessState extends State<SharedAccess>
         SizedBox(
           height: height / 50,
         ),
-        tiles(),
-        tiles(),
-        tiles(),
-        tiles(),
-        tiles(),
+        for (var i = 0; i < appState.sharedWallets.length; i++) ...[
+          tiles(
+            walletOwner: appState.sharedWallets[i]['owner']!,
+            walletAlias: appState.sharedWallets[i]['walletAlias']!,
+            accessType: appState.sharedWallets[i]['permission']!,
+          ),
+        ],
         SizedBox(
           height: height / 10,
         ),
@@ -238,7 +240,10 @@ class _SharedAccessState extends State<SharedAccess>
     );
   }
 
-  Widget tiles() {
+  Widget tiles(
+      {required String walletOwner,
+      required String walletAlias,
+      required String accessType}) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
@@ -257,7 +262,7 @@ class _SharedAccessState extends State<SharedAccess>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Efizee",
+                    walletOwner,
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -267,7 +272,7 @@ class _SharedAccessState extends State<SharedAccess>
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      'Approver Access',
+                      accessType,
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontbody,
@@ -278,7 +283,7 @@ class _SharedAccessState extends State<SharedAccess>
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      '2 months ago',
+                      walletAlias,
                       style: TextStyle(
                         fontSize: 9,
                         fontFamily: fontbody,

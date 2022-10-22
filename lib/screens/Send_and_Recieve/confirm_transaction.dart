@@ -450,7 +450,6 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
         publicKey: activeWallet!.publicKey!,
       );
 
-      print('response: $responseData');
       if (responseData['statusCode'] == 200) {
         await updateUserInfo();
         appState.viewData![TransactionSuccessViewPageConfig.key] =
@@ -463,10 +462,11 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
+        hideLoader(context);
       }
     } catch (e) {
-      print(e);
       popup(context, title: LanguageEn.error, message: e.toString());
+      hideLoader(context);
     }
   }
 

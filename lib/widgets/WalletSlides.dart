@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
@@ -16,7 +15,7 @@ import 'popups.dart';
 class WalletSlide extends StatefulWidget {
   String alias;
   String totalBalance;
-  String fiatBalance;
+  String? fiatBalance;
   Color backColor;
   Color foreColor;
   bool initialHiddenState;
@@ -26,7 +25,7 @@ class WalletSlide extends StatefulWidget {
     Key? key,
     required this.alias,
     required this.totalBalance,
-    required this.fiatBalance,
+    this.fiatBalance,
     required this.backColor,
     required this.foreColor,
     required this.initialHiddenState,
@@ -45,7 +44,6 @@ class _WalletSlideState extends State<WalletSlide> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     localHideBalance = widget.initialHiddenState;
     appState = Provider.of<DataProvider>(context, listen: false);
@@ -141,15 +139,17 @@ class _WalletSlideState extends State<WalletSlide> {
                   ),
                 ),
                 SizedBox(height: 2),
-                Text(
-                  getBalance(widget.fiatBalance),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w300,
-                    fontSize: 13,
-                    color: widget.foreColor,
-                    fontFamily: fontbody,
+                if (widget.fiatBalance != null) ...[
+                  Text(
+                    getBalance(widget.fiatBalance!),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w300,
+                      fontSize: 13,
+                      color: widget.foreColor,
+                      fontFamily: fontbody,
+                    ),
                   ),
-                ),
+                ]
               ],
             ),
           ),

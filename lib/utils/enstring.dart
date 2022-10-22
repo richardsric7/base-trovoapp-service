@@ -230,6 +230,11 @@ class LanguageEn {
 
   static String get termsofserviceerror => "You need to accept terms";
 
+  // static String get thisisanassetissuerwallet =>
+  //     "Is this an asset issuer wallet?";
+  static String get thisisanassetissuerwallet =>
+      "Use this wallet for minting tokens";
+
   static String get invalidateoldsigner =>
       "Invalidate old signer from primary wallet";
 

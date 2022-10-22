@@ -93,6 +93,8 @@ class _SplashScreenState extends State<SplashScreen>
       } else {
         var data = await StoreData().storeGetData('userInfo');
         appState.setUser = UserInfo().deserializeJson(data);
+        appState.setSharedWallets =
+            await StoreData().storeGetData('walletsSharedWithUser');
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');
         appState.setPassword = await StoreData().storeGetData('password');
         appState.biometricEnabled =
@@ -105,6 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
         appState.sethideWalletList =
             await StoreData().storeGetData('hideWalletList') ??
                 List.filled(6, appState.hideBalances);
+
         print(
             '-------------------hidewalletlist: ${List.filled(6, appState.hideWalletList)}');
         print('....................this is nfts: ${appState.nfts}');
