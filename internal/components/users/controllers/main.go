@@ -1947,7 +1947,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				if u.PushNotificationToken != nil && v.Permission != "VIEW-ONLY" {
 					dataPayload := make(map[string]string)
 					dataPayload["none"] = ""
-					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v Submitted an approval on wallet %v!", signerUser.Username, wallet.Alias), fmt.Sprintf("%v submitted an approval for Request:\n[%v]\nApproval is now %v/%v", signerUser.Username, approvalRequest.Description, approvalRequest.ApprovalsGotten, approvalRequest.ApprovalsNeeded), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v Submitted an approval on wallet %v!", signerUser.Username, wallet.Alias), fmt.Sprintf("%v submitted an approval for Request:\n%v\nApproval stage is now %v/%v", signerUser.Username, approvalRequest.Description, approvalRequest.ApprovalsGotten, approvalRequest.ApprovalsNeeded), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 				}
 			}
 		}

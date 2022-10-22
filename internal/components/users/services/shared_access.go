@@ -486,7 +486,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 
 			//TODO: queue transaction and notify signers
 			id := uuid.New().String()
-			description := fmt.Sprintf("Disabling shared access on wallet [%v].\nThis will remove permissions Permissions: [%v]", wallet.Alias, userPermissions)
+			description := fmt.Sprintf("Disabling shared access on wallet %v.\nThis will remove the permissions:\n%v", wallet.Alias, userPermissions)
 			transactionByte, _ := json.Marshal(*accessInfo)
 			transactionStr := string(transactionByte)
 			pendingAuth := userModels.PendingAuth{
