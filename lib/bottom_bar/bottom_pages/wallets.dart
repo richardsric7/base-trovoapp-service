@@ -423,18 +423,23 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         // color: colors[i - 1],
       ),
       child: Stack(children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 35.0, horizontal: 20),
-              child: Image.asset(
-                'assets/images/trovo_white.png',
-                fit: BoxFit.cover,
-                height: 100,
-                width: 100,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Image.asset(
+                  'assets/images/trovo_white.png',
+                  fit: BoxFit.cover,
+                  height: 80,
+                  width: 80,
+                ),
+                SizedBox(
+                  width: width / 20,
+                ),
+              ],
             ),
           ],
         ),
@@ -606,62 +611,81 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     SizedBox(
                       height: height / 50,
                     ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: width / 10,
+                            ),
+                            Transform.scale(
+                              scale: 1.sp,
+                              child: Checkbox(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(5.sp),
+                                  ),
+                                ),
+                                activeColor: notifier.getbluecolor,
+                                side: BorderSide(
+                                    color: notifier.getbluewhitecolor),
+                                value: isAssetIssuerWallet == 1,
+                                onChanged: (value) {
+                                  setState(() {
+                                    isAssetIssuerWallet = value! ? 1 : 0;
+                                  });
+                                },
+                              ),
+                            ),
+                            Container(
+                              width: width / 1.6,
+                              child: Text(
+                                LanguageEn.thisisanassetissuerwallet,
+                                overflow: TextOverflow.visible,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: width / 4.4,
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                mintWalletExplainerPopup(context);
+                              },
+                              child: Text(
+                                'What does it mean?',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  color: notifier.getbluewhitecolor,
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w500,
+                                  fontFamily: fontbody,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: height / 50,
+                        ),
+                      ],
+                    )
                   ],
                 ),
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 35),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      LanguageEn.thisisanassetissuerwallet,
-                      style: TextStyle(
-                          fontSize: 14,
-                          color: notifier.getgrey,
-                          fontFamily: fontbody),
-                    ),
-                    Transform.scale(
-                      scale: 1.sp,
-                      child: Checkbox(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(5.sp),
-                          ),
-                        ),
-                        activeColor: notifier.getbluecolor,
-                        side: BorderSide(color: notifier.getbluewhitecolor),
-                        value: isAssetIssuerWallet == 1,
-                        onChanged: (value) {
-                          setState(() {
-                            isAssetIssuerWallet = value! ? 1 : 0;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                  onTap: () => appState.goToWebView(
-                      bantuBlockchainExplorerBaseUrl +
-                          'viewData.transactionId'),
-                  child: Text(
-                    'What does it mean?',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
-                      fontFamily: fontbody,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          SizedBox(
+            height: height / 30,
           ),
           // Tag name
           CustomTextFormField.textField(

@@ -499,6 +499,7 @@ class LanguageEn {
   static String get fingerprintrequired => 'Fingerprint required';
 
   static String get important => 'Important';
+  static String get information => 'Information';
 
   static String get skipBiometricsMessage =>
       'Are you sure you don\'t want to enable biometrics authentication?';
@@ -831,6 +832,9 @@ class LanguageEn {
       "Enter number of required approvers";
 
   static String get accesslist => "Access List";
+
+  static String get explainmintwallet =>
+      "Please tick on this checkbox if the wallet you are importing has been used or will be used to mint a token.";
 
   static String get rewards => "Rewards";
 
