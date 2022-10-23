@@ -76,7 +76,8 @@ class _PaymentDetails extends State<PaymentDetails>
       publicKey = viewData.toPublicKey;
     }
 
-    if (viewData.transactionType!.contains('SWAP')) {
+    if (viewData.transactionType!.contains('SWAP') &&
+        viewData.memo!.contains('>')) {
       transactionType = TransactionType.Swap;
       var splitResult = viewData.memo!.split('>');
       memo = "Swapped ${splitResult[0]} to ${splitResult[1]}";

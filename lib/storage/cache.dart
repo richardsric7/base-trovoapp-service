@@ -35,6 +35,7 @@ Future<void> storeUserInfo(userInfoMap, appState) async {
 
   // save useInfo to appstate
   appState.setUser = UserInfo().deserializeJson(userInfo);
+  appState.setSharedWallets = walletsSharedWithUser;
   appState.setNFTs = nfts;
   appState.setassetBalances = assetBalances;
   print('stored new user data.................');

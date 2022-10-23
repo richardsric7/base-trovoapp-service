@@ -38,7 +38,7 @@ class DataProvider with ChangeNotifier {
 
   void updateListeners() => notifyListeners();
 
-  var sharedWallets = [];
+  var sharedWallets;
   set setSharedWallets(wallets) {
     sharedWallets = wallets;
     notifyListeners();

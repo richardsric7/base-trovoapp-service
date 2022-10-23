@@ -253,7 +253,7 @@ class _VeryficationState extends State<Veryfication> {
     var userInfo = userInfoMap['userData'] ?? {};
     var assetBalances = userInfoMap['assetBalances'] ?? {};
     var nfts = userInfoMap['nfts'] ?? {};
-    var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
+    var walletsSharedWithUser = userInfoMap['walletsSharedWithUser'] ?? [];
     var defaultAssets = userInfoMap['defaultAssets'] ?? [];
 
     await StoreData().storeDeleteData();
@@ -262,7 +262,7 @@ class _VeryficationState extends State<Veryfication> {
     await StoreData().storeInsertData('assetBalances', assetBalances);
     await StoreData().storeInsertData('nftBalances', nfts);
     await StoreData()
-        .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
+        .storeInsertData('walletsSharedWithUser', walletsSharedWithUser);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('password', state.tempPassword);
     await StoreData().storeInsertData('publicKey', state.tempPublicKey);
@@ -272,6 +272,7 @@ class _VeryficationState extends State<Veryfication> {
     // save useInfo to appstate
     state.setUser = UserInfo().deserializeJson(userInfo);
     state.setNFTs = nfts;
+    state.setSharedWallets = walletsSharedWithUser;
     state.setassetBalances = assetBalances;
     state.activeWallet = state.userInfo!.wallets!
         .firstWhere((wallet) => wallet.publicKey == state.tempPublicKey);
