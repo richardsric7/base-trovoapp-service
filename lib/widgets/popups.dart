@@ -989,6 +989,105 @@ void showResponseMessage(context, message, successAction) {
       });
 }
 
+void mintWalletExplainerPopup(context) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(23),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        LanguageEn.information,
+                        style: TextStyle(
+                            color: notifier.getblck,
+                            fontSize: 18,
+                            fontFamily: fontsemibold),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 4.5,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 5.0),
+                            child: Text(
+                              LanguageEn.explainmintwallet,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w300,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 5.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        LanguageEn.continuee,
+                        style: TextStyle(
+                          color: wihitecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ));
+      });
+}
+
 void showSuccessAlert(context, {required onTap}) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
