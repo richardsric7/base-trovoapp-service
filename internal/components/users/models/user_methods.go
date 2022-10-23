@@ -996,6 +996,24 @@ func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner User, err error)
 	return
 }
 
+func (id UserWalletID) GetUserPermissionOnWallet(username string, db *gorm.DB) (walletPermission WalletPermission, err error) {
+	e := db.Where("target_username = ? AND wallet_public_key = ?", username, string(id)).First(&walletPermission).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-account-not-found",
+				ErrMessage: "Account not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
 func (u Username) GetFullUser(db *gorm.DB) (owner User, err error) {
 	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("username = ?", string(u)).First(&owner).Error
 	if e != nil {
@@ -1016,6 +1034,24 @@ func (u Username) GetFullUser(db *gorm.DB) (owner User, err error) {
 
 func (u Username) GetSimpleUser(db *gorm.DB) (owner User, err error) {
 	e := db.Where("username = ?", string(u)).First(&owner).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-account-not-found",
+				ErrMessage: "Account not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
+func (u Username) GetUserPermissionOnWallet(walletPublicKey string, db *gorm.DB) (walletPermission WalletPermission, err error) {
+	e := db.Where("target_username = ? AND wallet_public_key = ?", string(u), walletPublicKey).First(&walletPermission).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found

@@ -24,6 +24,7 @@ type PaymentInfo struct {
 	DestinationThumbnail    string            `json:"destinationThumbnail"`
 	DestinationVerified     int               `json:"destinationVerified"`
 	Multiparty              int               `json:"-"`
+	Commit                  int               `json:"commit"`
 	ChannelAccount          string            `json:"channelAccount"`
 	ChannelAccountSignature string            `json:"channelAccountSignature"`
 	Messages                []string          `json:"messages"`

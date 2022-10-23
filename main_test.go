@@ -2035,37 +2035,29 @@ func TestCreateSharedAccess(t *testing.T) {
 	}
 	accessList = append(accessList,
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "kenmaddy",
-			Permission:      "INITIATOR"},
+			TargetUsername: "kenmaddy",
+			Permission:     "INITIATOR"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "kenmaddy",
-			Permission:      "APPROVER"},
+			TargetUsername: "kenmaddy",
+			Permission:     "APPROVER"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "ric",
-			Permission:      "INITIATOR"},
+			TargetUsername: "ric",
+			Permission:     "INITIATOR"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "ric",
-			Permission:      "APPROVER"},
+			TargetUsername: "ric",
+			Permission:     "APPROVER"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "thundeyy",
-			Permission:      "VIEW-ONLY"},
+			TargetUsername: "thundeyy",
+			Permission:     "VIEW-ONLY"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "onoja",
-			Permission:      "VIEW-ONLY"},
+			TargetUsername: "onoja",
+			Permission:     "VIEW-ONLY"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "efizee",
-			Permission:      "VIEW-ONLY"},
+			TargetUsername: "efizee",
+			Permission:     "VIEW-ONLY"},
 		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "obi",
-			Permission:      "APPROVER"})
+			TargetUsername: "obi",
+			Permission:     "APPROVER"})
 	payload.Permissions = accessList
 
 	log.Printf("[DEBUG] Payload: %+v\n", payload)

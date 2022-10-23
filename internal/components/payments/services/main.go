@@ -99,8 +99,10 @@ func Pay(signerUser *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo
 
 	paymentInfo.Transaction = xdrBase64
 	paymentInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
-
-	if len(paymentInfo.TransactionSignature) == 0 {
+	if !wallet.HasViewOnlyAccess(gc) && wallet.SharedAccessEnabled == 1 {
+		paymentInfo.Multiparty = 1
+	}
+	if len(paymentInfo.TransactionSignature) == 0 && paymentInfo.Multiparty == 0 {
 		return paymentInfo, nil, err
 	}
 
@@ -150,13 +152,17 @@ func Pay(signerUser *paymentsDB.User, wallet *paymentsDB.UserWallet, paymentInfo
 		paymentInfo.TransactionID = txnHash
 		return paymentInfo, destinationUser, err
 	}
+	if paymentInfo.Commit == 0 {
+		return paymentInfo, nil, nil
+	}
+	paymentInfo.TransactionID = "PENDING_AUTH"
 	log.Printf("[Pay]shared access with approver permission enabled for %v \n", wallet.Alias)
-	id := uuid.New().String()
+	id := uuid.NewString()
 	assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
 	if len(paymentInfo.AssetIssuer) == 56 {
 		assetOfPayment = fmt.Sprintf("%v:%v...%v", paymentInfo.AssetCode, paymentInfo.AssetIssuer[0:4], paymentInfo.AssetIssuer[51:55])
 	}
-	description := fmt.Sprintf("Sending Payment from wallet [%v].\nTo: [%v].\nAmount: %v [%v].\nMemo: %v\nImportant Messages: %v\n", wallet.Alias, paymentInfo.Destination, paymentInfo.Amount, assetOfPayment, paymentInfo.Memo, paymentInfo.Messages)
+	description := fmt.Sprintf("Sending Payment from wallet [%v].\nTo: [%v].\nAmount: %v [%v].\nMemo: %v\nMessages: %v\n", wallet.Alias, paymentInfo.Destination, paymentInfo.Amount, assetOfPayment, paymentInfo.Memo, paymentInfo.Messages)
 	transactionByte, _ := json.Marshal(*paymentInfo)
 	transactionStr := string(transactionByte)
 	pendingAuth := users.PendingAuth{

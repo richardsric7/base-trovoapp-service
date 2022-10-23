@@ -1,10 +1,12 @@
 package users
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
+	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	db "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -186,24 +188,69 @@ func GetApprovalRequestJSON(id string, gc *sharedconfig.GlobalConfig) (approvalR
 
 func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, approvalInfo *userModels.ApprovalPayload, gc *sharedconfig.GlobalConfig) (err error) {
 	approvalInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
+	var pts userModels.PendingTransactionSignature
+	var revokedList, modifiedList, addedList []userModels.WalletPermission
+
+	initiatorUser, e := userModels.Username(p.Initiator).GetSimpleUser(gc.DB)
+	if e != nil {
+		log.Println("[ApproveTransaction] error getting initiator user object for modify shared access")
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+
+	walletOwner, e := userModels.UserWalletID(p.WalletPublicKey).GetWalletOwner(gc.DB)
+	if e != nil {
+		log.Println("[ApproveTransaction] error getting wallet owner user object for modify shared access")
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+
+	wallet, e := userModels.UserWalletID(p.WalletPublicKey).GetWallet(gc.DB)
+	if e != nil {
+		log.Println("[ApproveTransaction] error getting wallet object for modify shared access")
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	if p.TransactionType == "MODIFY SHARED ACCESS" {
+		//unmarshall trx
+		tbyte := []byte(*p.TransactionInfoStr)
+		var ts userModels.ModifySharedAccessInfo
+		e = json.Unmarshal(tbyte, &ts)
+		if e != nil {
+			log.Println("[ApproveTransaction] error decoding json for modified shared access")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+		ts.Commit = 0
+		revokedList, modifiedList, addedList, e = ModifySharedWalletAccess(&initiatorUser, &walletOwner, &wallet, &ts, gc)
+		if e != nil {
+			log.Println("[ApproveTransaction] error dry running for modify shared access")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		p.TransactionXdr = ts.Transaction
+		// e =gc.DB.Save(p).Error
+		// if e != nil {
+		// 	log.Println("[ApproveTransaction] error saving fresh transaction for modify shared access")
+		// 	return &tErrors.ErrorTemporaryServerError{}
+		// }
+
+	}
 	if len(approvalInfo.TransactionSignature) == 0 {
+
 		approvalInfo.Transaction = p.TransactionXdr
 
 		return
 	}
 	//signature exists
+	dbTX := gc.DB.Begin()
+	defer dbTX.Rollback()
 
-	pts := userModels.PendingTransactionSignature{
+	pts = userModels.PendingTransactionSignature{
 		ID:                       uuid.NewString(),
 		PendingAuthID:            p.ID,
 		Approver:                 signerUser.Username,
 		ApproverSignerPublicKey:  signerUser.PrimarySigner,
 		TransactionWithSignature: approvalInfo.TransactionSignature,
 	}
-	dbTX := gc.DB.Begin()
-	defer dbTX.Rollback()
 
-	e := dbTX.Create(&pts).Error
+	e = dbTX.Create(&pts).Error
 	if e != nil {
 		log.Println("[ApproveTransaction]error saving transaction signature:", e)
 		return &tErrors.ErrorTemporaryServerError{}
@@ -231,7 +278,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 		//process submission routine here
-		tHash, err := network.SubmitApprovalXdrWithSignature(gc.BantuExpansionClient, p.ID, dbTX)
+		tHash, err := network.SubmitApprovalsXdrWithSignatures(gc.BantuExpansionClient, p.ID, dbTX)
 		if err != nil {
 			return err
 		}
@@ -247,50 +294,135 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		log.Println("[ApproveTransaction]error saving approval state:", e)
 		return &tErrors.ErrorTemporaryServerError{}
 	}
-	{
+	{ //sub
 		//process post blockchcain transaction
-		if p.TransactionType == "DISABLE_SHARED_ACCESS" {
-			wallet, err := userModels.UserWalletID(p.WalletPublicKey).GetWallet(dbTX)
-			//get wallet
-			if err == nil {
-				accessList := wallet.Permissions
-				// set shared access enabled to 0
-				// delete access list
-				// wallet.SharedAccessEnabled = 0
-				// wallet.NumberOfApprovalsNeeded = 0
-				wallet.SharedAccessEnabled = 0
-				wallet.NumberOfApprovalsNeeded = 0
-				wallet.Permissions = nil
+		if p.TransactionType == "DISABLE SHARED ACCESS" {
 
-				e = dbTX.Save(&wallet).Error
-				if e != nil {
-					log.Println("[ApproveTransaction] error saving wallet state:", e.Error())
-				}
-				e = dbTX.Delete(&accessList).Error
-				if e != nil {
-					log.Println("[ApproveTransaction] error saving wallet state:", e.Error())
-				}
+			accessList := wallet.Permissions
+			// set shared access enabled to 0
+			// delete access list
+			// wallet.SharedAccessEnabled = 0
+			// wallet.NumberOfApprovalsNeeded = 0
+			wallet.SharedAccessEnabled = 0
+			wallet.NumberOfApprovalsNeeded = 0
+			wallet.Permissions = nil
 
-				dbTX.Commit()
-				for _, v := range accessList {
-					u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
-					if e != nil {
-						continue
-					}
-					if u.PushNotificationToken != nil && v.Permission != "VIEW-ONLY" {
-						dataPayload := make(map[string]string)
-						dataPayload["none"] = ""
-						pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-
-					}
-				}
-				return nil
+			e = dbTX.Save(&wallet).Error
+			if e != nil {
+				log.Println("[ApproveTransaction] error saving wallet state:", e.Error())
+			}
+			e = dbTX.Delete(&accessList).Error
+			if e != nil {
+				log.Println("[ApproveTransaction] error deleting access list:", e.Error())
 			}
 
 			dbTX.Commit()
+			for _, v := range accessList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				if e != nil {
+					continue
+				}
+				if u.PushNotificationToken != nil && v.Permission != "VIEW-ONLY" {
+					dataPayload := make(map[string]string)
+					dataPayload["none"] = ""
+					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+
+				}
+			}
+
 			return nil
+		} else if p.TransactionType == "MODIFY SHARED ACCESS" {
+
+			//delete revoked access
+			e = dbTX.Delete(&revokedList).Error
+			if e != nil {
+				log.Println("[ApproveTransaction] error deleting revoked list:", e.Error())
+			}
+			//save modified access
+			e = dbTX.Save(&modifiedList).Error
+			if e != nil {
+				log.Println("[ApproveTransaction] error saving modified list:", e.Error())
+			}
+			//create added access
+			e = dbTX.Create(&addedList).Error
+			if e != nil {
+				log.Println("[ApproveTransaction] error creating added list:", e.Error())
+			}
+
+			dbTX.Commit()
+
+			for _, v := range revokedList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				if e != nil {
+					continue
+				}
+				if u.PushNotificationToken != nil {
+					dataPayload := make(map[string]string)
+					dataPayload["none"] = ""
+					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+
+				}
+			}
+
+			for _, v := range modifiedList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				if e != nil {
+					continue
+				}
+				if u.PushNotificationToken != nil {
+					dataPayload := make(map[string]string)
+					dataPayload["none"] = ""
+					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+
+				}
+			}
+
+			for _, v := range addedList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				if e != nil {
+					continue
+				}
+				if u.PushNotificationToken != nil {
+					dataPayload := make(map[string]string)
+					dataPayload["none"] = ""
+					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+
+				}
+			}
+
+			return nil
+
+		} else if p.TransactionType == "PAYMENT" {
+			tbyte := []byte(*p.TransactionInfoStr)
+			var paymentInfo paymentModels.PaymentInfo
+			e = json.Unmarshal(tbyte, &paymentInfo)
+			if e != nil {
+				log.Println("[ApproveTransaction] error decoding json for modified shared access")
+				return &tErrors.ErrorTemporaryServerError{}
+			}
+			accessList := wallet.GetPermissionList(gc.DB)
+			// send push notifications
+			assetCode := paymentInfo.AssetCode
+			if assetCode == "" {
+				assetCode = "XBN"
+			}
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "pendingAuth"
+			for _, v := range accessList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				if e != nil {
+					continue
+				}
+				if u.PushNotificationToken != nil {
+					dataPayload := make(map[string]string)
+					dataPayload["none"] = ""
+					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+
+				}
+			}
+
 		}
-	}
+	} //end sub
 
 	dbTX.Commit()
 	return nil

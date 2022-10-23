@@ -167,9 +167,9 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating UserSecretAnswer: ", errMigrate)
 		}
 
-		errMigrate = gormDB.AutoMigrate(&users.Permissions{})
+		errMigrate = gormDB.AutoMigrate(&users.Permission{})
 		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating Permissions: ", errMigrate)
+			log.Fatalln("[OpenDb]Error Migrating Permission: ", errMigrate)
 		}
 
 		errMigrate = gormDB.AutoMigrate(&users.ReservedName{})

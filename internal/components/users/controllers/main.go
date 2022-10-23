@@ -1901,6 +1901,17 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
+		//check if user already approved before
+
+		{
+			for _, a := range approvalRequest.PendingTransactionSignatures {
+				if a.Approver == signerUser.Username {
+					c.JSON(http.StatusForbidden, gin.H{"error": "error-duplicate-approval", "message": "An approval from you already exists. You can only submit one approval."})
+					return
+				}
+			}
+		}
+
 		err = userServices.ApproveTransaction(&signerUser, &approvalRequest, &payload, gc)
 		if err != nil {
 			log.Println("[POST ApproveRequest] error for signer:", signerUser.Username, "error: ", err)

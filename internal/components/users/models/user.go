@@ -69,12 +69,12 @@ type UserWallet struct {
 }
 
 type WalletPermission struct {
-	CreatedAt       time.Time `json:"-"`
-	UpdatedAt       time.Time `json:"-"`
-	ID              string
-	WalletPublicKey string `gorm:"size:90;not null; index:access_level_permission,unique;index:idx_public_key_shared" json:"walletPublicKey"`
-	TargetUsername  string `gorm:"size:16;not null; index:access_level_permission,unique;" json:"targetUsername"`
-	Permission      string `gorm:"size:10;not null; index:access_level_permission,unique" json:"permission"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	ID              string    `json:"id"`
+	WalletPublicKey string    `gorm:"size:90;not null; index:access_level_permission,unique;index:idx_public_key_shared" json:"walletPublicKey"`
+	TargetUsername  string    `gorm:"size:16;not null; index:access_level_permission,unique;" json:"targetUsername"`
+	Permission      string    `gorm:"size:10;not null; index:access_level_permission,unique" json:"permission"`
 }
 type UserWalletSharedAccessInfo struct {
 	WalletPublicKey         string                 `json:"walletPublicKey"`
@@ -102,6 +102,22 @@ type DisableSharedAccessInfo struct {
 	Permissions          []WalletPermissionInfo `json:"-"`
 	Commit               int                    `json:"commit"`
 }
+
+type ModifySharedAccessInfo struct {
+	WalletPublicKey         string                 `json:"walletPublicKey"`
+	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
+	Transaction             string                 `json:"transaction"`
+	TransactionSignature    string                 `json:"transactionSignature"`
+	TransactionID           string                 `json:"transactionId"`
+	NetworkPassPhrase       string                 `json:"networkPassPhrase"`
+	Messages                []string               `json:"messages"`
+	SignatureRequired       int                    `json:"signatureRequired"`
+	MultiParty              int                    `json:"multiParty"`
+	Commit                  int                    `json:"commit"`
+	ModifiedPermissions     []WalletPermissionInfo `json:"modifiedPermissions"`
+	AddedPermissions        []WalletPermissionInfo `json:"addedPermissions"`
+	RevokedPermissions      []WalletPermissionInfo `json:"revokedPermissions"`
+}
 type WalletPermissionInfo struct {
 	ID                    string  `json:"Id"`
 	WalletPublicKey       string  `json:"-"`
@@ -112,7 +128,7 @@ type WalletPermissionInfo struct {
 	PushNotificationToken *string `json:"-"`
 }
 
-type Permissions struct {
+type Permission struct {
 	ID         uint64
 	Permission string `gorm:"size:text" json:"permission"`
 }

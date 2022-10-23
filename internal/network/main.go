@@ -224,7 +224,7 @@ func SubmitXdrWithSignature(client *horizonclient.Client, signerPublicKey string
 	return txnResult.Hash, nil
 
 }
-func SubmitApprovalXdrWithSignature(client *horizonclient.Client, approvalID string, db *gorm.DB) (string, error) {
+func SubmitApprovalsXdrWithSignatures(client *horizonclient.Client, approvalID string, db *gorm.DB) (string, error) {
 	type PendingTransactionSignature struct {
 		CreatedAt                time.Time `json:"createdAt"`
 		ID                       string    `gorm:"size:56"`
