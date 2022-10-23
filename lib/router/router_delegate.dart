@@ -42,6 +42,7 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/send_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
+import 'package:trovo_wallet/screens/SharedAccess/add_shared_access_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
@@ -310,6 +311,10 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(SecurityQuestionsForInactiveAccounts(),
               SecurityQuestionsForInactiveAccountsViewPageConfig);
           break;
+        case Pages.AddSharedAccessDetailsView:
+          _addPageData(
+              AddSharedAccessDetails(), AddSharedAccessDetailsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -508,6 +513,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
       case Pages.SuccessView:
         SuccessViewPageConfig.currentPageAction = action;
         break;
+      case Pages.AddSharedAccessDetailsView:
+        AddSharedAccessDetailsViewPageConfig.currentPageAction = action;
+        break;
       case Pages.SecurityQuestionsForInactiveAccountsView:
         SecurityQuestionsForInactiveAccountsViewPageConfig.currentPageAction =
             action;
@@ -551,178 +559,5 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
     }
     appState.resetCurrentAction();
     return List.of(_pages);
-  }
-
-  void parseRoute(Uri uri) {
-    if (uri.pathSegments.isEmpty) {
-      setNewRoutePath(SplashPageConfig);
-      return;
-    }
-
-    // Handle navapp://deeplinks/details/#
-    if (uri.pathSegments.length == 2) {
-      // if (uri.pathSegments[0] == 'details') {
-      //   pushWidget(Details(int.parse(uri.pathSegments[1])), DetailsPageConfig);
-      // }
-    } else if (uri.pathSegments.length == 1) {
-      final path = uri.pathSegments[0];
-      switch (path) {
-        case 'splash':
-          replaceAll(SplashPageConfig);
-          break;
-        case 'login':
-          replaceAll(LoginPageConfig);
-          break;
-        case 'onboarding':
-          setPath([
-            _createPage(const Swiper(), OnboardingPageConfig),
-          ]);
-          break;
-        case 'signup':
-          setPath([
-            _createPage(const Login(), LoginPageConfig),
-            _createPage(const CreatePassword(), CreatePasswordPageConfig)
-          ]);
-          break;
-        case 'createPassword':
-          setPath([
-            _createPage(const Login(), LoginPageConfig),
-            _createPage(const CreatePassword(), CreatePasswordPageConfig)
-          ]);
-          break;
-        case 'importWallet':
-          setPath([
-            _createPage(const Login(), LoginPageConfig),
-            _createPage(const ImportWallet(), ImportWalletPageConfig)
-          ]);
-          break;
-        case 'verification':
-          setPath([
-            _createPage(const Login(), LoginPageConfig),
-            _createPage(const CreatePassword(), CreatePasswordPageConfig)
-          ]);
-          break;
-        case 'congratulations':
-          setPath([
-            _createPage(const Login(), LoginPageConfig),
-            _createPage(const CreatePassword(), CreatePasswordPageConfig)
-          ]);
-          break;
-        case 'ensurePrivacy':
-          setPath([
-            _createPage(const Login(), LoginPageConfig),
-          ]);
-          break;
-        case 'backup':
-          setPath([
-            _createPage(const Login(), LoginPageConfig),
-          ]);
-          break;
-        case 'fingerPrint':
-          setPath([
-            _createPage(const Login(), LoginPageConfig),
-            _createPage(const FingerPrint(), FingerprintPageConfig),
-          ]);
-          break;
-        case 'webview':
-          setPath([
-            _createPage(TrovoWebView(), WebViewPageConfig),
-          ]);
-          break;
-        case 'assetDetailsView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-            _createPage(const AssetDetails(), AssetDetailsViewPageConfig),
-          ]);
-          break;
-        case 'sendAssetView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-            _createPage(const AssetDetails(), AssetDetailsViewPageConfig),
-            _createPage(const SendAsset(), SendAssetViewPageConfig),
-          ]);
-          break;
-        case 'confirmTransactionView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-            _createPage(const AssetDetails(), AssetDetailsViewPageConfig),
-            _createPage(const SendAsset(), SendAssetViewPageConfig),
-            _createPage(
-                const ConfirmTransaction(), ConfirmTransactionViewPageConfig),
-          ]);
-          break;
-        case 'ProfileDetailsView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-            _createPage(const ProfileDetails(), ProfileDetailsViewPageConfig),
-          ]);
-          break;
-        case 'ReferralInfoView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-            _createPage(const ReferralInfo(), ReferralInfoViewPageConfig),
-          ]);
-          break;
-        case 'PasswordMgtView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-            _createPage(const PasswordMgtView(), PasswordMgtViewPageConfig),
-          ]);
-          break;
-        case 'BackupAllView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-            _createPage(const BackupAll(), BackupAllViewPageConfig),
-          ]);
-          break;
-        case 'AuthorizeLoginView':
-          setPath([
-            _createPage(AuthorizeLoginView(), AuthorizeLoginViewPageConfig),
-          ]);
-          break;
-        case 'AuthorizeActionView':
-          setPath([
-            _createPage(AuthorizeActionView(), AuthorizeActionViewPageConfig),
-          ]);
-          break;
-        case 'home':
-        case 'qrscanner':
-        case 'searchview':
-        case 'notificationsview':
-        case 'walletDetailsView':
-        case 'transactionSuccessView':
-        case 'createSubWalletSuccessView':
-        case 'recieveAssetView':
-        case 'requestSpecificPaymentView':
-        case 'requestSpecificPaymentDetatilsView':
-        case 'pendingAssetDetailsView':
-        case 'PaymentHistoryView':
-        case 'PaymentDetailsView':
-        case 'SwapAssetsView':
-        case 'ConfirmSwapView':
-        case 'SwapSuccessView':
-        case 'SecurityQuestionsView':
-        case 'RequestOtpView':
-        case 'AccountRecoverySuccessView':
-        case 'SharedAccessView':
-        case 'SetupAccountRecoveryView':
-        case 'DisableAccountRecoveryView':
-        case 'AnswerSecurityQuestions':
-        case 'RequestBackupView':
-        case 'BackupRecoverySecretView':
-        case 'CompleteAccountRecoveryView':
-        case 'RecoverAccountView':
-        case 'DisableAccountRecoveryInfoView':
-        case 'SuccessView':
-          setPath([
-            _createPage(const BottomHome(), BottomHomePageConfig),
-          ]);
-          break;
-        default:
-          setPath([
-            _createPage(const SplashScreen(), SplashPageConfig),
-          ]);
-      }
-    }
   }
 }

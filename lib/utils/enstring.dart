@@ -825,6 +825,11 @@ class LanguageEn {
   static String get enteraccountsusername =>
       "Enter the usernames of all accounts that require viewer access to this wallet";
 
+  static String get enternoofapprovers => "Enter number of approvers";
+  static String get approvers => "Approvers";
+  static String get enternoofrequiredapprovers =>
+      "Enter number of required approvers";
+
   static String get accesslist => "Access List";
 
   static String get rewards => "Rewards";

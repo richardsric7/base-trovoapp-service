@@ -107,6 +107,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return SuccessViewPageConfig;
       case SecurityQuestionsForInactiveAccountsViewPath:
         return SecurityQuestionsForInactiveAccountsViewPageConfig;
+      case AddSharedAccessDetailsViewPath:
+        return AddSharedAccessDetailsViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -220,6 +222,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
       case Pages.SecurityQuestionsForInactiveAccountsView:
         return const RouteInformation(
             location: SecurityQuestionsForInactiveAccountsViewPath);
+      case Pages.AddSharedAccessDetailsView:
+        return const RouteInformation(location: AddSharedAccessDetailsViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

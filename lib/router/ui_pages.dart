@@ -54,6 +54,7 @@ const String DisableAccountRecoveryInfoViewPath =
 const String SuccessViewPath = '/SuccessView';
 const String SecurityQuestionsForInactiveAccountsViewPath =
     '/SecurityQuestionsForInactiveAccounts';
+const String AddSharedAccessDetailsViewPath = '/AddSharedAccessDetailsView';
 
 enum Pages {
   Splash,
@@ -106,7 +107,8 @@ enum Pages {
   CompleteAccountRecoveryView,
   DisableAccountRecoveryInfoView,
   SuccessView,
-  SecurityQuestionsForInactiveAccountsView
+  SecurityQuestionsForInactiveAccountsView,
+  AddSharedAccessDetailsView,
 }
 
 class PageConfiguration {
@@ -374,3 +376,8 @@ PageConfiguration SecurityQuestionsForInactiveAccountsViewPageConfig =
         path: SecurityQuestionsForInactiveAccountsViewPath,
         uiPage: Pages.SecurityQuestionsForInactiveAccountsView,
         currentPageAction: null);
+PageConfiguration AddSharedAccessDetailsViewPageConfig = PageConfiguration(
+    key: 'AddSharedAccessDetailsView',
+    path: AddSharedAccessDetailsViewPath,
+    uiPage: Pages.AddSharedAccessDetailsView,
+    currentPageAction: null);
