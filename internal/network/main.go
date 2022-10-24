@@ -321,7 +321,7 @@ func SubmitApprovalsXdrWithSignatures(client *horizonclient.Client, approvalID s
 
 				}
 			} else {
-				log.Printf("[SubmitApprovalXdrWithSignature] Error getting result codes: %v\n", errRes)
+				log.Printf("[SubmitApprovalXdrWithSignature] Error getting result codes: %vzz\n", errRes)
 			}
 
 		} else {

@@ -412,18 +412,6 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			oldNumberOfApprovers++
 		}
 	}
-	var incrSequenceBy int64
-	var sequenceNumber string
-	if oldNumberOfApprovers > 0 && wallet.SharedAccessEnabled == 1 {
-		accessInfo.MultiParty = 1
-		// check if pending transaction.
-		// var pendingAuth userModels.PendingAuth
-		gc.DB.Where("wallet_public_key = ? AND transaction_status = ?", wallet.ID, "PENDING").Count(&incrSequenceBy)
-		log.Printf("[Pay] >>>>>>>>>>> %v pending transactions on the wallet\n", incrSequenceBy)
-		// incrSequenceBy++
-		log.Printf("[Pay] >>>>>>>>>>> sequence will be increased by %v\n", incrSequenceBy)
-
-	}
 	ops := make([]txnbuild.Operation, 0)
 	accessInfo.Messages = make([]string, 0)
 	// var revokedListInfo, modifiedListInfo, addedListInfo []userModels.WalletPermissionInfo
@@ -778,7 +766,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return
 	}
 
-	xdrBase64, sequenceNumber, messages, errGenXdr := generateModifySharedAccessXdr(wallet, walletOwner, numberOfSubmittedApprovers, accessInfo.NumberOfApprovalsNeeded, incrSequenceBy, ops, gc)
+	xdrBase64, messages, errGenXdr := generateModifySharedAccessXdr(wallet, walletOwner, numberOfSubmittedApprovers, accessInfo.NumberOfApprovalsNeeded, ops, gc)
 	if errGenXdr != nil {
 		err = errGenXdr
 		return
@@ -861,16 +849,15 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		transactionByte, _ := json.Marshal(*accessInfo)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
-			ID:                        id,
-			Initiator:                 signerUser.Username,
-			InitiatorSignerPublicKey:  signerUser.PrimarySigner,
-			WalletPublicKey:           wallet.ID,
-			TransactionType:           "MODIFY SHARED ACCESS",
-			Description:               description,
-			ApprovalsNeeded:           accessInfo.NumberOfApprovalsNeeded,
-			TransactionXdr:            xdrBase64,
-			TransactionInfoStr:        &transactionStr,
-			TransactionSequenceNumber: sequenceNumber,
+			ID:                       id,
+			Initiator:                signerUser.Username,
+			InitiatorSignerPublicKey: signerUser.PrimarySigner,
+			WalletPublicKey:          wallet.ID,
+			TransactionType:          "MODIFY SHARED ACCESS",
+			Description:              description,
+			ApprovalsNeeded:          accessInfo.NumberOfApprovalsNeeded,
+			TransactionXdr:           xdrBase64,
+			TransactionInfoStr:       &transactionStr,
 		}
 		// rollback all the other changes since the changes can only apply when approvals are completed.
 		dbTX.Rollback()
@@ -950,20 +937,13 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 
 	}
 
-	var incrSequenceBy int64
-	var sequenceNumber string
-	if numberOfApprovers > 0 && wallet.SharedAccessEnabled == 1 {
-		accessInfo.MultiParty = 1
-		// check if pending transaction.
-		// var pendingAuth userModels.PendingAuth
-		gc.DB.Where("wallet_public_key = ? AND transaction_status = ?", wallet.ID, "PENDING").Count(&incrSequenceBy)
-		log.Printf("[Pay] >>>>>>>>>>> %v pending transactions on the wallet\n", incrSequenceBy)
-		// incrSequenceBy++
-		log.Printf("[Pay] >>>>>>>>>>> sequence will be increased by %v\n", incrSequenceBy)
+	// // if approver exists, then owner must sign transaction to add them as signers
+	// if (numberOfApprovers - selfApprover) > 0 {
+	// 	accessInfo.SignatureRequired = 1
 
-	}
+	// }
 
-	xdrBase64, sequenceNumber, messages, walletMustSign, _, errGenXdr := generateRemoveSharedAccessXdr(wallet, &walletOwner, approverUsers, incrSequenceBy, gc)
+	xdrBase64, messages, walletMustSign, _, errGenXdr := generateRemoveSharedAccessXdr(wallet, &walletOwner, approverUsers, gc)
 	if errGenXdr != nil {
 		return errGenXdr
 	}
@@ -1001,16 +981,15 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 			transactionByte, _ := json.Marshal(*accessInfo)
 			transactionStr := string(transactionByte)
 			pendingAuth := userModels.PendingAuth{
-				ID:                        id,
-				Initiator:                 signerUser.Username,
-				InitiatorSignerPublicKey:  signerUser.PrimarySigner,
-				WalletPublicKey:           wallet.ID,
-				TransactionType:           "DISABLE SHARED ACCESS",
-				Description:               description,
-				ApprovalsNeeded:           approvalsNeeded,
-				TransactionXdr:            xdrBase64,
-				TransactionInfoStr:        &transactionStr,
-				TransactionSequenceNumber: sequenceNumber,
+				ID:                       id,
+				Initiator:                signerUser.Username,
+				InitiatorSignerPublicKey: signerUser.PrimarySigner,
+				WalletPublicKey:          wallet.ID,
+				TransactionType:          "DISABLE SHARED ACCESS",
+				Description:              description,
+				ApprovalsNeeded:          approvalsNeeded,
+				TransactionXdr:           xdrBase64,
+				TransactionInfoStr:       &transactionStr,
 			}
 			// rollback all the other changes since the changes can only apply when approvals are completed.
 			// dbTX.Rollback()
@@ -1260,7 +1239,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 }
 
-func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, numberOfSubmittedApprovers, numberOfApprovalsNeeded int, incrSequenceBy int64, ops []txnbuild.Operation, gc *sharedconfig.GlobalConfig) (xdrbase64, sequenceNumberStr string, messages []string, err error) {
+func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, numberOfSubmittedApprovers, numberOfApprovalsNeeded int, ops []txnbuild.Operation, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, err error) {
 	client := gc.BantuExpansionClient
 	messages = make([]string, 0)
 	// totalNativeBalanceNeeded := decimal.Zero
@@ -1280,7 +1259,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			ErrMessage: "No approvers specifieds",
 			Code:       404,
 		}
-		return "", "", messages, err
+		return "", messages, err
 	}
 
 	//check if primary account has native enough native balance
@@ -1289,7 +1268,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	if errWalletAct != nil {
 		log.Printf("[generateModifySharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
 
-		return "", "", messages, errWalletAct
+		return "", messages, errWalletAct
 	}
 	if !walletAccountExists || (walletAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance.Mul(decimal.NewFromInt(int64(numberOfSubmittedApprovers)))) {
 		log.Printf("[generateModifySharedAccessXdr] by [%v] shared WalletAccount underfunded. Needs at least %v %v\n", wallet.Alias, (minBalance.Mul(decimal.NewFromInt(int64(numberOfSubmittedApprovers)))).Truncate(7).String(), os.Getenv("NATIVE_ASSET_CODE"))
@@ -1300,7 +1279,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			ErrMessage: fmt.Sprintf("Wallet %v needs minimum of %v %v balance to perform this operation.", wallet.Alias, (minBalance.Mul(decimal.NewFromInt(int64(numberOfSubmittedApprovers)))).Truncate(7).String(), os.Getenv("NATIVE_ASSET_CODE")),
 			Code:       http.StatusBadRequest,
 		}
-		return "", "", messages, err
+		return "", messages, err
 	}
 	{
 		//check if account recovery is enabled, then disable it on the wallet.
@@ -1361,10 +1340,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	}
 
 	// Construct the transaction that holds the operations to execute on the network
-	minSequence, _ := walletSourceAccount.GetSequenceNumber()
-	sequenceNumber := minSequence + 1 + incrSequenceBy
-	sequenceNumberStr = fmt.Sprintf("%v", sequenceNumber)
-	walletSourceAccount.Sequence = fmt.Sprintf("%v", sequenceNumber)
+
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount:        walletSourceAccount,
@@ -1372,15 +1348,14 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			Operations:           ops,
 			BaseFee:              txnbuild.MinBaseFee,
 			Preconditions: txnbuild.Preconditions{
-				TimeBounds:        txnbuild.NewInfiniteTimeout(),
-				MinSequenceNumber: &minSequence,
+				TimeBounds: txnbuild.NewInfiniteTimeout(),
 			},
 			Memo: txnbuild.MemoText("Modify shared access"),
 		},
 	)
 	if err != nil {
 		log.Println("[generateModifySharedAccessXdr] error constructing transaction ", err)
-		return "", "", messages, err
+		return "", messages, err
 	}
 
 	var xdrBase64 string
@@ -1388,10 +1363,10 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	xdrBase64, err = tx.Base64()
 	if err != nil {
 		log.Println("[generateModifySharedAccessXdr] error getting txn base64", err)
-		return "", "", messages, err
+		return "", messages, err
 	}
 
-	return xdrBase64, sequenceNumberStr, messages, nil
+	return xdrBase64, messages, nil
 
 }
 func generateAddSharedAccessOps(wallet *userModels.UserWallet, walletOwner *userModels.User, approver *userModels.User, gc *sharedconfig.GlobalConfig) (ops []txnbuild.Operation, messages []string, err error) {
@@ -1461,7 +1436,7 @@ func generateAddSharedAccessOps(wallet *userModels.UserWallet, walletOwner *user
 
 }
 
-func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, approvers []*userModels.User, incrSequenceBy int64, gc *sharedconfig.GlobalConfig) (xdrbase64, sequenceNumberStr string, messages []string, walletMustSign, multipartySign bool, err error) {
+func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, approvers []*userModels.User, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, walletMustSign, multipartySign bool, err error) {
 	client := gc.BantuExpansionClient
 	ops := make([]txnbuild.Operation, 0)
 	messages = make([]string, 0)
@@ -1481,7 +1456,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	if errWalletAct != nil {
 		log.Printf("[generateRemoveSharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
 
-		return "", "", messages, walletMustSign, multipartySign, errWalletAct
+		return "", messages, walletMustSign, multipartySign, errWalletAct
 	}
 	if !walletAccountExists || (walletAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
 		log.Printf("[generateRemoveSharedAccessXdr] by [%v] shared WalletAccount underfunded \n", wallet.Alias)
@@ -1492,7 +1467,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			ErrMessage: fmt.Sprintf("Wallet %v does not have enough XBN balance to perform this operation", wallet.Alias),
 			Code:       404,
 		}
-		return "", "", messages, walletMustSign, multipartySign, err
+		return "", messages, walletMustSign, multipartySign, err
 	}
 	{
 		//check if it is multiparty signature that is required.
@@ -1519,7 +1494,25 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				walletMustSign = true
 			}
 		}
+		// if walletOwner.AccountRecoveryEnabled == 1 && PublicKeyHasViewOnlyAccess(wallet.ID, gc){
+		// 	// get the recovery keypair
+		// 	recoveryAddress := bc.GetRecoveryAccountAddress(walletOwner.Username, walletOwner.PublicKey)
 
+		// 	if !userBc.SignerIsValid(wallet.ID, recoveryAddress) {
+		// 		//recovery a signer to the wallet. remove it
+		// 		ops = append(ops, &txnbuild.SetOptions{
+		// 			Signer: &txnbuild.Signer{
+		// 				Address: recoveryAddress,
+		// 				Weight:  1,
+		// 			},
+		// 			SourceAccount: wallet.ID,
+		// 		})
+
+		// 		//add message about disabling recovery on that wallet
+		// 		messages = append(messages, "Account Recovery on this wallet has been enabled.")
+		// 		walletMustSign = true
+		// 	}
+		// }
 	}
 
 	//check access list to know if you would activate the user wallets before proceeding.
@@ -1558,7 +1551,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 					ErrMessage: fmt.Sprintf("Wallet %v needs more than %v XBN balance to perform this operation", wallet.Alias, totalNativeBalanceNeeded.String()),
 					Code:       404,
 				}
-				return "", "", messages, walletMustSign, multipartySign, err
+				return "", messages, walletMustSign, multipartySign, err
 			}
 		}
 	}
@@ -1604,13 +1597,9 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	if len(ops) == 0 {
 		// no operations to sign
-		return "no-ops", "", messages, walletMustSign, multipartySign, nil
+		return "no-ops", messages, walletMustSign, multipartySign, nil
 	}
 
-	minSequence, _ := walletSourceAccount.GetSequenceNumber()
-	sequenceNumber := minSequence + 1 + incrSequenceBy
-	sequenceNumberStr = fmt.Sprintf("%v", sequenceNumber)
-	walletSourceAccount.Sequence = fmt.Sprintf("%v", sequenceNumber)
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount:        walletSourceAccount,
@@ -1618,15 +1607,14 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			Operations:           ops,
 			BaseFee:              txnbuild.MinBaseFee,
 			Preconditions: txnbuild.Preconditions{
-				TimeBounds:        txnbuild.NewInfiniteTimeout(),
-				MinSequenceNumber: &minSequence,
+				TimeBounds: txnbuild.NewInfiniteTimeout(),
 			},
 			Memo: txnbuild.MemoText("Disable shared access"),
 		},
 	)
 	if err != nil {
 		log.Println("[generateRemoveSharedAccessXdr] error constructing transaction ", err)
-		return "", "", messages, walletMustSign, multipartySign, err
+		return "", messages, walletMustSign, multipartySign, err
 	}
 
 	var xdrBase64 string
@@ -1634,10 +1622,10 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	xdrBase64, err = tx.Base64()
 	if err != nil {
 		log.Println("[generateRemoveSharedAccessXdr] error getting txn base64", err)
-		return "", "", messages, walletMustSign, multipartySign, err
+		return "", messages, walletMustSign, multipartySign, err
 	}
 
-	return xdrBase64, sequenceNumberStr, messages, walletMustSign, multipartySign, nil
+	return xdrBase64, messages, walletMustSign, multipartySign, nil
 
 }
 

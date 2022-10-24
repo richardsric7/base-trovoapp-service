@@ -396,7 +396,7 @@ func TestCreateAccount(t *testing.T) {
 	log.Printf("Confirmation Response:[%+v]\n", rResponse)
 
 	log.Println("[TestCreateAccount] completed")
-	time.Sleep(time.Second * 10)
+	// time.Sleep(time.Second * 10)
 
 }
 func TestRequestAccountRecoveryEmailOTP(t *testing.T) {
@@ -1526,9 +1526,9 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 	}
 
 	paymentPayload := PaymentInfo{
-		Destination: "kenmaddy",
+		Destination: "onoja",
 		Memo:        "Test XBN shared Payment",
-		Amount:      "53",
+		Amount:      "21",
 	}
 	errorResponse := new(ErrorResponse)
 	payResponse := new(PaymentInfo)
@@ -2624,13 +2624,13 @@ func TestApproveTransaction(t *testing.T) {
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk := os.Getenv("RICPK")
-	secretKey := os.Getenv("RICSC")
+	// secretKey := os.Getenv("RICSC")
 	// pk := "GCC3HG535RVZ3MPTDBANZH7V2HRDEQH3LZXDPBEKPJKZBI2UYJR3OJGF"
 	// pk := "GDBWYZWLYASCZ6KP4AIRNRY5WQ5OX6H2T6WASG7WFAEEYO6R6AC4GXRM"
 	// secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
 
 	//ric1
-	// secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
+	secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
 
 	// accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
 	// accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
@@ -2649,8 +2649,9 @@ func TestApproveTransaction(t *testing.T) {
 	// } else {
 	// 	sEnc = ownerUsername
 	// }
-	approvalID := "a62f46e3-d4c4-4a9e-be5d-8d01a7b75899"
-	// approvalID := "a1475aec-43cc-4d37-a3b4-eb9cfeb4b7cc"
+	// approvalID := "1f8a4d47-cd71-44f5-8d7b-9eb9326be91f"
+	// approvalID := "aeb1400d-73f9-4c66-8df9-4f77285f4e2a"
+	approvalID := "822d46e1-8f68-4877-a3d7-15fb4b101378"
 	fullPath := "/v1/shared-access/approval/" + approvalID
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
