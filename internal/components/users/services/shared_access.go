@@ -17,6 +17,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 )
 
@@ -470,18 +471,6 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			return
 		}
 
-		// s
-
-		//infor of shared access users
-
-		// revokedListInfo = append(revokedListInfo, userModels.WalletPermissionInfo{
-		// 	TargetUsername:        v.TargetUsername,
-		// 	Name:                  name,
-		// 	Permission:            userPermission.Permission,
-		// 	WalletPublicKey:       wallet.ID,
-		// 	WalletAlias:           wallet.Alias,
-		// 	PushNotificationToken: u.PushNotificationToken,
-		// })
 		revokedList = append(revokedList, userModels.WalletPermission{
 			CreatedAt:       userPermission.CreatedAt,
 			UpdatedAt:       userPermission.UpdatedAt,
@@ -766,7 +755,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return
 	}
 
-	xdrBase64, messages, errGenXdr := generateModifySharedAccessXdr(wallet, walletOwner, numberOfSubmittedApprovers, accessInfo.NumberOfApprovalsNeeded, ops, gc)
+	xdrBase64, messages, errGenXdr := generateModifySharedAccessXdr(wallet, walletOwner, numberOfSubmittedApprovers, accessInfo.NumberOfApprovalsNeeded, oldNumberOfApprovers, ops, gc)
 	if errGenXdr != nil {
 		err = errGenXdr
 		return
@@ -943,7 +932,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 
 	// }
 
-	xdrBase64, messages, walletMustSign, _, errGenXdr := generateRemoveSharedAccessXdr(wallet, &walletOwner, approverUsers, gc)
+	xdrBase64, messages, walletMustSign, _, errGenXdr := generateRemoveSharedAccessXdr(wallet, &walletOwner, approverUsers, numberOfApprovers, gc)
 	if errGenXdr != nil {
 		return errGenXdr
 	}
@@ -1239,7 +1228,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 }
 
-func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, numberOfSubmittedApprovers, numberOfApprovalsNeeded int, ops []txnbuild.Operation, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, err error) {
+func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, numberOfSubmittedApprovers, numberOfApprovalsNeeded, oldNumberOfApprovers int, ops []txnbuild.Operation, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, err error) {
 	client := gc.BantuExpansionClient
 	messages = make([]string, 0)
 	// totalNativeBalanceNeeded := decimal.Zero
@@ -1261,6 +1250,12 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		}
 		return "", messages, err
 	}
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
+	// paymentInfo.Messages = messages
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
 
 	//check if primary account has native enough native balance
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
@@ -1340,22 +1335,47 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	}
 
 	// Construct the transaction that holds the operations to execute on the network
-
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        walletSourceAccount,
-			IncrementSequenceNum: true,
-			Operations:           ops,
-			BaseFee:              txnbuild.MinBaseFee,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
+	var tx *txnbuild.Transaction
+	if oldNumberOfApprovers > 0 {
+		//multiparty
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("Modify shared access"),
 			},
-			Memo: txnbuild.MemoText("Modify shared access"),
-		},
-	)
+		)
+	} else {
+		//single signer
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        walletSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("Modify shared access"),
+			},
+		)
+	}
+
 	if err != nil {
 		log.Println("[generateModifySharedAccessXdr] error constructing transaction ", err)
 		return "", messages, err
+	}
+	if oldNumberOfApprovers > 0 {
+		tx, err = tx.Sign(gc.BantuNetworkPassphrase, chanAccount)
+		if err != nil {
+			log.Println("[generateModifySharedAccessXdr] error signing transaction with chan account", err)
+			return "", messages, err
+		}
 	}
 
 	var xdrBase64 string
@@ -1436,7 +1456,7 @@ func generateAddSharedAccessOps(wallet *userModels.UserWallet, walletOwner *user
 
 }
 
-func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, approvers []*userModels.User, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, walletMustSign, multipartySign bool, err error) {
+func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, approvers []*userModels.User, numberOfApprovers int, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, walletMustSign, multipartySign bool, err error) {
 	client := gc.BantuExpansionClient
 	ops := make([]txnbuild.Operation, 0)
 	messages = make([]string, 0)
@@ -1449,6 +1469,12 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	if len(os.Getenv("WALLET_MINIMUM_BALANCE")) > 0 {
 		minBalance = decimal.RequireFromString(os.Getenv("WALLET_MINIMUM_BALANCE"))
 	}
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
+	// paymentInfo.Messages = messages
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
 
 	//check if primary account has native enough native balance
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
@@ -1599,24 +1625,49 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		// no operations to sign
 		return "no-ops", messages, walletMustSign, multipartySign, nil
 	}
-
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        walletSourceAccount,
-			IncrementSequenceNum: true,
-			Operations:           ops,
-			BaseFee:              txnbuild.MinBaseFee,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
+	var tx *txnbuild.Transaction
+	if numberOfApprovers > 0 {
+		//multiparty
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("Disable shared access"),
 			},
-			Memo: txnbuild.MemoText("Disable shared access"),
-		},
-	)
+		)
+	} else {
+		//single signer
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        walletSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("Disable shared access"),
+			},
+		)
+	}
+
 	if err != nil {
 		log.Println("[generateRemoveSharedAccessXdr] error constructing transaction ", err)
 		return "", messages, walletMustSign, multipartySign, err
 	}
 
+	if numberOfApprovers > 0 {
+		tx, err = tx.Sign(gc.BantuNetworkPassphrase, chanAccount)
+		if err != nil {
+			log.Println("[generateModifySharedAccessXdr] error signing transaction with chan account", err)
+			return "", messages, walletMustSign, multipartySign, err
+		}
+	}
 	var xdrBase64 string
 
 	xdrBase64, err = tx.Base64()

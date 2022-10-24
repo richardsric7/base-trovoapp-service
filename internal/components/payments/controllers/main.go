@@ -234,7 +234,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		var getDestinationUserError, getDestinationWalletError error
 		//check if the public key exists in TROVO and then transform to username
 		paymentInfo.Messages = make([]string, 0)
-		if len(paymentInfo.Destination) == 56 {
+		if len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69 {
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Bantu Address[%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationWallet.Alias))
@@ -244,7 +244,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		//check if receiver is reserved. Reserved usernames should not be sent payments.
 
-		if len(paymentInfo.Destination) != 56 {
+		if len(paymentInfo.Destination) != 56 && len(paymentInfo.Destination) != 69 {
 			//skip public key payments
 			_, checkReservedReceiverError := usersDB.UsernameIsReserved(paymentInfo.Destination, gc.DB)
 			if checkReservedReceiverError != nil {
@@ -355,7 +355,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					// send push notifications
 					assetCode := paymentInfo.AssetCode
 					if assetCode == "" {
-						assetCode = "XBN"
+						assetCode = os.Getenv("NATIVE_ASSET_CODE")
 					}
 					dataPayload := make(map[string]string)
 					dataPayload["route"] = "pendingAuth"
@@ -402,7 +402,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					}
 					assetCode := paymentInfoReturned.AssetCode
 					if paymentInfoReturned.AssetIssuer == "" {
-						assetCode = "XBN"
+						assetCode = os.Getenv("NATIVE_ASSET_CODE")
 					}
 					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 					jsonPayload := payload{
@@ -435,7 +435,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				// send push notifications
 				assetCode := paymentInfo.AssetCode
 				if assetCode == "" {
-					assetCode = "XBN"
+					assetCode = os.Getenv("NATIVE_ASSET_CODE")
 				}
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
@@ -632,7 +632,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		var getDestinationUserError, getDestinationWalletError error
 		//check if the public key exists in TROVO and then transform to username
 		paymentInfo.Messages = make([]string, 0)
-		if len(paymentInfo.Destination) == 56 {
+		if len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69 {
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Bantu Address[%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationWallet.Alias))
@@ -642,7 +642,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		//check if receiver is reserved. Reserved usernames should not be sent payments.
 
-		if len(paymentInfo.Destination) != 56 {
+		if len(paymentInfo.Destination) != 56 && len(paymentInfo.Destination) != 69 {
 			//skip public key payments
 			_, checkReservedReceiverError := usersDB.UsernameIsReserved(paymentInfo.Destination, gc.DB)
 			if checkReservedReceiverError != nil {
@@ -753,7 +753,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					// send push notifications
 					assetCode := paymentInfo.AssetCode
 					if assetCode == "" {
-						assetCode = "XBN"
+						assetCode = os.Getenv("NATIVE_ASSET_CODE")
 					}
 					dataPayload := make(map[string]string)
 					dataPayload["route"] = "pendingAuth"
@@ -800,7 +800,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					}
 					assetCode := paymentInfoReturned.AssetCode
 					if paymentInfoReturned.AssetIssuer == "" {
-						assetCode = "XBN"
+						assetCode = os.Getenv("NATIVE_ASSET_CODE")
 					}
 					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 					jsonPayload := payload{
@@ -833,7 +833,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				// send push notifications
 				assetCode := paymentInfo.AssetCode
 				if assetCode == "" {
-					assetCode = "XBN"
+					assetCode = os.Getenv("NATIVE_ASSET_CODE")
 				}
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"

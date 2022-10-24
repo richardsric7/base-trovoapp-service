@@ -404,6 +404,7 @@ func main() {
 		}
 		//send this securely to remote service.
 		m.SendEmail(os.Getenv("CHANNEL_ACCOUNT_RECEIPIENT"), channelAccountsCSV)
+		log.Println("DONE FUNDING CHANNEL ACCOUNTS")
 	}
 
 	//setup router

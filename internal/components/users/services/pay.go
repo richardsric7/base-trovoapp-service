@@ -80,7 +80,9 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 		}
 
 	}
-
+	if !wallet.HasViewOnlyAccess(gc) && wallet.SharedAccessEnabled == 1 {
+		paymentInfo.Multiparty = 1
+	}
 	if len(paymentInfo.ChannelAccount) == 56 {
 		//payment is with channel account
 		xdrBase64, destinationUser, err = generatePaymentXdrWithChannelAccountPK(client, signerUser, wallet, paymentInfo, db)
@@ -89,8 +91,7 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdrWithChannelAccountPK error:[%v]\n", wallet.Alias, paymentInfo.Destination, err)
 		}
 	} else {
-
-		xdrBase64, destinationUser, err = generatePaymentXdr(client, signerUser, wallet, paymentInfo, db)
+		xdrBase64, destinationUser, err = generatePaymentXdr(client, signerUser, wallet, paymentInfo, db, gc)
 		if err != nil {
 			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdr error:[%v] \n", wallet.ID, paymentInfo.Destination, err)
 		}
@@ -99,9 +100,7 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 
 	paymentInfo.Transaction = xdrBase64
 	paymentInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
-	if !wallet.HasViewOnlyAccess(gc) && wallet.SharedAccessEnabled == 1 {
-		paymentInfo.Multiparty = 1
-	}
+
 	if len(paymentInfo.TransactionSignature) == 0 && paymentInfo.Commit == 0 {
 		return paymentInfo, nil, err
 	}
@@ -189,11 +188,11 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 
 }
 
-func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, db *gorm.DB) (string, *userModels.User, error) {
+func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	// var messages []string
 	//check if it is public key payment
-	publicKeyPayment := len(paymentInfo.Destination) == 56
+	publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
 	var err error
 	paymentInfo, err = ValidatePaymentInfo(paymentInfo)
 
@@ -284,8 +283,12 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 			}
 		}
 	}
-
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
 	// paymentInfo.Messages = messages
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
 	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, asset)
 
 	if sourceAccountErr != nil {
@@ -387,22 +390,49 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 
 	}
 
+	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        sourceAccount,
-			IncrementSequenceNum: true,
-			Operations:           ops,
-			BaseFee:              txnbuild.MinBaseFee,
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
+	if paymentInfo.Multiparty == 1 {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText(paymentInfo.Memo),
 			},
-			Memo: txnbuild.MemoText(paymentInfo.Memo),
-		},
-	)
+		)
+	} else {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        sourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText(paymentInfo.Memo),
+			},
+		)
+	}
+
 	if err != nil {
 		log.Println("[generatePaymentXdr] error constructing transaction ", err)
 		return "", nil, err
+	}
+
+	if paymentInfo.Multiparty == 1 {
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+
+		if err != nil {
+			log.Println("[generatePaymentXdr] error signing transaction with channelAccount key ", err)
+			return "", nil, &tErrors.ErrorTemporaryServerError{}
+		}
 	}
 
 	if tempAccountKeyPair != nil {
@@ -414,6 +444,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 			return "", nil, &tErrors.ErrorTemporaryServerError{}
 		}
 	}
+
 	var xdrBase64 string
 
 	xdrBase64, err = tx.Base64()
