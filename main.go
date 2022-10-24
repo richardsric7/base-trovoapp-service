@@ -276,11 +276,23 @@ func main() {
 	var channelAccountsCSV string
 	funder := keypair.MustParseFull(os.Getenv("CHANNEL_ACCOUNT_FUNDER"))
 	if len(scas) >= 1 {
+
 		for _, v := range scas {
+
 			k := keypair.MustParseFull(strings.ReplaceAll(v, " ", ""))
 
 			log.Printf("Channel Account to be used:%v\n", k.Address())
 			//check minimum balance
+			if len(channelAccountsCSV) == 0 {
+				channelAccountsCSV = fmt.Sprintf("%s,", k.Seed())
+			} else {
+				if !strings.HasSuffix(channelAccountsCSV, ",") {
+					channelAccountsCSV = fmt.Sprintf("%s,%s,", channelAccountsCSV, k.Seed())
+				} else {
+					channelAccountsCSV = fmt.Sprintf("%s%s,", channelAccountsCSV, k.Seed())
+				}
+
+			}
 			exists, _, nativeBal, _, _, _ := network.BlockchainAccountProperties(globalConfig.BantuExpansionClient, k.Address(), txnbuild.NativeAsset{})
 			_, _, _, _, sact, _ := network.BlockchainAccountProperties(globalConfig.BantuExpansionClient, funder.Address(), txnbuild.NativeAsset{})
 
@@ -301,6 +313,10 @@ func main() {
 					})
 				}
 			}
+			if len(ops) == 0 {
+				log.Println("NO OPeRATIONS for this wallet", k.Address())
+				continue
+			}
 			tx, err := txnbuild.NewTransaction(
 				txnbuild.TransactionParams{
 					SourceAccount:        sact,
@@ -331,11 +347,6 @@ func main() {
 			}
 			log.Println("[FUND CHANNEL ACCOUNT] success ", hTranx.Hash)
 			globalConfig.ChannelAccounts <- k
-			if len(channelAccountsCSV) == 0 {
-				channelAccountsCSV = fmt.Sprintf("%s,", k.Seed())
-			} else {
-				channelAccountsCSV = fmt.Sprintf("%s%s,", channelAccountsCSV, k.Seed())
-			}
 
 		}
 	}
@@ -344,52 +355,16 @@ func main() {
 	//check of number of channel accounts is upto specified amount
 
 	if len(scas) < int(count) {
+		log.Printf("NUMBER OF SUPPLIED chan account %v is less than the required number %v\n", len(scas), count)
 		for i := len(scas); i < int(count); i++ {
 			// /
 			k := keypair.MustRandom()
 
 			log.Printf("Channel Account to be used:%v\n", k.Address())
 			//check minimum balance
-			sexists, _, _, _, sact, _ := network.BlockchainAccountProperties(globalConfig.BantuExpansionClient, funder.Address(), txnbuild.NativeAsset{})
-			var ops []txnbuild.Operation
-			if !sexists {
-				//fund from the funder
 
-				ops = append(ops, &txnbuild.CreateAccount{
-					Destination: k.Address(),
-					Amount:      os.Getenv("CHANNEL_ACCOUNT_FUNDING_AMOUNT"),
-				})
-			}
-			tx, err := txnbuild.NewTransaction(
-				txnbuild.TransactionParams{
-					SourceAccount:        sact,
-					IncrementSequenceNum: true,
-					Operations:           ops,
-					BaseFee:              txnbuild.MinBaseFee,
-					Preconditions: txnbuild.Preconditions{
-						TimeBounds: txnbuild.NewInfiniteTimeout(),
-					},
-					Memo: txnbuild.MemoText("Fund channel account"),
-				},
-			)
-			if err != nil {
-				log.Println("[FUND CHANNEL ACCOUNT] error constructing transaction ", err)
-				continue
-			}
+			_, _, _, _, sact, _ := network.BlockchainAccountProperties(globalConfig.BantuExpansionClient, funder.Address(), txnbuild.NativeAsset{})
 
-			tx, err = tx.Sign(globalConfig.BantuNetworkPassphrase, funder)
-			if err != nil {
-				log.Println("[FUND CHANNEL ACCOUNT] error signing transaction ", err)
-				continue
-			}
-
-			hTranx, err := globalConfig.BantuExpansionClient.SubmitTransaction(tx)
-			if err != nil {
-				log.Println("[FUND CHANNEL ACCOUNT] error constructing transaction ", err)
-				continue
-			}
-			log.Println("[FUND CHANNEL ACCOUNT] success ", hTranx.Hash)
-			globalConfig.ChannelAccounts <- k
 			if len(channelAccountsCSV) == 0 {
 				channelAccountsCSV = fmt.Sprintf("%s,", k.Seed())
 			} else {
@@ -400,6 +375,46 @@ func main() {
 				}
 
 			}
+			var ops []txnbuild.Operation
+
+			//fund from the funder
+
+			ops = append(ops, &txnbuild.CreateAccount{
+				Destination: k.Address(),
+				Amount:      os.Getenv("CHANNEL_ACCOUNT_FUNDING_AMOUNT"),
+			})
+
+			tx, err := txnbuild.NewTransaction(
+				txnbuild.TransactionParams{
+					SourceAccount:        sact,
+					IncrementSequenceNum: true,
+					Operations:           ops,
+					BaseFee:              txnbuild.MinBaseFee,
+					Preconditions: txnbuild.Preconditions{
+						TimeBounds: txnbuild.NewInfiniteTimeout(),
+					},
+					Memo: txnbuild.MemoText("Fund channel account"),
+				},
+			)
+			if err != nil {
+				log.Println("[FUND CHANNEL ACCOUNT] error constructing transaction ", err)
+				continue
+			}
+
+			tx, err = tx.Sign(globalConfig.BantuNetworkPassphrase, funder)
+			if err != nil {
+				log.Println("[FUND CHANNEL ACCOUNT] error signing transaction ", err)
+				continue
+			}
+
+			hTranx, err := globalConfig.BantuExpansionClient.SubmitTransaction(tx)
+			if err != nil {
+				log.Println("[FUND CHANNEL ACCOUNT] error constructing transaction ", err)
+				continue
+			}
+			log.Println("[FUND CHANNEL ACCOUNT] success ", hTranx.Hash)
+			globalConfig.ChannelAccounts <- k
+
 			///
 		}
 		//send this securely to remote service.
