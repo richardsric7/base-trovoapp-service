@@ -230,6 +230,11 @@ class LanguageEn {
 
   static String get termsofserviceerror => "You need to accept terms";
 
+  // static String get thisisanassetissuerwallet =>
+  //     "Is this an asset issuer wallet?";
+  static String get thisisanassetissuerwallet =>
+      "Use this wallet for minting tokens";
+
   static String get invalidateoldsigner =>
       "Invalidate old signer from primary wallet";
 
@@ -494,6 +499,7 @@ class LanguageEn {
   static String get fingerprintrequired => 'Fingerprint required';
 
   static String get important => 'Important';
+  static String get information => 'Information';
 
   static String get skipBiometricsMessage =>
       'Are you sure you don\'t want to enable biometrics authentication?';
@@ -815,12 +821,26 @@ class LanguageEn {
 
   static String get accesstype => "Access Type";
 
-  static String get sortby => "Sort by";
+  static String get filterby => "Filter by";
 
-  static String get enteraccountsusername =>
+  static String get enteraccountsusernameviewers =>
       "Enter the usernames of all accounts that require viewer access to this wallet";
 
+  static String get enteraccountsusernameapprovers =>
+      "Enter the usernames of all accounts that require approver access to this wallet";
+
+  static String get enteraccountsusernameinitiators =>
+      "Enter the usernames of all accounts that require initiator access to this wallet";
+
+  static String get enternoofapprovals => "Enter number of approvals needed";
+  static String get approvers => "Approvers";
+  static String get enternoofrequiredapprovers =>
+      "Enter number of required approvers";
+
   static String get accesslist => "Access List";
+
+  static String get explainmintwallet =>
+      "Please tick on this checkbox if the wallet you are importing has been used or will be used to mint a token.";
 
   static String get rewards => "Rewards";
 

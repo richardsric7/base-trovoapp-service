@@ -1,6 +1,6 @@
-String termsOfServiceUrl = 'https://trovotech.io';
+String termsOfServiceUrl = 'https://trovotech.io/terms.html';
 String trovoServicesUrl = 'https://trovotech.io/services.html';
-String privacyPolicyUrl = 'https://trovotech.io';
+String privacyPolicyUrl = 'https://trovotech.io/privacy-policy.html';
 String nativeAssetCode = 'XBN';
 String nativeAssetIssuer = 'Native Token';
 String bantuBlockchainExplorerBaseUrl =

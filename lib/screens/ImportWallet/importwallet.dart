@@ -448,7 +448,7 @@ class _ImportWalletState extends State<ImportWallet> {
     var userInfo = userInfoMap['userData'] ?? {};
     var assetBalances = userInfoMap['assetBalances'] ?? {};
     var nfts = userInfoMap['nfts'] ?? {};
-    var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
+    var walletsSharedWithUser = userInfoMap['walletsSharedWithUser'] ?? [];
     var defaultAssets = userInfoMap['defaultAssets'] ?? [];
 
     // delete all user data already stored on the app
@@ -458,7 +458,7 @@ class _ImportWalletState extends State<ImportWallet> {
     await StoreData().storeInsertData('assetBalances', assetBalances);
     await StoreData().storeInsertData('nfts', nfts);
     await StoreData()
-        .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
+        .storeInsertData('walletsSharedWithUser', walletsSharedWithUser);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('isFirstTime', false);
     await StoreData().storeInsertData('password', appState.tempPassword);
@@ -469,6 +469,7 @@ class _ImportWalletState extends State<ImportWallet> {
     // save useInfo to appstate
     appState.setUser = UserInfo().deserializeJson(userInfo);
     appState.setNFTs = nfts;
+    appState.setSharedWallets = walletsSharedWithUser;
     appState.assetBalances = assetBalances;
 
     // save secrets to appstate

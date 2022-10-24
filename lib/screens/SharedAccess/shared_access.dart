@@ -5,10 +5,11 @@ import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.d
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
+import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -30,15 +31,27 @@ class _SharedAccessState extends State<SharedAccess>
   late ColorNotifier notifier;
   late DataProvider appState;
   late TabController _tabController;
+  TextEditingController usernamesController = TextEditingController();
+  TextEditingController initiatorsController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   List<Wallet>? wallets;
   Wallet? activeWallet;
   dynamic selectedWallet = '';
   dynamic selectedAccessType = 'Viewer';
-  List<String> accessTypes = ['Viewer', 'Initiator', 'Approver'];
-  List<String> sortby = ['All', 'Viewer', 'Initiator', 'Approver'];
+  List<String> accessTypes = ['Viewer', 'Approver'];
+  List<String> filter = ['All', 'Viewer', 'Initiator', 'Approver'];
+  List<String> accessMode = [
+    'Access granted by me',
+    'Access granted to me'
+  ]; // 'mode' for want for a better name
+  dynamic selectedAccessMode = 'Access granted to me';
+
   final Authenticator _authenticator = Authenticator();
   var password = '';
+  var usernames = <
+      String>[]; // holds the usernames of viewers or approvers depending on the selected accesstype
+  var initiators = <String>[]; // holds usernames of initiators
+  String noOfApprovalsNeeded = '';
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
     return wallets!
@@ -63,7 +76,18 @@ class _SharedAccessState extends State<SharedAccess>
   }
 
   List<DropdownMenuItem<String>> get sortDropdownItems {
-    return sortby
+    return filter
+        .map<DropdownMenuItem<String>>((item) => DropdownMenuItem(
+            child: Text(
+              item,
+              overflow: TextOverflow.ellipsis,
+            ),
+            value: item))
+        .toList();
+  }
+
+  List<DropdownMenuItem<String>> get accessModeDropdownItems {
+    return accessMode
         .map<DropdownMenuItem<String>>((item) => DropdownMenuItem(
             child: Text(
               item,
@@ -156,7 +180,64 @@ class _SharedAccessState extends State<SharedAccess>
     return Column(
       children: [
         SizedBox(height: height / 30),
-        chooseWallet(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15.0),
+          child: Row(
+            children: [
+              Text(
+                'Mode',
+                style: TextStyle(
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                    fontSize: 15.sp),
+              ),
+              SizedBox(
+                width: width / 10,
+              ),
+              Expanded(
+                child: DropdownButtonFormField(
+                  isExpanded: true,
+                  dropdownColor: notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
+                  decoration: InputDecoration(
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    filled: true,
+                    fillColor: notifier.isDark
+                        ? darktilewhitecolor
+                        : notifier.getaddsubwalletgrey,
+                  ),
+                  value: selectedAccessMode,
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                  elevation: 0,
+                  style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontSize: 15.sp,
+                      fontFamily: fontsemibold,
+                      fontWeight: FontWeight.w500),
+                  onChanged: (newValue) {
+                    setState(() {
+                      selectedAccessMode = newValue!;
+                    });
+                  },
+                  items: accessModeDropdownItems,
+                ),
+              ),
+            ],
+          ),
+        ),
         SizedBox(
           height: height / 50,
         ),
@@ -165,7 +246,7 @@ class _SharedAccessState extends State<SharedAccess>
           child: Row(
             children: [
               Text(
-                LanguageEn.sortby,
+                LanguageEn.filterby,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontbody,
@@ -223,11 +304,13 @@ class _SharedAccessState extends State<SharedAccess>
         SizedBox(
           height: height / 50,
         ),
-        tiles(),
-        tiles(),
-        tiles(),
-        tiles(),
-        tiles(),
+        for (var i = 0; i < appState.sharedWallets.length; i++) ...[
+          tiles(
+            walletOwner: appState.sharedWallets[i]['owner']!,
+            walletAlias: appState.sharedWallets[i]['walletAlias']!,
+            accessType: appState.sharedWallets[i]['permission']!,
+          ),
+        ],
         SizedBox(
           height: height / 10,
         ),
@@ -238,7 +321,10 @@ class _SharedAccessState extends State<SharedAccess>
     );
   }
 
-  Widget tiles() {
+  Widget tiles(
+      {required String walletOwner,
+      required String walletAlias,
+      required String accessType}) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
@@ -257,7 +343,7 @@ class _SharedAccessState extends State<SharedAccess>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Efizee",
+                    walletOwner,
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -267,7 +353,7 @@ class _SharedAccessState extends State<SharedAccess>
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      'Approver Access',
+                      accessType,
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontbody,
@@ -278,7 +364,7 @@ class _SharedAccessState extends State<SharedAccess>
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      '2 months ago',
+                      walletAlias,
                       style: TextStyle(
                         fontSize: 9,
                         fontFamily: fontbody,
@@ -330,10 +416,6 @@ class _SharedAccessState extends State<SharedAccess>
     return Column(
       children: [
         SizedBox(height: height / 30),
-        chooseWallet(),
-        SizedBox(
-          height: height / 50,
-        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0),
           child: Row(
@@ -384,8 +466,7 @@ class _SharedAccessState extends State<SharedAccess>
                   onChanged: (newValue) {
                     setState(() {
                       selectedAccessType = newValue!;
-                      appState.activeWallet = wallets!
-                          .firstWhere((wallet) => wallet.publicKey == newValue);
+                      print('==================$selectedAccessType');
                     });
                   },
                   items: accessTypeDropdownItems,
@@ -397,57 +478,58 @@ class _SharedAccessState extends State<SharedAccess>
         SizedBox(
           height: height / 50,
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 15.0),
-                  child: Column(
-                    children: [
-                      Container(
-                          width: width / 1.3,
-                          child: Wrap(
-                            alignment: WrapAlignment.center,
-                            children: [
-                              userItem('Obiaruku'),
-                              userItem('Ric'),
-                              userItem('Kenny'),
-                              userItem('1wersdffvfgt34dc'),
-                              userItem('Ikechukwuokechuk'),
-                              userItem('Kenny'),
-                              userItem('Obiaruku'),
-                              userItem('Ric'),
-                              userItem('Kenny'),
-                              userItem('1wersdffvfgt34dc'),
-                              userItem('Ikechukwuokechuk'),
-                              userItem('Kenny'),
-                            ],
-                          )),
-                      SizedBox(height: 2),
-                    ],
+        chooseWallet(),
+        SizedBox(
+          height: height / 30,
+        ),
+        if (usernames.length > 0) ...[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                color: notifier.isDark
+                    ? darktilewhitecolor
+                    : notifier.getaddsubwalletgrey,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 15.0),
+                    child: Column(
+                      children: [
+                        Container(
+                            width: width / 1.3,
+                            child: Wrap(
+                              alignment: WrapAlignment.center,
+                              children: [
+                                for (var i = 0; i < usernames.length; i++) ...[
+                                  userItem(usernames[i], () {
+                                    usernames.removeAt(i);
+                                  })
+                                ],
+                              ],
+                            )),
+                        SizedBox(height: 2),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
+        ],
         SizedBox(
           height: height / 50,
         ),
         Container(
           width: width / 1.1,
           child: Text(
-            LanguageEn.enteraccountsusername,
+            selectedAccessType == 'Viewer'
+                ? LanguageEn.enteraccountsusernameviewers
+                : LanguageEn.enteraccountsusernameapprovers,
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
                 fontFamily: fontbody,
@@ -457,110 +539,198 @@ class _SharedAccessState extends State<SharedAccess>
         SizedBox(
           height: height / 70,
         ),
-        Form(
-          // key: formKey,
-          child: CustomTextFormField.textField(
-            LanguageEn.to,
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CustomTextFormField.textFieldWithoutIcon(
+                LanguageEn.username,
+                notifier.getbluecolor,
+                notifier.getgrey,
+                notifier.getprefixicon,
+                notifier.getblck,
+                notifier.getgrey,
+                60.sp,
+                210.sp,
+                controller: usernamesController,
+              ),
+              SizedBox(
+                width: width / 20,
+              ),
+              ElevatedButton(
+                onPressed: () => setState(() {
+                  if (usernamesController.text.isNotEmpty) {
+                    usernames.add(usernamesController.text);
+                    usernamesController.text = '';
+                  }
+                }),
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+                ),
+                child: Text(
+                  LanguageEn.add,
+                  style: TextStyle(
+                    fontFamily: fontsemibold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+        if (selectedAccessType == "Approver") ...[
+          Container(
+            width: width / 1.1,
+            child: Text(
+              LanguageEn.enternoofapprovals,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 15.sp),
+            ),
+          ),
+          SizedBox(
+            height: height / 70,
+          ),
+          CustomTextFormField.textFieldWithoutIcon(
+            'No. of approvals needed',
             notifier.getbluecolor,
-            Icons.person,
             notifier.getgrey,
             notifier.getprefixicon,
             notifier.getblck,
             notifier.getgrey,
             70.sp,
             300.sp,
-            // controller: toController,
-            // readOnly: deeplinkInfo != null,
-            // validator: validateTo,
-            // onSaved: (value) => to = value.trim().replaceAll(' ', ''),
+            keyboardtype: TextInputType.number,
+            onChanged: (value) =>
+                noOfApprovalsNeeded = value.trim().replaceAll(' ', ''),
           ),
-        ),
-        ElevatedButton(
-          onPressed: () => {},
-          style: ButtonStyle(
-            backgroundColor:
-                MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-          ),
-          child: Text(
-            LanguageEn.add,
-            style: TextStyle(
-              fontFamily: fontsemibold,
-            ),
-          ),
-        ),
-        SizedBox(
-          height: height / 15,
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Transform.scale(
-              scale: 1.sp,
-              child: Checkbox(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(15.sp),
-                  ),
+          if (initiators.length > 0) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                  color: notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
                 ),
-                activeColor: notifier.getbluecolor,
-                side: BorderSide(color: notifier.getbluewhitecolor),
-                value: true,
-                onChanged: (bool) {},
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              width: width / 1.2,
-              child: Text(
-                LanguageEn.iagreeviewaccess,
-                style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontbody,
-                    fontSize: 15.sp),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 15.0),
+                      child: Column(
+                        children: [
+                          Container(
+                              width: width / 1.3,
+                              child: Wrap(
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  for (var i = 0;
+                                      i < initiators.length;
+                                      i++) ...[
+                                    userItem(initiators[i], () {
+                                      initiators.removeAt(i);
+                                    })
+                                  ],
+                                ],
+                              )),
+                          SizedBox(height: 2),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
-        ),
-        SizedBox(
-          height: height / 30,
-        ),
-        Form(
-          key: formKey,
-          child: CustomPasswordFormField(
-            LanguageEn.password,
-            notifier.getbluewhitecolor,
-            Icons.lock,
-            notifier.getgrey,
-            notifier.getprefixicon,
-            notifier.getblck,
-            70.sp,
-            300.sp,
-            validator: validatePassword,
-            onChanged: (value) {
-              setState(() {
-                password = value!.trim().replaceAll(' ', '');
-              });
-            },
+          SizedBox(
+            height: height / 70,
           ),
-        ),
-        SizedBox(
-          height: height / 70,
-        ),
-        if (appState.biometricEnabled && password.isEmpty) ...[
-          Button(
-            LanguageEn.authorizewithbiometrics,
-            notifier.getbluecolor,
-            wihitecolor,
-            onTap: toggleSwitch,
+          Container(
+            width: width / 1.1,
+            child: Text(
+              LanguageEn.enteraccountsusernameinitiators,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 15.sp),
+            ),
           ),
-        ] else ...[
-          Button(
-            LanguageEn.authorize,
-            notifier.getbluecolor,
-            wihitecolor,
-            onTap: handleAuthorization,
+          SizedBox(
+            height: height / 70,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CustomTextFormField.textFieldWithoutIcon(
+                  LanguageEn.username,
+                  notifier.getbluecolor,
+                  notifier.getgrey,
+                  notifier.getprefixicon,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  60.sp,
+                  210.sp,
+                  controller: initiatorsController,
+                ),
+                SizedBox(
+                  width: width / 20,
+                ),
+                ElevatedButton(
+                  onPressed: () => setState(() {
+                    if (initiatorsController.text.isNotEmpty) {
+                      initiators.add(initiatorsController.text);
+                      initiatorsController.text = '';
+                    }
+                  }),
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        notifier.getbluecolor!),
+                  ),
+                  child: Text(
+                    LanguageEn.add,
+                    style: TextStyle(
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
+        SizedBox(
+          height: height / 15,
+        ),
+        Button(
+          LanguageEn.proceed,
+          notifier.getbluecolor,
+          wihitecolor,
+          onTap: () {
+            appState.viewData = {
+              AddSharedAccessDetailsViewPageConfig.key: {
+                'usernames': usernames,
+                'accessType': selectedAccessType,
+                'noOfApprovalsNeeded': noOfApprovalsNeeded,
+                'initiators': initiators,
+              }
+            };
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: AddSharedAccessDetailsViewPageConfig,
+            );
+          },
+        ),
         SizedBox(
           height: height / 10,
         ),
@@ -571,7 +741,7 @@ class _SharedAccessState extends State<SharedAccess>
     );
   }
 
-  Widget userItem(String name) {
+  Widget userItem(String name, void Function() onRemove) {
     return Padding(
       padding: const EdgeInsets.all(3.0),
       child: Container(
@@ -593,7 +763,9 @@ class _SharedAccessState extends State<SharedAccess>
                 width: width / 70,
               ),
               GestureDetector(
-                  onTap: () {},
+                  onTap: () => setState(() {
+                        onRemove();
+                      }),
                   child: Icon(
                     Icons.cancel_outlined,
                     color: wihitecolor,

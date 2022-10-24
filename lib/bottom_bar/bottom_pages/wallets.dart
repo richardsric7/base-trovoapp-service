@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,6 +17,7 @@ import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
@@ -50,6 +50,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   String? tag;
   String? description;
   String? secretKey;
+  int isAssetIssuerWallet = 0;
   String password = '';
   late Account primaryWalletKeyPair;
   late Account newSubWalletKeyPair;
@@ -423,18 +424,23 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         // color: colors[i - 1],
       ),
       child: Stack(children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 35.0, horizontal: 20),
-              child: Image.asset(
-                'assets/images/trovo_white.png',
-                fit: BoxFit.cover,
-                height: 100,
-                width: 100,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Image.asset(
+                  'assets/images/trovo_white.png',
+                  fit: BoxFit.cover,
+                  height: 80,
+                  width: 80,
+                ),
+                SizedBox(
+                  width: width / 20,
+                ),
+              ],
             ),
           ],
         ),
@@ -488,6 +494,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     );
   }
 
+  // show the add subwallet view as if its a new page
+  // the app's back button dispatcher has been overriden to make this page
+  // behave as if is a new separate page when you press the back button
   Widget addSubwallet() {
     return Form(
       key: _formKey2,
@@ -603,13 +612,81 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     SizedBox(
                       height: height / 50,
                     ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: width / 10,
+                            ),
+                            Transform.scale(
+                              scale: 1.sp,
+                              child: Checkbox(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(5.sp),
+                                  ),
+                                ),
+                                activeColor: notifier.getbluecolor,
+                                side: BorderSide(
+                                    color: notifier.getbluewhitecolor),
+                                value: isAssetIssuerWallet == 1,
+                                onChanged: (value) {
+                                  setState(() {
+                                    isAssetIssuerWallet = value! ? 1 : 0;
+                                  });
+                                },
+                              ),
+                            ),
+                            Container(
+                              width: width / 1.6,
+                              child: Text(
+                                LanguageEn.thisisanassetissuerwallet,
+                                overflow: TextOverflow.visible,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getbluewhitecolor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: width / 4.4,
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                mintWalletExplainerPopup(context);
+                              },
+                              child: Text(
+                                'What does it mean?',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  color: notifier.getbluewhitecolor,
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w500,
+                                  fontFamily: fontbody,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: height / 50,
+                        ),
+                      ],
+                    )
                   ],
                 ),
               ),
             ),
           ),
           SizedBox(
-            height: height / 20,
+            height: height / 30,
           ),
           // Tag name
           CustomTextFormField.textField(
@@ -633,7 +710,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               tag = value.trim().replaceAll(' ', '');
             },
             keyboardtype: TextInputType.text,
-            maxLength: 6,
+            maxLength: 12,
             validator: validateTag,
             helperText: tag == null || tag!.isEmpty
                 ? ''
@@ -709,6 +786,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     );
   }
 
+  // show the confirm add subwallet view as if its a new page
+  // the app's back button dispatcher has been overriden to make this page
+  // behave as if is a separate page when you press the back button
   Widget confirmAddSubwallet() {
     return Column(children: [
       Padding(
@@ -758,7 +838,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w500,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -771,17 +850,15 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: fontbody,
+                      fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
                   Text(
-                    description!,
+                    description ?? '',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w500,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -794,8 +871,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: fontbody,
+                      fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -806,7 +882,27 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.w500,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Text(
+                    LanguageEn.thisisanassetissuerwallet,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  Text(
+                    isAssetIssuerWallet == 1 ? 'Yes' : 'No',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
                       fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -819,8 +915,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: fontbody,
+                      fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -831,7 +926,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
-                        fontWeight: FontWeight.w500,
                         fontFamily: fontbody,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -936,7 +1030,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     print('validating tag...');
     if (value!.isEmpty) return 'Enter wallet tag';
 
-    String pattern = r'^[a-zA-Z0-9]*$';
+    String pattern = r'^[a-zA-Z0-9\_]*$';
     RegExp regex = new RegExp(pattern);
 
     if (!regex.hasMatch(value.trim().replaceAll(' ', ''))) {
@@ -990,6 +1084,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         "publickey": newSubWalletKeyPair.publicKey,
         "walletTag": tag,
         "WalletDescription": description,
+        "assetIssuerWallet": isAssetIssuerWallet,
       };
       String requestBody = jsonEncode(map);
 
@@ -1068,21 +1163,12 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       print('this is primary sign: $primarySignature');
       print('this is subwallet sign: $subWalletSignature');
 
-      Map map = {
-        "publickey": responseBody['publicKey'],
-        "walletTag": responseBody['walletTag'],
-        "WalletDescription": responseBody['walletDescription'],
-        "transaction": responseBody['transaction'],
-        "primarySignature": primarySignature,
-        "subWalletSignature": subWalletSignature,
-        "transactionId": responseBody['transactionId'],
-        "networkPassPhrase": responseBody['networkPassPhrase'],
-        "channelAccount": responseBody['channelAccount'],
-        "channelAccountSignature": responseBody['channelAccountSignature'],
-        "subWalletMustSign": responseBody['subWalletMustSign'],
-      };
+      responseBody['primarySignature'] = primarySignature;
+      responseBody['subWalletSignature'] = subWalletSignature;
 
-      String requestBody = jsonEncode(map);
+      print(responseBody);
+
+      String requestBody = jsonEncode(responseBody);
 
       print('this is request body: $requestBody');
 
@@ -1103,6 +1189,15 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         // contains the secret key of the newly created subwallet
         await StoreData().storeInsertData('secretKey', appState.secretKeys);
         await updateUserInfo();
+        // add the new subwallet to appState and
+        // set the newly created subwallet as the activeWallet
+        appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
+            (wallet) => wallet.publicKey == newSubWalletKeyPair.publicKey);
+        appState.activeWallet!.secretKey = newSubWalletKeyPair.secretKey;
+        // move to next page
+        appState.currentAction = PageAction(
+            state: PageState.addPage, page: CongratulationsPageConfig);
+        resetForm();
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
@@ -1136,36 +1231,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     print('response: ${responseData}');
 
     if (responseData['statusCode'] == 200) {
-      await storeUserInfo(responseData['data']);
+      await storeUserInfo(responseData['data'], appState);
     }
-  }
-
-  Future<void> storeUserInfo(userInfoMap) async {
-    print('userInfoMap: ${userInfoMap['userData']}');
-    var userInfo = userInfoMap['userData'] ?? {};
-    var assetBalances = userInfoMap['assetBalances'] ?? {};
-    var nfts = userInfoMap['nfts'] ?? {};
-    var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
-    var defaultAssets = userInfoMap['defaultAssets'] ?? [];
-
-    await StoreData().storeInsertData('userInfo', userInfo);
-    await StoreData().storeInsertData('assetBalances', assetBalances);
-    await StoreData().storeInsertData('nftBalances', nfts);
-    await StoreData()
-        .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
-    await StoreData().storeInsertData('defaultAssets', defaultAssets);
-
-    // save useInfo to appstate
-    appState.setUser = UserInfo().deserializeJson(userInfo);
-    appState.setNFTs = nfts;
-    appState.setassetBalances = assetBalances;
-    appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
-        (wallet) => wallet.publicKey == newSubWalletKeyPair.publicKey);
-    appState.activeWallet!.secretKey = newSubWalletKeyPair.secretKey;
-    appState.currentAction =
-        PageAction(state: PageState.addPage, page: CongratulationsPageConfig);
-    resetForm();
-    print('stored new user data.................');
   }
 
   void refreshData() async {

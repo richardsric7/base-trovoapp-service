@@ -23,18 +23,19 @@ Future<void> storeUserInfo(userInfoMap, appState) async {
   var userInfo = userInfoMap['userData'] ?? {};
   var assetBalances = userInfoMap['assetBalances'] ?? {};
   var nfts = userInfoMap['nfts'] ?? {};
-  var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
+  var walletsSharedWithUser = userInfoMap['walletsSharedWithUser'] ?? [];
   var defaultAssets = userInfoMap['defaultAssets'] ?? [];
 
   await StoreData().storeInsertData('userInfo', userInfo);
   await StoreData().storeInsertData('assetBalances', assetBalances);
   await StoreData().storeInsertData('nftBalances', nfts);
   await StoreData()
-      .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
+      .storeInsertData('walletsSharedWithUser', walletsSharedWithUser);
   await StoreData().storeInsertData('defaultAssets', defaultAssets);
 
   // save useInfo to appstate
   appState.setUser = UserInfo().deserializeJson(userInfo);
+  appState.setSharedWallets = walletsSharedWithUser;
   appState.setNFTs = nfts;
   appState.setassetBalances = assetBalances;
   print('stored new user data.................');

@@ -43,6 +43,8 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   double amount = 0;
   var sourceAsset;
   var destinationAsset;
+  var sourceAssetRawDropdownValue;
+  var destinationAssetRawDropdownValue;
   dynamic selectedWallet = '';
   final formKey = GlobalKey<FormState>();
   bool sourceErr = false;
@@ -98,11 +100,8 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                 Container(
                   width: width,
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: width / 20,
-                      ),
                       Text(
                         "Swap",
                         style: TextStyle(
@@ -112,71 +111,86 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                           fontFamily: fontsemibold,
                         ),
                       ),
-                      SizedBox(
-                        width: width / 10,
-                      ),
-                      Expanded(
-                        child: DropdownButtonFormField(
-                          isExpanded: true,
-                          dropdownColor: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 0, horizontal: 20),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            filled: true,
-                            fillColor: notifier.isDark
-                                ? darktilewhitecolor
-                                : notifier.getaddsubwalletgrey,
-                          ),
-                          value: selectedWallet,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                          elevation: 0,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontsemibold,
-                              fontWeight: FontWeight.w500),
-                          onChanged: (newValue) {
-                            setState(() {
-                              selectedWallet = newValue!;
-                              key1.currentState!.reset();
-                              key2.currentState!.reset();
-                              key3.currentState!.reset();
-                              amount = 0;
-                              textController.text = amount.toString();
-                              sourceAsset = destinationAsset = null;
-                              appState.activeWallet = wallets!.firstWhere(
-                                  (wallet) => wallet.publicKey == newValue);
-                            });
-                          },
-                          items: walletDropdownItems,
-                        ),
-                      ),
-                      SizedBox(
-                        width: width / 20,
-                      ),
                     ],
                   ),
+                ),
+                SizedBox(
+                  height: height / 30,
+                ),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: width / 15,
+                    ),
+                    Text(
+                      'Select wallet',
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontsemibold,
+                          fontWeight: FontWeight.w500),
+                    ),
+                    SizedBox(
+                      width: width / 10,
+                    ),
+                    Expanded(
+                      child: DropdownButtonFormField(
+                        isExpanded: true,
+                        dropdownColor: notifier.isDark
+                            ? darktilewhitecolor
+                            : notifier.getaddsubwalletgrey,
+                        decoration: InputDecoration(
+                          contentPadding:
+                              EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          filled: true,
+                          fillColor: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
+                        ),
+                        value: selectedWallet,
+                        icon: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                        elevation: 0,
+                        style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                            fontWeight: FontWeight.w500),
+                        onChanged: (newValue) {
+                          setState(() {
+                            selectedWallet = newValue!;
+                            key1.currentState!.reset();
+                            key2.currentState!.reset();
+                            key3.currentState!.reset();
+                            amount = 0;
+                            textController.text = amount.toString();
+                            sourceAsset = destinationAsset = null;
+                            appState.activeWallet = wallets!.firstWhere(
+                                (wallet) => wallet.publicKey == newValue);
+                          });
+                        },
+                        items: walletDropdownItems,
+                      ),
+                    ),
+                    SizedBox(
+                      width: width / 15,
+                    ),
+                  ],
                 ),
                 Form(
                   key: formKey,
                   child: Column(
                     children: [
-                      SizedBox(
-                        height: height / 50,
-                      ),
                       SizedBox(
                         height: height / 30,
                       ),
@@ -324,6 +338,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                     child: DropdownButtonFormField<String>(
                       key: key1,
                       isExpanded: true,
+                      value: sourceAssetRawDropdownValue,
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -388,6 +403,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       },
                       onChanged: (newValue) {
                         print('this is new value: $newValue');
+                        sourceAssetRawDropdownValue = newValue;
                         var splitNewValue = newValue!.split('|');
                         setState(() {
                           sourceAsset = claimedAssets.firstWhere(
@@ -404,9 +420,19 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                     ),
                   ),
                   SizedBox(height: height / 50),
-                  SvgPicture.asset(
-                    "assets/images/swapicon.svg",
-                    // height: height / 40,
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        sourceAsset = destinationAsset =
+                            sourceAssetRawDropdownValue =
+                                destinationAssetRawDropdownValue = null;
+                        amount = 0;
+                      });
+                    },
+                    child: Image.asset(
+                      "assets/images/swap-rotated.png",
+                      height: height / 20,
+                    ),
                   ),
                   SizedBox(height: height / 25),
                   Text(
@@ -423,6 +449,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                     child: DropdownButtonFormField<String>(
                       key: key2,
                       isExpanded: true,
+                      value: destinationAssetRawDropdownValue,
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -488,6 +515,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       },
                       onChanged: (newValue) {
                         print('this is new destination value: $newValue');
+                        destinationAssetRawDropdownValue = newValue;
                         var splitNewValue = newValue!.split('|');
                         setState(() {
                           destinationAsset = claimedAssets.firstWhere(
@@ -616,6 +644,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     }
     return assetList.map<DropdownMenuItem<String>>((asset) {
       return DropdownMenuItem<String>(
+        // to make each asset in the list unique we combine both the assetCode
+        // and the assetIssuer using '|' as the separator so we get something like
+        // "asset|assetIssuer" as the value of each dropdown item
         value: '${asset['assetIssuer']}|${asset["assetCode"]}',
         child: Row(
           children: [
@@ -653,6 +684,10 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
     if (double.tryParse(value) == null) {
       return 'Please enter a valid amount';
+    }
+
+    if (sourceAsset == null) {
+      return 'Please choose assets to swap';
     }
 
     if (double.tryParse(value)! > (double.parse(sourceAsset['amount']) - 6)) {

@@ -17,7 +17,6 @@ import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -25,14 +24,14 @@ import 'package:trovo_wallet/widgets/popups.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
-class ConfirmTransaction extends StatefulWidget {
-  const ConfirmTransaction({Key? key}) : super(key: key);
+class AddSharedAccessDetails extends StatefulWidget {
+  const AddSharedAccessDetails({Key? key}) : super(key: key);
 
   @override
-  State<ConfirmTransaction> createState() => _ConfirmTransaction();
+  State<AddSharedAccessDetails> createState() => _AddSharedAccessDetails();
 }
 
-class _ConfirmTransaction extends State<ConfirmTransaction>
+class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
@@ -56,7 +55,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
-    viewData = appState.viewData![ConfirmTransactionViewPageConfig.key];
+    viewData = appState.viewData![AddSharedAccessDetailsViewPageConfig.key];
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -75,7 +74,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    LanguageEn.confirmyourtransaction,
+                    'Confirm request',
                     style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
@@ -88,7 +87,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 height: height / 20,
               ),
               Text(
-                LanguageEn.youareabouttosend,
+                'You are about to grant access to the following users',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -118,7 +117,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                             height: height / 50,
                           ),
                           Text(
-                            '${viewData['amount']} ${viewData['assetCode'].toString().isEmpty ? 'XBN' : viewData['assetCode']}',
+                            viewData['accessType'] + ' access',
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -128,16 +127,33 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                           SizedBox(
                             height: height / 50,
                           ),
-                          Container(
-                            width: width / 1.3,
-                            child: Text(
-                              '- 3400 NGN',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w400,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody,
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                            child: Container(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Container(
+                                          width: width / 1.3,
+                                          child: Wrap(
+                                            alignment: WrapAlignment.center,
+                                            children: [
+                                              for (var i = 0;
+                                                  i <
+                                                      viewData['usernames']
+                                                          .length;
+                                                  i++) ...[
+                                                userItem(
+                                                    viewData['usernames'][i])
+                                              ],
+                                            ],
+                                          )),
+                                      SizedBox(height: 2),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -153,28 +169,132 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
               SizedBox(
                 height: height / 50,
               ),
-              Text(
-                LanguageEn.to,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
+              if (viewData['accessType'] == 'Approver') ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(15.0)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Text(
+                              'Initiator access',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold),
+                            ),
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                              child: Container(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Container(
+                                            width: width / 1.3,
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              children: [
+                                                for (var i = 0;
+                                                    i <
+                                                        viewData['initiators']
+                                                            .length;
+                                                    i++) ...[
+                                                  userItem(
+                                                      viewData['initiators'][i])
+                                                ],
+                                              ],
+                                            )),
+                                        SizedBox(height: 2),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 50.0,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              showAddressInfo(),
-              SizedBox(
-                height: height / 50,
-              ),
-              if (viewData['memo'].toString().isNotEmpty) ...[
-                showMemo(),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(15.0)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Text(
+                              'No. of approvals needed',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold),
+                            ),
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                              child: Container(
+                                child: Text(
+                                  viewData['noOfApprovalsNeeded'],
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontsemibold),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 50.0,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
               SizedBox(
-                height: height / 20,
+                height: height / 50.0,
               ),
               Form(
                 key: formKey,
@@ -226,164 +346,28 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     );
   }
 
-  Widget showAddressInfo() {
-    if (viewData['destination'].toString().length == 56) {
-      // destination user is not known so we display only
-      // destination public key
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.isDark
-                ? darktilewhitecolor
-                : notifier.getaddsubwalletgrey,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: width / 1.5,
-                  child: Text(
-                    viewData['destination'].toString(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 15.sp,
-                      fontFamily: fontbody,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
+  Widget userItem(String name) {
     return Padding(
-      // destination user is known so we display the user
-      // information.
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      padding: const EdgeInsets.all(3.0),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.isDark
-              ? darktilewhitecolor
-              : notifier.getaddsubwalletgrey,
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(20, 11, 8, 10),
-                  child: viewData['destinationThumbnail'].toString().isEmpty
-                      ? CircleAvatar(
-                          radius: 30,
-                          backgroundColor: notifier.getaddsubwalletgrey,
-                          foregroundImage:
-                              AssetImage("assets/images/default-user.png"),
-                        )
-                      : CircleAvatar(
-                          radius: 30,
-                          backgroundColor: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
-                          foregroundImage: NetworkImage(
-                            viewData['destinationThumbnail'].toString(),
-                          ),
-                        ),
-                ),
-                SizedBox(
-                  width: width / 70,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      viewData['destination'].toString(),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 19.sp,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Text(
-                      '${viewData['destinationFirstName']} ${viewData['destinationLastName']}',
-                      style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-          ],
+            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            color: notifier.getbluecolor),
+        child: Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Wrap(
+            children: [
+              Text(
+                name,
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                style: TextStyle(
+                    color: wihitecolor, fontFamily: fontbody, fontSize: 15.sp),
+              ),
+            ],
+          ),
         ),
       ),
-    );
-  }
-
-  Widget showMemo() {
-    return Column(
-      children: [
-        Text(
-          LanguageEn.descriptionmemo,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            color: notifier.getbluewhitecolor,
-            fontFamily: fontbody,
-          ),
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 30.0, horizontal: 15),
-                  child: Container(
-                    width: width / 1.3,
-                    child: Text(
-                      viewData['memo'],
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 17.sp,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -452,7 +436,13 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
       );
 
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo();
+        await updateUserInfo(
+          activeWallet!.signer!,
+          appState.secretKeys[0], // the primary wallet secret key
+          activeWallet!.publicKey!,
+          appState.userInfo!.username,
+          appState,
+        );
         appState.viewData![TransactionSuccessViewPageConfig.key] =
             responseData['data'];
         appState.currentAction = PageAction(
@@ -468,24 +458,6 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     } catch (e) {
       popup(context, title: LanguageEn.error, message: e.toString());
       hideLoader(context);
-    }
-  }
-
-  Future<void> updateUserInfo() async {
-    Map responseData = await makeGetRequest(
-      uri:
-          '/v1/users/${appState.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: activeWallet!.signer!,
-      secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: activeWallet!.publicKey!,
-    );
-
-    print('secretkey: ${appState.secretKeys[0]}');
-
-    print('response: ${responseData}');
-
-    if (responseData['statusCode'] == 200) {
-      await storeUserInfo(responseData['data'], appState);
     }
   }
 }
