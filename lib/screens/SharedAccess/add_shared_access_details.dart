@@ -74,7 +74,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    LanguageEn.confirmyourtransaction,
+                    'Confirm request',
                     style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
@@ -87,7 +87,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                 height: height / 20,
               ),
               Text(
-                LanguageEn.youareabouttosend,
+                'You are about to grant access to the following users',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -117,7 +117,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                             height: height / 50,
                           ),
                           Text(
-                            'Grant viewer|approver access to the following users',
+                            viewData['accessType'] + ' access',
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -127,16 +127,33 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                           SizedBox(
                             height: height / 50,
                           ),
-                          Container(
-                            width: width / 1.3,
-                            child: Text(
-                              '- 3400 NGN',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w400,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody,
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                            child: Container(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Container(
+                                          width: width / 1.3,
+                                          child: Wrap(
+                                            alignment: WrapAlignment.center,
+                                            children: [
+                                              for (var i = 0;
+                                                  i <
+                                                      viewData['usernames']
+                                                          .length;
+                                                  i++) ...[
+                                                userItem(
+                                                    viewData['usernames'][i])
+                                              ],
+                                            ],
+                                          )),
+                                      SizedBox(height: 2),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -151,6 +168,133 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
               ),
               SizedBox(
                 height: height / 50,
+              ),
+              if (viewData['accessType'] == 'Approver') ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(15.0)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Text(
+                              'Initiator access',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold),
+                            ),
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                              child: Container(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Container(
+                                            width: width / 1.3,
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              children: [
+                                                for (var i = 0;
+                                                    i <
+                                                        viewData['initiators']
+                                                            .length;
+                                                    i++) ...[
+                                                  userItem(
+                                                      viewData['initiators'][i])
+                                                ],
+                                              ],
+                                            )),
+                                        SizedBox(height: 2),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 50.0,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(15.0)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Text(
+                              'No. of approvals needed',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold),
+                            ),
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                              child: Container(
+                                child: Text(
+                                  viewData['noOfApprovalsNeeded'],
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w700,
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontsemibold),
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 50.0,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              SizedBox(
+                height: height / 50.0,
               ),
               Form(
                 key: formKey,
@@ -195,6 +339,31 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
               Padding(
                   padding: EdgeInsets.only(
                       bottom: MediaQuery.of(context).viewInsets.bottom)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget userItem(String name) {
+    return Padding(
+      padding: const EdgeInsets.all(3.0),
+      child: Container(
+        decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            color: notifier.getbluecolor),
+        child: Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Wrap(
+            children: [
+              Text(
+                name,
+                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                style: TextStyle(
+                    color: wihitecolor, fontFamily: fontbody, fontSize: 15.sp),
+              ),
             ],
           ),
         ),
