@@ -15,6 +15,7 @@ import (
 	"firebase.google.com/go/storage"
 	"github.com/google/uuid"
 	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"gorm.io/gorm"
 )
 
@@ -28,6 +29,7 @@ type GlobalConfig struct {
 	RoachDB                   *gorm.DB
 	BantuExpansionClient      *horizonclient.Client
 	BantuNetworkPassphrase    string
+	ChannelAccounts           chan *keypair.Full
 }
 
 type ClientUploader struct {
