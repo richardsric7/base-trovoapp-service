@@ -78,13 +78,13 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 	jsonObj.UserID = uw.UserID
 	jsonObj.SharedAccessEnabled = uw.SharedAccessEnabled
 	jsonObj.AssetIssuerWallet = uw.AssetIssuerWallet
-	viewOnlyAccess := 0
+	viewOnlyAccess := true
 
 	if uw.SharedAccessEnabled == 1 {
 		//get shared access
 		for _, permission := range uw.Permissions {
 			if permission.Permission != "VIEW-ONLY" {
-				viewOnlyAccess = 1
+				viewOnlyAccess = false
 			}
 			jsonObj.Permissions = append(jsonObj.Permissions, permission.ToJSON())
 		}
@@ -94,8 +94,13 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 
 	} else {
 		jsonObj.Permissions = make([]WalletPermissionJSON, 0)
+		viewOnlyAccess = false
 	}
-	jsonObj.HasViewOnlyAccess = viewOnlyAccess
+	if viewOnlyAccess {
+		jsonObj.HasViewOnlyAccess = 1
+	} else {
+		jsonObj.HasViewOnlyAccess = 0
+	}
 
 	//nullable
 	{

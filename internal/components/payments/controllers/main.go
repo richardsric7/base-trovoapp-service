@@ -27,16 +27,13 @@ import (
 )
 
 // Init initializes the controller
-func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks,gc *sharedconfig.GlobalConfig) {
+func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) {
 	//start routine to resend failed payment callbacks
 	// type retrySling struct {
 	// 	Req   *sling.Sling
 	// 	Count int
 	// }
 
-
-
-	
 	go func(c chan userModels.RetryCallbacks) {
 		maxCallbackCount := 10
 		//loop
@@ -443,7 +440,32 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks,g
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
 				if getDestinationWalletError == nil {
-					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+					dataPayload := make(map[string]string)
+					dataPayload["none"] = ""
+					if destinationWallet.SharedAccessEnabled == 1 {
+						if destinationWallet.HasViewOnlyAccess(gc) {
+							u, e := destinationWallet.GetWalletOwner(gc.DB)
+							if e == nil {
+								if u.PushNotificationToken != nil {
+
+									u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+
+								}
+							}
+
+						}
+						for _, v := range destinationWallet.Permissions {
+							u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+							if e != nil {
+								continue
+							}
+							if u.PushNotificationToken != nil {
+
+								u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+
+							}
+						}
+					}
 				}
 				accountSignerUser.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 

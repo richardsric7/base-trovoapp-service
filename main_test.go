@@ -54,6 +54,7 @@ type PaymentInfo struct {
 	DestinationLastName     string            `json:"destinationLastName"`
 	DestinationThumbnail    string            `json:"destinationThumbnail"`
 	DestinationVerified     int               `json:"destinationVerified"`
+	Commit                  int               `json:"commit"`
 	ChannelAccount          string            `json:"channelAccount"`
 	ChannelAccountSignature string            `json:"channelAccountSignature"`
 	Messages                []string          `json:"messages"`
@@ -1487,6 +1488,105 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 	time.Sleep(time.Second * 10)
 
 }
+
+// TestSendPaymentWithSharedAccessEnabled sends payment from primary account
+func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
+
+	// pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	// secretKey := "SDBLGMM6HVLYSUUR2TIKC6E7GZHQA5VJUUGBVOGDC5KQHTJVC2KK3EXK"
+	// pk := os.Getenv("RICPK")
+	// fromWallet := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	//ric_joint
+	// fromWallet := "GD6IO3P4J2C63Z3VEIH5TVZVDITHKGJMOAKHX6J6TEDA6JEEQCD5GJFN"
+	//ric_joint1
+	fromWallet := "GA7ZU2CZPXVCBCDABXOQ7BNLCF24PASOZZTLFGPN4PFODLC7UVO3XYGU"
+	signerSecretKey := os.Getenv("RICSC")
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	signerKP := keypair.MustParseFull(signerSecretKey)
+	// log.Println(kp.Address())
+	baseURL := prodURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/shared-access/payment"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, signerKP.Address()+tsString, signerKP.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	paymentPayload := PaymentInfo{
+		Destination: "obi",
+		Memo:        "Test XBN shared Payment",
+		Amount:      "51",
+	}
+	errorResponse := new(ErrorResponse)
+	payResponse := new(PaymentInfo)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", fromWallet).
+		Set("X-TW-SIGNER", signerKP.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(paymentPayload).Receive(payResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestSendPaymentWithSharedAccessEnabled] server response error:", *errorResponse)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestSendPaymentWithSharedAccessEnabled]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("[TestSendPaymentWithSharedAccessEnabled]Confirmation Payment Response:[%+v]\n", payResponse)
+
+	{
+		//run the payment signing and submission
+		p := *payResponse
+		// commit transaction
+		p.Commit = 1
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, signerKP.Address()+tsString, signerKP.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", fromWallet).
+			Set("X-TW-SIGNER", signerKP.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+
+		log.Printf("Make shared Payment Response:[%+v]\n", payResponse)
+	}
+	log.Println("[TestSendPaymentWithSharedAccessEnabled] completed")
+	time.Sleep(time.Second * 10)
+
+}
 func TestSwapFromSubWalletMultiAccessDisabled(t *testing.T) {
 
 	// pk := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
@@ -2005,7 +2105,9 @@ func TestCreateSharedAccess(t *testing.T) {
 	// accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
 	// accessToWallet := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
 	// accessToWallet := "GD6IO3P4J2C63Z3VEIH5TVZVDITHKGJMOAKHX6J6TEDA6JEEQCD5GJFN"
-	accessToWallet := "GAYKJR7KECN57NPKF4ABYQPFLUCELKXMSPD3D7ACEATI77TYFXKJSKRO"
+	// accessToWallet := "GAYKJR7KECN57NPKF4ABYQPFLUCELKXMSPD3D7ACEATI77TYFXKJSKRO"
+	//ric_join1
+	accessToWallet := "GA7ZU2CZPXVCBCDABXOQ7BNLCF24PASOZZTLFGPN4PFODLC7UVO3XYGU"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
@@ -2047,14 +2149,20 @@ func TestCreateSharedAccess(t *testing.T) {
 			TargetUsername: "ric",
 			Permission:     "APPROVER"},
 		WalletPermissionInfo{
+			TargetUsername: "ric1",
+			Permission:     "INITIATOR"},
+		WalletPermissionInfo{
+			TargetUsername: "ric1",
+			Permission:     "APPROVER"},
+		WalletPermissionInfo{
 			TargetUsername: "thundeyy",
 			Permission:     "VIEW-ONLY"},
 		WalletPermissionInfo{
 			TargetUsername: "onoja",
-			Permission:     "VIEW-ONLY"},
+			Permission:     "APPROVER"},
 		WalletPermissionInfo{
 			TargetUsername: "efizee",
-			Permission:     "VIEW-ONLY"},
+			Permission:     "APPROVER"},
 		WalletPermissionInfo{
 			TargetUsername: "obi",
 			Permission:     "APPROVER"})
