@@ -26,7 +26,7 @@ import (
 )
 
 // Init initializes /v1/users endpoint
-func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
+func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks,gc *sharedconfig.GlobalConfig) {
 	//websocket stream
 	router.GET("/v1/stream/ws/:targetUser", func(c *gin.Context) {
 
@@ -1913,7 +1913,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 		}
 
-		err = userServices.ApproveTransaction(&signerUser, &approvalRequest, &payload, gc)
+		err = userServices.ApproveTransaction(&signerUser, &approvalRequest, &payload, callBackRetryChan,gc)
 		if err != nil {
 			log.Println("[POST ApproveRequest] error for signer:", signerUser.Username, "error: ", err)
 

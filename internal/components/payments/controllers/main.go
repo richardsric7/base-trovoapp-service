@@ -27,7 +27,7 @@ import (
 )
 
 // Init initializes the controller
-func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
+func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks,gc *sharedconfig.GlobalConfig) {
 	//start routine to resend failed payment callbacks
 	// type retrySling struct {
 	// 	Req   *sling.Sling
@@ -36,7 +36,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 
 
-	callBackRetryChan := make(chan userModels.RetryCallbacks, 200000)
+	
 	go func(c chan userModels.RetryCallbacks) {
 		maxCallbackCount := 10
 		//loop

@@ -267,16 +267,16 @@ func main() {
 	if os.Getenv("GIN_MODE") == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	}
-
+	callBackRetryChan := make(chan userModels.RetryCallbacks, 200000)
 	var router *gin.Engine = gin.Default()
 	// router.SetTrustedProxies(nil)
 	router.Use(middleware.CORSMiddleware())
 
 	root.Init(router)
 	log.Println("##root services initialized##")
-	users.Init(router, &globalConfig)
+	users.Init(router, callBackRetryChan, &globalConfig)
 	log.Println("##users services initialized##")
-	payments.Init(router, &globalConfig)
+	payments.Init(router, callBackRetryChan, &globalConfig)
 	log.Println("##payments services initialized##")
 	swaps.Init(router, &globalConfig)
 	log.Println("##swap services initialized##")
