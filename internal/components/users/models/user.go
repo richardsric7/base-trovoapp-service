@@ -253,6 +253,7 @@ type PendingAuth struct {
 	ReasonForRejection           *string                       `gorm:"size:200;null;" json:"reasonForRejection"`
 	TransactionXdr               string                        `gorm:"not null;" json:"transactionXdr"`
 	TransactionInfoStr           *string                       `gorm:"null;" json:"transactionInfoStr"`
+	TransactionSequenceNumber    string                        `gorm:"null;" json:"transactionSequenceNumber"`
 	TransactionID                *string                       `gorm:"size:70;null;index:idx_pending_auth_transaction_id" json:"transactionID"`
 	PendingTransactionSignatures []PendingTransactionSignature `json:"pendingTransactionSignatures"`
 }

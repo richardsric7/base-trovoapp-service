@@ -236,7 +236,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			log.Println("[ApproveTransaction] error dry running for modify shared access")
 			return e
 		}
-		p.TransactionXdr = ts.Transaction
+		// p.TransactionXdr = ts.Transaction
 
 	} else if p.TransactionType == "PAYMENT" {
 		tbyte := []byte(*p.TransactionInfoStr)
@@ -255,7 +255,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			log.Println("[ApproveTransaction] error dry running for payment")
 			return e
 		}
-		p.TransactionXdr = simPayInfo.Transaction
+		// p.TransactionXdr = simPayInfo.Transaction
 	}
 	if len(approvalInfo.TransactionSignature) == 0 {
 

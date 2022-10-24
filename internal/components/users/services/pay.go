@@ -80,17 +80,29 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 		}
 
 	}
+	var incrSequenceBy int64
+	var sequenceNumber string
+	if !wallet.HasViewOnlyAccess(gc) && wallet.SharedAccessEnabled == 1 {
+		paymentInfo.Multiparty = 1
+		// check if pending transaction.
+		// var pendingAuth userModels.PendingAuth
+		gc.DB.Where("wallet_public_key = ? AND transaction_status = ?", wallet.ID, "PENDING").Count(&incrSequenceBy)
+		log.Printf("[Pay] >>>>>>>>>>> %v pending transactions on the wallet\n", incrSequenceBy)
+		// incrSequenceBy++
+		log.Printf("[Pay] >>>>>>>>>>> sequence will be increased by %v\n", incrSequenceBy)
+
+	}
 
 	if len(paymentInfo.ChannelAccount) == 56 {
 		//payment is with channel account
-		xdrBase64, destinationUser, err = generatePaymentXdrWithChannelAccountPK(client, signerUser, wallet, paymentInfo, db)
+		xdrBase64, sequenceNumber, destinationUser, err = generatePaymentXdrWithChannelAccountPK(client, signerUser, wallet, paymentInfo, incrSequenceBy, db)
 
 		if err != nil {
 			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdrWithChannelAccountPK error:[%v]\n", wallet.Alias, paymentInfo.Destination, err)
 		}
 	} else {
 
-		xdrBase64, destinationUser, err = generatePaymentXdr(client, signerUser, wallet, paymentInfo, db)
+		xdrBase64, sequenceNumber, destinationUser, err = generatePaymentXdr(client, signerUser, wallet, paymentInfo, incrSequenceBy, db)
 		if err != nil {
 			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdr error:[%v] \n", wallet.ID, paymentInfo.Destination, err)
 		}
@@ -99,9 +111,7 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 
 	paymentInfo.Transaction = xdrBase64
 	paymentInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
-	if !wallet.HasViewOnlyAccess(gc) && wallet.SharedAccessEnabled == 1 {
-		paymentInfo.Multiparty = 1
-	}
+
 	if len(paymentInfo.TransactionSignature) == 0 && paymentInfo.Commit == 0 {
 		return paymentInfo, nil, err
 	}
@@ -167,15 +177,16 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 	transactionByte, _ := json.Marshal(*paymentInfo)
 	transactionStr := string(transactionByte)
 	pendingAuth := userModels.PendingAuth{
-		ID:                       id,
-		Initiator:                signerUser.Username,
-		InitiatorSignerPublicKey: signerUser.PrimarySigner,
-		WalletPublicKey:          wallet.ID,
-		TransactionType:          "PAYMENT",
-		Description:              description,
-		ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
-		TransactionXdr:           xdrBase64,
-		TransactionInfoStr:       &transactionStr,
+		ID:                        id,
+		Initiator:                 signerUser.Username,
+		InitiatorSignerPublicKey:  signerUser.PrimarySigner,
+		WalletPublicKey:           wallet.ID,
+		TransactionType:           "PAYMENT",
+		Description:               description,
+		ApprovalsNeeded:           wallet.NumberOfApprovalsNeeded,
+		TransactionXdr:            xdrBase64,
+		TransactionInfoStr:        &transactionStr,
+		TransactionSequenceNumber: sequenceNumber,
 	}
 	//save and commit this to database
 	e := db.Create(&pendingAuth).Error
@@ -189,7 +200,8 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 
 }
 
-func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, db *gorm.DB) (string, *userModels.User, error) {
+// generatePaymentXdr return xdrBase64, sequenceNumber used, destinationUser, error
+func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, incrSequenceBy int64, db *gorm.DB) (string, string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	// var messages []string
 	//check if it is public key payment
@@ -198,12 +210,12 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 	paymentInfo, err = ValidatePaymentInfo(paymentInfo)
 
 	if err != nil {
-		return "", nil, err
+		return "", "", nil, err
 	}
 
 	var amountToSend float64
 	if amountToSend, err = strconv.ParseFloat(paymentInfo.Amount, 64); err != nil {
-		return "", nil, &tPayErrors.ErrorInvalidPaymentAmount{}
+		return "", "", nil, &tPayErrors.ErrorInvalidPaymentAmount{}
 	}
 
 	newAmountToSend := decimal.NewFromFloat(amountToSend).Truncate(7).String()
@@ -219,10 +231,10 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
-		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
+		return "", "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 	}
 	if destinationInfo.Suspended == 1 {
-		return "", nil, &tErrors.ErrorUsernameIsSuspended{}
+		return "", "", nil, &tErrors.ErrorUsernameIsSuspended{}
 	}
 
 	if !publicKeyPayment {
@@ -240,7 +252,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 		//parse public key
 		_, err := keypair.ParseAddress(paymentInfo.Destination)
 		if err != nil {
-			return "", nil, &tPayErrors.ErrorInvalidPaymentDestinationPublicKey{}
+			return "", "", nil, &tPayErrors.ErrorInvalidPaymentDestinationPublicKey{}
 		}
 
 		message := "You are about to make payment to a public key directly. Please be sure of the address as the payment cannot be retrieved after confirmation."
@@ -260,7 +272,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 	//set base charge to be used in all places it is needed
 	if publicKeyPayment {
 		if !asset.IsNative() && !destinationAccountTrustsAsset {
-			return "", nil, &tPayErrors.ErrorDestinationPublicKeyCannotReceiveAsset{}
+			return "", "", nil, &tPayErrors.ErrorDestinationPublicKeyCannotReceiveAsset{}
 		}
 	} else {
 		//check if to set charges messages
@@ -289,16 +301,16 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 	sourceAccountExists, sourceAccountTrustsAsset, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, asset)
 
 	if sourceAccountErr != nil {
-		return "", nil, sourceAccountErr
+		return "", "", nil, sourceAccountErr
 	}
 
 	if !sourceAccountExists {
-		return "", nil, &tErrors.ErrorUnderfundedAccount{}
+		return "", "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if !sourceAccountTrustsAsset {
 
-		return "", nil, &tErrors.ErrorUnderfundedAccount{}
+		return "", "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	log.Printf("[generatePaymentXdr]obtained sourced account info \n")
@@ -311,11 +323,11 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 
 		if asset.IsNative() {
 			if sourceAccountNativeBalance.LessThan(amountToSendDec) {
-				return "", nil, &tErrors.ErrorUnderfundedAccount{}
+				return "", "", nil, &tErrors.ErrorUnderfundedAccount{}
 			}
 		} else {
 			if sourceAccountCustomBalance.LessThan(amountToSendDec) {
-				return "", nil, &tErrors.ErrorUnderfundedAccount{}
+				return "", "", nil, &tErrors.ErrorUnderfundedAccount{}
 			}
 		}
 	}
@@ -323,7 +335,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 	//check if destination account exists
 	if destinationAccountErr != nil {
 		log.Println("[generatePaymentXdr]destination Account error:", destinationAccountErr)
-		return "", nil, destinationAccountErr
+		return "", "", nil, destinationAccountErr
 	}
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
 
@@ -335,7 +347,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 
 			if amountToSendDec.LessThan(baseReserve.Mul(decimal.NewFromInt(3))) {
 				log.Printf("[generatePaymentXdr] trying to create account with %v, meanwhile you need %v\n", amountToSendDec, baseReserve.Mul(decimal.NewFromInt(3)))
-				return "", nil, &tPayErrors.ErrorInsufficientAmountToFundAccount{}
+				return "", "", nil, &tPayErrors.ErrorInsufficientAmountToFundAccount{}
 			}
 			ops = append(ops, &txnbuild.CreateAccount{
 				Destination:   destinationPublicKey,
@@ -368,7 +380,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 				ops2, _tempAccountKeyPair, err := processDestinationAssetDoesNotTrustAsset(destinationInfo, client, &destinationWallet, sourceAccount, asset, newAmountToSend, db)
 
 				if err != nil {
-					return "", nil, err
+					return "", "", nil, err
 				}
 
 				tempAccountKeyPair = _tempAccountKeyPair
@@ -388,21 +400,26 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 	}
 
 	// Construct the transaction that holds the operations to execute on the network
+	minSequence, _ := sourceAccount.GetSequenceNumber()
+	sequenceNumber := minSequence + 1 + incrSequenceBy
+	sequenceNumberStr := fmt.Sprintf("%v", sequenceNumber)
+	sourceAccount.Sequence = fmt.Sprintf("%v", sequenceNumber)
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount:        sourceAccount,
-			IncrementSequenceNum: true,
+			IncrementSequenceNum: false,
 			Operations:           ops,
 			BaseFee:              txnbuild.MinBaseFee,
 			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
+				TimeBounds:        txnbuild.NewInfiniteTimeout(),
+				MinSequenceNumber: &minSequence,
 			},
 			Memo: txnbuild.MemoText(paymentInfo.Memo),
 		},
 	)
 	if err != nil {
 		log.Println("[generatePaymentXdr] error constructing transaction ", err)
-		return "", nil, err
+		return "", "", nil, err
 	}
 
 	if tempAccountKeyPair != nil {
@@ -411,7 +428,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 
 		if err != nil {
 			log.Println("[generatePaymentXdr] error signing transaction with temporary key ", err)
-			return "", nil, &tErrors.ErrorTemporaryServerError{}
+			return "", "", nil, &tErrors.ErrorTemporaryServerError{}
 		}
 	}
 	var xdrBase64 string
@@ -419,7 +436,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 	xdrBase64, err = tx.Base64()
 	if err != nil {
 		log.Println("[generatePaymentXdr] error getting txn base64", err)
-		return "", nil, err
+		return "", "", nil, err
 	}
 
 	if destinationBlockchainAccount != nil {
@@ -427,13 +444,13 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 
 	}
 	if publicKeyPayment {
-		return xdrBase64, nil, nil
+		return xdrBase64, sequenceNumberStr, nil, nil
 	}
-	return xdrBase64, &destinationInfo, nil
+	return xdrBase64, sequenceNumberStr, &destinationInfo, nil
 
 }
 
-func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner *userModels.User, wallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, db *gorm.DB) (string, *userModels.User, error) {
+func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner *userModels.User, wallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, incrSequenceBy int64, db *gorm.DB) (string, string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
 	// var messages []string
 	//check if it is public key payment
@@ -442,12 +459,12 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 	paymentInfo, err = ValidatePaymentInfo(paymentInfo)
 
 	if err != nil {
-		return "", nil, err
+		return "", "", nil, err
 	}
 
 	var amountToSend float64
 	if amountToSend, err = strconv.ParseFloat(paymentInfo.Amount, 64); err != nil {
-		return "", nil, &tPayErrors.ErrorInvalidPaymentAmount{}
+		return "", "", nil, &tPayErrors.ErrorInvalidPaymentAmount{}
 	}
 
 	newAmountToSend := decimal.NewFromFloat(amountToSend).Truncate(7).String()
@@ -461,7 +478,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, db)
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
-		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
+		return "", "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 	}
 
 	var destinationPublicKey string
@@ -484,7 +501,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 		//parse public key
 		_, err := keypair.ParseAddress(paymentInfo.Destination)
 		if err != nil {
-			return "", nil, &tPayErrors.ErrorInvalidPaymentDestinationPublicKey{}
+			return "", "", nil, &tPayErrors.ErrorInvalidPaymentDestinationPublicKey{}
 		}
 
 		message := "You are about to make payment to a public key directly. Please be sure of the address as the payment cannot be retrieved after confirmation."
@@ -505,7 +522,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 
 	if publicKeyPayment {
 		if !asset.IsNative() && !destinationAccountTrustsAsset {
-			return "", nil, &tPayErrors.ErrorDestinationPublicKeyCannotReceiveAsset{}
+			return "", "", nil, &tPayErrors.ErrorDestinationPublicKeyCannotReceiveAsset{}
 		}
 	} else {
 		//check if to set charges messages
@@ -535,29 +552,29 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 	channelSourceAccountExists, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(client, paymentInfo.ChannelAccount, txnbuild.NativeAsset{})
 
 	if channelSourceAccountErr != nil {
-		return "", nil, channelSourceAccountErr
+		return "", "", nil, channelSourceAccountErr
 	}
 
 	if !channelSourceAccountExists {
-		return "", nil, &tErrors.ErrorUnderfundedAccount{}
+		return "", "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if channelSourceAccountNativeBalance.LessThan(decimal.NewFromFloat(6.1)) {
 		//min balance of 6XBN and fee of
-		return "", nil, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Channel account is underfunded[%v XBN usable]. Needs extra %v XBN", channelSourceAccountNativeBalance.String(), decimal.NewFromFloat(6.1).Sub(channelSourceAccountNativeBalance))}
+		return "", "", nil, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Channel account is underfunded[%v XBN usable]. Needs extra %v XBN", channelSourceAccountNativeBalance.String(), decimal.NewFromFloat(6.1).Sub(channelSourceAccountNativeBalance))}
 	}
 
 	if sourceAccountErr != nil {
-		return "", nil, sourceAccountErr
+		return "", "", nil, sourceAccountErr
 	}
 
 	if !sourceAccountExists {
-		return "", nil, &tErrors.ErrorUnderfundedAccount{}
+		return "", "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if !sourceAccountTrustsAsset {
 
-		return "", nil, &tErrors.ErrorUnderfundedAccount{}
+		return "", "", nil, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	log.Printf("[generatePaymentXdrWithChannelAccountPK]obtained sourced account info \n")
@@ -570,11 +587,11 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 
 		if asset.IsNative() {
 			if sourceAccountNativeBalance.LessThan(amountToSendDec) {
-				return "", nil, &tErrors.ErrorUnderfundedAccount{}
+				return "", "", nil, &tErrors.ErrorUnderfundedAccount{}
 			}
 		} else {
 			if sourceAccountCustomBalance.LessThan(amountToSendDec) {
-				return "", nil, &tErrors.ErrorUnderfundedAccount{}
+				return "", "", nil, &tErrors.ErrorUnderfundedAccount{}
 			}
 		}
 	}
@@ -582,7 +599,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 	//check if destination account exists
 	if destinationAccountErr != nil {
 		log.Println("[generatePaymentXdrWithChannelAccountPK]destination Account error:", destinationAccountErr)
-		return "", nil, destinationAccountErr
+		return "", "", nil, destinationAccountErr
 	}
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
 
@@ -594,7 +611,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 
 			if amountToSendDec.LessThan(baseReserve.Mul(decimal.NewFromInt(3))) {
 				log.Printf("[generatePaymentXdrWithChannelAccountPK] trying to create account with %v, meanwhile you need %v\n", amountToSendDec, baseReserve.Mul(decimal.NewFromInt(3)))
-				return "", nil, &tPayErrors.ErrorInsufficientAmountToFundAccount{}
+				return "", "", nil, &tPayErrors.ErrorInsufficientAmountToFundAccount{}
 			}
 			ops = append(ops, &txnbuild.CreateAccount{
 				Destination:   destinationPublicKey,
@@ -628,7 +645,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 				ops2, _tempAccountKeyPair, err := processDestinationAssetDoesNotTrustAsset(destinationInfo, client, &destinationWallet, sourceAccount, asset, newAmountToSend, db)
 
 				if err != nil {
-					return "", nil, err
+					return "", "", nil, err
 				}
 
 				tempAccountKeyPair = _tempAccountKeyPair
@@ -648,6 +665,10 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 	}
 
 	// Construct the transaction that holds the operations to execute on the network
+	minSequence, _ := sourceAccount.GetSequenceNumber()
+	sequenceNumber := minSequence + 1 + incrSequenceBy
+	sequenceNumberStr := fmt.Sprintf("%v", sequenceNumber)
+	sourceAccount.Sequence = fmt.Sprintf("%v", sequenceNumber)
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount:        channelSourceAccount,
@@ -655,14 +676,15 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 			Operations:           ops,
 			BaseFee:              txnbuild.MinBaseFee,
 			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
+				TimeBounds:        txnbuild.NewInfiniteTimeout(),
+				MinSequenceNumber: &minSequence,
 			},
 			Memo: txnbuild.MemoText(paymentInfo.Memo),
 		},
 	)
 	if err != nil {
 		log.Println("[generatePaymentXdrWithChannelAccountPK] error constructing transaction ", err)
-		return "", nil, err
+		return "", "", nil, err
 	}
 
 	if tempAccountKeyPair != nil {
@@ -671,7 +693,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 
 		if err != nil {
 			log.Println("[generatePaymentXdrWithChannelAccountPK] error signing transaction with temporary key ", err)
-			return "", nil, &tErrors.ErrorTemporaryServerError{}
+			return "", "", nil, &tErrors.ErrorTemporaryServerError{}
 		}
 	}
 
@@ -680,7 +702,7 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 	xdrBase64, err = tx.Base64()
 	if err != nil {
 		log.Println("[generatePaymentXdrWithChannelAccountPK] error getting txn base64", err)
-		return "", nil, err
+		return "", "", nil, err
 	}
 
 	if destinationBlockchainAccount != nil {
@@ -688,9 +710,9 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 
 	}
 	if publicKeyPayment {
-		return xdrBase64, nil, nil
+		return xdrBase64, sequenceNumberStr, nil, nil
 	}
-	return xdrBase64, &destinationInfo, nil
+	return xdrBase64, sequenceNumberStr, &destinationInfo, nil
 }
 
 func processDestinationAssetDoesNotTrustAsset(destinationUser userModels.User, client *horizonclient.Client, destinationWallet *userModels.UserWallet, sourceAccount *horizon.Account, asset txnbuild.Asset, amountToSend string, db *gorm.DB) ([]txnbuild.Operation, *keypair.Full, error) {

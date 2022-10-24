@@ -1422,6 +1422,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestSendPaymentFromSubWalletMultiAccessDisabled] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
 		return
 
 	}
@@ -1525,9 +1526,9 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 	}
 
 	paymentPayload := PaymentInfo{
-		Destination: "obi",
+		Destination: "kenmaddy",
 		Memo:        "Test XBN shared Payment",
-		Amount:      "51",
+		Amount:      "53",
 	}
 	errorResponse := new(ErrorResponse)
 	payResponse := new(PaymentInfo)
@@ -1542,6 +1543,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestSendPaymentWithSharedAccessEnabled] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
 		return
 
 	}
@@ -1558,7 +1560,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 		//run the payment signing and submission
 		p := *payResponse
 		// commit transaction
-		p.Commit = 0
+		p.Commit = 1
 
 		ts := time.Now().Unix() / 1000
 		tsString := fmt.Sprintf("%v", ts)
@@ -2627,6 +2629,7 @@ func TestApproveTransaction(t *testing.T) {
 	// pk := "GDBWYZWLYASCZ6KP4AIRNRY5WQ5OX6H2T6WASG7WFAEEYO6R6AC4GXRM"
 	// secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
 
+	//ric1
 	// secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
 
 	// accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
@@ -2646,7 +2649,8 @@ func TestApproveTransaction(t *testing.T) {
 	// } else {
 	// 	sEnc = ownerUsername
 	// }
-	approvalID := "c528ad06-1674-4299-b18a-febb08e5b2ea"
+	approvalID := "a62f46e3-d4c4-4a9e-be5d-8d01a7b75899"
+	// approvalID := "a1475aec-43cc-4d37-a3b4-eb9cfeb4b7cc"
 	fullPath := "/v1/shared-access/approval/" + approvalID
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
