@@ -1,11 +1,14 @@
 package users
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	db "trovo-wallet-api/internal/db"
@@ -186,10 +189,19 @@ func GetApprovalRequestJSON(id string, gc *sharedconfig.GlobalConfig) (approvalR
 	return p.ToJSON(gc), nil
 }
 
-func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, approvalInfo *userModels.ApprovalPayload, gc *sharedconfig.GlobalConfig) (err error) {
+func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, approvalInfo *userModels.ApprovalPayload, retryCallbackChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) (err error) {
 	approvalInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
 	var pts userModels.PendingTransactionSignature
 	var revokedList, modifiedList, addedList []userModels.WalletPermission
+	var paymentInfo paymentModels.PaymentInfo
+
+	if p.TransactionStatus == "COMPLETED" {
+		return &tErrors.ErrorCompletedRequest{ID: p.ID}
+	}
+
+	if p.TransactionStatus == "REJECTED" {
+		return &tErrors.ErrorRejectedRequest{ID: p.ID}
+	}
 
 	initiatorUser, e := userModels.Username(p.Initiator).GetSimpleUser(gc.DB)
 	if e != nil {
@@ -222,15 +234,28 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		revokedList, modifiedList, addedList, e = ModifySharedWalletAccess(&initiatorUser, &walletOwner, &wallet, &ts, gc)
 		if e != nil {
 			log.Println("[ApproveTransaction] error dry running for modify shared access")
-			return &tErrors.ErrorTemporaryServerError{}
+			return e
 		}
 		p.TransactionXdr = ts.Transaction
-		// e =gc.DB.Save(p).Error
-		// if e != nil {
-		// 	log.Println("[ApproveTransaction] error saving fresh transaction for modify shared access")
-		// 	return &tErrors.ErrorTemporaryServerError{}
-		// }
 
+	} else if p.TransactionType == "PAYMENT" {
+		tbyte := []byte(*p.TransactionInfoStr)
+
+		e = json.Unmarshal(tbyte, &paymentInfo)
+		if e != nil {
+			log.Println("[ApproveTransaction] error decoding json for modified shared access")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		// do dry run of payment again
+		simPayInfo := paymentInfo
+		simPayInfo.Transaction = ""
+		simPayInfo.Commit = 0
+		_, _, e = Pay(&initiatorUser, &wallet, &simPayInfo, gc)
+		if e != nil {
+			log.Println("[ApproveTransaction] error dry running for payment")
+			return e
+		}
+		p.TransactionXdr = simPayInfo.Transaction
 	}
 	if len(approvalInfo.TransactionSignature) == 0 {
 
@@ -404,7 +429,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			// send push notifications
 			assetCode := paymentInfo.AssetCode
 			if assetCode == "" {
-				assetCode = "XBN"
+				assetCode = os.Getenv("NATIVE_ASSET_CODE")
 			}
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = "pendingAuth"
@@ -417,8 +442,110 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 					dataPayload := make(map[string]string)
 					dataPayload["none"] = ""
 					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+					u.SendPushMessage("Trovo: Shared Wallet Debited!", fmt.Sprintf("Payment successfully sent %v %v from shared wallet with alias %v to %v", paymentInfo.Amount, assetCode, wallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 
 				}
+			}
+			{
+
+				//start callback process here
+
+				//TODO: make callback request if callback is available
+
+				if d, ok := paymentInfo.CallbackURLS["orderPaymentCallbackUrl"]; ok && len(d) > 5 {
+					log.Printf("[paymentNotification] found notification callbackUrl: [%v]\n\n", d)
+					//make callback request
+					// callbackResponse := new(map[string]interface{})
+					type payload struct {
+						Destination     string    `json:"destination"`
+						Sender          string    `json:"sender"`
+						Amount          string    `json:"amount"`
+						AssetCode       string    `json:"assetCode"`
+						AssetIssuer     string    `json:"assetIssuer"`
+						TransactionID   string    `json:"transactionId"`
+						TransactionMemo string    `json:"transactionMemo"`
+						TransactionTime time.Time `json:"transactionTime"`
+						DeviceID        string    `json:"deviceId"`
+					}
+
+					jsonPayload := payload{
+						Destination:     paymentInfo.Destination,
+						Sender:          wallet.Alias,
+						Amount:          paymentInfo.Amount,
+						AssetCode:       assetCode,
+						AssetIssuer:     paymentInfo.AssetIssuer,
+						TransactionID:   paymentInfo.TransactionID,
+						TransactionMemo: paymentInfo.Memo,
+						TransactionTime: time.Now(),
+						DeviceID:        approvalInfo.DeviceID,
+					}
+					/////
+					body, err := json.Marshal(jsonPayload)
+					if err != nil {
+						log.Printf("[paymentNotification] could not unmarshal callback message due to [%v]\n", err)
+
+					}
+					log.Printf("[paymentNotification] JSON STRING: [%v]\n", string(body))
+
+					responseBody := bytes.NewBuffer(body)
+					//Leverage Go's HTTP Post function to make request
+					c := userModels.RetryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
+					retryCallbackChan <- c
+				}
+			}
+
+			{
+				// send push notifications
+				assetCode := paymentInfo.AssetCode
+				if assetCode == "" {
+					assetCode = "XBN"
+				}
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "basicTransactionHistory"
+				if len(paymentInfo.Destination) < 31 {
+					destWallet, e := userModels.WalletAlias(paymentInfo.Destination).GetWallet(gc.DB)
+					if e == nil {
+						dataPayload := make(map[string]string)
+						dataPayload["none"] = ""
+						if destWallet.SharedAccessEnabled == 1 {
+							if destWallet.HasViewOnlyAccess(gc) {
+								u, e := destWallet.GetWalletOwner(gc.DB)
+								if e == nil {
+									if u.PushNotificationToken != nil {
+
+										u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, wallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+
+									}
+								}
+
+							}
+							for _, v := range destWallet.Permissions {
+								u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+								if e != nil {
+									continue
+								}
+								if u.PushNotificationToken != nil {
+
+									u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, wallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+
+								}
+							}
+						} else {
+							//shared access not enabled on destination wallet
+							u, e := destWallet.GetWalletOwner(gc.DB)
+							if e == nil {
+								if u.PushNotificationToken != nil {
+
+									u.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, wallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+
+								}
+							}
+						}
+
+					}
+
+				}
+
 			}
 
 		}
@@ -426,4 +553,45 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 	dbTX.Commit()
 	return nil
+}
+
+func RejectTransaction(signerUser *userModels.User, p *userModels.PendingAuth, rejectionInfo *userModels.RejectPayload, gc *sharedconfig.GlobalConfig) (err error) {
+
+	if p.TransactionStatus == "COMPLETED" {
+		return &tErrors.ErrorCompletedRequest{ID: p.ID}
+	}
+	if p.TransactionStatus == "REJECTED" {
+		return &tErrors.ErrorRejectedRequest{ID: p.ID}
+	}
+	rejectionInfo.RejectionReason = strings.TrimSpace(rejectionInfo.RejectionReason)
+	if len(rejectionInfo.RejectionReason) < 5 {
+		return &tErrors.CustomError{
+			Param:      "rejectionReason",
+			Err:        "error-invalid-rejection-reason",
+			ErrMessage: "Rejection reason is not valid enough. Must be elaborate and must contain at least 5 chracters",
+		}
+	}
+	p.TransactionStatus = "REJECTED"
+	p.RejectedBy = &signerUser.Username
+	p.ReasonForRejection = &rejectionInfo.RejectionReason
+
+	//signature exists
+	dbTX := gc.DB.Begin()
+	defer dbTX.Rollback()
+	e := dbTX.Save(p).Error
+	if e != nil {
+		log.Println("[ApproveTransaction]error saving approval state:", e)
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+	dbTX.Commit()
+	return nil
+
+}
+
+func CheckPendingSharedAccessApproval(walletPublicKey string, db *gorm.DB) (exists bool) {
+
+	var pendingApproval userModels.PendingAuth
+	e := db.Where("wallet_public_key = ? AND (transaction_type = ? OR transaction_type = ?) AND transaction_status = ?", walletPublicKey, "DISABLE SHARED ACCESS", "MODIFY SHARED ACCESS", "PENDING").First(&pendingApproval).Error
+	return e == nil
+
 }

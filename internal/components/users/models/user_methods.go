@@ -675,7 +675,59 @@ func (u *UserWallet) GetPermissionList(db *gorm.DB) (accessList []WalletPermissi
 	return
 }
 
+func (a WalletAlias) GetAccessList(db *gorm.DB) (accessList []WalletPermission) {
+
+	accessList = make([]WalletPermission, 0)
+	wallet, e := a.GetWallet(db)
+	if e != nil {
+		return accessList
+	}
+	if wallet.SharedAccessEnabled == 0 {
+		return accessList
+	}
+	if len(wallet.Permissions) > 0 {
+		accessList = wallet.Permissions
+	}
+
+	return
+}
+
 func (u *UserWallet) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
+	viewOnly = true
+	// accessList := make([]WalletPermission, 0)
+	if u.ID == "" {
+		return false
+	}
+	if u.Permissions != nil {
+		if len(u.Permissions) > 0 {
+			accessList := u.Permissions
+			for _, access := range accessList {
+				if access.Permission != "VIEW-ONLY" {
+					return false
+				}
+			}
+
+			return
+		}
+	} else {
+
+		accessList := UserWalletID(u.ID).GetPermissionList(gc.DB)
+		if len(accessList) == 0 {
+			return false
+		}
+		accessList = u.Permissions
+		for _, access := range accessList {
+			if access.Permission != "VIEW-ONLY" {
+				return false
+			}
+		}
+
+		return
+	}
+
+	return
+}
+func (u *UserWallet) HasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
 	viewOnly = true
 	// accessList := make([]WalletPermission, 0)
 	if u.ID == "" {
@@ -907,13 +959,13 @@ func (id UserWalletID) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
 	return
 }
 
-func (u WalletAlias) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
-	e := db.Preload(clause.Associations).Where("alias = ?", string(u)).First(&wallet).Error
+func (a WalletAlias) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
+	e := db.Preload(clause.Associations).Where("alias = ?", string(a)).First(&wallet).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
 			err = &tErrors.ErrorInvalidWallet{
-				PublicKey: string(u),
+				PublicKey: string(a),
 			}
 			return
 		}

@@ -1837,6 +1837,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 		approvalID := c.Param("ID")
+		payload.DeviceID = c.GetHeader("X-TW-DEVICE-ID")
 		conDB.PrintDBStats(fmt.Sprintf("[POST] /v1/shared-access/approval/%v", approvalID), gc.DB)
 
 		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
@@ -1963,6 +1964,150 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 					}
 				}
+			}
+		}
+	})
+
+	//reject specific approval signature
+	router.DELETE("/v1/shared-access/approval/:ID", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		// var err error
+
+		var payload userModels.RejectPayload
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err := json.Unmarshal(data, &payload)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		approvalID := c.Param("ID")
+		conDB.PrintDBStats(fmt.Sprintf("[DELETE] /v1/shared-access/approval/%v", approvalID), gc.DB)
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET RejectRequest] error for signer:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		permittedPublicKeys := make([]string, 0)
+
+		for _, k := range signerUser.WalletsSharedWithUser {
+			if k.Permission != "APPROVER" {
+				continue
+			}
+			// view only is not permitted to see transactions
+			permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
+		}
+		if len(permittedPublicKeys) == 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access section."})
+			return
+		}
+
+		approvalRequest, err := userServices.GetApprovalRequest(approvalID, gc)
+		if err != nil {
+			log.Println("[POST RejectRequest] error for signer:", signerUser.Username, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+
+		//check if user already approved before
+
+		{
+			for _, a := range approvalRequest.PendingTransactionSignatures {
+				if a.Approver == signerUser.Username {
+					c.JSON(http.StatusForbidden, gin.H{"error": "error-duplicate-approval", "message": "An approval from you already exists. You can only submit one approval."})
+					return
+				}
+			}
+		}
+
+		err = userServices.RejectTransaction(&signerUser, &approvalRequest, &payload, gc)
+		if err != nil {
+			log.Println("[POST RejectRequest] error for signer:", signerUser.Username, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+
+		c.JSON(http.StatusOK, payload)
+		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
+		// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
+		{
+			//start push notificationMessage
+			wallet, e := userModels.UserWalletID(approvalRequest.WalletPublicKey).GetWallet(gc.DB)
+			if e != nil {
+				return
+			}
+			permissionList := wallet.Permissions
+			for _, v := range permissionList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				if e != nil {
+					continue
+				}
+
+				dataPayload := make(map[string]string)
+				dataPayload["none"] = ""
+				if approvalRequest.TransactionStatus == "REJECTED" {
+					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v rejected %v request on wallet %v!", signerUser.Username, approvalRequest.TransactionType, wallet.Alias), fmt.Sprintf("%v rejected an approval for request:\n%v\nReason: %v", signerUser.Username, approvalRequest.Description, approvalRequest.ReasonForRejection), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+
+				}
+
 			}
 		}
 	})

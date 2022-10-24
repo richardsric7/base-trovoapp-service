@@ -3,7 +3,7 @@ package payments
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	swaperrors "trovo-wallet-api/internal/components/swaps/errors"
@@ -11,6 +11,7 @@ import (
 	swapServices "trovo-wallet-api/internal/components/swaps/services"
 	usersdb "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
+	userServices "trovo-wallet-api/internal/components/users/services"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -18,36 +19,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//Init initializes the controller
+// Init initializes the controller
 func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.POST("/v1/users/swap", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
-
-		// suppliedUsername := strings.TrimSpace(strings.ToLower(c.Param("primaryWalletAlias")))
-		// uDec, e := base64.URLEncoding.DecodeString(c.Param("primaryWalletAlias"))
-		// if e == nil {
-		// 	//check if the decoded contains any non-english character
-		// 	invalidChars := 0
-
-		// 	acceptedChars := "abcdefghijklmnopqrstuvwxyz_1234567890/"
-		// 	for _, c := range uDec {
-
-		// 		if !strings.Contains(acceptedChars, strings.TrimSpace(strings.ToLower(string(c)))) {
-		// 			invalidChars++
-		// 		}
-
-		// 	}
-		// 	if invalidChars == 0 {
-		// 		suppliedUsername = string(uDec)
-		// 	}
-
-		// }
-
-		// if suppliedUsername == "null" {
-		// 	log.Printf("user cannot be %v\n", suppliedUsername)
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
-		// 	return
-		// }
-		//check if username is reserved. Reserved usernames should not send payments.
 
 		signerOwner, getUserError := usersdb.GetUser(middleware.ExtractSigner(c), gc.DB)
 
@@ -64,20 +38,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 			return
 		}
-		// _, checkReservedUserError := usersdb.UsernameIsReserved(signerOwner.Username, gc.DB)
-		// if checkReservedUserError != nil {
-
-		// 	var ex tErrors.GenericError
-		// 	var ok bool
-
-		// 	ex, ok = checkReservedUserError.(tErrors.GenericError)
-		// 	if ok {
-		// 		c.JSON(ex.HTTPCode(), ex.JSONError())
-		// 	} else {
-		// 		c.JSON(http.StatusBadRequest, gin.H{"error": checkReservedUserError.Error()})
-		// 	}
-		// 	return
-		// }
+		{
+			//check if pending shared access op exists
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
+				return
+			}
+		}
 
 		wallet, temp, getWalletError := usersdb.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
@@ -126,7 +93,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		var swapInfo swapModels.SwapSendInfo
 		var err error
 
-		data, _ := ioutil.ReadAll(c.Request.Body)
+		data, _ := io.ReadAll(c.Request.Body)
 
 		err = json.Unmarshal(data, &swapInfo)
 

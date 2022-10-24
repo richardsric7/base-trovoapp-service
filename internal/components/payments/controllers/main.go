@@ -6,10 +6,12 @@ import (
 	"os"
 	"sync"
 	"time"
-	paymentsDB "trovo-wallet-api/internal/components/payments/db"
 	tPayErrors "trovo-wallet-api/internal/components/payments/errors"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	payments "trovo-wallet-api/internal/components/payments/services"
+	usersDB "trovo-wallet-api/internal/components/users/db"
+	userModels "trovo-wallet-api/internal/components/users/models"
+	userServices "trovo-wallet-api/internal/components/users/services"
 	conDB "trovo-wallet-api/internal/db"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -32,21 +34,16 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	// 	Count int
 	// }
 
-	//retryCallbacks stores failed callbacks
-	type retryCallbacks struct {
-		Req         *bytes.Buffer
-		CallbackURL string
-		Count       int
-	}
 
-	callBackRetryChan := make(chan retryCallbacks, 200000)
-	go func(c chan retryCallbacks) {
+
+	callBackRetryChan := make(chan userModels.RetryCallbacks, 200000)
+	go func(c chan userModels.RetryCallbacks) {
 		maxCallbackCount := 10
 		//loop
 		var workerWaitGroup sync.WaitGroup
 		numWorkers := 5
 
-		notificationWorker := func(wm *sync.WaitGroup, wid int, callbackChannel chan retryCallbacks) {
+		notificationWorker := func(wm *sync.WaitGroup, wid int, callbackChannel chan userModels.RetryCallbacks) {
 			log.Println("[paymentNotification] started worker -> ", wid)
 			//start worker here
 			defer wm.Done()
@@ -98,7 +95,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		var err error
 
 		//get user DB record
-		accountSignerUser, getUserError := paymentsDB.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB)
+		accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB)
 
 		if getUserError != nil {
 			log.Printf("[FAILED PAYMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
@@ -139,13 +136,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		}
 
-		// primaryAccountSigner := accountSignerUser.PrimarySigner
-
-		// if primaryAccountSigner != middleware.ExtractSigner(c) {
-		// 	log.Printf("[FAILED PAYMENT] INVALID PAYMENT SIGNER IN HEADER from [%v], error: [%v]\n", primaryAccountAlias, err)
-		// 	c.JSON(http.StatusBadRequest, (&tPayErrors.ErrorInvalidPaymentSender{}).JSONError())
-		// 	return
-		// }
+		{
+			//check if pending shared access modify exists
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
+				return
+			}
+		}
 
 		var paymentInfo paymentModels.PaymentInfo
 		// var err error
@@ -171,7 +168,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		//check if username is reserved. Reserved usernames should not send payments.
 		//TODO: cache this
-		_, checkReservedUserError := paymentsDB.UsernameIsReserved(primaryAccountAlias, gc.DB)
+		_, checkReservedUserError := usersDB.UsernameIsReserved(primaryAccountAlias, gc.DB)
 		if checkReservedUserError != nil {
 
 			var ex tErrors.GenericError
@@ -186,7 +183,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 		//get the wallet you are sending payment from
-		userWallet, temp, getWalletError := paymentsDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		userWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] %v error:%v\n", primaryAccountAlias, getWalletError)
 		}
@@ -235,13 +232,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				return
 			}
 		}
-		var destinationUser paymentsDB.User
-		var destinationWallet paymentsDB.UserWallet
+		var destinationUser userModels.User
+		var destinationWallet userModels.UserWallet
 		var getDestinationUserError, getDestinationWalletError error
 		//check if the public key exists in TROVO and then transform to username
 		paymentInfo.Messages = make([]string, 0)
 		if len(paymentInfo.Destination) == 56 {
-			destinationWallet, _, getDestinationWalletError = paymentsDB.GetWallet(paymentInfo.Destination, gc.DB)
+			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Bantu Address[%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationWallet.Alias))
 				paymentInfo.Destination = destinationWallet.Alias
@@ -252,7 +249,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		if len(paymentInfo.Destination) != 56 {
 			//skip public key payments
-			_, checkReservedReceiverError := paymentsDB.UsernameIsReserved(paymentInfo.Destination, gc.DB)
+			_, checkReservedReceiverError := usersDB.UsernameIsReserved(paymentInfo.Destination, gc.DB)
 			if checkReservedReceiverError != nil {
 
 				var ex tErrors.GenericError
@@ -267,7 +264,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				return
 			}
 
-			destinationUser, getDestinationUserError = paymentsDB.GetUser(paymentInfo.Destination, gc.DB)
+			destinationUser, getDestinationUserError = usersDB.GetUser(paymentInfo.Destination, gc.DB)
 			if getDestinationUserError != nil {
 				ex := &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 				c.JSON(ex.HTTPCode(), ex.JSONError())
@@ -287,7 +284,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				return
 			}
 		}
-		paymentInfoReturned, returnedDestination, paymentError := payments.Pay(&accountSignerUser, &userWallet, &paymentInfo, gc)
+		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &userWallet, &paymentInfo, gc)
 		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
@@ -368,7 +365,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					for _, a := range accessList {
 
 						if a.Permission == "APPROVER" {
-							ph, e := paymentsDB.GetUser(a.TargetUsername, gc.DB)
+							ph, e := usersDB.GetUser(a.TargetUsername, gc.DB)
 							if e == nil {
 								ph.SendPushMessage("Trovo: Payment request awaiting approval!", fmt.Sprintf("You have a payment transaction of %v %v to %v initiated by %v from the wallet with alias %v, which is now awaiting approval from you or any other approver.", paymentInfo.Amount, assetCode, paymentInfo.Destination, accountSignerUser.Username, userWallet.Alias), "", dataPayload, gc)
 
@@ -410,7 +407,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					if paymentInfoReturned.AssetIssuer == "" {
 						assetCode = "XBN"
 					}
-					senderWallet, _, _ := paymentsDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 					jsonPayload := payload{
 						Destination:     paymentInfoReturned.Destination,
 						Sender:          senderWallet.Alias,
@@ -432,7 +429,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 					responseBody := bytes.NewBuffer(body)
 					//Leverage Go's HTTP Post function to make request
-					c := retryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
+					c := userModels.RetryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
 					callBackRetryChan <- c
 				}
 			}
@@ -460,7 +457,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		var err error
 
 		//get user DB record
-		accountSignerUser, getUserError := paymentsDB.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB)
+		accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB)
 
 		if getUserError != nil {
 			log.Printf("[FAILED PAYMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
@@ -483,7 +480,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				hasInitiatorAccess = true
 			}
 		}
-		if !hasInitiatorAccess && !paymentsDB.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-anauthorized-access", "message": "You do not have an initiator permission on this wallet."})
 			return
 		}
@@ -512,13 +509,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		}
 
-		// primaryAccountSigner := accountSignerUser.PrimarySigner
-
-		// if primaryAccountSigner != middleware.ExtractSigner(c) {
-		// 	log.Printf("[FAILED PAYMENT] INVALID PAYMENT SIGNER IN HEADER from [%v], error: [%v]\n", primaryAccountAlias, err)
-		// 	c.JSON(http.StatusBadRequest, (&tPayErrors.ErrorInvalidPaymentSender{}).JSONError())
-		// 	return
-		// }
+		{
+			//check if pending shared access modify exists
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
+				return
+			}
+		}
 
 		var paymentInfo paymentModels.PaymentInfo
 		// var err error
@@ -544,7 +541,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		//check if username is reserved. Reserved usernames should not send payments.
 		//TODO: cache this
-		_, checkReservedUserError := paymentsDB.UsernameIsReserved(primaryAccountAlias, gc.DB)
+		_, checkReservedUserError := usersDB.UsernameIsReserved(primaryAccountAlias, gc.DB)
 		if checkReservedUserError != nil {
 
 			var ex tErrors.GenericError
@@ -559,7 +556,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 		//get the wallet you are sending payment from
-		userWallet, temp, getWalletError := paymentsDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		userWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] %v error:%v\n", primaryAccountAlias, getWalletError)
 		}
@@ -608,13 +605,13 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				return
 			}
 		}
-		var destinationUser paymentsDB.User
-		var destinationWallet paymentsDB.UserWallet
+		var destinationUser userModels.User
+		var destinationWallet userModels.UserWallet
 		var getDestinationUserError, getDestinationWalletError error
 		//check if the public key exists in TROVO and then transform to username
 		paymentInfo.Messages = make([]string, 0)
 		if len(paymentInfo.Destination) == 56 {
-			destinationWallet, _, getDestinationWalletError = paymentsDB.GetWallet(paymentInfo.Destination, gc.DB)
+			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
 				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Bantu Address[%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationWallet.Alias))
 				paymentInfo.Destination = destinationWallet.Alias
@@ -625,7 +622,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		if len(paymentInfo.Destination) != 56 {
 			//skip public key payments
-			_, checkReservedReceiverError := paymentsDB.UsernameIsReserved(paymentInfo.Destination, gc.DB)
+			_, checkReservedReceiverError := usersDB.UsernameIsReserved(paymentInfo.Destination, gc.DB)
 			if checkReservedReceiverError != nil {
 
 				var ex tErrors.GenericError
@@ -640,7 +637,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				return
 			}
 
-			destinationUser, getDestinationUserError = paymentsDB.GetUser(paymentInfo.Destination, gc.DB)
+			destinationUser, getDestinationUserError = usersDB.GetUser(paymentInfo.Destination, gc.DB)
 			if getDestinationUserError != nil {
 				ex := &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 				c.JSON(ex.HTTPCode(), ex.JSONError())
@@ -660,7 +657,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				return
 			}
 		}
-		paymentInfoReturned, returnedDestination, paymentError := payments.Pay(&accountSignerUser, &userWallet, &paymentInfo, gc)
+		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &userWallet, &paymentInfo, gc)
 		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
@@ -741,7 +738,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					for _, a := range accessList {
 
 						if a.Permission == "APPROVER" {
-							ph, e := paymentsDB.GetUser(a.TargetUsername, gc.DB)
+							ph, e := usersDB.GetUser(a.TargetUsername, gc.DB)
 							if e == nil {
 								ph.SendPushMessage("Trovo: Payment request awaiting approval!", fmt.Sprintf("You have a payment transaction of %v %v to %v initiated by %v from the wallet with alias %v, which is now awaiting approval from you or any other approver.", paymentInfo.Amount, assetCode, paymentInfo.Destination, accountSignerUser.Username, userWallet.Alias), "", dataPayload, gc)
 
@@ -783,7 +780,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					if paymentInfoReturned.AssetIssuer == "" {
 						assetCode = "XBN"
 					}
-					senderWallet, _, _ := paymentsDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 					jsonPayload := payload{
 						Destination:     paymentInfoReturned.Destination,
 						Sender:          senderWallet.Alias,
@@ -805,7 +802,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 					responseBody := bytes.NewBuffer(body)
 					//Leverage Go's HTTP Post function to make request
-					c := retryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
+					c := userModels.RetryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
 					callBackRetryChan <- c
 				}
 			}

@@ -1,14 +1,14 @@
 package payments
 
 import (
-	paymentMods "trovo-wallet-api/internal/components/payments/db"
+	userModels "trovo-wallet-api/internal/components/users/models"
 	payments "trovo-wallet-api/internal/components/payments/models"
 
 	"gorm.io/gorm"
 )
 
 //UpdateAndLogUserPaymentGeoInformation logs payment information and updates user location information
-func UpdateAndLogUserPaymentGeoInformation(userInfo *paymentMods.User, paymentInfoReturned *payments.PaymentInfo, db *gorm.DB) {
+func UpdateAndLogUserPaymentGeoInformation(userInfo *userModels.User, paymentInfoReturned *payments.PaymentInfo, db *gorm.DB) {
 
 	// updatedUser:= &userInfo -m''
 	userInfo.AppendGeoInfo()

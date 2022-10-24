@@ -1,17 +1,17 @@
-package payments
+package users
 
 import (
 	"os"
 	tPayErrors "trovo-wallet-api/internal/components/payments/errors"
-	payments "trovo-wallet-api/internal/components/payments/models"
+	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	"trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/validators"
 
 	"github.com/shopspring/decimal"
 )
 
-//ValidatePaymentInfo validates payment information
-func ValidatePaymentInfo(paymentInfo *payments.PaymentInfo) (*payments.PaymentInfo, error) {
+// ValidatePaymentInfo validates payment information
+func ValidatePaymentInfo(paymentInfo *paymentModels.PaymentInfo) (*paymentModels.PaymentInfo, error) {
 
 	//required parameters
 	{
@@ -64,21 +64,6 @@ func ValidatePaymentInfo(paymentInfo *payments.PaymentInfo) (*payments.PaymentIn
 			return paymentInfo, err
 		}
 	}
-
-	// //check if amount is valid.
-
-	// {
-	// 	var err error
-	// 	var amount float64
-	// 	if amount, err = strconv.ParseFloat(paymentInfo.Amount, 64); err != nil {
-	// 		return paymentInfo, &tPayErrors.ErrorInvalidPaymentAmount{}
-	// 	}
-
-	// 	if amount < 0 {
-	// 		return paymentInfo, &tPayErrors.ErrorInvalidPaymentAmount{}
-	// 	}
-
-	// }
 
 	//signature must exist if transaction exists
 

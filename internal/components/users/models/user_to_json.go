@@ -78,11 +78,15 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 	jsonObj.UserID = uw.UserID
 	jsonObj.SharedAccessEnabled = uw.SharedAccessEnabled
 	jsonObj.AssetIssuerWallet = uw.AssetIssuerWallet
+	viewOnlyAccess := 0
 
 	if uw.SharedAccessEnabled == 1 {
 		//get shared access
-		for _, permision := range uw.Permissions {
-			jsonObj.Permissions = append(jsonObj.Permissions, permision.ToJSON())
+		for _, permission := range uw.Permissions {
+			if permission.Permission != "VIEW-ONLY" {
+				viewOnlyAccess = 1
+			}
+			jsonObj.Permissions = append(jsonObj.Permissions, permission.ToJSON())
 		}
 		jsonObj.NumberOfApprovalsNeeded = uw.NumberOfApprovalsNeeded
 		jsonObj.SharedAccessCreatedAt = uw.SharedAccessCreatedAt
@@ -91,6 +95,7 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 	} else {
 		jsonObj.Permissions = make([]WalletPermissionJSON, 0)
 	}
+	jsonObj.HasViewOnlyAccess = viewOnlyAccess
 
 	//nullable
 	{
@@ -152,7 +157,7 @@ func (a *PendingAuth) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj AuthJSON) {
 		ApprovalsNeeded:     a.ApprovalsNeeded,
 		ApprovalsGotten:     a.ApprovalsGotten,
 		TransactionStatus:   a.TransactionStatus,
-		Transaction: a.TransactionXdr,
+		Transaction:         a.TransactionXdr,
 	}
 	if a.RejectedBy != nil {
 		jsonObj.RejectedBy = *a.RejectedBy

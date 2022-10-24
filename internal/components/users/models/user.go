@@ -1,6 +1,7 @@
 package users
 
 import (
+	"bytes"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -269,4 +270,15 @@ type ApprovalPayload struct {
 	TransactionSignature string `json:"transactionSignature"`
 	RemainingApprovals   int    `json:"remainingApproval"`
 	NetworkPassPhrase    string `json:"networkPassPhrase"`
+	DeviceID             string `json:"device"`
+}
+type RejectPayload struct {
+	RejectionReason string `json:"rejectionReason"`
+}
+
+// RetryCallbacks stores failed callbacks
+type RetryCallbacks struct {
+	Req         *bytes.Buffer
+	CallbackURL string
+	Count       int
 }
