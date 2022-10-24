@@ -69,7 +69,7 @@ func ValidatePaymentInfo(paymentInfo *paymentModels.PaymentInfo) (*paymentModels
 
 	{
 		if len(paymentInfo.Transaction) > 0 {
-			if len(paymentInfo.TransactionSignature) == 0 {
+			if len(paymentInfo.TransactionSignature) == 0 && paymentInfo.Commit == 0 {
 				return paymentInfo, &errors.ErrorMissingParameter{Parameter: "transactionSignature"}
 			}
 		}

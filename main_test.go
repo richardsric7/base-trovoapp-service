@@ -1558,7 +1558,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 		//run the payment signing and submission
 		p := *payResponse
 		// commit transaction
-		p.Commit = 1
+		p.Commit = 0
 
 		ts := time.Now().Unix() / 1000
 		tsString := fmt.Sprintf("%v", ts)
@@ -1584,7 +1584,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 		log.Printf("Make shared Payment Response:[%+v]\n", payResponse)
 	}
 	log.Println("[TestSendPaymentWithSharedAccessEnabled] completed")
-	time.Sleep(time.Second * 10)
+	// time.Sleep(time.Second * 10)
 
 }
 func TestSwapFromSubWalletMultiAccessDisabled(t *testing.T) {

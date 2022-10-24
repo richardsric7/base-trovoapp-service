@@ -102,11 +102,12 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 	if !wallet.HasViewOnlyAccess(gc) && wallet.SharedAccessEnabled == 1 {
 		paymentInfo.Multiparty = 1
 	}
-	if len(paymentInfo.TransactionSignature) == 0 && paymentInfo.Multiparty == 0 {
+	if len(paymentInfo.TransactionSignature) == 0 && paymentInfo.Commit == 0 {
 		return paymentInfo, nil, err
 	}
 
 	if xdrBase64 != oldTransaction {
+		log.Printf("[PAY]oldTransaction: %v\nNewTransaction: %v\n", oldTransaction, xdrBase64)
 		return paymentInfo, nil, &tPayErrors.ErrorTransactionMismatch{}
 	}
 	if len(paymentInfo.ChannelAccountSignature) == 0 && len(paymentInfo.ChannelAccount) == 56 {
@@ -114,7 +115,7 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 	}
 
 	if wallet.SharedAccessEnabled == 0 {
-		//maker checker not enabled. submit to network is possible
+		//shared access disabled. submit to network is possible
 		var txnHash string
 		if len(paymentInfo.ChannelAccountSignature) > 0 && len(paymentInfo.ChannelAccount) == 56 {
 			txnHash, err = network.SubmitXdrWithSignatureChannelAccounts(client, wallet.Signer, paymentInfo.ChannelAccount, xdrBase64, paymentInfo.TransactionSignature, paymentInfo.ChannelAccountSignature)
