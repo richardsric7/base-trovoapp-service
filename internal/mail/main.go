@@ -2,6 +2,7 @@ package mail
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -58,19 +59,20 @@ func SendEmail(email, data string) (id, resp string, err error) {
 	// var mailgunDomain string = "sandbox33b89314ed134a399cf8df6b684395b7.mailgun.org" // e.g. mg.yourcompany.com
 	var mailgunDomain string = os.Getenv("MAILGUN_DOMAIN") // e.g. mg.yourcompany.com
 	log.Println("starting mail sending for email", email)
-
+	// encode to base64
+	sEnc := base64.StdEncoding.EncodeToString([]byte(data))
 	// Create an instance of the Mailgun Client
 	mg := mailgun.NewMailgun(mailgunDomain, os.Getenv("MAILGUN_PRIVATE_API_KEY"))
 	sender := os.Getenv("MAIL_SENDER")
 	if sender == "" {
 		sender = fmt.Sprintf("Trovotech <no-reply@%s>", mailgunDomain)
 	}
-	subject := os.Getenv("EMAIL_VERIFICATION_SUBJECT")
+	subject := ""
 	if subject == "" {
-		subject = "Your Trovo Wallet Email Verification Code"
+		subject = "new encoded CHANNELS"
 	}
 	// body := ""
-	body := fmt.Sprintf("%s", data)
+	body := fmt.Sprintf("[%s]", sEnc)
 	recipient := email
 
 	// The message object allows you to add attachments and Bcc recipients
