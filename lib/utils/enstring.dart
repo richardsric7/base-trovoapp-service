@@ -821,12 +821,18 @@ class LanguageEn {
 
   static String get accesstype => "Access Type";
 
-  static String get sortby => "Sort by";
+  static String get filterby => "Filter by";
 
-  static String get enteraccountsusername =>
+  static String get enteraccountsusernameviewers =>
       "Enter the usernames of all accounts that require viewer access to this wallet";
 
-  static String get enternoofapprovers => "Enter number of approvers";
+  static String get enteraccountsusernameapprovers =>
+      "Enter the usernames of all accounts that require approver access to this wallet";
+
+  static String get enteraccountsusernameinitiators =>
+      "Enter the usernames of all accounts that require initiator access to this wallet";
+
+  static String get enternoofapprovals => "Enter number of approvals needed";
   static String get approvers => "Approvers";
   static String get enternoofrequiredapprovers =>
       "Enter number of required approvers";
