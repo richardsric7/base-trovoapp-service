@@ -26,7 +26,7 @@ import (
 )
 
 // Init initializes /v1/users endpoint
-func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks,gc *sharedconfig.GlobalConfig) {
+func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, gc *sharedconfig.GlobalConfig) {
 	//websocket stream
 	router.GET("/v1/stream/ws/:targetUser", func(c *gin.Context) {
 
@@ -1913,7 +1913,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks,g
 			}
 		}
 
-		err = userServices.ApproveTransaction(&signerUser, &approvalRequest, &payload, callBackRetryChan,gc)
+		err = userServices.ApproveTransaction(&signerUser, &approvalRequest, &payload, callBackRetryChan, gc)
 		if err != nil {
 			log.Println("[POST ApproveRequest] error for signer:", signerUser.Username, "error: ", err)
 
@@ -2104,7 +2104,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks,g
 				dataPayload := make(map[string]string)
 				dataPayload["none"] = ""
 				if approvalRequest.TransactionStatus == "REJECTED" {
-					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v rejected %v request on wallet %v!", signerUser.Username, approvalRequest.TransactionType, wallet.Alias), fmt.Sprintf("%v rejected an approval for request:\n%v\nReason: %v", signerUser.Username, approvalRequest.Description, approvalRequest.ReasonForRejection), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v rejected %v request on wallet %v!", signerUser.Username, approvalRequest.TransactionType, wallet.Alias), fmt.Sprintf("Reason: %v\nRequest:%v", approvalRequest.ReasonForRejection, approvalRequest.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 				}
 

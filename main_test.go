@@ -326,6 +326,10 @@ type ApprovalPayload struct {
 	NetworkPassPhrase    string `json:"networkPassPhrase"`
 }
 
+type RejectPayload struct {
+	RejectionReason string `json:"rejectionReason"`
+}
+
 func TestCreateAccount(t *testing.T) {
 
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
@@ -1526,7 +1530,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 	}
 
 	paymentPayload := PaymentInfo{
-		Destination: "onoja",
+		Destination: "obi",
 		Memo:        "Test XBN shared Payment",
 		Amount:      "21",
 	}
@@ -2624,13 +2628,13 @@ func TestApproveTransaction(t *testing.T) {
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk := os.Getenv("RICPK")
-	// secretKey := os.Getenv("RICSC")
+	secretKey := os.Getenv("RICSC")
 	// pk := "GCC3HG535RVZ3MPTDBANZH7V2HRDEQH3LZXDPBEKPJKZBI2UYJR3OJGF"
 	// pk := "GDBWYZWLYASCZ6KP4AIRNRY5WQ5OX6H2T6WASG7WFAEEYO6R6AC4GXRM"
 	// secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
 
 	//ric1
-	secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
+	// secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
 
 	// accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
 	// accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
@@ -2650,8 +2654,8 @@ func TestApproveTransaction(t *testing.T) {
 	// 	sEnc = ownerUsername
 	// }
 	// approvalID := "1f8a4d47-cd71-44f5-8d7b-9eb9326be91f"
-	// approvalID := "aeb1400d-73f9-4c66-8df9-4f77285f4e2a"
-	approvalID := "822d46e1-8f68-4877-a3d7-15fb4b101378"
+	// approvalID := "6134726e-1833-43f3-94ef-d4676a5f2662"
+	approvalID := "14fa94cc-da7c-4efa-b4e1-7c58429a289a"
 	fullPath := "/v1/shared-access/approval/" + approvalID
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
@@ -2738,5 +2742,83 @@ func TestApproveTransaction(t *testing.T) {
 		log.Printf("Approval Response:[%+v]\n", payResponse)
 	}
 	log.Println("[TestApproveTransaction] completed")
+
+}
+func TestRejectTransaction(t *testing.T) {
+
+	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// pk := os.Getenv("RICPK")
+	secretKey := os.Getenv("RICSC")
+	// pk := "GCC3HG535RVZ3MPTDBANZH7V2HRDEQH3LZXDPBEKPJKZBI2UYJR3OJGF"
+	// pk := "GDBWYZWLYASCZ6KP4AIRNRY5WQ5OX6H2T6WASG7WFAEEYO6R6AC4GXRM"
+	// secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
+
+	//ric1
+	// secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
+
+	// accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
+	// accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
+	// accessToWallet := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	// accessToWallet := "GBQBJFGWYXCKSKTXFCG5WMPKQC3LYJPSPRNADVPQD7W6K5SXSOW744MQ"
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	pk := kp.Address()
+	baseURL := prodURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	// approvalID := "1f8a4d47-cd71-44f5-8d7b-9eb9326be91f"
+	// approvalID := "6134726e-1833-43f3-94ef-d4676a5f2662"
+	approvalID := "14fa94cc-da7c-4efa-b4e1-7c58429a289a"
+	fullPath := "/v1/shared-access/approval/" + approvalID
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	payload := RejectPayload{
+		RejectionReason: "This is not what was approved. We approved 52 XBN",
+	}
+
+	log.Printf("[DEBUG] Payload: %+v\n", payload)
+	errorResponse := new(ErrorResponse)
+	payResponse := new(ApprovalPayload)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", pk).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Delete(fullPath).BodyJSON(payload).Receive(payResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestRejectTransaction] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestRejectTransaction]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Response:[%+v]\n", payResponse)
+
+	log.Println("[TestRejectTransaction] completed")
 
 }

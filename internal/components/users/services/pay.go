@@ -163,7 +163,7 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 	if len(paymentInfo.AssetIssuer) == 56 {
 		assetOfPayment = fmt.Sprintf("%v:%v...%v", paymentInfo.AssetCode, paymentInfo.AssetIssuer[0:4], paymentInfo.AssetIssuer[51:55])
 	}
-	description := fmt.Sprintf("Sending Payment from wallet [%v].\nTo: [%v].\nAmount: %v [%v].\nMemo: %v\nMessages: %v\n", wallet.Alias, paymentInfo.Destination, paymentInfo.Amount, assetOfPayment, paymentInfo.Memo, paymentInfo.Messages)
+	description := fmt.Sprintf("Payment from:%v To: %v. Amount: %v %v.\nMemo: %v\nMessages: %v\n", wallet.Alias, paymentInfo.Destination, paymentInfo.Amount, assetOfPayment, paymentInfo.Memo, paymentInfo.Messages)
 	transactionByte, _ := json.Marshal(*paymentInfo)
 	transactionStr := string(transactionByte)
 	pendingAuth := userModels.PendingAuth{
