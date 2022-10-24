@@ -105,7 +105,7 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 		return paymentInfo, nil, err
 	}
 
-	if xdrBase64 != oldTransaction {
+	if xdrBase64 != oldTransaction && paymentInfo.Commit == 0 {
 		log.Printf("[PAY]oldTransaction: %v\nNewTransaction: %v\n", oldTransaction, xdrBase64)
 		return paymentInfo, nil, &tPayErrors.ErrorTransactionMismatch{}
 	}
