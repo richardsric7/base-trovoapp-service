@@ -2104,7 +2104,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				dataPayload := make(map[string]string)
 				dataPayload["none"] = ""
 				if approvalRequest.TransactionStatus == "REJECTED" {
-					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v rejected %v request on wallet %v!", signerUser.Username, approvalRequest.TransactionType, wallet.Alias), fmt.Sprintf("Reason: %v\nRequest:%v", approvalRequest.ReasonForRejection, approvalRequest.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v rejected %v request on wallet %v!", signerUser.Username, approvalRequest.TransactionType, wallet.Alias), fmt.Sprintf("Reason: %v\nRequest:%v", *approvalRequest.ReasonForRejection, approvalRequest.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 				}
 

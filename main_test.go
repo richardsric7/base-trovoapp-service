@@ -1532,7 +1532,7 @@ func TestSendPaymentWithSharedAccessEnabled(t *testing.T) {
 	paymentPayload := PaymentInfo{
 		Destination: "obi",
 		Memo:        "Test XBN shared Payment",
-		Amount:      "21",
+		Amount:      "53.2",
 	}
 	errorResponse := new(ErrorResponse)
 	payResponse := new(PaymentInfo)
@@ -2628,13 +2628,13 @@ func TestApproveTransaction(t *testing.T) {
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk := os.Getenv("RICPK")
-	secretKey := os.Getenv("RICSC")
+	// secretKey := os.Getenv("RICSC")
 	// pk := "GCC3HG535RVZ3MPTDBANZH7V2HRDEQH3LZXDPBEKPJKZBI2UYJR3OJGF"
 	// pk := "GDBWYZWLYASCZ6KP4AIRNRY5WQ5OX6H2T6WASG7WFAEEYO6R6AC4GXRM"
 	// secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
 
 	//ric1
-	// secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
+	secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
 
 	// accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
 	// accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
@@ -2655,7 +2655,7 @@ func TestApproveTransaction(t *testing.T) {
 	// }
 	// approvalID := "1f8a4d47-cd71-44f5-8d7b-9eb9326be91f"
 	// approvalID := "6134726e-1833-43f3-94ef-d4676a5f2662"
-	approvalID := "14fa94cc-da7c-4efa-b4e1-7c58429a289a"
+	approvalID := "60dd3901-1128-4878-a544-2c03e68491f5"
 	fullPath := "/v1/shared-access/approval/" + approvalID
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
@@ -2776,7 +2776,7 @@ func TestRejectTransaction(t *testing.T) {
 	// }
 	// approvalID := "1f8a4d47-cd71-44f5-8d7b-9eb9326be91f"
 	// approvalID := "6134726e-1833-43f3-94ef-d4676a5f2662"
-	approvalID := "14fa94cc-da7c-4efa-b4e1-7c58429a289a"
+	approvalID := "60dd3901-1128-4878-a544-2c03e68491f5"
 	fullPath := "/v1/shared-access/approval/" + approvalID
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
