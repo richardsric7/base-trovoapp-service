@@ -1519,6 +1519,122 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	})
 
+	router.PUT("/v1/shared-access/users/account", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/shared-access/users/account %v", middleware.ExtractPublicKey(c)), gc.DB)
+
+		var sharedAccessInfo userModels.ModifySharedAccessInfo
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+		log.Println(string(data))
+		err = json.Unmarshal(data, &sharedAccessInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+		sharedAccessInfo.WalletPublicKey = middleware.ExtractPublicKey(c)
+		log.Printf("[DEBUG] modify %+v\n", sharedAccessInfo)
+		_, _, _, err = userServices.ModifySharedWalletAccess(&signerUser, &walletOwner, &wallet, &sharedAccessInfo, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+			}
+			return
+		}
+
+		var ownerBalanceCacheKey, tempCacheKey, sNFT string
+
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+
+		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+
+		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
+		log.Printf("[MODIFY SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
+		if len(sharedAccessInfo.TransactionID) > 0 {
+			if sharedAccessInfo.TransactionID == "PENDING_AUTH" {
+				//saved to pending auth table for disabling shared access
+				for _, v := range wallet.Permissions {
+					if v.Permission == "APPROVER" {
+						u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+						if e == nil {
+							log.Println("notifying approver:", v.TargetUsername)
+							dataPayload := make(map[string]string)
+							dataPayload["link"] = "authPending"
+							u.SendPushMessage(fmt.Sprintf("Pending Approval: Modify shared access on wallet %v!", wallet.Alias), fmt.Sprintf("You have a pending approval to modify shared access on the wallet %v. Please tap to choose the appropriate action.", wallet.Alias), "", dataPayload, gc)
+
+						}
+					}
+				}
+				c.JSON(http.StatusOK, sharedAccessInfo)
+				return
+			}
+			c.JSON(http.StatusOK, sharedAccessInfo)
+
+		} else {
+			c.JSON(http.StatusAccepted, sharedAccessInfo)
+		}
+
+	})
+
 	router.DELETE("/v1/shared-access/users/account", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 		var sharedAccessInfo userModels.DisableSharedAccessInfo
