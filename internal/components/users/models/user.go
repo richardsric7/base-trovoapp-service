@@ -271,7 +271,7 @@ type ApprovalPayload struct {
 	TransactionSignature string `json:"transactionSignature"`
 	RemainingApprovals   int    `json:"remainingApproval"`
 	NetworkPassPhrase    string `json:"networkPassPhrase"`
-	DeviceID             string `json:"device"`
+	DeviceID             string `json:"deviceId"`
 }
 type RejectPayload struct {
 	RejectionReason string `json:"rejectionReason"`
