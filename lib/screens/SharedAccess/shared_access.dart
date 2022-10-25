@@ -31,7 +31,8 @@ class _SharedAccessState extends State<SharedAccess>
   late ColorNotifier notifier;
   late DataProvider appState;
   late TabController _tabController;
-  TextEditingController usernamesController = TextEditingController();
+  TextEditingController viewersController = TextEditingController();
+  TextEditingController approversController = TextEditingController();
   TextEditingController initiatorsController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   List<Wallet>? wallets;
@@ -45,12 +46,13 @@ class _SharedAccessState extends State<SharedAccess>
     'Access granted to me'
   ]; // 'mode' for want for a better name
   dynamic selectedAccessMode = 'Access granted to me';
+  bool addApprovers = false;
 
   final Authenticator _authenticator = Authenticator();
   var password = '';
-  var usernames = <
-      String>[]; // holds the usernames of viewers or approvers depending on the selected accesstype
+  var viewers = <String>[];
   var initiators = <String>[]; // holds usernames of initiators
+  var approvers = <String>[]; // holds usernames of approvers
   String noOfApprovalsNeeded = '';
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
@@ -111,7 +113,7 @@ class _SharedAccessState extends State<SharedAccess>
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -154,6 +156,10 @@ class _SharedAccessState extends State<SharedAccess>
                   ),
                   Tab(
                     height: 50,
+                    text: LanguageEn.pendingapprovals,
+                  ),
+                  Tab(
+                    height: 50,
                     text: LanguageEn.accesslist,
                   ),
                 ],
@@ -166,11 +172,32 @@ class _SharedAccessState extends State<SharedAccess>
                   child: grantAccess(),
                 ),
                 SingleChildScrollView(
+                  child: pendingApprovals(),
+                ),
+                SingleChildScrollView(
                   child: accessList(),
                 ),
               ]),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget pendingApprovals() {
+    return Container(
+      height: height / 3,
+      child: Center(
+        child: Text(
+          LanguageEn.nopendingapprovals,
+          overflow: TextOverflow.visible,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 15,
+            fontFamily: fontsemibold,
+            color: notifier.getbluewhitecolor,
+          ),
         ),
       ),
     );
@@ -416,73 +443,11 @@ class _SharedAccessState extends State<SharedAccess>
     return Column(
       children: [
         SizedBox(height: height / 30),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15.0),
-          child: Row(
-            children: [
-              Text(
-                LanguageEn.accesstype,
-                style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontbody,
-                    fontSize: 15.sp),
-              ),
-              SizedBox(
-                width: width / 10,
-              ),
-              Expanded(
-                child: DropdownButtonFormField(
-                  isExpanded: true,
-                  dropdownColor: notifier.isDark
-                      ? darktilewhitecolor
-                      : notifier.getaddsubwalletgrey,
-                  decoration: InputDecoration(
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    filled: true,
-                    fillColor: notifier.isDark
-                        ? darktilewhitecolor
-                        : notifier.getaddsubwalletgrey,
-                  ),
-                  value: selectedAccessType,
-                  icon: Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                  elevation: 0,
-                  style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 15.sp,
-                      fontFamily: fontsemibold,
-                      fontWeight: FontWeight.w500),
-                  onChanged: (newValue) {
-                    setState(() {
-                      selectedAccessType = newValue!;
-                      print('==================$selectedAccessType');
-                    });
-                  },
-                  items: accessTypeDropdownItems,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
         chooseWallet(),
         SizedBox(
           height: height / 30,
         ),
-        if (usernames.length > 0) ...[
+        if (viewers.length > 0) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
             child: Container(
@@ -505,10 +470,10 @@ class _SharedAccessState extends State<SharedAccess>
                             child: Wrap(
                               alignment: WrapAlignment.center,
                               children: [
-                                for (var i = 0; i < usernames.length; i++) ...[
-                                  userItem(usernames[i], () {
-                                    usernames.removeAt(i);
-                                  })
+                                for (var i = 0; i < viewers.length; i++) ...[
+                                  userItem(viewers[i], () {
+                                    viewers.removeAt(i);
+                                  }, notifier.getbluecolor)
                                 ],
                               ],
                             )),
@@ -527,9 +492,8 @@ class _SharedAccessState extends State<SharedAccess>
         Container(
           width: width / 1.1,
           child: Text(
-            selectedAccessType == 'Viewer'
-                ? LanguageEn.enteraccountsusernameviewers
-                : LanguageEn.enteraccountsusernameapprovers,
+            LanguageEn.enteraccountsusernameviewers,
+            // : LanguageEn.enteraccountsusernameapprovers,
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
                 fontFamily: fontbody,
@@ -540,13 +504,12 @@ class _SharedAccessState extends State<SharedAccess>
           height: height / 70,
         ),
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CustomTextFormField.textFieldWithoutIcon(
-                LanguageEn.username,
+                'Viewer',
                 notifier.getbluecolor,
                 notifier.getgrey,
                 notifier.getprefixicon,
@@ -554,16 +517,16 @@ class _SharedAccessState extends State<SharedAccess>
                 notifier.getgrey,
                 60.sp,
                 210.sp,
-                controller: usernamesController,
+                controller: viewersController,
               ),
               SizedBox(
                 width: width / 20,
               ),
               ElevatedButton(
                 onPressed: () => setState(() {
-                  if (usernamesController.text.isNotEmpty) {
-                    usernames.add(usernamesController.text);
-                    usernamesController.text = '';
+                  if (viewersController.text.isNotEmpty) {
+                    viewers.add(viewersController.text);
+                    viewersController.text = '';
                   }
                 }),
                 style: ButtonStyle(
@@ -581,9 +544,86 @@ class _SharedAccessState extends State<SharedAccess>
           ),
         ),
         SizedBox(
+          height: height / 70,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Transform.scale(
+                scale: 1.sp,
+                child: Checkbox(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(5.sp),
+                    ),
+                  ),
+                  activeColor: notifier.getbluecolor,
+                  side: BorderSide(color: notifier.getbluewhitecolor),
+                  value: addApprovers,
+                  onChanged: (value) {
+                    setState(() {
+                      addApprovers = value ?? false;
+                    });
+                  },
+                ),
+              ),
+              Container(
+                child: Text(
+                  LanguageEn.doyouwanttoaddapprovers,
+                  overflow: TextOverflow.visible,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
           height: height / 50,
         ),
-        if (selectedAccessType == "Approver") ...[
+        if (addApprovers) ...[
+          Container(
+            width: width / 1.1,
+            child: Text(
+              LanguageEn.enternoofapprover,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 15.sp),
+            ),
+          ),
+          SizedBox(
+            height: height / 70,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CustomTextFormField.textFieldWithoutIcon(
+                  'Total no. of approvers',
+                  notifier.getbluecolor,
+                  notifier.getgrey,
+                  notifier.getprefixicon,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  70.sp,
+                  300.sp,
+                  keyboardtype: TextInputType.number,
+                  onChanged: (value) =>
+                      noOfApprovalsNeeded = value.trim().replaceAll(' ', ''),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: height / 70,
+          ),
           Container(
             width: width / 1.1,
             child: Text(
@@ -597,18 +637,126 @@ class _SharedAccessState extends State<SharedAccess>
           SizedBox(
             height: height / 70,
           ),
-          CustomTextFormField.textFieldWithoutIcon(
-            'No. of approvals needed',
-            notifier.getbluecolor,
-            notifier.getgrey,
-            notifier.getprefixicon,
-            notifier.getblck,
-            notifier.getgrey,
-            70.sp,
-            300.sp,
-            keyboardtype: TextInputType.number,
-            onChanged: (value) =>
-                noOfApprovalsNeeded = value.trim().replaceAll(' ', ''),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CustomTextFormField.textFieldWithoutIcon(
+                  'No. of required approvals',
+                  notifier.getbluecolor,
+                  notifier.getgrey,
+                  notifier.getprefixicon,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  70.sp,
+                  300.sp,
+                  keyboardtype: TextInputType.number,
+                  onChanged: (value) =>
+                      noOfApprovalsNeeded = value.trim().replaceAll(' ', ''),
+                ),
+              ],
+            ),
+          ),
+          if (approvers.length > 0) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                  color: notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 15.0),
+                      child: Column(
+                        children: [
+                          Container(
+                              width: width / 1.3,
+                              child: Wrap(
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  for (var i = 0;
+                                      i < approvers.length;
+                                      i++) ...[
+                                    userItem(approvers[i], () {
+                                      approvers.removeAt(i);
+                                    }, notifier.getgreencolor)
+                                  ],
+                                ],
+                              )),
+                          SizedBox(height: 2),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          SizedBox(
+            height: height / 50,
+          ),
+          Container(
+            width: width / 1.1,
+            child: Text(
+              LanguageEn.enteraccountsusernameapprovers,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 15.sp),
+            ),
+          ),
+          SizedBox(
+            height: height / 70,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CustomTextFormField.textFieldWithoutIcon(
+                  'Approver',
+                  notifier.getbluecolor,
+                  notifier.getgrey,
+                  notifier.getprefixicon,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  60.sp,
+                  210.sp,
+                  controller: approversController,
+                ),
+                SizedBox(
+                  width: width / 20,
+                ),
+                ElevatedButton(
+                  onPressed: () => setState(() {
+                    if (approversController.text.isNotEmpty) {
+                      approvers.add(approversController.text);
+                      approversController.text = '';
+                    }
+                  }),
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        notifier.getbluecolor!),
+                  ),
+                  child: Text(
+                    LanguageEn.add,
+                    style: TextStyle(
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: height / 70,
           ),
           if (initiators.length > 0) ...[
             Padding(
@@ -638,7 +786,7 @@ class _SharedAccessState extends State<SharedAccess>
                                       i++) ...[
                                     userItem(initiators[i], () {
                                       initiators.removeAt(i);
-                                    })
+                                    }, notifier.getbluecolor80)
                                   ],
                                 ],
                               )),
@@ -668,13 +816,12 @@ class _SharedAccessState extends State<SharedAccess>
             height: height / 70,
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CustomTextFormField.textFieldWithoutIcon(
-                  LanguageEn.username,
+                  'Initiator',
                   notifier.getbluecolor,
                   notifier.getgrey,
                   notifier.getprefixicon,
@@ -719,10 +866,12 @@ class _SharedAccessState extends State<SharedAccess>
           onTap: () {
             appState.viewData = {
               AddSharedAccessDetailsViewPageConfig.key: {
-                'usernames': usernames,
+                'viewers': viewers,
+                'approvers': approvers,
                 'accessType': selectedAccessType,
                 'noOfApprovalsNeeded': noOfApprovalsNeeded,
                 'initiators': initiators,
+                'addApprovers': addApprovers,
               }
             };
             appState.currentAction = PageAction(
@@ -741,13 +890,13 @@ class _SharedAccessState extends State<SharedAccess>
     );
   }
 
-  Widget userItem(String name, void Function() onRemove) {
+  Widget userItem(String name, void Function() onRemove, Color color) {
     return Padding(
       padding: const EdgeInsets.all(3.0),
       child: Container(
         decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            color: notifier.getbluecolor),
+            color: color),
         child: Padding(
           padding: const EdgeInsets.all(5.0),
           child: Wrap(

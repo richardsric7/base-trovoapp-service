@@ -21,6 +21,7 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
@@ -117,7 +118,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                             height: height / 50,
                           ),
                           Text(
-                            viewData['accessType'] + ' access',
+                            'Viewer access',
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -142,11 +143,11 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                             children: [
                                               for (var i = 0;
                                                   i <
-                                                      viewData['usernames']
+                                                      viewData['viewers']
                                                           .length;
                                                   i++) ...[
-                                                userItem(
-                                                    viewData['usernames'][i])
+                                                userItem(viewData['viewers'][i],
+                                                    notifier.getbluecolor)
                                               ],
                                             ],
                                           )),
@@ -169,7 +170,79 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
               SizedBox(
                 height: height / 50,
               ),
-              if (viewData['accessType'] == 'Approver') ...[
+              if (viewData['addApprovers'] == true) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(15.0)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Text(
+                              'Approver access',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold),
+                            ),
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                              child: Container(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Container(
+                                            width: width / 1.3,
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              children: [
+                                                for (var i = 0;
+                                                    i <
+                                                        viewData['approvers']
+                                                            .length;
+                                                    i++) ...[
+                                                  userItem(
+                                                      viewData['approvers'][i],
+                                                      notifier.getgreencolor),
+                                                ],
+                                              ],
+                                            )),
+                                        SizedBox(height: 2),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 50.0,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
@@ -218,7 +291,8 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                                             .length;
                                                     i++) ...[
                                                   userItem(
-                                                      viewData['initiators'][i])
+                                                      viewData['initiators'][i],
+                                                      notifier.getbluecolor80)
                                                 ],
                                               ],
                                             )),
@@ -339,31 +413,6 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
               Padding(
                   padding: EdgeInsets.only(
                       bottom: MediaQuery.of(context).viewInsets.bottom)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget userItem(String name) {
-    return Padding(
-      padding: const EdgeInsets.all(3.0),
-      child: Container(
-        decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            color: notifier.getbluecolor),
-        child: Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Wrap(
-            children: [
-              Text(
-                name,
-                overflow: TextOverflow.ellipsis,
-                softWrap: true,
-                style: TextStyle(
-                    color: wihitecolor, fontFamily: fontbody, fontSize: 15.sp),
-              ),
             ],
           ),
         ),

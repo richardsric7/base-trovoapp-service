@@ -235,6 +235,11 @@ class LanguageEn {
   static String get thisisanassetissuerwallet =>
       "Use this wallet for minting tokens";
 
+  static String get doyouwanttoaddapprovers => "Grant approver access";
+
+  static String get nopendingapprovals =>
+      "You do not have any pending transactions to approve";
+
   static String get invalidateoldsigner =>
       "Invalidate old signer from primary wallet";
 
@@ -832,12 +837,15 @@ class LanguageEn {
   static String get enteraccountsusernameinitiators =>
       "Enter the usernames of all accounts that require initiator access to this wallet";
 
-  static String get enternoofapprovals => "Enter number of approvals needed";
+  static String get enternoofapprover => "Enter total number of approvers";
+  static String get enternoofapprovals => "Enter number of required approvals";
   static String get approvers => "Approvers";
   static String get enternoofrequiredapprovers =>
       "Enter number of required approvers";
 
   static String get accesslist => "Access List";
+
+  static String get pendingapprovals => "Pending";
 
   static String get explainmintwallet =>
       "Please tick on this checkbox if the wallet you are importing has been used or will be used to mint a token.";

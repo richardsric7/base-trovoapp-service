@@ -141,3 +141,28 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
   }
   return formatNumber(balance);
 }
+
+Widget userItem(String name, Color color) {
+  return Padding(
+    padding: const EdgeInsets.all(3.0),
+    child: Container(
+      decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+          color: color),
+      child: Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: Wrap(
+          children: [
+            Text(
+              name,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              style: TextStyle(
+                  color: wihitecolor, fontFamily: fontbody, fontSize: 15.sp),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
