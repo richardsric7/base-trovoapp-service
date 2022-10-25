@@ -23,6 +23,12 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 	var err error
 	var xdrBase64 string
 	var subWalletObj userModels.UserWallet
+	{
+		//TODO: remove redundancey when assetIssuerWallet nolonger applies.
+		if subWalletInfo.AssetIssuerWallet == 1 {
+			subWalletInfo.WalletType = 1
+		}
+	}
 
 	subWalletInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 	subWalletInfo.SubWalletMustSign = 1
@@ -147,15 +153,21 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 	if len(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT")) > 0 {
 		activationAmount = decimal.RequireFromString(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT"))
 	}
-	if len(os.Getenv("ISSUING_SUB_WALLET_ACTIVATION_AMOUNT")) > 0 && subWalletInfo.AssetIssuerWallet == 1 {
+	if len(os.Getenv("ISSUING_SUB_WALLET_ACTIVATION_AMOUNT")) > 0 && subWalletInfo.WalletType == 1 {
 		activationAmount = decimal.RequireFromString(os.Getenv("ISSUING_SUB_WALLET_ACTIVATION_AMOUNT"))
+	}
+	if len(os.Getenv("MM_SUB_WALLET_ACTIVATION_AMOUNT")) > 0 && subWalletInfo.WalletType == 2 {
+		activationAmount = decimal.RequireFromString(os.Getenv("MM_SUB_WALLET_ACTIVATION_AMOUNT"))
+	}
+	if len(os.Getenv("BULKPAYMENT_SUB_WALLET_ACTIVATION_AMOUNT")) > 0 && subWalletInfo.WalletType == 3 {
+		activationAmount = decimal.RequireFromString(os.Getenv("BULKPAYMENT_SUB_WALLET_ACTIVATION_AMOUNT"))
 	}
 	if len(os.Getenv("WALLET_MINIMUM_BALANCE")) > 0 {
 		minBalance = decimal.RequireFromString(os.Getenv("WALLET_MINIMUM_BALANCE"))
 	}
 	{
 		//check if the sub-wallet passes the validation
-		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.AssetIssuerWallet, gc)
+		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.WalletType, gc)
 		if err != nil {
 			log.Printf("[generateSubWalletXdr] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
 			return "", subWalletObj, err
@@ -210,12 +222,21 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 			SourceAccount: subWalletInfo.PublicKey,
 		})
 
-		if subWalletInfo.AssetIssuerWallet == 0 {
+		if subWalletInfo.WalletType == 0 {
 			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted from your primary wallet and be used to activate the sub-wallet.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 		}
-		if subWalletInfo.AssetIssuerWallet == 1 {
+		if subWalletInfo.WalletType == 1 {
 			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+		}
+		if subWalletInfo.WalletType == 2 {
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an market making wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that MM wallets cannot be used to send normal payments, but only used for market making.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+		}
+
+		if subWalletInfo.WalletType == 3 {
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an bulk-payment wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that bulk-payment wallets cannot be used to send normal payments, but only be used by internal system to disburse bulk payments on your behalf.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 		}
 	}
@@ -242,11 +263,15 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		} else {
 			subWalletInfo.SubWalletMustSign = 0
 		}
-		if subWalletInfo.AssetIssuerWallet == 0 {
+		if subWalletInfo.WalletType == 0 {
 			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %s will be deducted from your primary wallet and used to topup the balance of the subwallet to complete the sub-wallet process.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 		}
-		if subWalletInfo.AssetIssuerWallet == 1 {
+		if subWalletInfo.WalletType == 1 {
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and used to topup balance of this subwallet. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+		}
+		if subWalletInfo.WalletType == 3 {
 			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and used to topup balance of this subwallet. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 		}
@@ -336,15 +361,21 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 	if len(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT")) > 0 {
 		activationAmount = decimal.RequireFromString(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT"))
 	}
-	if len(os.Getenv("ISSUING_SUB_WALLET_ACTIVATION_AMOUNT")) > 0 && subWalletInfo.AssetIssuerWallet == 1 {
+	if len(os.Getenv("ISSUING_SUB_WALLET_ACTIVATION_AMOUNT")) > 0 && subWalletInfo.WalletType == 1 {
 		activationAmount = decimal.RequireFromString(os.Getenv("ISSUING_SUB_WALLET_ACTIVATION_AMOUNT"))
+	}
+	if len(os.Getenv("MM_SUB_WALLET_ACTIVATION_AMOUNT")) > 0 && subWalletInfo.WalletType == 2 {
+		activationAmount = decimal.RequireFromString(os.Getenv("MM_SUB_WALLET_ACTIVATION_AMOUNT"))
+	}
+	if len(os.Getenv("BULKPAYMENT_SUB_WALLET_ACTIVATION_AMOUNT")) > 0 && subWalletInfo.WalletType == 3 {
+		activationAmount = decimal.RequireFromString(os.Getenv("BULKPAYMENT_SUB_WALLET_ACTIVATION_AMOUNT"))
 	}
 	if len(os.Getenv("WALLET_MINIMUM_BALANCE")) > 0 {
 		minBalance = decimal.RequireFromString(os.Getenv("WALLET_MINIMUM_BALANCE"))
 	}
 	{
 		//check if the sub-wallet passes the validation
-		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.AssetIssuerWallet, gc)
+		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.WalletType, gc)
 		if err != nil {
 			log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
 
@@ -398,12 +429,21 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 			},
 			SourceAccount: subWalletInfo.PublicKey,
 		})
-		if subWalletInfo.AssetIssuerWallet == 0 {
+		if subWalletInfo.WalletType == 0 {
 			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted from your primary wallet and be used to activate the sub-wallet.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 		}
-		if subWalletInfo.AssetIssuerWallet == 1 {
+		if subWalletInfo.WalletType == 1 {
 			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+		}
+		if subWalletInfo.WalletType == 2 {
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an market making wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that MM wallets cannot be used to send normal payments, but only used for market making.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+		}
+
+		if subWalletInfo.WalletType == 3 {
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an bulk-payment wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that bulk-payment wallets cannot be used to send normal payments, but only be used by internal system to disburse bulk payments on your behalf.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 		}
 

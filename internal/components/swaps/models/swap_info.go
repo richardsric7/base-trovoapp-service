@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-//PaymentInfo holds payment information
+// PaymentInfo holds payment information
 type PaymentInfo struct {
 	Destination          string   `json:"destination"`
 	Memo                 string   `json:"memo"`
@@ -21,7 +21,7 @@ type PaymentInfo struct {
 	Messages             []string `json:"messages"`
 }
 
-//PaymentLog holds payment information for logging
+// PaymentLog holds payment information for logging
 type PaymentLog struct {
 	CreatedAt              time.Time
 	TrasanctionType        uint64   `gorm:"size:56;default:0;not null"` //0 = Payment(default), 1 = Swap
@@ -49,7 +49,7 @@ type PaymentLog struct {
 	ISP                    *string  `gorm:"null;size:150"`
 }
 
-//SwapSendPathInput model struct for user input when importing keys for new user
+// SwapSendPathInput model struct for user input when importing keys for new user
 type SwapSendPathInput struct {
 	DestinationAccount string
 	DestinationAssets  string
@@ -58,7 +58,7 @@ type SwapSendPathInput struct {
 	SourceAmount       string
 }
 
-//SwapSendPathInput model struct for user input when importing keys for new user
+// SwapSendPathInput model struct for user input when importing keys for new user
 type SwapSendInfo struct {
 	DestinationAssetCode   string   `json:"destinationAssetCode"`
 	DestinationAssetIssuer string   `json:"destinationAssetIssuer"`
@@ -72,9 +72,12 @@ type SwapSendInfo struct {
 	NetworkPassPhrase      string   `json:"networkPassPhrase"`
 	Messages               []string `json:"messages"`
 	Memo                   string   `json:"-"`
+	Multiparty             int      `json:"-"`
+	Commit                 int      `json:"commit"`
+	ReturnedDescription    string   `json:"-"`
 }
 
-//SwapReceivePathInput model struct for user input when importing keys for new user
+// SwapReceivePathInput model struct for user input when importing keys for new user
 type SwapReceivePathInput struct {
 	DestinationAccount     string   `json:"destinationAccount"`
 	DestinationAssetType   string   `json:"destinationAssetType"`

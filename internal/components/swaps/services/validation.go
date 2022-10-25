@@ -9,7 +9,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-//ValidateSwapSendPathInfo validates payment information
+// ValidateSwapSendPathInfo validates payment information
 func ValidateSwapSendInfo(swapInfo *swapModels.SwapSendInfo) error {
 
 	//required parameters
@@ -88,7 +88,7 @@ func ValidateSwapSendInfo(swapInfo *swapModels.SwapSendInfo) error {
 
 	{
 		if len(swapInfo.Transaction) > 0 {
-			if len(swapInfo.TransactionSignature) == 0 {
+			if len(swapInfo.TransactionSignature) == 0 && swapInfo.Commit == 0 {
 				return &errors.ErrorMissingParameter{Parameter: "transactionSignature"}
 			}
 		}

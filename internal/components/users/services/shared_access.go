@@ -1155,30 +1155,30 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		}
 	}
 
+	//activating shared access is free. No fee, except for view only access.
 	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
-	{
+	if len(approvers) == 0 {
 		//process service fee
-		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
-			ops = append(ops, &txnbuild.Payment{
-				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-				SourceAccount: wallet.ID,
-				Asset:         txnbuild.NativeAsset{},
-			})
-			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
-
-		} else {
+		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {
 			ops = append(ops, &txnbuild.Payment{
 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
 				SourceAccount: wallet.ID,
 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
 			})
-			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee for creating view only access.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+
+		} else {
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+				SourceAccount: wallet.ID,
+				Asset:         txnbuild.NativeAsset{},
+			})
+			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee for creating view only access.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
 
 		}
 
-		walletMustSign = true
 	}
 	// Construct the transaction that holds the operations to execute on the network
 	{
@@ -1301,16 +1301,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
 	{
 		//process service fee
-		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
-			ops = append(ops, &txnbuild.Payment{
-				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-				SourceAccount: wallet.ID,
-				Asset:         txnbuild.NativeAsset{},
-			})
-			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
-
-		} else {
+		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {
 			ops = append(ops, &txnbuild.Payment{
 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
@@ -1318,6 +1309,15 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
 			})
 			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+
+		} else {
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+				SourceAccount: wallet.ID,
+				Asset:         txnbuild.NativeAsset{},
+			})
+			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
 
 		}
 

@@ -211,8 +211,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 
 		}
-		if userWallet.AssetIssuerWallet == 1 {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-asset-issuer-wallet-forbidden", "message": "Asset issuer wallets are not allowed to be used for payment."})
+		if userWallet.WalletType != 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
 		{
@@ -237,7 +237,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		if len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69 {
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
-				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Bantu Address[%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationWallet.Alias))
+				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationWallet.Alias))
 				paymentInfo.Destination = destinationWallet.Alias
 			}
 		}
@@ -477,7 +477,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	router.POST("/v1/shared-access/payment", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
-
+		{
+			//check if pending shared access modify exists
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
+				return
+			}
+		}
 		//get user DB record
 		accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB)
 
@@ -503,7 +509,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 		}
 		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-anauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
 			return
 		}
 		primaryAccountAlias := accountSignerUser.Username
@@ -529,14 +535,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 
-		}
-
-		{
-			//check if pending shared access modify exists
-			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
-				return
-			}
 		}
 
 		var paymentInfo paymentModels.PaymentInfo
@@ -609,8 +607,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 
 		}
-		if userWallet.AssetIssuerWallet == 1 {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-asset-issuer-wallet-forbidden", "message": "Asset issuer wallets are not allowed to be used for payment."})
+		if userWallet.WalletType != 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
 		{

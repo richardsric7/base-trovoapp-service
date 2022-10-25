@@ -39,8 +39,9 @@ type UserWalletJSON struct {
 	UserID                  string                 `json:"userId"`
 	SharedAccessEnabled     int                    `json:"sharedAccessEnabled"`
 	PrimaryWallet           int                    `json:"primaryWallet"`
-	AssetIssuerWallet       int                    `json:"assetIssuerWallet"`
-	HasViewOnlyAccess       int                    `json:"hasViewOnlyAccess"`
+	AssetIssuerWallet       int                    `json:"assetIssuerWallet"` //redundancy. TODO: remove when not needed anymore
+	WalletType              int                    `json:"walletType"`        //0=normal, 1= assetIssuing, 2= MarketMaking, 3 = bulkPayment
+	WalletThreshold         int                    `json:"walletThreshold"`   //0=no shared access, 1 = view-Only shared access, 2 = approver is present
 	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
 	Permissions             []WalletPermissionJSON `json:"permissions"`
 	SharedAccessCreatedAt   time.Time              `json:"sharedAccessCreatedAt"`

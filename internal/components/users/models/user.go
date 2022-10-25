@@ -63,7 +63,7 @@ type UserWallet struct {
 	Tracked                 int                `gorm:"type:integer;not null;default:0" json:"-"`
 	PrimaryWallet           int                `gorm:"type:integer;not null;default:0" json:"primaryWallet"`
 	NumberOfApprovalsNeeded int                `gorm:"type:integer; default:0" json:"numberOfApprovalsNeeded"`
-	AssetIssuerWallet       int                `gorm:"type:integer; default:0" json:"assetIssuerWallet"`
+	WalletType              int                `gorm:"type:integer; default:0" json:"walletType"` //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
 	Permissions             []WalletPermission `gorm:"foreignKey:WalletPublicKey;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"permissions"`
 	SharedAccessCreatedAt   time.Time          `json:"sharedAccessCreatedAt"`
 	SharedAccessUpdatedAt   time.Time          `json:"sharedAccessUpdatedAt"`
@@ -189,7 +189,8 @@ type SubWalletInfo struct {
 	ChannelAccount          string   `json:"channelAccount"`
 	ChannelAccountSignature string   `json:"channelAccountSignature"`
 	SubWalletMustSign       int      `json:"subWalletMustSign"`
-	AssetIssuerWallet       int      `json:"assetIssuerWallet"`
+	AssetIssuerWallet       int      `json:"assetIssuerWallet"` //redundancy. TODO: remove when not needed anymore
+	WalletType              int      `json:"walletType"`
 	Messages                []string `json:"messages"`
 }
 

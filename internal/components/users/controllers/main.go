@@ -570,8 +570,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 		}
-		if wallet.AssetIssuerWallet == 1 {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-asset-issuer-wallet-forbidden", "message": "Operation not allowed on Asset issuer wallets."})
+		if wallet.WalletType != 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/trust-asset %v", wallet.Alias), gc.DB)
@@ -661,8 +661,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 		}
-		if wallet.AssetIssuerWallet == 1 {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-asset-issuer-wallet-forbidden", "message": "Operation not allowed on Asset issuer wallets."})
+		if wallet.WalletType != 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/remove-asset %v", wallet.Alias), gc.DB)
@@ -738,8 +738,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 		}
-		if wallet.AssetIssuerWallet == 1 {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-asset-issuer-wallet-forbidden", "message": "Operation not allowed on Asset issuer wallets."})
+		if wallet.WalletType != 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
 		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/users/actions/claim-asset %v", middleware.ExtractPublicKey(c)), gc.DB)

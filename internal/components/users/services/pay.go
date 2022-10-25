@@ -190,6 +190,7 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 
 func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wallet *userModels.UserWallet, paymentInfo *paymentModels.PaymentInfo, db *gorm.DB, gc *sharedconfig.GlobalConfig) (string, *userModels.User, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
+	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	// var messages []string
 	//check if it is public key payment
 	publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
@@ -216,7 +217,6 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, db)
 	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, db)
 
-	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
 		return "", nil, &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 	}
@@ -267,7 +267,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 			//custom asset
 			if !destinationAccountExists {
 
-				message := fmt.Sprintf("Important: The wallet %v is unfunded. %v XBN will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationWallet.Alias, charge, destinationWallet.Alias, destinationWallet.Alias)
+				message := fmt.Sprintf("The wallet %v is unfunded. %v XBN will be deducted from your account to fund %v’s account. You only need to do this once for %v.", destinationWallet.Alias, charge, destinationWallet.Alias, destinationWallet.Alias)
 
 				paymentInfo.Messages = append(paymentInfo.Messages, message)
 				// log.Printf("[generatePaymentXdr]message[0]: %v\n", message)
@@ -275,7 +275,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 			}
 
 			if !destinationAccountTrustsAsset {
-				message := fmt.Sprintf("Important: %v has not yet activated the asset (%v) you are trying to send. %v XBN will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationWallet.Alias, paymentInfo.AssetCode, charge, destinationWallet.Alias, paymentInfo.AssetCode)
+				message := fmt.Sprintf("%v has not yet opted in to receive the asset (%v) you are trying to send. %v %v will be deducted from your account to ensure that this transaction goes through. After this, %v will be able to receive %v anytime, without any further charges to you.", destinationWallet.Alias, paymentInfo.AssetCode, charge, os.Getenv("NATIVE_ASSET_CODE"), destinationWallet.Alias, paymentInfo.AssetCode)
 
 				paymentInfo.Messages = append(paymentInfo.Messages, message)
 				// log.Printf("[generatePaymentXdr]message[1]: %v\n", message)

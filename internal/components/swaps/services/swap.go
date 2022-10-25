@@ -1,6 +1,7 @@
 package swaps
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -14,16 +15,20 @@ import (
 	"trovo-wallet-api/internal/network"
 
 	"github.com/ecnepsnai/discord"
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
 	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/txnbuild"
 )
 
-//SwapSend function swaps an asset to another asset
-func SwapSend(walletOwner *userModels.User, wallet *userModels.UserWallet, signerPublicKey string, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) error {
-
+// SwapSend function swaps an asset to another asset
+func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserWallet, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) error {
+	if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
+		swapInfo.Multiparty = 1
+	}
 	client := gc.BantuExpansionClient
 	//transform codes and issuer
 	swapInfo.DestinationAssetCode = strings.ToUpper(swapInfo.DestinationAssetCode)
@@ -33,14 +38,14 @@ func SwapSend(walletOwner *userModels.User, wallet *userModels.UserWallet, signe
 	if e := ValidateSwapSendInfo(swapInfo); e != nil {
 		return e
 	}
-	xdrBase64, err := generateSwapXdr(signerPublicKey, walletOwner, wallet, swapInfo, gc)
+	xdrBase64, err := generateSwapXdr(signerUser.PrimarySigner, walletOwner, wallet, swapInfo, gc)
 
 	// oldTransaction := swapInfo.Transaction
 
 	swapInfo.Transaction = xdrBase64
 	swapInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 
-	if len(swapInfo.TransactionSignature) == 0 {
+	if len(swapInfo.TransactionSignature) == 0 && swapInfo.Commit == 0 {
 		return err
 	}
 
@@ -49,16 +54,59 @@ func SwapSend(walletOwner *userModels.User, wallet *userModels.UserWallet, signe
 	// 	return &swapErrors.ErrorTransactionMismatch{}
 	// }
 
-	txnHash, err := network.SubmitXdrWithSignature(client, signerPublicKey, xdrBase64, swapInfo.TransactionSignature)
-	if err != nil {
-		logDiscordFailedSwap(fmt.Sprintf("Error submitting swap [%+v] transaction: %s", swapInfo, err.Error()))
+	if len(swapInfo.TransactionSignature) > 0 && swapInfo.Commit == 0 {
+		txnHash, err := network.SubmitXdrWithSignature(client, signerUser.PrimarySigner, xdrBase64, swapInfo.TransactionSignature)
+		if err != nil {
+			logDiscordFailedSwap(fmt.Sprintf("Error submitting swap [%+v] transaction: %s", swapInfo, err.Error()))
+		}
+		swapInfo.TransactionID = txnHash
+		return err
+
 	}
-	swapInfo.TransactionID = txnHash
+	//multi Party
+	if swapInfo.Multiparty == 1 {
+		swapInfo.TransactionID = "PENDING_AUTH"
+
+		id := uuid.NewString()
+		destinationAsset := os.Getenv("NATIVE_ASSET_CODE")
+		sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+		if len(swapInfo.SourceAssetIssuer) == 56 {
+			sourceAsset = fmt.Sprintf("%v:%v...%v", swapInfo.SourceAssetCode, swapInfo.SourceAssetIssuer[0:4], swapInfo.SourceAssetIssuer[51:55])
+		}
+		if len(swapInfo.DestinationAssetIssuer) == 56 {
+			destinationAsset = fmt.Sprintf("%v:%v...%v", swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer[0:4], swapInfo.DestinationAssetIssuer[51:55])
+		}
+		description := fmt.Sprintf("Swap from:%v|To: %v|Est. Value After: %v\nMemo: %v\nMessages: %v\n", sourceAsset, destinationAsset, swapInfo.SwappedEstimate, swapInfo.Memo, swapInfo.Messages)
+		transactionByte, _ := json.Marshal(*swapInfo)
+		transactionStr := string(transactionByte)
+		pendingAuth := userModels.PendingAuth{
+			ID:                       id,
+			Initiator:                signerUser.Username,
+			InitiatorSignerPublicKey: signerUser.PrimarySigner,
+			WalletPublicKey:          wallet.ID,
+			TransactionType:          "SWAP",
+			Description:              description,
+			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:           xdrBase64,
+			TransactionInfoStr:       &transactionStr,
+		}
+		//save and commit this to database
+		e := gc.DB.Create(&pendingAuth).Error
+		if e != nil {
+			log.Printf("[SwapSend] Error saving swap txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+			err = &tErrors.ErrorTemporaryServerError{}
+			return err
+		}
+		return nil
+	}
+	log.Println("[SwapSend]UNKNOWN OPTION FOR ACTION")
+	err = &tErrors.ErrorTemporaryServerError{}
 	return err
 }
 
 func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *userModels.UserWallet, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) (string, error) {
 	baseReserve := network.GetBlockchainBaseReserve()
+	// charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	swapDestMin := network.GetBlockchainSwapDestinationMin()
 	client := gc.BantuExpansionClient
 	messages := make([]string, 0)
@@ -87,6 +135,12 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	appliedCharge := decimal.NewFromFloat(0)
 	swapInfo.Messages = messages
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
+
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(client, chanAccount.Address(), txnbuild.NativeAsset{})
 
 	sourceAccountExists, _, sourceAccountNativeBalance, sourceAccountCustomBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(client, wallet.ID, sourceAsset)
 	var sourceAccountTrustsDestinationAsset bool
@@ -106,10 +160,12 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	if !destinationAsset.IsNative() {
 
 		if !sourceAccountTrustsDestinationAsset {
-			message := fmt.Sprintf("Important: you have not yet activated the asset (%v) you are trying to swap to. Some XBN will be deducted from the wallet [%v] to activate the asset.", swapInfo.DestinationAssetCode, wallet.Alias)
+			message := fmt.Sprintf("You have not opted in to accept the %v you are trying to swap to. Upto %v %v may be deducted from the wallet [%v] to automatically opt you into accepting %v. The balance will remain in your wallet.", swapInfo.DestinationAssetCode, appliedCharge, os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias, swapInfo.DestinationAssetCode)
 			messages = append(messages, message)
 			log.Printf("message[0]: %v\n", message)
-			appliedCharge = baseReserve.Mul(decimal.NewFromInt(1)).Truncate(7)
+			appliedCharge = baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7)
+			// appliedCharge = baseReserve.Mul(decimal.RequireFromString(charge)).Truncate(7)
+
 			//establish trustline
 			ops = append(ops, &txnbuild.ChangeTrust{
 				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: destinationAsset},
@@ -122,21 +178,21 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 
 	log.Printf("obtained sourced account info \n")
 
-	log.Printf("obtained source account balance is XBN %v, custom account balance %v\n", sourceAccountNativeBalance, sourceAccountCustomBalance)
+	log.Printf("obtained source account balance is %v %v, custom account balance %v\n", sourceAccountNativeBalance, os.Getenv("NATIVE_ASSET_CODE"), sourceAccountCustomBalance)
 
 	amountToSwapDec := amountToSwap
 
 	if sourceAsset.IsNative() {
 		if sourceAccountNativeBalance.LessThan(amountToSwapDec.Add(appliedCharge)) {
-			return "", &tErrors.ErrorUnderfundedAccount{}
+			return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
 		}
 	} else {
 		if sourceAccountCustomBalance.LessThan(amountToSwapDec) {
-			return "", &tErrors.ErrorUnderfundedAccount{}
+			return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
 		}
 		//if it is custom asset check if the native balance can carry the charge for trusting asset
 		if sourceAccountNativeBalance.LessThan(appliedCharge) {
-			return "", &tErrors.ErrorUnderfundedAccount{}
+			return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to complete this transaction", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
 		}
 	}
 
@@ -169,31 +225,87 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 		Path:          path,
 		SourceAccount: wallet.ID,
 	})
+	{
+		//process service fee
+		if len(os.Getenv("SWAP_FEE_ASSET_ISSUER")) == 56 {
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   os.Getenv("SWAP_FEE_ADDRESS"),
+				Amount:        os.Getenv("SWAP_FEE_AMOUNT"),
+				SourceAccount: wallet.ID,
+				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SWAP_FEE_ASSET_CODE"), Issuer: os.Getenv("SWAP_FEE_ASSET_ISSUER")},
+			})
+			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SWAP_FEE_AMOUNT"), os.Getenv("SWAP_FEE_ASSET_CODE"), wallet.Alias))
+
+		} else {
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   os.Getenv("SWAP_FEE_ADDRESS"),
+				Amount:        os.Getenv("SWAP_FEE_AMOUNT"),
+				SourceAccount: wallet.ID,
+				Asset:         txnbuild.NativeAsset{},
+			})
+			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SWAP_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
+
+		}
+
+	}
 
 	// Construct the transaction that holds the operations to execute on the network
 	var memoSAC, memoDAC string
 	memoSAC = swapInfo.SourceAssetCode
 	memoDAC = swapInfo.DestinationAssetCode
 	if swapInfo.SourceAssetIssuer == "" || swapInfo.SourceAssetIssuer == "native" {
-		memoSAC = "XBN"
+		memoSAC = os.Getenv("NATIVE_ASSET_CODE")
 	}
 	if swapInfo.DestinationAssetIssuer == "" || swapInfo.DestinationAssetIssuer == "native" {
-		memoDAC = "XBN"
+		memoDAC = os.Getenv("NATIVE_ASSET_CODE")
 	}
 
 	memo := fmt.Sprintf("%v>%v", memoSAC, memoDAC)
 	log.Println("[generateSwapXdr] Memo:", memo)
+	swapInfo.Memo = memo
 
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        sourceAccount,
-			IncrementSequenceNum: true,
-			Operations:           ops,
-			BaseFee:              2000,
-			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-			Memo:                 txnbuild.MemoText(memo),
-		},
-	)
+	var tx *txnbuild.Transaction
+	// Construct the transaction that holds the operations to execute on the network
+	if swapInfo.Multiparty == 1 {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText(memo),
+			},
+		)
+	} else {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        sourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              2000,
+				Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+				Memo:                 txnbuild.MemoText(memo),
+			},
+		)
+	}
+
+	if err != nil {
+		log.Println("[generatePaymentXdr] error constructing transaction ", err)
+		return "", err
+	}
+
+	if swapInfo.Multiparty == 1 {
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+
+		if err != nil {
+			log.Println("[generateSwapXdr] error signing transaction with channelAccount key ", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
 
 	if err != nil {
 		log.Println("[generateSwapXdr]error constructing transaction ", err)
@@ -213,9 +325,9 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	return xdrBase64, nil
 }
 
-//getStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
+// getStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
 func getStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonclient.Client) (paths []txnbuild.Asset, swappedEstimate string, err error) {
-	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
+	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
 	}
