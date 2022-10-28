@@ -199,6 +199,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 
+		if userWallet.WalletType == 2 || userWallet.WalletType == 3 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Market Making & Bulk Payment wallets are not allowed for this operation."})
+			return
+		}
+
 		if temp {
 			errAccountIsTemp := &tErrors.CustomError{
 				Param:      "Username",
@@ -346,36 +351,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverPaymentHistoryCacheKey, senderBalanceCacheKey, receiverBalanceCacheKey)
 			}
 			gc.RedisCache.InvalidateCachedHttpResponse(senderBalanceCacheKey, senderTempCacheKey, receiverBalanceCacheKey, receiverTempCacheKey, sNFT, rNTF)
-
-			if paymentInfoReturned.TransactionID == "PENDING_AUTH" {
-				c.JSON(http.StatusOK, paymentInfoReturned)
-
-				{
-					accessList := userWallet.GetPermissionList(gc.DB)
-					// send push notifications
-					assetCode := paymentInfo.AssetCode
-					if assetCode == "" {
-						assetCode = os.Getenv("NATIVE_ASSET_CODE")
-					}
-					dataPayload := make(map[string]string)
-					dataPayload["route"] = "pendingAuth"
-					for _, a := range accessList {
-
-						if a.Permission == "APPROVER" {
-							ph, e := usersDB.GetUser(a.TargetUsername, gc.DB)
-							if e == nil {
-								ph.SendPushMessage("Trovo: Payment request awaiting approval!", fmt.Sprintf("You have a payment transaction of %v %v to %v initiated by %v from the wallet with alias %v, which is now awaiting approval from you or any other approver.", paymentInfo.Amount, assetCode, paymentInfo.Destination, accountSignerUser.Username, userWallet.Alias), "", dataPayload, gc)
-
-							}
-
-						}
-					}
-					accountSignerUser.SendPushMessage("Trovo: Payment Request Submitted!", fmt.Sprintf("You have successfully submitted payment request of %v %v to %v on the wallet with alias %v. The listed approvers have been notifed to attend to the request.", paymentInfo.Amount, assetCode, paymentInfo.Destination, userWallet.Alias), "", dataPayload, gc)
-
-				}
-
-				return
-			}
 
 			c.JSON(http.StatusOK, paymentInfoReturned)
 
@@ -592,6 +567,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			} else {
 				c.JSON(http.StatusBadRequest, gin.H{"error": getWalletError.Error(), "message": getWalletError.Error()})
 			}
+			return
+		}
+
+		if userWallet.WalletType == 2 || userWallet.WalletType == 3 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Market Making & Bulk Payment wallets are not allowed for this operation."})
 			return
 		}
 
