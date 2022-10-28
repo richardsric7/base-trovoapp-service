@@ -28,8 +28,8 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
       return true;
     }
 
-    // check if the close app dialog is open
     if (_routerDelegate.pages.length <= 1) {
+      // check if the close app dialog is open
       if (dialogOpen) {
         Navigator.of(
           _routerDelegate.navigatorKey.currentContext!,
@@ -39,6 +39,8 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
         return true;
       }
 
+      // handle the back button on the wallets view to make sure the create
+      // subwallet views/modals are consistently handled
       if (appState.currentBottomTabIndex == 1) {
         if (appState.walletView.view == WalletView.addSubWallet) {
           appState.walletView.actionIcon = Icons.add_circle_outline_sharp;

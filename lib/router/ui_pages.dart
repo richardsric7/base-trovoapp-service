@@ -55,6 +55,8 @@ const String SuccessViewPath = '/SuccessView';
 const String SecurityQuestionsForInactiveAccountsViewPath =
     '/SecurityQuestionsForInactiveAccounts';
 const String AddSharedAccessDetailsViewPath = '/AddSharedAccessDetailsView';
+const String ApproverAccessViewPath = '/ApproverAccessView';
+const String ViewerAccessViewPath = '/ViewerAccessView';
 
 enum Pages {
   Splash,
@@ -109,6 +111,8 @@ enum Pages {
   SuccessView,
   SecurityQuestionsForInactiveAccountsView,
   AddSharedAccessDetailsView,
+  ApproverAccessView,
+  ViewerAccessView,
 }
 
 class PageConfiguration {
@@ -380,4 +384,14 @@ PageConfiguration AddSharedAccessDetailsViewPageConfig = PageConfiguration(
     key: 'AddSharedAccessDetailsView',
     path: AddSharedAccessDetailsViewPath,
     uiPage: Pages.AddSharedAccessDetailsView,
+    currentPageAction: null);
+PageConfiguration ApproverAccessViewPageConfig = PageConfiguration(
+    key: 'ApproverAccessView',
+    path: ApproverAccessViewPath,
+    uiPage: Pages.ApproverAccessView,
+    currentPageAction: null);
+PageConfiguration ViewerAccessViewPageConfig = PageConfiguration(
+    key: 'ViewerAccessView',
+    path: ViewerAccessViewPath,
+    uiPage: Pages.ViewerAccessView,
     currentPageAction: null);

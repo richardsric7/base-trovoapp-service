@@ -1,15 +1,17 @@
 import 'package:app_settings/app_settings.dart';
+import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:sembast/sembast.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../Custom_BlocObserver/notifire_clor.dart';
 import '../router/PageActions.dart';
 import '../router/ui_pages.dart';
@@ -1878,7 +1880,6 @@ transactionTypePopup(context,
       barrierDismissible: true,
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, setStateForDialog) {
-          var appState = Provider.of<DataProvider>(context, listen: false);
           return AlertDialog(
               backgroundColor: Colors.transparent,
               insetPadding: const EdgeInsets.all(0),
@@ -2109,5 +2110,209 @@ void haveYouSetupSecurityQuestionsPopup(context,
                 ],
               ),
             ));
+      });
+}
+
+selectAccessTypePopup(context, DataProvider appState) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  List<Wallet>? wallets;
+  Wallet? activeWallet;
+  dynamic selectedWallet = '';
+  wallets = appState.userInfo!.wallets!;
+  activeWallet = appState.activeWallet;
+  selectedWallet = activeWallet!.publicKey;
+
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          var appState = Provider.of<DataProvider>(context, listen: false);
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                      child: Center(
+                        child: Text(
+                          'Grant others access to your wallet',
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontsemibold),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 30,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField(
+                              isExpanded: true,
+                              hint: Container(
+                                width: 150, //and here
+                                child: Text(
+                                  'Select wallet',
+                                  style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody,
+                                  ),
+                                  textAlign: TextAlign.end,
+                                ),
+                              ),
+                              dropdownColor: notifier.isDark
+                                  ? darktilewhitecolor
+                                  : notifier.getaddsubwalletgrey,
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                    vertical: 0, horizontal: 20),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                filled: true,
+                                fillColor: notifier.isDark
+                                    ? darktilewhitecolor
+                                    : notifier.getaddsubwalletgrey,
+                              ),
+                              // value: selectedWallet,
+                              icon: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                              elevation: 0,
+                              style: TextStyle(
+                                  color: notifier.getbluewhitecolor,
+                                  fontSize: 15.sp,
+                                  fontFamily: fontsemibold,
+                                  fontWeight: FontWeight.w500),
+                              onChanged: (newValue) {
+                                selectedWallet = newValue!;
+                                appState.activeWallet = wallets!.firstWhere(
+                                    (wallet) => wallet.publicKey == newValue);
+                              },
+                              items: wallets!
+                                  .map<DropdownMenuItem<String>>(
+                                      (wallet) => DropdownMenuItem(
+                                          child: Text(
+                                            wallet.alias!,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          value: wallet.publicKey))
+                                  .toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 30,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: ViewerAccessViewPageConfig,
+                          );
+                          Navigator.of(context).pop(); // dismiss dialog,
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          'Grant viewer access',
+                          style: TextStyle(
+                              color: wihitecolor, fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: ApproverAccessViewPageConfig,
+                        );
+                        Navigator.of(context).pop(); // dismiss dialog,
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        'Grant approver access',
+                        style:
+                            TextStyle(color: wihitecolor, fontFamily: fontbody),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            buildExpandable(context),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 30,
+                    )
+                  ],
+                ),
+              ));
+        });
       });
 }

@@ -89,6 +89,8 @@ dependencies:
   device_preview: ^1.1.0
   syncfusion_flutter_core: ^19.4.56
   image_cropper: ^3.0.0
+  expandable: ^5.0.1
+
 
 dev_dependencies:
   flutter_test:

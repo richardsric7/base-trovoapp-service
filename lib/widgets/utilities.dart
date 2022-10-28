@@ -1,3 +1,4 @@
+import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,8 +8,11 @@ import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+
+import '../utils/medeiaqury/medeiaqury.dart';
 
 void showSnackBar(String rel, BuildContext context) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
@@ -165,4 +169,112 @@ Widget userItem(String name, Color color) {
       ),
     ),
   );
+}
+
+Widget buildExpandable(context) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+
+  return ExpandableNotifier(
+      child: ScrollOnExpand(
+    child: Container(
+      child: Column(
+        children: <Widget>[
+          ExpandablePanel(
+            theme: const ExpandableThemeData(
+              headerAlignment: ExpandablePanelHeaderAlignment.center,
+              tapBodyToExpand: true,
+              tapBodyToCollapse: true,
+              hasIcon: false,
+            ),
+            header: Container(
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text(
+                      "Learn more",
+                      style: TextStyle(
+                        color: notifier.getbluecolor,
+                        fontFamily: fontbody,
+                        fontSize: 13.sp,
+                      ),
+                    ),
+                    ExpandableIcon(
+                      theme: ExpandableThemeData(
+                        expandIcon: Icons.keyboard_arrow_right,
+                        collapseIcon: Icons.keyboard_arrow_down_outlined,
+                        iconColor: notifier.getbluecolor,
+                        iconSize: 28.0,
+                        iconRotationAngle: 1.9 / 2,
+                        iconPadding: EdgeInsets.only(right: 5),
+                        hasIcon: false,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            collapsed: Container(),
+            expanded: Container(
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: width / 6,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "What is shared access?",
+                        style: TextStyle(
+                          color: notifier.getbluecolor90,
+                          fontFamily: fontsemibold,
+                          fontSize: 13.sp,
+                        ),
+                      ),
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                      SizedBox(
+                        width: width / 1.7,
+                        child: Text(
+                          "Lorem ipsum dolor emmet what does shared access mean?",
+                          style: TextStyle(
+                            color: notifier.getbluecolor90,
+                            fontFamily: fontbody,
+                            fontSize: 13.sp,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                      SizedBox(
+                        width: width / 1.7,
+                        child: Text(
+                          "We can also explain more or emphasise very important information here.",
+                          style: TextStyle(
+                            color: notifier.getbluecolor90,
+                            fontFamily: fontbody,
+                            fontSize: 13.sp,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  ));
 }

@@ -829,7 +829,7 @@ class LanguageEn {
   static String get filterby => "Filter by";
 
   static String get enteraccountsusernameviewers =>
-      "Enter the usernames of all accounts that require viewer access to this wallet";
+      "Enter the usernames of all accounts that require viewer access to ";
 
   static String get enteraccountsusernameapprovers =>
       "Enter the usernames of all accounts that require approver access to this wallet";
