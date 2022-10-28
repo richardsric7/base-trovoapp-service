@@ -62,6 +62,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 			return
 		}
+
+		if wallet.WalletType == 2 || wallet.WalletType == 3 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Market Making & Bulk Payment wallets are not allowed for this operation."})
+			return
+		}
+
 		if temp {
 			c.JSON(http.StatusBadRequest, (&tErrors.CustomError{Param: "publicKey", Err: "error-temporary-account-forbidden", ErrMessage: "temporary accounts are forbidden from making payment or swap requests", Code: http.StatusForbidden}).JSONError())
 			return
@@ -220,6 +226,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 			return
 		}
+		if wallet.WalletType == 2 || wallet.WalletType == 3 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Market Making & Bulk Payment wallets are not allowed for this operation."})
+			return
+		}
+
 		if temp {
 			c.JSON(http.StatusBadRequest, (&tErrors.CustomError{Param: "publicKey", Err: "error-temporary-account-forbidden", ErrMessage: "temporary accounts are forbidden from making payment or swap requests", Code: http.StatusForbidden}).JSONError())
 			return
