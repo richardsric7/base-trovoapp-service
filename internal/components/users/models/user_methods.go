@@ -575,7 +575,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		_, errWallet := u.GetWalletByPublicKey(subWalletPublicKey, gc.DB)
 		if errWallet != nil {
 			if errWallet.Error() != "error-wallet-not-found" {
-				log.Println("[BuildNewSubWallet] subwallet does not exist...", errWallet)
+				log.Println("[BuildNewSubWallet] other service error ...", errWallet)
 
 				return userWallet, errWallet
 			}
@@ -613,7 +613,7 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 		Tag:           &walletTag,
 		Description:   &walletDescription,
 		Alias:         alias,
-		Signer:        u.PublicKey,
+		Signer:        u.PrimarySigner,
 		UserID:        u.ID,
 		WalletType:    walletType,
 	}

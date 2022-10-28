@@ -15,6 +15,7 @@ import (
 	"github.com/ecnepsnai/discord"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 )
 
@@ -201,104 +202,145 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		}
 		return "", subWalletObj, err
 	}
+	var walletSigner *keypair.Full
+	if subWalletInfo.WalletType == 2 {
+		walletSigner, _ = bc.MarketMakingSignerKeypair(user.Username, subWalletInfo.PublicKey)
+
+	}
+	if subWalletInfo.WalletType == 3 {
+		walletSigner, _ = bc.BulkPaymentSignerKeypair(user.Username, subWalletInfo.PublicKey)
+
+	}
 
 	subWalletAccountExists, _, subWalletAccountNativeBalance, _, subWalletAccountObject, _ := network.BlockchainAccountProperties(client, subWalletInfo.PublicKey, nativeAsset)
 	if !subWalletAccountExists {
 		//if subwallet is not activated
 		//build transaction that will activate the subwallet from the primary wallet
+		if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
 
-		ops = append(ops, &txnbuild.CreateAccount{
-			Destination:   subWalletInfo.PublicKey,
-			Amount:        activationAmount.String(),
-			SourceAccount: user.PublicKey,
-		})
+			ops = append(ops, &txnbuild.CreateAccount{
+				Destination:   subWalletInfo.PublicKey,
+				Amount:        activationAmount.String(),
+				SourceAccount: user.PublicKey,
+			})
 
-		//after creation, it now exists with enough balance to add primary wallet as signer
-		ops = append(ops, &txnbuild.SetOptions{
-			Signer: &txnbuild.Signer{
-				Address: user.PublicKey,
-				Weight:  1,
-			},
-			SourceAccount: subWalletInfo.PublicKey,
-		})
-
-		if subWalletInfo.WalletType == 0 {
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted from your primary wallet and be used to activate the sub-wallet.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
-
-		}
-		if subWalletInfo.WalletType == 1 {
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
-
-		}
-		if subWalletInfo.WalletType == 2 {
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an market making wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that MM wallets cannot be used to send normal payments, but only used for market making.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
-
-		}
-
-		if subWalletInfo.WalletType == 3 {
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an bulk-payment wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that bulk-payment wallets cannot be used to send normal payments, but only be used by internal system to disburse bulk payments on your behalf.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
-
-		}
-	}
-
-	if subWalletAccountExists && (subWalletAccountNativeBalance.LessThan(minBalance)) {
-		//account exists and native balance is less than needed. add 3 native token to the wallet
-		ops = append(ops, &txnbuild.Payment{
-			Destination:   subWalletInfo.PublicKey,
-			Amount:        minBalance.String(),
-			Asset:         nativeAsset,
-			SourceAccount: user.PublicKey,
-		})
-
-		//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
-		if !user.SignerIsValidWA(user.PublicKey, subWalletAccountObject) {
-
+			//after creation, it now exists with enough balance to add primary wallet as signer
 			ops = append(ops, &txnbuild.SetOptions{
 				Signer: &txnbuild.Signer{
-					Address: user.PublicKey,
+					Address: user.PrimarySigner,
 					Weight:  1,
 				},
 				SourceAccount: subWalletInfo.PublicKey,
 			})
-		} else {
-			subWalletInfo.SubWalletMustSign = 0
 		}
-		if subWalletInfo.WalletType == 0 {
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %s will be deducted from your primary wallet and used to topup the balance of the subwallet to complete the sub-wallet process.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+		//make it custodial
+		if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
 
-		}
-		if subWalletInfo.WalletType == 1 {
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and used to topup balance of this subwallet. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+			signerExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, walletSigner.Address(), nativeAsset)
+			if !signerExists {
+				ops = append(ops, &txnbuild.CreateAccount{
+					Destination:   walletSigner.Address(),
+					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
+					SourceAccount: user.PublicKey,
+				})
 
-		}
-		if subWalletInfo.WalletType == 3 {
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and used to topup balance of this subwallet. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+			} else {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   walletSigner.Address(),
+					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
+					Asset:         nativeAsset,
+					SourceAccount: user.PublicKey,
+				})
 
-		}
-	}
-	if subWalletAccountExists && (subWalletAccountNativeBalance.GreaterThanOrEqual(minBalance)) {
-		//account exists and native balance is less than needed. add 3 native token to the wallet
-		ops = append(ops, &txnbuild.Payment{
-			Destination:   subWalletInfo.PublicKey,
-			Amount:        activationAmount.String(),
-			Asset:         nativeAsset,
-			SourceAccount: user.PublicKey,
-		})
+			}
 
-		//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
-		if !user.SignerIsValidWA(user.PublicKey, subWalletAccountObject) {
-
+			//after creation, it now exists with enough balance to add primary wallet as signer
 			ops = append(ops, &txnbuild.SetOptions{
 				Signer: &txnbuild.Signer{
-					Address: user.PublicKey,
+					Address: user.PrimarySigner,
 					Weight:  1,
 				},
 				SourceAccount: subWalletInfo.PublicKey,
 			})
-		} else {
-			subWalletInfo.SubWalletMustSign = 0
+			ops = append(ops, &txnbuild.SetOptions{
+				Signer: &txnbuild.Signer{
+					Address: walletSigner.Address(),
+					Weight:  3,
+				},
+				SourceAccount: subWalletInfo.PublicKey,
+			})
 		}
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %s will be deducted from your primary wallet to topup the subwallet and used to complete the sub-wallet process.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+	}
+
+	if subWalletAccountExists {
+		if subWalletAccountNativeBalance.LessThan(minBalance) {
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   subWalletInfo.PublicKey,
+				Amount:        activationAmount.String(),
+				Asset:         nativeAsset,
+				SourceAccount: user.PublicKey,
+			})
+		}
+		//account exists and native balance is less than needed. add 3 native token to the wallet
+		if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
+
+			//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
+			if !user.SignerIsValidWA(user.PrimarySigner, subWalletAccountObject) {
+
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: user.PrimarySigner,
+						Weight:  1,
+					},
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			} else {
+				subWalletInfo.SubWalletMustSign = 0
+			}
+
+		}
+		//make it custodial
+		if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
+
+			signerExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, walletSigner.Address(), nativeAsset)
+			if !signerExists {
+				ops = append(ops, &txnbuild.CreateAccount{
+					Destination:   walletSigner.Address(),
+					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
+					SourceAccount: user.PublicKey,
+				})
+
+			} else {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   walletSigner.Address(),
+					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
+					Asset:         nativeAsset,
+					SourceAccount: user.PublicKey,
+				})
+
+			}
+
+			//after creation, it now exists with enough balance to add primary wallet as signer
+			if !userBc.SignerIsValid(subWalletInfo.PublicKey, user.PrimarySigner) {
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: user.PrimarySigner,
+						Weight:  1,
+					},
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			}
+			if !userBc.SignerIsValid(subWalletInfo.PublicKey, walletSigner.Address()) {
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: walletSigner.Address(),
+						Weight:  3,
+					},
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			}
+		}
 
 	}
 
@@ -311,7 +353,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 				ops = append(ops, &txnbuild.SetOptions{
 					Signer: &txnbuild.Signer{
 						Address: recoveryKeyAddress,
-						Weight:  1,
+						Weight:  3,
 					},
 					SourceAccount: subWalletInfo.PublicKey,
 				})
@@ -320,9 +362,56 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		}
 
 	}
+	fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	if !fee.IsZero() {
+		//add fees if enabled.
+		//process service fee
+		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+				SourceAccount: user.PublicKey,
+				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+			})
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE")))
 
-	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
+		} else {
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+				SourceAccount: user.PublicKey,
+				Asset:         txnbuild.NativeAsset{},
+			})
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee for creating view only access.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE")))
 
+		}
+	}
+
+	if subWalletInfo.WalletType == 0 {
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted from your primary wallet and be used to activate the sub-wallet.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+	}
+	if subWalletInfo.WalletType == 1 {
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+	}
+	if subWalletInfo.WalletType == 2 {
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an market making wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. Please note that MM wallets cannot be used to send normal payments, but only used for market making.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+	}
+
+	if subWalletInfo.WalletType == 3 {
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an bulk-payment wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. Please note that bulk-payment wallets cannot be used to send normal payments, but only be used by internal system to disburse bulk payments on your behalf.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+	}
+	if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
+		ops = append(ops, &txnbuild.SetOptions{
+			LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(3)),
+			MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(3)),
+			HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(3)),
+			SourceAccount:   subWalletInfo.PublicKey,
+		})
+	}
 	// Construct the transaction that holds the operations to execute on the network
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
@@ -409,97 +498,217 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		}
 		return "", subWalletObj, err
 	}
+	var walletSigner *keypair.Full
+	if subWalletInfo.WalletType == 2 {
+		walletSigner, _ = bc.MarketMakingSignerKeypair(user.Username, subWalletInfo.PublicKey)
+
+	}
+	if subWalletInfo.WalletType == 3 {
+		walletSigner, _ = bc.BulkPaymentSignerKeypair(user.Username, subWalletInfo.PublicKey)
+
+	}
 
 	subWalletAccountExists, _, subWalletAccountNativeBalance, _, subWalletAccountObject, _ := network.BlockchainAccountProperties(client, subWalletInfo.PublicKey, nativeAsset)
 	if !subWalletAccountExists {
 		//if subwallet is not activated
 		//build transaction that will activate the subwallet from the primary wallet
+		if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
 
-		ops = append(ops, &txnbuild.CreateAccount{
-			Destination:   subWalletInfo.PublicKey,
-			Amount:        activationAmount.String(),
-			SourceAccount: user.PublicKey,
-		})
+			ops = append(ops, &txnbuild.CreateAccount{
+				Destination:   subWalletInfo.PublicKey,
+				Amount:        activationAmount.String(),
+				SourceAccount: user.PublicKey,
+			})
 
-		//after creation, it now exists with enough balance to add primary wallet as signer
+			//after creation, it now exists with enough balance to add primary wallet as signer
+			ops = append(ops, &txnbuild.SetOptions{
+				Signer: &txnbuild.Signer{
+					Address: user.PrimarySigner,
+					Weight:  1,
+				},
+				SourceAccount: subWalletInfo.PublicKey,
+			})
+		}
+		//make it custodial
+		if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
+
+			signerExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, walletSigner.Address(), nativeAsset)
+			if !signerExists {
+				ops = append(ops, &txnbuild.CreateAccount{
+					Destination:   walletSigner.Address(),
+					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
+					SourceAccount: user.PublicKey,
+				})
+
+			} else {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   walletSigner.Address(),
+					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
+					Asset:         nativeAsset,
+					SourceAccount: user.PublicKey,
+				})
+
+			}
+
+			//after creation, it now exists with enough balance to add primary wallet as signer
+			ops = append(ops, &txnbuild.SetOptions{
+				Signer: &txnbuild.Signer{
+					Address: user.PrimarySigner,
+					Weight:  1,
+				},
+				SourceAccount: subWalletInfo.PublicKey,
+			})
+			ops = append(ops, &txnbuild.SetOptions{
+				Signer: &txnbuild.Signer{
+					Address: walletSigner.Address(),
+					Weight:  3,
+				},
+				SourceAccount: subWalletInfo.PublicKey,
+			})
+		}
+
+	}
+
+	if subWalletAccountExists {
+		if subWalletAccountNativeBalance.LessThan(minBalance) {
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   subWalletInfo.PublicKey,
+				Amount:        activationAmount.String(),
+				Asset:         nativeAsset,
+				SourceAccount: user.PublicKey,
+			})
+		}
+		//account exists and native balance is less than needed. add 3 native token to the wallet
+		if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
+
+			//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
+			if !user.SignerIsValidWA(user.PrimarySigner, subWalletAccountObject) {
+
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: user.PrimarySigner,
+						Weight:  1,
+					},
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			} else {
+				subWalletInfo.SubWalletMustSign = 0
+			}
+
+		}
+		//make it custodial
+		if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
+
+			signerExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, walletSigner.Address(), nativeAsset)
+			if !signerExists {
+				ops = append(ops, &txnbuild.CreateAccount{
+					Destination:   walletSigner.Address(),
+					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
+					SourceAccount: user.PublicKey,
+				})
+
+			} else {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   walletSigner.Address(),
+					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
+					Asset:         nativeAsset,
+					SourceAccount: user.PublicKey,
+				})
+
+			}
+
+			//after creation, it now exists with enough balance to add primary wallet as signer
+			if !userBc.SignerIsValid(subWalletInfo.PublicKey, user.PrimarySigner) {
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: user.PrimarySigner,
+						Weight:  1,
+					},
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			}
+			if !userBc.SignerIsValid(subWalletInfo.PublicKey, walletSigner.Address()) {
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: walletSigner.Address(),
+						Weight:  3,
+					},
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			}
+		}
+
+	}
+
+	//add recovery key if account recovery is enabled
+	if user.AccountRecoveryEnabled == 1 {
+		recoveryKeyAddress := bc.GetRecoveryAccountAddress(user.Username, user.PublicKey)
+
+		if len(recoveryKeyAddress) == 56 {
+			if !userBc.SignerIsValid(subWalletInfo.PublicKey, recoveryKeyAddress) {
+				ops = append(ops, &txnbuild.SetOptions{
+					Signer: &txnbuild.Signer{
+						Address: recoveryKeyAddress,
+						Weight:  3,
+					},
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			}
+
+		}
+
+	}
+	fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	if !fee.IsZero() {
+		//add fees if enabled.
+		//process service fee
+		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+				SourceAccount: user.PublicKey,
+				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+			})
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE")))
+
+		} else {
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+				SourceAccount: user.PublicKey,
+				Asset:         txnbuild.NativeAsset{},
+			})
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee for creating view only access.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE")))
+
+		}
+	}
+
+	if subWalletInfo.WalletType == 0 {
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted from your primary wallet and be used to activate the sub-wallet.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+	}
+	if subWalletInfo.WalletType == 1 {
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+	}
+	if subWalletInfo.WalletType == 2 {
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an market making wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. Please note that MM wallets cannot be used to send normal payments, but only used for market making.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+	}
+
+	if subWalletInfo.WalletType == 3 {
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an bulk-payment wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. Please note that bulk-payment wallets cannot be used to send normal payments, but only be used by internal system to disburse bulk payments on your behalf.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
+
+	}
+	if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
 		ops = append(ops, &txnbuild.SetOptions{
-			Signer: &txnbuild.Signer{
-				Address: user.PublicKey,
-				Weight:  1,
-			},
-			SourceAccount: subWalletInfo.PublicKey,
+			LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(3)),
+			MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(3)),
+			HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(3)),
+			SourceAccount:   subWalletInfo.PublicKey,
 		})
-		if subWalletInfo.WalletType == 0 {
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted from your primary wallet and be used to activate the sub-wallet.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
-
-		}
-		if subWalletInfo.WalletType == 1 {
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
-
-		}
-		if subWalletInfo.WalletType == 2 {
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an market making wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that MM wallets cannot be used to send normal payments, but only used for market making.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
-
-		}
-
-		if subWalletInfo.WalletType == 3 {
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an bulk-payment wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that bulk-payment wallets cannot be used to send normal payments, but only be used by internal system to disburse bulk payments on your behalf.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
-
-		}
-
 	}
 
-	if subWalletAccountExists && (subWalletAccountNativeBalance.LessThan(minBalance)) {
-		//account exists and native balance is less than needed. add 3 native token to the wallet
-		ops = append(ops, &txnbuild.Payment{
-			Destination:   subWalletInfo.PublicKey,
-			Amount:        activationAmount.String(),
-			Asset:         nativeAsset,
-			SourceAccount: user.PublicKey,
-		})
-
-		//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
-		if !user.SignerIsValidWA(user.PublicKey, subWalletAccountObject) {
-
-			ops = append(ops, &txnbuild.SetOptions{
-				Signer: &txnbuild.Signer{
-					Address: user.PublicKey,
-					Weight:  1,
-				},
-				SourceAccount: subWalletInfo.PublicKey,
-			})
-		} else {
-			subWalletInfo.SubWalletMustSign = 0
-		}
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %s will be deducted from your primary wallet and be used to complete the sub-wallet process.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
-
-	}
-
-	if subWalletAccountExists && (subWalletAccountNativeBalance.GreaterThanOrEqual(minBalance)) {
-		//account exists and native balance is less than needed. add 3 native token to the wallet
-		ops = append(ops, &txnbuild.Payment{
-			Destination:   subWalletInfo.PublicKey,
-			Amount:        activationAmount.String(),
-			Asset:         nativeAsset,
-			SourceAccount: user.PublicKey,
-		})
-
-		//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
-		if !user.SignerIsValidWA(user.PublicKey, subWalletAccountObject) {
-
-			ops = append(ops, &txnbuild.SetOptions{
-				Signer: &txnbuild.Signer{
-					Address: user.PublicKey,
-					Weight:  1,
-				},
-				SourceAccount: subWalletInfo.PublicKey,
-			})
-		} else {
-			subWalletInfo.SubWalletMustSign = 0
-		}
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %s will be deducted from your primary wallet and be used to complete the sub-wallet process.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
-
-	}
 	channelSourceAccountExists, _, channelSourceAccountNativeBalance, _, channelSourceAccount, channelSourceAccountErr := network.BlockchainAccountProperties(client, subWalletInfo.ChannelAccount, txnbuild.NativeAsset{})
 	if !channelSourceAccountExists || channelSourceAccountErr != nil || (channelSourceAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
 		log.Printf("[generateSubWalletXdrWithChannelAccount] by [%v] for [%v] Channel Account underfunded.\n", user.Username, subWalletInfo.PublicKey)
@@ -512,27 +721,6 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 		}
 		return "", subWalletObj, err
 	}
-
-	//add recovery key if account recovery is enabled
-	if user.AccountRecoveryEnabled == 1 {
-		recoveryKeyAddress := bc.GetRecoveryAccountAddress(user.Username, user.PublicKey)
-
-		if len(recoveryKeyAddress) == 56 {
-			if !userBc.SignerIsValid(subWalletInfo.PublicKey, recoveryKeyAddress) {
-				ops = append(ops, &txnbuild.SetOptions{
-					Signer: &txnbuild.Signer{
-						Address: recoveryKeyAddress,
-						Weight:  1,
-					},
-					SourceAccount: subWalletInfo.PublicKey,
-				})
-			}
-
-		}
-
-	}
-	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
-
 	// Construct the transaction that holds the operations to execute on the network
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
