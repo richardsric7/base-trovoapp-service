@@ -382,7 +382,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 				SourceAccount: user.PublicKey,
 				Asset:         txnbuild.NativeAsset{},
 			})
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee for creating view only access.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE")))
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE")))
 
 		}
 	}

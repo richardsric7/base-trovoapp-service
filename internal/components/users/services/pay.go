@@ -389,6 +389,33 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, wa
 		}
 
 	}
+	//service fee
+	fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	if !fee.IsZero() {
+		if paymentInfo.Multiparty == 1 {
+			//process service fee
+			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+					SourceAccount: wallet.ID,
+					Asset:         txnbuild.NativeAsset{},
+				})
+				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
+
+			} else {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+					SourceAccount: wallet.ID,
+					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+				})
+				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+
+			}
+
+		}
+	}
 
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
@@ -676,6 +703,34 @@ func generatePaymentXdrWithChannelAccountPK(client *horizonclient.Client, owner 
 			})
 		}
 
+	}
+
+	//service fee
+	fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	if !fee.IsZero() {
+		if paymentInfo.Multiparty == 1 {
+			//process service fee
+			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+					SourceAccount: wallet.ID,
+					Asset:         txnbuild.NativeAsset{},
+				})
+				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
+
+			} else {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+					SourceAccount: wallet.ID,
+					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+				})
+				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+
+			}
+
+		}
 	}
 
 	// Construct the transaction that holds the operations to execute on the network
