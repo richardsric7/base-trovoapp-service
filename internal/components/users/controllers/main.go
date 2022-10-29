@@ -511,7 +511,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		c.JSON(http.StatusOK, url)
 	})
 
-	router.POST("/v1/users/trust-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/users/asset/opt-in", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
 		var trustLineInfo userModels.Trustline
@@ -602,7 +602,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		c.JSON(http.StatusOK, returnedTrustLineInfo)
 	})
 
-	router.POST("/v1/users/remove-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.POST("/v1/shared-access/users/asset/opt-in", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
 		var trustLineInfo userModels.Trustline
@@ -661,11 +661,128 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 		}
+		{
+			//check if pending shared access modify exists
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
+				return
+			}
+		}
 		if wallet.WalletType != 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/remove-asset %v", wallet.Alias), gc.DB)
+
+		hasInitiatorAccess := false
+		// check if user has initiator access to wallet.
+		for _, p := range signerUser.WalletsSharedWithUser {
+			if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+				hasInitiatorAccess = true
+			}
+		}
+		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/users/asset/opt-in %v", wallet.Alias), gc.DB)
+
+		returnedTrustLineInfo, err := userServices.TrustAsset(&signerUser, &wallet, &trustLineInfo, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		if walletOwner.PushNotificationToken != nil && len(returnedTrustLineInfo.TransactionID) > 0 && returnedTrustLineInfo.TransactionID != "PENDING_AUTH" {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Asset %v opted-in to on %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully opted-in to accept the asset [%v] as a trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, returnedTrustLineInfo)
+	})
+
+	router.POST("/v1/users/asset/opt-out", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		var trustLineInfo userModels.Trustline
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &trustLineInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		if walletOwner.Username != signerUser.Username {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "Access forbidden. Wallet does not belong to you."})
+			return
+		}
+		if wallet.WalletType != 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
+			return
+		}
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/asset/opt-out %v", wallet.Alias), gc.DB)
 
 		returnedTrustLineInfo, err := userServices.RemoveAssetTrust(&signerUser, &wallet, &trustLineInfo, gc)
 
@@ -685,7 +802,104 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		if walletOwner.PushNotificationToken != nil && len(returnedTrustLineInfo.TransactionID) > 0 && returnedTrustLineInfo.TransactionID != "PENDING_AUTH" {
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = ""
-			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Asset %v Removed from %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully removed the asset [%v] from the list of your trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Opt-out asset %v on %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully opted-out of the asset [%v] from the list of your trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		//At this point, there was no error.
+
+		c.JSON(http.StatusOK, returnedTrustLineInfo)
+	})
+
+	router.POST("/v1/shared-access/users/asset/opt-out", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		var trustLineInfo userModels.Trustline
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &trustLineInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		{
+			//check if pending shared access modify exists
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
+				return
+			}
+		}
+		if wallet.WalletType != 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
+			return
+		}
+
+		hasInitiatorAccess := false
+		// check if user has initiator access to wallet.
+		for _, p := range signerUser.WalletsSharedWithUser {
+			if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+				hasInitiatorAccess = true
+			}
+		}
+		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			return
+		}
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/users/asset/opt-out %v", wallet.Alias), gc.DB)
+
+		returnedTrustLineInfo, err := userServices.RemoveAssetTrust(&signerUser, &wallet, &trustLineInfo, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		if signerUser.PushNotificationToken != nil && returnedTrustLineInfo.TransactionID != "PENDING_AUTH" {
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*signerUser.PushNotificationToken, fmt.Sprintf("Asset %v opt-out request from %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have requested to opt-out of the asset [%v] from the list of assets that can be received on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 
 		//At this point, there was no error.
@@ -696,7 +910,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	router.PUT("/v1/users/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
-		_, err = usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -738,6 +952,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 		}
+		if walletOwner.Username != signerUser.Username {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "Access forbidden. Wallet does not belong to you."})
+			return
+		}
 		if wallet.WalletType != 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
@@ -758,7 +976,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 
-		_, complete, err := userServices.ClaimPendingAsset(&walletOwner, &wallet, &pendingAssetToClaim, gc.DB)
+		_, complete, err := userServices.ClaimPendingAsset(&signerUser, &wallet, &pendingAssetToClaim, gc)
 
 		if err != nil {
 			var ex tErrors.GenericError
@@ -781,6 +999,113 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
 
 		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", walletOwner.Username)
+		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
+
+		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
+		log.Printf("[CLAIM ASSET] Transaction Signature: [%v]\n", pendingAssetToClaim.TransactionSignature)
+		if complete {
+			c.JSON(http.StatusOK, pendingAssetToClaim)
+		} else {
+			c.JSON(http.StatusAccepted, pendingAssetToClaim)
+		}
+
+	})
+
+	router.PUT("/v1/shared-access/users/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		var err error
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+		{
+			//check if pending shared access modify exists
+			if userServices.CheckPendingSharedAccessApproval(middleware.ExtractPublicKey(c), gc.DB) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-pending-shared-access-op", "message": "There is a pending shared access operation on this wallet and must be completed first before attempting to send payment from this wallet."})
+				return
+			}
+		}
+		if wallet.WalletType != 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
+			return
+		}
+
+		hasInitiatorAccess := false
+		// check if user has initiator access to wallet.
+		for _, p := range signerUser.WalletsSharedWithUser {
+			if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+				hasInitiatorAccess = true
+			}
+		}
+		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			return
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/shared-access/users/actions/claim-asset %v", middleware.ExtractPublicKey(c)), gc.DB)
+
+		var pendingAssetToClaim userModels.PendingAssetToClaim
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &pendingAssetToClaim)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		_, complete, err := userServices.ClaimPendingAsset(&signerUser, &wallet, &pendingAssetToClaim, gc)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		var ownerBalanceCacheKey, tempCacheKey, sNFT string
+
+		ownerBalanceCacheKey = fmt.Sprintf("GetBalance_%s", middleware.ExtractPublicKey(c))
+		sNFT = fmt.Sprintf("GetNFTs_%s", middleware.ExtractPublicKey(c))
+
+		tempCacheKey = fmt.Sprintf("GetBalance_%s", *wallet.TempPublicKey)
+
+		userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", wallet.Alias)
 		paymentPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
 
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)

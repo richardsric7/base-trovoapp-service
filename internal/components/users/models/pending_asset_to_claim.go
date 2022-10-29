@@ -12,7 +12,7 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-//PendingAssetToClaim holds pensing assets to be claimed
+// PendingAssetToClaim holds pensing assets to be claimed
 type PendingAssetToClaim struct {
 	AssetCode            string `json:"assetCode"`
 	AssetIssuer          string `json:"assetIssuer"`
@@ -20,6 +20,8 @@ type PendingAssetToClaim struct {
 	TransactionSignature string `json:"transactionSignature"`
 	TransactionID        string `json:"transactionId"`
 	NetworkPassPhrase    string `json:"networkPassPhrase"`
+	Multiparty           int    `json:"-"`
+	Commit               int    `json:"commit"`
 }
 type Trustline struct {
 	AssetCode            string `json:"assetCode"`
@@ -28,6 +30,8 @@ type Trustline struct {
 	TransactionSignature string `json:"transactionSignature"`
 	TransactionID        string `json:"transactionId"`
 	NetworkPassPhrase    string `json:"networkPassPhrase"`
+	Multiparty           int    `json:"-"`
+	Commit               int    `json:"commit"`
 }
 
 type BantuAsset struct {
@@ -92,7 +96,7 @@ func (i BantuAsset) GetAssetImageFromIssuer(gc *sharedconfig.GlobalConfig) strin
 	return url
 }
 
-//GetBlockchainAccountDataKey fetches the bantu account information using public key
+// GetBlockchainAccountDataKey fetches the bantu account information using public key
 func (i BantuAsset) GetBlockchainAccountDataKey(account *horizon.Account, keys ...string) (dataValues map[string]string) {
 	dataValues = make(map[string]string)
 

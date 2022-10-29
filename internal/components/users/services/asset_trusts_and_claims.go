@@ -1,24 +1,28 @@
 package users
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 	"trovo-wallet-api/internal/validators"
 
+	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
-	"gorm.io/gorm"
 )
 
-//ClaimPendingAsset claim pending assets
-func ClaimPendingAsset(owner *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, db *gorm.DB) (*userModels.PendingAssetToClaim, bool, error) {
-
+// ClaimPendingAsset claim pending assets
+func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (*userModels.PendingAssetToClaim, bool, error) {
+	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
+		pendingAssetToClaim.Multiparty = 1
+	}
 	var err error
 
 	//validators
@@ -39,7 +43,7 @@ func ClaimPendingAsset(owner *userModels.User, wallet *userModels.UserWallet, pe
 
 	horizonClient := network.GetBlockchainClient()
 
-	xdrBase64, err := generateXdr(horizonClient, *owner, wallet, db, pendingAssetToClaim)
+	xdrBase64, err := generateClaimPendingAssetXdr(signerUser, wallet, pendingAssetToClaim, gc)
 
 	if err != nil {
 		return pendingAssetToClaim, false, err
@@ -51,7 +55,7 @@ func ClaimPendingAsset(owner *userModels.User, wallet *userModels.UserWallet, pe
 
 	pendingAssetToClaim.Transaction = xdrBase64
 
-	if len(pendingAssetToClaim.TransactionSignature) == 0 {
+	if len(pendingAssetToClaim.TransactionSignature) == 0 && pendingAssetToClaim.Commit == 0 {
 		//no signature
 		return pendingAssetToClaim, false, err
 
@@ -59,7 +63,7 @@ func ClaimPendingAsset(owner *userModels.User, wallet *userModels.UserWallet, pe
 
 	//there was a signature... let's submit
 
-	if oldTxn != xdrBase64 {
+	if oldTxn != xdrBase64 && pendingAssetToClaim.Commit == 0 {
 		return pendingAssetToClaim, false, &tErrors.CustomError{
 			Param:      "transaction",
 			Err:        "transaction mismatch",
@@ -67,24 +71,59 @@ func ClaimPendingAsset(owner *userModels.User, wallet *userModels.UserWallet, pe
 			Code:       404,
 		}
 	}
+	if (pendingAssetToClaim.Commit == 0 && wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded == 0) || (wallet.SharedAccessEnabled == 0 && pendingAssetToClaim.Commit == 0) {
+		txnID, err := network.SubmitXdrWithSignature(horizonClient, wallet.Signer, xdrBase64, pendingAssetToClaim.TransactionSignature)
 
-	txnID, err := network.SubmitXdrWithSignature(horizonClient, wallet.Signer, xdrBase64, pendingAssetToClaim.TransactionSignature)
+		if err != nil {
+			log.Printf("[ClaimPendingAsset]error submitting txn: %v\n", err)
+			return pendingAssetToClaim, false, &tErrors.ErrorTemporaryServerError{}
+		}
 
-	if err != nil {
-		log.Printf("[ClaimPendingAsset]error submitting txn: %v\n", err)
-		return pendingAssetToClaim, false, &tErrors.ErrorTemporaryServerError{}
+		pendingAssetToClaim.TransactionID = txnID
+
+		return pendingAssetToClaim, true, nil
 	}
 
-	pendingAssetToClaim.TransactionID = txnID
+	if pendingAssetToClaim.Multiparty == 1 {
+		pendingAssetToClaim.TransactionID = "PENDING_AUTH"
+		log.Printf("[ClaimPendingAsset]shared access with approver permission enabled for %v \n", wallet.Alias)
+		id := uuid.NewString()
+		assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
+		if len(pendingAssetToClaim.AssetIssuer) == 56 {
+			assetOfPayment = fmt.Sprintf("%v:%v...%v", pendingAssetToClaim.AssetCode, pendingAssetToClaim.AssetIssuer[0:4], pendingAssetToClaim.AssetIssuer[51:55])
+		}
+		description := fmt.Sprintf("Claim asset  %v ", assetOfPayment)
+		transactionByte, _ := json.Marshal(*pendingAssetToClaim)
+		transactionStr := string(transactionByte)
+		pendingAuth := userModels.PendingAuth{
+			ID:                       id,
+			Initiator:                signerUser.Username,
+			InitiatorSignerPublicKey: signerUser.PrimarySigner,
+			WalletPublicKey:          wallet.ID,
+			TransactionType:          "ACCEPT PENDING ASSET",
+			Description:              description,
+			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:           xdrBase64,
+			TransactionInfoStr:       &transactionStr,
+		}
+		//save and commit this to database
+		e := gc.DB.Create(&pendingAuth).Error
+		if e != nil {
+			log.Printf("[ClaimPendingAsset] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+			err = &tErrors.ErrorTemporaryServerError{}
+			return pendingAssetToClaim, true, err
+		}
+		return pendingAssetToClaim, true, nil
 
-	return pendingAssetToClaim, true, nil
+	}
 
+	return pendingAssetToClaim, false, &tErrors.ErrorTemporaryServerError{}
 }
 
-func generateXdr(horizonClient *horizonclient.Client, owner userModels.User, wallet *userModels.UserWallet, db *gorm.DB, pendingAssetToClaim *userModels.PendingAssetToClaim) (string, error) {
+func generateClaimPendingAssetXdr(owner *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (string, error) {
 
 	tempKeyPair, err := network.TempAccountKeypair(wallet.ID)
-	log.Printf("[generateXdr]tempKey: %v, main key: %v, alias: %v\n", tempKeyPair.Address(), wallet.ID, wallet.Alias)
+	log.Printf("[generatePendingAssetXdr]tempKey: %v, main key: %v, alias: %v\n", tempKeyPair.Address(), wallet.ID, wallet.Alias)
 
 	if err != nil {
 		return "", err
@@ -100,7 +139,7 @@ func generateXdr(horizonClient *horizonclient.Client, owner userModels.User, wal
 		asset = txnbuild.CreditAsset{Code: pendingAssetToClaim.AssetCode, Issuer: pendingAssetToClaim.AssetIssuer}
 	}
 
-	tempAccountExist, tempAccountTrustsAsset, nativeAccountBalance, customAccountBalance, tempAccount, err := network.BlockchainAccountProperties(horizonClient, tempKeyPair.Address(), asset)
+	tempAccountExist, tempAccountTrustsAsset, nativeAccountBalance, customAccountBalance, tempAccount, err := network.BlockchainAccountProperties(gc.BantuExpansionClient, tempKeyPair.Address(), asset)
 
 	if err != nil {
 		return "", err
@@ -113,10 +152,16 @@ func generateXdr(horizonClient *horizonclient.Client, owner userModels.User, wal
 	if !tempAccountTrustsAsset {
 		return "", &tErrors.ErrorAssetNotClaimable{}
 	}
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
+	// paymentInfo.Messages = messages
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
 
 	//source account details
 
-	sourceAccountExists, sourceAccountTrustsAsset, _, _, sourceAccount, _ := network.BlockchainAccountProperties(horizonClient, wallet.ID, asset)
+	sourceAccountExists, sourceAccountTrustsAsset, _, _, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
 
@@ -160,23 +205,49 @@ func generateXdr(horizonClient *horizonclient.Client, owner userModels.User, wal
 		return "", &tErrors.ErrorAssetNotClaimable{}
 	}
 
+	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        tempAccount,
-			IncrementSequenceNum: true,
-			Operations:           ops,
-			BaseFee:              txnbuild.MinBaseFee,
-			Memo:                 txnbuild.MemoText("claim-asset"),
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
+	if pendingAssetToClaim.Multiparty == 1 {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              2000,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("claim-asset"),
 			},
-		},
-	)
+		)
+	} else {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        tempAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              2000,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("claim-asset"),
+			},
+		)
+	}
 
 	if err != nil {
-		log.Println("[claim-asset generateXdr]error constructing transaction ", err)
+		log.Println("[generatePendingAssetXdr]error constructing transaction ", err)
 		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if pendingAssetToClaim.Multiparty == 1 {
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+
+		if err != nil {
+			log.Println("[generatePendingAssetXdr] error signing transaction with channelAccount key ", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
 	}
 
 	xdrBase64, err := tx.Base64()
@@ -189,20 +260,31 @@ func generateXdr(horizonClient *horizonclient.Client, owner userModels.User, wal
 
 }
 
-func generateTrustAssetXdr(wallet *userModels.UserWallet, assetCode, assetIssuer string, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+	assetIssuer := trustLineInfo.AssetIssuer
+	assetCode := trustLineInfo.AssetCode
+	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
+
 	if len(assetCode) == 0 || len(assetCode) > 12 || len(assetIssuer) != 56 {
 		return "", &tErrors.CustomError{Param: "assetCode", Err: "error-invalid-asset", ErrMessage: "Asset Supplied is invalid.", Code: http.StatusBadRequest}
 	}
 
 	asset := txnbuild.CreditAsset{Code: assetCode, Issuer: assetIssuer}
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
+
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
+
 	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, _, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
 	if !sourceAccountExists {
 		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
 
 	}
-	if nativeAccountBalance.LessThan(decimal.NewFromFloat(2.8)) {
-		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: "The Wallet is currently underfunded. Please maintain about 3XBN balance before you can perform this task", Code: http.StatusBadRequest}
+	if nativeAccountBalance.LessThan(minBalance) {
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
 
 	}
 
@@ -220,22 +302,49 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, assetCode, assetIssuer
 	})
 
 	// Construct the transaction that holds the operations to execute on the network
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        sourceAccount,
-			IncrementSequenceNum: true,
-			Operations:           ops,
-			BaseFee:              txnbuild.MinBaseFee,
-			Memo:                 txnbuild.MemoText("trust-" + assetCode),
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
-			},
-		},
-	)
 
+	var tx *txnbuild.Transaction
+	// Construct the transaction that holds the operations to execute on the network
+	if trustLineInfo.Multiparty == 1 {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("trust-" + assetCode),
+			},
+		)
+	} else {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        sourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("trust-" + assetCode),
+			},
+		)
+	}
 	if err != nil {
 		log.Println("[generateTrustAssetXdr]error constructing transaction", err)
 		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if trustLineInfo.Multiparty == 1 {
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+
+		if err != nil {
+			log.Println("[generateTrustAssetXdr] error signing transaction with channelAccount key ", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
 	}
 
 	xdrBase64, err := tx.Base64()
@@ -248,20 +357,31 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, assetCode, assetIssuer
 
 }
 
-func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, assetCode, assetIssuer string, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+	assetIssuer := trustLineInfo.AssetIssuer
+	assetCode := trustLineInfo.AssetCode
+	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
+
 	if len(assetCode) == 0 || len(assetCode) > 12 || len(assetIssuer) != 56 {
 		return "", &tErrors.CustomError{Param: "assetCode", Err: "error-invalid-asset", ErrMessage: "Asset Supplied is invalid.", Code: http.StatusBadRequest}
 	}
 
 	asset := txnbuild.CreditAsset{Code: assetCode, Issuer: assetIssuer}
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
+
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
+
 	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, assetBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
 	if !sourceAccountExists {
 		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
 
 	}
-	if nativeAccountBalance.LessThan(decimal.NewFromFloat(2.8)) {
-		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: "The Wallet is currently underfunded. Please maintain about 3XBN balance before you can perform this task", Code: http.StatusBadRequest}
+	if nativeAccountBalance.LessThan(minBalance) {
+		return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
 
 	}
 
@@ -283,23 +403,48 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, assetCode, asset
 		SourceAccount: wallet.ID,
 	})
 
+	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        sourceAccount,
-			IncrementSequenceNum: true,
-			Operations:           ops,
-			BaseFee:              txnbuild.MinBaseFee,
-			Memo:                 txnbuild.MemoText("untrust-" + assetCode),
-			Preconditions: txnbuild.Preconditions{
-				TimeBounds: txnbuild.NewInfiniteTimeout(),
+	if trustLineInfo.Multiparty == 1 {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("untrust-" + assetCode),
 			},
-		},
-	)
-
+		)
+	} else {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        sourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("untrust-" + assetCode),
+			},
+		)
+	}
 	if err != nil {
 		log.Println("[generateRemoveTrustAssetXdr]error constructing transaction", err)
 		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if trustLineInfo.Multiparty == 1 {
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+
+		if err != nil {
+			log.Println("[generateRemoveTrustAssetXdr] error signing transaction with channelAccount key ", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
 	}
 
 	xdrBase64, err := tx.Base64()
@@ -314,31 +459,36 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, assetCode, asset
 
 func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (*userModels.Trustline, error) {
 	trustLineInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
-	if wallet.SharedAccessEnabled == 0 {
-		//managed access not enabled
-		if wallet.Signer != signerUser.PrimarySigner {
-			return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
+	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
+		trustLineInfo.Multiparty = 1
+	}
 
+	// if wallet.Signer != signerUser.PrimarySigner {
+	// 	return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
+
+	// }
+	//generatexdr
+	xdrBase64, err := generateTrustAssetXdr(wallet, trustLineInfo, gc)
+	if err != nil {
+		return trustLineInfo, err
+	}
+	oldTransaction := trustLineInfo.Transaction
+	trustLineInfo.Transaction = xdrBase64
+	if len(trustLineInfo.TransactionSignature) == 0 && trustLineInfo.Commit == 0 {
+		//needs to be signed first
+		return trustLineInfo, nil
+	}
+	if oldTransaction != xdrBase64 && trustLineInfo.Commit == 0 {
+		return trustLineInfo, &tErrors.CustomError{
+			Param:      "transaction",
+			Err:        "transaction mismatch",
+			ErrMessage: "transaction mismatch, please try again",
+			Code:       http.StatusBadRequest,
 		}
-		//generatexdr
-		xdrBase64, err := generateTrustAssetXdr(wallet, trustLineInfo.AssetCode, trustLineInfo.AssetIssuer, gc)
-		if err != nil {
-			return trustLineInfo, err
-		}
-		oldTransaction := trustLineInfo.Transaction
-		trustLineInfo.Transaction = xdrBase64
-		if len(trustLineInfo.TransactionSignature) == 0 {
-			//needs to be signed first
-			return trustLineInfo, nil
-		}
-		if oldTransaction != xdrBase64 {
-			return trustLineInfo, &tErrors.CustomError{
-				Param:      "transaction",
-				Err:        "transaction mismatch",
-				ErrMessage: "transaction mismatch, please try again",
-				Code:       http.StatusBadRequest,
-			}
-		}
+	}
+
+	if (trustLineInfo.Commit == 0 && wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded == 0) || (wallet.SharedAccessEnabled == 0 && trustLineInfo.Commit == 0) {
+
 		//submit to network
 		txnHash, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, signerUser.PrimarySigner, xdrBase64, trustLineInfo.TransactionSignature)
 		if err != nil {
@@ -346,11 +496,41 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 		}
 		trustLineInfo.TransactionID = txnHash
 		return trustLineInfo, nil
-	} else if wallet.SharedAccessEnabled == 1 {
-		//perform managed access operation and save to table
-		return trustLineInfo, nil
 	}
-	//did not match any of the conditions
+
+	if trustLineInfo.Multiparty == 1 {
+		trustLineInfo.TransactionID = "PENDING_AUTH"
+		log.Printf("[TrustAsset]shared access with approver permission enabled for %v \n", wallet.Alias)
+		id := uuid.NewString()
+		assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
+		if len(trustLineInfo.AssetIssuer) == 56 {
+			assetOfPayment = fmt.Sprintf("%v:%v...%v", trustLineInfo.AssetCode, trustLineInfo.AssetIssuer[0:4], trustLineInfo.AssetIssuer[51:55])
+		}
+		description := fmt.Sprintf("Trust asset  %v ", assetOfPayment)
+		transactionByte, _ := json.Marshal(*trustLineInfo)
+		transactionStr := string(transactionByte)
+		pendingAuth := userModels.PendingAuth{
+			ID:                       id,
+			Initiator:                signerUser.Username,
+			InitiatorSignerPublicKey: signerUser.PrimarySigner,
+			WalletPublicKey:          wallet.ID,
+			TransactionType:          "OPT IN ASSET",
+			Description:              description,
+			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:           xdrBase64,
+			TransactionInfoStr:       &transactionStr,
+		}
+		//save and commit this to database
+		e := gc.DB.Create(&pendingAuth).Error
+		if e != nil {
+			log.Printf("[TrustAsset] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+			err = &tErrors.ErrorTemporaryServerError{}
+			return trustLineInfo, err
+		}
+		return trustLineInfo, nil
+
+	}
+	// did not match any of the conditions
 	return trustLineInfo, &tErrors.ErrorTemporaryServerError{}
 }
 
@@ -363,17 +543,18 @@ func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet
 
 		}
 		//generatexdr
-		xdrBase64, err := generateRemoveTrustAssetXdr(wallet, trustLineInfo.AssetCode, trustLineInfo.AssetIssuer, gc)
+		xdrBase64, err := generateRemoveTrustAssetXdr(wallet, trustLineInfo, gc)
 		if err != nil {
 			return trustLineInfo, err
 		}
 		oldTransaction := trustLineInfo.Transaction
 		trustLineInfo.Transaction = xdrBase64
-		if len(trustLineInfo.TransactionSignature) == 0 {
+		if len(trustLineInfo.TransactionSignature) == 0 && trustLineInfo.Commit == 0 {
 			//needs to be signed first
 			return trustLineInfo, nil
 		}
-		if oldTransaction != xdrBase64 {
+
+		if oldTransaction != xdrBase64 && trustLineInfo.Commit == 0 {
 			return trustLineInfo, &tErrors.CustomError{
 				Param:      "transaction",
 				Err:        "transaction mismatch",

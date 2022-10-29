@@ -155,6 +155,7 @@ func Pay(signerUser *userModels.User, wallet *userModels.UserWallet, paymentInfo
 	if paymentInfo.Commit == 0 {
 		return paymentInfo, nil, nil
 	}
+	
 	paymentInfo.TransactionID = "PENDING_AUTH"
 	log.Printf("[Pay]shared access with approver permission enabled for %v \n", wallet.Alias)
 	id := uuid.NewString()
