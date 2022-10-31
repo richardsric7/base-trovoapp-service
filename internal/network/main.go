@@ -216,7 +216,13 @@ func SubmitXdrWithSignature(client *horizonclient.Client, signerPublicKey string
 			log.Printf("[SubmitXdrWithSignature] not horizon error: %v\n", err)
 
 		}
-
+		if strings.Contains(err.Error(), "liquid") {
+			return "", &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-low-liquidity",
+				ErrMessage: "There is not enough market to exchange for your source asset at this time. Please try again later or reduce the quantity you are swapping and try again.",
+			}
+		}
 		return "", &tErrors.CustomError{Param: "publicKey", Err: "error operation failed", ErrMessage: "Operation Failed", Code: 500}
 
 	}

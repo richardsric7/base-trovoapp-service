@@ -2232,7 +2232,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		//check if owner is the initiator
 		var isInitiator bool
-		isViewOnly := true
+		isViewOnly := wallet.HasViewOnlyAccess(gc)
 		pl := wallet.Permissions
 		if len(pl) == 0 {
 			//reject request
@@ -2255,6 +2255,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 
 		}
+
 		if signerUser.Username == walletOwner.Username && !isViewOnly && !isInitiator {
 			//reject request
 			c.JSON(http.StatusBadRequest, gin.H{"error": "error-not-an-initiator", "message": "You do not have initiator permission on this wallet. Only an initiator can submit this transaction."})

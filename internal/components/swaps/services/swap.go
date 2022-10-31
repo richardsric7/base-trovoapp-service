@@ -64,6 +64,21 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		txnHash, err := network.SubmitXdrWithSignature(client, signerUser.PrimarySigner, swapInfo.Transaction, swapInfo.TransactionSignature)
 		if err != nil {
 			logDiscordFailedSwap(fmt.Sprintf("Error submitting swap [%+v] transaction: %s", swapInfo, err.Error()))
+			if strings.Contains(err.Error(), "liquid") {
+				destAsset := os.Getenv("NATIVE_ASSET_CODE")
+				sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+				if len(swapInfo.SourceAssetCode) > 0 {
+					sourceAsset = swapInfo.SourceAssetCode
+				}
+				if len(swapInfo.DestinationAssetCode) > 0 {
+					destAsset = swapInfo.DestinationAssetCode
+				}
+				return &tErrors.CustomError{
+					Param:      "destinationAssetCode",
+					Err:        "error-low-liquidity",
+					ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+				}
+			}
 		}
 		swapInfo.TransactionID = txnHash
 		return err
@@ -398,7 +413,21 @@ func getStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 
 		}
 		log.Println("[client.StrictSendPathsErr] Error submitting:", err)
-
+		if strings.Contains(err.Error(), "liquid") {
+			destAsset := os.Getenv("NATIVE_ASSET_CODE")
+			sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+			if len(pathInput.SourceAssetCode) > 0 {
+				sourceAsset = pathInput.SourceAssetCode
+			}
+			if pathInput.DestinationAssets != "native" {
+				destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
+			}
+			return paths, "", &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-low-liquidity",
+				ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+			}
+		}
 		return paths, "", &tErrors.ErrorTemporaryServerError{}
 
 	}
