@@ -4,6 +4,7 @@ import (
 	"log"
 	"sort"
 	"strings"
+	"time"
 	userDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -15,7 +16,7 @@ import (
 	"github.com/stellar/go/protocols/horizon"
 )
 
-//GetSortedUserBalance gets user blockchain balance
+// GetSortedUserBalance gets user blockchain balance
 func GetSortedUserBalance(publicKey string, gc *sharedconfig.GlobalConfig) (balances []userModels.Balance, err error) {
 
 	var userWallet userModels.UserWallet
@@ -84,7 +85,7 @@ func GetUserAccountThresholds(publicKey string) (thresholds horizon.AccountThres
 	return account.Thresholds
 }
 
-//GetBlockchainAccountDetail fetches the bantu account information using public key
+// GetBlockchainAccountDetail fetches the bantu account information using public key
 func GetBlockchainAccountDetail(publicKey string) (clientAccount horizon.Account, err error) {
 	client := network.GetBlockchainClient()
 	accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
@@ -104,4 +105,79 @@ func GetBlockchainAccountDetail(publicKey string) (clientAccount horizon.Account
 		return horizon.Account{}, err
 	}
 	return clientAccount, nil
+} //GetBlockchainAccountDetail fetches the bantu account information using public key
+
+// GetBlockchainAssets fetches the blockchain asset information using public key
+func GetBlockchainAssets(issuerPublicKey string) (assetsPage horizon.AssetsPage, err error) {
+	client := network.GetBlockchainClient()
+	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: issuerPublicKey, Limit: 200}
+	assetsPage, err = client.Assets(assetRequest)
+	if err != nil {
+		log.Println("[GetBlockchainAssets]: ", err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetBlockchainAssets Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
+			return assetsPage, &tErrors.ErrorTemporaryServerError{}
+		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
+			err = &tErrors.ErrorBlockchainAccountNotActivated{}
+		} else {
+
+			err = &tErrors.ErrorTemporaryServerError{}
+		}
+
+		return
+	}
+	return assetsPage, nil
+}
+
+// BlockchainAssetIssuedByIssuer fetches the blockchain asset information using public key
+func BlockchainAssetIssuedByIssuer(issuerPublicKey, assetCode string) bool {
+	client := network.GetBlockchainClient()
+	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: issuerPublicKey, ForAssetCode: assetCode}
+	assetsPage, err := client.Assets(assetRequest)
+	if err != nil {
+		return false
+	}
+	return len(assetsPage.Embedded.Records) > 0
+
+}
+
+// GetBlockchainAssetsIssuedByIssuer returns blockchain assets issued by the issuer
+func GetBlockchainAssetsIssuedByIssuer(issuerPublicKey string) (issuedAssets map[string]horizon.AssetStat) {
+	issuedAssets = make(map[string]horizon.AssetStat, 0)
+	var err error
+	assetPage, err := GetBlockchainAssets(issuerPublicKey)
+	if err != nil {
+		return
+	}
+	//iterate through assetPage
+	for _, a := range assetPage.Embedded.Records {
+		issuedAssets[a.Code] = a
+	}
+	return
+}
+
+// BlockchainAssetIssuedByIssuer fetches the blockchain asset information using public key
+func BlockchainAssetLastPaymentSource(toPublicKey, assetCode, issuerPublicKey string, gc *sharedconfig.GlobalConfig) string {
+	type PaymentHistory struct {
+		ID              string
+		TransactionType string    `gorm:"index:idx_payment_history_unique_key,unique"`
+		TransactionDate time.Time `json:"transactionDate" gorm:"index:idx_payment_history_tx_time"`
+		From            *string   `json:"from" gorm:"size:150;index:idx_payment_history_from;null"` //trovoWallet alias and name
+		FromPublicKey   string    `json:"fromPublicKey" gorm:"size:150;index:idx_payment_history_from_pk;not null;index:idx_payment_history_unique_key,unique;index:idx_payment_history_unique_key,unique"`
+		To              *string   `json:"to" gorm:"size:56;index:idx_payment_history_to;null"` //trovoWallet alias and name
+		ToPublicKey     string    `json:"toPublicKey" gorm:"size:56;index:idx_payment_history_to_pk;not null;index:idx_payment_history_unique_key,unique"`
+		Memo            *string   `json:"memo" gorm:"size:28;null"`
+		AssetIssuer     *string   `json:"assetIssuer" gorm:"size:56;null;"`
+		AssetCode       string    `json:"assetCode" gorm:"size:12;not null;index:idx_payment_history_unique_key,unique"`
+		Amount          string    `json:"amount" gorm:"index:idx_payment_history_unique_key,unique"`
+		TransactionID   string    `json:"transactionId" gorm:"size:70;not null;index:idx_payment_history_txid;index:idx_payment_history_unique_key,unique"`
+		PT              string    `json:"-" gorm:"size:70;not null;index:idx_payment_history_unique_key,unique;"`
+	}
+
+	var ph PaymentHistory
+	e := gc.DB.Order("transaction_date DESC").Where("to_public_key = ? AND asset_code = ? AND (CASE WHEN asset_issuer IS NULL THEN '' ELSE asset_issuer END) = ?", toPublicKey, assetCode, issuerPublicKey).First(&ph).Error
+	if e == nil {
+		return ph.FromPublicKey
+	}
+	return ""
 }

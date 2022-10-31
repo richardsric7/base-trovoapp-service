@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-//CuratedAsset model struct for CuratedAsset.
+// CuratedAsset model struct for CuratedAsset.
 type CuratedAsset struct {
 	ID                          uint64     `gorm:"primaryKey" json:"-"`
 	CreatedAt                   time.Time  `json:"-"`
@@ -28,7 +28,17 @@ type CuratedAsset struct {
 	Inactive                    uint64     `gorm:"type:integer;not null;default:1" json:"-"`
 }
 
-//PaginatedCuratedAssets returns records sent for search
+// CuratedAsset model struct for CuratedAsset.
+type CuratedSwapAsset struct {
+	ID          uint64    `gorm:"primaryKey" json:"-"`
+	CreatedAt   time.Time `json:"-"`
+	UpdatedAt   time.Time `json:"-"`
+	AssetCode   string    `gorm:"size:12;unique;not null" json:"assetCode"`
+	AssetIssuer string    `gorm:"size:56;not null;check:,length(asset_issuer) = 56" json:"assetIssuer"`
+	Inactive    uint64    `gorm:"type:integer;not null;default:0" json:"-"`
+}
+
+// PaginatedCuratedAssets returns records sent for search
 type PaginatedCuratedAssets struct {
 	Pages        int            `json:"pages"`
 	CurrentPage  int            `json:"currentPage"`
@@ -37,19 +47,19 @@ type PaginatedCuratedAssets struct {
 	Records      []CuratedAsset `json:"records"`
 }
 
-//CuratedAssetOutput holds output for curated assets
+// CuratedAssetOutput holds output for curated assets
 type CuratedAssetOutput struct {
 	CuratedAsset CuratedAsset `json:"curatedAssets"`
 	Trusted      bool         `json:"trusted"`
 }
 
-//PaginatedBlockchainAssets returns records sent for search
+// PaginatedBlockchainAssets returns records sent for search
 type PaginatedBlockchainAssets struct {
 	PageCursor string            `json:"pageCursor"`
 	Assets     []BlockchainAsset `json:"assets"`
 }
 
-//BlockchainAsset holds blochcain assets
+// BlockchainAsset holds blochcain assets
 type BlockchainAsset struct {
 	AssetCode      string
 	AssetIssuer    string
@@ -61,15 +71,15 @@ type BlockchainAsset struct {
 	Toml           string
 }
 
-//AssetClass model struct for CuratedAsset.
-//token, stablecoin, sto (security token) and nft (non fungible token)
+// AssetClass model struct for CuratedAsset.
+// token, stablecoin, sto (security token) and nft (non fungible token)
 type AssetClass struct {
 	ID         uint64 `gorm:"primaryKey" json:"-"`
 	AssetClass string `gorm:"size:45;unique;not null" json:"assetClass"`
 }
 
-//AssetClassOutput model struct for CuratedAsset.
-//token, stablecoin, sto (security token) and nft (non fungible token)
+// AssetClassOutput model struct for CuratedAsset.
+// token, stablecoin, sto (security token) and nft (non fungible token)
 type AssetClassOutput struct {
 	ID         uint64 `json:"id"`
 	AssetClass string `json:"assetClass"`

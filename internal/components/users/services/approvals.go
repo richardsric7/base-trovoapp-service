@@ -194,6 +194,8 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	var pts userModels.PendingTransactionSignature
 	var revokedList, modifiedList, addedList []userModels.WalletPermission
 	var paymentInfo paymentModels.PaymentInfo
+	// var swapInfo swapModels.SwapSendInfo
+	// var pendingAssetClaim userModels.PendingAssetToClaim
 
 	if p.TransactionStatus == "COMPLETED" {
 		return &tErrors.ErrorCompletedRequest{ID: p.ID}
@@ -246,17 +248,8 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			log.Println("[ApproveTransaction] error decoding json for modified shared access")
 			return &tErrors.ErrorTemporaryServerError{}
 		}
-		// do dry run of payment again
-		simPayInfo := paymentInfo
-		simPayInfo.Transaction = ""
-		simPayInfo.Commit = 0
-		_, _, e = Pay(&initiatorUser, &wallet, &simPayInfo, gc)
-		if e != nil {
-			log.Println("[ApproveTransaction] error dry running for payment")
-			return e
-		}
-		// p.TransactionXdr = simPayInfo.Transaction
 	}
+
 	if len(approvalInfo.TransactionSignature) == 0 {
 
 		approvalInfo.Transaction = p.TransactionXdr
@@ -418,13 +411,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return nil
 
 		} else if p.TransactionType == "PAYMENT" {
-			tbyte := []byte(*p.TransactionInfoStr)
-			var paymentInfo paymentModels.PaymentInfo
-			e = json.Unmarshal(tbyte, &paymentInfo)
-			if e != nil {
-				log.Println("[ApproveTransaction] error decoding json for modified shared access")
-				return &tErrors.ErrorTemporaryServerError{}
-			}
+
 			accessList := wallet.GetPermissionList(gc.DB)
 			// send push notifications
 			assetCode := paymentInfo.AssetCode
@@ -546,6 +533,24 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 				}
 
+			}
+
+		} else {
+
+			accessList := wallet.GetPermissionList(gc.DB)
+
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "pendingAuth"
+			for _, v := range accessList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				if e != nil {
+					continue
+				}
+				if u.PushNotificationToken != nil {
+					dataPayload := make(map[string]string)
+					dataPayload["none"] = ""
+					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+				}
 			}
 
 		}

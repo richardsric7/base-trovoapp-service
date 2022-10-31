@@ -3,6 +3,7 @@ package users
 import (
 	"fmt"
 	"strings"
+	assets "trovo-wallet-api/internal/components/assets/models"
 	"trovo-wallet-api/internal/sharedconfig"
 )
 
@@ -21,6 +22,11 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 	jsonObj.Verified = u.Verified
 	jsonObj.Suspended = u.Suspended
 	jsonObj.HasSecurityQuestions = u.HasSecurityQuestions
+	jsonObj.CuratedSwapList = u.GetCuratedSwapList(gc.DB)
+	if jsonObj.CuratedSwapList == nil {
+		jsonObj.CuratedSwapList = make([]assets.CuratedSwapAsset, 0)
+	}
+
 	// log.Println("[UserToJSON] set basic params")
 	//nullable
 	{
@@ -65,6 +71,7 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 	} else {
 		jsonObj.UserWallets = make([]UserWalletJSON, 0)
 	}
+	//curated swap list
 
 	// log.Println("[UserToJSON] ended user wallets json and returning data")
 	return jsonObj

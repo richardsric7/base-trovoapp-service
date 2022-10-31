@@ -362,8 +362,11 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 		}
 
 	}
-	fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	if !fee.IsZero() {
+	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	if e != nil {
+		serviceFee = decimal.Zero
+	}
+	if serviceFee.IsPositive() {
 		//add fees if enabled.
 		//process service fee
 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {

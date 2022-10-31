@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 	blockchain "trovo-wallet-api/internal/components/assets/blockchain"
+	assets "trovo-wallet-api/internal/components/assets/models"
 	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
@@ -427,6 +428,138 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizo
 	return clientAccount, true, nil
 }
 
+// GetBlockchainAssets fetches the blockchain asset information using public key
+func (u *UserWallet) GetBlockchainAssets() (assetsPage horizon.AssetsPage, err error) {
+	client := network.GetBlockchainClient()
+	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: u.ID, Limit: 200}
+	assetsPage, err = client.Assets(assetRequest)
+	if err != nil {
+		log.Println("[GetBlockchainAssets]: ", err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetBlockchainAssets Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
+			return assetsPage, &tErrors.ErrorTemporaryServerError{}
+		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
+			err = &tErrors.ErrorBlockchainAccountNotActivated{}
+		} else {
+
+			err = &tErrors.ErrorTemporaryServerError{}
+		}
+
+		return
+	}
+	return assetsPage, nil
+}
+
+// OwnerOfBlockchainAssetIssued fetches the blockchain asset information using public key
+func (u *UserWallet) OwnerOfBlockchainAsset(assetCode string) bool {
+	client := network.GetBlockchainClient()
+	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: u.ID, ForAssetCode: assetCode}
+	assetsPage, err := client.Assets(assetRequest)
+	if err != nil {
+		return false
+	}
+	return len(assetsPage.Embedded.Records) > 0
+
+}
+
+// OwnerOfBlockchainAssetIssued fetches the blockchain asset information using public key
+func (u *UserWallet) CanIssuerMoreAssets() bool {
+	assetPage, err := u.GetBlockchainAssets()
+	if err != nil {
+		return false
+	}
+	maxCountAssets := 200
+
+	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
+	if err != nil {
+		return len(assetPage.Embedded.Records) < maxCountAssets
+	}
+
+	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
+
+}
+
+// GetBlockchainAssetsIssuedByIssuer returns blockchain assets issued by the issuer
+func (u *UserWallet) GetIssuedBlockchainAssets() (issuedAssets map[string]horizon.AssetStat) {
+	issuedAssets = make(map[string]horizon.AssetStat, 0)
+	var err error
+	assetPage, err := u.GetBlockchainAssets()
+	if err != nil {
+		return
+	}
+	//iterate through assetPage
+	for _, a := range assetPage.Embedded.Records {
+		issuedAssets[a.Code] = a
+	}
+	return
+}
+
+// GetBlockchainAssets fetches the blockchain asset information using public key
+func (u Issuer) GetBlockchainAssets() (assetsPage horizon.AssetsPage, err error) {
+	client := network.GetBlockchainClient()
+	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: string(u), Limit: 200}
+	assetsPage, err = client.Assets(assetRequest)
+	if err != nil {
+		log.Println("[GetBlockchainAssets]: ", err)
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "no such host") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "dial") {
+			log.Printf("[GetBlockchainAssets Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
+			return assetsPage, &tErrors.ErrorTemporaryServerError{}
+		} else if strings.Contains(strings.ToLower(err.Error()), "missing") {
+			err = &tErrors.ErrorBlockchainAccountNotActivated{}
+		} else {
+
+			err = &tErrors.ErrorTemporaryServerError{}
+		}
+
+		return
+	}
+	return assetsPage, nil
+}
+
+// OwnerOfBlockchainAssetIssued fetches the blockchain asset information using public key
+func (u Issuer) OwnerOfBlockchainAsset(assetCode string) bool {
+	client := network.GetBlockchainClient()
+	assetRequest := horizonclient.AssetRequest{ForAssetIssuer: string(u), ForAssetCode: assetCode}
+	assetsPage, err := client.Assets(assetRequest)
+	if err != nil {
+		return false
+	}
+	return len(assetsPage.Embedded.Records) > 0
+
+}
+
+// OwnerOfBlockchainAssetIssued fetches the blockchain asset information using public key
+func (u Issuer) CanIssuerMoreAssets() bool {
+	assetPage, err := u.GetBlockchainAssets()
+	if err != nil {
+		return false
+	}
+	maxCountAssets := 200
+
+	d, err := decimal.NewFromString(os.Getenv("MAX_ISSUED_ASSETS_PER_WALLET"))
+	if err != nil {
+		return len(assetPage.Embedded.Records) < maxCountAssets
+	}
+
+	return decimal.NewFromInt(int64(len(assetPage.Embedded.Records))).LessThan(d)
+
+}
+
+// GetBlockchainAssetsIssuedByIssuer returns blockchain assets issued by the issuer
+func (u Issuer) GetIssuedBlockchainAssets() (issuedAssets map[string]horizon.AssetStat) {
+	issuedAssets = make(map[string]horizon.AssetStat, 0)
+	var err error
+	assetPage, err := u.GetBlockchainAssets()
+	if err != nil {
+		return
+	}
+	//iterate through assetPage
+	for _, a := range assetPage.Embedded.Records {
+		issuedAssets[a.Code] = a
+	}
+	return
+}
+
 func (u *User) VerifyEmailOnMailgun() (validationResult mailgun.EmailVerification, blockEmail bool, err error) {
 	// To use the /v4 version of validations define MG_URL in the environment
 	// as `https://api.mailgun.net/v4` or set `v.SetAPIBase("https://api.mailgun.net/v4")`
@@ -693,74 +826,24 @@ func (a WalletAlias) GetAccessList(db *gorm.DB) (accessList []WalletPermission) 
 }
 
 func (u *UserWallet) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
-	viewOnly = true
-	// accessList := make([]WalletPermission, 0)
-	if u.ID == "" {
+	if u == nil {
+		return true
+	}
+	if u.NumberOfApprovalsNeeded > 0 && u.SharedAccessEnabled == 1 {
 		return false
 	}
-	if u.Permissions != nil {
-		if len(u.Permissions) > 0 {
-			accessList := u.Permissions
-			for _, access := range accessList {
-				if access.Permission != "VIEW-ONLY" {
-					return false
-				}
-			}
 
-			return
-		}
-	} else {
-
-		accessList := UserWalletID(u.ID).GetPermissionList(gc.DB)
-		if len(accessList) == 0 {
-			return false
-		}
-		accessList = u.Permissions
-		for _, access := range accessList {
-			if access.Permission != "VIEW-ONLY" {
-				return false
-			}
-		}
-
-		return
-	}
-
-	return
+	return true
 }
 func (u *UserWallet) HasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
-	viewOnly = true
-	// accessList := make([]WalletPermission, 0)
-	if u.ID == "" {
+	if u == nil {
+		return true
+	}
+	if u.NumberOfApprovalsNeeded > 0 && u.SharedAccessEnabled == 1 {
 		return false
 	}
-	if u.Permissions != nil {
-		if len(u.Permissions) > 0 {
-			accessList := u.Permissions
-			for _, access := range accessList {
-				if access.Permission != "VIEW-ONLY" {
-					return false
-				}
-			}
 
-			return
-		}
-	} else {
-
-		accessList := UserWalletID(u.ID).GetPermissionList(gc.DB)
-		if len(accessList) == 0 {
-			return false
-		}
-		accessList = u.Permissions
-		for _, access := range accessList {
-			if access.Permission != "VIEW-ONLY" {
-				return false
-			}
-		}
-
-		return
-	}
-
-	return
+	return true
 }
 
 func (u *UserWallet) SignerHasAccess(signer *User, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
@@ -990,25 +1073,30 @@ func (a ApprovalID) GetSubmittedTransaction(db *gorm.DB) (pendingAuth PendingAut
 }
 
 func (id UserWalletID) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig) (viewOnly bool) {
-	viewOnly = true
 	if id == "" {
-		return false
+		return true
 	}
 	wallet, err := id.GetWallet(gc.DB)
 	if err != nil {
+		return true
+	}
+
+	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		return false
 	}
 
-	if wallet.SharedAccessEnabled == 0 {
-		return false
-	}
-	for _, access := range wallet.Permissions {
-		if access.Permission != "VIEW-ONLY" {
-			return false
-		}
-	}
+	return true
+}
 
-	return
+func (u *User) GetCuratedSwapList(db *gorm.DB) (list []assets.CuratedSwapAsset) {
+
+	list = make([]assets.CuratedSwapAsset, 0)
+	// var swapAsset assets.CuratedSwapAsset
+	e := db.Find(&list).Error
+	if e != nil {
+		return make([]assets.CuratedSwapAsset, 0)
+	}
+	return list
 }
 
 func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet UserWallet, err error) {

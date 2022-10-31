@@ -180,7 +180,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 		//get the wallet you are sending payment from
-		userWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] %v error:%v\n", primaryAccountAlias, getWalletError)
 		}
@@ -199,7 +199,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 
-		if userWallet.WalletType == 2 || userWallet.WalletType == 3 {
+		if sourceWallet.WalletType == 2 || sourceWallet.WalletType == 3 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Market Making & Bulk Payment wallets are not allowed for this operation."})
 			return
 		}
@@ -216,13 +216,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 
 		}
-		if userWallet.WalletType != 0 {
+		if sourceWallet.WalletType != 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
 		{
 			//prevent wallets with approver from using this endpoint
-			if userWallet.SharedAccessEnabled == 1 && userWallet.WalletCountApproverAccess(gc) > 0 {
+			if sourceWallet.SharedAccessEnabled == 1 && sourceWallet.WalletCountApproverAccess(gc) > 0 {
 				errAccountIsTemp := &tErrors.CustomError{
 					Param:      "ID",
 					Err:        "error-wallet-with-shared-access-not-allowed",
@@ -286,7 +286,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 		}
-		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &userWallet, &paymentInfo, gc)
+		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
 		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
@@ -337,8 +337,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if len(destinationWallet.ID) == 56 {
 				receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
 			}
-			if len(userWallet.ID) == 56 {
-				senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *userWallet.TempPublicKey)
+			if len(sourceWallet.ID) == 56 {
+				senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
 
 			}
 
@@ -423,7 +423,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 							if e == nil {
 								if u.PushNotificationToken != nil {
 
-									u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+									u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 
 								}
 							}
@@ -436,13 +436,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 							}
 							if u.PushNotificationToken != nil {
 
-								u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+								u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 
 							}
 						}
 					}
 				}
-				accountSignerUser.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+				accountSignerUser.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 
 			}
 
@@ -551,7 +551,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 		//get the wallet you are sending payment from
-		userWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] %v error:%v\n", primaryAccountAlias, getWalletError)
 		}
@@ -570,7 +570,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 
-		if userWallet.WalletType == 2 || userWallet.WalletType == 3 {
+		if sourceWallet.WalletType == 2 || sourceWallet.WalletType == 3 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Market Making & Bulk Payment wallets are not allowed for this operation."})
 			return
 		}
@@ -587,13 +587,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 
 		}
-		if userWallet.WalletType != 0 {
+		if sourceWallet.WalletType != 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
 		{
 			//prevent wallets with approver from using this endpoint
-			if userWallet.SharedAccessEnabled == 0 {
+			if sourceWallet.SharedAccessEnabled == 0 {
 				errAccountIsTemp := &tErrors.CustomError{
 					Param:      "ID",
 					Err:        "error-wallet-without-shared-access-not-allowed",
@@ -657,7 +657,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 		}
-		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &userWallet, &paymentInfo, gc)
+		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
 		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
@@ -708,8 +708,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if len(destinationWallet.ID) == 56 {
 				receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
 			}
-			if len(userWallet.ID) == 56 {
-				senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *userWallet.TempPublicKey)
+			if len(sourceWallet.ID) == 56 {
+				senderTempCacheKey = fmt.Sprintf("GetBalance_%s", *sourceWallet.TempPublicKey)
 
 			}
 
@@ -727,7 +727,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(http.StatusOK, paymentInfoReturned)
 
 				{
-					accessList := userWallet.GetPermissionList(gc.DB)
+					accessList := sourceWallet.GetPermissionList(gc.DB)
 					// send push notifications
 					assetCode := paymentInfo.AssetCode
 					if assetCode == "" {
@@ -740,13 +740,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 						if a.Permission == "APPROVER" {
 							ph, e := usersDB.GetUser(a.TargetUsername, gc.DB)
 							if e == nil {
-								ph.SendPushMessage("Trovo: Payment request awaiting approval!", fmt.Sprintf("You have a payment transaction of %v %v to %v initiated by %v from the wallet with alias %v, which is now awaiting approval from you or any other approver.", paymentInfo.Amount, assetCode, paymentInfo.Destination, accountSignerUser.Username, userWallet.Alias), "", dataPayload, gc)
+								ph.SendPushMessage("Trovo: Payment request awaiting approval!", fmt.Sprintf("You have a payment transaction of %v %v to %v initiated by %v from the wallet with alias %v, which is now awaiting approval from you or any other approver.", paymentInfo.Amount, assetCode, paymentInfo.Destination, accountSignerUser.Username, sourceWallet.Alias), "", dataPayload, gc)
 
 							}
 
 						}
 					}
-					accountSignerUser.SendPushMessage("Trovo: Payment Request Submitted!", fmt.Sprintf("You have successfully submitted payment request of %v %v to %v on the wallet with alias %v. The listed approvers have been notifed to attend to the request.", paymentInfo.Amount, assetCode, paymentInfo.Destination, userWallet.Alias), "", dataPayload, gc)
+					accountSignerUser.SendPushMessage("Trovo: Payment Request Submitted!", fmt.Sprintf("You have successfully submitted payment request of %v %v to %v on the wallet with alias %v. The listed approvers have been notifed to attend to the request.", paymentInfo.Amount, assetCode, paymentInfo.Destination, sourceWallet.Alias), "", dataPayload, gc)
 
 				}
 
@@ -816,9 +816,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
 				if getDestinationWalletError == nil {
-					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 				}
-				accountSignerUser.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, userWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+				accountSignerUser.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 
 			}
 

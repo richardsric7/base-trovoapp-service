@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
@@ -43,7 +44,7 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 
 	horizonClient := network.GetBlockchainClient()
 
-	xdrBase64, err := generateClaimPendingAssetXdr(signerUser, wallet, pendingAssetToClaim, gc)
+	xdrBase64, err := generateClaimPendingAssetXdr(wallet, pendingAssetToClaim, gc)
 
 	if err != nil {
 		return pendingAssetToClaim, false, err
@@ -92,7 +93,7 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 		if len(pendingAssetToClaim.AssetIssuer) == 56 {
 			assetOfPayment = fmt.Sprintf("%v:%v...%v", pendingAssetToClaim.AssetCode, pendingAssetToClaim.AssetIssuer[0:4], pendingAssetToClaim.AssetIssuer[51:55])
 		}
-		description := fmt.Sprintf("Claim asset  %v ", assetOfPayment)
+		description := fmt.Sprintf("Accept pending asset  %v ", assetOfPayment)
 		transactionByte, _ := json.Marshal(*pendingAssetToClaim)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
@@ -120,7 +121,109 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 	return pendingAssetToClaim, false, &tErrors.ErrorTemporaryServerError{}
 }
 
-func generateClaimPendingAssetXdr(owner *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (string, error) {
+// RejectPendingAsset rejects pending assets
+func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (*userModels.PendingAssetToClaim, bool, error) {
+	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
+		pendingAssetToClaim.Multiparty = 1
+	}
+	var err error
+
+	//validators
+	{
+
+		err = validators.ValidateAssetCodeFormat(pendingAssetToClaim.AssetCode)
+
+		if err != nil {
+			return pendingAssetToClaim, false, err
+		}
+
+		err = validators.ValidatePublicKeyFormat(pendingAssetToClaim.AssetIssuer)
+
+		if err != nil {
+			return pendingAssetToClaim, false, err
+		}
+	}
+
+	horizonClient := network.GetBlockchainClient()
+
+	xdrBase64, err := generateRejectPendingAssetXdr(wallet, pendingAssetToClaim, gc)
+
+	if err != nil {
+		return pendingAssetToClaim, false, err
+	}
+
+	oldTxn := pendingAssetToClaim.Transaction
+
+	pendingAssetToClaim.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
+
+	pendingAssetToClaim.Transaction = xdrBase64
+
+	if len(pendingAssetToClaim.TransactionSignature) == 0 && pendingAssetToClaim.Commit == 0 {
+		//no signature
+		return pendingAssetToClaim, false, err
+
+	}
+
+	//there was a signature... let's submit
+
+	if oldTxn != xdrBase64 && pendingAssetToClaim.Commit == 0 {
+		return pendingAssetToClaim, false, &tErrors.CustomError{
+			Param:      "transaction",
+			Err:        "transaction mismatch",
+			ErrMessage: "transaction mismatch, please try again",
+			Code:       404,
+		}
+	}
+	if (pendingAssetToClaim.Commit == 0 && wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded == 0) || (wallet.SharedAccessEnabled == 0 && pendingAssetToClaim.Commit == 0) {
+		txnID, err := network.SubmitXdrWithSignature(horizonClient, wallet.Signer, xdrBase64, pendingAssetToClaim.TransactionSignature)
+
+		if err != nil {
+			log.Printf("[ClaimPendingAsset]error submitting txn: %v\n", err)
+			return pendingAssetToClaim, false, &tErrors.ErrorTemporaryServerError{}
+		}
+
+		pendingAssetToClaim.TransactionID = txnID
+
+		return pendingAssetToClaim, true, nil
+	}
+
+	if pendingAssetToClaim.Multiparty == 1 {
+		pendingAssetToClaim.TransactionID = "PENDING_AUTH"
+		log.Printf("[ClaimPendingAsset]shared access with approver permission enabled for %v \n", wallet.Alias)
+		id := uuid.NewString()
+		assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
+		if len(pendingAssetToClaim.AssetIssuer) == 56 {
+			assetOfPayment = fmt.Sprintf("%v:%v...%v", pendingAssetToClaim.AssetCode, pendingAssetToClaim.AssetIssuer[0:4], pendingAssetToClaim.AssetIssuer[51:55])
+		}
+		description := fmt.Sprintf("Reject pending asset  %v ", assetOfPayment)
+		transactionByte, _ := json.Marshal(*pendingAssetToClaim)
+		transactionStr := string(transactionByte)
+		pendingAuth := userModels.PendingAuth{
+			ID:                       id,
+			Initiator:                signerUser.Username,
+			InitiatorSignerPublicKey: signerUser.PrimarySigner,
+			WalletPublicKey:          wallet.ID,
+			TransactionType:          "REJECT PENDING ASSET",
+			Description:              description,
+			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:           xdrBase64,
+			TransactionInfoStr:       &transactionStr,
+		}
+		//save and commit this to database
+		e := gc.DB.Create(&pendingAuth).Error
+		if e != nil {
+			log.Printf("[ClaimPendingAsset] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+			err = &tErrors.ErrorTemporaryServerError{}
+			return pendingAssetToClaim, true, err
+		}
+		return pendingAssetToClaim, true, nil
+
+	}
+
+	return pendingAssetToClaim, false, &tErrors.ErrorTemporaryServerError{}
+}
+
+func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (string, error) {
 
 	tempKeyPair, err := network.TempAccountKeypair(wallet.ID)
 	log.Printf("[generatePendingAssetXdr]tempKey: %v, main key: %v, alias: %v\n", tempKeyPair.Address(), wallet.ID, wallet.Alias)
@@ -205,6 +308,37 @@ func generateClaimPendingAssetXdr(owner *userModels.User, wallet *userModels.Use
 		return "", &tErrors.ErrorAssetNotClaimable{}
 	}
 
+	//service fee
+	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	if e != nil {
+		serviceFee = decimal.Zero
+	}
+	if serviceFee.IsPositive() {
+		if pendingAssetToClaim.Multiparty == 1 {
+			//process service fee
+			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+					SourceAccount: wallet.ID,
+					Asset:         txnbuild.NativeAsset{},
+				})
+				pendingAssetToClaim.Messages = append(pendingAssetToClaim.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
+
+			} else {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+					SourceAccount: wallet.ID,
+					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+				})
+				pendingAssetToClaim.Messages = append(pendingAssetToClaim.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+
+			}
+
+		}
+	}
+
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if pendingAssetToClaim.Multiparty == 1 {
@@ -260,11 +394,142 @@ func generateClaimPendingAssetXdr(owner *userModels.User, wallet *userModels.Use
 
 }
 
+func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (string, error) {
+
+	tempKeyPair, err := network.TempAccountKeypair(wallet.ID)
+	log.Printf("[generateRejectPendingAssetXdr]tempKey: %v, main key: %v, alias: %v\n", tempKeyPair.Address(), wallet.ID, wallet.Alias)
+
+	if err != nil {
+		return "", err
+	}
+	originPublicKey := userBc.BlockchainAssetLastPaymentSource(tempKeyPair.Address(), pendingAssetToClaim.AssetCode, pendingAssetToClaim.AssetIssuer, gc)
+
+	if len(originPublicKey) == 0 {
+		err = &tErrors.CustomError{
+			Param:      "assetCode",
+			Err:        "error-could not get payment source",
+			ErrMessage: "Unable to get payment source for rejection.",
+		}
+		return "", err
+	}
+
+	//asset to Claim
+
+	var asset txnbuild.Asset = nil
+
+	asset = txnbuild.NativeAsset{}
+
+	if len(pendingAssetToClaim.AssetCode) > 0 {
+		asset = txnbuild.CreditAsset{Code: pendingAssetToClaim.AssetCode, Issuer: pendingAssetToClaim.AssetIssuer}
+	}
+
+	tempAccountExist, tempAccountTrustsAsset, _, customAccountBalance, tempAccount, err := network.BlockchainAccountProperties(gc.BantuExpansionClient, tempKeyPair.Address(), asset)
+
+	if err != nil {
+		return "", err
+	}
+
+	if !tempAccountExist {
+		return "", &tErrors.ErrorAssetNotClaimable{}
+	}
+
+	if !tempAccountTrustsAsset {
+		return "", &tErrors.ErrorAssetNotClaimable{}
+	}
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
+	// paymentInfo.Messages = messages
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
+
+	//source account details
+
+	// sourceAccountExists, sourceAccountTrustsAsset, _, _, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
+
+	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+
+	if customAccountBalance.GreaterThan(decimal.Zero) {
+
+		ops = append(ops, &txnbuild.Payment{
+			Destination:   originPublicKey,
+			Amount:        customAccountBalance.Truncate(7).String(),
+			Asset:         asset,
+			SourceAccount: tempAccount.AccountID,
+		})
+		//remove trustline
+		ops = append(ops, &txnbuild.ChangeTrust{
+			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+			Limit:         "0",
+			SourceAccount: tempAccount.AccountID,
+		})
+	}
+
+	if len(ops) == 0 {
+
+		return "", &tErrors.ErrorAssetNotClaimable{}
+	}
+
+	var tx *txnbuild.Transaction
+	// Construct the transaction that holds the operations to execute on the network
+	if pendingAssetToClaim.Multiparty == 1 {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              2000,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("reject-asset"),
+			},
+		)
+	} else {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        tempAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              2000,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("reject-asset"),
+			},
+		)
+	}
+
+	if err != nil {
+		log.Println("[generateRejectPendingAssetXdr]error constructing transaction ", err)
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if pendingAssetToClaim.Multiparty == 1 {
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+
+		if err != nil {
+			log.Println("[generateRejectPendingAssetXdr] error signing transaction with channelAccount key ", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
+	xdrBase64, err := tx.Base64()
+
+	if err != nil {
+		return "", err
+	}
+
+	return xdrBase64, nil
+
+}
+
 func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
 	assetIssuer := trustLineInfo.AssetIssuer
 	assetCode := trustLineInfo.AssetCode
 	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
-
+	trustLineInfo.Messages = make([]string, 0)
 	if len(assetCode) == 0 || len(assetCode) > 12 || len(assetIssuer) != 56 {
 		return "", &tErrors.CustomError{Param: "assetCode", Err: "error-invalid-asset", ErrMessage: "Asset Supplied is invalid.", Code: http.StatusBadRequest}
 	}
@@ -300,6 +565,36 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 		Limit:         "900000000000",
 		SourceAccount: wallet.ID,
 	})
+	//service fee
+	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	if e != nil {
+		serviceFee = decimal.Zero
+	}
+	if serviceFee.IsPositive() {
+		if trustLineInfo.Multiparty == 1 {
+			//process service fee
+			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+					SourceAccount: wallet.ID,
+					Asset:         txnbuild.NativeAsset{},
+				})
+				trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
+
+			} else {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+					SourceAccount: wallet.ID,
+					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+				})
+				trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+
+			}
+
+		}
+	}
 
 	// Construct the transaction that holds the operations to execute on the network
 
@@ -315,7 +610,7 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 				Preconditions: txnbuild.Preconditions{
 					TimeBounds: txnbuild.NewInfiniteTimeout(),
 				},
-				Memo: txnbuild.MemoText("trust-" + assetCode),
+				Memo: txnbuild.MemoText("opt-in-" + assetCode),
 			},
 		)
 	} else {
@@ -328,7 +623,7 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 				Preconditions: txnbuild.Preconditions{
 					TimeBounds: txnbuild.NewInfiniteTimeout(),
 				},
-				Memo: txnbuild.MemoText("trust-" + assetCode),
+				Memo: txnbuild.MemoText("opt-in-" + assetCode),
 			},
 		)
 	}
@@ -403,6 +698,37 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 		SourceAccount: wallet.ID,
 	})
 
+	//service fee
+	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	if e != nil {
+		serviceFee = decimal.Zero
+	}
+	if serviceFee.IsPositive() {
+		if trustLineInfo.Multiparty == 1 {
+			//process service fee
+			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+					SourceAccount: wallet.ID,
+					Asset:         txnbuild.NativeAsset{},
+				})
+				trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
+
+			} else {
+				ops = append(ops, &txnbuild.Payment{
+					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+					SourceAccount: wallet.ID,
+					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+				})
+				trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+
+			}
+
+		}
+	}
+
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if trustLineInfo.Multiparty == 1 {
@@ -415,7 +741,7 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 				Preconditions: txnbuild.Preconditions{
 					TimeBounds: txnbuild.NewInfiniteTimeout(),
 				},
-				Memo: txnbuild.MemoText("untrust-" + assetCode),
+				Memo: txnbuild.MemoText("opt-out-" + assetCode),
 			},
 		)
 	} else {
@@ -428,7 +754,7 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 				Preconditions: txnbuild.Preconditions{
 					TimeBounds: txnbuild.NewInfiniteTimeout(),
 				},
-				Memo: txnbuild.MemoText("untrust-" + assetCode),
+				Memo: txnbuild.MemoText("opt-out-" + assetCode),
 			},
 		)
 	}

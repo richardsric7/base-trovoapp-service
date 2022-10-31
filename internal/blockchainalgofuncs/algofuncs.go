@@ -1,7 +1,9 @@
 package blockchainalgofuncs
 
 import (
+	"crypto/md5"
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
 
@@ -125,4 +127,23 @@ func EncodeSha256(str string) string {
 
 	return fmt.Sprintf("%x", hashed)
 
+}
+
+func EncodeSha256Byte(str string) []byte {
+	kAccountSalt := "e45nDk4rk4LAhbX"
+	kExtraAccountSalt := os.Getenv("ENCODER_SALT")
+	if len(kExtraAccountSalt) == 0 {
+		kExtraAccountSalt = "7gKsg63jgGHfdtzma8)653$423"
+	}
+	h := sha256.New()
+	h.Write([]byte(kAccountSalt))
+	h.Write([]byte(kExtraAccountSalt))
+	h.Write([]byte(str))
+
+	return h.Sum(nil)
+}
+
+func SHash(str string) string {
+	hash := md5.Sum(EncodeSha256Byte(str))
+	return hex.EncodeToString(hash[:])
 }

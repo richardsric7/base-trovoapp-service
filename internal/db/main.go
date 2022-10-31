@@ -224,6 +224,11 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating CurrencyRates: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&assetModels.CuratedSwapAsset{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating CuratedSwapAsset: ", errMigrate)
+		}
+
 		errMigrate = gormDB.AutoMigrate(&assetModels.XbnDollarPrice{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating XbnDollarPrice: ", errMigrate)

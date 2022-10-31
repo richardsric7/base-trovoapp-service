@@ -1166,8 +1166,11 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	//activating shared access is free. No fee, except for view only access.
 	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
-	fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	if !fee.IsZero() {
+	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	if e != nil {
+		serviceFee = decimal.Zero
+	}
+	if serviceFee.IsPositive() {
 		if len(approvers) == 0 {
 			//process service fee
 			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {
@@ -1313,8 +1316,11 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
 
-	fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	if !fee.IsZero() {
+	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	if e != nil {
+		serviceFee = decimal.Zero
+	}
+	if serviceFee.IsPositive() {
 		{
 			//process service fee
 			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {
@@ -1360,7 +1366,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				SourceAccount:        chanSourceAccount,
 				IncrementSequenceNum: true,
 				Operations:           ops,
-				BaseFee:              txnbuild.MinBaseFee,
+				BaseFee:              2000,
 				Preconditions: txnbuild.Preconditions{
 					TimeBounds: txnbuild.NewInfiniteTimeout(),
 				},

@@ -87,6 +87,7 @@ type UserWalletSharedAccessInfo struct {
 	NetworkPassPhrase       string                 `json:"networkPassPhrase"`
 	Messages                []string               `json:"messages"`
 	SignatureRequired       int                    `json:"signatureRequired"`
+	SHash                   string                 `json:"sHash"`
 	Approvers               []User                 `json:"-"`
 	Initiators              []User                 `json:"-"`
 	Viewers                 []User                 `json:"-"`
@@ -102,6 +103,7 @@ type DisableSharedAccessInfo struct {
 	MultiParty           int                    `json:"multiParty"`
 	Permissions          []WalletPermissionInfo `json:"-"`
 	Commit               int                    `json:"commit"`
+	SHash                string                 `json:"sHash"`
 }
 
 type ModifySharedAccessInfo struct {
@@ -115,6 +117,7 @@ type ModifySharedAccessInfo struct {
 	SignatureRequired       int                    `json:"signatureRequired"`
 	MultiParty              int                    `json:"multiParty"`
 	Commit                  int                    `json:"commit"`
+	SHash                   string                 `json:"sHash"`
 	ModifiedPermissions     []WalletPermissionInfo `json:"modifiedPermissions"`
 	AddedPermissions        []WalletPermissionInfo `json:"addedPermissions"`
 	RevokedPermissions      []WalletPermissionInfo `json:"revokedPermissions"`
@@ -165,6 +168,8 @@ type UserSigner string
 
 type ApprovalID string
 
+type Issuer string
+
 type TrackedWallet struct {
 	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()"`
 	PublicKey string    `gorm:"index:idx_tracked_wallet_public_key,unique"`
@@ -192,6 +197,7 @@ type SubWalletInfo struct {
 	AssetIssuerWallet       int      `json:"assetIssuerWallet"` //redundancy. TODO: remove when not needed anymore
 	WalletType              int      `json:"walletType"`
 	Messages                []string `json:"messages"`
+	SHash                   string   `json:"sHash"`
 }
 
 type SecurityQuestion struct {
