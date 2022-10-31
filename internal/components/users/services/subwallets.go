@@ -19,7 +19,7 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWalletInfo, gc *sharedconfig.GlobalConfig) (*userModels.SubWalletInfo, error) {
+func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels.SubWalletInfo, gc *sharedconfig.GlobalConfig) (*userModels.SubWalletInfo, error) {
 	client := network.GetBlockchainClient()
 	var err error
 	var xdrBase64 string
@@ -35,15 +35,15 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 	subWalletInfo.SubWalletMustSign = 1
 	if len(subWalletInfo.ChannelAccount) == 56 {
 		//generate xdr for channel account
-		xdrBase64, subWalletObj, err = generateSubWalletXdrWithChannelAccount(user, subWalletInfo, gc, client)
+		xdrBase64, subWalletObj, err = generateSubWalletXdrWithChannelAccount(accountOwner, subWalletInfo, gc, client)
 		if err != nil {
-			log.Printf("[CreateNewSubWallet] create sub [%v] for [%v] generateSubWalletXdrWithChannelAccount error:[%v] \n", subWalletInfo.PublicKey, user.Username, err)
+			log.Printf("[CreateNewSubWallet] create sub [%v] for [%v] generateSubWalletXdrWithChannelAccount error:[%v] \n", subWalletInfo.PublicKey, accountOwner.Username, err)
 			return subWalletInfo, err
 		}
 	} else {
-		xdrBase64, subWalletObj, err = generateSubWalletXdr(user, subWalletInfo, gc, client)
+		xdrBase64, subWalletObj, err = generateSubWalletXdr(accountOwner, subWalletInfo, gc, client)
 		if err != nil {
-			log.Printf("[CreateNewSubWallet] create sub [%v] for [%v] generateSubWalletXdr error:[%v] \n", subWalletInfo.PublicKey, user.Username, err)
+			log.Printf("[CreateNewSubWallet] create sub [%v] for [%v] generateSubWalletXdr error:[%v] \n", subWalletInfo.PublicKey, accountOwner.Username, err)
 			return subWalletInfo, err
 		}
 	}
@@ -84,7 +84,7 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 	errDBTX := dbTX.Create(&subWalletObj).Error
 	if errDBTX != nil {
 		//unable to save sub wallet. abort
-		log.Printf("[CreateNewSubWallet] by [%v] for [%v] Error saving subwallet error:[%v] \n", user.Username, subWalletInfo.PublicKey, errDBTX)
+		log.Printf("[CreateNewSubWallet] by [%v] for [%v] Error saving subwallet error:[%v] \n", accountOwner.Username, subWalletInfo.PublicKey, errDBTX)
 
 		err = &tErrors.CustomError{
 			Param:      "publicKey",
@@ -95,9 +95,9 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 	}
 
 	if len(subWalletInfo.ChannelAccountSignature) > 0 && len(subWalletInfo.ChannelAccount) == 56 {
-		txnHash, err := SubmitSubWalletXdrForChannelAccountWithSignature(client, user.PublicKey, subWalletInfo.PublicKey, subWalletInfo.ChannelAccount, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.ChannelAccountSignature, subWalletInfo.SubWalletMustSign)
+		txnHash, err := SubmitSubWalletXdrForChannelAccountWithSignature(client, accountOwner.PublicKey, subWalletInfo.PublicKey, subWalletInfo.ChannelAccount, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.ChannelAccountSignature, subWalletInfo.SubWalletMustSign)
 		if err != nil {
-			log.Printf("[CreateNewSubWallet] by [%v] for [%v] SubmitSubWalletXdrForChannelAccountWithSignature error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
+			log.Printf("[CreateNewSubWallet] by [%v] for [%v] SubmitSubWalletXdrForChannelAccountWithSignature error:[%v] \n", accountOwner.Username, subWalletInfo.PublicKey, err)
 			return subWalletInfo, err
 		}
 		subWalletInfo.TransactionID = txnHash
@@ -111,14 +111,14 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 			errTrack := gc.RoachDB.Create(&trackPublicKey).Error
 			if errTrack != nil {
 				//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
-				discord.Say(fmt.Sprintf("[CreateNewSubWallet] tracking public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", user.Username, errTrack, subWalletInfo))
+				discord.Say(fmt.Sprintf("[CreateNewSubWallet] tracking public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", accountOwner.Username, errTrack, subWalletInfo))
 
 			}
 		}
 	} else {
-		txnHash, err := SubmitSubWalletXdrWithSignature(client, user.PublicKey, subWalletInfo.PublicKey, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.SubWalletMustSign)
+		txnHash, err := SubmitSubWalletXdrWithSignature(client, accountOwner.PublicKey, subWalletInfo.PublicKey, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.SubWalletMustSign)
 		if err != nil {
-			log.Printf("[CreateNewSubWallet] by [%v] for [%v] SubmitSubwalletXdrWithSignature error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
+			log.Printf("[CreateNewSubWallet] by [%v] for [%v] SubmitSubwalletXdrWithSignature error:[%v] \n", accountOwner.Username, subWalletInfo.PublicKey, err)
 			return subWalletInfo, err
 		}
 		subWalletInfo.TransactionID = txnHash
@@ -131,14 +131,14 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 			errTrack := gc.RoachDB.Create(&trackPublicKey).Error
 			if errTrack != nil {
 				//if tracking of public key fails, then payment history generation service will pick it up and do justice to it
-				discord.Say(fmt.Sprintf("[CreateNewSubWallet] tracking public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", user.Username, errTrack, subWalletInfo))
+				discord.Say(fmt.Sprintf("[CreateNewSubWallet] tracking public key for payment history failed for user:%v, with DB Error:%v\n\n\nFailedData:%+v", accountOwner.Username, errTrack, subWalletInfo))
 
 			}
 		}
 
 	}
 	{
-		cacheKey1 := fmt.Sprintf("GetBalance_%s", user.PublicKey)
+		cacheKey1 := fmt.Sprintf("GetBalance_%s", accountOwner.PublicKey)
 		cacheKey2 := fmt.Sprintf("GetBalance_%s", subWalletInfo.PublicKey)
 		gc.RedisCache.DeleteFromCache(cacheKey1, cacheKey2)
 	}
@@ -146,11 +146,13 @@ func CreateNewSubWallet(user *userModels.User, subWalletInfo *userModels.SubWall
 	return subWalletInfo, nil
 }
 
-func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWalletInfo, gc *sharedconfig.GlobalConfig, client *horizonclient.Client) (xdrbase64 string, subWalletObj userModels.UserWallet, err error) {
+func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userModels.SubWalletInfo, gc *sharedconfig.GlobalConfig, client *horizonclient.Client) (xdrbase64 string, subWalletObj userModels.UserWallet, err error) {
 	ops := make([]txnbuild.Operation, 0)
 	subWalletInfo.Messages = make([]string, 0)
 	var activationAmount = decimal.NewFromFloat(6)
 	var minBalance = decimal.NewFromFloat(3.0)
+	dab := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
+	dollarAsset := txnbuild.CreditAsset{Code: dab[0], Issuer: dab[1]}
 	if len(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT")) > 0 {
 		activationAmount = decimal.RequireFromString(os.Getenv("SUB_WALLET_ACTIVATION_AMOUNT"))
 	}
@@ -168,9 +170,9 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 	}
 	{
 		//check if the sub-wallet passes the validation
-		subWalletObj, err = user.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.WalletType, gc)
+		subWalletObj, err = accountOwner.BuildNewSubWallet(subWalletInfo.PublicKey, subWalletInfo.WalletTag, subWalletInfo.WalletDescription, subWalletInfo.WalletType, gc)
 		if err != nil {
-			log.Printf("[generateSubWalletXdr] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", user.Username, subWalletInfo.PublicKey, err)
+			log.Printf("[generateSubWalletXdr] by [%v] for [%v] BuildNewSubWallet error:[%v] \n", accountOwner.Username, subWalletInfo.PublicKey, err)
 			return "", subWalletObj, err
 		}
 
@@ -185,14 +187,14 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 
 	//check if primary account has native enough native balance
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
-	primaryAccountExists, _, primaryAccountNativeBalance, _, primarySourceAccount, errAct := network.BlockchainAccountProperties(client, user.PublicKey, nativeAsset)
+	primaryAccountExists, _, primaryAccountNativeBalance, _, primarySourceAccount, errAct := network.BlockchainAccountProperties(client, accountOwner.PublicKey, nativeAsset)
 	if errAct != nil {
-		log.Printf("[generateSubWalletXdr] by [%v] for [%v] Primary Account Properties error:[%v] \n", user.Username, subWalletInfo.PublicKey, errAct)
+		log.Printf("[generateSubWalletXdr] by [%v] for [%v] Primary Account Properties error:[%v] \n", accountOwner.Username, subWalletInfo.PublicKey, errAct)
 
 		return "", subWalletObj, errAct
 	}
 	if !primaryAccountExists || (primaryAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
-		log.Printf("[generateSubWalletXdr] by [%v] for [%v] PrimaryAccount underfunded \n", user.Username, subWalletInfo.PublicKey)
+		log.Printf("[generateSubWalletXdr] by [%v] for [%v] PrimaryAccount underfunded \n", accountOwner.Username, subWalletInfo.PublicKey)
 
 		err = &tErrors.CustomError{
 			Param:      "publicKey",
@@ -204,30 +206,35 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 	}
 	var walletSigner *keypair.Full
 	if subWalletInfo.WalletType == 2 {
-		walletSigner, _ = bc.MarketMakingSignerKeypair(user.Username, subWalletInfo.PublicKey)
+		walletSigner, _ = bc.MarketMakingSignerKeypair(accountOwner.Username, subWalletInfo.PublicKey)
 
 	}
 	if subWalletInfo.WalletType == 3 {
-		walletSigner, _ = bc.BulkPaymentSignerKeypair(user.Username, subWalletInfo.PublicKey)
+		walletSigner, _ = bc.BulkPaymentSignerKeypair(accountOwner.Username, subWalletInfo.PublicKey)
 
 	}
 
 	subWalletAccountExists, _, subWalletAccountNativeBalance, _, subWalletAccountObject, _ := network.BlockchainAccountProperties(client, subWalletInfo.PublicKey, nativeAsset)
 	if !subWalletAccountExists {
 		//if subwallet is not activated
+		ops = append(ops, &txnbuild.CreateAccount{
+			Destination:   subWalletInfo.PublicKey,
+			Amount:        activationAmount.String(),
+			SourceAccount: accountOwner.PublicKey,
+		})
+		ops = append(ops, &txnbuild.ChangeTrust{
+			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
+			Limit:         "900000000000",
+			SourceAccount: subWalletInfo.PublicKey,
+		})
+
 		//build transaction that will activate the subwallet from the primary wallet
 		if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
-
-			ops = append(ops, &txnbuild.CreateAccount{
-				Destination:   subWalletInfo.PublicKey,
-				Amount:        activationAmount.String(),
-				SourceAccount: user.PublicKey,
-			})
 
 			//after creation, it now exists with enough balance to add primary wallet as signer
 			ops = append(ops, &txnbuild.SetOptions{
 				Signer: &txnbuild.Signer{
-					Address: user.PrimarySigner,
+					Address: accountOwner.PrimarySigner,
 					Weight:  1,
 				},
 				SourceAccount: subWalletInfo.PublicKey,
@@ -238,18 +245,20 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 
 			signerExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, walletSigner.Address(), nativeAsset)
 			if !signerExists {
+				//activate signer
 				ops = append(ops, &txnbuild.CreateAccount{
 					Destination:   walletSigner.Address(),
 					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
-					SourceAccount: user.PublicKey,
+					SourceAccount: accountOwner.PublicKey,
 				})
 
 			} else {
+				//topup signer
 				ops = append(ops, &txnbuild.Payment{
 					Destination:   walletSigner.Address(),
 					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
 					Asset:         nativeAsset,
-					SourceAccount: user.PublicKey,
+					SourceAccount: accountOwner.PublicKey,
 				})
 
 			}
@@ -257,7 +266,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 			//after creation, it now exists with enough balance to add primary wallet as signer
 			ops = append(ops, &txnbuild.SetOptions{
 				Signer: &txnbuild.Signer{
-					Address: user.PrimarySigner,
+					Address: accountOwner.PrimarySigner,
 					Weight:  1,
 				},
 				SourceAccount: subWalletInfo.PublicKey,
@@ -279,18 +288,31 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 				Destination:   subWalletInfo.PublicKey,
 				Amount:        activationAmount.String(),
 				Asset:         nativeAsset,
-				SourceAccount: user.PublicKey,
+				SourceAccount: accountOwner.PublicKey,
 			})
 		}
+		{
+			//enable dollar asset
+			_, trusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.PublicKey, dollarAsset)
+			if !trusted {
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
+					Limit:         "900000000000",
+					SourceAccount: subWalletInfo.PublicKey,
+				})
+			}
+
+		}
+
 		//account exists and native balance is less than needed. add 3 native token to the wallet
 		if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
 
 			//after topping up, it now has enough balance to add primary wallet as signer if it is not already a signer
-			if !user.SignerIsValidWA(user.PrimarySigner, subWalletAccountObject) {
+			if !accountOwner.SignerIsValidWA(accountOwner.PrimarySigner, subWalletAccountObject) {
 
 				ops = append(ops, &txnbuild.SetOptions{
 					Signer: &txnbuild.Signer{
-						Address: user.PrimarySigner,
+						Address: accountOwner.PrimarySigner,
 						Weight:  1,
 					},
 					SourceAccount: subWalletInfo.PublicKey,
@@ -308,7 +330,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 				ops = append(ops, &txnbuild.CreateAccount{
 					Destination:   walletSigner.Address(),
 					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
-					SourceAccount: user.PublicKey,
+					SourceAccount: accountOwner.PublicKey,
 				})
 
 			} else {
@@ -316,16 +338,16 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 					Destination:   walletSigner.Address(),
 					Amount:        os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT"),
 					Asset:         nativeAsset,
-					SourceAccount: user.PublicKey,
+					SourceAccount: accountOwner.PublicKey,
 				})
 
 			}
 
 			//after creation, it now exists with enough balance to add primary wallet as signer
-			if !userBc.SignerIsValid(subWalletInfo.PublicKey, user.PrimarySigner) {
+			if !userBc.SignerIsValid(subWalletInfo.PublicKey, accountOwner.PrimarySigner) {
 				ops = append(ops, &txnbuild.SetOptions{
 					Signer: &txnbuild.Signer{
-						Address: user.PrimarySigner,
+						Address: accountOwner.PrimarySigner,
 						Weight:  1,
 					},
 					SourceAccount: subWalletInfo.PublicKey,
@@ -345,8 +367,8 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 	}
 
 	//add recovery key if account recovery is enabled
-	if user.AccountRecoveryEnabled == 1 {
-		recoveryKeyAddress := bc.GetRecoveryAccountAddress(user.Username, user.PublicKey)
+	if accountOwner.AccountRecoveryEnabled == 1 {
+		recoveryKeyAddress := bc.GetRecoveryAccountAddress(accountOwner.Username, accountOwner.PublicKey)
 
 		if len(recoveryKeyAddress) == 56 {
 			if !userBc.SignerIsValid(subWalletInfo.PublicKey, recoveryKeyAddress) {
@@ -373,7 +395,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 			ops = append(ops, &txnbuild.Payment{
 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-				SourceAccount: user.PublicKey,
+				SourceAccount: accountOwner.PublicKey,
 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
 			})
 			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE")))
@@ -382,7 +404,7 @@ func generateSubWalletXdr(user *userModels.User, subWalletInfo *userModels.SubWa
 			ops = append(ops, &txnbuild.Payment{
 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-				SourceAccount: user.PublicKey,
+				SourceAccount: accountOwner.PublicKey,
 				Asset:         txnbuild.NativeAsset{},
 			})
 			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE")))
