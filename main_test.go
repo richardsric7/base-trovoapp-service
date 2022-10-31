@@ -1721,8 +1721,10 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
 	// subPK := "GAYKJR7KECN57NPKF4ABYQPFLUCELKXMSPD3D7ACEATI77TYFXKJSKRO"
 	// subSecretKey := "SAHTUGJVWK7WCERUDZM5VVDJO2JYRUTUQQ7O7CJVLLVSYZ7CTV2SO5IP"
-	subPK := "GB3ZYN2EUPKQHXPLPJ3FATGQKOOIY7CHJ6FJW6RB54ANIT7N5VUZOHVN"
-	subSecretKey := "SBJINW3YZ7IM7DEA7GVBTPYOTTEHRVBWYAF6G3E2WQIXRM7EGYN66E7Q"
+	// subPK := "GB3ZYN2EUPKQHXPLPJ3FATGQKOOIY7CHJ6FJW6RB54ANIT7N5VUZOHVN"
+	// subSecretKey := "SBJINW3YZ7IM7DEA7GVBTPYOTTEHRVBWYAF6G3E2WQIXRM7EGYN66E7Q"
+		subPK := "GAKWJJTLNYA74XIZZIVFWHTG6BLJWDAVJG4KT5I3H5JJW6INAOKWLHFV"
+	subSecretKey := "SBQGZN2EAYMKS37BQYMRUHAZY5YDJIFDTZKBIRSWRURTVDH6GPDJYR4Q"
 	primaryPK := os.Getenv("RICPK")
 	primarySecretKey := os.Getenv("RICSC")
 
@@ -1760,9 +1762,9 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
 	subwalletPayload := SubWalletInfo{
 		PublicKey:         subPK,
-		WalletTag:         "mm",
+		WalletTag:         "bulkpay",
 		WalletDescription: "market making wallet",
-		WalletType:        2,
+		WalletType:        3,
 	}
 	errorResponse := new(ErrorResponse)
 	subWalletResponse := new(SubWalletInfo)
