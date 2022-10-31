@@ -192,7 +192,7 @@ func PublicKeyCountInitiatorAccess(publicKey string, gc *sharedconfig.GlobalConf
 
 func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userModels.User, wallet *userModels.UserWallet, accessInfo *userModels.UserWalletSharedAccessInfo, gc *sharedconfig.GlobalConfig) (returnedWallet userModels.UserWallet, err error) {
 	// var  userModels.UserWalletSharedAccess
-
+	accessInfo.Messages = make([]string, 0)
 	if len(accessInfo.Permissions) == 0 {
 		return returnedWallet, &tErrors.CustomError{
 			Param:      "permissions",
@@ -211,7 +211,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		}
 	}
 
-	var accessListInfo []userModels.WalletPermissionInfo
+	var accessListInfo, viewOnly []userModels.WalletPermissionInfo
 	var accessList []userModels.WalletPermission
 	var numberOfSubmittedApprovers int
 	var numberOfSubmittedInitiators int
@@ -244,6 +244,9 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		v.TargetUsername = strings.ToLower(v.TargetUsername)
 		if _, ok := checkAccess[v.TargetUsername+v.Permission]; ok {
 			continue
+		}
+		if v.Permission == "VIEW-ONLY" {
+			viewOnly = append(viewOnly, v)
 		}
 
 		// checkAccess[v.TargetUsername+v.Permission] = v
@@ -285,15 +288,16 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		if u.LastName == nil {
 			name = fmt.Sprintf("%v %v", name, *u.LastName)
 		}
-		//infor of shared access users
-		accessListInfo = append(accessListInfo, userModels.WalletPermissionInfo{
+		pi := userModels.WalletPermissionInfo{
 			TargetUsername:        v.TargetUsername,
 			Name:                  name,
 			Permission:            v.Permission,
 			WalletPublicKey:       wallet.ID,
 			WalletAlias:           wallet.Alias,
 			PushNotificationToken: u.PushNotificationToken,
-		})
+		}
+		//infor of shared access users
+		accessListInfo = append(accessListInfo, pi)
 		accessList = append(accessList, userModels.WalletPermission{
 			ID:              permissionID,
 			TargetUsername:  v.TargetUsername,
@@ -311,8 +315,28 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			numberOfSubmittedInitiators++
 
 		}
-
+		checkAccess[v.TargetUsername+v.Permission] = pi
 	}
+	if len(viewOnly) > 0 {
+		message := "Unnecessary VIEW-ONLY access for these accounts where removed:"
+		for _, v := range viewOnly {
+			for _, a := range accessInfo.Permissions {
+				if v.TargetUsername == a.TargetUsername && (a.Permission == "APPROVER" || a.Permission == "INITIATOR") {
+					// remove the view only since the approver and initiator has view access already
+
+					delete(checkAccess, v.TargetUsername+"VIEW-ONLY")
+					message = fmt.Sprintf("%v,%v", message, v.TargetUsername)
+				}
+			}
+		}
+		// rebuild the list
+		accessListInfo = make([]userModels.WalletPermissionInfo, 0)
+		for _, ca := range checkAccess {
+			accessListInfo = append(accessListInfo, ca)
+		}
+		accessInfo.Messages = append(accessInfo.Messages, message)
+	}
+
 	if numberOfSubmittedApprovers <= accessInfo.NumberOfApprovalsNeeded && accessInfo.NumberOfApprovalsNeeded > 1 {
 		//number of authorizers does not reach the minimum threshold needed. cannot proceed so as to prevent account lockout
 		return returnedWallet, &tErrors.CustomError{
@@ -375,7 +399,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	if errGenXdr != nil {
 		return returnedWallet, errGenXdr
 	}
-	accessInfo.Messages = messages
+	accessInfo.Messages = append(accessInfo.Messages, messages...)
 	if walletMustSign {
 		accessInfo.SignatureRequired = 1
 
