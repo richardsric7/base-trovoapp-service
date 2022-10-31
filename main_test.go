@@ -72,7 +72,7 @@ type SubWalletInfo struct {
 	ChannelAccount          string   `json:"channelAccount"`
 	ChannelAccountSignature string   `json:"channelAccountSignature"`
 	SubWalletMustSign       int      `json:"subWalletMustSign"`
-	AssetIssuerWallet       int      `json:"assetIssuerWallet"`
+	WalletType              int      `json:"walletType"` //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayments
 	Messages                []string `json:"messages"`
 }
 type UserInfo struct {
@@ -1719,8 +1719,10 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	// subPK := "GD6IO3P4J2C63Z3VEIH5TVZVDITHKGJMOAKHX6J6TEDA6JEEQCD5GJFN"
 	// subSecretKey := "SDCSU5C6F4HWD5T7QBIG4U2Z3VITF5HY6KC5XPEPIDDGD7GK2UNEYARG"
 
-	subPK := "GAYKJR7KECN57NPKF4ABYQPFLUCELKXMSPD3D7ACEATI77TYFXKJSKRO"
-	subSecretKey := "SAHTUGJVWK7WCERUDZM5VVDJO2JYRUTUQQ7O7CJVLLVSYZ7CTV2SO5IP"
+	// subPK := "GAYKJR7KECN57NPKF4ABYQPFLUCELKXMSPD3D7ACEATI77TYFXKJSKRO"
+	// subSecretKey := "SAHTUGJVWK7WCERUDZM5VVDJO2JYRUTUQQ7O7CJVLLVSYZ7CTV2SO5IP"
+	subPK := "GB3ZYN2EUPKQHXPLPJ3FATGQKOOIY7CHJ6FJW6RB54ANIT7N5VUZOHVN"
+	subSecretKey := "SBJINW3YZ7IM7DEA7GVBTPYOTTEHRVBWYAF6G3E2WQIXRM7EGYN66E7Q"
 	primaryPK := os.Getenv("RICPK")
 	primarySecretKey := os.Getenv("RICSC")
 
@@ -1758,9 +1760,9 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 
 	subwalletPayload := SubWalletInfo{
 		PublicKey:         subPK,
-		WalletTag:         "minting",
-		WalletDescription: "Sub wallet minting",
-		AssetIssuerWallet: 1,
+		WalletTag:         "mm",
+		WalletDescription: "market making wallet",
+		WalletType:        2,
 	}
 	errorResponse := new(ErrorResponse)
 	subWalletResponse := new(SubWalletInfo)
