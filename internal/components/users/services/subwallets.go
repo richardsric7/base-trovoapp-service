@@ -371,14 +371,28 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 		recoveryKeyAddress := bc.GetRecoveryAccountAddress(accountOwner.Username, accountOwner.PublicKey)
 
 		if len(recoveryKeyAddress) == 56 {
-			if !userBc.SignerIsValid(subWalletInfo.PublicKey, recoveryKeyAddress) {
-				ops = append(ops, &txnbuild.SetOptions{
-					Signer: &txnbuild.Signer{
-						Address: recoveryKeyAddress,
-						Weight:  3,
-					},
-					SourceAccount: subWalletInfo.PublicKey,
-				})
+			if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
+				if !userBc.SignerIsValid(subWalletInfo.PublicKey, recoveryKeyAddress) {
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: recoveryKeyAddress,
+							Weight:  1,
+						},
+						SourceAccount: subWalletInfo.PublicKey,
+					})
+				}
+			}
+
+			if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
+				if !userBc.SignerIsValid(subWalletInfo.PublicKey, recoveryKeyAddress) {
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: recoveryKeyAddress,
+							Weight:  3,
+						},
+						SourceAccount: subWalletInfo.PublicKey,
+					})
+				}
 			}
 
 		}
@@ -437,6 +451,14 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 			SourceAccount:   subWalletInfo.PublicKey,
 		})
 	}
+	// if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
+	// 	ops = append(ops, &txnbuild.SetOptions{
+	// 		LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(1)),
+	// 		MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(1)),
+	// 		HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(1)),
+	// 		SourceAccount:   subWalletInfo.PublicKey,
+	// 	})
+	// }
 	// Construct the transaction that holds the operations to execute on the network
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{

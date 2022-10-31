@@ -431,6 +431,15 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	//prepare database execution
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
+	if wallet.WalletType == 2 || wallet.WalletType == 3 {
+		err = &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-wallet-type-not-allowed",
+			ErrMessage: "Market Making & Bulk Payment wallets are not allowed for this operation.",
+			Code:       http.StatusForbidden,
+		}
+		return
+	}
 	if len(accessInfo.ModifiedPermissions) == 0 && len(accessInfo.AddedPermissions) == 0 && len(accessInfo.RevokedPermissions) == 0 {
 		err = &tErrors.CustomError{
 			Param:      "permissions",
@@ -922,7 +931,14 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 			Code:       http.StatusForbidden,
 		}
 	}
-
+	if wallet.WalletType == 2 || wallet.WalletType == 3 {
+		return &tErrors.CustomError{
+			Param:      "publicKey",
+			Err:        "error-wallet-type-not-allowed",
+			ErrMessage: "Market Making & Bulk Payment wallets are not allowed for this operation.",
+			Code:       http.StatusForbidden,
+		}
+	}
 	approvalsNeeded := wallet.NumberOfApprovalsNeeded
 	userPermissions := make([]string, 0)
 	walletOwner, e := wallet.GetWalletOwner(gc.DB)

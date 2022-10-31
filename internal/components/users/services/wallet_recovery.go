@@ -107,16 +107,18 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	}
 	//check for subwallets
 	wallets := user.GetAllWallets(gc)
+	bulkPaymentSignerKeyPairs, marketMakingSignerKeyPairs := make([]*keypair.Full, 0), make([]*keypair.Full, 0)
+
 	if len(wallets) > 1 {
 		//has subwallets other than the primary wallet, which has already be added to the ops
 		for _, w := range wallets {
-			if w.Alias == user.Username {
-				// ensures the primary walletis not added to the ops
+			if w.PrimaryWallet == 1 {
+				// ensures the primary wallet is not added to the ops
 				continue
 			}
-			if w.Alias != user.Username {
+			if w.PrimaryWallet == 0 {
 				if w.SharedAccessEnabled == 1 {
-					if !WalletHasViewOnlyAccess(&w, gc) {
+					if !w.HasViewOnlyAccess(gc) {
 						// wallet does not have only view-only access, so we need to add it to the multiaccessWallets list
 						multiAccessWallets = append(multiAccessWallets, w)
 						continue
@@ -137,17 +139,59 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 
 					}
 				}
+				if w.WalletType == 0 || w.WalletType == 1 {
+					if !userBc.SignerIsValid(w.ID, recoveryAddress) {
+						//recovery not a signer to the sub wallet. add it
+						ops = append(ops, &txnbuild.SetOptions{
+							Signer: &txnbuild.Signer{
+								Address: recoveryAddress,
+								Weight:  1,
+							},
+							SourceAccount: w.ID,
+						})
+					}
+					// {
+					// 	//adjust account threshold
 
-				if !userBc.SignerIsValid(w.ID, recoveryAddress) {
-					//recovery not a signer to the sub wallet. add it
-					ops = append(ops, &txnbuild.SetOptions{
-						Signer: &txnbuild.Signer{
-							Address: recoveryAddress,
-							Weight:  1,
-						},
-						SourceAccount: w.ID,
-					})
+					// 	ops = append(ops, &txnbuild.SetOptions{
+					// 		LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(1)),
+					// 		MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(1)),
+					// 		HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(1)),
+					// 		SourceAccount:   wallet.ID,
+					// 	})
+
+					// }
 				}
+				if w.WalletType == 2 {
+					mm, _ := bc.MarketMakingSignerKeypair(user.Username, w.ID)
+					marketMakingSignerKeyPairs = append(marketMakingSignerKeyPairs, mm)
+					if !userBc.SignerIsValid(w.ID, recoveryAddress) {
+						//recovery not a signer to the sub wallet. add it
+						ops = append(ops, &txnbuild.SetOptions{
+							Signer: &txnbuild.Signer{
+								Address: recoveryAddress,
+								Weight:  3,
+							},
+							SourceAccount: w.ID,
+						})
+					}
+
+				}
+				if w.WalletType == 3 {
+					bp, _ := bc.BulkPaymentSignerKeypair(user.Username, w.ID)
+					bulkPaymentSignerKeyPairs = append(bulkPaymentSignerKeyPairs, bp)
+					if !userBc.SignerIsValid(w.ID, recoveryAddress) {
+						//recovery not a signer to the sub wallet. add it
+						ops = append(ops, &txnbuild.SetOptions{
+							Signer: &txnbuild.Signer{
+								Address: recoveryAddress,
+								Weight:  3,
+							},
+							SourceAccount: w.ID,
+						})
+					}
+				}
+
 			}
 
 		}
@@ -186,7 +230,20 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 		log.Println("[EnableAccountRecovery]error constructing transaction ", err)
 		return &tErrors.ErrorTemporaryServerError{}
 	}
-
+	if len(bulkPaymentSignerKeyPairs) > 0 {
+		tx, err = tx.Sign(gc.BantuNetworkPassphrase, bulkPaymentSignerKeyPairs...)
+		if err != nil {
+			log.Println("[EnableAccountRecovery] error signning with bulkPaymentSignerKeyPairs", err)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+	if len(marketMakingSignerKeyPairs) > 0 {
+		tx, err = tx.Sign(gc.BantuNetworkPassphrase, marketMakingSignerKeyPairs...)
+		if err != nil {
+			log.Println("[EnableAccountRecovery] error signning with marketMakingSignerKeyPairs", err)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+	}
 	xdrBase64, err = tx.Base64()
 	if err != nil {
 		log.Println("[EnableAccountRecovery] error getting txn base64", err)
@@ -297,12 +354,14 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 
 	//check for all wallets
 	wallets := user.GetAllWallets(gc)
+	bulkPaymentSignerKeyPairs, marketMakingSignerKeyPairs := make([]*keypair.Full, 0), make([]*keypair.Full, 0)
+
 	if len(wallets) > 0 {
 		//has subwallets other than the primary wallet, which has already be added to the ops
 		for _, w := range wallets {
 
 			if w.SharedAccessEnabled == 1 {
-				if !WalletHasViewOnlyAccess(&w, gc) {
+				if !w.HasViewOnlyAccess(gc) {
 					// wallet does not have only view-only access, so we need to add it to the multiaccessWallets list
 					multiAccessWallets = append(multiAccessWallets, w)
 					continue
@@ -316,17 +375,56 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 
 			}
 
-			if userBc.SignerIsValid(w.ID, recoveryAddress) {
-				//recovery a signer to the wallet. remove it
-				ops = append(ops, &txnbuild.SetOptions{
-					Signer: &txnbuild.Signer{
-						Address: recoveryAddress,
-						Weight:  0,
-					},
-					SourceAccount: w.ID,
-				})
+			// if userBc.SignerIsValid(w.ID, recoveryAddress) {
+			// 	//recovery a signer to the wallet. remove it
+			// 	ops = append(ops, &txnbuild.SetOptions{
+			// 		Signer: &txnbuild.Signer{
+			// 			Address: recoveryAddress,
+			// 			Weight:  0,
+			// 		},
+			// 		SourceAccount: w.ID,
+			// 	})
+			// }
+			if w.WalletType == 0 || w.WalletType == 1 {
+				if userBc.SignerIsValid(w.ID, recoveryAddress) {
+					//recovery a signer to the wallet. remove it
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: recoveryAddress,
+							Weight:  0,
+						},
+						SourceAccount: w.ID,
+					})
+				}
 			}
-
+			if w.WalletType == 2 {
+				mm, _ := bc.MarketMakingSignerKeypair(user.Username, w.ID)
+				marketMakingSignerKeyPairs = append(marketMakingSignerKeyPairs, mm)
+				if userBc.SignerIsValid(w.ID, recoveryAddress) {
+					//recovery a signer to the wallet. remove it
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: recoveryAddress,
+							Weight:  0,
+						},
+						SourceAccount: w.ID,
+					})
+				}
+			}
+			if w.WalletType == 3 {
+				bp, _ := bc.BulkPaymentSignerKeypair(user.Username, w.ID)
+				bulkPaymentSignerKeyPairs = append(bulkPaymentSignerKeyPairs, bp)
+				if userBc.SignerIsValid(w.ID, recoveryAddress) {
+					//recovery a signer to the wallet. remove it
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: recoveryAddress,
+							Weight:  0,
+						},
+						SourceAccount: w.ID,
+					})
+				}
+			}
 		}
 
 		{ //add fee for transaction
@@ -362,7 +460,20 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 		log.Println("[DisableAccountRecovery]error constructing transaction ", err)
 		return &tErrors.ErrorTemporaryServerError{}
 	}
-
+	if len(bulkPaymentSignerKeyPairs) > 0 {
+		tx, err = tx.Sign(gc.BantuNetworkPassphrase, bulkPaymentSignerKeyPairs...)
+		if err != nil {
+			log.Println("[DisableAccountRecovery] error signning with bulkPaymentSignerKeyPairs", err)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+	if len(marketMakingSignerKeyPairs) > 0 {
+		tx, err = tx.Sign(gc.BantuNetworkPassphrase, marketMakingSignerKeyPairs...)
+		if err != nil {
+			log.Println("[DisableAccountRecovery] error signning with marketMakingSignerKeyPairs", err)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+	}
 	xdrBase64, err = tx.Base64()
 	if err != nil {
 		log.Println("[DisableAccountRecovery] error getting txn base64", err)
@@ -373,10 +484,6 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 
 		return nil
 	}
-
-	// if oldTrx != payload.Transaction {
-	// 	return &tErrors.ErrorInvalidTransaction{}
-	// }
 
 	if len(payload.TransactionSignature) == 0 {
 		return &tErrors.CustomError{Param: "TransactionSignature", Err: "error transaction signature is required", ErrMessage: "Transaction signature is required."}
@@ -495,7 +602,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 			}
 			if w.Alias != user.Username {
 				if w.SharedAccessEnabled == 1 {
-					if !WalletHasViewOnlyAccess(&w, gc) {
+					if !w.HasViewOnlyAccess(gc) {
 						// wallet does not have only view-only access, so we need to add it to the multiaccessWallets list
 						multiAccessWallets = append(multiAccessWallets, w)
 						continue
@@ -516,15 +623,30 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 
 					}
 				}
-				if !userBc.SignerIsValid(w.ID, payload.NewSignerPublicKey) {
-					//recovery not a signer to the sub wallet. add it
-					ops = append(ops, &txnbuild.SetOptions{
-						Signer: &txnbuild.Signer{
-							Address: payload.NewSignerPublicKey,
-							Weight:  1,
-						},
-						SourceAccount: w.ID,
-					})
+				if w.WalletType == 0 || w.WalletType == 1 {
+					if !userBc.SignerIsValid(w.ID, payload.NewSignerPublicKey) {
+						//recovery not a signer to the sub wallet. add it
+						ops = append(ops, &txnbuild.SetOptions{
+							Signer: &txnbuild.Signer{
+								Address: payload.NewSignerPublicKey,
+								Weight:  1,
+							},
+							SourceAccount: w.ID,
+						})
+					}
+				}
+
+				if w.WalletType == 2 || w.WalletType == 3 {
+					if !userBc.SignerIsValid(w.ID, payload.NewSignerPublicKey) {
+						//recovery not a signer to the sub wallet. add it
+						ops = append(ops, &txnbuild.SetOptions{
+							Signer: &txnbuild.Signer{
+								Address: payload.NewSignerPublicKey,
+								Weight:  1,
+							},
+							SourceAccount: w.ID,
+						})
+					}
 				}
 
 				if userBc.SignerIsValid(w.ID, user.PrimarySigner) {
