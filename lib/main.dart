@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/back_dispatcher.dart';
 import 'package:trovo_wallet/router/route_parser.dart';
@@ -87,6 +89,10 @@ class _AppState extends State<App> {
           routeInformationParser: parser,
           backButtonDispatcher: backButtonDispatcher,
           debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            colorScheme: ThemeData().colorScheme.copyWith(primary: trovoblue),
+            fontFamily: fontbody,
+          ),
         ),
       ),
     );

@@ -278,3 +278,26 @@ Widget buildExpandable(context) {
     ),
   ));
 }
+
+postProcessData(context, messageShown, messageLength, data,
+    {required void Function() callback}) {
+  // we would like to display all messages returned from the initial
+  // request to server using a popup. In order to achieve that we
+  // employ the use of a little recursion here. Please recursive
+  // functions can turn into a nightmare fast so be carefull here.
+  if (messageShown <= messageLength - 1) {
+    showResponseMessage(
+        context,
+        data['messages'][messageShown],
+        () => {
+              print('postProcessData: $messageShown'),
+              postProcessData(context, messageShown, messageLength, data,
+                  callback: callback),
+            });
+
+    messageShown++;
+    return;
+  }
+
+  callback();
+}

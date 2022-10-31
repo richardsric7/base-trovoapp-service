@@ -11,6 +11,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textf
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -18,6 +19,7 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -40,7 +42,8 @@ class _SharedAccessState extends State<SharedAccess>
   TextEditingController viewersController = TextEditingController();
   TextEditingController approversController = TextEditingController();
   TextEditingController initiatorsController = TextEditingController();
-  final formKey = GlobalKey<FormState>();
+  final approversFormKey = GlobalKey<FormState>();
+
   List<Wallet>? wallets;
   Wallet? activeWallet;
   dynamic selectedWallet = '';
@@ -54,13 +57,20 @@ class _SharedAccessState extends State<SharedAccess>
   dynamic selectedAccessMode = 'Access granted to me';
   bool addApprovers = false;
   int currentStep = 0;
+  String viewerUsernameErrorMessage = "";
+  String approverUsernameErrorMessage = "";
+  String initiatorUsernameErrorMessage = "";
+
+  var oneKey = Key(Random.secure().nextDouble().toString());
+  var allKey = Key(Random.secure().nextDouble().toString());
 
   final Authenticator _authenticator = Authenticator();
   var password = '';
   var viewers = <String>[];
   var initiators = <String>[]; // holds usernames of initiators
   var approvers = <String>[]; // holds usernames of approvers
-  String noOfApprovalsNeeded = '';
+  String noOfApprovalsNeeded = '0';
+  String noOfApprovers = '0';
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
     return wallets!
@@ -228,7 +238,10 @@ class _SharedAccessState extends State<SharedAccess>
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
             onPressed: () {
-              selectAccessTypePopup(context, appState);
+              // selectAccessTypePopup(context, appState);
+              for (var i = 0; i < wallets!.length; i++) {
+                print('wallet: ${wallets![i]}');
+              }
             },
             backgroundColor: notifier.getbluecolor,
             child: Icon(
@@ -474,29 +487,12 @@ class _SharedAccessState extends State<SharedAccess>
     );
   }
 
-  List<Step> getAllSteps() {
+  List<Step> getSteps() {
     return <Step>[
       Step(
         state: currentStep > 0 ? StepState.complete : StepState.indexed,
         isActive: currentStep >= 0,
-        title: Text("Choose wallet",
-            style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontsemibold,
-                fontSize: 15.sp)),
-        content: Column(
-          children: [
-            chooseWallet(),
-            SizedBox(
-              height: height / 30,
-            )
-          ],
-        ),
-      ),
-      Step(
-        state: currentStep > 1 ? StepState.complete : StepState.indexed,
-        isActive: currentStep >= 1,
-        title: Text("Grant viewer access",
+        title: Text("Add viewer access",
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
                 fontFamily: fontsemibold,
@@ -508,9 +504,9 @@ class _SharedAccessState extends State<SharedAccess>
         ),
       ),
       Step(
-        state: currentStep > 2 ? StepState.complete : StepState.indexed,
-        isActive: currentStep >= 2,
-        title: Text("Grant approver access",
+        state: currentStep > 1 ? StepState.complete : StepState.indexed,
+        isActive: currentStep >= 1,
+        title: Text("Add approver access",
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
                 fontFamily: fontsemibold,
@@ -522,9 +518,9 @@ class _SharedAccessState extends State<SharedAccess>
         ),
       ),
       Step(
-        state: currentStep > 3 ? StepState.complete : StepState.indexed,
-        isActive: currentStep >= 3,
-        title: Text("Grant initiator access",
+        state: currentStep > 2 ? StepState.complete : StepState.indexed,
+        isActive: currentStep >= 2,
+        title: Text("Add initiator access",
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
                 fontFamily: fontsemibold,
@@ -538,187 +534,45 @@ class _SharedAccessState extends State<SharedAccess>
     ];
   }
 
-  List<Step> getOneStep() {
-    return <Step>[
-      Step(
-        state: currentStep > 0 ? StepState.complete : StepState.indexed,
-        isActive: currentStep >= 0,
-        title: Text("Choose wallet",
-            style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontsemibold,
-                fontSize: 15.sp)),
-        content: Column(
-          children: [
-            chooseWallet(),
-            SizedBox(
-              height: height / 30,
-            )
-          ],
-        ),
-      ),
-      Step(
-        state: currentStep > 1 ? StepState.complete : StepState.indexed,
-        isActive: currentStep >= 1,
-        title: Text("Grant viewer access",
-            style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontsemibold,
-                fontSize: 15.sp)),
-        content: Column(
-          children: [
-            showViewers(),
-          ],
-        ),
-      ),
-    ];
-  }
-
   Widget grantAccess() {
     return Column(
       children: [
-        // SizedBox(height: height / 30),
-        // chooseWallet(),
-        if (addApprovers) ...[
+        if (addApprovers && activeWallet!.primaryWallet == 0) ...[
           Container(
               height: height / 1.219,
               width: width,
-              // color: Colors.black,
               child: Stepper(
-                key: Key(Random.secure().nextDouble().toString()),
+                key: addApprovers ? allKey : oneKey,
                 type: StepperType.vertical,
                 currentStep: currentStep,
-
-                // onStepCancel: () => currentStep == 0
-                //     ? null
-                //     : setState(() {
-                //         currentStep -= 1;
-                //       }),
-                // onStepContinue: () {
-                //   bool isLastStep = (currentStep == getAllSteps().length - 1);
-                //   if (isLastStep) {
-                //     //Do something with this information
-                //   } else {
-                //     setState(() {
-                //       currentStep += 1;
-                //     });
-                //   }
-                // },
                 controlsBuilder: (context, _) {
                   return Column(
-                    children: [
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          bool isLastStep =
-                              (currentStep == getAllSteps().length - 1);
-                          if (isLastStep) {
-                            submitSharedAccessForm();
-                          } else {
-                            setState(() {
-                              currentStep += 1;
-                            });
-                          }
-                          setState(() {});
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor!),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Text(
-                            addApprovers
-                                ? 'Add approver access'
-                                : 'Grant viewer access',
-                            style: TextStyle(
-                              fontFamily: fontsemibold,
-                              fontSize: 14.sp,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    children: [],
                   );
                 },
                 onStepTapped: (step) => setState(() {
                   currentStep = step;
                 }),
-                steps: getAllSteps(),
+                steps: getSteps(),
               )),
         ] else ...[
+          SizedBox(
+            height: height / 30,
+          ),
+          Text("Add viewer access",
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                  fontSize: 17.sp)),
+          SizedBox(
+            height: height / 30,
+          ),
           Container(
-              height: height / 1.219,
+              // height: height / 1.219,
               width: width,
               // color: Colors.black,
-              child: Stepper(
-                type: StepperType.vertical,
-                currentStep: currentStep,
-                // onStepCancel: () => currentStep == 0
-                //     ? null
-                //     : setState(() {
-                //         currentStep -= 1;
-                //       }),
-                // onStepContinue: () {
-                //   bool isLastStep = (currentStep == getAllSteps().length - 1);
-                //   if (isLastStep) {
-                //     //Do something with this information
-                //   } else {
-                //     setState(() {
-                //       currentStep += 1;
-                //     });
-                //   }
-                // },
-                onStepTapped: (step) => setState(() {
-                  currentStep = step;
-                }),
-                controlsBuilder: (context, _) {
-                  return Column(
-                    children: [
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          bool isLastStep =
-                              (currentStep == getOneStep().length - 1);
-                          if (isLastStep) {
-                            submitSharedAccessForm();
-                          } else {
-                            setState(() {
-                              currentStep += 1;
-                            });
-                          }
-                          setState(() {});
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor!),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Text(
-                            addApprovers
-                                ? 'Add approver access'
-                                : 'Grant viewer access',
-                            style: TextStyle(
-                              fontFamily: fontsemibold,
-                              fontSize: 14.sp,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-                steps: getOneStep(),
-              )),
+              child: showViewers()),
         ],
-        Padding(
-            padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom)),
       ],
     );
   }
@@ -727,11 +581,10 @@ class _SharedAccessState extends State<SharedAccess>
     appState.viewData = {
       AddSharedAccessDetailsViewPageConfig.key: {
         'viewers': viewers,
+        'addApprovers': addApprovers,
         'approvers': approvers,
-        'accessType': selectedAccessType,
         'noOfApprovalsNeeded': noOfApprovalsNeeded,
         'initiators': initiators,
-        'addApprovers': addApprovers,
       }
     };
 
@@ -744,6 +597,10 @@ class _SharedAccessState extends State<SharedAccess>
   Widget showViewers() {
     return Column(
       children: [
+        chooseWallet(),
+        SizedBox(
+          height: height / 50,
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
@@ -806,8 +663,17 @@ class _SharedAccessState extends State<SharedAccess>
                 fontSize: 15.sp),
           ),
         ),
-        SizedBox(
-          height: height / 50,
+        Container(
+          constraints:
+              BoxConstraints(maxHeight: height / 1.7, minWidth: width / 1.1),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                buildExpandable(context),
+              ],
+            ),
+          ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -823,16 +689,42 @@ class _SharedAccessState extends State<SharedAccess>
             controller: viewersController,
           ),
         ),
+        // since we cannot use form validators here because of the async process
+        // to check username we use this to show error messages
+        if (viewerUsernameErrorMessage.isNotEmpty) ...[
+          Text(
+            viewerUsernameErrorMessage,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: Colors.red, fontFamily: fontbody, fontSize: 11.sp),
+          ),
+        ],
         SizedBox(
           height: height / 50,
         ),
         ElevatedButton(
-          onPressed: () => setState(() {
-            if (viewersController.text.isNotEmpty) {
-              viewers.add(viewersController.text);
-              viewersController.text = '';
+          onPressed: () async {
+            viewerUsernameErrorMessage = '';
+            var username = viewersController.text.trim();
+            setState(() {});
+
+            if (username.isEmpty) {
+              viewerUsernameErrorMessage = 'Please enter a username';
+              setState(() {});
+              return;
             }
-          }),
+
+            var isValid = await checkUsername(username);
+            if (!isValid) {
+              viewerUsernameErrorMessage = 'This is not a valid Trovo username';
+              setState(() {});
+              return;
+            }
+
+            viewers.add(username);
+            viewersController.text = '';
+            setState(() {});
+          },
           style: ButtonStyle(
             backgroundColor:
                 MaterialStateProperty.all<Color>(notifier.getbluecolor!),
@@ -847,28 +739,34 @@ class _SharedAccessState extends State<SharedAccess>
         SizedBox(
           height: height / 70,
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+        // if wallet is not primary wallet
+        // primary wallets can only have view-only shared access
+        // the cannot have approver and initiator shared access
+        if (activeWallet!.primaryWallet == 0) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Transform.scale(
                 scale: 1.sp,
                 child: Checkbox(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(5.sp),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(5.sp),
+                      ),
                     ),
-                  ),
-                  activeColor: notifier.getbluecolor,
-                  side: BorderSide(color: notifier.getbluewhitecolor),
-                  value: addApprovers,
-                  onChanged: (value) {
-                    setState(() {
-                      addApprovers = value ?? false;
-                    });
-                  },
-                ),
+                    activeColor: notifier.getbluecolor,
+                    side: BorderSide(color: notifier.getbluewhitecolor),
+                    value: addApprovers,
+                    onChanged: (value) {
+                      setState(() {
+                        addApprovers = value ?? false;
+                      });
+
+                      setState(() {
+                        // move straight to the next step
+                        currentStep = 1;
+                      });
+                    }),
               ),
               Container(
                 child: Text(
@@ -883,215 +781,365 @@ class _SharedAccessState extends State<SharedAccess>
               ),
             ],
           ),
+        ],
+        SizedBox(
+          height: height / 50,
         ),
-        // SizedBox(
-        //   height: height / 10,
-        // ),
-        // Button(
-        //   addApprovers ? 'Grant approver access' : 'Grant viewer access',
-        //   notifier.getbluecolor,
-        //   wihitecolor,
-        //   onTap: () {
-        //     appState.viewData = {
-        //       AddSharedAccessDetailsViewPageConfig.key: {
-        //         'viewers': viewers,
-        //         'approvers': approvers,
-        //         'accessType': selectedAccessType,
-        //         'noOfApprovalsNeeded': noOfApprovalsNeeded,
-        //         'initiators': initiators,
-        //         'addApprovers': addApprovers,
-        //       }
-        //     };
+        ElevatedButton(
+          onPressed: () {
+            if (!addApprovers && viewers.isEmpty) {
+              popup(context,
+                  title: 'Error!',
+                  message:
+                      'Please enter the username of those you want to grant access to this wallet');
+              return;
+            }
 
-        //     if (addApprovers) {
-        //       appState.grantSharedAccessView.view =
-        //           GrantSharedAccessView.approvers;
-        //     } else {
-        //       appState.currentAction = PageAction(
-        //         state: PageState.addPage,
-        //         page: AddSharedAccessDetailsViewPageConfig,
-        //       );
-        //     }
-        //     setState(() {});
-        //   },
-        // ),
+            bool isLastStep = (currentStep == getSteps().length - 1);
+            if (isLastStep) {
+              submitSharedAccessForm();
+            } else {
+              setState(() {
+                currentStep += 1;
+              });
+            }
+          },
+          style: ButtonStyle(
+            backgroundColor:
+                MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+              const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(15),
+                ),
+              ),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text(
+              addApprovers ? 'Add approver access' : 'Proceed',
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                fontSize: 14.sp,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: height / 20,
+        ),
+        Padding(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom)),
       ],
     );
   }
 
   Widget showApprovers() {
-    return Column(
-      children: [
-        Container(
-          child: Text(
-            'Grant approver access',
-            overflow: TextOverflow.visible,
-            style: TextStyle(
-              fontSize: 17,
-              fontFamily: fontsemibold,
-              color: notifier.getbluewhitecolor,
+    return Form(
+      key: approversFormKey,
+      child: Column(
+        children: [
+          Container(
+            child: Text(
+              LanguageEn.enternoofapprover,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 15.sp),
             ),
           ),
-        ),
-        SizedBox(
-          height: height / 20,
-        ),
-        Container(
-          child: Text(
-            LanguageEn.enternoofapprover,
-            style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody,
-                fontSize: 15.sp),
+          SizedBox(
+            height: height / 70,
           ),
-        ),
-        SizedBox(
-          height: height / 70,
-        ),
-        CustomTextFormField.textFieldWithoutIcon(
-          'e.g, 10',
-          notifier.getbluecolor,
-          notifier.getgrey,
-          notifier.getprefixicon,
-          notifier.getblck,
-          notifier.getgrey,
-          70.sp,
-          300.sp,
-          keyboardtype: TextInputType.number,
-          onChanged: (value) =>
-              noOfApprovalsNeeded = value.trim().replaceAll(' ', ''),
-        ),
-        SizedBox(
-          height: height / 70,
-        ),
-        Container(
-          child: Text(
-            LanguageEn.enternoofapprovals,
-            style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody,
-                fontSize: 15.sp),
+          CustomTextFormField.textFieldWithoutIcon(
+            'e.g, 10',
+            notifier.getbluecolor,
+            notifier.getgrey,
+            notifier.getprefixicon,
+            notifier.getblck,
+            notifier.getgrey,
+            70.sp,
+            300.sp,
+            keyboardtype: TextInputType.number,
+            validator: (value) {
+              if (value!.toString().isEmpty) {
+                return 'Please enter total number of approvers';
+              }
+              return null;
+            },
+            onChanged: (value) =>
+                noOfApprovers = value.trim().replaceAll(' ', ''),
           ),
-        ),
-        SizedBox(
-          height: height / 70,
-        ),
-        CustomTextFormField.textFieldWithoutIcon(
-          'e.g, 5',
-          notifier.getbluecolor,
-          notifier.getgrey,
-          notifier.getprefixicon,
-          notifier.getblck,
-          notifier.getgrey,
-          70.sp,
-          300.sp,
-          keyboardtype: TextInputType.number,
-          onChanged: (value) =>
-              noOfApprovalsNeeded = value.trim().replaceAll(' ', ''),
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
-        Container(
-          child: Text(
-            LanguageEn.enteraccountsusernameapprovers,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody,
-                fontSize: 15.sp),
+          SizedBox(
+            height: height / 70,
           ),
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
+          Container(
+            child: Text(
+              LanguageEn.enternoofapprovals,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 15.sp),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 15.0),
-                  child: Column(
-                    children: [
-                      Container(
-                          width: width / 1.8,
-                          child: Wrap(
-                            alignment: WrapAlignment.center,
-                            children: [
-                              if (approvers.length > 0) ...[
-                                for (var i = 0; i < approvers.length; i++) ...[
-                                  userItem(approvers[i], () {
-                                    approvers.removeAt(i);
-                                  }, notifier.getbluecolor)
-                                ],
-                              ] else ...[
-                                Text(
-                                  'Name of approvers appear here',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody,
-                                      fontSize: 15.sp),
-                                ),
-                              ]
-                            ],
-                          )),
-                      SizedBox(height: 2),
-                    ],
+          ),
+          SizedBox(
+            height: height / 70,
+          ),
+          CustomTextFormField.textFieldWithoutIcon(
+            'e.g, 5',
+            notifier.getbluecolor,
+            notifier.getgrey,
+            notifier.getprefixicon,
+            notifier.getblck,
+            notifier.getgrey,
+            70.sp,
+            300.sp,
+            keyboardtype: TextInputType.number,
+            validator: (value) {
+              if (value!.toString().isEmpty) {
+                return 'Please enter number of required approvals';
+              }
+              return null;
+            },
+            onChanged: (value) =>
+                noOfApprovalsNeeded = value.trim().replaceAll(' ', ''),
+          ),
+          SizedBox(
+            height: height / 50,
+          ),
+          Container(
+            child: Text(
+              LanguageEn.enteraccountsusernameapprovers,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 15.sp),
+            ),
+          ),
+          Container(
+            constraints:
+                BoxConstraints(maxHeight: height / 1.7, minWidth: width / 1.1),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  buildExpandable(context),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                color: notifier.isDark
+                    ? darktilewhitecolor
+                    : notifier.getaddsubwalletgrey,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 15.0),
+                    child: Column(
+                      children: [
+                        Container(
+                            width: width / 1.8,
+                            child: Wrap(
+                              alignment: WrapAlignment.center,
+                              children: [
+                                if (approvers.length > 0) ...[
+                                  for (var i = 0;
+                                      i < approvers.length;
+                                      i++) ...[
+                                    userItem(approvers[i], () {
+                                      approvers.removeAt(i);
+                                    }, notifier.getbluecolor)
+                                  ],
+                                ] else ...[
+                                  Text(
+                                    'Name of approvers appear here',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: notifier.getbluewhitecolor,
+                                        fontFamily: fontbody,
+                                        fontSize: 15.sp),
+                                  ),
+                                ]
+                              ],
+                            )),
+                        SizedBox(height: 2),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(
+            height: height / 50,
+          ),
+          CustomTextFormField.textFieldWithoutIcon(
+            'Approver',
+            notifier.getbluecolor,
+            notifier.getgrey,
+            notifier.getprefixicon,
+            notifier.getblck,
+            notifier.getgrey,
+            60.sp,
+            210.sp,
+            controller: approversController,
+          ),
+          // since we cannot use form validators here because of the async process
+          // to check username we use this to show error messages
+          if (approverUsernameErrorMessage.isNotEmpty) ...[
+            Text(
+              approverUsernameErrorMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: Colors.red, fontFamily: fontbody, fontSize: 11.sp),
+            ),
+          ],
+          SizedBox(
+            height: height / 50,
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              approverUsernameErrorMessage = '';
+              var username = approversController.text.trim();
+              setState(() {});
+
+              if (username.isEmpty) {
+                approverUsernameErrorMessage = 'Please enter a username';
+                setState(() {});
+                return;
+              }
+
+              if (approvers.contains(username)) {
+                approverUsernameErrorMessage = 'Username already added';
+                setState(() {});
+                return;
+              }
+
+              // if the username is already on the viewers list then there's
+              // no need to check again that the username is valid so we add it to
+              // to the approvers list
+              if (viewers.contains(username)) {
+                // initiators.add(username);
+                // initiatorsController.text = '';
+                showResponseMessage(context,
+                    'This user will be removed from the viewer access since it will also have view access as an approver',
+                    () {
+                  viewers.removeWhere((userItem) => userItem == username);
+                  approvers.add(username);
+                  approversController.text = '';
+                });
+                setState(() {});
+                return;
+              }
+
+              // if the username is already on the approvers list then there's
+              // no need to check again that the username is valid so we add it to
+              // to the approvers list
+              if (initiators.contains(username)) {
+                approvers.add(username);
+                approversController.text = '';
+                setState(() {});
+                return;
+              }
+
+              var isValid = await checkUsername(username);
+              if (!isValid) {
+                approverUsernameErrorMessage =
+                    'This is not a valid Trovo username';
+                setState(() {});
+                return;
+              }
+
+              approvers.add(username);
+              approversController.text = '';
+              setState(() {});
+            },
+            style: ButtonStyle(
+              backgroundColor:
+                  MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+            ),
+            child: Text(
+              LanguageEn.add,
+              style: TextStyle(
+                fontFamily: fontsemibold,
+              ),
+            ),
+          ),
+          SizedBox(
+            height: height / 20,
+          ),
+          SizedBox(
+            height: height / 50,
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (!approversFormKey.currentState!.validate()) {
+                return;
+              }
+
+              if (approvers.isEmpty) {
+                popup(context,
+                    title: 'Error!',
+                    message:
+                        'Please enter the username of those you want to grant approver access to this wallet');
+                return;
+              }
+
+              if (approvers.length < int.parse(noOfApprovers)) {
+                popup(context,
+                    title: 'Error!',
+                    message:
+                        'Number of usernames cannot be less than the number of approvers you entered');
+                return;
+              }
+
+              bool isLastStep = (currentStep == getSteps().length - 1);
+              if (isLastStep) {
+                submitSharedAccessForm();
+              } else {
+                setState(() {
+                  currentStep += 1;
+                });
+              }
+            },
+            style: ButtonStyle(
+              backgroundColor:
+                  MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(15),
                   ),
                 ),
-              ],
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text(
+                'Add initiator access',
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  fontSize: 14.sp,
+                ),
+              ),
             ),
           ),
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
-        CustomTextFormField.textFieldWithoutIcon(
-          'Approver',
-          notifier.getbluecolor,
-          notifier.getgrey,
-          notifier.getprefixicon,
-          notifier.getblck,
-          notifier.getgrey,
-          60.sp,
-          210.sp,
-          controller: approversController,
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
-        ElevatedButton(
-          onPressed: () => setState(() {
-            if (approversController.text.isNotEmpty) {
-              approvers.add(approversController.text);
-              approversController.text = '';
-            }
-          }),
-          style: ButtonStyle(
-            backgroundColor:
-                MaterialStateProperty.all<Color>(notifier.getbluecolor!),
-          ),
-          child: Text(
-            LanguageEn.add,
-            style: TextStyle(
-              fontFamily: fontsemibold,
-            ),
-          ),
-        ),
-        SizedBox(
-          height: height / 20,
-        ),
-      ],
+          Padding(
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom)),
+        ],
+      ),
     );
   }
 
@@ -1099,20 +1147,6 @@ class _SharedAccessState extends State<SharedAccess>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Container(
-        //   child: Text(
-        //     'Grant initiator access',
-        //     overflow: TextOverflow.visible,
-        //     style: TextStyle(
-        //       fontSize: 17,
-        //       fontFamily: fontsemibold,
-        //       color: notifier.getbluewhitecolor,
-        //     ),
-        //   ),
-        // ),
-        SizedBox(
-          height: height / 30,
-        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
@@ -1135,10 +1169,10 @@ class _SharedAccessState extends State<SharedAccess>
                           child: Wrap(
                             alignment: WrapAlignment.center,
                             children: [
-                              if (viewers.length > 0) ...[
-                                for (var i = 0; i < viewers.length; i++) ...[
-                                  userItem(viewers[i], () {
-                                    viewers.removeAt(i);
+                              if (initiators.length > 0) ...[
+                                for (var i = 0; i < initiators.length; i++) ...[
+                                  userItem(initiators[i], () {
+                                    initiators.removeAt(i);
                                   }, notifier.getbluecolor)
                                 ],
                               ] else ...[
@@ -1174,8 +1208,17 @@ class _SharedAccessState extends State<SharedAccess>
                 fontSize: 15.sp),
           ),
         ),
-        SizedBox(
-          height: height / 50,
+        Container(
+          constraints:
+              BoxConstraints(maxHeight: height / 1.7, minWidth: width / 1.1),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                buildExpandable(context),
+              ],
+            ),
+          ),
         ),
         CustomTextFormField.textFieldWithoutIcon(
           'Initiator',
@@ -1188,16 +1231,76 @@ class _SharedAccessState extends State<SharedAccess>
           210.sp,
           controller: initiatorsController,
         ),
+        // since we cannot use form validators here because of the async process
+        // to check username we use this to show error messages
+        if (initiatorUsernameErrorMessage.isNotEmpty) ...[
+          Text(
+            initiatorUsernameErrorMessage,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: Colors.red, fontFamily: fontbody, fontSize: 11.sp),
+          ),
+        ],
         SizedBox(
           height: height / 50,
         ),
         ElevatedButton(
-          onPressed: () => setState(() {
-            if (initiatorsController.text.isNotEmpty) {
-              initiators.add(initiatorsController.text);
-              initiatorsController.text = '';
+          onPressed: () async {
+            initiatorUsernameErrorMessage = '';
+            var username = initiatorsController.text.trim();
+            setState(() {});
+
+            if (username.isEmpty) {
+              initiatorUsernameErrorMessage = 'Please enter a username';
+              setState(() {});
+              return;
             }
-          }),
+
+            if (initiators.contains(username)) {
+              initiatorUsernameErrorMessage = 'Username already added';
+              setState(() {});
+              return;
+            }
+
+            // if the username is already on the viewers list then there's
+            // no need to check again that the username is valid so we add it to
+            // to the approvers list
+            if (viewers.contains(username)) {
+              // initiators.add(username);
+              // initiatorsController.text = '';
+              showResponseMessage(context,
+                  'This user will be removed from the viewer access list since he will also have view access as an approver',
+                  () {
+                viewers.removeWhere((username) => username == username);
+                initiators.add(username);
+                initiatorsController.text = '';
+              });
+              setState(() {});
+              return;
+            }
+
+            // if the username is already on the approvers list then there's
+            // no need to check again that the username is valid so we add it to
+            // to the approvers list
+            if (approvers.contains(username)) {
+              initiators.add(username);
+              initiatorsController.text = '';
+              setState(() {});
+              return;
+            }
+
+            var isValid = await checkUsername(username);
+            if (!isValid) {
+              initiatorUsernameErrorMessage =
+                  'This is not a valid Trovo username';
+              setState(() {});
+              return;
+            }
+
+            initiators.add(username);
+            initiatorsController.text = '';
+            setState(() {});
+          },
           style: ButtonStyle(
             backgroundColor:
                 MaterialStateProperty.all<Color>(notifier.getbluecolor!),
@@ -1210,29 +1313,66 @@ class _SharedAccessState extends State<SharedAccess>
           ),
         ),
         SizedBox(
-          height: height / 10,
+          height: height / 20,
         ),
-        // Button(
-        //   LanguageEn.proceed,
-        //   notifier.getbluecolor,
-        //   wihitecolor,
-        //   onTap: () {
-        //     appState.viewData = {
-        //       AddSharedAccessDetailsViewPageConfig.key: {
-        //         'viewers': viewers,
-        //         'approvers': approvers,
-        //         'accessType': selectedAccessType,
-        //         'noOfApprovalsNeeded': noOfApprovalsNeeded,
-        //         'initiators': initiators,
-        //         'addApprovers': addApprovers,
-        //       }
-        //     };
-        //     appState.currentAction = PageAction(
-        //       state: PageState.addPage,
-        //       page: AddSharedAccessDetailsViewPageConfig,
-        //     );
-        //   },
-        // ),
+        SizedBox(
+          height: height / 50,
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (initiators.isEmpty) {
+              popup(context,
+                  title: 'Error!',
+                  message:
+                      'Please enter the username of those you want to grant initiator access to this wallet');
+              return;
+            }
+
+            if (approvers.isEmpty) {
+              popup(context,
+                  title: 'Error!',
+                  message:
+                      'You cannot have initiators without having approvers. Please add approvers.');
+              return;
+            }
+
+            bool isLastStep = (currentStep == getSteps().length - 1);
+            if (isLastStep) {
+              submitSharedAccessForm();
+            } else {
+              setState(() {
+                currentStep += 1;
+              });
+            }
+          },
+          style: ButtonStyle(
+            backgroundColor:
+                MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+              const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(15),
+                ),
+              ),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text(
+              'Proceed',
+              style: TextStyle(
+                fontFamily: fontsemibold,
+                fontSize: 14.sp,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: height / 20,
+        ),
+        Padding(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom)),
       ],
     );
   }
@@ -1280,13 +1420,13 @@ class _SharedAccessState extends State<SharedAccess>
         padding: const EdgeInsets.symmetric(horizontal: 15.0),
         child: Column(
           children: [
-            // Text(
-            //   LanguageEn.choosewallet,
-            //   style: TextStyle(
-            //       color: notifier.getbluewhitecolor,
-            //       fontFamily: fontbody,
-            //       fontSize: 15.sp),
-            // ),
+            Text(
+              LanguageEn.choosewallet,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 15.sp),
+            ),
             SizedBox(
               height: height / 50,
             ),
@@ -1328,6 +1468,10 @@ class _SharedAccessState extends State<SharedAccess>
                     selectedWallet = newValue!;
                     appState.activeWallet = wallets!
                         .firstWhere((wallet) => wallet.publicKey == newValue);
+                    addApprovers = false;
+                    initiators = [];
+                    approvers = [];
+                    viewers = [];
                   });
                 },
                 items: walletDropdownItems,
@@ -1339,42 +1483,30 @@ class _SharedAccessState extends State<SharedAccess>
     );
   }
 
-  void handleAuthorization() {
-    if (!formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (password == appState.password!) {
-      // sendDataToServer();
-    } else {
-      popup(context,
-          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
-    }
-  }
-
-  void toggleSwitch() async {
+  // we need to check that the username entered here is a valid
+  // username of an active trovo account
+  Future<bool> checkUsername(String username) async {
     try {
-      bool result = await _authenticator.authenticateMe();
-      if (result) {
-        // sendDataToServer();
-        // aparently we need the code below to make the
-        // screen updata to show loader
-        // after authorizing with biometrics
-        setState(() {});
+      showLoader(context);
+      Map responseData = await makeGetRequest(
+        uri: '/v1/users/$username',
+        signer: activeWallet!.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: activeWallet!.publicKey!,
+      );
+
+      print('response: ${responseData}');
+      hideLoader(context);
+
+      if (responseData['statusCode'] == 200) {
+        return true;
       }
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notEnrolled ||
-          e.code == auth_error.notAvailable) {
-        biometricsErrorAlert(context);
-      }
+
+      return false;
+    } catch (e) {
+      popup(context, title: LanguageEn.error, message: e.toString());
+      hideLoader(context);
+      return false;
     }
-  }
-
-  String? validatePassword(String? value) {
-    if (value!.isEmpty) return 'Enter your password';
-
-    if (value.length < 6) return 'Use 6 characters or more for your password';
-
-    return null;
   }
 }

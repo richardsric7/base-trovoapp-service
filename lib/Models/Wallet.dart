@@ -9,6 +9,7 @@ class Wallet {
   String? userId;
   int? managedAccessEnabled;
   int? primaryWallet;
+  // List<Map<String, dynamic>>? permissions;
 
   Wallet({
     this.createdAt,
