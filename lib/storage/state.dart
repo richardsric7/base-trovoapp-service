@@ -2,6 +2,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
+import 'package:trovo_wallet/Models/WalletsListViewData.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -11,9 +12,9 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../Models/User.dart';
-import '../Models/WalletsListViewData.dart';
-import '../Models/WalletsListViewData.dart';
-import '../Models/WalletsListViewData.dart';
+import '../Models/Permission.dart';
+import '../Models/Permission.dart';
+import '../Models/Permission.dart';
 import '../router/PageActions.dart';
 import 'cache.dart';
 
@@ -29,11 +30,6 @@ class DataProvider with ChangeNotifier {
   bool dialogOpen = false;
   WalletsListViewData walletView = WalletsListViewData(
       view: WalletView.listWallets,
-      actionIcon: Icons.add_circle_outline_sharp,
-      actionText: LanguageEn.addsubwallet);
-
-  GrantSharedAccessViewData grantSharedAccessView = GrantSharedAccessViewData(
-      view: GrantSharedAccessView.viewers,
       actionIcon: Icons.add_circle_outline_sharp,
       actionText: LanguageEn.addsubwallet);
 

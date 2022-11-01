@@ -29,7 +29,7 @@ class Congratulations extends StatelessWidget {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 6),
+              SizedBox(height: height / 10),
               Text(
                 '${LanguageEn.congratulations}',
                 style: TextStyle(
@@ -86,7 +86,7 @@ class Congratulations extends StatelessWidget {
                   warnSkipBackupDialog(context, gotoNext);
                 },
               ),
-              SizedBox(height: height / 7.3),
+              SizedBox(height: height / 15),
             ],
           ),
         ),

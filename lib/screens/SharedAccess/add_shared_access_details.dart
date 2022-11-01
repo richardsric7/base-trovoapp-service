@@ -15,7 +15,6 @@ import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
@@ -297,7 +296,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                                     i++) ...[
                                                   userItem(
                                                       viewData['approvers'][i],
-                                                      notifier.getgreencolor),
+                                                      notifier.getbluecolor),
                                                 ],
                                               ],
                                             )),
@@ -369,7 +368,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                                     i++) ...[
                                                   userItem(
                                                       viewData['initiators'][i],
-                                                      notifier.getbluecolor80)
+                                                      notifier.getbluecolor)
                                                 ],
                                               ],
                                             )),

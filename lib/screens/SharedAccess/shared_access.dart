@@ -1,15 +1,11 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/Models/Permission.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
@@ -23,7 +19,6 @@ import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
 
 class SharedAccess extends StatefulWidget {
   const SharedAccess({Key? key}) : super(key: key);
@@ -69,6 +64,7 @@ class _SharedAccessState extends State<SharedAccess>
   var viewers = <String>[];
   var initiators = <String>[]; // holds usernames of initiators
   var approvers = <String>[]; // holds usernames of approvers
+  var userFullnames = {};
   String noOfApprovalsNeeded = '0';
   String noOfApprovers = '0';
 
@@ -237,15 +233,15 @@ class _SharedAccessState extends State<SharedAccess>
       height: height / 1.22,
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              // selectAccessTypePopup(context, appState);
-              for (var i = 0; i < wallets!.length; i++) {
-                print('wallet: ${wallets![i]}');
-              }
+            onPressed: () async {
+              // // selectAccessTypePopup(context, appState);
+              // wallets!.forEach((wallet) {
+              //   print(wallet.permissions!.first.targetUsername);
+              // });
             },
             backgroundColor: notifier.getbluecolor,
             child: Icon(
-              Icons.add,
+              Icons.question_mark,
               size: 30.sp,
             )),
         body: SingleChildScrollView(
@@ -376,12 +372,25 @@ class _SharedAccessState extends State<SharedAccess>
               SizedBox(
                 height: height / 50,
               ),
-              for (var i = 0; i < appState.sharedWallets.length; i++) ...[
-                tiles(
-                  walletOwner: appState.sharedWallets[i]['owner']!,
-                  walletAlias: appState.sharedWallets[i]['walletAlias']!,
-                  accessType: appState.sharedWallets[i]['permission']!,
-                ),
+              if (selectedAccessMode == 'Access granted to me') ...[
+                for (var i = 0; i < appState.sharedWallets.length; i++) ...[
+                  accessGrantedToMe(
+                    walletOwner: appState.sharedWallets[i]['owner']!,
+                    walletAlias: appState.sharedWallets[i]['walletAlias']!,
+                    accessType: appState.sharedWallets[i]['permission']!,
+                  ),
+                ],
+              ] else ...[
+                for (var walletIndex = 0;
+                    walletIndex < wallets!.length;
+                    walletIndex++) ...{
+                  if (wallets![walletIndex].permissions != null &&
+                      wallets![walletIndex].permissions!.length > 0) ...[
+                    accessGrantedByMe(
+                        walletAlias: wallets![walletIndex].alias!,
+                        permissions: wallets![walletIndex].permissions),
+                  ]
+                }
               ],
               SizedBox(
                 height: height / 10,
@@ -396,7 +405,7 @@ class _SharedAccessState extends State<SharedAccess>
     );
   }
 
-  Widget tiles(
+  Widget accessGrantedToMe(
       {required String walletOwner,
       required String walletAlias,
       required String accessType}) {
@@ -449,41 +458,235 @@ class _SharedAccessState extends State<SharedAccess>
                   ),
                 ],
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => {},
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                          notifier.getbluecolor!),
-                    ),
-                    child: Text(
-                      'Approve Revoke Access',
-                      style: TextStyle(
-                        fontFamily: fontsemibold,
-                        fontSize: 10.sp,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                    child: Text(
-                      '3 out of 4 initiated',
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontFamily: fontbody,
-                        color: notifier.getblck,
-                      ),
-                    ),
-                  ),
-                ],
-              )
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget accessGrantedByMe(
+      {required String walletAlias, required List<Permission>? permissions}) {
+    // sort the list first
+    List<Permission> approversList = [];
+    List<Permission> initiatorsList = [];
+    List<Permission> viewersList = [];
+    if (permissions != null && permissions.length > 0) {
+      for (var permIndex = 0; permIndex < permissions.length; permIndex++) {
+        if (permissions[permIndex].permission == 'VIEW-ONLY') {
+          viewersList.add(permissions[permIndex]);
+        }
+        if (permissions[permIndex].permission == 'APPROVER') {
+          approversList.add(permissions[permIndex]);
+        }
+        if (permissions[permIndex].permission == 'INITIATOR') {
+          initiatorsList.add(permissions[permIndex]);
+        }
+      }
+    }
+    return Column(
+      children: [
+        Card(
+          elevation: notifier.isDark ? 0 : 5,
+          shadowColor: Colors.black,
+          color: notifier.gettilewihitecolor,
+          margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: ListTile(
+              title: Column(
+                children: [
+                  Text(
+                    walletAlias,
+                    style: TextStyle(
+                      fontSize: 19,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                        child: Text(
+                          'Viewer access',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluecolor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (viewersList.length > 0) ...[
+                    for (var permIndex = 0;
+                        permIndex < viewersList.length;
+                        permIndex++) ...[
+                      Row(children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                          child: Text(
+                            '${viewersList[permIndex].targetUsername}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: fontbody,
+                              color: notifier.getbluecolor,
+                            ),
+                          ),
+                        ),
+                      ])
+                    ]
+                  ] else ...[
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                          child: Container(
+                            width: width / 1.5,
+                            child: Text(
+                              'You have granted no view-only access on this wallet',
+                              overflow: TextOverflow.visible,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluecolor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                        child: Text(
+                          'Approver access',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluecolor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (approversList.length > 0) ...[
+                    for (var permIndex = 0;
+                        permIndex < approversList.length;
+                        permIndex++) ...[
+                      Row(children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                          child: Text(
+                            '${approversList[permIndex].targetUsername}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: fontbody,
+                              color: notifier.getbluecolor,
+                            ),
+                          ),
+                        ),
+                      ])
+                    ]
+                  ] else ...[
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                          child: Container(
+                            width: width / 1.5,
+                            child: Text(
+                              'You have granted no approver access on this wallet',
+                              overflow: TextOverflow.visible,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluecolor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                        child: Text(
+                          'Initiator access',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluecolor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (initiatorsList.length > 0) ...[
+                    for (var permIndex = 0;
+                        permIndex < initiatorsList.length;
+                        permIndex++) ...[
+                      Row(children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                          child: Text(
+                            '${initiatorsList[permIndex].targetUsername}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: fontbody,
+                              color: notifier.getbluecolor,
+                            ),
+                          ),
+                        ),
+                      ])
+                    ]
+                  ] else ...[
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                          child: Container(
+                            width: width / 1.5,
+                            child: Text(
+                              'You have granted no initiator access on this wallet',
+                              overflow: TextOverflow.visible,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluecolor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+      ],
     );
   }
 
@@ -625,7 +828,9 @@ class _SharedAccessState extends State<SharedAccess>
                             children: [
                               if (viewers.length > 0) ...[
                                 for (var i = 0; i < viewers.length; i++) ...[
-                                  userItem(viewers[i], () {
+                                  userItem(
+                                      '${viewers[i]} [${userFullnames[viewers[i]]}]',
+                                      () {
                                     viewers.removeAt(i);
                                   }, notifier.getbluecolor)
                                 ],
@@ -689,8 +894,8 @@ class _SharedAccessState extends State<SharedAccess>
             controller: viewersController,
           ),
         ),
-        // since we cannot use form validators here because of the async process
-        // to check username we use this to show error messages
+        // since we cannot use form validators here to check username
+        // because of the async process we use this to show error messages
         if (viewerUsernameErrorMessage.isNotEmpty) ...[
           Text(
             viewerUsernameErrorMessage,
@@ -714,13 +919,39 @@ class _SharedAccessState extends State<SharedAccess>
               return;
             }
 
-            var isValid = await checkUsername(username);
-            if (!isValid) {
+            // if the username is already on the approvers list then there's an error
+            if (approvers.contains(username)) {
+              popup(
+                context,
+                title: 'Alert',
+                message:
+                    'This user is already added to approver access which gives them implicit view access. Please remove them from approver access if you want to grant them view-only access.',
+                bodyColor: notifier.getbluecolor,
+              );
+              return;
+            }
+
+            // if the username is already on the initiators list then there's an error
+            if (initiators.contains(username)) {
+              popup(
+                context,
+                title: 'Error',
+                message:
+                    'This user is already added to initiator access which gives them implicit view access. Please remove them from initiator access if you want to grant them view-only access.',
+                bodyColor: notifier.getbluecolor,
+              );
+              return;
+            }
+
+            var userInfo = await checkUsername(username);
+            if (userInfo == null) {
               viewerUsernameErrorMessage = 'This is not a valid Trovo username';
               setState(() {});
               return;
             }
 
+            userFullnames[username] =
+                '${userInfo['firstName']} ${userInfo['lastName']}';
             viewers.add(username);
             viewersController.text = '';
             setState(() {});
@@ -957,7 +1188,9 @@ class _SharedAccessState extends State<SharedAccess>
                                   for (var i = 0;
                                       i < approvers.length;
                                       i++) ...[
-                                    userItem(approvers[i], () {
+                                    userItem(
+                                        '${approvers[i]} [${userFullnames[approvers[i]]}]',
+                                        () {
                                       approvers.removeAt(i);
                                     }, notifier.getbluecolor)
                                   ],
@@ -1030,10 +1263,8 @@ class _SharedAccessState extends State<SharedAccess>
               // no need to check again that the username is valid so we add it to
               // to the approvers list
               if (viewers.contains(username)) {
-                // initiators.add(username);
-                // initiatorsController.text = '';
                 showResponseMessage(context,
-                    'This user will be removed from the viewer access since it will also have view access as an approver',
+                    'This user will be removed from the view-only access as they will have implicit view access as an approver',
                     () {
                   viewers.removeWhere((userItem) => userItem == username);
                   approvers.add(username);
@@ -1053,14 +1284,15 @@ class _SharedAccessState extends State<SharedAccess>
                 return;
               }
 
-              var isValid = await checkUsername(username);
-              if (!isValid) {
+              var userInfo = await checkUsername(username);
+              if (userInfo == null) {
                 approverUsernameErrorMessage =
                     'This is not a valid Trovo username';
                 setState(() {});
                 return;
               }
-
+              userFullnames[username] =
+                  '${userInfo['firstName']} ${userInfo['lastName']}';
               approvers.add(username);
               approversController.text = '';
               setState(() {});
@@ -1171,7 +1403,9 @@ class _SharedAccessState extends State<SharedAccess>
                             children: [
                               if (initiators.length > 0) ...[
                                 for (var i = 0; i < initiators.length; i++) ...[
-                                  userItem(initiators[i], () {
+                                  userItem(
+                                      '${initiators[i]} [${userFullnames[initiators[i]]}]',
+                                      () {
                                     initiators.removeAt(i);
                                   }, notifier.getbluecolor)
                                 ],
@@ -1269,7 +1503,7 @@ class _SharedAccessState extends State<SharedAccess>
               // initiators.add(username);
               // initiatorsController.text = '';
               showResponseMessage(context,
-                  'This user will be removed from the viewer access list since he will also have view access as an approver',
+                  'This user will be removed from the view-only access as they will have implicit view access as an initiator',
                   () {
                 viewers.removeWhere((username) => username == username);
                 initiators.add(username);
@@ -1289,14 +1523,15 @@ class _SharedAccessState extends State<SharedAccess>
               return;
             }
 
-            var isValid = await checkUsername(username);
-            if (!isValid) {
+            var userInfo = await checkUsername(username);
+            if (userInfo == null) {
               initiatorUsernameErrorMessage =
                   'This is not a valid Trovo username';
               setState(() {});
               return;
             }
-
+            userFullnames[username] =
+                '${userInfo['firstName']} ${userInfo['lastName']}';
             initiators.add(username);
             initiatorsController.text = '';
             setState(() {});
@@ -1387,13 +1622,15 @@ class _SharedAccessState extends State<SharedAccess>
         child: Padding(
           padding: const EdgeInsets.all(5.0),
           child: Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 name,
-                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
                 softWrap: true,
                 style: TextStyle(
-                    color: wihitecolor, fontFamily: fontbody, fontSize: 15.sp),
+                    color: wihitecolor, fontFamily: fontbody, fontSize: 12.sp),
               ),
               SizedBox(
                 width: width / 70,
@@ -1485,7 +1722,7 @@ class _SharedAccessState extends State<SharedAccess>
 
   // we need to check that the username entered here is a valid
   // username of an active trovo account
-  Future<bool> checkUsername(String username) async {
+  Future<Map?> checkUsername(String username) async {
     try {
       showLoader(context);
       Map responseData = await makeGetRequest(
@@ -1499,14 +1736,15 @@ class _SharedAccessState extends State<SharedAccess>
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        return true;
+        print(responseData['data']);
+        return responseData['data']['userData'];
       }
 
-      return false;
+      return null;
     } catch (e) {
       popup(context, title: LanguageEn.error, message: e.toString());
       hideLoader(context);
-      return false;
+      return null;
     }
   }
 }
