@@ -162,7 +162,7 @@ Widget userItem(String name, Color color) {
               overflow: TextOverflow.ellipsis,
               softWrap: true,
               style: TextStyle(
-                  color: wihitecolor, fontFamily: fontbody, fontSize: 15.sp),
+                  color: wihitecolor, fontFamily: fontbody, fontSize: 13.sp),
             ),
           ],
         ),

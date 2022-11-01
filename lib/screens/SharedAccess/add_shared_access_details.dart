@@ -221,7 +221,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                                             .length;
                                                     i++) ...[
                                                   userItem(
-                                                      viewData['viewers'][i],
+                                                      '${viewData['viewers'][i]} [${viewData['userFullnames'][viewData['viewers'][i]]}]',
                                                       notifier.getbluecolor)
                                                 ],
                                               ],
@@ -295,7 +295,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                                             .length;
                                                     i++) ...[
                                                   userItem(
-                                                      viewData['approvers'][i],
+                                                      '${viewData['approvers'][i]} [${viewData['userFullnames'][viewData['approvers'][i]]}]',
                                                       notifier.getbluecolor),
                                                 ],
                                               ],
@@ -367,7 +367,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                                             .length;
                                                     i++) ...[
                                                   userItem(
-                                                      viewData['initiators'][i],
+                                                      '${viewData['initiators'][i]} [${viewData['userFullnames'][viewData['initiators'][i]]}]',
                                                       notifier.getbluecolor)
                                                 ],
                                               ],

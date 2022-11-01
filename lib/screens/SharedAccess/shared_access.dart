@@ -788,6 +788,7 @@ class _SharedAccessState extends State<SharedAccess>
         'approvers': approvers,
         'noOfApprovalsNeeded': noOfApprovalsNeeded,
         'initiators': initiators,
+        'userFullnames': userFullnames,
       }
     };
 
