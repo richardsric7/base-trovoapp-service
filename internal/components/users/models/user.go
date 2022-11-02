@@ -67,6 +67,7 @@ type UserWallet struct {
 	Permissions             []WalletPermission `gorm:"foreignKey:WalletPublicKey;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"permissions"`
 	SharedAccessCreatedAt   time.Time          `json:"sharedAccessCreatedAt"`
 	SharedAccessUpdatedAt   time.Time          `json:"sharedAccessUpdatedAt"`
+	FeeDisabled             int                `gorm:"type:integer; not null; default:0" json:"feeDisabled"`
 }
 
 type WalletPermission struct {

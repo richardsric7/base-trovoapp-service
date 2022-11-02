@@ -652,6 +652,8 @@ func (u *User) BuildPrimaryWallet() {
 func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescription string, walletType int, gc *sharedconfig.GlobalConfig) (userWallet UserWallet, err error) {
 	walletTag = strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(walletTag, "_", ""), ".", ""), " ", ""), "%", ""))
 	walletDescription = strings.TrimSpace(walletDescription)
+	hasMMSubwallet := false
+	hasBPSubWallet := false
 
 	if len(subWalletPublicKey) != 56 || len(walletTag) == 0 {
 		log.Println("[BuildNewSubWallet] invalid parameters")
@@ -675,6 +677,28 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 					Param:      "id",
 					Err:        "error-sub-wallet-already-exists-in-your-account",
 					ErrMessage: "Sub-wallet already exists in your account",
+					Code:       http.StatusConflict,
+				}
+			}
+			if wallet.WalletType == 2 {
+				hasMMSubwallet = true
+			}
+			if wallet.WalletType == 3 {
+				hasBPSubWallet = true
+			}
+			if walletType == 2 && hasMMSubwallet {
+				return userWallet, &tErrors.CustomError{
+					Param:      "id",
+					Err:        "error-market-marking-wallet-already-exists-in-your-account",
+					ErrMessage: "Market making wallet already exists in your account. You cannot have more than one Market making wallet.",
+					Code:       http.StatusConflict,
+				}
+			}
+			if walletType == 3 && hasBPSubWallet {
+				return userWallet, &tErrors.CustomError{
+					Param:      "id",
+					Err:        "error-bulk-payment-wallet-already-exists-in-your-account",
+					ErrMessage: "Bulk Payment wallet already exists in your account. You cannot have more than one Bulk Payment wallet.",
 					Code:       http.StatusConflict,
 				}
 			}
@@ -1007,6 +1031,42 @@ func (u *UserWallet) GetWalletOwner(db *gorm.DB) (walletOwner User, err error) {
 				Param:      "id",
 				Err:        "error-account-not-found",
 				ErrMessage: "Account not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
+func (u *User) GetMartketMakingWallet(db *gorm.DB) (wallet UserWallet, err error) {
+	e := db.Preload(clause.Associations).Where("user_id = ? AND wallet_type = 2", u.ID).First(&wallet).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-market-making-wallet-not-found",
+				ErrMessage: "Market Making Wallet not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
+func (u *User) GetBulkPaymentWallet(db *gorm.DB) (wallet UserWallet, err error) {
+	e := db.Preload(clause.Associations).Where("user_id = ? AND wallet_type = 3", u.ID).First(&wallet).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-bulk-payment-wallet-not-found",
+				ErrMessage: "Bulk Payment Wallet not found",
 				Code:       404,
 			}
 			return

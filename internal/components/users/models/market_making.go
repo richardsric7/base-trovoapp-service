@@ -10,5 +10,12 @@ type MakeOfferRequest struct {
 	PricePerAsset        string   `json:"pricePerAsset"`
 	Quantity             string   `json:"quantity"`
 	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	NetworkPassPhrase    string   `json:"networkPassPhrase"`
 	Messages             []string `json:"messages"`
+	Commit               int      `json:"commit"`
+	Multiparty           int      `json:"-"`
+	Memo                 string   `json:"memo"`
+	ReturnedDescription  string   `json:"-"`
 }
