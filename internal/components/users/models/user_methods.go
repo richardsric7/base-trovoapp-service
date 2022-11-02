@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -138,32 +139,12 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 	{
 
 		// search cache for balance
-		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
 
 		if ok {
-			log.Printf("GetBalance[%v], served from cache\n", cacheKey)
-			b := response.(map[string]interface{})
-			for k, v := range b {
-				mi := v.(map[string]interface{})
-				usdPrice := "0"
-				nativePrice := "0"
-				if len(mi["usdPrice"].(string)) > 0 {
-					usdPrice = mi["usdPrice"].(string)
-				}
-				if len(mi["nativePrice"].(string)) > 0 {
-					nativePrice = mi["nativePrice"].(string)
-				}
-				balances[k] = Balance{
-					AssetIssuer: mi["assetIssuer"].(string),
-					AssetCode:   mi["assetCode"].(string),
-					Amount:      decimal.RequireFromString(mi["amount"].(string)),
-					QRCode:      mi["qrCode"].(string),
-					ImageURL:    mi["imageUrl"].(string),
-					UsdPrice:    usdPrice,
-					NativePrice: nativePrice,
-				}
 
-			}
+			log.Printf("GetBalance[%v], served from cache\n", cacheKey)
+			json.Unmarshal(rawdata, &balances)
 			return
 		}
 
@@ -188,13 +169,17 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			ImageURL:    os.Getenv("XBN_ASSET_IMAGE_URL"),
 			UsdPrice:    xbnUsdPrice,
 			NativePrice: xbnNativePrice,
+			InTrade: TradeLiabilties{
+				SellingLiabilities: "0",
+				BuyingLiabilities:  "0",
+			},
 		}
 
 		if !temp && err.Error() == "error-blockchain-account-not-activated" {
 
 			log.Printf("[GetBalance] get blockchain account detail error: %v\n", err)
 			//save to cache
-			gc.RedisCache.StoreResultToCache(cacheKey, balances, 60)
+			gc.RedisCache.StoreResultToCacheRaw(cacheKey, balances, 60)
 			return balances, nil
 		}
 		if !temp {
@@ -258,6 +243,10 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 				ImageURL:    imageUrl,
 				UsdPrice:    assetUsdPrice,
 				NativePrice: assetNativePrice,
+				InTrade: TradeLiabilties{
+					SellingLiabilities: bal.SellingLiabilities,
+					BuyingLiabilities:  bal.BuyingLiabilities,
+				},
 			}
 			// log.Printf("[BALANCE] balance: %+v\n", bal)
 

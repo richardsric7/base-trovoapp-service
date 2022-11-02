@@ -16,4 +16,11 @@ func Init(router *gin.Engine) {
 		rootInfo.PublicKey = middleware.ExtractPublicKey(c)
 		c.JSON(200, rootInfo)
 	})
+	//Returns organisation running this bantupay api instance
+	router.GET("/.well-known/stellar.toml", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+
+		rootInfo := root.GetRootInfo()
+		rootInfo.PublicKey = middleware.ExtractPublicKey(c)
+		c.JSON(200, rootInfo)
+	})
 }

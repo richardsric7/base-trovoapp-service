@@ -95,6 +95,60 @@ func (r *RedisCache) StoreResultToCache(key string, toCache interface{}, expiryI
 
 }
 
+// StoreResultToCacheRaw only caches if Enabled.
+func (r *RedisCache) StoreResultToCacheRaw(key string, toCache interface{}, expiryInSeconds int) bool {
+	if !r.Enabled {
+		return false
+	}
+
+	if expiryInSeconds == 0 {
+		expiryInSeconds = 120
+	}
+	bytes, err := json.Marshal(toCache)
+
+	if err != nil {
+		log.Printf("[StoreResultToCacheRaw] failed to marshal data to bytes due to : %v\n", err)
+
+		return false
+	}
+	param := "default"
+	if len(os.Getenv("CACHING_PARAMETER")) > 0 {
+		param = os.Getenv("CACHING_PARAMETER")
+	}
+	key = key + param
+	r.Client.HSet(r.Context, key, param, bytes).Result()
+	_, err = r.Client.Expire(r.Context, key, time.Duration(expiryInSeconds)*time.Second).Result()
+
+	if err != nil {
+		log.Printf("[StoreResultToCacheRaw] failed to store [%v] in cache due to : %v\n", key, err)
+		return false
+	}
+
+	return true
+
+}
+
+// GetCachedResultRaw only caches if Enabled.
+func (r *RedisCache) GetCachedResultRaw(key string) (bool, []byte) {
+	if !r.Enabled {
+		return false, nil
+	}
+	param := "default"
+	if len(os.Getenv("CACHING_PARAMETER")) > 0 {
+		param = os.Getenv("CACHING_PARAMETER")
+	}
+	key = key + param
+
+	p, err := r.Client.HGet(r.Context, key, param).Result()
+
+	if err != nil {
+		return false, nil
+	}
+
+	return true, []byte(p)
+
+}
+
 // GetCachedResult only caches if Enabled.
 func (r *RedisCache) GetCachedResult(key string) (bool, interface{}) {
 	if !r.Enabled {

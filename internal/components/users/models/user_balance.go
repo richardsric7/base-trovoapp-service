@@ -7,10 +7,16 @@ type Balance struct {
 	AssetIssuer string          `json:"assetIssuer"`
 	AssetCode   string          `json:"assetCode"`
 	Amount      decimal.Decimal `json:"amount"`
+	InTrade     TradeLiabilties `json:"inTrade"`
 	QRCode      string          `json:"qrCode"`
 	ImageURL    string          `json:"imageUrl"`
 	UsdPrice    string          `json:"usdPrice"`
 	NativePrice string          `json:"nativePrice"`
+}
+
+type TradeLiabilties struct {
+	SellingLiabilities string `json:"sellingLiabilities"`
+	BuyingLiabilities  string `json:"buyingLiabilities"`
 }
 
 type NFT struct {
