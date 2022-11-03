@@ -43,7 +43,7 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
 import 'package:trovo_wallet/screens/SharedAccess/add_shared_access_details.dart';
-import 'package:trovo_wallet/screens/SharedAccess/approver_access.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_wallet_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/screens/SharedAccess/viewer_access.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
@@ -264,8 +264,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               AddSharedAccessDetails(), AddSharedAccessDetailsViewPageConfig);
           break;
-        case Pages.ApproverAccessView:
-          _addPageData(ApproverAccess(), ApproverAccessViewPageConfig);
+        case Pages.SharedWalletDetailsView:
+          _addPageData(
+              SharedWalletDetails(), SharedWalletDetailsViewPageConfig);
           break;
         case Pages.ViewerAccessView:
           _addPageData(ViewerAccess(), ViewerAccessViewPageConfig);
@@ -432,8 +433,8 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         SecurityQuestionsForInactiveAccountsViewPageConfig.currentPageAction =
             action;
         break;
-      case Pages.ApproverAccessView:
-        ApproverAccessViewPageConfig.currentPageAction = action;
+      case Pages.SharedWalletDetailsView:
+        SharedWalletDetailsViewPageConfig.currentPageAction = action;
         break;
       case Pages.ViewerAccessView:
         ViewerAccessViewPageConfig.currentPageAction = action;

@@ -2265,10 +2265,10 @@ selectAccessTypePopup(context, DataProvider appState) async {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: ApproverAccessViewPageConfig,
-                        );
+                        // appState.currentAction = PageAction(
+                        //   state: PageState.addPage,
+                        //   page: ApproverAccessViewPageConfig,
+                        // );
                         Navigator.of(context).pop(); // dismiss dialog,
                       },
                       style: ButtonStyle(

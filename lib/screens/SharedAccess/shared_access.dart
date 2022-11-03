@@ -14,10 +14,8 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SharedAccess extends StatefulWidget {
@@ -62,8 +60,8 @@ class _SharedAccessState extends State<SharedAccess>
   var initiators = <String>[]; // holds usernames of initiators
   var approvers = <String>[]; // holds usernames of approvers
   var userFullnames = {};
-  int noOfApprovalsNeeded = 2;
-  int noOfApprovers = 3;
+  int noOfApprovalsNeeded = 0;
+  int noOfApprovers = 0;
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
     return wallets!
@@ -111,7 +109,7 @@ class _SharedAccessState extends State<SharedAccess>
 
   List<DropdownMenuItem<int>> get getNoOfApproversDropdownItems {
     var items = <DropdownMenuItem<int>>[];
-    for (var i = 1; i < 20; i++) {
+    for (var i = 0; i < 20; i++) {
       items.add(DropdownMenuItem(
           child: Text(
             i.toString(),
@@ -124,13 +122,22 @@ class _SharedAccessState extends State<SharedAccess>
 
   List<DropdownMenuItem<int>> get getNoOfApprovalsDropdownItems {
     var items = <DropdownMenuItem<int>>[];
-    for (var i = 1; i < noOfApprovers; i++) {
+    if (noOfApprovers > 0) {
+      for (var i = 1; i < noOfApprovers; i++) {
+        items.add(DropdownMenuItem(
+            child: Text(
+              i.toString(),
+              overflow: TextOverflow.ellipsis,
+            ),
+            value: i));
+      }
+    } else {
       items.add(DropdownMenuItem(
           child: Text(
-            i.toString(),
+            '0',
             overflow: TextOverflow.ellipsis,
           ),
-          value: i));
+          value: 0));
     }
     return items;
   }
@@ -396,13 +403,7 @@ class _SharedAccessState extends State<SharedAccess>
                 height: height / 50,
               ),
               if (selectedAccessMode == 'Access granted to me') ...[
-                for (var i = 0; i < appState.sharedWallets.length; i++) ...[
-                  accessGrantedToMe(
-                    walletOwner: appState.sharedWallets[i]['owner']!,
-                    walletAlias: appState.sharedWallets[i]['walletAlias']!,
-                    accessType: appState.sharedWallets[i]['permission']!,
-                  ),
-                ],
+                getAccessGrantedToMe(appState),
               ] else ...[
                 for (var walletIndex = 0;
                     walletIndex < wallets!.length;
@@ -428,10 +429,64 @@ class _SharedAccessState extends State<SharedAccess>
     );
   }
 
+  Widget getAccessGrantedToMe(DataProvider appState) {
+    // create a map to hold the each wallet
+    var wallets = {};
+    // store the wallet aliases as keys here so that we can use it to easily the values back
+    var walletKeys = [];
+    // if the wallet is not already added to the map then add it
+    for (var i = 0; i < appState.sharedWallets.length; i++) {
+      if (wallets[appState.sharedWallets[i]['walletAlias']] == null) {
+        walletKeys.add(appState.sharedWallets[i]['walletAlias']);
+        wallets[appState.sharedWallets[i]['walletAlias']] = {
+          'walletAlias': appState.sharedWallets[i]['walletAlias'],
+          'permissions': <String>[appState.sharedWallets[i]['permission']],
+          'owner': appState.sharedWallets[i]['owner'],
+          'walletPublicKey': appState.sharedWallets[i]['walletPublicKey'],
+          'walletDescription': appState.sharedWallets[i]['walletDescription'],
+        };
+      } else {
+        // if we got here then the wallet is already on the map so we add
+        // this permission to the list of permission grant to the user on the
+        // wallet
+        wallets[appState.sharedWallets[i]['walletAlias']]['permissions']
+            .add(appState.sharedWallets[i]['permission']);
+      }
+
+      print('============wallets: $wallets');
+    }
+
+    return Column(
+      children: [
+        for (var i = 0; i < walletKeys.length; i++) ...[
+          GestureDetector(
+            onTap: () {
+              appState.viewData![SharedWalletDetailsViewPageConfig.key] =
+                  wallets[walletKeys[i]];
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: SharedWalletDetailsViewPageConfig,
+              );
+            },
+            child: accessGrantedToMe(
+              walletOwner: wallets[walletKeys[i]]['owner'],
+              walletAlias: walletKeys[i],
+              publicKey: wallets[walletKeys[i]]['walletPublicKey'],
+              permissions: wallets[walletKeys[i]]['permissions'],
+              walletDescription: wallets[walletKeys[i]]['walletDescription'],
+            ),
+          )
+        ],
+      ],
+    );
+  }
+
   Widget accessGrantedToMe(
       {required String walletOwner,
       required String walletAlias,
-      required String accessType}) {
+      required String publicKey,
+      required List<String> permissions,
+      required walletDescription}) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
@@ -443,43 +498,103 @@ class _SharedAccessState extends State<SharedAccess>
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: ListTile(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    walletOwner,
+                    walletAlias,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 17,
                       fontFamily: fontsemibold,
-                      color: notifier.getblck,
+                      color: notifier.getbluecolor,
                     ),
                   ),
+                ],
+              ),
+              SizedBox(
+                height: height / 70,
+              ),
+              Row(
+                children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      accessType,
+                      'Owner:',
                       style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontbody,
-                        color: notifier.getblck,
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluecolor,
                       ),
                     ),
                   ),
+                  SizedBox(
+                    width: width / 70,
+                  ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      walletAlias,
+                      walletOwner,
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: 15,
                         fontFamily: fontbody,
-                        color: notifier.getblck,
+                        color: notifier.getbluecolor,
                       ),
                     ),
                   ),
                 ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      'Permissions:',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluecolor,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width / 70,
+                  ),
+                  for (var i = 0; i < permissions.length; i++) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                      child: Text(
+                        permissions[i].toLowerCase(),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontFamily: fontbody,
+                          color: notifier.getbluecolor,
+                        ),
+                      ),
+                    ),
+                    if (i < permissions.length - 1) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                        child: Text(
+                          ',',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontFamily: fontbody,
+                            color: notifier.getbluecolor,
+                          ),
+                        ),
+                      ),
+                    ],
+                    SizedBox(
+                      width: width / 70,
+                    ),
+                  ]
+                ],
+              ),
+              SizedBox(
+                height: height / 90,
               ),
             ],
           ),
@@ -1048,13 +1163,17 @@ class _SharedAccessState extends State<SharedAccess>
               return;
             }
 
-            bool isLastStep = (currentStep == getSteps().length - 1);
-            if (isLastStep) {
-              submitSharedAccessForm();
+            if (addApprovers) {
+              bool isLastStep = (currentStep == getSteps().length - 1);
+              if (isLastStep) {
+                submitSharedAccessForm();
+              } else {
+                setState(() {
+                  currentStep += 1;
+                });
+              }
             } else {
-              setState(() {
-                currentStep += 1;
-              });
+              submitSharedAccessForm();
             }
           },
           style: ButtonStyle(
