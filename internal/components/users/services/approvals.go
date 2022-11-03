@@ -19,6 +19,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/stellar/go/protocols/horizon"
+	"github.com/stellar/go/xdr"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -194,6 +196,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	var pts userModels.PendingTransactionSignature
 	var revokedList, modifiedList, addedList []userModels.WalletPermission
 	var paymentInfo paymentModels.PaymentInfo
+	var marketOffer userModels.MarketOffer
 	// var swapInfo swapModels.SwapSendInfo
 	// var pendingAssetClaim userModels.PendingAssetToClaim
 
@@ -222,6 +225,9 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		log.Println("[ApproveTransaction] error getting wallet object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
 	}
+	dbTX := gc.DB.Begin()
+	defer dbTX.Rollback()
+
 	if p.TransactionType == "MODIFY SHARED ACCESS" {
 		//unmarshall trx
 		tbyte := []byte(*p.TransactionInfoStr)
@@ -248,6 +254,19 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			log.Println("[ApproveTransaction] error decoding json for modified shared access")
 			return &tErrors.ErrorTemporaryServerError{}
 		}
+	} else if p.TransactionType == "MAKE MARKET OFFER" {
+		tbyte := []byte(*p.TransactionInfoStr)
+
+		e = json.Unmarshal(tbyte, &marketOffer)
+		if e != nil {
+			log.Println("[ApproveTransaction] error decoding json for modified shared access")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		e = dbTX.Create(&marketOffer).Error
+		if e != nil {
+			log.Printf("[ApproveTransaction]Error saving market offer: %+v\nError: %v\n", marketOffer, err)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
 	}
 
 	if len(approvalInfo.TransactionSignature) == 0 {
@@ -257,8 +276,6 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		return
 	}
 	//signature exists
-	dbTX := gc.DB.Begin()
-	defer dbTX.Rollback()
 
 	pts = userModels.PendingTransactionSignature{
 		ID:                       uuid.NewString(),
@@ -289,6 +306,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	p.TransactionStatus = "COMPLETED"
 
 	//if transaction fails on blockchain, then reverse all changes.
+	var txnResult horizon.Transaction
 	{
 		e = dbTX.Save(p).Error
 		if e != nil {
@@ -296,13 +314,13 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 		//process submission routine here
-		tHash, err := network.SubmitApprovalsXdrWithSignatures(gc.BantuExpansionClient, p.ID, dbTX)
+		txnResult, err = network.SubmitApprovalsXdrWithSignaturesReturnsTrx(gc.BantuExpansionClient, p.ID, dbTX)
 		if err != nil {
 			return err
 		}
 		//set transaction ID
 
-		p.TransactionID = &tHash
+		p.TransactionID = &txnResult.Hash
 
 	}
 
@@ -310,7 +328,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	e = dbTX.Save(p).Error
 	if e != nil {
 		log.Println("[ApproveTransaction]error saving approval state:", e)
-		return &tErrors.ErrorTemporaryServerError{}
+		// return &tErrors.ErrorTemporaryServerError{}
 	}
 	{ //sub
 		//process post blockchcain transaction
@@ -411,7 +429,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return nil
 
 		} else if p.TransactionType == "PAYMENT" {
-
+			dbTX.Commit()
 			accessList := wallet.GetPermissionList(gc.DB)
 			// send push notifications
 			assetCode := paymentInfo.AssetCode
@@ -485,7 +503,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				// send push notifications
 				assetCode := paymentInfo.AssetCode
 				if assetCode == "" {
-					assetCode = "XBN"
+					assetCode = os.Getenv("NATIVE_ASSET_CODE")
 				}
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
@@ -534,6 +552,52 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				}
 
 			}
+
+		} else if p.TransactionType == "MAKE MARKET OFFER" {
+
+			marketOffer.TransactionID = &txnResult.Hash
+			//get and set the offerID
+			{
+				var re xdr.TransactionResult
+				e := xdr.SafeUnmarshalBase64(txnResult.ResultXdr, &re)
+				if e != nil {
+					fmt.Println(e)
+				}
+				log.Println(re)
+				or, _ := re.OperationResults()
+
+				for _, r := range or {
+
+					ms, ok := r.Tr.GetManageSellOfferResult()
+					if !ok {
+						continue
+					}
+					offerID := fmt.Sprintf("%v", ms.Success.Offer.Offer.OfferId)
+
+					marketOffer.BlockchainOfferID = &offerID
+				}
+			}
+			e = dbTX.Save(&marketOffer).Error
+			if e != nil {
+				log.Printf("[ApproveTransaction]Error saving transactionID on market offer: %+v\nError: %v\n", marketOffer, err)
+				// return &tErrors.ErrorTemporaryServerError{}
+			}
+			dbTX.Commit()
+			accessList := wallet.Permissions
+			for _, v := range accessList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				if e != nil {
+					continue
+				}
+				// if u.PushNotificationToken != nil && v.Permission != "VIEW-ONLY" {
+				dataPayload := make(map[string]string)
+				dataPayload["none"] = ""
+				pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+
+				// }
+			}
+
+			return nil
 
 		} else {
 

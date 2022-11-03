@@ -222,11 +222,16 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 			Amount:        activationAmount.String(),
 			SourceAccount: accountOwner.PublicKey,
 		})
-		ops = append(ops, &txnbuild.ChangeTrust{
-			Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
-			Limit:         "900000000000",
-			SourceAccount: subWalletInfo.PublicKey,
-		})
+		//if a minting wallet do not create trustline
+		if subWalletInfo.WalletType != 1 {
+			//enable dollar asset if not minting wallet
+
+			ops = append(ops, &txnbuild.ChangeTrust{
+				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: dollarAsset},
+				Limit:         "900000000000",
+				SourceAccount: subWalletInfo.PublicKey,
+			})
+		}
 
 		//build transaction that will activate the subwallet from the primary wallet
 		if subWalletInfo.WalletType == 0 || subWalletInfo.WalletType == 1 {
@@ -291,8 +296,8 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 				SourceAccount: accountOwner.PublicKey,
 			})
 		}
-		{
-			//enable dollar asset
+		if subWalletInfo.WalletType != 1 {
+			//enable dollar asset if not minting wallet
 			_, trusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.PublicKey, dollarAsset)
 			if !trusted {
 				ops = append(ops, &txnbuild.ChangeTrust{

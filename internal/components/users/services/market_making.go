@@ -21,14 +21,9 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-func MakeOffer(signerUser *userModels.User, sourceWallet *userModels.UserWallet, offerRequest *userModels.MakeOfferRequest, gc *sharedconfig.GlobalConfig) (err error) {
+func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModels.UserWallet, offerRequest *userModels.MarketOfferRequest, gc *sharedconfig.GlobalConfig) (err error) {
 	if sourceWallet.SharedAccessEnabled == 1 && sourceWallet.NumberOfApprovalsNeeded > 0 {
 		offerRequest.Multiparty = 1
-	}
-	walletOwner, err := sourceWallet.GetWalletOwner(gc.DB)
-	if err != nil {
-		log.Printf("[MakeOffer]Error validating Market making wallet: %v", err)
-		return err
 	}
 
 	mmWallet, err := walletOwner.GetMartketMakingWallet(gc.DB)
@@ -36,14 +31,73 @@ func MakeOffer(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 		log.Printf("[MakeOffer]Error validating Market making wallet: %v", err)
 		return err
 	}
-	mmSignerKeyPair, err := bc.MarketMakingSignerKeypair(walletOwner.Username, mmWallet.ID)
-	if err != nil {
+	if !strings.EqualFold(offerRequest.OfferType, "BUY") && !strings.EqualFold(offerRequest.OfferType, "SELL") {
 		return &tErrors.CustomError{
-			Param:      "marketMakingWalletPK",
-			Err:        "error-retrieving-market-making-wallet",
-			ErrMessage: "Market Making wallet could not be validated.",
+			Param:      "offerType",
+			Err:        "error-invalid-paramter",
+			ErrMessage: "Offer type can only be either BUY or SELL.",
 		}
 	}
+	if len(offerRequest.Quantity) == 0 {
+		return &tErrors.CustomError{
+			Param:      "quantity",
+			Err:        "error-missing-quantity",
+			ErrMessage: "Missing quantity.",
+		}
+	}
+	if !decimal.RequireFromString(offerRequest.Quantity).IsPositive() {
+		return &tErrors.CustomError{
+			Param:      "quantity",
+			Err:        "error-missing-quantity",
+			ErrMessage: "Quantity must be greater than zero.",
+		}
+	}
+	if len(offerRequest.PricePerUnit) == 0 {
+		return &tErrors.CustomError{
+			Param:      "pricePerUnit",
+			Err:        "error-missing-price",
+			ErrMessage: "Missing price.",
+		}
+	}
+
+	if !decimal.RequireFromString(offerRequest.PricePerUnit).IsPositive() {
+		return &tErrors.CustomError{
+			Param:      "pricePerUnit",
+			Err:        "error-missing-price",
+			ErrMessage: "Price must be greater than zero.",
+		}
+	}
+	mmSignerKeyPair, err := bc.MarketMakingSignerKeypair(walletOwner.Username, mmWallet.ID)
+	if err != nil {
+		// return &tErrors.CustomError{
+		// 	Param:      "assetCode",
+		// 	Err:        "error-retrieving-market-making-wallet",
+		// 	ErrMessage: "Market Making wallet could not be validated.",
+		// }
+		return &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if strings.EqualFold(offerRequest.AssetCode, os.Getenv("NATIVE_ASSET_CODE")) {
+		offerRequest.AssetCode = ""
+		offerRequest.AssetIssuer = ""
+	}
+
+	if strings.EqualFold(offerRequest.CurrencyCode, os.Getenv("NATIVE_ASSET_CODE")) {
+		offerRequest.CurrencyCode = ""
+		offerRequest.CurrencyIssuer = ""
+	}
+	serviceFee, e := decimal.NewFromString(os.Getenv("MARKET_MAKING_FEE_AMOUNT"))
+	if e != nil {
+		serviceFee = decimal.Zero
+	}
+	totalQty := decimal.RequireFromString(offerRequest.Quantity).Truncate(7)
+	feeQuantity := (totalQty.Mul(serviceFee.Div(decimal.NewFromInt(100)))).Truncate(7)
+	netQuantity := totalQty.Sub(feeQuantity)
+	offerRequest.NetQuantity = netQuantity.String()
+	offerRequest.FeeChargedOnAsset = serviceFee.String()
+	offerRequest.FeeValue = feeQuantity.String()
+
+	var marketOffer *userModels.MarketOffer
 	xdrBase64, err := generateMakeMarketXdr(sourceWallet, &mmWallet, offerRequest, mmSignerKeyPair, gc)
 	if err != nil {
 		return err
@@ -69,16 +123,73 @@ func MakeOffer(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 			Code:       404,
 		}
 	}
+	{
+		marketOffer = &userModels.MarketOffer{
+			ID:                          uuid.NewString(),
+			SourceWalletAlias:           sourceWallet.Alias,
+			SourcewalletPublicKey:       sourceWallet.ID,
+			MarketMakingWalletPublicKey: mmWallet.ID,
+			OfferType:                   offerRequest.OfferType,
+			AssetCode:                   offerRequest.AssetCode,
+			AssetIssuer:                 &offerRequest.AssetIssuer,
+			CurrencyCode:                offerRequest.CurrencyCode,
+			CurrencyIssuer:              &offerRequest.CurrencyIssuer,
+			PricePerUnit:                offerRequest.PricePerUnit,
+			Quantity:                    offerRequest.Quantity,
+			FeeChargedOnAsset:           offerRequest.FeeChargedOnAsset,
+			FeeValue:                    offerRequest.FeeValue,
+			NetQuantity:                 offerRequest.NetQuantity,
+			RemainingQuantity:           offerRequest.NetQuantity,
+			RemainingFeeValue:           offerRequest.FeeValue,
+		}
+	}
+
 	if (offerRequest.Commit == 0 && sourceWallet.SharedAccessEnabled == 1 && sourceWallet.NumberOfApprovalsNeeded == 0) || (sourceWallet.SharedAccessEnabled == 0 && offerRequest.Commit == 0) {
-		txnID, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, sourceWallet.Signer, xdrBase64, offerRequest.TransactionSignature)
+		dbTX := gc.DB.Begin()
+		defer dbTX.Rollback()
+		e = dbTX.Create(&marketOffer).Error
+		if e != nil {
+			log.Printf("[MakeOffer]Error saving market offer: %+v\nError: %v\n", marketOffer, err)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		txnResult, err := network.SubmitXdrWithSignatureReturnsTrx(gc.BantuExpansionClient, sourceWallet.Signer, xdrBase64, offerRequest.TransactionSignature)
 
 		if err != nil {
 			log.Printf("[MakeOffer]error submitting txn: %v\n", err)
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 
-		offerRequest.TransactionID = txnID
+		offerRequest.TransactionID = txnResult.Hash
+		marketOffer.TransactionID = &txnResult.Hash
+		//get and set the offerID
+		{
+			var re xdr.TransactionResult
+			e := xdr.SafeUnmarshalBase64(txnResult.ResultXdr, &re)
+			if e != nil {
+				fmt.Println(e)
+			}
+			log.Println(re)
+			or, _ := re.OperationResults()
 
+			// log.Printf("OK: %v\nOperationResult: %#v", ok, or)
+			for _, r := range or {
+
+				ms, ok := r.Tr.GetManageSellOfferResult()
+				if !ok {
+					continue
+				}
+				// log.Printf("Index: %v\nManageSellOffer Offer ID: %#v", i, ms.Success.Offer.Offer.OfferId)
+				offerID := fmt.Sprintf("%v", ms.Success.Offer.Offer.OfferId)
+
+				marketOffer.BlockchainOfferID = &offerID
+			}
+		}
+		e = dbTX.Save(&marketOffer).Error
+		if e != nil {
+			log.Printf("[MakeOffer]Error saving transactionID on market offer: %+v\nError: %v\n", marketOffer, err)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		dbTX.Commit()
 		return nil
 	}
 
@@ -88,7 +199,8 @@ func MakeOffer(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 		id := uuid.NewString()
 
 		description := offerRequest.ReturnedDescription
-		transactionByte, _ := json.Marshal(*offerRequest)
+		//use market offer to be inserted into the table after authorization, instead of constructing again
+		transactionByte, _ := json.Marshal(*marketOffer)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
 			ID:                       id,
@@ -104,7 +216,7 @@ func MakeOffer(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 		//save and commit this to database
 		e := gc.DB.Create(&pendingAuth).Error
 		if e != nil {
-			log.Printf("[MakeOffer] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+			log.Printf("[MakeOffer] Error saving MAKE MARKET OFFER txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
 			return err
 		}
@@ -115,8 +227,8 @@ func MakeOffer(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 	return &tErrors.ErrorTemporaryServerError{}
 }
 
-func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerRequest *userModels.MakeOfferRequest, mmSignerKeyPair *keypair.Full, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
-
+func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerRequest *userModels.MarketOfferRequest, mmSignerKeyPair *keypair.Full, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+	offerFeePercentage := offerRequest.FeeChargedOnAsset + "%"
 	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
 	offerRequest.Messages = make([]string, 0)
 	var memo string
@@ -128,7 +240,8 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 			ErrMessage: "You cannot make a market against same asset",
 		}
 	}
-	fraction := decimal.RequireFromString(offerRequest.PricePerAsset).Rat()
+	offerRequest.OfferType = strings.ToUpper(offerRequest.OfferType)
+	fraction := decimal.RequireFromString(offerRequest.PricePerUnit).Rat()
 	d := int32(fraction.Denom().Int64())
 	n := int32(fraction.Num().Int64())
 	if offerRequest.AssetIssuer == "" {
@@ -152,7 +265,7 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 	var sourceAccount *horizon.Account
 	var sourceMAccountExists, sourceMAccountTrustsAsset bool
 	var nativeMAccountBalance decimal.Decimal
-	if strings.EqualFold(offerRequest.OfferType, "Buy") {
+	if strings.EqualFold(offerRequest.OfferType, "BUY") {
 		sourceMAccountExists, sourceMAccountTrustsAsset, nativeMAccountBalance, _, sourceAccount, _ = network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, currencyAsset)
 
 		if !sourceMAccountExists {
@@ -170,7 +283,7 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 
 		}
 	}
-	if strings.EqualFold(offerRequest.OfferType, "Sell") {
+	if strings.EqualFold(offerRequest.OfferType, "SELL") {
 		sourceMAccountExists, sourceMAccountTrustsAsset, nativeMAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, mainAsset)
 
 		if !sourceMAccountExists {
@@ -191,7 +304,7 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
 
-	if strings.EqualFold(offerRequest.OfferType, "Buy") {
+	if strings.EqualFold(offerRequest.OfferType, "BUY") {
 		if !currencyAsset.IsNative() {
 			//check if it has trustline to it and then create it.
 			_, mmAccountTrustsAsset, mmnativeAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmWallet.ID, currencyAsset)
@@ -237,14 +350,14 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 		ops = append(ops, &txnbuild.ManageSellOffer{
 			Selling:       currencyAsset,
 			Buying:        mainAsset,
-			Amount:        offerRequest.Quantity,
+			Amount:        offerRequest.NetQuantity,
 			Price:         xdr.Price{D: xdr.Int32(n), N: xdr.Int32(d)},
 			SourceAccount: mmWallet.ID,
 		})
-		memo = "sell-" + currencyAsset.GetCode()
+		memo = fmt.Sprintf("s%v-b%v", currencyAsset.GetCode(), mainAsset.GetCode())
 
 	}
-	if strings.EqualFold(offerRequest.OfferType, "Sell") {
+	if strings.EqualFold(offerRequest.OfferType, "SELL") {
 		if !mainAsset.IsNative() {
 			//check if it has trustline to it and then create it.
 			_, mmAccountTrustsAsset, mmnativeAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmWallet.ID, mainAsset)
@@ -286,46 +399,35 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 			SourceAccount: sourceWallet.ID,
 		})
 
+		// make offer with net quantity so that fee can be returned.
 		ops = append(ops, &txnbuild.ManageSellOffer{
 			Selling:       mainAsset,
 			Buying:        currencyAsset,
-			Amount:        offerRequest.Quantity,
+			Amount:        offerRequest.NetQuantity,
 			Price:         xdr.Price{N: xdr.Int32(n), D: xdr.Int32(d)},
 			SourceAccount: mmWallet.ID,
 		})
-		memo = "sell-" + mainAsset.GetCode()
+		memo = fmt.Sprintf("s%v-b%v", mainAsset.GetCode(), currencyAsset.GetCode())
 	}
 
 	//service fee
+	if decimal.RequireFromString(offerRequest.FeeValue).IsPositive() {
 
-	serviceFee, e := decimal.NewFromString(os.Getenv("MARKET_MAKING_FEE_AMOUNT"))
-	if e != nil {
-		serviceFee = decimal.Zero
-	}
-	if serviceFee.IsPositive() {
-		if sourceWallet.FeeDisabled == 0 {
-			//process service fee
-			if len(os.Getenv("MARKET_MAKING_FEE_ASSET_ISSUER")) == 0 {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("MARKET_MAKING_FEE_ADDRESS"),
-					Amount:        os.Getenv("MARKET_MAKING_FEE_AMOUNT"),
-					SourceAccount: sourceWallet.ID,
-					Asset:         txnbuild.NativeAsset{},
-				})
-				offerRequest.Messages = append(offerRequest.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("MARKET_MAKING_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), sourceWallet.Alias))
+		//process service fee
 
-			} else {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("MARKET_MAKING_FEE_ADDRESS"),
-					Amount:        os.Getenv("MARKET_MAKING_FEE_AMOUNT"),
-					SourceAccount: sourceWallet.ID,
-					Asset:         txnbuild.CreditAsset{Code: os.Getenv("MARKET_MAKING_FEE_ASSET_CODE"), Issuer: os.Getenv("MARKET_MAKING_FEE_ASSET_ISSUER")},
-				})
-				offerRequest.Messages = append(offerRequest.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("MARKET_MAKING_FEE_AMOUNT"), os.Getenv("MARKET_MAKING_FEE_ASSET_CODE"), sourceWallet.Alias))
-
-			}
-
+		// ops = append(ops, &txnbuild.Payment{
+		// 	Destination:   os.Getenv("MARKET_MAKING_FEE_ADDRESS"),
+		// 	Amount:        offerRequest.FeeValue,
+		// 	SourceAccount: sourceWallet.ID,
+		// 	Asset:         mainAsset,
+		// })
+		//no need deducting it as we deduct it as market executes
+		feeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
+		if !mainAsset.IsNative() {
+			feeAssetCode = mainAsset.GetCode()
 		}
+		offerRequest.Messages = append(offerRequest.Messages, fmt.Sprintf("%v %v (%v) will be deducted from the total quantity as service fee and your offer will be placed with %v %v.", offerRequest.FeeValue, feeAssetCode, offerFeePercentage, offerRequest.NetQuantity, feeAssetCode))
+
 	}
 
 	// Construct the transaction that holds the operations to execute on the network
