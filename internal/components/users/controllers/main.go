@@ -2765,4 +2765,87 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 	})
 
+	//get specific  wallet balance
+	router.GET("/v1/shared-access/wallet-balances", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		// var err error
+
+		conDB.PrintDBStats(fmt.Sprintf("[GET] /v1/shared-access/wallet-balances %v", middleware.ExtractPublicKey(c)), gc.DB)
+
+		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET Wallet Balances] error for signer:", middleware.ExtractSigner(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+			return
+		}
+		permitted := false
+
+		for _, k := range signerUser.WalletsSharedWithUser {
+			if k.TargetUsername == signerUser.Username && k.WalletPublicKey == middleware.ExtractPublicKey(c) {
+				permitted = true
+			}
+		}
+		if !permitted {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access this wallet."})
+			return
+		}
+		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+		if err != nil {
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			if ok {
+				c.JSON(http.StatusBadRequest, ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			return
+		}
+
+		assetBalances, err := wallet.GetWalletAssetBalances(gc)
+		if err != nil {
+			log.Println("[GET Wallet Balances] error for signer:", signerUser.Username, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		c.JSON(http.StatusOK, assetBalances)
+
+	})
+
 }

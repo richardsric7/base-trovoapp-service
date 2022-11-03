@@ -363,6 +363,49 @@ func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConf
 	return balances, nil
 }
 
+func (u *UserWallet) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (assetBalances AssetBalances, err error) {
+
+	var wg sync.WaitGroup
+	var m sync.Mutex
+	//use go routine to fetch
+
+	assetBalances.Unclaimed = make([]Balance, 0)
+	assetBalances.Claimed = make([]Balance, 0)
+
+	wg.Add(1)
+	go func(vg1 *UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
+		defer w.Done()
+		unclaimedBalance, errR1 := vg1.GetSortedUserBalance(true, gc)
+
+		if errR1 == nil {
+			//Unclaimed Assets
+			ml.Lock()
+			assetBalances.Unclaimed = unclaimedBalance
+			ml.Unlock()
+
+		}
+	}(u, &wg, &m)
+	wg.Add(1)
+	go func(vg2 *UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
+		defer w.Done()
+		claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(false, gc)
+
+		if errR1 != nil {
+			//log server error
+			log.Printf("[GetWalletAssetBalances] error getting claimed wallet balance for wallet:[%s] error:[%+v]\n", vg2.ID, errR1)
+
+		}
+		//Claimed Assets
+		ml.Lock()
+		assetBalances.Claimed = claimedWalletBalance
+		ml.Unlock()
+
+	}(u, &wg, &m)
+	wg.Wait()
+
+	return
+}
+
 // GetAccountThresholds returns user signers
 func (u *UserWallet) GetAccountThresholds(temp bool) (thresholds horizon.AccountThresholds) {
 	account, _, err := u.GetBlockchainAccountDetail(temp)

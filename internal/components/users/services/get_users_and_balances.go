@@ -173,3 +173,46 @@ func GetUserWalletAssetBalances(user *userModels.User, gc *sharedconfig.GlobalCo
 
 	return
 }
+
+func GetWalletAssetBalances(wallet *userModels.UserWallet, gc *sharedconfig.GlobalConfig) (assetBalances userModels.AssetBalances, err error) {
+
+	var wg sync.WaitGroup
+	var m sync.Mutex
+	//use go routine to fetch
+
+	assetBalances.Unclaimed = make([]userModels.Balance, 0)
+	assetBalances.Claimed = make([]userModels.Balance, 0)
+
+	wg.Add(1)
+	go func(vg1 *userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
+		defer w.Done()
+		unclaimedBalance, errR1 := vg1.GetSortedUserBalance(true, gc)
+
+		if errR1 == nil {
+			//Unclaimed Assets
+			ml.Lock()
+			assetBalances.Unclaimed = unclaimedBalance
+			ml.Unlock()
+
+		}
+	}(wallet, &wg, &m)
+	wg.Add(1)
+	go func(vg2 *userModels.UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
+		defer w.Done()
+		claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(false, gc)
+
+		if errR1 != nil {
+			//log server error
+			log.Printf("[GetWalletAssetBalances] error getting claimed wallet balance for wallet:[%s] error:[%+v]\n", vg2.ID, errR1)
+
+		}
+		//Claimed Assets
+		ml.Lock()
+		assetBalances.Claimed = claimedWalletBalance
+		ml.Unlock()
+
+	}(wallet, &wg, &m)
+	wg.Wait()
+
+	return
+}
