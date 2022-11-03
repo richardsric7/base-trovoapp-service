@@ -410,7 +410,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                               height: height / 50,
                             ),
                             Text(
-                              'No. of approvals needed',
+                              'No. of approvals required',
                               style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
@@ -424,7 +424,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
                                 child: Text(
-                                  viewData['noOfApprovalsNeeded'],
+                                  '${viewData['noOfApprovalsNeeded']}/${viewData['noOfApprovers']}',
                                   style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700,
@@ -578,7 +578,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
       }
 
       var postData = {
-        "numberOfApprovalsNeeded": int.parse(viewData['noOfApprovalsNeeded']),
+        "numberOfApprovalsNeeded": viewData['noOfApprovalsNeeded'],
         "permissions": permissions,
       };
 

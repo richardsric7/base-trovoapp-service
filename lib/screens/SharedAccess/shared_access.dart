@@ -55,18 +55,15 @@ class _SharedAccessState extends State<SharedAccess>
   String viewerUsernameErrorMessage = "";
   String approverUsernameErrorMessage = "";
   String initiatorUsernameErrorMessage = "";
-
-  var oneKey = Key(Random.secure().nextDouble().toString());
   var allKey = Key(Random.secure().nextDouble().toString());
 
-  final Authenticator _authenticator = Authenticator();
   var password = '';
   var viewers = <String>[];
   var initiators = <String>[]; // holds usernames of initiators
   var approvers = <String>[]; // holds usernames of approvers
   var userFullnames = {};
-  String noOfApprovalsNeeded = '0';
-  String noOfApprovers = '0';
+  int noOfApprovalsNeeded = 2;
+  int noOfApprovers = 3;
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
     return wallets!
@@ -110,6 +107,32 @@ class _SharedAccessState extends State<SharedAccess>
             ),
             value: item))
         .toList();
+  }
+
+  List<DropdownMenuItem<int>> get getNoOfApproversDropdownItems {
+    var items = <DropdownMenuItem<int>>[];
+    for (var i = 1; i < 20; i++) {
+      items.add(DropdownMenuItem(
+          child: Text(
+            i.toString(),
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: i));
+    }
+    return items;
+  }
+
+  List<DropdownMenuItem<int>> get getNoOfApprovalsDropdownItems {
+    var items = <DropdownMenuItem<int>>[];
+    for (var i = 1; i < noOfApprovers; i++) {
+      items.add(DropdownMenuItem(
+          child: Text(
+            i.toString(),
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: i));
+    }
+    return items;
   }
 
   getdarkmodepreviousstate() async {
@@ -745,7 +768,7 @@ class _SharedAccessState extends State<SharedAccess>
               height: height / 1.219,
               width: width,
               child: Stepper(
-                key: addApprovers ? allKey : oneKey,
+                key: allKey,
                 type: StepperType.vertical,
                 currentStep: currentStep,
                 controlsBuilder: (context, _) {
@@ -786,6 +809,7 @@ class _SharedAccessState extends State<SharedAccess>
         'viewers': viewers,
         'addApprovers': addApprovers,
         'approvers': approvers,
+        'noOfApprovers': noOfApprovers,
         'noOfApprovalsNeeded': noOfApprovalsNeeded,
         'initiators': initiators,
         'userFullnames': userFullnames,
@@ -869,17 +893,8 @@ class _SharedAccessState extends State<SharedAccess>
                 fontSize: 15.sp),
           ),
         ),
-        Container(
-          constraints:
-              BoxConstraints(maxHeight: height / 1.7, minWidth: width / 1.1),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                buildExpandable(context),
-              ],
-            ),
-          ),
+        SizedBox(
+          height: height / 50,
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -916,6 +931,12 @@ class _SharedAccessState extends State<SharedAccess>
 
             if (username.isEmpty) {
               viewerUsernameErrorMessage = 'Please enter a username';
+              setState(() {});
+              return;
+            }
+
+            if (viewers.contains(username)) {
+              viewerUsernameErrorMessage = 'Username already added';
               setState(() {});
               return;
             }
@@ -1073,73 +1094,184 @@ class _SharedAccessState extends State<SharedAccess>
       key: approversFormKey,
       child: Column(
         children: [
-          Container(
-            child: Text(
-              LanguageEn.enternoofapprover,
-              style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 15.sp),
-            ),
-          ),
-          SizedBox(
-            height: height / 70,
-          ),
-          CustomTextFormField.textFieldWithoutIcon(
-            'e.g, 10',
-            notifier.getbluecolor,
-            notifier.getgrey,
-            notifier.getprefixicon,
-            notifier.getblck,
-            notifier.getgrey,
-            70.sp,
-            300.sp,
-            keyboardtype: TextInputType.number,
-            validator: (value) {
-              if (value!.toString().isEmpty) {
-                return 'Please enter total number of approvers';
-              }
-              return null;
-            },
-            onChanged: (value) =>
-                noOfApprovers = value.trim().replaceAll(' ', ''),
-          ),
           SizedBox(
             height: height / 70,
           ),
           Container(
+            height: height / 10,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: height / 5,
+                    width: width / 3.6,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                          child: Text(
+                            'Approvals',
+                            style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontsemibold,
+                                fontSize: 15.sp),
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 90,
+                        ),
+                        Expanded(
+                          child: DropdownButtonFormField(
+                            isExpanded: true,
+                            dropdownColor: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 0, horizontal: 20),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              filled: true,
+                              fillColor: notifier.isDark
+                                  ? darktilewhitecolor
+                                  : notifier.getaddsubwalletgrey,
+                            ),
+                            value: noOfApprovalsNeeded,
+                            icon: Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                            elevation: 0,
+                            style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 15.sp,
+                                fontFamily: fontsemibold,
+                                fontWeight: FontWeight.w500),
+                            onChanged: (newValue) {
+                              setState(() {
+                                noOfApprovalsNeeded =
+                                    int.parse(newValue.toString());
+                              });
+                            },
+                            items: getNoOfApprovalsDropdownItems,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: width / 20,
+                  ),
+                  Container(
+                    height: height / 5,
+                    width: width / 20,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'of',
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
+                              fontSize: 15.sp),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: width / 20,
+                  ),
+                  Container(
+                    height: height / 5,
+                    width: width / 3.6,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                          child: Text(
+                            'Approvers',
+                            style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontsemibold,
+                                fontSize: 15.sp),
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 90,
+                        ),
+                        Expanded(
+                          child: DropdownButtonFormField(
+                            isExpanded: true,
+                            dropdownColor: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: 0, horizontal: 20),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              filled: true,
+                              fillColor: notifier.isDark
+                                  ? darktilewhitecolor
+                                  : notifier.getaddsubwalletgrey,
+                            ),
+                            value: noOfApprovers,
+                            icon: Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                            elevation: 0,
+                            style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 15.sp,
+                                fontFamily: fontsemibold,
+                                fontWeight: FontWeight.w500),
+                            onChanged: (newValue) {
+                              setState(() {
+                                var newValueInt =
+                                    int.parse(newValue.toString());
+                                if (noOfApprovalsNeeded > newValueInt) {
+                                  noOfApprovalsNeeded = newValueInt - 1;
+                                }
+                                noOfApprovers = newValueInt;
+                              });
+                            },
+                            items: getNoOfApproversDropdownItems,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Text(
-              LanguageEn.enternoofapprovals,
+              '${noOfApprovalsNeeded} approvals out of ${noOfApprovers} approvers',
               style: TextStyle(
                   color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
+                  fontFamily: fontsemibold,
                   fontSize: 15.sp),
             ),
           ),
           SizedBox(
-            height: height / 70,
-          ),
-          CustomTextFormField.textFieldWithoutIcon(
-            'e.g, 5',
-            notifier.getbluecolor,
-            notifier.getgrey,
-            notifier.getprefixicon,
-            notifier.getblck,
-            notifier.getgrey,
-            70.sp,
-            300.sp,
-            keyboardtype: TextInputType.number,
-            validator: (value) {
-              if (value!.toString().isEmpty) {
-                return 'Please enter number of required approvals';
-              }
-              return null;
-            },
-            onChanged: (value) =>
-                noOfApprovalsNeeded = value.trim().replaceAll(' ', ''),
-          ),
-          SizedBox(
-            height: height / 50,
+            height: height / 30,
           ),
           Container(
             child: Text(
@@ -1149,18 +1281,6 @@ class _SharedAccessState extends State<SharedAccess>
                   color: notifier.getbluewhitecolor,
                   fontFamily: fontbody,
                   fontSize: 15.sp),
-            ),
-          ),
-          Container(
-            constraints:
-                BoxConstraints(maxHeight: height / 1.7, minWidth: width / 1.1),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  buildExpandable(context),
-                ],
-              ),
             ),
           ),
           Padding(
@@ -1260,6 +1380,14 @@ class _SharedAccessState extends State<SharedAccess>
                 return;
               }
 
+              if (approvers.length == noOfApprovers) {
+                popup(context,
+                    title: 'Error!',
+                    message:
+                        'Number of usernames cannot be more than the number of approvers you selected');
+                return;
+              }
+
               // if the username is already on the viewers list then there's
               // no need to check again that the username is valid so we add it to
               // to the approvers list
@@ -1329,11 +1457,11 @@ class _SharedAccessState extends State<SharedAccess>
                 return;
               }
 
-              if (approvers.length < int.parse(noOfApprovers)) {
+              if (approvers.length < noOfApprovers) {
                 popup(context,
                     title: 'Error!',
                     message:
-                        'Number of usernames cannot be less than the number of approvers you entered');
+                        'Number of usernames cannot be less than the number of approvers you selected');
                 return;
               }
 
@@ -1443,17 +1571,8 @@ class _SharedAccessState extends State<SharedAccess>
                 fontSize: 15.sp),
           ),
         ),
-        Container(
-          constraints:
-              BoxConstraints(maxHeight: height / 1.7, minWidth: width / 1.1),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                buildExpandable(context),
-              ],
-            ),
-          ),
+        SizedBox(
+          height: height / 50,
         ),
         CustomTextFormField.textFieldWithoutIcon(
           'Initiator',
@@ -1561,6 +1680,14 @@ class _SharedAccessState extends State<SharedAccess>
                   title: 'Error!',
                   message:
                       'Please enter the username of those you want to grant initiator access to this wallet');
+              return;
+            }
+
+            if (approvers.length < noOfApprovers) {
+              popup(context,
+                  title: 'Error!',
+                  message:
+                      'Number of approver usernames cannot be less than the number of approvers you selected. Please go back and add more approvers.');
               return;
             }
 

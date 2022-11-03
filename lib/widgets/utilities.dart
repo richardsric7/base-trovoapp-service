@@ -128,10 +128,12 @@ String calculateFiatValue(String assetBalance, String usdPrice, String currency,
             double.parse(assetBalance))
         .toString();
 
-String getFiatRate(String usdPrice, String currency, DataProvider appState) =>
-    NumberFormat("#,##0.00000", "en_US")
-        .format(appState.fiatRate[currency] * double.parse(usdPrice))
-        .toString();
+String getFiatRate(String usdPrice, String currency, DataProvider appState) {
+  usdPrice = usdPrice.isEmpty ? '0' : usdPrice;
+  return NumberFormat("#,##0.00000", "en_US")
+      .format(appState.fiatRate[currency] * double.parse(usdPrice))
+      .toString();
+}
 
 String getTotalFiatBalanceOfAllAssetsInWallet(
     String currency, DataProvider appState, dynamic assets) {
