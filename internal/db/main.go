@@ -187,6 +187,11 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating UserMobilePhoneVerification: ", errMigrate)
 		}
 
+		errMigrate = gormDB.AutoMigrate(&users.MarketOffer{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating MarketOffer: ", errMigrate)
+		}
+
 		errMigrate = gormDB.AutoMigrate(&servicelinkModels.ServiceLink{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ServiceLink: ", errMigrate)
