@@ -201,6 +201,14 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			Code:       http.StatusBadRequest,
 		}
 	}
+	if len(accessInfo.Permissions) == 1 && accessInfo.Permissions[0].TargetUsername == walletOwner.Username {
+		return returnedWallet, &tErrors.CustomError{
+			Param:      "permissions",
+			Err:        "error-permission-unacceptable-access",
+			ErrMessage: "Shared access cannot be enabled with view-only permission granted to yourself. Wallet Owners are excluded from view-only permissions, thereby making your permission list empty.",
+			Code:       http.StatusForbidden,
+		}
+	}
 
 	if wallet.WalletType == 2 || wallet.WalletType == 3 {
 		return returnedWallet, &tErrors.CustomError{
@@ -1258,6 +1266,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(0)),
 			SourceAccount:   wallet.ID,
 		})
+		walletMustSign = true
 		// return "no-ops", messages, walletMustSign, nil
 	}
 
