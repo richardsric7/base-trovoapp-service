@@ -1251,8 +1251,14 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	}
 
 	if len(ops) == 0 {
-		// no operations to sign
-		return "no-ops", messages, walletMustSign, nil
+		// no operations to sign. create a dummy ops, will be ignored on next try.
+		ops = append(ops, &txnbuild.SetOptions{
+			LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(0)),
+			MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(0)),
+			HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(0)),
+			SourceAccount:   wallet.ID,
+		})
+		// return "no-ops", messages, walletMustSign, nil
 	}
 
 	tx, err := txnbuild.NewTransaction(
