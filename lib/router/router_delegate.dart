@@ -43,7 +43,7 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
 import 'package:trovo_wallet/screens/SharedAccess/add_shared_access_details.dart';
-import 'package:trovo_wallet/screens/SharedAccess/shared_wallet_details.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_wallet_info.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/screens/SharedAccess/viewer_access.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
@@ -264,12 +264,11 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               AddSharedAccessDetails(), AddSharedAccessDetailsViewPageConfig);
           break;
-        case Pages.SharedWalletDetailsView:
-          _addPageData(
-              SharedWalletDetails(), SharedWalletDetailsViewPageConfig);
+        case Pages.SharedWalletInfoView:
+          _addPageData(SharedWalletInfo(), SharedWalletInfoViewPageConfig);
           break;
-        case Pages.ViewerAccessView:
-          _addPageData(ViewerAccess(), ViewerAccessViewPageConfig);
+        case Pages.SharedWalletDetailsView:
+          _addPageData(SharedWallet(), SharedWalletDetailsViewPageConfig);
           break;
         default:
           break;
@@ -433,11 +432,11 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         SecurityQuestionsForInactiveAccountsViewPageConfig.currentPageAction =
             action;
         break;
+      case Pages.SharedWalletInfoView:
+        SharedWalletInfoViewPageConfig.currentPageAction = action;
+        break;
       case Pages.SharedWalletDetailsView:
         SharedWalletDetailsViewPageConfig.currentPageAction = action;
-        break;
-      case Pages.ViewerAccessView:
-        ViewerAccessViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

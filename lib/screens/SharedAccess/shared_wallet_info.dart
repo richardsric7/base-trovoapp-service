@@ -11,14 +11,14 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 
-class SharedWalletDetails extends StatefulWidget {
-  const SharedWalletDetails({Key? key}) : super(key: key);
+class SharedWalletInfo extends StatefulWidget {
+  const SharedWalletInfo({Key? key}) : super(key: key);
 
   @override
-  State<SharedWalletDetails> createState() => _SharedWalletDetailsState();
+  State<SharedWalletInfo> createState() => _SharedWalletInfoState();
 }
 
-class _SharedWalletDetailsState extends State<SharedWalletDetails> {
+class _SharedWalletInfoState extends State<SharedWalletInfo> {
   late ColorNotifier notifier;
   late DataProvider appState;
   var viewData;
@@ -45,7 +45,7 @@ class _SharedWalletDetailsState extends State<SharedWalletDetails> {
     appState = Provider.of<DataProvider>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    viewData = appState.viewData![SharedWalletDetailsViewPageConfig.key];
+    viewData = appState.viewData![SharedWalletInfoViewPageConfig.key];
     print(viewData);
 
     return ScreenUtilInit(
@@ -170,7 +170,7 @@ class _SharedWalletDetailsState extends State<SharedWalletDetails> {
                                       color: notifier.getbluecolor,
                                     ),
                                   ),
-                                  if (viewData.length > 1) ...[
+                                  if (viewData['permissions'].length > 1) ...[
                                     SizedBox(
                                       width: width / 90,
                                     ),

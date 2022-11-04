@@ -25,8 +25,6 @@ class SharedAccess extends StatefulWidget {
   State<SharedAccess> createState() => _SharedAccessState();
 }
 
-enum GrantSharedAccessView { viewers, approvers, initiators }
-
 class _SharedAccessState extends State<SharedAccess>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
@@ -40,12 +38,12 @@ class _SharedAccessState extends State<SharedAccess>
   List<Wallet>? wallets;
   Wallet? activeWallet;
   dynamic selectedWallet = '';
-  dynamic selectedAccessType = 'Viewer';
+  dynamic selectedFilter = 'All';
   List<String> accessTypes = ['Viewer', 'Approver'];
   List<String> filter = ['All', 'Viewer', 'Initiator', 'Approver'];
   List<String> accessMode = [
+    'Access granted to me',
     'Access granted by me',
-    'Access granted to me'
   ]; // 'mode' for want for a better name
   dynamic selectedAccessMode = 'Access granted to me';
   bool addApprovers = false;
@@ -60,8 +58,8 @@ class _SharedAccessState extends State<SharedAccess>
   var initiators = <String>[]; // holds usernames of initiators
   var approvers = <String>[]; // holds usernames of approvers
   var userFullnames = {};
-  int noOfApprovalsNeeded = 0;
-  int noOfApprovers = 0;
+  int noOfApprovalsNeeded = 2;
+  int noOfApprovers = 3;
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
     return wallets!
@@ -109,7 +107,7 @@ class _SharedAccessState extends State<SharedAccess>
 
   List<DropdownMenuItem<int>> get getNoOfApproversDropdownItems {
     var items = <DropdownMenuItem<int>>[];
-    for (var i = 0; i < 20; i++) {
+    for (var i = 1; i < 20; i++) {
       items.add(DropdownMenuItem(
           child: Text(
             i.toString(),
@@ -122,23 +120,23 @@ class _SharedAccessState extends State<SharedAccess>
 
   List<DropdownMenuItem<int>> get getNoOfApprovalsDropdownItems {
     var items = <DropdownMenuItem<int>>[];
-    if (noOfApprovers > 0) {
-      for (var i = 1; i < noOfApprovers; i++) {
-        items.add(DropdownMenuItem(
-            child: Text(
-              i.toString(),
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: i));
-      }
-    } else {
+    // if (noOfApprovers > 0) {
+    for (var i = 1; i < noOfApprovers; i++) {
       items.add(DropdownMenuItem(
           child: Text(
-            '0',
+            i.toString(),
             overflow: TextOverflow.ellipsis,
           ),
-          value: 0));
+          value: i));
     }
+    // } else {
+    //   items.add(DropdownMenuItem(
+    //       child: Text(
+    //         '0',
+    //         overflow: TextOverflow.ellipsis,
+    //       ),
+    //       value: 0));
+    // }
     return items;
   }
 
@@ -170,6 +168,15 @@ class _SharedAccessState extends State<SharedAccess>
     selectedWallet = activeWallet!.publicKey;
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
+        floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              shareAccessInfoPopup(context);
+            },
+            backgroundColor: notifier.getbluecolor,
+            child: Icon(
+              Icons.question_mark,
+              size: 30.sp,
+            )),
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: PreferredSize(
@@ -262,18 +269,6 @@ class _SharedAccessState extends State<SharedAccess>
     return Container(
       height: height / 1.22,
       child: Scaffold(
-        floatingActionButton: FloatingActionButton(
-            onPressed: () async {
-              // // selectAccessTypePopup(context, appState);
-              // wallets!.forEach((wallet) {
-              //   print(wallet.permissions!.first.targetUsername);
-              // });
-            },
-            backgroundColor: notifier.getbluecolor,
-            child: Icon(
-              Icons.question_mark,
-              size: 30.sp,
-            )),
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -375,7 +370,7 @@ class _SharedAccessState extends State<SharedAccess>
                               ? darktilewhitecolor
                               : notifier.getaddsubwalletgrey,
                         ),
-                        value: selectedAccessType,
+                        value: selectedFilter,
                         icon: Icon(
                           Icons.keyboard_arrow_down_rounded,
                           color: notifier.getbluewhitecolor,
@@ -388,9 +383,7 @@ class _SharedAccessState extends State<SharedAccess>
                             fontWeight: FontWeight.w500),
                         onChanged: (newValue) {
                           setState(() {
-                            selectedAccessType = newValue!;
-                            appState.activeWallet = wallets!.firstWhere(
-                                (wallet) => wallet.publicKey == newValue);
+                            selectedFilter = newValue!;
                           });
                         },
                         items: sortDropdownItems,
@@ -405,16 +398,56 @@ class _SharedAccessState extends State<SharedAccess>
               if (selectedAccessMode == 'Access granted to me') ...[
                 getAccessGrantedToMe(appState),
               ] else ...[
-                for (var walletIndex = 0;
-                    walletIndex < wallets!.length;
-                    walletIndex++) ...{
-                  if (wallets![walletIndex].permissions != null &&
-                      wallets![walletIndex].permissions!.length > 0) ...[
-                    accessGrantedByMe(
-                        walletAlias: wallets![walletIndex].alias!,
-                        permissions: wallets![walletIndex].permissions),
-                  ]
-                }
+                Builder(builder: (context) {
+                  // we rename 'Viewer' to 'VIEW-ONLY' because that's what is
+                  // returned from the server.
+                  String filter = selectedFilter == 'Viewer'
+                      ? 'VIEW-ONLY'
+                      : selectedFilter.toString().toUpperCase();
+                  // filter the wallets according to the access type that
+                  // the user selected
+                  var filteredWallets = <Wallet>[];
+                  wallets!.forEach((wallet) {
+                    wallet.permissions!.forEach((permissionObj) {
+                      if (filter == 'ALL' ||
+                          permissionObj.permission == filter) {
+                        filteredWallets.add(wallet);
+                      }
+                    });
+                  });
+                  return Column(
+                    children: [
+                      if (filteredWallets.length > 0) ...[
+                        for (var walletIndex = 0;
+                            walletIndex < filteredWallets.length;
+                            walletIndex++) ...{
+                          if (filteredWallets[walletIndex].permissions !=
+                                  null &&
+                              filteredWallets[walletIndex].permissions!.length >
+                                  0) ...[
+                            accessGrantedByMe(
+                                walletAlias:
+                                    filteredWallets[walletIndex].alias!,
+                                permissions:
+                                    filteredWallets[walletIndex].permissions),
+                          ]
+                        }
+                      ] else ...[
+                        Center(
+                          heightFactor: 15.sp,
+                          child: Text(
+                            'Nothing to show here',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontFamily: fontbody,
+                              color: notifier.getbluecolor,
+                            ),
+                          ),
+                        ),
+                      ]
+                    ],
+                  );
+                })
               ],
               SizedBox(
                 height: height / 10,
@@ -430,53 +463,75 @@ class _SharedAccessState extends State<SharedAccess>
   }
 
   Widget getAccessGrantedToMe(DataProvider appState) {
-    // create a map to hold the each wallet
+    // create a map to hold each wallet info
     var wallets = {};
-    // store the wallet aliases as keys here so that we can use it to easily the values back
+    // store the wallet aliases as keys here so that we can use it to easily get the values back
+    // from the wallets map since we cannot create widgets by looping through the map using map.forEach((k,v))
     var walletKeys = [];
-    // if the wallet is not already added to the map then add it
     for (var i = 0; i < appState.sharedWallets.length; i++) {
-      if (wallets[appState.sharedWallets[i]['walletAlias']] == null) {
-        walletKeys.add(appState.sharedWallets[i]['walletAlias']);
-        wallets[appState.sharedWallets[i]['walletAlias']] = {
-          'walletAlias': appState.sharedWallets[i]['walletAlias'],
-          'permissions': <String>[appState.sharedWallets[i]['permission']],
-          'owner': appState.sharedWallets[i]['owner'],
-          'walletPublicKey': appState.sharedWallets[i]['walletPublicKey'],
-          'walletDescription': appState.sharedWallets[i]['walletDescription'],
-        };
-      } else {
-        // if we got here then the wallet is already on the map so we add
-        // this permission to the list of permission grant to the user on the
-        // wallet
-        wallets[appState.sharedWallets[i]['walletAlias']]['permissions']
-            .add(appState.sharedWallets[i]['permission']);
+      // filter shared access by permission
+      if (appState.sharedWallets[i]['permission'] ==
+              selectedFilter.toString().toUpperCase() ||
+          selectedFilter == 'All') {
+        // if the wallet is not already added to the map then add it
+        if (wallets[appState.sharedWallets[i]['walletAlias']] == null) {
+          walletKeys.add(appState.sharedWallets[i]['walletAlias']);
+          wallets[appState.sharedWallets[i]['walletAlias']] = {
+            'walletAlias': appState.sharedWallets[i]['walletAlias'],
+            'permissions': <String>[appState.sharedWallets[i]['permission']],
+            'owner': appState.sharedWallets[i]['owner'],
+            'walletPublicKey': appState.sharedWallets[i]['walletPublicKey'],
+            'walletDescription': appState.sharedWallets[i]['walletDescription'],
+          };
+        } else {
+          // if we got here then the wallet is already on the map so we add
+          // this permission to the list of permissions granted to the user on the
+          // wallet
+          wallets[appState.sharedWallets[i]['walletAlias']]['permissions']
+              .add(appState.sharedWallets[i]['permission']);
+        }
       }
-
-      print('============wallets: $wallets');
     }
 
     return Column(
       children: [
-        for (var i = 0; i < walletKeys.length; i++) ...[
-          GestureDetector(
-            onTap: () {
-              appState.viewData![SharedWalletDetailsViewPageConfig.key] =
-                  wallets[walletKeys[i]];
-              appState.currentAction = PageAction(
-                state: PageState.addPage,
-                page: SharedWalletDetailsViewPageConfig,
-              );
-            },
-            child: accessGrantedToMe(
-              walletOwner: wallets[walletKeys[i]]['owner'],
-              walletAlias: walletKeys[i],
-              publicKey: wallets[walletKeys[i]]['walletPublicKey'],
-              permissions: wallets[walletKeys[i]]['permissions'],
-              walletDescription: wallets[walletKeys[i]]['walletDescription'],
+        if (walletKeys.length > 0) ...[
+          // loop through the walletKeys array and use each key to get the values
+          // stored in the wallets map above.
+          for (var i = 0; i < walletKeys.length; i++) ...[
+            GestureDetector(
+              onTap: () {
+                // add the shared access data to viewData so we can pass it to
+                // shared access details view when user taps on it
+                appState.viewData![SharedWalletInfoViewPageConfig.key] =
+                    wallets[walletKeys[i]];
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: SharedWalletInfoViewPageConfig,
+                );
+              },
+              child: accessGrantedToMe(
+                walletOwner: wallets[walletKeys[i]]['owner'],
+                walletAlias: walletKeys[i],
+                publicKey: wallets[walletKeys[i]]['walletPublicKey'],
+                permissions: wallets[walletKeys[i]]['permissions'],
+                walletDescription: wallets[walletKeys[i]]['walletDescription'],
+              ),
+            )
+          ],
+        ] else ...[
+          Center(
+            heightFactor: 15.sp,
+            child: Text(
+              'Nothing to show here',
+              style: TextStyle(
+                fontSize: 17,
+                fontFamily: fontbody,
+                color: notifier.getbluecolor,
+              ),
             ),
-          )
-        ],
+          ),
+        ]
       ],
     );
   }
@@ -648,49 +703,33 @@ class _SharedAccessState extends State<SharedAccess>
                   SizedBox(
                     height: height / 50,
                   ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                        child: Text(
-                          'Viewer access',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluecolor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (viewersList.length > 0) ...[
-                    for (var permIndex = 0;
-                        permIndex < viewersList.length;
-                        permIndex++) ...[
-                      Row(children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                          child: Text(
-                            '${viewersList[permIndex].targetUsername}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontbody,
-                              color: notifier.getbluecolor,
-                            ),
-                          ),
-                        ),
-                      ])
-                    ]
-                  ] else ...[
+                  // filter by viewer
+                  if (selectedFilter == 'All' ||
+                      selectedFilter == 'Viewer') ...[
                     Row(
                       children: [
                         Padding(
                           padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                          child: Container(
-                            width: width / 1.5,
+                          child: Text(
+                            'Viewer access',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluecolor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (viewersList.length > 0) ...[
+                      for (var permIndex = 0;
+                          permIndex < viewersList.length;
+                          permIndex++) ...[
+                        Row(children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                             child: Text(
-                              'You have granted no view-only access on this wallet',
-                              overflow: TextOverflow.visible,
+                              '${viewersList[permIndex].targetUsername}',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontFamily: fontbody,
@@ -698,56 +737,60 @@ class _SharedAccessState extends State<SharedAccess>
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    )
-                  ],
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                        child: Text(
-                          'Approver access',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluecolor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (approversList.length > 0) ...[
-                    for (var permIndex = 0;
-                        permIndex < approversList.length;
-                        permIndex++) ...[
-                      Row(children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                          child: Text(
-                            '${approversList[permIndex].targetUsername}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontbody,
-                              color: notifier.getbluecolor,
+                        ])
+                      ]
+                    ] else ...[
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Container(
+                              width: width / 1.5,
+                              child: Text(
+                                'You have granted no view-only access on this wallet',
+                                overflow: TextOverflow.visible,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluecolor,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ])
-                    ]
-                  ] else ...[
+                        ],
+                      )
+                    ],
+                  ],
+                  // filter by approver
+                  if (selectedFilter == 'All' ||
+                      selectedFilter == 'Approver') ...[
+                    SizedBox(
+                      height: height / 50,
+                    ),
                     Row(
                       children: [
                         Padding(
                           padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                          child: Container(
-                            width: width / 1.5,
+                          child: Text(
+                            'Approver access',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluecolor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (approversList.length > 0) ...[
+                      for (var permIndex = 0;
+                          permIndex < approversList.length;
+                          permIndex++) ...[
+                        Row(children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                             child: Text(
-                              'You have granted no approver access on this wallet',
-                              overflow: TextOverflow.visible,
+                              '${approversList[permIndex].targetUsername}',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontFamily: fontbody,
@@ -755,56 +798,60 @@ class _SharedAccessState extends State<SharedAccess>
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    )
-                  ],
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                        child: Text(
-                          'Initiator access',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluecolor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (initiatorsList.length > 0) ...[
-                    for (var permIndex = 0;
-                        permIndex < initiatorsList.length;
-                        permIndex++) ...[
-                      Row(children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                          child: Text(
-                            '${initiatorsList[permIndex].targetUsername}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontbody,
-                              color: notifier.getbluecolor,
+                        ])
+                      ]
+                    ] else ...[
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Container(
+                              width: width / 1.5,
+                              child: Text(
+                                'You have granted no approver access on this wallet',
+                                overflow: TextOverflow.visible,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluecolor,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ])
-                    ]
-                  ] else ...[
+                        ],
+                      )
+                    ],
+                  ],
+                  // filter by initiator
+                  if (selectedFilter == 'All' ||
+                      selectedFilter == 'Initiator') ...[
+                    SizedBox(
+                      height: height / 50,
+                    ),
                     Row(
                       children: [
                         Padding(
                           padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                          child: Container(
-                            width: width / 1.5,
+                          child: Text(
+                            'Initiator access',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluecolor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (initiatorsList.length > 0) ...[
+                      for (var permIndex = 0;
+                          permIndex < initiatorsList.length;
+                          permIndex++) ...[
+                        Row(children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                             child: Text(
-                              'You have granted no initiator access on this wallet',
-                              overflow: TextOverflow.visible,
+                              '${initiatorsList[permIndex].targetUsername}',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontFamily: fontbody,
@@ -812,10 +859,33 @@ class _SharedAccessState extends State<SharedAccess>
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    )
-                  ],
+                        ])
+                      ]
+                    ] else ...[
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Container(
+                              width: width / 1.5,
+                              child: Text(
+                                'You have granted no initiator access on this wallet',
+                                overflow: TextOverflow.visible,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluecolor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                  ]
                 ],
               ),
             ),
@@ -924,8 +994,8 @@ class _SharedAccessState extends State<SharedAccess>
         'viewers': viewers,
         'addApprovers': addApprovers,
         'approvers': approvers,
-        'noOfApprovers': noOfApprovers,
-        'noOfApprovalsNeeded': noOfApprovalsNeeded,
+        'noOfApprovers': addApprovers ? noOfApprovers : 0,
+        'noOfApprovalsNeeded': addApprovers ? noOfApprovalsNeeded : 0,
         'initiators': initiators,
         'userFullnames': userFullnames,
       }
@@ -1382,11 +1452,12 @@ class _SharedAccessState extends State<SharedAccess>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Text(
-              '${noOfApprovalsNeeded} approvals out of ${noOfApprovers} approvers',
+              '${noOfApprovalsNeeded} approvals required out of ${noOfApprovers} approvers',
+              textAlign: TextAlign.center,
               style: TextStyle(
                   color: notifier.getbluewhitecolor,
-                  fontFamily: fontsemibold,
-                  fontSize: 15.sp),
+                  fontFamily: fontbody,
+                  fontSize: 13.sp),
             ),
           ),
           SizedBox(
@@ -1983,7 +2054,6 @@ class _SharedAccessState extends State<SharedAccess>
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
-        print(responseData['data']);
         return responseData['data']['userData'];
       }
 

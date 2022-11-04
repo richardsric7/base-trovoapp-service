@@ -55,8 +55,8 @@ const String SuccessViewPath = '/SuccessView';
 const String SecurityQuestionsForInactiveAccountsViewPath =
     '/SecurityQuestionsForInactiveAccounts';
 const String AddSharedAccessDetailsViewPath = '/AddSharedAccessDetailsView';
+const String SharedWalletInfoViewPath = '/SharedWalletInfoView';
 const String SharedWalletDetailsViewPath = '/SharedWalletDetailsView';
-const String ViewerAccessViewPath = '/ViewerAccessView';
 
 enum Pages {
   Splash,
@@ -111,8 +111,8 @@ enum Pages {
   SuccessView,
   SecurityQuestionsForInactiveAccountsView,
   AddSharedAccessDetailsView,
+  SharedWalletInfoView,
   SharedWalletDetailsView,
-  ViewerAccessView,
 }
 
 class PageConfiguration {
@@ -385,13 +385,13 @@ PageConfiguration AddSharedAccessDetailsViewPageConfig = PageConfiguration(
     path: AddSharedAccessDetailsViewPath,
     uiPage: Pages.AddSharedAccessDetailsView,
     currentPageAction: null);
+PageConfiguration SharedWalletInfoViewPageConfig = PageConfiguration(
+    key: 'SharedWalletInfoView',
+    path: SharedWalletInfoViewPath,
+    uiPage: Pages.SharedWalletInfoView,
+    currentPageAction: null);
 PageConfiguration SharedWalletDetailsViewPageConfig = PageConfiguration(
     key: 'SharedWalletDetailsView',
     path: SharedWalletDetailsViewPath,
     uiPage: Pages.SharedWalletDetailsView,
-    currentPageAction: null);
-PageConfiguration ViewerAccessViewPageConfig = PageConfiguration(
-    key: 'ViewerAccessView',
-    path: ViewerAccessViewPath,
-    uiPage: Pages.ViewerAccessView,
     currentPageAction: null);
