@@ -137,17 +137,7 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 		}
 
 	}
-	{
-		cacheKey1 := fmt.Sprintf("GetBalance_%s", accountOwner.PublicKey)
-		cacheKey2 := fmt.Sprintf("GetBalance_%s", subWalletInfo.PublicKey)
-		cacheKeyUsername := fmt.Sprintf("userObj %v", accountOwner.Username)
-		cacheKeyEmail := fmt.Sprintf("userObj %v", accountOwner.Email)
-		cacheKeySigner := fmt.Sprintf("userObj %v", accountOwner.PrimarySigner)
-		cacheKeyUserID := fmt.Sprintf("userObj %v", accountOwner.ID)
-		gc.RedisCache.DeleteFromCache(cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID)
-
-		gc.RedisCache.DeleteFromCache(cacheKey1, cacheKey2)
-	}
+	accountOwner.InvalidateUserCache(gc)
 
 	return subWalletInfo, nil
 }

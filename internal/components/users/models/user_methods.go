@@ -1676,3 +1676,73 @@ func (u *User) SendPushMessage(title, body, imageURI string, dataPayload map[str
 	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 }
+
+func (w *UserWallet) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
+	userAccount, err := w.GetWalletOwner(gc.DB, gc)
+	if err != nil {
+		return
+	}
+	cacheKey1 := fmt.Sprintf("GetBalance_%s", userAccount.PublicKey)
+	cacheKeyUsername := fmt.Sprintf("userObj %v", userAccount.Username)
+	cacheKeyEmail := fmt.Sprintf("userObj %v", userAccount.Email)
+	cacheKeySigner := fmt.Sprintf("userObj %v", userAccount.PrimarySigner)
+	cacheKeyUserID := fmt.Sprintf("userObj %v", userAccount.ID)
+	gc.RedisCache.DeleteFromCache(cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID)
+
+	gc.RedisCache.DeleteFromCache(cacheKey1)
+	userAccount.InvalidateUserWalletCache(gc)
+}
+func (u Username) InvalidateUserCache(id string, gc *sharedconfig.GlobalConfig) {
+	userAccount, err := u.GetFullUser(gc.DB, gc)
+	if err != nil {
+		return
+	}
+	cacheKey1 := fmt.Sprintf("GetBalance_%s", userAccount.PublicKey)
+	cacheKeyUsername := fmt.Sprintf("userObj %v", userAccount.Username)
+	cacheKeyEmail := fmt.Sprintf("userObj %v", userAccount.Email)
+	cacheKeySigner := fmt.Sprintf("userObj %v", userAccount.PrimarySigner)
+	cacheKeyUserID := fmt.Sprintf("userObj %v", userAccount.ID)
+	gc.RedisCache.DeleteFromCache(cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID)
+
+	gc.RedisCache.DeleteFromCache(cacheKey1)
+	userAccount.InvalidateUserWalletCache(gc)
+}
+func (u *User) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
+	if u == nil {
+		return
+	}
+	cacheKey1 := fmt.Sprintf("GetBalance_%s", u.PublicKey)
+	cacheKeyUsername := fmt.Sprintf("userObj %v", u.Username)
+	cacheKeyEmail := fmt.Sprintf("userObj %v", u.Email)
+	cacheKeySigner := fmt.Sprintf("userObj %v", u.PrimarySigner)
+	cacheKeyUserID := fmt.Sprintf("userObj %v", u.ID)
+	gc.RedisCache.DeleteFromCache(cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID)
+
+	gc.RedisCache.DeleteFromCache(cacheKey1)
+	u.InvalidateUserWalletCache(gc)
+}
+
+func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
+
+	if u == nil {
+		return
+	}
+	if u.UserWallets == nil {
+		return
+	}
+	if len(u.UserWallets) == 0 {
+		return
+	}
+	for _, w := range u.UserWallets {
+		cacheKey1 := fmt.Sprintf("GetBalance_%s", w.ID)
+		cacheKey2 := fmt.Sprintf("GetBalance_%s", *w.TempPublicKey)
+
+		cacheKey3 := fmt.Sprintf("userObj %v", w.Alias)
+		cacheKey4 := fmt.Sprintf("userObj %v", w.ID)
+		cacheKeySigner := fmt.Sprintf("userObj %v", w.Signer)
+		cacheKeyUserID := fmt.Sprintf("userObj %v", w.UserID)
+		gc.RedisCache.DeleteFromCache(cacheKey1, cacheKey2, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID)
+
+	}
+
+}

@@ -457,6 +457,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		}
 		return
 	}
+	viewOnly := make(map[string]string, 0)
 	var oldNumberOfApprovers int
 	for _, perm := range wallet.Permissions {
 		if perm.Permission == "APPROVER" {
@@ -737,16 +738,45 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
+	if len(updatedWallet.Permissions) == 0 {
+		err = &tErrors.CustomError{
+			Param:      "permissions",
+			Err:        "error-invalid-operation",
+			ErrMessage: "Removing all access permissions is same as disabling shared access on the wallet. Please use the option to disable shared access on this wallet.",
+			Code:       http.StatusForbidden,
+		}
+		return
+	}
 
 	{
 		for _, p := range updatedWallet.Permissions {
-
+			if p.Permission == "VIEW-ONLY" {
+				viewOnly[p.TargetUsername] = p.Permission
+			}
 			if p.Permission == "INITIATOR" {
 				numberOfSubmittedInitiators++
 			}
 			if p.Permission == "APPROVER" {
 				numberOfSubmittedApprovers++
 			}
+		}
+	}
+	{
+		for _, p := range updatedWallet.Permissions {
+			if p.Permission == "VIEW-ONLY" {
+				continue
+			}
+			_, ok := viewOnly[p.TargetUsername]
+			if ok {
+				err = &tErrors.CustomError{
+					Param:      "numberOfApprovalsNeeded",
+					Err:        "error-invalid-permission",
+					ErrMessage: fmt.Sprintf("%v cannot have VIEW access after being granted an %v access on the same wallet.", p.TargetUsername, p.Permission),
+					Code:       http.StatusForbidden,
+				}
+				return
+			}
+
 		}
 	}
 
@@ -806,6 +836,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		err = errGenXdr
 		return
 	}
+
 	accessInfo.Messages = append(accessInfo.Messages, messages...)
 
 	accessInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
@@ -1398,7 +1429,8 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	}
 	{
 		//adjust account threshold
-		if numberOfApprovalsNeeded > 0 {
+		if numberOfApprovalsNeeded > 0 || len(ops) == 0 {
+			// len(ops) == 0 prevents empty ops error
 			ops = append(ops, &txnbuild.SetOptions{
 				LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
 				MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(numberOfApprovalsNeeded)),
@@ -1407,6 +1439,15 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			})
 		}
 	}
+	// if len(ops) == 0 {
+	// 	// no operations to sign. create a dummy ops, will be ignored on next try.
+	// 	ops = append(ops, &txnbuild.SetOptions{
+	// 		LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(0)),
+	// 		MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(0)),
+	// 		HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(0)),
+	// 		SourceAccount:   wallet.ID,
+	// 	})
+	// }
 
 	// Construct the transaction that holds the operations to execute on the network
 	var tx *txnbuild.Transaction

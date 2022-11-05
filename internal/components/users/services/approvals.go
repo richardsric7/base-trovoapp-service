@@ -14,7 +14,6 @@ import (
 	db "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
-	pns "trovo-wallet-api/internal/pns"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
@@ -208,13 +207,13 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		return &tErrors.ErrorRejectedRequest{ID: p.ID}
 	}
 
-	initiatorUser, e := userModels.Username(p.Initiator).GetSimpleUser(gc.DB,gc)
+	initiatorUser, e := userModels.Username(p.Initiator).GetSimpleUser(gc.DB, gc)
 	if e != nil {
 		log.Println("[ApproveTransaction] error getting initiator user object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	walletOwner, e := userModels.UserWalletID(p.WalletPublicKey).GetWalletOwner(gc.DB,gc)
+	walletOwner, e := userModels.UserWalletID(p.WalletPublicKey).GetWalletOwner(gc.DB, gc)
 	if e != nil {
 		log.Println("[ApproveTransaction] error getting wallet owner user object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
@@ -354,15 +353,15 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 			dbTX.Commit()
 			for _, v := range accessList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
 					continue
 				}
 				if u.PushNotificationToken != nil && v.Permission != "VIEW-ONLY" {
 					dataPayload := make(map[string]string)
 					dataPayload["none"] = ""
-					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-
+					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					u.InvalidateUserCache(gc)
 				}
 			}
 
@@ -388,41 +387,41 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			dbTX.Commit()
 
 			for _, v := range revokedList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
 					continue
 				}
 				if u.PushNotificationToken != nil {
 					dataPayload := make(map[string]string)
 					dataPayload["none"] = ""
-					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-
+					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					u.InvalidateUserCache(gc)
 				}
 			}
 
 			for _, v := range modifiedList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
 					continue
 				}
 				if u.PushNotificationToken != nil {
 					dataPayload := make(map[string]string)
 					dataPayload["none"] = ""
-					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-
+					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					u.InvalidateUserCache(gc)
 				}
 			}
 
 			for _, v := range addedList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
 					continue
 				}
 				if u.PushNotificationToken != nil {
 					dataPayload := make(map[string]string)
 					dataPayload["none"] = ""
-					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-
+					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					u.InvalidateUserCache(gc)
 				}
 			}
 
@@ -439,16 +438,16 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = "pendingAuth"
 			for _, v := range accessList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
 					continue
 				}
 				if u.PushNotificationToken != nil {
 					dataPayload := make(map[string]string)
 					dataPayload["none"] = ""
-					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
 					u.SendPushMessage("Trovo: Shared Wallet Debited!", fmt.Sprintf("Payment successfully sent %v %v from shared wallet with alias %v to %v", paymentInfo.Amount, assetCode, wallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
-
+					u.InvalidateUserCache(gc)
 				}
 			}
 			{
@@ -514,35 +513,35 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 						dataPayload["none"] = ""
 						if destWallet.SharedAccessEnabled == 1 {
 							if destWallet.HasViewOnlyAccess(gc) {
-								u, e := destWallet.GetWalletOwner(gc.DB,gc)
+								u, e := destWallet.GetWalletOwner(gc.DB, gc)
 								if e == nil {
 									if u.PushNotificationToken != nil {
 
 										u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, wallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
-
+										u.InvalidateUserCache(gc)
 									}
 								}
 
 							}
 							for _, v := range destWallet.Permissions {
-								u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+								u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 								if e != nil {
 									continue
 								}
 								if u.PushNotificationToken != nil {
 
 									u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, wallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
-
+									u.InvalidateUserCache(gc)
 								}
 							}
 						} else {
 							//shared access not enabled on destination wallet
-							u, e := destWallet.GetWalletOwner(gc.DB,gc)
+							u, e := destWallet.GetWalletOwner(gc.DB, gc)
 							if e == nil {
 								if u.PushNotificationToken != nil {
 
 									u.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, wallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
-
+									u.InvalidateUserCache(gc)
 								}
 							}
 						}
@@ -585,15 +584,15 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			dbTX.Commit()
 			accessList := wallet.Permissions
 			for _, v := range accessList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
 					continue
 				}
 				// if u.PushNotificationToken != nil && v.Permission != "VIEW-ONLY" {
 				dataPayload := make(map[string]string)
 				dataPayload["none"] = ""
-				pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-
+				u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+				u.InvalidateUserCache(gc)
 				// }
 			}
 
@@ -606,14 +605,15 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = "pendingAuth"
 			for _, v := range accessList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
 					continue
 				}
 				if u.PushNotificationToken != nil {
 					dataPayload := make(map[string]string)
 					dataPayload["none"] = ""
-					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					u.InvalidateUserCache(gc)
 				}
 			}
 

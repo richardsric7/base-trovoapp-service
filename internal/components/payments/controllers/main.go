@@ -335,6 +335,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			}
 			if len(destinationWallet.ID) == 56 {
+				destinationWallet.InvalidateUserCache(gc)
 				receiverTempCacheKey = fmt.Sprintf("GetBalance_%s", *destinationWallet.TempPublicKey)
 			}
 			if len(sourceWallet.ID) == 56 {
@@ -424,6 +425,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 								if u.PushNotificationToken != nil {
 
 									u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+									u.InvalidateUserCache(gc)
 
 								}
 							}
@@ -437,7 +439,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 							if u.PushNotificationToken != nil {
 
 								u.SendPushMessage("Trovo: Shared Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your shared wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
-
+								u.InvalidateUserCache(gc)
 							}
 						}
 					}

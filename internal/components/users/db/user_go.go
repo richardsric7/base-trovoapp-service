@@ -131,11 +131,7 @@ func UpdatePushNotificationToken(identifier string, pnt *string, db *gorm.DB, gc
 		if err != nil {
 			log.Printf("[UpdatePushNotificationToken] unable to update push notification token for user [%v], due to:[%v]", user.Username, err)
 		}
-		cacheKeyUsername := fmt.Sprintf("userObj %v", user.Username)
-		cacheKeyEmail := fmt.Sprintf("userObj %v", user.Email)
-		cacheKeySigner := fmt.Sprintf("userObj %v", user.PrimarySigner)
-		cacheKeyUserID := fmt.Sprintf("userObj %v", user.ID)
-		gc.RedisCache.DeleteFromCache(cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID)
+		user.InvalidateUserCache(gc)
 	}
 }
 
@@ -173,5 +169,46 @@ func GetUserFromPrimarySigner(publicKey string, db *gorm.DB, gc *sharedconfig.Gl
 	cacheKeyUsername := fmt.Sprintf("userObj %v", user.Username)
 	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, user, 0)
 	return user, nil
+
+}
+
+func InvalidateUserCache(id string, gc *sharedconfig.GlobalConfig) {
+	userAccount, err := GetUser(id, gc.DB, gc)
+	if err != nil {
+		return
+	}
+	cacheKey1 := fmt.Sprintf("GetBalance_%s", userAccount.PublicKey)
+	cacheKeyUsername := fmt.Sprintf("userObj %v", userAccount.Username)
+	cacheKeyEmail := fmt.Sprintf("userObj %v", userAccount.Email)
+	cacheKeySigner := fmt.Sprintf("userObj %v", userAccount.PrimarySigner)
+	cacheKeyUserID := fmt.Sprintf("userObj %v", userAccount.ID)
+	gc.RedisCache.DeleteFromCache(cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID)
+
+	gc.RedisCache.DeleteFromCache(cacheKey1)
+	InvalidateUserWalletCache(&userAccount, gc)
+}
+
+func InvalidateUserWalletCache(userAccount *userModels.User, gc *sharedconfig.GlobalConfig) {
+
+	if userAccount == nil {
+		return
+	}
+	if userAccount.UserWallets == nil {
+		return
+	}
+	if len(userAccount.UserWallets) == 0 {
+		return
+	}
+	for _, w := range userAccount.UserWallets {
+		cacheKey1 := fmt.Sprintf("GetBalance_%s", w.ID)
+		cacheKey2 := fmt.Sprintf("GetBalance_%s", *w.TempPublicKey)
+
+		cacheKey3 := fmt.Sprintf("userObj %v", w.Alias)
+		cacheKey4 := fmt.Sprintf("userObj %v", w.ID)
+		cacheKeySigner := fmt.Sprintf("userObj %v", w.Signer)
+		cacheKeyUserID := fmt.Sprintf("userObj %v", w.UserID)
+		gc.RedisCache.DeleteFromCache(cacheKey1, cacheKey2, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID)
+
+	}
 
 }

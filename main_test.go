@@ -2133,7 +2133,8 @@ func TestCreateSharedAccess(t *testing.T) {
 	// accessToWallet := "GD6IO3P4J2C63Z3VEIH5TVZVDITHKGJMOAKHX6J6TEDA6JEEQCD5GJFN"
 	// accessToWallet := "GAYKJR7KECN57NPKF4ABYQPFLUCELKXMSPD3D7ACEATI77TYFXKJSKRO"
 	//ric_join1
-	accessToWallet := "GA7ZU2CZPXVCBCDABXOQ7BNLCF24PASOZZTLFGPN4PFODLC7UVO3XYGU"
+	// accessToWallet := "GA7ZU2CZPXVCBCDABXOQ7BNLCF24PASOZZTLFGPN4PFODLC7UVO3XYGU"
+	accessToWallet := "GBIYYWYIDTZAMKABTMUXCPNFNWDNB72473MZL6ZSQWBYU2TUNCQIOD4K"
 	// channelAccountSK := ""
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
@@ -2158,15 +2159,12 @@ func TestCreateSharedAccess(t *testing.T) {
 	}
 	var accessList []WalletPermissionInfo
 	payload := UserWalletSharedAccessInfo{
-		NumberOfApprovalsNeeded: 2,
+		NumberOfApprovalsNeeded: 1,
 		// Commit:            1,
 	}
 	accessList = append(accessList,
 		WalletPermissionInfo{
 			TargetUsername: "kenmaddy",
-			Permission:     "INITIATOR"},
-		WalletPermissionInfo{
-			TargetUsername: "kenmaddy",
 			Permission:     "APPROVER"},
 		WalletPermissionInfo{
 			TargetUsername: "ric",
@@ -2179,18 +2177,6 @@ func TestCreateSharedAccess(t *testing.T) {
 			Permission:     "INITIATOR"},
 		WalletPermissionInfo{
 			TargetUsername: "ric1",
-			Permission:     "APPROVER"},
-		WalletPermissionInfo{
-			TargetUsername: "thundeyy",
-			Permission:     "VIEW-ONLY"},
-		WalletPermissionInfo{
-			TargetUsername: "onoja",
-			Permission:     "APPROVER"},
-		WalletPermissionInfo{
-			TargetUsername: "efizee",
-			Permission:     "APPROVER"},
-		WalletPermissionInfo{
-			TargetUsername: "obi",
 			Permission:     "APPROVER"})
 	payload.Permissions = accessList
 
@@ -2563,24 +2549,49 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 		return
 
 	}
-	var addedList,removeList,modifyList []WalletPermissionInfo
+	var addedList, revokeList, modifyList []WalletPermissionInfo
 	payload := ModifySharedAccessInfo{
-		NumberOfApprovalsNeeded: 2,
-		// Commit:            1,
+		NumberOfApprovalsNeeded: 1,
 	}
 	addedList = make([]WalletPermissionInfo, 0)
 	modifyList = make([]WalletPermissionInfo, 0)
-	removeList = make([]WalletPermissionInfo, 0)
-	addedList = append(accessList,
+	revokeList = make([]WalletPermissionInfo, 0)
+	addedList = append(addedList,
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
-			TargetUsername:  "ric",
-			Permission:      "INITIATOR"},
-		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "ric1",
+			TargetUsername:  "kenmaddy",
 			Permission:      "INITIATOR"})
-	payload.Permissions = accessList
+
+	// modifyList = append(modifyList,
+	// 	WalletPermissionInfo{
+	// 		WalletPublicKey: accessToWallet,
+	// 		TargetUsername:  "ric",
+	// 		Permission:      "INITIATOR"},
+	// 	WalletPermissionInfo{
+	// 		WalletPublicKey: accessToWallet,
+	// 		TargetUsername:  "ric1",
+	// 		Permission:      "INITIATOR"},
+	// 	WalletPermissionInfo{
+	// 		WalletPublicKey: accessToWallet,
+	// 		TargetUsername:  "ric",
+	// 		Permission:      "APPROVER"},
+	// 	WalletPermissionInfo{
+	// 		WalletPublicKey: accessToWallet,
+	// 		TargetUsername:  "ric1",
+	// 		Permission:      "APPROVER"},
+	// 	WalletPermissionInfo{
+	// 		WalletPublicKey: accessToWallet,
+	// 		TargetUsername:  "kenmaddy",
+	// 		Permission:      "APPROVER"})
+
+	revokeList = append(revokeList,
+	WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			TargetUsername:  "kenmaddy",
+			Permission:      "APPROVER"})
+	payload.AddedPermissions = addedList
+	payload.RevokedPermissions = revokeList
+	payload.ModifiedPermissions = modifyList
 
 	log.Printf("[DEBUG] Payload: %+v\n", payload)
 	errorResponse := new(ErrorResponse)
@@ -2595,13 +2606,13 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 		Post(fullPath).BodyJSON(payload).Receive(payResponse, errorResponse)
 	//get payload string
 	if len(errorResponse.Error) > 0 {
-		log.Println("[TestCreateSharedAccess] server response error:", *errorResponse)
+		log.Println("[TestModifySharedAccessWithApprover] server response error:", *errorResponse)
 		t.Errorf(errorResponse.Error)
 		return
 
 	}
 	if err != nil {
-		log.Println("[TestCreateSharedAccess]request error:", err)
+		log.Println("[TestModifySharedAccessWithApprover]request error:", err)
 		t.Errorf(err.Error())
 
 		return
@@ -2617,7 +2628,7 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 		if p.SignatureRequired == 1 {
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
-				log.Println("[TestCreateSharedAccess] confirm transaction error:", err)
+				log.Println("[TestModifySharedAccessWithApprover] confirm transaction error:", err)
 				t.Errorf(err.Error())
 
 				return
@@ -2642,7 +2653,7 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 			Base(baseURL).
 			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if len(errorResponse.Error) > 0 {
-			log.Println("[TestCreateSharedAccess] server 2nd response error:", *errorResponse)
+			log.Println("[TestModifySharedAccessWithApprover] server 2nd response error:", *errorResponse)
 			t.Errorf(errorResponse.Error)
 			return
 
@@ -2655,7 +2666,7 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 
 		log.Printf("Shared Access Response:[%+v]\n", payResponse)
 	}
-	log.Println("[TestCreateSharedAccess] completed")
+	log.Println("[TestModifySharedAccessWithApprover] completed")
 
 }
 func TestRemoveSharedAccessWithApprover(t *testing.T) {
