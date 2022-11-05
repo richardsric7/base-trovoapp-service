@@ -368,20 +368,27 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return nil
 		} else if p.TransactionType == "MODIFY SHARED ACCESS" {
 
-			//delete revoked access
-			e = dbTX.Delete(&revokedList).Error
-			if e != nil {
-				log.Println("[ApproveTransaction] error deleting revoked list:", e.Error())
+			if len(revokedList) > 0 {
+				//delete revoked access
+				e = dbTX.Delete(&revokedList).Error
+				if e != nil {
+					log.Println("[ApproveTransaction] error deleting revoked list:", e.Error())
+				}
 			}
-			//save modified access
-			e = dbTX.Save(&modifiedList).Error
-			if e != nil {
-				log.Println("[ApproveTransaction] error saving modified list:", e.Error())
+			if len(modifiedList) > 0 {
+				//save modified access
+				e = dbTX.Save(&modifiedList).Error
+				if e != nil {
+					log.Println("[ApproveTransaction] error saving modified list:", e.Error())
+				}
 			}
-			//create added access
-			e = dbTX.Create(&addedList).Error
-			if e != nil {
-				log.Println("[ApproveTransaction] error creating added list:", e.Error())
+
+			if len(revokedList) > 0 {
+				//create added access
+				e = dbTX.Create(&addedList).Error
+				if e != nil {
+					log.Println("[ApproveTransaction] error creating added list:", e.Error())
+				}
 			}
 
 			dbTX.Commit()
