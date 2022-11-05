@@ -59,21 +59,10 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
-    print(
-        'this is appState: ${appState.viewData![RequestSpecificPaymentViewPageConfig.key]}');
-    asset = appState.viewData![RequestSpecificPaymentViewPageConfig.key];
 
-    if (asset['deepLinkInfo'] != null) {
-      deeplinkInfo = asset['deepLinkInfo'];
-      print('deeplink is here....$deeplinkInfo');
-      toController.text = deeplinkInfo['receiver'];
-      amountController.text = deeplinkInfo['amount'];
-      // amountController.text = '34';
-      // amountController.selection = TextSelection.fromPosition(
-      //     TextPosition(offset: amountController.text.length));
-      _utf8TextController.text = deeplinkInfo['memo'];
-      asset['deepLinkInfo'] = null;
-    }
+    asset = appState.viewData![RequestSpecificPaymentViewPageConfig.key];
+    print(asset['publicKey']);
+    print(asset['walletAlias']);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -258,10 +247,10 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
       showLoader(context);
       Map responseData = await makeGetRequest(
         uri:
-            '/v1/users/payment/generate/${appState.userInfo!.username}?paymentDestination=${activeWallet!.publicKey}&assetCode=${asset['assetCode']}&assetIssuer=${asset['assetIssuer']}&amount=${amount.toString()}&memo=${memo != null ? Uri.encodeComponent(memo!) : ''}',
+            '/v1/users/payment/generate/${asset['walletAlias']}?paymentDestination=${asset['publicKey']}&assetCode=${asset['assetCode']}&assetIssuer=${asset['assetIssuer']}&amount=${amount.toString()}&memo=${memo != null ? Uri.encodeComponent(memo!) : ''}',
         signer: activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.publicKey!,
+        publicKey: asset['publicKey'],
       );
 
       print('response: $responseData');
@@ -276,6 +265,8 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
           'assetIssuer': asset['assetIssuer'],
           'assetCode': asset['assetCode'],
           'memo': memo,
+          'publicKey': asset['publicKey'],
+          'walletAlias': asset['walletAlias'],
         };
         appState.currentAction = PageAction(
             state: PageState.addPage,

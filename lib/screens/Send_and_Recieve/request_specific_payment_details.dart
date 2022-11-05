@@ -31,10 +31,6 @@ class RequestSpecificPaymentDetailsState
     extends State<RequestSpecificPaymentDetails> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late UserInfo userInfo;
-  var assetBalances;
-  List<Wallet>? wallets;
-  Wallet? activeWallet;
   var viewData;
 
   @override
@@ -48,10 +44,6 @@ class RequestSpecificPaymentDetailsState
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState.userInfo!;
-    assetBalances = appState.assetBalances;
-    wallets = userInfo.wallets!;
-    activeWallet = appState.activeWallet;
     viewData =
         appState.viewData![RequestSpecificPaymentDetailsViewPageConfig.key];
 
@@ -141,7 +133,7 @@ class RequestSpecificPaymentDetailsState
     await FlutterShare.share(
       title: 'Trovo Wallet',
       text:
-          'Tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${activeWallet!.alias!}] => ${viewData['dynamicLink']}',
+          'Tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${viewData['walletAlias']}] => ${viewData['dynamicLink']}',
     );
   }
 
@@ -175,7 +167,7 @@ class RequestSpecificPaymentDetailsState
                   ),
                   SizedBox(height: height / 90),
                   Text(
-                    activeWallet!.alias!,
+                    viewData['walletAlias'],
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,

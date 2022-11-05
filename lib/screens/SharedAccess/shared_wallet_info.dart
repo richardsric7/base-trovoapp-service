@@ -7,6 +7,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
@@ -46,7 +47,6 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     viewData = appState.viewData![SharedWalletInfoViewPageConfig.key];
-    print(viewData);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -228,9 +228,11 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
               notifier.getbluecolor,
               wihitecolor,
               onTap: () {
-                // appState.currentAction = PageAction(
-                //     state: PageState.addPage,
-                //     page: RecoverAccountViewPageConfig);
+                appState.viewData![SharedWalletDetailsViewPageConfig.key] =
+                    viewData;
+                appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: SharedWalletDetailsViewPageConfig);
               },
             ),
             SizedBox(

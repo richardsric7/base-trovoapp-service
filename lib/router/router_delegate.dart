@@ -43,9 +43,12 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
 import 'package:trovo_wallet/screens/SharedAccess/add_shared_access_details.dart';
+import 'package:trovo_wallet/screens/SharedAccess/recieve_asset_shared_access.dart';
+import 'package:trovo_wallet/screens/SharedAccess/send_asset_shared_wallet.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_wallet.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_wallet_asset_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_wallet_info.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
-import 'package:trovo_wallet/screens/SharedAccess/viewer_access.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -270,6 +273,18 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.SharedWalletDetailsView:
           _addPageData(SharedWallet(), SharedWalletDetailsViewPageConfig);
           break;
+        case Pages.SharedWalletAssetDetailsView:
+          _addPageData(SharedWalletAssetDetails(),
+              SharedWalletAssetDetailsViewPageConfig);
+          break;
+        case Pages.SendAssetSharedWalletView:
+          _addPageData(
+              SendAssetSharedWallet(), SendAssetSharedWalletViewPageConfig);
+          break;
+        case Pages.RecieveAssetSharedWalletView:
+          _addPageData(RecieveAssetSharedWallet(),
+              RecieveAssetSharedWalletViewPageConfig);
+          break;
         default:
           break;
       }
@@ -437,6 +452,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.SharedWalletDetailsView:
         SharedWalletDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SharedWalletAssetDetailsView:
+        SharedWalletAssetDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SendAssetSharedWalletView:
+        SendAssetSharedWalletViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.RecieveAssetSharedWalletView:
+        RecieveAssetSharedWalletViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

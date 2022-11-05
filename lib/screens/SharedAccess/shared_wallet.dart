@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
@@ -11,6 +10,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -19,28 +19,28 @@ import 'package:trovo_wallet/widgets/WalletSlides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class WalletDetails extends StatefulWidget {
-  const WalletDetails({Key? key}) : super(key: key);
+class SharedWallet extends StatefulWidget {
+  const SharedWallet({Key? key}) : super(key: key);
 
   @override
-  State<WalletDetails> createState() => _WalletDetailsState();
+  State<SharedWallet> createState() => _SharedWalletState();
 }
 
-class _WalletDetailsState extends State<WalletDetails>
+class _SharedWalletState extends State<SharedWallet>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late TabController _tabController;
   late DataProvider appState;
   late UserInfo userInfo;
-  var assetBalances;
-  var nfts;
+  // var nfts;
   Wallet? activeWallet;
-  List<Wallet>? wallets;
   var claimedAssets;
   var unclaimedAssets;
   int tabLength = 2;
   int activeTabIndex = 0;
   late bool localHideBalance;
+  var viewData;
+  late Future<Map> responseData;
 
   @override
   void initState() {
@@ -48,14 +48,16 @@ class _WalletDetailsState extends State<WalletDetails>
     _tabController = TabController(length: tabLength, vsync: this);
     appState = Provider.of<DataProvider>(context, listen: false);
     localHideBalance = appState.hideBalances;
+    viewData = appState.viewData![SharedWalletDetailsViewPageConfig.key];
+    responseData = fetchWalletBalance(
+        signer: appState.activeWallet!.signer!,
+        secretKey: appState.secretKeys[0],
+        publicKey: viewData['walletPublicKey']);
   }
 
   void tabListener() {
-    print('adding event listeners...');
-    print("${_tabController.index}");
     // Tab Changed swiping to a new tab
     activeTabIndex = _tabController.index;
-    print('index changed.');
     setState(() {});
   }
 
@@ -65,33 +67,8 @@ class _WalletDetailsState extends State<WalletDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState.userInfo!;
-    assetBalances = appState.assetBalances;
-    activeWallet = appState.activeWallet;
-    nfts = appState.nfts;
-    wallets = userInfo.wallets!;
+    // nfts = appState.nfts;
 
-    claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
-    unclaimedAssets = assetBalances[activeWallet!.publicKey]['unclaimed'];
-    // in order to make assets tab length dynamic we have to check
-    // for when we have pending asset and then change the tablength
-    // to 3 or back to 2 when we do not have pending assets.
-    if (unclaimedAssets != null && unclaimedAssets.length > 0) {
-      if (activeTabIndex == _tabController.length - 1) activeTabIndex = 2;
-      tabLength = 3;
-    } else {
-      tabLength = 2;
-      if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
-    }
-
-    if (tabLength != _tabController.length) {
-      // change the length of tabController too or you will have an error
-      _tabController = TabController(length: tabLength, vsync: this);
-      _tabController.addListener(tabListener);
-    }
-    // keep track of the active tab to avoid having it changed
-    // on each page rebuild
-    _tabController.animateTo(activeTabIndex);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -99,8 +76,8 @@ class _WalletDetailsState extends State<WalletDetails>
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          "",
-          notifier.getblck,
+          'Shared Wallet',
+          notifier.getbluewhitecolor,
           height: height / 15,
         ),
         body: SingleChildScrollView(
@@ -115,240 +92,324 @@ class _WalletDetailsState extends State<WalletDetails>
   }
 
   Widget assetsTabs() {
-    return Container(
-      height: height / 1.1,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          TabBar(
-            controller: _tabController,
-            labelColor: notifier.getbluewhitecolor,
-            indicatorColor: notifier.getbluewhitecolor,
-            labelStyle: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              fontFamily: fontsemibold,
-            ),
-            tabs: [
-              Tab(
-                height: 20,
-                text: LanguageEn.assets,
-              ),
-              if (unclaimedAssets != null && tabLength == 3) ...[
-                Tab(
-                  height: 20,
-                  text: '${LanguageEn.pending} (${unclaimedAssets.length})',
-                ),
-              ],
-              Tab(
-                height: 20,
-                text: LanguageEn.nfts,
-              ),
-            ],
-          ),
-          Positioned(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: height / 40,
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      Container(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                WalletSlide(
-                                  backColor: notifier.getbluecolor,
-                                  foreColor: wihitecolor,
-                                  alias: activeWallet!.alias!.capitalizeFirst!,
-                                  totalBalance:
-                                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
-                                  fiatBalance: appState.defaultCurrency == 'USD'
-                                      ? null
-                                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
-                                  initialHiddenState: appState.hideBalances,
-                                  onHiddenStateChanged: (state) => {
-                                    setState(
-                                      () => {
-                                        localHideBalance = state,
-                                      },
-                                    )
-                                  },
-                                ),
-                                SizedBox(
-                                  height: height / 30,
-                                ),
-                                if (claimedAssets.length > 0) ...[
-                                  for (var asset in claimedAssets) ...[
-                                    GestureDetector(
-                                        onTap: () {
-                                          appState.viewData = {
-                                            // since the original asset object
-                                            // is immutable I create a new assetObj and
-                                            // copy all the data into it so that
-                                            // I'll be able to change the data
-                                            AssetDetailsViewPageConfig.key: {
-                                              'assetCode': asset['assetCode'],
-                                              'assetIssuer':
-                                                  asset['assetIssuer'],
-                                              'amount': asset['amount'],
-                                              'usdPrice': asset['usdPrice'],
-                                              'qrCode': asset['qrCode'],
-                                              'imageUrl': asset['imageUrl'],
-                                            }
-                                          };
-                                          appState.currentAction = PageAction(
-                                            state: PageState.addPage,
-                                            page: AssetDetailsViewPageConfig,
-                                          );
-                                        },
-                                        child: tiles(asset)),
-                                  ],
-                                ] else ...[
-                                  Container(
-                                    height: height / 3,
-                                    child: Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            10, 28.0, 10, 0),
-                                        child: Center(
-                                          child: Text(
-                                            LanguageEn.noassets,
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: fontsemibold,
-                                              color: notifier.getblck,
-                                            ),
-                                          ),
-                                        )),
-                                  ),
-                                ],
-                                SizedBox(
-                                  height: height / 22,
-                                ),
-                                Button(
-                                  LanguageEn.back,
-                                  notifier.getbluecolor,
-                                  wihitecolor,
-                                  onTap: () {
-                                    appState.currentAction = PageAction(
-                                        state: PageState.replaceAll,
-                                        page: BottomHomePageConfig);
-                                  },
-                                ),
-                                SizedBox(
-                                  height: height / 10,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+    return Column(
+      children: [
+        Container(
+            height: height / 1.1,
+            child: FutureBuilder<Map>(
+              future: responseData,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: notifier.getbluecolor,
+                      valueColor: new AlwaysStoppedAnimation<Color>(
+                        notifier.getgreencolor,
                       ),
-                      if (tabLength == 3) ...[
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-                          child: Container(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  if (unclaimedAssets.length > 0) ...[
-                                    for (var asset in unclaimedAssets) ...[
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            activeTabIndex =
-                                                _tabController.index;
-                                          });
-                                          appState.viewData = {
-                                            // since the original asset object
-                                            // is immutable I create a new assetObj and
-                                            // copy all the data into it so that
-                                            // I'll be able to change the data
-                                            PendingAssetDetailsViewPageConfig
-                                                .key: {
-                                              'assetCode': asset['assetCode'],
-                                              'assetIssuer':
-                                                  asset['assetIssuer'],
-                                              'amount': asset['amount'],
-                                              'qrCode': asset['qrCode'],
-                                              'imageUrl': asset['imageUrl'],
-                                            }
-                                          };
-                                          print(appState.viewData);
-                                          appState.currentAction = PageAction(
-                                            state: PageState.addPage,
-                                            page:
-                                                PendingAssetDetailsViewPageConfig,
-                                          );
-                                        },
-                                        child: tiles(asset),
-                                      ),
-                                    ],
-                                  ] else ...[
-                                    Container(
-                                      height: height / 4,
-                                      child: Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              10, 28.0, 10, 0),
-                                          child: Center(
-                                            child: Text(
-                                              LanguageEn.nopendingassets,
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: fontsemibold,
-                                                color: notifier.getblck,
-                                              ),
-                                            ),
-                                          )),
-                                    ),
-                                  ],
-                                  SizedBox(
-                                    height: height / 22,
-                                  ),
-                                ],
+                      strokeWidth: 3.0,
+                    ),
+                  );
+                } else if (snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.hasError) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            LanguageEn.somethingwentwrong,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                responseData = fetchWalletBalance(
+                                    signer: appState.activeWallet!.signer!,
+                                    secretKey: appState.secretKeys[0],
+                                    publicKey: viewData['walletPublicKey']);
+                              });
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  notifier.getbluecolor!),
+                            ),
+                            child: Text(
+                              LanguageEn.retry,
+                              style: TextStyle(
+                                fontFamily: fontsemibold,
                               ),
                             ),
                           ),
+                        ],
+                      ),
+                    );
+                  } else if (snapshot.hasData) {
+                    claimedAssets = snapshot.data!['assetBalances']['claimed'];
+                    unclaimedAssets =
+                        snapshot.data!['assetBalances']['unclaimed'];
+
+                    // in order to make assets tab length dynamic we have to check
+                    // for when we have pending asset and then change the tablength
+                    // to 3 or back to 2 when we do not have pending assets.
+                    if (unclaimedAssets != null && unclaimedAssets.length > 0) {
+                      if (activeTabIndex == _tabController.length - 1)
+                        activeTabIndex = 2;
+                      tabLength = 3;
+                    } else {
+                      tabLength = 2;
+                      if (activeTabIndex > tabLength - 1)
+                        activeTabIndex = tabLength - 1;
+                    }
+
+                    if (tabLength != _tabController.length) {
+                      // change the length of tabController too or you will have an error
+                      _tabController =
+                          TabController(length: tabLength, vsync: this);
+                      _tabController.addListener(tabListener);
+                    }
+                    // keep track of the active tab to avoid having it changed
+                    // on each page rebuild
+                    _tabController.animateTo(activeTabIndex);
+                    return showWallet();
+                  } else {
+                    return const Text('Empty data');
+                  }
+                } else {
+                  return Text('State: ${snapshot.connectionState}');
+                }
+              },
+            )),
+      ],
+    );
+  }
+
+  Widget showWallet() {
+    return Column(
+      children: [
+        SizedBox(
+          height: 20.sp,
+        ),
+        TabBar(
+          controller: _tabController,
+          labelColor: notifier.getbluewhitecolor,
+          indicatorColor: notifier.getbluewhitecolor,
+          labelStyle: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+            fontFamily: fontsemibold,
+          ),
+          tabs: [
+            Tab(
+              height: 20,
+              text: LanguageEn.assets,
+            ),
+            if (unclaimedAssets != null && tabLength == 3) ...[
+              Tab(
+                height: 20,
+                text: '${LanguageEn.pending} (${unclaimedAssets.length})',
+              ),
+            ],
+            Tab(
+              height: 20,
+              text: LanguageEn.nfts,
+            ),
+          ],
+        ),
+        SizedBox(
+          height: 20.sp,
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              Container(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        WalletSlide(
+                          backColor: notifier.getbluecolor,
+                          foreColor: wihitecolor,
+                          alias: viewData['walletAlias']!,
+                          totalBalance:
+                              '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
+                          fiatBalance: appState.defaultCurrency == 'USD'
+                              ? null
+                              : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
+                          initialHiddenState: appState.hideBalances,
+                          onHiddenStateChanged: (state) => {
+                            setState(
+                              () => {
+                                localHideBalance = state,
+                              },
+                            )
+                          },
+                        ),
+                        SizedBox(
+                          height: height / 30,
+                        ),
+                        if (claimedAssets.length > 0) ...[
+                          for (var asset in claimedAssets) ...[
+                            GestureDetector(
+                                onTap: () {
+                                  // since the original asset object
+                                  // is immutable I create a new assetObj and
+                                  // copy all the data into it so that
+                                  // I'll be able to change the data
+                                  print(asset);
+                                  appState.viewData![
+                                      SharedWalletAssetDetailsViewPageConfig
+                                          .key] = {
+                                    'assetCode': asset['assetCode'],
+                                    'assetIssuer': asset['assetIssuer'],
+                                    'amount': asset['amount'],
+                                    'usdPrice': asset['usdPrice'],
+                                    'qrCode': asset['qrCode'],
+                                    'imageUrl': asset['imageUrl'],
+                                    'walletInfo': viewData,
+                                  };
+                                  appState.currentAction = PageAction(
+                                    state: PageState.addPage,
+                                    page:
+                                        SharedWalletAssetDetailsViewPageConfig,
+                                  );
+                                },
+                                child: tiles(asset)),
+                          ],
+                        ] else ...[
+                          Container(
+                            height: height / 3,
+                            child: Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
+                                child: Center(
+                                  child: Text(
+                                    LanguageEn.noassets,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getblck,
+                                    ),
+                                  ),
+                                )),
+                          ),
+                        ],
+                        SizedBox(
+                          height: height / 22,
+                        ),
+                        Button(
+                          LanguageEn.back,
+                          notifier.getbluecolor,
+                          wihitecolor,
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        SizedBox(
+                          height: height / 10,
                         ),
                       ],
-                      Container(
-                        height: height / 2,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              // in situations where the blockchain has an issue,
-                              // some values can be returned as null or empty
-                              // so always null check for such situations
-                              // if (nfts != null && nfts != {}) ...[
-                              //   if (nfts[activeWallet!.publicKey] != null &&
-                              //       nfts[activeWallet!.publicKey].length >
-                              //           0) ...[
-                              gridView(),
-                              //     SizedBox(height: 600),
-                              //   ] else ...[
-                              //     showEmptyNFTs(),
-                              //   ]
-                              // ] else ...[
-                              //   showEmptyNFTs(),
-                              // ],
+                    ),
+                  ),
+                ),
+              ),
+              if (tabLength == 3) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+                  child: Container(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          if (unclaimedAssets.length > 0) ...[
+                            for (var asset in unclaimedAssets) ...[
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    activeTabIndex = _tabController.index;
+                                  });
+                                  appState.viewData = {
+                                    // since the original asset object
+                                    // is immutable I create a new assetObj and
+                                    // copy all the data into it so that
+                                    // I'll be able to change the data
+                                    PendingAssetDetailsViewPageConfig.key: {
+                                      'assetCode': asset['assetCode'],
+                                      'assetIssuer': asset['assetIssuer'],
+                                      'amount': asset['amount'],
+                                      'qrCode': asset['qrCode'],
+                                      'imageUrl': asset['imageUrl'],
+                                    }
+                                  };
+                                  appState.currentAction = PageAction(
+                                    state: PageState.addPage,
+                                    page: PendingAssetDetailsViewPageConfig,
+                                  );
+                                },
+                                child: tiles(asset),
+                              ),
                             ],
+                          ] else ...[
+                            Container(
+                              height: height / 4,
+                              child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                      10, 28.0, 10, 0),
+                                  child: Center(
+                                    child: Text(
+                                      LanguageEn.nopendingassets,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: fontsemibold,
+                                        color: notifier.getblck,
+                                      ),
+                                    ),
+                                  )),
+                            ),
+                          ],
+                          SizedBox(
+                            height: height / 22,
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],
-            ),
+              Container(
+                height: height / 2,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      // in situations where the blockchain has an issue,
+                      // some values can be returned as null or empty
+                      // so always null check for such situations
+                      // if (nfts != null && nfts != {}) ...[
+                      //   if (nfts[activeWallet!.publicKey] != null &&
+                      //       nfts[activeWallet!.publicKey].length >
+                      //           0) ...[
+                      gridView(),
+                      //     SizedBox(height: 600),
+                      //   ] else ...[
+                      //     showEmptyNFTs(),
+                      //   ]
+                      // ] else ...[
+                      //   showEmptyNFTs(),
+                      // ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -585,5 +646,31 @@ class _WalletDetailsState extends State<WalletDetails>
       text = balance;
 
     return text;
+  }
+
+  // we need to check that the username entered here is a valid
+  // username of an active trovo account
+  Future<Map> fetchWalletBalance(
+      {required String signer,
+      required String secretKey,
+      required String publicKey}) async {
+    try {
+      Map responseData = await makeGetRequest(
+        uri: '/v1/shared-access/wallet-balances',
+        signer: signer,
+        secretKey: secretKey, // the primary wallet secret key
+        publicKey: publicKey,
+      );
+
+      print('response: ${responseData}');
+
+      if (responseData['statusCode'] == 200) {
+        return responseData['data'];
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      return Future.error('Error! ${e}');
+    }
   }
 }

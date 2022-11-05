@@ -57,6 +57,9 @@ const String SecurityQuestionsForInactiveAccountsViewPath =
 const String AddSharedAccessDetailsViewPath = '/AddSharedAccessDetailsView';
 const String SharedWalletInfoViewPath = '/SharedWalletInfoView';
 const String SharedWalletDetailsViewPath = '/SharedWalletDetailsView';
+const String SharedWalletAssetDetailsViewPath = '/SharedWalletAssetDetailsView';
+const String SendAssetSharedWalletViewPath = '/SendAssetSharedWalletView';
+const String RecieveAssetSharedWalletViewPath = '/RecieveAssetSharedWalletView';
 
 enum Pages {
   Splash,
@@ -113,6 +116,9 @@ enum Pages {
   AddSharedAccessDetailsView,
   SharedWalletInfoView,
   SharedWalletDetailsView,
+  SharedWalletAssetDetailsView,
+  SendAssetSharedWalletView,
+  RecieveAssetSharedWalletView,
 }
 
 class PageConfiguration {
@@ -394,4 +400,19 @@ PageConfiguration SharedWalletDetailsViewPageConfig = PageConfiguration(
     key: 'SharedWalletDetailsView',
     path: SharedWalletDetailsViewPath,
     uiPage: Pages.SharedWalletDetailsView,
+    currentPageAction: null);
+PageConfiguration SharedWalletAssetDetailsViewPageConfig = PageConfiguration(
+    key: 'SharedWalletAssetDetailsView',
+    path: SharedWalletAssetDetailsViewPath,
+    uiPage: Pages.SharedWalletAssetDetailsView,
+    currentPageAction: null);
+PageConfiguration SendAssetSharedWalletViewPageConfig = PageConfiguration(
+    key: 'SendAssetSharedWalletView',
+    path: SendAssetSharedWalletViewPath,
+    uiPage: Pages.SendAssetSharedWalletView,
+    currentPageAction: null);
+PageConfiguration RecieveAssetSharedWalletViewPageConfig = PageConfiguration(
+    key: 'RecieveAssetSharedWalletView',
+    path: RecieveAssetSharedWalletViewPath,
+    uiPage: Pages.RecieveAssetSharedWalletView,
     currentPageAction: null);

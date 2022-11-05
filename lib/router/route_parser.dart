@@ -113,6 +113,12 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return SharedWalletInfoViewPageConfig;
       case SharedWalletDetailsViewPath:
         return SharedWalletDetailsViewPageConfig;
+      case SharedWalletAssetDetailsViewPath:
+        return SharedWalletAssetDetailsViewPageConfig;
+      case SendAssetSharedWalletViewPath:
+        return SendAssetSharedWalletViewPageConfig;
+      case RecieveAssetSharedWalletViewPath:
+        return RecieveAssetSharedWalletViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -232,6 +238,14 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: SharedWalletInfoViewPath);
       case Pages.SharedWalletDetailsView:
         return const RouteInformation(location: SharedWalletDetailsViewPath);
+      case Pages.SharedWalletAssetDetailsView:
+        return const RouteInformation(
+            location: SharedWalletAssetDetailsViewPath);
+      case Pages.SendAssetSharedWalletView:
+        return const RouteInformation(location: SendAssetSharedWalletViewPath);
+      case Pages.RecieveAssetSharedWalletView:
+        return const RouteInformation(
+            location: RecieveAssetSharedWalletViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }
