@@ -19,7 +19,7 @@ func GenerateQRCode(dynamicLink string, redisCache *cache.RedisCache) (png strin
 		err = errors.New("no dynamic Link submitted for QRCode")
 		return
 	}
-	cacheKey := dynamicLink + "_qrcode2"
+	cacheKey := dynamicLink + "qrcode2"
 	{
 
 		// search cache for link
@@ -54,10 +54,11 @@ func GenerateQRCode(dynamicLink string, redisCache *cache.RedisCache) (png strin
 
 	w, err := standard.New(fileName,
 		standard.WithCircleShape(),
-		standard.WithFgColorRGBHex("#2c2c32"),
+		// standard.WithFgColorRGBHex("#2c2c32"),
 		standard.WithBgColorRGBHex("#ffffff"),
-		standard.WithQRWidth(11),
-		standard.WithHalftone("ht2.png"),
+		standard.WithQRWidth(20),
+		standard.WithBorderWidth(20),
+		// standard.WithHalftone("ht2.png"),
 		standard.WithBuiltinImageEncoder(standard.PNG_FORMAT),
 	)
 	if err != nil {
