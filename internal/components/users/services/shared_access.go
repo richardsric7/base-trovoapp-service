@@ -727,7 +727,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				return
 			}
 		}
-		if len(revokedList) > 0 {
+		if len(addedList) > 0 {
 			e := dbTX.Create(&addedList).Error
 			if e != nil {
 				log.Println("[ModifySharedWalletAccess] error creating added permissions: ", e)

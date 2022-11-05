@@ -218,6 +218,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		log.Println("[ApproveTransaction] error getting wallet owner user object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
 	}
+	walletOwner.InvalidateUserCache(gc)
 
 	wallet, e := userModels.UserWalletID(p.WalletPublicKey).GetWallet(gc.DB)
 	if e != nil {
@@ -383,7 +384,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				}
 			}
 
-			if len(revokedList) > 0 {
+			if len(addedList) > 0 {
 				//create added access
 				e = dbTX.Create(&addedList).Error
 				if e != nil {
