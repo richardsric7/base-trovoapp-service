@@ -81,6 +81,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 			}
 		}
 		swapInfo.TransactionID = txnHash
+		wallet.InvalidateUserCache(gc)
 		return err
 
 	}
