@@ -60,6 +60,7 @@ const String SharedWalletDetailsViewPath = '/SharedWalletDetailsView';
 const String SharedWalletAssetDetailsViewPath = '/SharedWalletAssetDetailsView';
 const String SendAssetSharedWalletViewPath = '/SendAssetSharedWalletView';
 const String RecieveAssetSharedWalletViewPath = '/RecieveAssetSharedWalletView';
+const String ConfirmInitiatePaymentViewPath = '/ConfirmInitiatePaymentView';
 
 enum Pages {
   Splash,
@@ -119,6 +120,7 @@ enum Pages {
   SharedWalletAssetDetailsView,
   SendAssetSharedWalletView,
   RecieveAssetSharedWalletView,
+  ConfirmInitiatePaymentView,
 }
 
 class PageConfiguration {
@@ -415,4 +417,9 @@ PageConfiguration RecieveAssetSharedWalletViewPageConfig = PageConfiguration(
     key: 'RecieveAssetSharedWalletView',
     path: RecieveAssetSharedWalletViewPath,
     uiPage: Pages.RecieveAssetSharedWalletView,
+    currentPageAction: null);
+PageConfiguration ConfirmInitiatePaymentViewPageConfig = PageConfiguration(
+    key: 'ConfirmInitiatePaymentView',
+    path: ConfirmInitiatePaymentViewPath,
+    uiPage: Pages.ConfirmInitiatePaymentView,
     currentPageAction: null);

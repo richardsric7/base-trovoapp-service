@@ -87,10 +87,6 @@ class _RecieveAssetSharedWalletState extends State<RecieveAssetSharedWallet>
               SizedBox(
                 height: height / 50,
               ),
-              showUsername(),
-              SizedBox(
-                height: height / 50,
-              ),
               showPublicKey(),
               SizedBox(
                 height: height / 50,
@@ -239,70 +235,6 @@ class _RecieveAssetSharedWalletState extends State<RecieveAssetSharedWallet>
                         },
                         icon: Icon(Icons.copy,
                             size: 20, color: notifier.getbluewhitecolor),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Padding showUsername() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.isDark
-              ? darktilewhitecolor
-              : notifier.getaddsubwalletgrey,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    LanguageEn.receivewithtrovousername,
-                    style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        walletDetails['owner'],
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          Clipboard.setData(
-                            ClipboardData(
-                              text: walletDetails['owner'],
-                            ),
-                          );
-                          showSnackBar('Username', context);
-                        },
-                        icon: Icon(
-                          Icons.copy,
-                          size: 20,
-                          color: notifier.getbluewhitecolor,
-                        ),
                       ),
                     ],
                   ),

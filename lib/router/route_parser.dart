@@ -119,6 +119,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return SendAssetSharedWalletViewPageConfig;
       case RecieveAssetSharedWalletViewPath:
         return RecieveAssetSharedWalletViewPageConfig;
+      case ConfirmInitiatePaymentViewPath:
+        return ConfirmInitiatePaymentViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -246,6 +248,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
       case Pages.RecieveAssetSharedWalletView:
         return const RouteInformation(
             location: RecieveAssetSharedWalletViewPath);
+      case Pages.ConfirmInitiatePaymentView:
+        return const RouteInformation(location: ConfirmInitiatePaymentViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

@@ -94,7 +94,9 @@ class _SuccessView extends State<SuccessView> {
                             child: Column(
                               children: [
                                 Text(
-                                  LanguageEn.congratulations,
+                                  title.isEmpty
+                                      ? LanguageEn.congratulations
+                                      : title,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 16,

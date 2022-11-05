@@ -394,12 +394,13 @@ class _SendAssetSharedWallet extends State<SendAssetSharedWallet>
 
     // go to the definition of appState.viewData
     // to learn more about viewData
-    appState.viewData![ConfirmTransactionViewPageConfig.key] = data;
-    print(appState.viewData);
+    appState.viewData![ConfirmInitiatePaymentViewPageConfig.key] = data;
+    appState.viewData![ConfirmInitiatePaymentViewPageConfig.key]['walletInfo'] =
+        asset['walletInfo'];
 
     appState.currentAction = PageAction(
       state: PageState.addPage,
-      page: ConfirmTransactionViewPageConfig,
+      page: ConfirmInitiatePaymentViewPageConfig,
     );
   }
 }
