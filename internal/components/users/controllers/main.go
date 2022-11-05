@@ -2934,8 +2934,30 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(statusCode, response)
 			return
 		}
+		nfts, err := wallet.GetNFTs(false, gc)
+		if err != nil {
+			log.Println("[GET Wallet Balances] error for signer:", signerUser.Username, "error: ", err)
 
-		c.JSON(http.StatusOK, assetBalances)
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"assetBalances": assetBalances, "nfts": nfts})
 
 	})
 

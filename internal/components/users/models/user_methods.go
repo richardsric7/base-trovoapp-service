@@ -258,8 +258,43 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 		wg.Wait()
 	}
 	//save to cache
-	gc.RedisCache.StoreResultToCache(cacheKey, balances, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, balances, 0)
 	return balances, nil
+}
+func (u *User) GetUserNFTs(gc *sharedconfig.GlobalConfig) (userNFTs map[string][]NFT, err error) {
+
+	userNFTs = make(map[string][]NFT)
+	for _, wallet := range u.UserWallets {
+
+		var wg sync.WaitGroup
+		var m sync.Mutex
+		//use go routine to fetch
+
+		wg.Add(1)
+		go func(vg2 UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
+			defer w.Done()
+			//get only the NFTs in the main wallet
+			nfts, errR1 := vg2.GetNFTs(false, gc)
+
+			if errR1 != nil {
+				//log server error
+				log.Printf("[GetUserNFTs] error getting NFT asset for user:[%s] wallet:[%s] error:[%+v]\n", u.Username, vg2.ID, errR1)
+
+			}
+			//Claimed Assets
+			ml.Lock()
+			userNFTs[vg2.ID] = nfts
+			ml.Unlock()
+
+		}(wallet, &wg, &m)
+		wg.Wait()
+
+		// log.Println("exited inner wait")
+
+	}
+	// log.Println("done...")
+
+	return
 }
 
 // GetNFTs gets user wallet blockchain NFT balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
@@ -273,18 +308,13 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 	{
 
 		// search cache for balance
-		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
 
 		if ok {
-			log.Printf("GetNFTBalance[%v], served from cache\n", cacheKey)
 
-			miSlices := response.([]interface{})
-			for _, v1 := range miSlices {
-				mi := v1.(NFT)
-				nfts = append(nfts, mi)
-			}
-
-			return nfts, nil
+			log.Printf("GetNFTs[%v], served from cache\n", cacheKey)
+			json.Unmarshal(rawdata, &nfts)
+			return
 		}
 
 	}
@@ -295,7 +325,7 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 		if !temp && err.Error() == "error-blockchain-account-not-activated" {
 
 			//save to cache
-			gc.RedisCache.StoreResultToCache(cacheKey, nfts, 0)
+			gc.RedisCache.StoreResultToCacheRaw(cacheKey, nfts, 0)
 			return nil, nil
 		}
 		log.Printf("[GetNFTs] get blockchain account detail error: %v\n", err)
@@ -332,7 +362,7 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 		wg.Wait()
 	}
 	//save to cache
-	gc.RedisCache.StoreResultToCache(cacheKey, nfts, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, nfts, 0)
 	return nfts, nil
 }
 
@@ -494,8 +524,8 @@ func (u *UserWallet) OwnerOfBlockchainAsset(assetCode string) bool {
 
 }
 
-// OwnerOfBlockchainAssetIssued fetches the blockchain asset information using public key
-func (u *UserWallet) CanIssuerMoreAssets() bool {
+// CanIssueMoreAssets check if walet can issue more assets or has reached max limit
+func (u *UserWallet) CanIssueMoreAssets() bool {
 	assetPage, err := u.GetBlockchainAssets()
 	if err != nil {
 		return false
@@ -560,8 +590,8 @@ func (u Issuer) OwnerOfBlockchainAsset(assetCode string) bool {
 
 }
 
-// OwnerOfBlockchainAssetIssued fetches the blockchain asset information using public key
-func (u Issuer) CanIssuerMoreAssets() bool {
+// CanIssueMoreAssets check if walet can issue more assets or has reached max limit
+func (u Issuer) CanIssueMoreAssets() bool {
 	assetPage, err := u.GetBlockchainAssets()
 	if err != nil {
 		return false
@@ -1372,22 +1402,12 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 	{
 
 		// search cache for balance
-		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
 
 		if ok {
-			log.Printf("FetchWalletsPermissionsSharedWithUser [%v], served from cache\n", cacheKey)
-			w3rp := response.([]interface{})
-			for _, w3 := range w3rp {
-				w3i := w3.(map[string]interface{})
-				thirdPartyWallets = append(thirdPartyWallets, WalletsSharedWithUser{
-					Owner:             w3i["owner"].(string),
-					WalletPublicKey:   w3i["walletPublicKey"].(string),
-					Permission:        w3i["permission"].(string),
-					WalletAlias:       w3i["walletAlias"].(string),
-					WalletDescription: w3i["walletDescription"].(string),
-				})
-			}
 
+			log.Printf("FetchWalletsPermissionsSharedWithUser[%v], served from cache\n", cacheKey)
+			json.Unmarshal(rawdata, &thirdPartyWallets)
 			return
 		}
 
@@ -1423,7 +1443,7 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 
 	}
 	//save to cache
-	gc.RedisCache.StoreResultToCache(cacheKey, thirdPartyWallets, 120)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, thirdPartyWallets, 120)
 
 	return
 }
