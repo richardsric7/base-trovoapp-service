@@ -430,8 +430,10 @@ github.com/xeipuuv/gojsonpointer v0.0.0-20151027082146-e0fe6f683076 h1:KM4T3G70M
 github.com/xeipuuv/gojsonreference v0.0.0-20150808065054-e02fc20de94c h1:XZWnr3bsDQWAZg4Ne+cPoXRPILrNlPNQfxBuwLl43is=
 github.com/xeipuuv/gojsonschema v0.0.0-20161231055540-f06f290571ce h1:cVSRGH8cOveJNwFEEZLXtB+XMnRqKLjUP6V/ZFYQCXI=
 github.com/yalp/jsonpath v0.0.0-20150812003900-31a79c7593bb h1:06WAhQa+mYv7BiOk13B/ywyTlkoE/S7uu6TBKU6FHnE=
-github.com/yeqown/go-qrcode v1.5.10 h1:87GCtypY9oOadB7yGRW4qlgAoDOop8G4JEdqOQwu1WI=
-github.com/yeqown/go-qrcode v1.5.10/go.mod h1:0FVyJ3MV9fF5lfAgTr0INcy+3rupmJhjp0mL3Z9eYXk=
+github.com/yeqown/go-qrcode/v2 v2.2.1 h1:Jc1Q916fwC05R8C7mpWDbrT9tyLPaLLKDABoC5XBCe8=
+github.com/yeqown/go-qrcode/v2 v2.2.1/go.mod h1:2Qsk2APUCPne0TsRo40DIkI5MYnbzYKCnKGEFWrxd24=
+github.com/yeqown/go-qrcode/writer/standard v1.2.1 h1:FMRZiur5yApUIe4fqtqmcdl/XQTZAZWt2DhkPx4VIW0=
+github.com/yeqown/go-qrcode/writer/standard v1.2.1/go.mod h1:ZelyDFiVymrauRjUn454iF7bjsabmB1vixkDA5kq2bw=
 github.com/yeqown/reedsolomon v1.0.0 h1:x1h/Ej/uJnNu8jaX7GLHBWmZKCAWjEJTetkqaabr4B0=
 github.com/yeqown/reedsolomon v1.0.0/go.mod h1:P76zpcn2TCuL0ul1Fso373qHRc69LKwAw/Iy6g1WiiM=
 github.com/yudai/gojsondiff v0.0.0-20170107030110-7b1b7adf999d h1:yJIizrfO599ot2kQ6Af1enICnwBD3XoxgX3MrMwot2M=

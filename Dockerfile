@@ -35,6 +35,7 @@ RUN apk add --no-cache ca-certificates runc curl
 COPY --from=builder /dist/main /
 
 COPY trovo-logo.png /trovo-logo.png
+COPY ht2.png /ht2.png
 
 
 # Command to run

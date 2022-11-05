@@ -1,24 +1,26 @@
 package dynamiclinks
 
 import (
-	"bytes"
+	"bufio"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"trovo-wallet-api/internal/cache"
 
-	qrcode "github.com/yeqown/go-qrcode"
+	qrv2 "github.com/yeqown/go-qrcode/v2"
+	"github.com/yeqown/go-qrcode/writer/standard"
 )
 
-//GenerateQRCode generates QR Code in base64encoded string
+// GenerateQRCode generates QR Code in base64encoded string
 func GenerateQRCode(dynamicLink string, redisCache *cache.RedisCache) (png string, err error) {
 	if len(dynamicLink) == 0 {
 		err = errors.New("no dynamic Link submitted for QRCode")
 		return
 	}
-	cacheKey := dynamicLink + "_qrcode"
+	cacheKey := dynamicLink + "_qrcodev2"
 	{
 
 		// search cache for link
@@ -32,22 +34,45 @@ func GenerateQRCode(dynamicLink string, redisCache *cache.RedisCache) (png strin
 		}
 
 	}
-	qrc, err := qrcode.New(dynamicLink, qrcode.WithLogoImageFilePNG("trovo-logo.png"))
+	qrc, err := qrv2.NewWith(dynamicLink,
+		qrv2.WithErrorCorrectionLevel(qrv2.ErrorCorrectionHighest),
+	)
 	if err != nil {
-		fmt.Printf("could not generate QRCode: %v", err)
+		fmt.Printf("[GenerateQRCode]could not generate QRCode: %v", err)
 		return
+	}
+	// buf :=new(bytes.Buffer)
+
+	f, _ := os.CreateTemp("", "*.png")
+	fileName := f.Name()
+
+	defer os.Remove(f.Name())
+	w := standard.NewWithWriter(f,
+		standard.WithCircleShape(),
+		standard.WithFgColorRGBHex("#2c2c32"),
+		standard.WithBgColorRGBHex("#ffffff"),
+		standard.WithQRWidth(20),
+		standard.WithBorderWidth(20),
+		standard.WithHalftone("ht2.png"),
+	)
+
+	err = qrc.Save(w)
+	if err != nil {
+		fmt.Printf("[GenerateQRCode]could not save QRCode: %v", err)
+		return
+	}
+	var fileContents []byte
+	fo, e := os.Open(fileName)
+	if e == nil {
+		f = fo
 	}
 
-	// save file
-	buf := new(bytes.Buffer)
-	if err = qrc.SaveTo(buf); err != nil {
-		fmt.Printf("could not save image: %v", err)
-		return
-	}
+	bufio.NewReader(f).Read(fileContents)
+
 	var base64Encoding string
 
 	// Determine the content type of the image file
-	mimeType := http.DetectContentType(buf.Bytes())
+	mimeType := http.DetectContentType(fileContents)
 
 	// Prepend the appropriate URI scheme header depending
 	// on the MIME type
@@ -59,9 +84,9 @@ func GenerateQRCode(dynamicLink string, redisCache *cache.RedisCache) (png strin
 	}
 
 	// Append the base64 encoded output
-	base64Encoding += base64.StdEncoding.EncodeToString(buf.Bytes())
+	base64Encoding += base64.StdEncoding.EncodeToString(fileContents)
 	//store to cache
 	redisCache.StoreResultToCache(cacheKey, base64Encoding, (525960 * 3 * 60))
-
+	f.Close()
 	return base64Encoding, nil
 }

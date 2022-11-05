@@ -21,7 +21,8 @@ require (
 	github.com/shopspring/decimal v1.3.1
 	github.com/stellar/go v0.0.0-20220527172504-97da5a558772
 	github.com/toorop/go-bittrex v0.0.5
-	github.com/yeqown/go-qrcode v1.5.10
+	github.com/yeqown/go-qrcode/v2 v2.2.1
+	github.com/yeqown/go-qrcode/writer/standard v1.2.1
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
 	google.golang.org/api v0.50.0
 	gorm.io/driver/postgres v1.3.7
