@@ -199,8 +199,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 
-		if sourceWallet.WalletType == 2 || sourceWallet.WalletType == 3 {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Market Making & Bulk Payment wallets are not allowed for this operation."})
+		if sourceWallet.WalletType == 1 || sourceWallet.WalletType == 2 || sourceWallet.WalletType == 3 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Token Minting/Market Making/Bulk Payment wallets are not allowed for this operation."})
 			return
 		}
 
@@ -504,8 +504,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 
-		if sourceWallet.WalletType == 2 || sourceWallet.WalletType == 3 {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Market Making & Bulk Payment wallets are not allowed for this operation."})
+		if sourceWallet.WalletType == 1 || sourceWallet.WalletType == 2 || sourceWallet.WalletType == 3 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Token Minting/Market Making/Bulk Payment wallets are not allowed for this operation."})
 			return
 		}
 

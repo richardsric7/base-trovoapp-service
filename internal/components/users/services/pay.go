@@ -39,6 +39,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	walletHasViewOnlyAccess := true
 	publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
 
+
 	//check if destination is a wallet with memo
 	if publicKeyPayment {
 		memoWalletSlices28byte := strings.Split(os.Getenv("WALLETS_REQUIRE_28_BYTE_MEMO"), ",")

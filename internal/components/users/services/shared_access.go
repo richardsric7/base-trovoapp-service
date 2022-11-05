@@ -205,7 +205,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return returnedWallet, &tErrors.CustomError{
 			Param:      "permissions",
 			Err:        "error-permission-unacceptable-access",
-			ErrMessage: "Shared access cannot be enabled with view-only permission granted to yourself. Wallet Owners are excluded from view-only permissions, thereby making your permission list empty.",
+			ErrMessage: "Shared access cannot be enabled with view-only permission granted to yourself.",
 			Code:       http.StatusForbidden,
 		}
 	}
@@ -273,7 +273,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				Code:       http.StatusForbidden,
 			}
 		}
-		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 		if e != nil {
 			return returnedWallet, &tErrors.CustomError{
 				Param:      "username",
@@ -510,7 +510,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			continue
 		}
 
-		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 		if e != nil {
 			err = &tErrors.CustomError{
 				Param:      "username",
@@ -563,6 +563,11 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			// no changes to be made
 			continue
 		}
+		if v.TargetUsername == walletOwner.Username && v.Permission == "VIEW-ONLY" {
+			//skip adding wallet owner as VIEW-ONLY
+			accessInfo.Messages = append(accessInfo.Messages, fmt.Sprintf("%v already has view access as owner, so the assigned View access has been skipped.", v.TargetUsername))
+			continue
+		}
 
 		if _, ok := checkAccess[v.TargetUsername+v.Permission]; ok {
 			continue
@@ -570,7 +575,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 		//check if username is valid
 
-		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 		if e != nil {
 			err = &tErrors.CustomError{
 				Param:      "username",
@@ -585,25 +590,15 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		if u.LastName == nil {
 			name = fmt.Sprintf("%v %v", name, *u.LastName)
 		}
-		if v.TargetUsername == walletOwner.Username && v.Permission != "VIEW-ONLY" {
-			//infor of shared access users
-			// modifiedListInfo = append(modifiedListInfo, userModels.WalletPermissionInfo{
-			// 	TargetUsername:        v.TargetUsername,
-			// 	Name:                  name,
-			// 	Permission:            v.Permission,
-			// 	WalletPublicKey:       wallet.ID,
-			// 	WalletAlias:           wallet.Alias,
-			// 	PushNotificationToken: u.PushNotificationToken,
-			// })
-			modifiedList = append(modifiedList, userModels.WalletPermission{
-				CreatedAt:       ePermission.CreatedAt,
-				UpdatedAt:       ePermission.UpdatedAt,
-				ID:              ePermission.ID,
-				WalletPublicKey: wallet.ID,
-				TargetUsername:  ePermission.TargetUsername,
-				Permission:      v.Permission, //modify the permission
-			})
-		}
+
+		modifiedList = append(modifiedList, userModels.WalletPermission{
+			CreatedAt:       ePermission.CreatedAt,
+			UpdatedAt:       ePermission.UpdatedAt,
+			ID:              ePermission.ID,
+			WalletPublicKey: wallet.ID,
+			TargetUsername:  ePermission.TargetUsername,
+			Permission:      v.Permission, //modify the permission
+		})
 
 		// v.permission is the new peremission
 		if v.Permission == "APPROVER" {
@@ -649,7 +644,11 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 			return
 		}
-
+		if v.TargetUsername == walletOwner.Username && v.Permission == "VIEW-ONLY" {
+			//skip owners being added as view only access. Owners have view access by default.
+			accessInfo.Messages = append(accessInfo.Messages, fmt.Sprintf("%v already has view access as owner, so the assigned View access has been skipped.", v.TargetUsername))
+			continue
+		}
 		if _, ok := checkAccess[v.TargetUsername+v.Permission]; ok {
 			continue
 		}
@@ -658,14 +657,10 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			// permission exists, so cannot be added
 			continue
 		}
-		if v.TargetUsername == walletOwner.Username && v.Permission == "VIEW-ONLY" {
-			//skip owners being added as view only access. Owners have view access by default.
-			continue
-		}
 
 		permissionID := uuid.NewString()
 
-		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 		if e != nil {
 			err = &tErrors.CustomError{
 				Param:      "username",
@@ -745,6 +740,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 	{
 		for _, p := range updatedWallet.Permissions {
+
 			if p.Permission == "INITIATOR" {
 				numberOfSubmittedInitiators++
 			}
@@ -789,7 +785,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		err = &tErrors.CustomError{
 			Param:      "numberOfApprovers",
 			Err:        "error-initiator-missing",
-			ErrMessage: fmt.Sprintf("You must specify at least [%v] approvers when an approver is specified.", accessInfo.NumberOfApprovalsNeeded+1),
+			ErrMessage: "You cannot have an initiator access when you have not specified approvers.",
 			Code:       http.StatusForbidden,
 		}
 		return
@@ -949,7 +945,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	}
 	approvalsNeeded := wallet.NumberOfApprovalsNeeded
 	userPermissions := make([]string, 0)
-	walletOwner, e := wallet.GetWalletOwner(gc.DB,gc)
+	walletOwner, e := wallet.GetWalletOwner(gc.DB, gc)
 	if e != nil {
 		return &tErrors.CustomError{
 			Param:      "username",
@@ -960,7 +956,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	}
 
 	for _, v := range accessList {
-		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 		if e != nil {
 			return &tErrors.CustomError{
 				Param:      "username",
@@ -1798,7 +1794,7 @@ func generateRemoveSharedAccessOps(wallet *userModels.UserWallet, walletOwner *u
 }
 
 func HasAccessToPublicKey(signerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	signerUser, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB,gc)
+	signerUser, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB, gc)
 
 	if err != nil {
 		return false
@@ -1818,7 +1814,7 @@ func HasAccessToPublicKey(signerPublicKey, targetPublicKey string, gc *sharedcon
 }
 
 func HasInitiatorPermissionToPublicKey(ownerSignerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	user, err := usersDB.GetUserFromPrimarySigner(ownerSignerPublicKey, gc.DB,gc)
+	user, err := usersDB.GetUserFromPrimarySigner(ownerSignerPublicKey, gc.DB, gc)
 
 	if err != nil {
 		return false

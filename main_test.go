@@ -298,6 +298,22 @@ type UserWalletSharedAccessInfo struct {
 	Messages                []string               `json:"messages"`
 	SignatureRequired       int                    `json:"signatureRequired"`
 }
+type ModifySharedAccessInfo struct {
+	WalletPublicKey         string                 `json:"walletPublicKey"`
+	NumberOfApprovalsNeeded int                    `json:"numberOfApprovalsNeeded"`
+	Transaction             string                 `json:"transaction"`
+	TransactionSignature    string                 `json:"transactionSignature"`
+	TransactionID           string                 `json:"transactionId"`
+	NetworkPassPhrase       string                 `json:"networkPassPhrase"`
+	Messages                []string               `json:"messages"`
+	SignatureRequired       int                    `json:"signatureRequired"`
+	MultiParty              int                    `json:"multiParty"`
+	Commit                  int                    `json:"commit"`
+	SHash                   string                 `json:"sHash"`
+	ModifiedPermissions     []WalletPermissionInfo `json:"modifiedPermissions"`
+	AddedPermissions        []WalletPermissionInfo `json:"addedPermissions"`
+	RevokedPermissions      []WalletPermissionInfo `json:"revokedPermissions"`
+}
 type WalletPermissionInfo struct {
 	ID                    string  `json:"Id"`
 	WalletPublicKey       string  `json:"-"`
@@ -1723,7 +1739,7 @@ func TestCreateSubWalletMultiAccessDisabled(t *testing.T) {
 	// subSecretKey := "SAHTUGJVWK7WCERUDZM5VVDJO2JYRUTUQQ7O7CJVLLVSYZ7CTV2SO5IP"
 	// subPK := "GB3ZYN2EUPKQHXPLPJ3FATGQKOOIY7CHJ6FJW6RB54ANIT7N5VUZOHVN"
 	// subSecretKey := "SBJINW3YZ7IM7DEA7GVBTPYOTTEHRVBWYAF6G3E2WQIXRM7EGYN66E7Q"
-		subPK := "GAKWJJTLNYA74XIZZIVFWHTG6BLJWDAVJG4KT5I3H5JJW6INAOKWLHFV"
+	subPK := "GAKWJJTLNYA74XIZZIVFWHTG6BLJWDAVJG4KT5I3H5JJW6INAOKWLHFV"
 	subSecretKey := "SBQGZN2EAYMKS37BQYMRUHAZY5YDJIFDTZKBIRSWRURTVDH6GPDJYR4Q"
 	primaryPK := os.Getenv("RICPK")
 	primarySecretKey := os.Getenv("RICSC")
@@ -2511,6 +2527,137 @@ func TestRemoveSharedAccessOnReadOnly(t *testing.T) {
 
 }
 
+func TestModifySharedAccessWithApprover(t *testing.T) {
+
+	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// pk :=  os.Getenv("RICPK")
+	secretKey := os.Getenv("RICSC")
+	// pk := "GCC3HG535RVZ3MPTDBANZH7V2HRDEQH3LZXDPBEKPJKZBI2UYJR3OJGF"
+	// pk := "GDBWYZWLYASCZ6KP4AIRNRY5WQ5OX6H2T6WASG7WFAEEYO6R6AC4GXRM"
+	// secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
+	// secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
+	// accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
+	// accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
+	// accessToWallet := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	accessToWallet := "GBQBJFGWYXCKSKTXFCG5WMPKQC3LYJPSPRNADVPQD7W6K5SXSOW744MQ"
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	baseURL := prodURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/shared-access/users/account"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+	var addedList,removeList,modifyList []WalletPermissionInfo
+	payload := ModifySharedAccessInfo{
+		NumberOfApprovalsNeeded: 2,
+		// Commit:            1,
+	}
+	addedList = make([]WalletPermissionInfo, 0)
+	modifyList = make([]WalletPermissionInfo, 0)
+	removeList = make([]WalletPermissionInfo, 0)
+	addedList = append(accessList,
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			TargetUsername:  "ric",
+			Permission:      "INITIATOR"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			TargetUsername:  "ric1",
+			Permission:      "INITIATOR"})
+	payload.Permissions = accessList
+
+	log.Printf("[DEBUG] Payload: %+v\n", payload)
+	errorResponse := new(ErrorResponse)
+	payResponse := new(UserWalletSharedAccessInfo)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", accessToWallet).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(payload).Receive(payResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestCreateSharedAccess] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestCreateSharedAccess]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Response:[%+v]\n", payResponse)
+
+	{
+		//run the payment signing and submission
+		p := *payResponse
+		// p.Commit = 1
+		//sign transaction
+		if p.SignatureRequired == 1 {
+			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
+			if err != nil {
+				log.Println("[TestCreateSharedAccess] confirm transaction error:", err)
+				t.Errorf(err.Error())
+
+				return
+			}
+
+			p.TransactionSignature = signedBase64
+		}
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", accessToWallet).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
+		if len(errorResponse.Error) > 0 {
+			log.Println("[TestCreateSharedAccess] server 2nd response error:", *errorResponse)
+			t.Errorf(errorResponse.Error)
+			return
+
+		}
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+
+		log.Printf("Shared Access Response:[%+v]\n", payResponse)
+	}
+	log.Println("[TestCreateSharedAccess] completed")
+
+}
 func TestRemoveSharedAccessWithApprover(t *testing.T) {
 
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"

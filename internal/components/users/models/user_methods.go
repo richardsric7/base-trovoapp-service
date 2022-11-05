@@ -1413,21 +1413,21 @@ func (u Username) GetSimpleUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (own
 
 	}
 
-	e := db.Where("username = ?", string(u)).First(&owner).Error
-	if e != nil {
-		if errors.Is(e, gorm.ErrRecordNotFound) {
-			//no wallet was found
-			err = &tErrors.CustomError{
-				Param:      "id",
-				Err:        "error-account-not-found",
-				ErrMessage: "Account not found",
-				Code:       404,
-			}
-			return
-		}
-		err = &tErrors.ErrorTemporaryServerError{}
-	}
-	return
+	// e := db.Where("username = ?", string(u)).First(&owner).Error
+	// if e != nil {
+	// 	if errors.Is(e, gorm.ErrRecordNotFound) {
+	// 		//no wallet was found
+	// 		err = &tErrors.CustomError{
+	// 			Param:      "id",
+	// 			Err:        "error-account-not-found",
+	// 			ErrMessage: "Account not found",
+	// 			Code:       404,
+	// 		}
+	// 		return
+	// 	}
+	// 	err = &tErrors.ErrorTemporaryServerError{}
+	// }
+	return u.GetFullUser(db, gc)
 }
 
 func (u Username) GetUserPermissionOnWallet(walletPublicKey string, db *gorm.DB) (walletPermission WalletPermission, err error) {
