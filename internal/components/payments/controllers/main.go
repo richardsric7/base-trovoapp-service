@@ -108,9 +108,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 		}
-		primaryAccountAlias := accountSignerUser.Username
-		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
-			log.Printf("[CUSTOM LOG] %v error:%v\n", primaryAccountAlias, getUserError)
+		signerAccountAlias := accountSignerUser.Username
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+			log.Printf("[CUSTOM LOG] %v error:%v\n", signerAccountAlias, getUserError)
 		}
 		if accountSignerUser.Suspended == 1 {
 			getUserError = &tErrors.CustomError{
@@ -151,21 +151,21 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		var invalidJSON tErrors.ErrorInvalidJSON
 
 		if err != nil {
-			log.Printf("[FAILED PAYMENT] UNMARSHAL FAIL from [%v], error: [%v]\n", primaryAccountAlias, err)
+			log.Printf("[FAILED PAYMENT] UNMARSHAL FAIL from [%v], error: [%v]\n", signerAccountAlias, err)
 
 			log.Print(err)
 			c.JSON(invalidJSON.HTTPCode(), invalidJSON.JSONError())
 			return
 		}
-		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] paymentInfo %+v\n", paymentInfo)
 		}
 
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/%v/payments %v", c.Param("primaryAccountAlias"), primaryAccountAlias), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/payment %v", signerAccountAlias), gc.DB)
 
 		//check if username is reserved. Reserved usernames should not send payments.
 		//TODO: cache this
-		_, checkReservedUserError := usersDB.UsernameIsReserved(primaryAccountAlias, gc.DB)
+		_, checkReservedUserError := usersDB.UsernameIsReserved(signerAccountAlias, gc.DB)
 		if checkReservedUserError != nil {
 
 			var ex tErrors.GenericError
@@ -181,11 +181,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 		//get the wallet you are sending payment from
 		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
-			log.Printf("[CUSTOM LOG] %v error:%v\n", primaryAccountAlias, getWalletError)
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+			log.Printf("[CUSTOM LOG] %v error:%v\n", signerAccountAlias, getWalletError)
 		}
 		if getWalletError != nil {
-			log.Printf("[FAILED PAYMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", primaryAccountAlias, getWalletError)
+			log.Printf("[FAILED PAYMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", signerAccountAlias, getWalletError)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -287,7 +287,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 		}
 		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
-		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
 			if paymentInfoReturned != nil {
@@ -296,7 +296,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		}
 		if paymentError != nil {
-			log.Printf("[FAILED PAYMENT]  from [%v] to [%v], error: [%v]\n", primaryAccountAlias, paymentInfo.Destination, paymentError)
+			log.Printf("[FAILED PAYMENT]  from [%v] to [%v], error: [%v]\n", signerAccountAlias, paymentInfo.Destination, paymentError)
 			var ex tErrors.GenericError
 			var ok bool
 
@@ -321,7 +321,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			payments.UpdateAndLogUserPaymentGeoInformation(&accountSignerUser, paymentInfoReturned, gc.DB)
 			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
-			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", primaryAccountAlias)
+			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", signerAccountAlias)
 
 			gc.RedisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
 			gc.RedisCache.InvalidateCachedHttpResponse(senderPaymentHistoryCacheKey)
@@ -487,76 +487,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
 			return
 		}
-		primaryAccountAlias := accountSignerUser.Username
-		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
-			log.Printf("[CUSTOM LOG] %v error:%v\n", primaryAccountAlias, getUserError)
-		}
-		if accountSignerUser.Suspended == 1 {
-			getUserError = &tErrors.CustomError{
-				Param:      "Username",
-				Err:        "error-account-suspended",
-				ErrMessage: "Your account is currently suspended. Please contact support (support@trovotech.io) for more information.",
-				Code:       http.StatusForbidden,
-			}
-
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = getUserError.(tErrors.GenericError)
-			if ok {
-				c.JSON(ex.HTTPCode(), ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
-			}
-			return
-
-		}
-
-		var paymentInfo paymentModels.PaymentInfo
-		// var err error
-
-		data, _ := io.ReadAll(c.Request.Body)
-
-		err = json.Unmarshal(data, &paymentInfo)
-
-		var invalidJSON tErrors.ErrorInvalidJSON
-
-		if err != nil {
-			log.Printf("[FAILED PAYMENT] UNMARSHAL FAIL from [%v], error: [%v]\n", primaryAccountAlias, err)
-
-			log.Print(err)
-			c.JSON(invalidJSON.HTTPCode(), invalidJSON.JSONError())
-			return
-		}
-		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
-			log.Printf("[CUSTOM LOG] paymentInfo %+v\n", paymentInfo)
-		}
-
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/%v/payments %v", c.Param("primaryAccountAlias"), primaryAccountAlias), gc.DB)
-
-		//check if username is reserved. Reserved usernames should not send payments.
-		//TODO: cache this
-		_, checkReservedUserError := usersDB.UsernameIsReserved(primaryAccountAlias, gc.DB)
-		if checkReservedUserError != nil {
-
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = checkReservedUserError.(tErrors.GenericError)
-			if ok {
-				c.JSON(ex.HTTPCode(), ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": checkReservedUserError.Error(), "message": checkReservedUserError.Error()})
-			}
-			return
-		}
 		//get the wallet you are sending payment from
 		sourceWallet, temp, getWalletError := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
-			log.Printf("[CUSTOM LOG] %v error:%v\n", primaryAccountAlias, getWalletError)
-		}
+
 		if getWalletError != nil {
-			log.Printf("[FAILED PAYMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", primaryAccountAlias, getWalletError)
 
 			var ex tErrors.GenericError
 			var ok bool
@@ -591,6 +525,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
+		sourceWalletOwnerAlias := sourceWallet.Alias
+		if strings.Contains(sourceWalletOwnerAlias, "_") {
+			sourceWalletOwnerAlias = strings.Split(sourceWalletOwnerAlias, "_")[0]
+		}
 		{
 			//prevent wallets with approver from using this endpoint
 			if sourceWallet.SharedAccessEnabled == 0 {
@@ -605,6 +543,70 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 		}
+		signerAccountAlias := accountSignerUser.Username
+		if signerAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+			log.Printf("[CUSTOM LOG] %v error:%v\n", signerAccountAlias, getUserError)
+		}
+		if accountSignerUser.Suspended == 1 {
+			getUserError = &tErrors.CustomError{
+				Param:      "Username",
+				Err:        "error-account-suspended",
+				ErrMessage: "Your account is currently suspended. Please contact support (support@trovotech.io) for more information.",
+				Code:       http.StatusForbidden,
+			}
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = getUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+			}
+			return
+
+		}
+
+		var paymentInfo paymentModels.PaymentInfo
+		// var err error
+
+		data, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(data, &paymentInfo)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Printf("[FAILED PAYMENT] UNMARSHAL FAIL from [%v], error: [%v]\n", signerAccountAlias, err)
+
+			log.Print(err)
+			c.JSON(invalidJSON.HTTPCode(), invalidJSON.JSONError())
+			return
+		}
+		if sourceWalletOwnerAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+			log.Printf("[CUSTOM LOG] paymentInfo %+v\n", paymentInfo)
+		}
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/payment %v", sourceWalletOwnerAlias), gc.DB)
+
+		//check if username is reserved. Reserved usernames should not send payments.
+		//TODO: cache this
+		_, checkReservedUserError := usersDB.UsernameIsReserved(signerAccountAlias, gc.DB)
+		if checkReservedUserError != nil {
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = checkReservedUserError.(tErrors.GenericError)
+			if ok {
+				c.JSON(ex.HTTPCode(), ex.JSONError())
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": checkReservedUserError.Error(), "message": checkReservedUserError.Error()})
+			}
+			return
+		}
+
 		var destinationUser userModels.User
 		var destinationWallet userModels.UserWallet
 		var getDestinationUserError, getDestinationWalletError error
@@ -613,7 +615,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		if len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69 {
 			destinationWallet, _, getDestinationWalletError = usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 			if getDestinationWalletError == nil {
-				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Bantu Address[%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationWallet.Alias))
+				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("Notice: Address[%v] belongs to the wallet alias [%v]", paymentInfo.Destination, destinationWallet.Alias))
 				paymentInfo.Destination = destinationWallet.Alias
 			}
 		}
@@ -658,7 +660,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 		}
 		paymentInfoReturned, returnedDestination, paymentError := userServices.Pay(&accountSignerUser, &sourceWallet, &paymentInfo, gc)
-		if primaryAccountAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
+		if sourceWalletOwnerAlias == os.Getenv("LOG_TARGET_USER") || middleware.ExtractPublicKey(c) == os.Getenv("LOG_TARGET_USER_PK") {
 			log.Printf("[CUSTOM LOG] returned Payment Error: [%v]\n", paymentError)
 
 			if paymentInfoReturned != nil {
@@ -667,7 +669,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		}
 		if paymentError != nil {
-			log.Printf("[FAILED PAYMENT]  from [%v] to [%v], error: [%v]\n", primaryAccountAlias, paymentInfo.Destination, paymentError)
+			log.Printf("[FAILED PAYMENT]  from [%v] to [%v], error: [%v]\n", signerAccountAlias, paymentInfo.Destination, paymentError)
 			var ex tErrors.GenericError
 			var ok bool
 
@@ -692,7 +694,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			payments.UpdateAndLogUserPaymentGeoInformation(&accountSignerUser, paymentInfoReturned, gc.DB)
 			senderPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
-			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", primaryAccountAlias)
+			senderCacheKey := fmt.Sprintf("[GET] /v1/users/%v", sourceWalletOwnerAlias)
 
 			gc.RedisCache.InvalidateCachedHttpResponse(senderCacheKey, senderPaymentHistoryCacheKey)
 			gc.RedisCache.InvalidateCachedHttpResponse(senderPaymentHistoryCacheKey)
@@ -754,58 +756,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 
 			c.JSON(http.StatusOK, paymentInfoReturned)
-
-			{
-
-				//start callback process here
-
-				//TODO: make callback request if callback is available
-
-				if d, ok := paymentInfoReturned.CallbackURLS["orderPaymentCallbackUrl"]; ok && len(d) > 5 {
-					log.Printf("[paymentNotification] found notification callbackUrl: [%v]\n\n", d)
-					//make callback request
-					// callbackResponse := new(map[string]interface{})
-					type payload struct {
-						Destination     string    `json:"destination"`
-						Sender          string    `json:"sender"`
-						Amount          string    `json:"amount"`
-						AssetCode       string    `json:"assetCode"`
-						AssetIssuer     string    `json:"assetIssuer"`
-						TransactionID   string    `json:"transactionId"`
-						TransactionMemo string    `json:"transactionMemo"`
-						TransactionTime time.Time `json:"transactionTime"`
-						DeviceID        string    `json:"deviceId"`
-					}
-					assetCode := paymentInfoReturned.AssetCode
-					if paymentInfoReturned.AssetIssuer == "" {
-						assetCode = os.Getenv("NATIVE_ASSET_CODE")
-					}
-					senderWallet, _, _ := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-					jsonPayload := payload{
-						Destination:     paymentInfoReturned.Destination,
-						Sender:          senderWallet.Alias,
-						Amount:          paymentInfoReturned.Amount,
-						AssetCode:       assetCode,
-						AssetIssuer:     paymentInfoReturned.AssetIssuer,
-						TransactionID:   paymentInfoReturned.TransactionID,
-						TransactionMemo: paymentInfoReturned.Memo,
-						TransactionTime: time.Now(),
-						DeviceID:        c.GetHeader("X-TW-DEVICE-ID"),
-					}
-					/////
-					body, err := json.Marshal(jsonPayload)
-					if err != nil {
-						log.Printf("[paymentNotification] could not unmarshal callback message due to [%v]\n", err)
-
-					}
-					log.Printf("[paymentNotification] JSON STRING: [%v]\n", string(body))
-
-					responseBody := bytes.NewBuffer(body)
-					//Leverage Go's HTTP Post function to make request
-					c := userModels.RetryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-					callBackRetryChan <- c
-				}
-			}
 
 			{
 				// send push notifications

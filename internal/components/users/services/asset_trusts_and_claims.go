@@ -316,7 +316,7 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 	if serviceFee.IsPositive() {
 		if pendingAssetToClaim.Multiparty == 1 {
 			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
+			if len(os.Getenv("SHARED_ACCESS_FEE_ADDRESS")) != 56 {
 				ops = append(ops, &txnbuild.Payment{
 					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
@@ -330,7 +330,7 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
 					SourceAccount: wallet.ID,
-					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("trovo-wallet-api")},
 				})
 				pendingAssetToClaim.Messages = append(pendingAssetToClaim.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
 
@@ -573,7 +573,7 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 	if serviceFee.IsPositive() {
 		if trustLineInfo.Multiparty == 1 {
 			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
+			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
 				ops = append(ops, &txnbuild.Payment{
 					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
@@ -706,7 +706,7 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 	if serviceFee.IsPositive() {
 		if trustLineInfo.Multiparty == 1 {
 			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
+			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
 				ops = append(ops, &txnbuild.Payment{
 					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),

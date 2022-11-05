@@ -192,6 +192,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
 	// var messages []string
 	//check if it is public key payment
+
 	publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
 	var err error
 	paymentInfo, err = ValidatePaymentInfo(paymentInfo)
@@ -209,7 +210,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 	var asset txnbuild.Asset = txnbuild.NativeAsset{}
 
-	if len(paymentInfo.AssetCode) != 0 {
+	if len(paymentInfo.AssetIssuer) > 0 {
 		asset = txnbuild.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
 	}
 
@@ -332,7 +333,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	log.Printf("[generatePaymentXdr]obtained source account balance:\n%v balance is %v\n%v balance is %v\n", nativeAssetCode, sourceAccountNativeBalance, asset.GetCode(), sourceAccountCustomBalance)
 
 	amountToSendDec := decimal.NewFromFloat(amountToSend)
-
+	//TODO; prevent minting of new tokens from this routine
 	if sourceWallet.ID != asset.GetIssuer() {
 
 		if asset.IsNative() {
@@ -447,7 +448,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	if serviceFee.IsPositive() {
 		if paymentInfo.Multiparty == 1 {
 			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
+			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
 				ops = append(ops, &txnbuild.Payment{
 					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
@@ -814,7 +815,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	if !fee.IsZero() {
 		if paymentInfo.Multiparty == 1 {
 			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
+			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
 				ops = append(ops, &txnbuild.Payment{
 					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),

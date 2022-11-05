@@ -1665,7 +1665,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	if !fee.IsZero() {
 		{
 			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 0 {
+			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
 				ops = append(ops, &txnbuild.Payment{
 					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
