@@ -2585,7 +2585,7 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 	// 		Permission:      "APPROVER"})
 
 	revokeList = append(revokeList,
-	WalletPermissionInfo{
+		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			TargetUsername:  "kenmaddy",
 			Permission:      "APPROVER"})
@@ -2603,7 +2603,7 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 		Set("X-TW-SIGNATURE", signedHttpHeader).
 		Set("X-TW-TIMESTAMP", tsString).
 		Base(baseURL).
-		Post(fullPath).BodyJSON(payload).Receive(payResponse, errorResponse)
+		Put(fullPath).BodyJSON(payload).Receive(payResponse, errorResponse)
 	//get payload string
 	if len(errorResponse.Error) > 0 {
 		log.Println("[TestModifySharedAccessWithApprover] server response error:", *errorResponse)
@@ -2651,7 +2651,7 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 			Set("X-TW-SIGNATURE", signedHttpHeader).
 			Set("X-TW-TIMESTAMP", tsString).
 			Base(baseURL).
-			Post(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
+			Put(fullPath).BodyJSON(p).Receive(payResponse, errorResponse)
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestModifySharedAccessWithApprover] server 2nd response error:", *errorResponse)
 			t.Errorf(errorResponse.Error)

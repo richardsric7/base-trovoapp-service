@@ -190,6 +190,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 		dbTX.Commit()
+		walletOwner.InvalidateUserCache(gc)
 		return nil
 	}
 

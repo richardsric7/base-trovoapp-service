@@ -2178,6 +2178,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 		}
+		walletOwner.InvalidateUserCache(gc)
 		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
 		if err != nil {

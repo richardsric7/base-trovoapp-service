@@ -730,7 +730,8 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			return
 		}
 	}
-
+	//invalidate all existing cache relating to this wallet
+	wallet.InvalidateUserCache(gc)
 	//it was successfully saved. now refresh the list to know the standing.
 	updatedWallet, e := walletID.GetWallet(dbTX)
 	if e != nil {
@@ -870,6 +871,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 		dbTX.Commit()
 		err = nil
+		wallet.InvalidateUserCache(gc)
 		return
 
 	}
