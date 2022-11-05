@@ -2624,7 +2624,7 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 	{
 		//run the payment signing and submission
 		p := *payResponse
-		// p.Commit = 1
+		p.Commit = 1
 		//sign transaction
 		if p.SignatureRequired == 1 {
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)

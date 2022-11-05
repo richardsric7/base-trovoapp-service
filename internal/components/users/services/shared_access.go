@@ -879,9 +879,9 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	// accessInfo.ModifiedPermissions = modifiedListInfo
 	// accessInfo.AddedPermissions = addedListInfo
 
-	// if oldNumberOfApprovers > 0 {
-	// 	accessInfo.MultiParty = 1
-	// }
+	if oldNumberOfApprovers == 0 {
+		accessInfo.SignatureRequired = 1
+	}
 	accessInfo.RevokedPermissions = revokedListInfo
 	accessInfo.ModifiedPermissions = modifiedListInfo
 	accessInfo.AddedPermissions = addedListInfo
