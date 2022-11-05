@@ -24,7 +24,7 @@ import (
 func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.POST("/v1/users/swap", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
-		signerOwner, getUserError := usersdb.GetUser(middleware.ExtractSigner(c), gc.DB)
+		signerOwner, getUserError := usersdb.GetUser(middleware.ExtractSigner(c), gc.DB,gc)
 
 		if getUserError != nil {
 
@@ -75,7 +75,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		primarySigner := signerOwner.PrimarySigner
 
-		walletOwner, errWalletOwner := userModels.UserWalletID(wallet.ID).GetWalletOwner(gc.DB)
+		walletOwner, errWalletOwner := userModels.UserWalletID(wallet.ID).GetWalletOwner(gc.DB,gc)
 
 		if errWalletOwner != nil {
 
@@ -175,7 +175,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 		}
 
-		signerOwner, getUserError := usersdb.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+		signerOwner, getUserError := usersdb.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB,gc)
 
 		if getUserError != nil {
 
@@ -236,7 +236,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		walletOwner, errWalletOwner := userModels.UserWalletID(wallet.ID).GetWalletOwner(gc.DB)
+		walletOwner, errWalletOwner := userModels.UserWalletID(wallet.ID).GetWalletOwner(gc.DB,gc)
 
 		if errWalletOwner != nil {
 
@@ -319,7 +319,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					for _, a := range accessList {
 
 						if a.Permission == "APPROVER" {
-							ph, e := usersdb.GetUser(a.TargetUsername, gc.DB)
+							ph, e := usersdb.GetUser(a.TargetUsername, gc.DB,gc)
 							if e == nil {
 								ph.SendPushMessage(fmt.Sprintf("Trovo: SWAP %v %v awaiting approval!", swapInfo.SourceAmount, swapInfo.Memo), fmt.Sprintf("%v initiated swap request from %v now waiting for an approval. Request: %v", signerOwner.Username, wallet.Alias, swapInfo.ReturnedDescription), "", dataPayload, gc)
 

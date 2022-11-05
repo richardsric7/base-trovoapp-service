@@ -208,13 +208,13 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		return &tErrors.ErrorRejectedRequest{ID: p.ID}
 	}
 
-	initiatorUser, e := userModels.Username(p.Initiator).GetSimpleUser(gc.DB)
+	initiatorUser, e := userModels.Username(p.Initiator).GetSimpleUser(gc.DB,gc)
 	if e != nil {
 		log.Println("[ApproveTransaction] error getting initiator user object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	walletOwner, e := userModels.UserWalletID(p.WalletPublicKey).GetWalletOwner(gc.DB)
+	walletOwner, e := userModels.UserWalletID(p.WalletPublicKey).GetWalletOwner(gc.DB,gc)
 	if e != nil {
 		log.Println("[ApproveTransaction] error getting wallet owner user object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
@@ -354,7 +354,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 			dbTX.Commit()
 			for _, v := range accessList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 				if e != nil {
 					continue
 				}
@@ -388,7 +388,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			dbTX.Commit()
 
 			for _, v := range revokedList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 				if e != nil {
 					continue
 				}
@@ -401,7 +401,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 
 			for _, v := range modifiedList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 				if e != nil {
 					continue
 				}
@@ -414,7 +414,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 
 			for _, v := range addedList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 				if e != nil {
 					continue
 				}
@@ -439,7 +439,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = "pendingAuth"
 			for _, v := range accessList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 				if e != nil {
 					continue
 				}
@@ -514,7 +514,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 						dataPayload["none"] = ""
 						if destWallet.SharedAccessEnabled == 1 {
 							if destWallet.HasViewOnlyAccess(gc) {
-								u, e := destWallet.GetWalletOwner(gc.DB)
+								u, e := destWallet.GetWalletOwner(gc.DB,gc)
 								if e == nil {
 									if u.PushNotificationToken != nil {
 
@@ -525,7 +525,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 							}
 							for _, v := range destWallet.Permissions {
-								u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+								u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 								if e != nil {
 									continue
 								}
@@ -537,7 +537,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 							}
 						} else {
 							//shared access not enabled on destination wallet
-							u, e := destWallet.GetWalletOwner(gc.DB)
+							u, e := destWallet.GetWalletOwner(gc.DB,gc)
 							if e == nil {
 								if u.PushNotificationToken != nil {
 
@@ -585,7 +585,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			dbTX.Commit()
 			accessList := wallet.Permissions
 			for _, v := range accessList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 				if e != nil {
 					continue
 				}
@@ -606,7 +606,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = "pendingAuth"
 			for _, v := range accessList {
-				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 				if e != nil {
 					continue
 				}

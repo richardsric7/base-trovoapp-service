@@ -522,7 +522,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 			return multiAccessWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
 		}
 	}
-	if _, e := usersDB.GetUser(payload.NewSignerPublicKey, gc.DB); e == nil {
+	if _, e := usersDB.GetUser(payload.NewSignerPublicKey, gc.DB, gc); e == nil {
 		return multiAccessWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
 	}
 	if user.AccountRecoveryEnabled == 0 {
@@ -776,11 +776,11 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 		}
 	}
 
-	if _, e := usersDB.GetUser(payload.NewSignerPublicKey, gc.DB); e == nil {
+	if _, e := usersDB.GetUser(payload.NewSignerPublicKey, gc.DB, gc); e == nil {
 		return userInfo, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
 	}
 
-	if _, e := usersDB.GetUserFromPrimarySigner(payload.NewSignerPublicKey, gc.DB); e == nil {
+	if _, e := usersDB.GetUserFromPrimarySigner(payload.NewSignerPublicKey, gc.DB, gc); e == nil {
 		return userInfo, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
 	}
 

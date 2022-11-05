@@ -273,7 +273,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				Code:       http.StatusForbidden,
 			}
 		}
-		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 		if e != nil {
 			return returnedWallet, &tErrors.CustomError{
 				Param:      "username",
@@ -510,7 +510,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			continue
 		}
 
-		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 		if e != nil {
 			err = &tErrors.CustomError{
 				Param:      "username",
@@ -570,7 +570,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 		//check if username is valid
 
-		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 		if e != nil {
 			err = &tErrors.CustomError{
 				Param:      "username",
@@ -665,7 +665,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 		permissionID := uuid.NewString()
 
-		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 		if e != nil {
 			err = &tErrors.CustomError{
 				Param:      "username",
@@ -949,7 +949,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	}
 	approvalsNeeded := wallet.NumberOfApprovalsNeeded
 	userPermissions := make([]string, 0)
-	walletOwner, e := wallet.GetWalletOwner(gc.DB)
+	walletOwner, e := wallet.GetWalletOwner(gc.DB,gc)
 	if e != nil {
 		return &tErrors.CustomError{
 			Param:      "username",
@@ -960,7 +960,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	}
 
 	for _, v := range accessList {
-		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB,gc)
 		if e != nil {
 			return &tErrors.CustomError{
 				Param:      "username",
@@ -1798,7 +1798,7 @@ func generateRemoveSharedAccessOps(wallet *userModels.UserWallet, walletOwner *u
 }
 
 func HasAccessToPublicKey(signerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	signerUser, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB)
+	signerUser, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB,gc)
 
 	if err != nil {
 		return false
@@ -1818,7 +1818,7 @@ func HasAccessToPublicKey(signerPublicKey, targetPublicKey string, gc *sharedcon
 }
 
 func HasInitiatorPermissionToPublicKey(ownerSignerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	user, err := usersDB.GetUserFromPrimarySigner(ownerSignerPublicKey, gc.DB)
+	user, err := usersDB.GetUserFromPrimarySigner(ownerSignerPublicKey, gc.DB,gc)
 
 	if err != nil {
 		return false

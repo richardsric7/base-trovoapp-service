@@ -1,6 +1,7 @@
 package users
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -9,15 +10,30 @@ import (
 	userModels "trovo-wallet-api/internal/components/users/models"
 	conDB "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 // GetUser gets user data by either wallet id or signer or temporary public key
-func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
+func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user userModels.User, err error) {
 	conDB.PrintDBStats("GetUserInfo", db)
+	cacheKeyInfo := fmt.Sprintf("userObj %v", userInfo)
 
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
+
+		if ok {
+
+			log.Printf("GetUserFromPrimarySigner[%v], served from cache\n", cacheKeyInfo)
+			json.Unmarshal(rawdata, &user)
+			return
+		}
+
+	}
 	//e returns execution errors
 	var e error
 	if len(userInfo) == 56 {
@@ -48,6 +64,16 @@ func GetUser(userInfo string, db *gorm.DB) (user userModels.User, err error) {
 	}
 
 	// log.Printf("user for %v is %v\n", userInfo, user)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, user, 0)
+	cacheKeyUsername := fmt.Sprintf("userObj %v", user.Username)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, user, 0)
+	cacheKeyEmail := fmt.Sprintf("userObj %v", user.Email)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, user, 0)
+	cacheKeySigner := fmt.Sprintf("userObj %v", user.PrimarySigner)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, user, 0)
+	cacheKeyUserID := fmt.Sprintf("userObj %v", user.ID)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, user, 0)
+
 	return user, nil
 
 }
@@ -96,8 +122,8 @@ func GetPermissionList(publicKey string, db *gorm.DB) (accessList []userModels.W
 	return
 }
 
-func UpdatePushNotificationToken(identifier string, pnt *string, db *gorm.DB) {
-	user, _ := GetUser(identifier, db)
+func UpdatePushNotificationToken(identifier string, pnt *string, db *gorm.DB, gc *sharedconfig.GlobalConfig) {
+	user, _ := GetUser(identifier, db, gc)
 
 	if user.PushNotificationToken != pnt {
 		user.PushNotificationToken = pnt
@@ -105,12 +131,31 @@ func UpdatePushNotificationToken(identifier string, pnt *string, db *gorm.DB) {
 		if err != nil {
 			log.Printf("[UpdatePushNotificationToken] unable to update push notification token for user [%v], due to:[%v]", user.Username, err)
 		}
+		cacheKeyUsername := fmt.Sprintf("userObj %v", user.Username)
+		cacheKeyEmail := fmt.Sprintf("userObj %v", user.Email)
+		cacheKeySigner := fmt.Sprintf("userObj %v", user.PrimarySigner)
+		cacheKeyUserID := fmt.Sprintf("userObj %v", user.ID)
+		gc.RedisCache.DeleteFromCache(cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID)
 	}
 }
 
 // GetUserFromPrimarySigner fetches the user linked to the primary signer
-func GetUserFromPrimarySigner(publicKey string, db *gorm.DB) (user userModels.User, err error) {
+func GetUserFromPrimarySigner(publicKey string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user userModels.User, err error) {
+	cacheKeySigner := fmt.Sprintf("userObj %v", publicKey)
 
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeySigner)
+
+		if ok {
+
+			log.Printf("GetUserFromPrimarySigner[%v], served from cache\n", cacheKeySigner)
+			json.Unmarshal(rawdata, &user)
+			return
+		}
+
+	}
 	publicKey = strings.TrimSpace(publicKey)
 	// var user usermodels.User
 	if err := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("primary_signer = ?", strings.ToUpper(strings.ReplaceAll(publicKey, " ", ""))).First(&user).Error; err != nil {
@@ -124,7 +169,9 @@ func GetUserFromPrimarySigner(publicKey string, db *gorm.DB) (user userModels.Us
 		}
 	}
 	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
-
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, user, 0)
+	cacheKeyUsername := fmt.Sprintf("userObj %v", user.Username)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, user, 0)
 	return user, nil
 
 }

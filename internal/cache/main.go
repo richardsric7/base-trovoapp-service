@@ -102,7 +102,7 @@ func (r *RedisCache) StoreResultToCacheRaw(key string, toCache interface{}, expi
 	}
 
 	if expiryInSeconds == 0 {
-		expiryInSeconds = 120
+		expiryInSeconds = 180
 	}
 	bytes, err := json.Marshal(toCache)
 

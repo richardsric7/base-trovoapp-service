@@ -855,7 +855,23 @@ func (u Username) String() string {
 	return string(u)
 }
 
-func (publicKey UserSigner) GetOwner(db *gorm.DB) (signerOwner User, err error) {
+func (publicKey UserSigner) GetOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig) (signerOwner User, err error) {
+	cacheKeyInfo := fmt.Sprintf("userObj %v", string(publicKey))
+
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
+
+		if ok {
+
+			log.Printf("GetOwner[%v], served from cache\n", cacheKeyInfo)
+			json.Unmarshal(rawdata, &signerOwner)
+			return
+		}
+
+	}
+
 	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("primary_signer = ?", string(publicKey)).First(&signerOwner).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -870,6 +886,17 @@ func (publicKey UserSigner) GetOwner(db *gorm.DB) (signerOwner User, err error) 
 		}
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
+
+	// log.Printf("user for %v is %v\n", userInfo, user)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, signerOwner, 0)
+	cacheKeyUsername := fmt.Sprintf("userObj %v", signerOwner.Username)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, signerOwner, 0)
+	cacheKeyEmail := fmt.Sprintf("userObj %v", signerOwner.Email)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, signerOwner, 0)
+	cacheKeySigner := fmt.Sprintf("userObj %v", signerOwner.PrimarySigner)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, signerOwner, 0)
+	cacheKeyUserID := fmt.Sprintf("userObj %v", signerOwner.ID)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, signerOwner, 0)
 	return
 }
 
@@ -1019,7 +1046,7 @@ func (u *UserWallet) SignerKeyHasAccess(signerKey string, gc *sharedconfig.Globa
 		return false
 	}
 
-	signer, err := UserSigner(signerKey).GetOwner(gc.DB)
+	signer, err := UserSigner(signerKey).GetOwner(gc.DB, gc)
 	if err != nil {
 		return false
 	}
@@ -1048,7 +1075,7 @@ func (u *UserWallet) SignerKeyHasInitatorAccess(signerKey string, gc *sharedconf
 	if u.SharedAccessEnabled == 0 {
 		return false
 	}
-	signer, err := UserSigner(signerKey).GetOwner(gc.DB)
+	signer, err := UserSigner(signerKey).GetOwner(gc.DB, gc)
 	if err != nil {
 		return false
 	}
@@ -1077,7 +1104,7 @@ func (u *UserWallet) SignerKeyHasApproverAccess(signerKey string, gc *sharedconf
 	if u.SharedAccessEnabled == 0 {
 		return false
 	}
-	signer, err := UserSigner(signerKey).GetOwner(gc.DB)
+	signer, err := UserSigner(signerKey).GetOwner(gc.DB, gc)
 	if err != nil {
 		return false
 	}
@@ -1095,7 +1122,23 @@ func (u *UserWallet) SignerKeyHasApproverAccess(signerKey string, gc *sharedconf
 	return
 }
 
-func (u *UserWallet) GetWalletOwner(db *gorm.DB) (walletOwner User, err error) {
+func (u *UserWallet) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig) (walletOwner User, err error) {
+	cacheKeyInfo := fmt.Sprintf("userObj %v", u.ID)
+
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
+
+		if ok {
+
+			log.Printf("GetWalletOwner[%v], served from cache\n", cacheKeyInfo)
+			json.Unmarshal(rawdata, &walletOwner)
+			return
+		}
+
+	}
+
 	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id = ?", u.UserID).First(&walletOwner).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -1110,6 +1153,15 @@ func (u *UserWallet) GetWalletOwner(db *gorm.DB) (walletOwner User, err error) {
 		}
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, walletOwner, 0)
+	cacheKeyUsername := fmt.Sprintf("userObj %v", walletOwner.Username)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, walletOwner, 0)
+	cacheKeyEmail := fmt.Sprintf("userObj %v", walletOwner.Email)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, walletOwner, 0)
+	cacheKeySigner := fmt.Sprintf("userObj %v", walletOwner.PrimarySigner)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, walletOwner, 0)
+	cacheKeyUserID := fmt.Sprintf("userObj %v", walletOwner.ID)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, walletOwner, 0)
 	return
 }
 
@@ -1240,7 +1292,22 @@ func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet UserW
 	return wallet, nil
 }
 
-func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner User, err error) {
+func (id UserWalletID) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig) (walletOwner User, err error) {
+	cacheKeyInfo := fmt.Sprintf("userObj %v", string(id))
+
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
+
+		if ok {
+
+			log.Printf("GetWalletOwner[%v], served from cache\n", cacheKeyInfo)
+			json.Unmarshal(rawdata, &walletOwner)
+			return
+		}
+
+	}
 	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("id = (SELECT user_id FROM user_wallets WHERE id = ?)", string(id)).First(&walletOwner).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -1255,6 +1322,15 @@ func (id UserWalletID) GetWalletOwner(db *gorm.DB) (walletOwner User, err error)
 		}
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, walletOwner, 0)
+	cacheKeyUsername := fmt.Sprintf("userObj %v", walletOwner.Username)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, walletOwner, 0)
+	cacheKeyEmail := fmt.Sprintf("userObj %v", walletOwner.Email)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, walletOwner, 0)
+	cacheKeySigner := fmt.Sprintf("userObj %v", walletOwner.PrimarySigner)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, walletOwner, 0)
+	cacheKeyUserID := fmt.Sprintf("userObj %v", walletOwner.ID)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, walletOwner, 0)
 	return
 }
 
@@ -1276,7 +1352,23 @@ func (id UserWalletID) GetUserPermissionOnWallet(username string, db *gorm.DB) (
 	return
 }
 
-func (u Username) GetFullUser(db *gorm.DB) (owner User, err error) {
+func (u Username) GetFullUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (owner User, err error) {
+	cacheKeyInfo := fmt.Sprintf("userObj %v", string(u))
+
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
+
+		if ok {
+
+			log.Printf("GetFullUser[%v], served from cache\n", cacheKeyInfo)
+			json.Unmarshal(rawdata, &owner)
+			return
+		}
+
+	}
+
 	e := db.Preload("UserWallets.Permissions").Preload(clause.Associations).Where("username = ?", string(u)).First(&owner).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -1291,10 +1383,36 @@ func (u Username) GetFullUser(db *gorm.DB) (owner User, err error) {
 		}
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, owner, 0)
+	cacheKeyUsername := fmt.Sprintf("userObj %v", owner.Username)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, owner, 0)
+	cacheKeyEmail := fmt.Sprintf("userObj %v", owner.Email)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, owner, 0)
+	cacheKeySigner := fmt.Sprintf("userObj %v", owner.PrimarySigner)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, owner, 0)
+	cacheKeyUserID := fmt.Sprintf("userObj %v", owner.ID)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, owner, 0)
 	return
 }
 
-func (u Username) GetSimpleUser(db *gorm.DB) (owner User, err error) {
+func (u Username) GetSimpleUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (owner User, err error) {
+
+	cacheKeyInfo := fmt.Sprintf("userObj %v", string(u))
+
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
+
+		if ok {
+
+			log.Printf("GetSimpleUser[%v], served from cache\n", cacheKeyInfo)
+			json.Unmarshal(rawdata, &owner)
+			return
+		}
+
+	}
+
 	e := db.Where("username = ?", string(u)).First(&owner).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -1432,7 +1550,7 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 		}
 
 		//use it to fetch wallet owner details
-		owner, err := UserWalletID(assignedPermission.WalletPublicKey).GetWalletOwner(gc.DB)
+		owner, err := UserWalletID(assignedPermission.WalletPublicKey).GetWalletOwner(gc.DB, gc)
 		if err != nil {
 			return
 		}
@@ -1480,7 +1598,7 @@ func (w *UserWallet) WalletCountInitiatorAccess(gc *sharedconfig.GlobalConfig) (
 }
 
 func (w *UserWallet) HasInitiatorPermissionToPublicKey(ownerSignerPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
-	user, err := UserSigner(ownerSignerPublicKey).GetOwner(gc.DB)
+	user, err := UserSigner(ownerSignerPublicKey).GetOwner(gc.DB, gc)
 
 	if err != nil {
 		return false

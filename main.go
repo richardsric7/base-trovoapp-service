@@ -82,7 +82,7 @@ func main() {
 			"NATIVE_ASSET_CODE", "ACCOUNT_RECOVERY_MINIMUM_BALANCE", "SHARED_ACCESS_FEE_ADDRESS",
 			"SHARED_ACCESS_FEE_AMOUNT", "CHANNEL_ACCOUNTS", "WALLET_SIGNER_ACTIVATION_AMOUNT",
 			"MNEMONIC_BULK_PAYMENT", "BULK_PAYMENT_SALT", "ENCODER_SALT", "MARKET_MAKING_SALT",
-			"MNEMONIC_MARKET_MAKING", "MAX_ISSUED_ASSETS_PER_WALLET",
+			"MNEMONIC_MARKET_MAKING", "MAX_ISSUED_ASSETS_PER_WALLET", "CHECK_CHANNEL_ACCOUNT_BALANCE",
 		}
 
 		for _, requiredEnvironmentVariable := range requiredEnvironmentVariables {
@@ -195,13 +195,13 @@ func main() {
 				dynamicLinkServiceUrlChan <- dynamicLinkServiceUrl
 			}()
 			for {
-				e := database.Where("referral_link is null AND referral_qr_code is null AND suspended = ?", 0).First(&userModels.User{}).Error
+				e := database.Where("referral_qr_code is null AND suspended = ?", 0).First(&userModels.User{}).Error
 				if e != nil {
 					time.Sleep(15 * time.Minute)
 					continue
 				}
 
-				result := database.Where("referral_link is null AND referral_qr_code is null AND suspended = ?", 0).FindInBatches(&usersWithNoRefLinks, batchSize, func(tx *gorm.DB, batch int) error {
+				result := database.Where("referral_qr_code is null AND suspended = ?", 0).FindInBatches(&usersWithNoRefLinks, batchSize, func(tx *gorm.DB, batch int) error {
 					for i, u := range usersWithNoRefLinks {
 						rld, errLink := dl.GenerateReferralLinkWithStaticURL(u.Username, dynamicLinkServiceUrl, &redisCache)
 						if errLink != nil {
@@ -295,6 +295,10 @@ func main() {
 						channelAccountsCSV = fmt.Sprintf("%s%s,", channelAccountsCSV, k.Seed())
 					}
 
+				}
+				if os.Getenv("CHECK_CHANNEL_ACCOUNT_BALANCE") == "0" || os.Getenv("CHECK_CHANNEL_ACCOUNT_BALANCE") == "" {
+					globalConfig.ChannelAccounts <- k
+					continue
 				}
 
 				exists, _, nativeBal, _, _, _ := network.BlockchainAccountProperties(globalConfig.BantuExpansionClient, k.Address(), txnbuild.NativeAsset{})

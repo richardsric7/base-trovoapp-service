@@ -92,7 +92,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		var err error
 
 		//get user DB record
-		accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB)
+		accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
 		if getUserError != nil {
 			log.Printf("[FAILED PAYMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
@@ -266,7 +266,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			destinationUser, getDestinationUserError = usersDB.GetUser(paymentInfo.Destination, gc.DB)
+			destinationUser, getDestinationUserError = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
 			if getDestinationUserError != nil {
 				ex := &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 				c.JSON(ex.HTTPCode(), ex.JSONError())
@@ -419,7 +419,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					dataPayload["none"] = ""
 					if destinationWallet.SharedAccessEnabled == 1 {
 						if destinationWallet.HasViewOnlyAccess(gc) {
-							u, e := destinationWallet.GetWalletOwner(gc.DB)
+							u, e := destinationWallet.GetWalletOwner(gc.DB, gc)
 							if e == nil {
 								if u.PushNotificationToken != nil {
 
@@ -430,7 +430,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 						}
 						for _, v := range destinationWallet.Permissions {
-							u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB)
+							u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 							if e != nil {
 								continue
 							}
@@ -460,7 +460,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 		}
 		//get user DB record
-		accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB)
+		accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
 		if getUserError != nil {
 			log.Printf("[FAILED PAYMENT] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
@@ -639,7 +639,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			destinationUser, getDestinationUserError = usersDB.GetUser(paymentInfo.Destination, gc.DB)
+			destinationUser, getDestinationUserError = usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
 			if getDestinationUserError != nil {
 				ex := &tPayErrors.ErrorPaymentDestinationDoesNotExist{}
 				c.JSON(ex.HTTPCode(), ex.JSONError())
@@ -740,7 +740,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					for _, a := range accessList {
 
 						if a.Permission == "APPROVER" {
-							ph, e := usersDB.GetUser(a.TargetUsername, gc.DB)
+							ph, e := usersDB.GetUser(a.TargetUsername, gc.DB, gc)
 							if e == nil {
 								ph.SendPushMessage("Trovo: Payment request awaiting approval!", fmt.Sprintf("You have a payment transaction of %v %v to %v initiated by %v from the wallet with alias %v, which is now awaiting approval from you or any other approver.", paymentInfo.Amount, assetCode, paymentInfo.Destination, accountSignerUser.Username, sourceWallet.Alias), "", dataPayload, gc)
 

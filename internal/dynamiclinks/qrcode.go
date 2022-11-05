@@ -1,7 +1,6 @@
 package dynamiclinks
 
 import (
-	"bufio"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -20,7 +19,7 @@ func GenerateQRCode(dynamicLink string, redisCache *cache.RedisCache) (png strin
 		err = errors.New("no dynamic Link submitted for QRCode")
 		return
 	}
-	cacheKey := dynamicLink + "_qrcodev2"
+	cacheKey := dynamicLink + "_qrcode2"
 	{
 
 		// search cache for link
@@ -43,32 +42,40 @@ func GenerateQRCode(dynamicLink string, redisCache *cache.RedisCache) (png strin
 	}
 	// buf :=new(bytes.Buffer)
 
-	f, _ := os.CreateTemp("", "*.png")
-	fileName := f.Name()
+	f, err := os.CreateTemp("", "*.png")
+	if err != nil {
+		log.Printf("[GenerateQRCode]could not generate QRCode: %v\n", err)
 
+		return
+	}
+
+	fileName := f.Name()
 	defer os.Remove(f.Name())
-	w := standard.NewWithWriter(f,
+
+	w, err := standard.New(fileName,
 		standard.WithCircleShape(),
 		standard.WithFgColorRGBHex("#2c2c32"),
 		standard.WithBgColorRGBHex("#ffffff"),
-		standard.WithQRWidth(20),
-		standard.WithBorderWidth(20),
+		standard.WithQRWidth(11),
 		standard.WithHalftone("ht2.png"),
+		standard.WithBuiltinImageEncoder(standard.PNG_FORMAT),
 	)
-
-	err = qrc.Save(w)
 	if err != nil {
-		fmt.Printf("[GenerateQRCode]could not save QRCode: %v", err)
+		log.Printf("[GenerateQRCode]could not save QRCode: %v\n", err)
 		return
 	}
-	var fileContents []byte
-	fo, e := os.Open(fileName)
-	if e == nil {
-		f = fo
+	err = qrc.Save(w)
+	if err != nil {
+		log.Printf("[GenerateQRCode]could not save QRCode: %v\n", err)
+		return
 	}
 
-	bufio.NewReader(f).Read(fileContents)
-
+	fileContents, err := os.ReadFile(fileName)
+	if err != nil {
+		log.Printf("[GenerateQRCode]could read QRCode: %v\n", err)
+		return
+	}
+	// log.Println(fileContents)
 	var base64Encoding string
 
 	// Determine the content type of the image file

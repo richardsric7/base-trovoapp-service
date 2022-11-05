@@ -99,7 +99,7 @@ func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 	data.Stream = strings.ToLower(data.Stream)
 	identifier := strings.TrimSpace(strings.ToLower(c.Param("identifier")))
 
-	user, err := usersDB.GetUser(identifier, gc.DB)
+	user, err := usersDB.GetUser(identifier, gc.DB,gc)
 	if err != nil {
 		auth.Auth = false
 		auth.Message = "user could not be authenticated"

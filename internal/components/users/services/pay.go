@@ -89,7 +89,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	}
 
 	if !publicKeyPayment && len(paymentInfo.Transaction) > 0 && len(paymentInfo.SHash) > 1 {
-		dUser, e := usersDB.GetUser(paymentInfo.Destination, db)
+		dUser, e := usersDB.GetUser(paymentInfo.Destination, db,gc)
 		if e == nil {
 			destinationUser = &dUser
 		}
@@ -214,7 +214,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		asset = txnbuild.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
 	}
 
-	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, db)
+	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, db,gc)
 	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, db)
 
 	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
@@ -570,7 +570,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	if len(paymentInfo.AssetCode) != 0 {
 		asset = txnbuild.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
 	}
-	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, gc.DB)
+	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, gc.DB,gc)
 	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {

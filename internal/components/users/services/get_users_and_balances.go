@@ -14,7 +14,7 @@ import (
 func GetUserInfo(identifier string, signerPublicKey string, gc *sharedconfig.GlobalConfig) (userInfo userModels.UserInfo, err error) {
 	var owner bool
 	//get user from DB
-	primarySigner, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB)
+	primarySigner, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB, gc)
 	if err != nil {
 		return userModels.UserInfo{}, &tErrors.CustomError{Param: "primarySigner",
 			Err:        "error invalid primary signer",
@@ -23,7 +23,7 @@ func GetUserInfo(identifier string, signerPublicKey string, gc *sharedconfig.Glo
 	}
 
 	//get user from DB
-	user, err := usersDB.GetUser(identifier, gc.DB)
+	user, err := usersDB.GetUser(identifier, gc.DB, gc)
 	if err != nil {
 		return userModels.UserInfo{}, err
 	}
