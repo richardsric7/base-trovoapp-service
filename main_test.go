@@ -2596,7 +2596,7 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 
 	log.Printf("[DEBUG] Payload: %+v\n", payload)
 	errorResponse := new(ErrorResponse)
-	payResponse := new(UserWalletSharedAccessInfo)
+	payResponse := new(ModifySharedAccessInfo)
 
 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
 		Set("X-TW-PUBLIC-KEY", accessToWallet).

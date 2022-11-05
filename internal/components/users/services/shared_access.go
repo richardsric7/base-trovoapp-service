@@ -466,7 +466,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	}
 	ops := make([]txnbuild.Operation, 0)
 	accessInfo.Messages = make([]string, 0)
-	// var revokedListInfo, modifiedListInfo, addedListInfo []userModels.WalletPermissionInfo
+	var revokedListInfo, modifiedListInfo, addedListInfo []userModels.WalletPermissionInfo
 
 	var numberOfSubmittedApprovers int
 	var numberOfSubmittedInitiators int
@@ -521,7 +521,18 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 			return
 		}
-
+		name := fmt.Sprintf("%v", u.FirstName)
+		if u.LastName == nil {
+			name = fmt.Sprintf("%v %v", name, *u.LastName)
+		}
+		revokedListInfo = append(revokedListInfo, userModels.WalletPermissionInfo{
+			TargetUsername:        v.TargetUsername,
+			Name:                  name,
+			Permission:            v.Permission,
+			WalletPublicKey:       wallet.ID,
+			WalletAlias:           wallet.Alias,
+			PushNotificationToken: u.PushNotificationToken,
+		})
 		revokedList = append(revokedList, userModels.WalletPermission{
 			CreatedAt:       userPermission.CreatedAt,
 			UpdatedAt:       userPermission.UpdatedAt,
@@ -591,7 +602,14 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		if u.LastName == nil {
 			name = fmt.Sprintf("%v %v", name, *u.LastName)
 		}
-
+		modifiedListInfo = append(modifiedListInfo, userModels.WalletPermissionInfo{
+			TargetUsername:        v.TargetUsername,
+			Name:                  name,
+			Permission:            v.Permission,
+			WalletPublicKey:       wallet.ID,
+			WalletAlias:           wallet.Alias,
+			PushNotificationToken: u.PushNotificationToken,
+		})
 		modifiedList = append(modifiedList, userModels.WalletPermission{
 			CreatedAt:       ePermission.CreatedAt,
 			UpdatedAt:       ePermission.UpdatedAt,
@@ -676,15 +694,15 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		if u.LastName == nil {
 			name = fmt.Sprintf("%v %v", name, *u.LastName)
 		}
-		//infor of shared access users
-		// addedListInfo = append(addedListInfo, userModels.WalletPermissionInfo{
-		// 	TargetUsername:        v.TargetUsername,
-		// 	Name:                  name,
-		// 	Permission:            v.Permission,
-		// 	WalletPublicKey:       wallet.ID,
-		// 	WalletAlias:           wallet.Alias,
-		// 	PushNotificationToken: u.PushNotificationToken,
-		// })
+		// infor of shared access users
+		addedListInfo = append(addedListInfo, userModels.WalletPermissionInfo{
+			TargetUsername:        v.TargetUsername,
+			Name:                  name,
+			Permission:            v.Permission,
+			WalletPublicKey:       wallet.ID,
+			WalletAlias:           wallet.Alias,
+			PushNotificationToken: u.PushNotificationToken,
+		})
 		addedList = append(addedList, userModels.WalletPermission{
 			ID:              permissionID,
 			TargetUsername:  v.TargetUsername,
@@ -858,7 +876,9 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	if oldNumberOfApprovers > 0 {
 		accessInfo.MultiParty = 1
 	}
-
+	accessInfo.RevokedPermissions = revokedListInfo
+	accessInfo.ModifiedPermissions = modifiedListInfo
+	accessInfo.AddedPermissions = addedListInfo
 	if len(accessInfo.TransactionSignature) == 0 && accessInfo.Commit == 0 {
 		err = nil
 		return
