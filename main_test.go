@@ -2513,7 +2513,7 @@ func TestRemoveSharedAccessOnReadOnly(t *testing.T) {
 
 }
 
-func TestModifySharedAccessWithApprover(t *testing.T) {
+func TestModifySharedAccess(t *testing.T) {
 
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
@@ -2561,7 +2561,7 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			TargetUsername:  "kenmaddy",
-			Permission:      "INITIATOR"})
+			Permission:      "VIEW-ONLY"})
 
 	// modifyList = append(modifyList,
 	// 	WalletPermissionInfo{
@@ -2589,7 +2589,7 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			TargetUsername:  "kenmaddy",
-			Permission:      "APPROVER"})
+			Permission:      "INITIATOR"})
 	payload.AddedPermissions = addedList
 	payload.RevokedPermissions = revokeList
 	payload.ModifiedPermissions = modifyList
@@ -2627,6 +2627,7 @@ func TestModifySharedAccessWithApprover(t *testing.T) {
 		p.Commit = 1
 		//sign transaction
 		if p.SignatureRequired == 1 {
+			p.Commit = 0
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestModifySharedAccessWithApprover] confirm transaction error:", err)
@@ -2818,7 +2819,7 @@ func TestApproveTransaction(t *testing.T) {
 	// }
 	// approvalID := "1f8a4d47-cd71-44f5-8d7b-9eb9326be91f"
 	// approvalID := "6c8d4dd6-d0dc-4dcb-a67f-6e67f643d9d0"
-	approvalID := "b30d6650-f504-477a-af11-d1b723b4627d"
+	approvalID := "10483002-eb80-4725-9a7d-305e61b7c001"
 	fullPath := "/v1/shared-access/approval/" + approvalID
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
