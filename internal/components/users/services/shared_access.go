@@ -458,11 +458,18 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return
 	}
 	viewOnly := make(map[string]string, 0)
+	walletID := userModels.UserWalletID(accessInfo.WalletPublicKey)
+
+	fw, _ := walletID.GetWallet(gc.DB)
+	wallet = &fw
 	var oldNumberOfApprovers int
 	for _, perm := range wallet.Permissions {
 		if perm.Permission == "APPROVER" {
 			oldNumberOfApprovers++
 		}
+	}
+	if oldNumberOfApprovers > 0 {
+		accessInfo.MultiParty = 1
 	}
 	ops := make([]txnbuild.Operation, 0)
 	accessInfo.Messages = make([]string, 0)
@@ -471,7 +478,6 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	var numberOfSubmittedApprovers int
 	var numberOfSubmittedInitiators int
 
-	walletID := userModels.UserWalletID(accessInfo.WalletPublicKey)
 	if wallet.SharedAccessEnabled == 0 {
 		err = &tErrors.CustomError{
 			Param:      "id",
@@ -873,9 +879,9 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	// accessInfo.ModifiedPermissions = modifiedListInfo
 	// accessInfo.AddedPermissions = addedListInfo
 
-	if oldNumberOfApprovers > 0 {
-		accessInfo.MultiParty = 1
-	}
+	// if oldNumberOfApprovers > 0 {
+	// 	accessInfo.MultiParty = 1
+	// }
 	accessInfo.RevokedPermissions = revokedListInfo
 	accessInfo.ModifiedPermissions = modifiedListInfo
 	accessInfo.AddedPermissions = addedListInfo
@@ -883,7 +889,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		err = nil
 		return
 	}
-	if len(accessInfo.TransactionSignature) > 0 && oldNumberOfApprovers == 0 && accessInfo.Commit == 1 {
+	if len(accessInfo.TransactionSignature) > 0 && accessInfo.Commit == 0 {
 		// extract signature and submit transaction
 		//submit to blockchain
 		var txnHash string

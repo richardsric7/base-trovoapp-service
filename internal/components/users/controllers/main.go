@@ -2240,6 +2240,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		log.Printf("[MODIFY SHARED ACCESS] Transaction Signature: [%v]\n", sharedAccessInfo.TransactionSignature)
 		if len(sharedAccessInfo.TransactionID) > 0 {
 			if sharedAccessInfo.TransactionID == "PENDING_AUTH" {
+				wallet, _, _ := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 				//saved to pending auth table for disabling shared access
 				for _, v := range wallet.Permissions {
 					if v.Permission == "APPROVER" {
@@ -2256,7 +2257,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(http.StatusOK, sharedAccessInfo)
 				return
 			}
+			log.Println("notifying walletOwner:", walletOwner.Username)
+			dataPayload := make(map[string]string)
+			dataPayload["link"] = "authPending"
+			walletOwner.SendPushMessage(fmt.Sprintf("Pending Approval: Modify shared access on wallet %v!", wallet.Alias), fmt.Sprintf("You have a pending approval to modify shared access on the wallet %v. Please tap to choose the appropriate action.", wallet.Alias), "", dataPayload, gc)
+
 			c.JSON(http.StatusOK, sharedAccessInfo)
+			return
 
 		} else {
 			c.JSON(http.StatusAccepted, sharedAccessInfo)
