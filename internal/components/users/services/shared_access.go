@@ -711,24 +711,31 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	}
 	{
 		//delete, save and create new records to be sure of what the real state now is.
-		e := dbTX.Delete(&revokedList).Error
-		if e != nil {
-			log.Println("[ModifySharedWalletAccess] error deleting revoked list: ", e)
-			err = &tErrors.ErrorTemporaryServerError{}
-			return
+		if len(revokedList) > 0 {
+			e := dbTX.Delete(&revokedList).Error
+			if e != nil {
+				log.Println("[ModifySharedWalletAccess] error deleting revoked list: ", e)
+				err = &tErrors.ErrorTemporaryServerError{}
+				return
+			}
 		}
-		e = dbTX.Save(&modifiedList).Error
-		if e != nil {
-			log.Println("[ModifySharedWalletAccess] error saving modified list: ", e)
-			err = &tErrors.ErrorTemporaryServerError{}
-			return
+		if len(modifiedList) > 0 {
+			e := dbTX.Save(&modifiedList).Error
+			if e != nil {
+				log.Println("[ModifySharedWalletAccess] error saving modified list: ", e)
+				err = &tErrors.ErrorTemporaryServerError{}
+				return
+			}
 		}
-		e = dbTX.Create(&addedList).Error
-		if e != nil {
-			log.Println("[ModifySharedWalletAccess] error creating added permissions: ", e)
-			err = &tErrors.ErrorTemporaryServerError{}
-			return
+		if len(revokedList) > 0 {
+			e := dbTX.Create(&addedList).Error
+			if e != nil {
+				log.Println("[ModifySharedWalletAccess] error creating added permissions: ", e)
+				err = &tErrors.ErrorTemporaryServerError{}
+				return
+			}
 		}
+
 	}
 	//invalidate all existing cache relating to this wallet
 	wallet.InvalidateUserCache(gc)
