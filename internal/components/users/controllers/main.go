@@ -685,7 +685,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		if walletOwner.PushNotificationToken != nil && len(returnedTrustLineInfo.TransactionID) > 0 && returnedTrustLineInfo.TransactionID != "PENDING_AUTH" {
 			dataPayload := make(map[string]string)
 			dataPayload["route"] = ""
-			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Asset %v Accepted on %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully added the asset [%v] to the list of your trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Asset %v opted in on %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully added the asset [%v] to the list of your trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 
 		//At this point, there was no error.
@@ -724,20 +724,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 		}
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
 
-		if err != nil {
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			if ok {
-				c.JSON(http.StatusBadRequest, ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			}
-			return
-		}
 		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
 		if err != nil {
@@ -793,15 +780,32 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 
-		if walletOwner.PushNotificationToken != nil && len(returnedTrustLineInfo.TransactionID) > 0 && returnedTrustLineInfo.TransactionID != "PENDING_AUTH" {
-			dataPayload := make(map[string]string)
-			dataPayload["route"] = ""
-			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Asset %v opted-in to on %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully opted-in to accept the asset [%v] as a trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		if returnedTrustLineInfo.Commit == 0 {
+			c.JSON(http.StatusAccepted, returnedTrustLineInfo)
+
+			return
 		}
 
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, returnedTrustLineInfo)
+		if returnedTrustLineInfo.TransactionID == "PENDING_AUTH" {
+			//start push notificationMessage
+
+			permissionList := wallet.Permissions
+			for _, v := range permissionList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+				if e != nil {
+					continue
+				}
+
+				dataPayload := make(map[string]string)
+				dataPayload["none"] = ""
+
+				u.SendPushMessage(fmt.Sprintf("%v opt-in request from %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("Request: %v", returnedTrustLineInfo.ReturnedDescription), "", dataPayload, gc)
+
+			}
+		}
 	})
 
 	router.DELETE("/v1/users/asset/opt-out", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
@@ -986,16 +990,31 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 		}
-
-		if signerUser.PushNotificationToken != nil && returnedTrustLineInfo.TransactionID != "PENDING_AUTH" {
-			dataPayload := make(map[string]string)
-			dataPayload["route"] = ""
-			pns.SendFirebaseMessage(*signerUser.PushNotificationToken, fmt.Sprintf("Asset %v opt-out request from %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have requested to opt-out of the asset [%v] from the list of assets that can be received on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		if returnedTrustLineInfo.Commit == 0 {
+			c.JSON(http.StatusAccepted, returnedTrustLineInfo)
+			return
 		}
-
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, returnedTrustLineInfo)
+		if returnedTrustLineInfo.TransactionID == "PENDING_AUTH" {
+			//start push notificationMessage
+
+			permissionList := wallet.Permissions
+			for _, v := range permissionList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+				if e != nil {
+					continue
+				}
+
+				dataPayload := make(map[string]string)
+				dataPayload["none"] = ""
+
+				u.SendPushMessage(fmt.Sprintf("%v opt-out request from %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("Request: %v", returnedTrustLineInfo.ReturnedDescription), "", dataPayload, gc)
+
+			}
+		}
+
 	})
 
 	router.PUT("/v1/users/actions/claim-asset", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
@@ -1096,6 +1115,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		log.Printf("[CLAIM ASSET] Transaction Signature: [%v]\n", pendingAssetToClaim.TransactionSignature)
 		if complete {
 			c.JSON(http.StatusOK, pendingAssetToClaim)
+			dataPayload := make(map[string]string)
+			dataPayload["none"] = ""
+			if len(pendingAssetToClaim.TransactionID) > 0 {
+				walletOwner.SendPushMessage(fmt.Sprintf("%v pending balance on wallet %v has been claimed!", pendingAssetToClaim.AssetCode, wallet.Alias), fmt.Sprintf("%v pending balance rejected", pendingAssetToClaim.AssetCode), "", dataPayload, gc)
+			}
 		} else {
 			c.JSON(http.StatusAccepted, pendingAssetToClaim)
 		}
@@ -1155,7 +1179,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
-		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/users/actions/claim-asset %v", middleware.ExtractPublicKey(c)), gc.DB)
+		conDB.PrintDBStats(fmt.Sprintf("DELETE /v1/users/actions/reject-asset %v", middleware.ExtractPublicKey(c)), gc.DB)
 
 		var pendingAssetToClaim userModels.PendingAssetToClaim
 		// var err error
@@ -1200,6 +1224,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		log.Printf("[REJECT ASSET] Transaction Signature: [%v]\n", pendingAssetToClaim.TransactionSignature)
 		if complete {
 			c.JSON(http.StatusOK, pendingAssetToClaim)
+			dataPayload := make(map[string]string)
+			dataPayload["none"] = ""
+			if len(pendingAssetToClaim.TransactionID) > 0 {
+				walletOwner.SendPushMessage(fmt.Sprintf("%v pending balance rejected on wallet %v!", pendingAssetToClaim.AssetCode, wallet.Alias), fmt.Sprintf("%v pending balance rejected", pendingAssetToClaim.AssetCode), "", dataPayload, gc)
+			}
+
 		} else {
 			c.JSON(http.StatusAccepted, pendingAssetToClaim)
 		}
@@ -1306,7 +1336,27 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		gc.RedisCache.InvalidateCachedHttpResponse(ownerBalanceCacheKey, tempCacheKey, userCacheKey, paymentPaymentHistoryCacheKey, sNFT)
 		log.Printf("[CLAIM ASSET] Transaction Signature: [%v]\n", pendingAssetToClaim.TransactionSignature)
 		if complete {
+
 			c.JSON(http.StatusOK, pendingAssetToClaim)
+			{
+				//start push notificationMessage
+
+				permissionList := wallet.Permissions
+				for _, v := range permissionList {
+					u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+					if e != nil {
+						continue
+					}
+
+					dataPayload := make(map[string]string)
+					dataPayload["none"] = ""
+					if pendingAssetToClaim.TransactionID == "PENDING_AUTH" {
+						u.SendPushMessage(fmt.Sprintf("%v submitted %v request on wallet %v!", signerUser.Username, "ACCEPT PENDING ASSET", wallet.Alias), fmt.Sprintf("Request: %v", pendingAssetToClaim.ReturnedDescription), "", dataPayload, gc)
+
+					}
+
+				}
+			}
 		} else {
 			c.JSON(http.StatusAccepted, pendingAssetToClaim)
 		}
@@ -1414,6 +1464,25 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		log.Printf("[REJECT ASSET] Transaction Signature: [%v]\n", pendingAssetToClaim.TransactionSignature)
 		if complete {
 			c.JSON(http.StatusOK, pendingAssetToClaim)
+			{
+				//start push notificationMessage
+
+				permissionList := wallet.Permissions
+				for _, v := range permissionList {
+					u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+					if e != nil {
+						continue
+					}
+
+					dataPayload := make(map[string]string)
+					dataPayload["none"] = ""
+					if pendingAssetToClaim.TransactionID == "PENDING_AUTH" {
+						u.SendPushMessage(fmt.Sprintf("%v submitted %v request on wallet %v!", signerUser.Username, "REJECT PENDING ASSET", wallet.Alias), fmt.Sprintf("Request: %v", pendingAssetToClaim.ReturnedDescription), "", dataPayload, gc)
+
+					}
+
+				}
+			}
 		} else {
 			c.JSON(http.StatusAccepted, pendingAssetToClaim)
 		}

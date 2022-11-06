@@ -21,6 +21,7 @@ type PendingAssetToClaim struct {
 	TransactionID        string   `json:"transactionId"`
 	NetworkPassPhrase    string   `json:"networkPassPhrase"`
 	Multiparty           int      `json:"-"`
+	ReturnedDescription  string   `json:"-"`
 	Commit               int      `json:"commit"`
 	Messages             []string `json:"messages"`
 }
@@ -32,6 +33,7 @@ type Trustline struct {
 	TransactionID        string   `json:"transactionId"`
 	NetworkPassPhrase    string   `json:"networkPassPhrase"`
 	Multiparty           int      `json:"-"`
+	ReturnedDescription  string   `json:"-"`
 	Commit               int      `json:"commit"`
 	Messages             []string `json:"messages"`
 }

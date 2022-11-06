@@ -103,7 +103,7 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 		if len(pendingAssetToClaim.AssetIssuer) == 56 {
 			assetOfPayment = fmt.Sprintf("%v:%v...%v", pendingAssetToClaim.AssetCode, pendingAssetToClaim.AssetIssuer[0:4], pendingAssetToClaim.AssetIssuer[51:55])
 		}
-		description := fmt.Sprintf("Accept pending asset  %v ", assetOfPayment)
+		description := fmt.Sprintf("Accept & claim pending balance for asset %v.\nMessages:%v", assetOfPayment, pendingAssetToClaim.Messages)
 		transactionByte, _ := json.Marshal(*pendingAssetToClaim)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
@@ -122,8 +122,9 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 		if e != nil {
 			log.Printf("[ClaimPendingAsset] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
-			return pendingAssetToClaim, true, err
+			return pendingAssetToClaim, false, err
 		}
+		pendingAssetToClaim.ReturnedDescription = description
 		return pendingAssetToClaim, true, nil
 
 	}
@@ -205,7 +206,7 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 		if len(pendingAssetToClaim.AssetIssuer) == 56 {
 			assetOfPayment = fmt.Sprintf("%v:%v...%v", pendingAssetToClaim.AssetCode, pendingAssetToClaim.AssetIssuer[0:4], pendingAssetToClaim.AssetIssuer[51:55])
 		}
-		description := fmt.Sprintf("Reject pending asset  %v ", assetOfPayment)
+		description := fmt.Sprintf("Reject pending balance for %v.\nMessages: %v", assetOfPayment, pendingAssetToClaim.Messages)
 		transactionByte, _ := json.Marshal(*pendingAssetToClaim)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
@@ -224,8 +225,9 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 		if e != nil {
 			log.Printf("[ClaimPendingAsset] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
-			return pendingAssetToClaim, true, err
+			return pendingAssetToClaim, false, err
 		}
+		pendingAssetToClaim.ReturnedDescription = description
 		return pendingAssetToClaim, true, nil
 
 	}
@@ -829,12 +831,11 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		trustLineInfo.Multiparty = 1
 	}
+	if wallet.Signer != signerUser.PrimarySigner && trustLineInfo.Multiparty == 1 {
+		return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
 
-	// if wallet.Signer != signerUser.PrimarySigner {
-	// 	return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
+	}
 
-	// }
-	//generatexdr
 	xdrBase64, err := generateTrustAssetXdr(wallet, trustLineInfo, gc)
 	if err != nil {
 		return trustLineInfo, err
@@ -873,7 +874,7 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 		if len(trustLineInfo.AssetIssuer) == 56 {
 			assetOfPayment = fmt.Sprintf("%v:%v...%v", trustLineInfo.AssetCode, trustLineInfo.AssetIssuer[0:4], trustLineInfo.AssetIssuer[51:55])
 		}
-		description := fmt.Sprintf("Trust asset  %v ", assetOfPayment)
+		description := fmt.Sprintf("Opt in asset %v.\nMessages: %v", assetOfPayment, trustLineInfo.Messages)
 		transactionByte, _ := json.Marshal(*trustLineInfo)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{
@@ -890,10 +891,11 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 		//save and commit this to database
 		e := gc.DB.Create(&pendingAuth).Error
 		if e != nil {
-			log.Printf("[TrustAsset] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+			log.Printf("[TrustAsset] Error saving opt in txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
 			err = &tErrors.ErrorTemporaryServerError{}
 			return trustLineInfo, err
 		}
+		trustLineInfo.ReturnedDescription = description
 		return trustLineInfo, nil
 
 	}
@@ -903,32 +905,35 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 
 func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (*userModels.Trustline, error) {
 	trustLineInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
-	if wallet.SharedAccessEnabled == 0 {
-		//managed access not enabled
-		if wallet.Signer != signerUser.PrimarySigner {
-			return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
+	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
+		trustLineInfo.Multiparty = 1
+	}
+	if wallet.Signer != signerUser.PrimarySigner && trustLineInfo.Multiparty == 1 {
+		return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
 
-		}
-		//generatexdr
-		xdrBase64, err := generateRemoveTrustAssetXdr(wallet, trustLineInfo, gc)
-		if err != nil {
-			return trustLineInfo, err
-		}
-		oldTransaction := trustLineInfo.Transaction
-		trustLineInfo.Transaction = xdrBase64
-		if len(trustLineInfo.TransactionSignature) == 0 && trustLineInfo.Commit == 0 {
-			//needs to be signed first
-			return trustLineInfo, nil
-		}
+	}
 
-		if oldTransaction != xdrBase64 && trustLineInfo.Commit == 0 {
-			return trustLineInfo, &tErrors.CustomError{
-				Param:      "transaction",
-				Err:        "transaction mismatch",
-				ErrMessage: "transaction mismatch, please try again",
-				Code:       http.StatusBadRequest,
-			}
+	xdrBase64, err := generateRemoveTrustAssetXdr(wallet, trustLineInfo, gc)
+	if err != nil {
+		return trustLineInfo, err
+	}
+	oldTransaction := trustLineInfo.Transaction
+	trustLineInfo.Transaction = xdrBase64
+	if len(trustLineInfo.TransactionSignature) == 0 && trustLineInfo.Commit == 0 {
+		//needs to be signed first
+		return trustLineInfo, nil
+	}
+	if oldTransaction != xdrBase64 && trustLineInfo.Commit == 0 {
+		return trustLineInfo, &tErrors.CustomError{
+			Param:      "transaction",
+			Err:        "transaction mismatch",
+			ErrMessage: "transaction mismatch, please try again",
+			Code:       http.StatusBadRequest,
 		}
+	}
+
+	if (trustLineInfo.Commit == 0 && wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded == 0) || (wallet.SharedAccessEnabled == 0 && trustLineInfo.Commit == 0) {
+
 		//submit to network
 		txnHash, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, signerUser.PrimarySigner, xdrBase64, trustLineInfo.TransactionSignature)
 		if err != nil {
@@ -936,10 +941,41 @@ func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet
 		}
 		trustLineInfo.TransactionID = txnHash
 		return trustLineInfo, nil
-	} else if wallet.SharedAccessEnabled == 1 {
-		//perform managed access operation and save to table
-		return trustLineInfo, nil
 	}
-	//did not match any of the conditions
+
+	if trustLineInfo.Multiparty == 1 {
+		trustLineInfo.TransactionID = "PENDING_AUTH"
+		log.Printf("[RemoveAssetTrust]shared access with approver permission enabled for %v \n", wallet.Alias)
+		id := uuid.NewString()
+		assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
+		if len(trustLineInfo.AssetIssuer) == 56 {
+			assetOfPayment = fmt.Sprintf("%v:%v...%v", trustLineInfo.AssetCode, trustLineInfo.AssetIssuer[0:4], trustLineInfo.AssetIssuer[51:55])
+		}
+		description := fmt.Sprintf("Opt out asset %v.\nMessages: %v", assetOfPayment, trustLineInfo.Messages)
+		transactionByte, _ := json.Marshal(*trustLineInfo)
+		transactionStr := string(transactionByte)
+		pendingAuth := userModels.PendingAuth{
+			ID:                       id,
+			Initiator:                signerUser.Username,
+			InitiatorSignerPublicKey: signerUser.PrimarySigner,
+			WalletPublicKey:          wallet.ID,
+			TransactionType:          "OPT OUT ASSET",
+			Description:              description,
+			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:           xdrBase64,
+			TransactionInfoStr:       &transactionStr,
+		}
+		//save and commit this to database
+		e := gc.DB.Create(&pendingAuth).Error
+		if e != nil {
+			log.Printf("[RemoveAssetTrust] Error saving opt out txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+			err = &tErrors.ErrorTemporaryServerError{}
+			return trustLineInfo, err
+		}
+		trustLineInfo.ReturnedDescription = description
+		return trustLineInfo, nil
+
+	}
+	// did not match any of the conditions
 	return trustLineInfo, &tErrors.ErrorTemporaryServerError{}
 }
