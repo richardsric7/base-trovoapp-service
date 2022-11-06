@@ -21,6 +21,16 @@ import (
 
 // ClaimPendingAsset claim pending assets
 func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (*userModels.PendingAssetToClaim, bool, error) {
+
+	if len(pendingAssetToClaim.AssetIssuer) == 0 {
+		return pendingAssetToClaim, false, &tErrors.CustomError{
+			Param:      "assetIssuer",
+			Err:        "error-missing-parameter",
+			ErrMessage: "Asset issuer is invalid",
+			Code:       http.StatusBadRequest,
+		}
+	}
+
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		pendingAssetToClaim.Multiparty = 1
 	}
@@ -225,6 +235,14 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 
 func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (string, error) {
 
+	if len(pendingAssetToClaim.AssetIssuer) != 56 {
+		return "", &tErrors.CustomError{
+			Param:      "assetIssuer",
+			Err:        "error-missing-parameter",
+			ErrMessage: "Asset issuer is invalid",
+			Code:       http.StatusBadRequest,
+		}
+	}
 	tempKeyPair, err := network.TempAccountKeypair(wallet.ID)
 	log.Printf("[generatePendingAssetXdr]tempKey: %v, main key: %v, alias: %v\n", tempKeyPair.Address(), wallet.ID, wallet.Alias)
 
@@ -238,7 +256,7 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 
 	asset = txnbuild.NativeAsset{}
 
-	if len(pendingAssetToClaim.AssetCode) > 0 {
+	if len(pendingAssetToClaim.AssetIssuer) > 0 {
 		asset = txnbuild.CreditAsset{Code: pendingAssetToClaim.AssetCode, Issuer: pendingAssetToClaim.AssetIssuer}
 	}
 
@@ -395,7 +413,14 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 }
 
 func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (string, error) {
-
+	if len(pendingAssetToClaim.AssetIssuer) != 56 {
+		return "", &tErrors.CustomError{
+			Param:      "assetIssuer",
+			Err:        "error-missing-parameter",
+			ErrMessage: "Asset issuer is invalid",
+			Code:       http.StatusBadRequest,
+		}
+	}
 	tempKeyPair, err := network.TempAccountKeypair(wallet.ID)
 	log.Printf("[generateRejectPendingAssetXdr]tempKey: %v, main key: %v, alias: %v\n", tempKeyPair.Address(), wallet.ID, wallet.Alias)
 
@@ -419,7 +444,7 @@ func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetTo
 
 	asset = txnbuild.NativeAsset{}
 
-	if len(pendingAssetToClaim.AssetCode) > 0 {
+	if len(pendingAssetToClaim.AssetIssuer) > 0 {
 		asset = txnbuild.CreditAsset{Code: pendingAssetToClaim.AssetCode, Issuer: pendingAssetToClaim.AssetIssuer}
 	}
 
@@ -526,6 +551,14 @@ func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetTo
 }
 
 func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+	if len(trustLineInfo.AssetIssuer) != 56 {
+		return "", &tErrors.CustomError{
+			Param:      "assetIssuer",
+			Err:        "error-missing-parameter",
+			ErrMessage: "Asset issuer is invalid",
+			Code:       http.StatusBadRequest,
+		}
+	}
 	assetIssuer := trustLineInfo.AssetIssuer
 	assetCode := trustLineInfo.AssetCode
 	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
@@ -653,10 +686,18 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 }
 
 func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userModels.Trustline, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+
 	assetIssuer := trustLineInfo.AssetIssuer
 	assetCode := trustLineInfo.AssetCode
 	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
-
+	if len(assetIssuer) != 56 {
+		return "", &tErrors.CustomError{
+			Param:      "assetIssuer",
+			Err:        "error-missing-parameter",
+			ErrMessage: "Asset issuer is invalid",
+			Code:       http.StatusBadRequest,
+		}
+	}
 	if len(assetCode) == 0 || len(assetCode) > 12 || len(assetIssuer) != 56 {
 		return "", &tErrors.CustomError{Param: "assetCode", Err: "error-invalid-asset", ErrMessage: "Asset Supplied is invalid.", Code: http.StatusBadRequest}
 	}

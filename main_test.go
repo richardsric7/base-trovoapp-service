@@ -240,12 +240,14 @@ type SwapSendInfo struct {
 
 // PendingAssetToClaim holds pensing assets to be claimed
 type PendingAssetToClaim struct {
-	AssetCode            string `json:"assetCode"`
-	AssetIssuer          string `json:"assetIssuer"`
-	Transaction          string `json:"transaction"`
-	TransactionSignature string `json:"transactionSignature"`
-	TransactionID        string `json:"transactionId"`
-	NetworkPassPhrase    string `json:"networkPassPhrase"`
+	AssetCode            string   `json:"assetCode"`
+	AssetIssuer          string   `json:"assetIssuer"`
+	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	NetworkPassPhrase    string   `json:"networkPassPhrase"`
+	Commit               int      `json:"commit"`
+	Messages             []string `json:"messages"`
 }
 
 type SecurityQuestion struct {
@@ -1149,7 +1151,7 @@ func TestSendPushNotificationBroadcast(t *testing.T) {
 **/
 
 // TestSendPaymentMultiAccessDisabled sends payment from primary wallet
-func TestAcceptAssetMultiAccessDisabled(t *testing.T) {
+func TestClaimAssetMultiAccessDisabled(t *testing.T) {
 
 	pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
@@ -1251,6 +1253,110 @@ func TestAcceptAssetMultiAccessDisabled(t *testing.T) {
 	}
 	log.Println("[TestAcceptAssetMultiAccessDisabled] completed")
 	time.Sleep(time.Second * 10)
+
+}
+
+// TestClaimAssetMultiAccessEnabled sends payment from primary wallet
+func TestClaimAssetMultiAccessEnabled(t *testing.T) {
+
+	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// fromWallet := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	fromWallet := "GD6IO3P4J2C63Z3VEIH5TVZVDITHKGJMOAKHX6J6TEDA6JEEQCD5GJFN"
+	// fromWallet := "GDW6UKK6RI2LBTGHTDKKXYZKCGPDFBRFDTYSZKGGGE6SC5TCSG3MMJST"
+	// pk := os.Getenv("RICPK")
+	secretKey := os.Getenv("RICSC")
+
+	kp := keypair.MustParseFull(secretKey)
+	// baseURL := devURL
+	baseURL := prodURL
+
+	fullPath := "/v1/shared-access/users/actions/claim-asset"
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	// claimPayload := PendingAssetToClaim{
+	// 	AssetCode:   "ABC",
+	// 	AssetIssuer: "GAD3DZNQY4SXJEUJOPLJZEK3OWTASEUK2LZYT3V7C52UN5QYOFP3PM5P",
+	// }
+
+	// claimPayload := PendingAssetToClaim{
+	// 	AssetCode:   "YAM",
+	// 	AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
+	// }
+
+	claimPayload := PendingAssetToClaim{
+		AssetCode:   "LUMI",
+		AssetIssuer: "GBGUHXVAK32BZTWRBML7RNIQ3532QDR5RRXOJ2P2MGEPHC3YJREMRTLE",
+	}
+	errorResponse := new(ErrorResponse)
+	claimResponse := new(PendingAssetToClaim)
+	log.Println("making request from wallet", fromWallet)
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", fromWallet).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Put(fullPath).BodyJSON(claimPayload).Receive(claimResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestClaimAssetMultiAccessEnabled] server response error:", *errorResponse)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestClaimAssetMultiAccessEnabled]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Claim Response:[%+v]\n", claimResponse)
+
+	{
+		//run the payment signing and submission
+		p := *claimResponse
+		p.Commit = 1
+		//sign transaction
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		log.Printf("Second Claim Payload:[%+v]\n", p)
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", fromWallet).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Put(fullPath).BodyJSON(p).Receive(claimResponse, errorResponse)
+		if len(errorResponse.Error) > 0 {
+			log.Println("[TestClaimAssetMultiAccessEnabled] server 2nd response error:", *errorResponse)
+			t.Errorf(errorResponse.Error)
+			return
+
+		}
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+
+		log.Printf("Make Claim Response:[%+v]\n", claimResponse)
+	}
+	log.Println("[TestClaimAssetMultiAccessEnabled] completed")
 
 }
 func TestSendPaymentMultiAccessDisabled(t *testing.T) {
@@ -2819,7 +2925,7 @@ func TestApproveTransaction(t *testing.T) {
 	// }
 	// approvalID := "1f8a4d47-cd71-44f5-8d7b-9eb9326be91f"
 	// approvalID := "6c8d4dd6-d0dc-4dcb-a67f-6e67f643d9d0"
-	approvalID := "10483002-eb80-4725-9a7d-305e61b7c001"
+	approvalID := "63a130bb-ef61-4f58-85c7-61979560cee9"
 	fullPath := "/v1/shared-access/approval/" + approvalID
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
