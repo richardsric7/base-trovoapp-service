@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
@@ -30,6 +31,7 @@ class _SharedWalletState extends State<SharedWallet>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late TabController _tabController;
+  late RefreshController _refreshController;
   late DataProvider appState;
   late UserInfo userInfo;
   // var nfts;
@@ -40,19 +42,17 @@ class _SharedWalletState extends State<SharedWallet>
   int activeTabIndex = 0;
   late bool localHideBalance;
   var viewData;
-  late Future<Map> responseData;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: tabLength, vsync: this);
+    _refreshController = RefreshController(initialRefresh: false);
     appState = Provider.of<DataProvider>(context, listen: false);
     localHideBalance = appState.hideBalances;
     viewData = appState.viewData![SharedWalletDetailsViewPageConfig.key];
-    responseData = fetchWalletBalance(
-        signer: appState.activeWallet!.signer!,
-        secretKey: appState.secretKeys[0],
-        publicKey: viewData['walletPublicKey']);
+    claimedAssets = viewData!['claimed'];
+    unclaimedAssets = viewData!['unclaimed'];
   }
 
   void tabListener() {
@@ -69,6 +69,26 @@ class _SharedWalletState extends State<SharedWallet>
     appState = Provider.of<DataProvider>(context, listen: true);
     // nfts = appState.nfts;
 
+    // in order to make assets tab length dynamic we have to check
+    // for when we have pending asset and then change the tablength
+    // to 3 or back to 2 when we do not have pending assets.
+    if (unclaimedAssets != null && unclaimedAssets.length > 0) {
+      if (activeTabIndex == _tabController.length - 1) activeTabIndex = 2;
+      tabLength = 3;
+    } else {
+      tabLength = 2;
+      if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
+    }
+
+    if (tabLength != _tabController.length) {
+      // change the length of tabController too or you will have an error
+      _tabController = TabController(length: tabLength, vsync: this);
+      _tabController.addListener(tabListener);
+    }
+    // keep track of the active tab to avoid having it changed
+    // on each page rebuild
+    _tabController.animateTo(activeTabIndex);
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -80,11 +100,16 @@ class _SharedWalletState extends State<SharedWallet>
           notifier.getbluewhitecolor,
           height: height / 15,
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              assetsTabs(),
-            ],
+        body: SmartRefresher(
+          enablePullDown: true,
+          controller: _refreshController,
+          onRefresh: refreshData,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                assetsTabs(),
+              ],
+            ),
           ),
         ),
       ),
@@ -92,98 +117,9 @@ class _SharedWalletState extends State<SharedWallet>
   }
 
   Widget assetsTabs() {
-    return Column(
-      children: [
-        Container(
-            height: height / 1.1,
-            child: FutureBuilder<Map>(
-              future: responseData,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      backgroundColor: notifier.getbluecolor,
-                      valueColor: new AlwaysStoppedAnimation<Color>(
-                        notifier.getgreencolor,
-                      ),
-                      strokeWidth: 3.0,
-                    ),
-                  );
-                } else if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            LanguageEn.somethingwentwrong,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                responseData = fetchWalletBalance(
-                                    signer: appState.activeWallet!.signer!,
-                                    secretKey: appState.secretKeys[0],
-                                    publicKey: viewData['walletPublicKey']);
-                              });
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  notifier.getbluecolor!),
-                            ),
-                            child: Text(
-                              LanguageEn.retry,
-                              style: TextStyle(
-                                fontFamily: fontsemibold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else if (snapshot.hasData) {
-                    claimedAssets = snapshot.data!['assetBalances']['claimed'];
-                    unclaimedAssets =
-                        snapshot.data!['assetBalances']['unclaimed'];
-
-                    // in order to make assets tab length dynamic we have to check
-                    // for when we have pending asset and then change the tablength
-                    // to 3 or back to 2 when we do not have pending assets.
-                    if (unclaimedAssets != null && unclaimedAssets.length > 0) {
-                      if (activeTabIndex == _tabController.length - 1)
-                        activeTabIndex = 2;
-                      tabLength = 3;
-                    } else {
-                      tabLength = 2;
-                      if (activeTabIndex > tabLength - 1)
-                        activeTabIndex = tabLength - 1;
-                    }
-
-                    if (tabLength != _tabController.length) {
-                      // change the length of tabController too or you will have an error
-                      _tabController =
-                          TabController(length: tabLength, vsync: this);
-                      _tabController.addListener(tabListener);
-                    }
-                    // keep track of the active tab to avoid having it changed
-                    // on each page rebuild
-                    _tabController.animateTo(activeTabIndex);
-                    return showWallet();
-                  } else {
-                    return const Text('Empty data');
-                  }
-                } else {
-                  return Text('State: ${snapshot.connectionState}');
-                }
-              },
-            )),
-      ],
+    return Container(
+      height: height / 1.1,
+      child: showWallet(),
     );
   }
 
@@ -646,6 +582,16 @@ class _SharedWalletState extends State<SharedWallet>
       text = balance;
 
     return text;
+  }
+
+  refreshData() async {
+    var responseData = await fetchWalletBalance(
+        signer: appState.activeWallet!.signer!,
+        secretKey: appState.secretKeys[0],
+        publicKey: viewData['walletPublicKey']);
+
+    claimedAssets = responseData['assetBalances']['claimed'];
+    unclaimedAssets = responseData['assetBalances']['unclaimed'];
   }
 
   // we need to check that the username entered here is a valid

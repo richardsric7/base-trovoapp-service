@@ -281,9 +281,15 @@ class DataProvider with ChangeNotifier {
     String? query,
   }) async {
     try {
-      print('fetching history for: ${activeWallet!.publicKey!}');
-      var uri =
-          '/v1/users/payments/${activeWallet!.publicKey}?limit=$limit${query}';
+      // viewData![PaymentHistoryViewPageConfig.key] will not be null when the
+      // the payment history view is opened from shared wallet. So we use the
+      // viewData to get the public key of the shared wallet and fetch its transaction
+      // history.
+      var publicKey = viewData![PaymentHistoryViewPageConfig.key] != null
+          ? viewData![PaymentHistoryViewPageConfig.key]['walletPublicKey']
+          : activeWallet!.publicKey!;
+      print('================fetching history for: $publicKey!');
+      var uri = '/v1/users/payments/${publicKey}?limit=$limit${query}';
       if (!filterAsset.contains("*")) {
         var splitAssetInfo = filterAsset.split("|");
         uri +=
@@ -292,7 +298,7 @@ class DataProvider with ChangeNotifier {
       Map responseData = await makeGetRequest(
           uri: uri,
           signer: activeWallet!.signer!,
-          publicKey: activeWallet!.publicKey!,
+          publicKey: publicKey,
           secretKey: secretKeys[0]);
 
       print('response: ${responseData['data']}');

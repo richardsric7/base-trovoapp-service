@@ -35,6 +35,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   Wallet? activeWallet;
   dynamic selectedWallet = '';
   var claimedAssets;
+  late bool isSharedWallet;
   bool showFilter = false;
   late List<TransactionInfo>? historyData;
   var filterTypesMap = {
@@ -50,13 +51,6 @@ class Payment_HistoryState extends State<PaymentHistory>
   ScrollController scrollController = new ScrollController();
 
   FilterType filterType = FilterType.TransactionType;
-
-  var dateRangeItems = <String>[
-    "Past week",
-    "Past month",
-    "Past 3 months",
-    "Custom"
-  ];
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
     var dropdownItems = wallets!
@@ -97,23 +91,6 @@ class Payment_HistoryState extends State<PaymentHistory>
     });
 
     return items;
-  }
-
-  List<DropdownMenuItem<String>> get dateRangeDropdownItems {
-    return dateRangeItems
-        .map<DropdownMenuItem<String>>((type) => DropdownMenuItem(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  type,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-            value: type))
-        .toList();
   }
 
   List<DropdownMenuItem<String>> get assetsDropdownItems {
@@ -184,7 +161,14 @@ class Payment_HistoryState extends State<PaymentHistory>
     selectedWallet = activeWallet!.publicKey;
     historyData = appState.historyData;
     var assetBalances = appState.assetBalances;
-    claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
+    isSharedWallet =
+        appState.viewData![PaymentHistoryViewPageConfig.key] != null;
+
+    // if this page is viewed from shared wallet then get the claimed assets
+    // from viewData
+    claimedAssets = isSharedWallet
+        ? appState.viewData![PaymentHistoryViewPageConfig.key]['claimed']
+        : assetBalances[activeWallet!.publicKey]['claimed'];
 
     return ScreenUtilInit(
       builder: (context, child) => DefaultTabController(
@@ -194,6 +178,19 @@ class Payment_HistoryState extends State<PaymentHistory>
           backgroundColor: notifier.getwihitecolor,
           appBar: AppBar(
             centerTitle: true,
+            // this part will only appear when we are viewing payment history
+            // from shared wallet in which case appState.viewData![PaymentHistoryViewPageConfig.key]
+            // will not be null;
+            leading: isSharedWallet
+                ? GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      appState.viewData![PaymentHistoryViewPageConfig.key] =
+                          null;
+                    },
+                    child: Image.asset("assets/images/back.png", scale: 5),
+                  )
+                : null,
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -238,33 +235,37 @@ class Payment_HistoryState extends State<PaymentHistory>
                         SizedBox(
                           width: width / 50,
                         ),
-                        Expanded(
-                          flex: 2,
-                          child: dropdown(
-                            (newValue) async {
-                              selectedWallet = newValue!;
-                              appState.filterAsset = "*|*";
-                              appState.activeWallet = wallets!.firstWhere(
-                                  (wallet) => wallet.publicKey == newValue);
-                              showLoader(context);
-                              appState.limit = 20;
-                              appState.totalRecords = 0;
-                              appState.currentPage = 1;
-                              await appState.getHistory(
-                                context,
-                                onDone: () => adjustScrollPosition(),
-                              );
-                              hideLoader(context);
+                        // hide the dropdown when we view this page from shared
+                        // wallet
+                        if (!isSharedWallet) ...[
+                          Expanded(
+                            flex: 2,
+                            child: dropdown(
+                              (newValue) async {
+                                selectedWallet = newValue!;
+                                appState.filterAsset = "*|*";
+                                appState.activeWallet = wallets!.firstWhere(
+                                    (wallet) => wallet.publicKey == newValue);
+                                showLoader(context);
+                                appState.limit = 20;
+                                appState.totalRecords = 0;
+                                appState.currentPage = 1;
+                                await appState.getHistory(
+                                  context,
+                                  onDone: () => adjustScrollPosition(),
+                                );
+                                hideLoader(context);
 
-                              if (mounted) {
-                                setState(() {});
-                              }
-                            },
-                            walletDropdownItems,
-                            selectedWallet,
-                            null,
+                                if (mounted) {
+                                  setState(() {});
+                                }
+                              },
+                              walletDropdownItems,
+                              selectedWallet,
+                              null,
+                            ),
                           ),
-                        ),
+                        ],
                         Expanded(
                           flex: 2,
                           child: dropdown((newValue) async {
@@ -334,7 +335,9 @@ class Payment_HistoryState extends State<PaymentHistory>
   Widget listHistory() {
     if (historyData != null && historyData!.length > 0) {
       return Container(
-        height: showFilter ? height / 1.5523 : height / 1.24,
+        height: isSharedWallet
+            ? (showFilter ? height / 1.3950 : height / 1.14)
+            : (showFilter ? height / 1.5523 : height / 1.24),
         child: LoadMore(
           isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {
@@ -442,7 +445,7 @@ class Payment_HistoryState extends State<PaymentHistory>
           page: PaymentDetailsViewPageConfig,
         );
 
-        appState.viewData = {PaymentDetailsViewPageConfig.key: transaction};
+        appState.viewData![PaymentDetailsViewPageConfig.key] = transaction;
       },
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
@@ -1152,6 +1155,13 @@ class Payment_HistoryState extends State<PaymentHistory>
         );
         break;
     }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    print('disposing...');
+    appState.viewData![PaymentHistoryViewPageConfig.key] = null;
   }
 }
 
