@@ -2894,7 +2894,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 }
 
 func TestApproveTransaction(t *testing.T) {
-approvalID := "3c4e23fc-2797-4814-ad19-6cb5f1cbce26"
+approvalID := "2c280390-2da2-4b09-ad4f-0e759daa4f99"
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk := os.Getenv("RICPK")
