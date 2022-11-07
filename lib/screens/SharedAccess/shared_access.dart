@@ -1,11 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/Permission.dart';
+import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
@@ -34,6 +36,7 @@ class _SharedAccessState extends State<SharedAccess>
   TextEditingController approversController = TextEditingController();
   TextEditingController initiatorsController = TextEditingController();
   final approversFormKey = GlobalKey<FormState>();
+  late RefreshController _refreshController;
 
   List<Wallet>? wallets;
   Wallet? activeWallet;
@@ -155,6 +158,7 @@ class _SharedAccessState extends State<SharedAccess>
     super.initState();
     getdarkmodepreviousstate();
     _tabController = TabController(length: 3, vsync: this);
+    _refreshController = RefreshController(initialRefresh: false);
   }
 
   @override
@@ -198,50 +202,55 @@ class _SharedAccessState extends State<SharedAccess>
           ),
           preferredSize: Size.fromHeight(height / 15),
         ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12.0, 20, 10.0),
-              child: TabBar(
-                controller: _tabController,
-                labelColor: notifier.getbluewhitecolor,
-                indicatorColor: notifier.getbluewhitecolor,
-                labelStyle: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: fontsemibold,
+        body: SmartRefresher(
+          enablePullDown: true,
+          controller: _refreshController,
+          onRefresh: refreshData,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12.0, 20, 10.0),
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: notifier.getbluewhitecolor,
+                  indicatorColor: notifier.getbluewhitecolor,
+                  labelStyle: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: fontsemibold,
+                  ),
+                  tabs: [
+                    Tab(
+                      height: 50,
+                      text: LanguageEn.accesslist,
+                    ),
+                    Tab(
+                      height: 50,
+                      text: LanguageEn.pendingapprovals,
+                    ),
+                    Tab(
+                      height: 50,
+                      text: LanguageEn.grantaccess,
+                    ),
+                  ],
                 ),
-                tabs: [
-                  Tab(
-                    height: 50,
-                    text: LanguageEn.accesslist,
-                  ),
-                  Tab(
-                    height: 50,
-                    text: LanguageEn.pendingapprovals,
-                  ),
-                  Tab(
-                    height: 50,
-                    text: LanguageEn.grantaccess,
-                  ),
-                ],
               ),
-            ),
-            Container(
-              height: height / 1.22,
-              child: TabBarView(controller: _tabController, children: [
-                SingleChildScrollView(
-                  child: accessList(),
-                ),
-                SingleChildScrollView(
-                  child: pendingApprovals(),
-                ),
-                SingleChildScrollView(
-                  child: grantAccess(),
-                ),
-              ]),
-            ),
-          ],
+              Container(
+                height: height / 1.22,
+                child: TabBarView(controller: _tabController, children: [
+                  SingleChildScrollView(
+                    child: accessList(),
+                  ),
+                  SingleChildScrollView(
+                    child: pendingApprovals(),
+                  ),
+                  SingleChildScrollView(
+                    child: grantAccess(),
+                  ),
+                ]),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -408,12 +417,13 @@ class _SharedAccessState extends State<SharedAccess>
                   // the user selected
                   var filteredWallets = <Wallet>[];
                   wallets!.forEach((wallet) {
-                    wallet.permissions!.forEach((permissionObj) {
+                    for (var permissionObj in wallet.permissions!) {
                       if (filter == 'ALL' ||
                           permissionObj.permission == filter) {
                         filteredWallets.add(wallet);
+                        break;
                       }
-                    });
+                    }
                   });
                   return Column(
                     children: [
@@ -1117,6 +1127,20 @@ class _SharedAccessState extends State<SharedAccess>
             if (username.isEmpty) {
               viewerUsernameErrorMessage = 'Please enter a username';
               setState(() {});
+              return;
+            }
+
+            if (appState.userInfo!.username == username) {
+              // viewerUsernameErrorMessage =
+              //     'You cannot add yourself as a viewer on this wallet because as the owner of this wallet you already have view access';
+              // setState(() {});
+              popup(
+                context,
+                title: 'Error!',
+                message:
+                    'You cannot add yourself as a viewer on this wallet because as the owner of this wallet you already have view access.',
+                bodyColor: Colors.red,
+              );
               return;
             }
 
@@ -2062,6 +2086,15 @@ class _SharedAccessState extends State<SharedAccess>
       popup(context, title: LanguageEn.error, message: e.toString());
       hideLoader(context);
       return null;
+    }
+  }
+
+  void refreshData() async {
+    try {
+      await appState.refreshData();
+      _refreshController.refreshCompleted();
+    } catch (e) {
+      _refreshController.refreshFailed();
     }
   }
 }
