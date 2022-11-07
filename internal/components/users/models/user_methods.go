@@ -840,10 +840,6 @@ func (u *User) BuildNewSubWallet(subWalletPublicKey, walletTag, walletDescriptio
 	return userSubWallet, nil
 }
 
-// func (id UserWalletSharedAccessID) String() string {
-// 	return string(id)
-// }
-
 func (id UserWalletID) String() string {
 	return string(id)
 }
@@ -888,15 +884,15 @@ func (publicKey UserSigner) GetOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig)
 	}
 
 	// log.Printf("user for %v is %v\n", userInfo, user)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, signerOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, signerOwner, 2000)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", signerOwner.Username)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, signerOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, signerOwner, 2000)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", signerOwner.Email)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, signerOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, signerOwner, 2000)
 	cacheKeySigner := fmt.Sprintf("userObj %v", signerOwner.PrimarySigner)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, signerOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, signerOwner, 2000)
 	cacheKeyUserID := fmt.Sprintf("userObj %v", signerOwner.ID)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, signerOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, signerOwner, 2000)
 	return
 }
 
@@ -1153,15 +1149,15 @@ func (u *UserWallet) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig) 
 		}
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, walletOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, walletOwner, 2000)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", walletOwner.Username)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, walletOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, walletOwner, 2000)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", walletOwner.Email)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, walletOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, walletOwner, 2000)
 	cacheKeySigner := fmt.Sprintf("userObj %v", walletOwner.PrimarySigner)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, walletOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, walletOwner, 2000)
 	cacheKeyUserID := fmt.Sprintf("userObj %v", walletOwner.ID)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, walletOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, walletOwner, 2000)
 	return
 }
 
@@ -1368,15 +1364,15 @@ func (id UserWalletID) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig
 		}
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, walletOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, walletOwner, 2000)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", walletOwner.Username)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, walletOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, walletOwner, 2000)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", walletOwner.Email)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, walletOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, walletOwner, 2000)
 	cacheKeySigner := fmt.Sprintf("userObj %v", walletOwner.PrimarySigner)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, walletOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, walletOwner, 2000)
 	cacheKeyUserID := fmt.Sprintf("userObj %v", walletOwner.ID)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, walletOwner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, walletOwner, 2000)
 	return
 }
 
@@ -1429,15 +1425,15 @@ func (u Username) GetFullUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (owner
 		}
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, owner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, owner, 2000)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", owner.Username)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, owner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, owner, 2000)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", owner.Email)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, owner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, owner, 2000)
 	cacheKeySigner := fmt.Sprintf("userObj %v", owner.PrimarySigner)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, owner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, owner, 2000)
 	cacheKeyUserID := fmt.Sprintf("userObj %v", owner.ID)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, owner, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, owner, 2000)
 	return
 }
 
@@ -1607,7 +1603,7 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 
 	}
 	//save to cache
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, thirdPartyWallets, 120)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, thirdPartyWallets, 2000)
 
 	return
 }
@@ -1762,7 +1758,8 @@ func (u *User) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	cacheKeyEmail := fmt.Sprintf("userObj %v", u.Email)
 	cacheKeySigner := fmt.Sprintf("userObj %v", u.PrimarySigner)
 	cacheKeyUserID := fmt.Sprintf("userObj %v", u.ID)
-	gc.RedisCache.DeleteFromCache(cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID)
+	cacheKeyPShared := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", u.ID)
+	gc.RedisCache.DeleteFromCache(cacheKeyPShared, cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID)
 
 	gc.RedisCache.DeleteFromCache(cacheKey1)
 	u.InvalidateUserWalletCache(gc)
@@ -1789,7 +1786,8 @@ func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
 		cacheKeyUserID := fmt.Sprintf("userObj %v", w.UserID)
 		cacheKeyWalletAlias := fmt.Sprintf("walletObj_%v", w.Alias)
 		cacheKeyWalletID := fmt.Sprintf("walletObj_%v", w.ID)
-		gc.RedisCache.DeleteFromCache(cacheKeyWalletAlias, cacheKeyWalletID, cacheKey1, cacheKey2, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID)
+		cacheKeyPShared := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", w.UserID)
+		gc.RedisCache.DeleteFromCache(cacheKeyPShared, cacheKeyWalletAlias, cacheKeyWalletID, cacheKey1, cacheKey2, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID)
 
 	}
 

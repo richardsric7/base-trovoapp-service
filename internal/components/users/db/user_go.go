@@ -64,15 +64,15 @@ func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user 
 	}
 
 	// log.Printf("user for %v is %v\n", userInfo, user)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, user, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, user, 2000)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", user.Username)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, user, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, user, 2000)
 	cacheKeyEmail := fmt.Sprintf("userObj %v", user.Email)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, user, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, user, 2000)
 	cacheKeySigner := fmt.Sprintf("userObj %v", user.PrimarySigner)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, user, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, user, 2000)
 	cacheKeyUserID := fmt.Sprintf("userObj %v", user.ID)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, user, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, user, 2000)
 
 	return user, nil
 
@@ -165,9 +165,15 @@ func GetUserFromPrimarySigner(publicKey string, db *gorm.DB, gc *sharedconfig.Gl
 		}
 	}
 	// discord.Say(fmt.Sprintf("[PublicKeyIsBanned] publicKey: %v is banned\n", publicKey))
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, user, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeySigner, user, 2000)
 	cacheKeyUsername := fmt.Sprintf("userObj %v", user.Username)
-	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, user, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUsername, user, 2000)
+
+	cacheKeyEmail := fmt.Sprintf("userObj %v", user.Email)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyEmail, user, 2000)
+
+	cacheKeyUserID := fmt.Sprintf("userObj %v", user.ID)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyUserID, user, 2000)
 	return user, nil
 
 }
@@ -207,7 +213,9 @@ func InvalidateUserWalletCache(userAccount *userModels.User, gc *sharedconfig.Gl
 		cacheKey4 := fmt.Sprintf("userObj %v", w.ID)
 		cacheKeySigner := fmt.Sprintf("userObj %v", w.Signer)
 		cacheKeyUserID := fmt.Sprintf("userObj %v", w.UserID)
-		gc.RedisCache.DeleteFromCache(cacheKey1, cacheKey2, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID)
+		cacheKeyWalletAlias := fmt.Sprintf("walletObj_%v", w.Alias)
+		cacheKeyWalletID := fmt.Sprintf("walletObj_%v", w.ID)
+		gc.RedisCache.DeleteFromCache(cacheKeyWalletAlias, cacheKeyWalletID, cacheKey1, cacheKey2, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID)
 
 	}
 
