@@ -55,7 +55,9 @@ func GetUserInfo(identifier string, signerPublicKey string, gc *sharedconfig.Glo
 	//Get user wallet balances
 	if owner {
 		userInfo.AssetBalances = make(map[string]userModels.AssetBalances)
-		assetBalances, err := GetUserWalletAssetBalances(&user, gc)
+
+		// assetBalances, err := GetUserWalletAssetBalances(&user, gc)
+		assetBalances, err := user.GetUserWalletAssetBalances(gc)
 		if err == nil {
 			userInfo.AssetBalances = assetBalances
 		}

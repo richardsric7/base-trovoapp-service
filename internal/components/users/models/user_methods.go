@@ -258,7 +258,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 		wg.Wait()
 	}
 	//save to cache
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, balances, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, balances, 240)
 	return balances, nil
 }
 func (u *User) GetUserNFTs(gc *sharedconfig.GlobalConfig) (userNFTs map[string][]NFT, err error) {
@@ -432,6 +432,65 @@ func (u *UserWallet) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (asse
 
 	}(u, &wg, &m)
 	wg.Wait()
+
+	return
+}
+
+func (u *User) GetUserWalletAssetBalances(gc *sharedconfig.GlobalConfig) (userWalletBalances map[string]AssetBalances, err error) {
+
+	// userWalletBalances = make(map[string]userModels.AssetBalances)
+	userWalletBalances = make(map[string]AssetBalances)
+	for _, wallet := range u.UserWallets {
+
+		var wg sync.WaitGroup
+		var m sync.Mutex
+		//use go routine to fetch
+
+		var assetBalances AssetBalances
+		// assetBalances.Unclaimed = make(map[string]userModels.Balance)
+		assetBalances.Unclaimed = make([]Balance, 0)
+		// assetBalances.Claimed = make(map[string]userModels.Balance)
+		assetBalances.Claimed = make([]Balance, 0)
+
+		wg.Add(1)
+		go func(vg1 UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
+			defer w.Done()
+			unclaimedBalance, errR1 := vg1.GetSortedUserBalance(true, gc)
+
+			if errR1 == nil {
+				//Unclaimed Assets
+				ml.Lock()
+				assetBalances.Unclaimed = unclaimedBalance
+				ml.Unlock()
+
+			}
+		}(wallet, &wg, &m)
+		wg.Add(1)
+		go func(vg2 UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
+			defer w.Done()
+			claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(false, gc)
+
+			if errR1 != nil {
+				//log server error
+				log.Printf("[GetUserWalletAssetBalances] error getting claimed wallet balance for user:[%s] wallet:[%s] error:[%+v]\n", u.Username, vg2.ID, errR1)
+
+			}
+			//Claimed Assets
+			ml.Lock()
+			assetBalances.Claimed = claimedWalletBalance
+			ml.Unlock()
+
+		}(wallet, &wg, &m)
+		wg.Wait()
+		// log.Printf("[GetUserWalletAssetBalances] finished user wallet balance:[%+v]\n", assetBalances)
+		m.Lock()
+		userWalletBalances[wallet.ID] = assetBalances
+		m.Unlock()
+
+		// log.Println("exited inner wait")
+
+	}
+	// log.Println("done...")
 
 	return
 }
