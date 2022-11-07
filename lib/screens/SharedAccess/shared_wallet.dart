@@ -269,18 +269,19 @@ class _SharedWalletState extends State<SharedWallet>
                                   setState(() {
                                     activeTabIndex = _tabController.index;
                                   });
-                                  appState.viewData = {
-                                    // since the original asset object
-                                    // is immutable I create a new assetObj and
-                                    // copy all the data into it so that
-                                    // I'll be able to change the data
-                                    PendingAssetDetailsViewPageConfig.key: {
-                                      'assetCode': asset['assetCode'],
-                                      'assetIssuer': asset['assetIssuer'],
-                                      'amount': asset['amount'],
-                                      'qrCode': asset['qrCode'],
-                                      'imageUrl': asset['imageUrl'],
-                                    }
+                                  // since the original asset object
+                                  // is immutable I create a new assetObj and
+                                  // copy all the data into it so that
+                                  // I'll be able to change the data
+                                  appState.viewData![
+                                      PendingAssetDetailsViewPageConfig.key] = {
+                                    'assetCode': asset['assetCode'],
+                                    'assetIssuer': asset['assetIssuer'],
+                                    'amount': asset['amount'],
+                                    'qrCode': asset['qrCode'],
+                                    'imageUrl': asset['imageUrl'],
+                                    'walletInfo': viewData,
+                                    'rel': SharedWalletDetailsViewPageConfig.key
                                   };
                                   appState.currentAction = PageAction(
                                     state: PageState.addPage,
@@ -585,13 +586,18 @@ class _SharedWalletState extends State<SharedWallet>
   }
 
   refreshData() async {
-    var responseData = await fetchWalletBalance(
-        signer: appState.activeWallet!.signer!,
-        secretKey: appState.secretKeys[0],
-        publicKey: viewData['walletPublicKey']);
+    try {
+      var responseData = await fetchWalletBalance(
+          signer: appState.activeWallet!.signer!,
+          secretKey: appState.secretKeys[0],
+          publicKey: viewData['walletPublicKey']);
 
-    claimedAssets = responseData['assetBalances']['claimed'];
-    unclaimedAssets = responseData['assetBalances']['unclaimed'];
+      claimedAssets = responseData['assetBalances']['claimed'];
+      unclaimedAssets = responseData['assetBalances']['unclaimed'];
+      _refreshController.refreshCompleted();
+    } catch (e) {
+      _refreshController.refreshFailed();
+    }
   }
 
   // we need to check that the username entered here is a valid
