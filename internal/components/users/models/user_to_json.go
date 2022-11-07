@@ -175,6 +175,7 @@ func (a *PendingAuth) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj AuthJSON) {
 		UpdatedAt:           a.UpdatedAt,
 		ID:                  a.ID,
 		WalletOwnerUsername: walletOwnerUsername,
+		WalletPublicKey:     a.WalletPublicKey,
 		Alias:               walletAlias,
 		Initiator:           a.Initiator,
 		TransactionType:     a.TransactionType,
