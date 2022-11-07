@@ -2620,7 +2620,7 @@ func TestRemoveSharedAccessOnReadOnly(t *testing.T) {
 }
 
 func TestModifySharedAccess(t *testing.T) {
-
+	//
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk :=  os.Getenv("RICPK")
@@ -2666,7 +2666,7 @@ func TestModifySharedAccess(t *testing.T) {
 	addedList = append(addedList,
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
-			TargetUsername:  "onoja",
+			TargetUsername:  "efizee",
 			Permission:      "APPROVER"})
 
 	// modifyList = append(modifyList,
@@ -2694,8 +2694,9 @@ func TestModifySharedAccess(t *testing.T) {
 	// revokeList = append(revokeList,
 	// 	WalletPermissionInfo{
 	// 		WalletPublicKey: accessToWallet,
-	// 		TargetUsername:  "kenmaddy",
+	// 		TargetUsername:  "onoja",
 	// 		Permission:      "INITIATOR"})
+
 	payload.AddedPermissions = addedList
 	payload.RevokedPermissions = revokeList
 	payload.ModifiedPermissions = modifyList
@@ -2894,7 +2895,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 }
 
 func TestApproveTransaction(t *testing.T) {
-	approvalID := "2c280390-2da2-4b09-ad4f-0e759daa4f99"
+	approvalID := "d21601d0-7bd9-41b3-ad8c-f3d6349bf8b7"
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk := os.Getenv("RICPK")
@@ -3015,7 +3016,7 @@ func TestApproveTransaction(t *testing.T) {
 
 }
 func TestRejectTransaction(t *testing.T) {
-	approvalID := "35b43758-8925-4f2d-b2b7-dc9ed96e5e9d"
+	approvalID := "d21601d0-7bd9-41b3-ad8c-f3d6349bf8b7"
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk := os.Getenv("RICPK")

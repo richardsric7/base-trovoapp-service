@@ -52,6 +52,16 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 		}
 	}
 
+	err = gc.DB.Where("transaction_type = 'ACCEPT PENDING ASSET' AND transaction_status = 'PENDING' AND wallet_public_key = ? AND description like ?", wallet.ID, "%"+pendingAssetToClaim.AssetCode+":%").First(&userModels.PendingAuth{}).Error
+	if err == nil {
+		return pendingAssetToClaim, false, &tErrors.CustomError{
+			Param:      "assetCode",
+			Err:        "error-duplicate-entry",
+			ErrMessage: "There is already a pending asset claim request. Please fulfil that one first. or reject it before continuing.",
+			Code:       http.StatusBadRequest,
+		}
+	}
+
 	horizonClient := network.GetBlockchainClient()
 
 	xdrBase64, err := generateClaimPendingAssetXdr(wallet, pendingAssetToClaim, gc)
