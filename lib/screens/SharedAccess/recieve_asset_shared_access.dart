@@ -3,14 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_share/flutter_share.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
-import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -19,19 +17,20 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class RequestSpecificPaymentDetails extends StatefulWidget {
-  const RequestSpecificPaymentDetails({Key? key}) : super(key: key);
+class RecieveAssetSharedWallet extends StatefulWidget {
+  const RecieveAssetSharedWallet({Key? key}) : super(key: key);
 
   @override
-  State<RequestSpecificPaymentDetails> createState() =>
-      RequestSpecificPaymentDetailsState();
+  State<RecieveAssetSharedWallet> createState() =>
+      _RecieveAssetSharedWalletState();
 }
 
-class RequestSpecificPaymentDetailsState
-    extends State<RequestSpecificPaymentDetails> with TickerProviderStateMixin {
+class _RecieveAssetSharedWalletState extends State<RecieveAssetSharedWallet>
+    with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
   var viewData;
+  var walletDetails;
 
   @override
   void initState() {
@@ -44,26 +43,21 @@ class RequestSpecificPaymentDetailsState
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    viewData =
-        appState.viewData![RequestSpecificPaymentDetailsViewPageConfig.key];
+    viewData = appState.viewData![RecieveAssetSharedWalletViewPageConfig.key];
+    walletDetails = viewData['walletInfo'];
+
+    print('viewData: ${walletDetails}');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(height / 15),
-          child: AppBar(
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: notifier.getwihitecolor,
-            leading: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset("assets/images/back.png", scale: 5),
-            ),
-          ),
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          'Shared Wallet',
+          notifier.getbluewhitecolor,
+          height: height / 15,
         ),
         body: SingleChildScrollView(
           child: Column(
@@ -77,7 +71,7 @@ class RequestSpecificPaymentDetailsState
                     width: 20,
                   ),
                   Text(
-                    "Receive ${viewData['amount']} ${getAssetCode(viewData['assetCode'])}",
+                    "Receive " + getAssetCode(viewData['assetCode']),
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -93,18 +87,33 @@ class RequestSpecificPaymentDetailsState
               SizedBox(
                 height: height / 50,
               ),
-              if (viewData['memo'].toString().isNotEmpty) ...[
-                showMemo(),
-              ],
+              showPublicKey(),
+              SizedBox(
+                height: height / 50,
+              ),
               showQrCode(),
               SizedBox(
                 height: height / 20,
               ),
               Button(
-                LanguageEn.share,
+                LanguageEn.requestspecificamount,
                 notifier.getbluecolor,
                 wihitecolor,
-                onTap: share,
+                onTap: () {
+                  appState.viewData![RequestSpecificPaymentViewPageConfig.key] =
+                      appState.viewData![
+                          RecieveAssetSharedWalletViewPageConfig.key];
+                  // add the public key that the payment will be made into
+                  appState.viewData![RequestSpecificPaymentViewPageConfig.key]
+                      ['publicKey'] = walletDetails['walletPublicKey'];
+                  // add the name of the alias of the wallet
+                  appState.viewData![RequestSpecificPaymentViewPageConfig.key]
+                      ['walletAlias'] = walletDetails['walletAlias'];
+
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: RequestSpecificPaymentViewPageConfig);
+                },
               ),
               SizedBox(height: height / 50.5),
               ButtonOutlined(
@@ -124,16 +133,6 @@ class RequestSpecificPaymentDetailsState
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> share() async {
-    // var label = await FirebaseRemoteConfig.instance
-    //     .getString('wallet_referral_share_label');
-    await FlutterShare.share(
-      title: 'Trovo Wallet',
-      text:
-          'Tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${viewData['walletAlias']}] => ${viewData['dynamicLink']}',
     );
   }
 
@@ -158,7 +157,7 @@ class RequestSpecificPaymentDetailsState
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    LanguageEn.receivingwallet,
+                    'Receiving Wallet',
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -167,7 +166,7 @@ class RequestSpecificPaymentDetailsState
                   ),
                   SizedBox(height: height / 90),
                   Text(
-                    viewData['walletAlias'],
+                    walletDetails['walletAlias'],
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
@@ -183,7 +182,7 @@ class RequestSpecificPaymentDetailsState
     );
   }
 
-  Padding showMemo() {
+  Padding showPublicKey() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
       child: Container(
@@ -204,7 +203,7 @@ class RequestSpecificPaymentDetailsState
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    LanguageEn.formemo,
+                    LanguageEn.receivefromnontrovowallet,
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -217,13 +216,25 @@ class RequestSpecificPaymentDetailsState
                       Container(
                         width: 250,
                         child: Text(
-                          viewData['memo'],
+                          walletDetails['walletPublicKey'],
                           style: TextStyle(
-                              fontSize: 20,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: notifier.getbluewhitecolor,
                               fontFamily: fontsemibold),
                         ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          Clipboard.setData(
+                            ClipboardData(
+                              text: walletDetails['walletPublicKey'],
+                            ),
+                          );
+                          showSnackBar('Public key', context);
+                        },
+                        icon: Icon(Icons.copy,
+                            size: 20, color: notifier.getbluewhitecolor),
                       ),
                     ],
                   ),

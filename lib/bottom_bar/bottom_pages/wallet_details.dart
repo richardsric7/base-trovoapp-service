@@ -187,20 +187,19 @@ class _WalletDetailsState extends State<WalletDetails>
                                   for (var asset in claimedAssets) ...[
                                     GestureDetector(
                                         onTap: () {
-                                          appState.viewData = {
-                                            // since the original asset object
-                                            // is immutable I create a new assetObj and
-                                            // copy all the data into it so that
-                                            // I'll be able to change the data
-                                            AssetDetailsViewPageConfig.key: {
-                                              'assetCode': asset['assetCode'],
-                                              'assetIssuer':
-                                                  asset['assetIssuer'],
-                                              'amount': asset['amount'],
-                                              'usdPrice': asset['usdPrice'],
-                                              'qrCode': asset['qrCode'],
-                                              'imageUrl': asset['imageUrl'],
-                                            }
+                                          // since the original asset object
+                                          // is immutable I create a new assetObj and
+                                          // copy all the data into it so that
+                                          // I'll be able to change the data
+                                          appState.viewData![
+                                              AssetDetailsViewPageConfig
+                                                  .key] = {
+                                            'assetCode': asset['assetCode'],
+                                            'assetIssuer': asset['assetIssuer'],
+                                            'amount': asset['amount'],
+                                            'usdPrice': asset['usdPrice'],
+                                            'qrCode': asset['qrCode'],
+                                            'imageUrl': asset['imageUrl'],
                                           };
                                           appState.currentAction = PageAction(
                                             state: PageState.addPage,
@@ -264,20 +263,18 @@ class _WalletDetailsState extends State<WalletDetails>
                                             activeTabIndex =
                                                 _tabController.index;
                                           });
-                                          appState.viewData = {
-                                            // since the original asset object
-                                            // is immutable I create a new assetObj and
-                                            // copy all the data into it so that
-                                            // I'll be able to change the data
-                                            PendingAssetDetailsViewPageConfig
-                                                .key: {
-                                              'assetCode': asset['assetCode'],
-                                              'assetIssuer':
-                                                  asset['assetIssuer'],
-                                              'amount': asset['amount'],
-                                              'qrCode': asset['qrCode'],
-                                              'imageUrl': asset['imageUrl'],
-                                            }
+                                          // since the original asset object
+                                          // is immutable I create a new assetObj and
+                                          // copy all the data into it so that
+                                          // I'll be able to change the data
+                                          appState.viewData![
+                                              PendingAssetDetailsViewPageConfig
+                                                  .key] = {
+                                            'assetCode': asset['assetCode'],
+                                            'assetIssuer': asset['assetIssuer'],
+                                            'amount': asset['amount'],
+                                            'qrCode': asset['qrCode'],
+                                            'imageUrl': asset['imageUrl'],
                                           };
                                           print(appState.viewData);
                                           appState.currentAction = PageAction(

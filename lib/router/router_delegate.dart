@@ -43,6 +43,12 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
 import 'package:trovo_wallet/screens/SharedAccess/add_shared_access_details.dart';
+import 'package:trovo_wallet/screens/SharedAccess/confirm_payment_initiation.dart';
+import 'package:trovo_wallet/screens/SharedAccess/recieve_asset_shared_access.dart';
+import 'package:trovo_wallet/screens/SharedAccess/send_asset_shared_wallet.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_wallet.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_wallet_asset_details.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_wallet_info.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
@@ -87,59 +93,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
       key: navigatorKey,
       onPopPage: _onPopPage,
       pages: buildPages(),
-    );
-  }
-
-  bool _onPopPage(Route<dynamic> route, result) {
-    final didPop = route.didPop(result);
-    if (!didPop) {
-      return false;
-    }
-    if (canPop()) {
-      pop();
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  void _removePage(MaterialPage page) {
-    if (page != null) {
-      _pages.remove(page);
-    }
-  }
-
-  void pop() {
-    if (canPop()) {
-      _removePage(_pages.last);
-    }
-  }
-
-  bool canPop() {
-    return _pages.length > 1;
-  }
-
-  @override
-  Future<bool> popRoute() {
-    if (canPop()) {
-      _removePage(_pages.last);
-      notifyListeners();
-      return Future.value(true);
-    }
-    return Future.value(false);
-  }
-
-  MaterialPage _createPage(Widget child, PageConfiguration pageConfig) {
-    return MaterialPage(
-        child: child,
-        key: ValueKey(pageConfig.key),
-        name: pageConfig.path,
-        arguments: pageConfig);
-  }
-
-  void _addPageData(Widget child, PageConfiguration pageConfig) {
-    _pages.add(
-      _createPage(child, pageConfig),
     );
   }
 
@@ -315,53 +268,32 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               AddSharedAccessDetails(), AddSharedAccessDetailsViewPageConfig);
           break;
+        case Pages.SharedWalletInfoView:
+          _addPageData(SharedWalletInfo(), SharedWalletInfoViewPageConfig);
+          break;
+        case Pages.SharedWalletDetailsView:
+          _addPageData(SharedWallet(), SharedWalletDetailsViewPageConfig);
+          break;
+        case Pages.SharedWalletAssetDetailsView:
+          _addPageData(SharedWalletAssetDetails(),
+              SharedWalletAssetDetailsViewPageConfig);
+          break;
+        case Pages.SendAssetSharedWalletView:
+          _addPageData(
+              SendAssetSharedWallet(), SendAssetSharedWalletViewPageConfig);
+          break;
+        case Pages.RecieveAssetSharedWalletView:
+          _addPageData(RecieveAssetSharedWallet(),
+              RecieveAssetSharedWalletViewPageConfig);
+          break;
+        case Pages.ConfirmInitiatePaymentView:
+          _addPageData(
+              ConfirmInitiatePayment(), ConfirmInitiatePaymentViewPageConfig);
+          break;
         default:
           break;
       }
     }
-  }
-
-  void replace(PageConfiguration newRoute) {
-    if (_pages.isNotEmpty) {
-      _pages.removeLast();
-    }
-    addPage(newRoute);
-  }
-
-  void setPath(List<MaterialPage> path) {
-    _pages.clear();
-    _pages.addAll(path);
-  }
-
-  void replaceAll(PageConfiguration newRoute) {
-    setNewRoutePath(newRoute);
-  }
-
-  void push(PageConfiguration newRoute) {
-    addPage(newRoute);
-  }
-
-  void pushWidget(Widget child, PageConfiguration newRoute) {
-    _addPageData(child, newRoute);
-  }
-
-  void addAll(List<PageConfiguration> routes) {
-    _pages.clear();
-    routes.forEach((route) {
-      addPage(route);
-    });
-  }
-
-  @override
-  Future<void> setNewRoutePath(PageConfiguration configuration) {
-    final shouldAddPage = _pages.isEmpty ||
-        (_pages.last.arguments as PageConfiguration).uiPage !=
-            configuration.uiPage;
-    if (shouldAddPage) {
-      _pages.clear();
-      addPage(configuration);
-    }
-    return SynchronousFuture(null);
   }
 
   void _setPageAction(PageAction action) {
@@ -520,9 +452,123 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         SecurityQuestionsForInactiveAccountsViewPageConfig.currentPageAction =
             action;
         break;
+      case Pages.SharedWalletInfoView:
+        SharedWalletInfoViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SharedWalletDetailsView:
+        SharedWalletDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SharedWalletAssetDetailsView:
+        SharedWalletAssetDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SendAssetSharedWalletView:
+        SendAssetSharedWalletViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.RecieveAssetSharedWalletView:
+        RecieveAssetSharedWalletViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ConfirmInitiatePaymentView:
+        ConfirmInitiatePaymentViewPageConfig.currentPageAction = action;
+        break;
       default:
         break;
     }
+  }
+
+  bool _onPopPage(Route<dynamic> route, result) {
+    final didPop = route.didPop(result);
+    if (!didPop) {
+      return false;
+    }
+    if (canPop()) {
+      pop();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  void _removePage(MaterialPage page) {
+    if (page != null) {
+      _pages.remove(page);
+    }
+  }
+
+  void pop() {
+    if (canPop()) {
+      _removePage(_pages.last);
+    }
+  }
+
+  bool canPop() {
+    return _pages.length > 1;
+  }
+
+  @override
+  Future<bool> popRoute() {
+    if (canPop()) {
+      _removePage(_pages.last);
+      notifyListeners();
+      return Future.value(true);
+    }
+    return Future.value(false);
+  }
+
+  MaterialPage _createPage(Widget child, PageConfiguration pageConfig) {
+    return MaterialPage(
+        child: child,
+        key: ValueKey(pageConfig.key),
+        name: pageConfig.path,
+        arguments: pageConfig);
+  }
+
+  void _addPageData(Widget child, PageConfiguration pageConfig) {
+    _pages.add(
+      _createPage(child, pageConfig),
+    );
+  }
+
+  void replace(PageConfiguration newRoute) {
+    if (_pages.isNotEmpty) {
+      _pages.removeLast();
+    }
+    addPage(newRoute);
+  }
+
+  void setPath(List<MaterialPage> path) {
+    _pages.clear();
+    _pages.addAll(path);
+  }
+
+  void replaceAll(PageConfiguration newRoute) {
+    setNewRoutePath(newRoute);
+  }
+
+  void push(PageConfiguration newRoute) {
+    addPage(newRoute);
+  }
+
+  void pushWidget(Widget child, PageConfiguration newRoute) {
+    _addPageData(child, newRoute);
+  }
+
+  void addAll(List<PageConfiguration> routes) {
+    _pages.clear();
+    routes.forEach((route) {
+      addPage(route);
+    });
+  }
+
+  @override
+  Future<void> setNewRoutePath(PageConfiguration configuration) {
+    final shouldAddPage = _pages.isEmpty ||
+        (_pages.last.arguments as PageConfiguration).uiPage !=
+            configuration.uiPage;
+    if (shouldAddPage) {
+      _pages.clear();
+      addPage(configuration);
+    }
+    return SynchronousFuture(null);
   }
 
   List<Page> buildPages() {

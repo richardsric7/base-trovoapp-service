@@ -1,3 +1,5 @@
+import 'Permission.dart';
+
 class Wallet {
   DateTime? createdAt;
   String? publicKey;
@@ -9,19 +11,20 @@ class Wallet {
   String? userId;
   int? managedAccessEnabled;
   int? primaryWallet;
+  List<Permission>? permissions;
 
-  Wallet({
-    this.createdAt,
-    this.publicKey,
-    this.secretKey,
-    this.tag,
-    this.description,
-    this.alias,
-    this.signer,
-    this.userId,
-    this.managedAccessEnabled,
-    this.primaryWallet,
-  });
+  Wallet(
+      {this.createdAt,
+      this.publicKey,
+      this.secretKey,
+      this.tag,
+      this.description,
+      this.alias,
+      this.signer,
+      this.userId,
+      this.managedAccessEnabled,
+      this.primaryWallet,
+      this.permissions});
 
   toJSONEncodable() {
     return <String, dynamic>{
@@ -34,7 +37,8 @@ class Wallet {
       "signer": signer,
       "userId": userId,
       "managedAccessEnabled": managedAccessEnabled,
-      "primaryWallet": primaryWallet
+      "primaryWallet": primaryWallet,
+      "permissions": permissions,
     };
   }
 
@@ -50,6 +54,20 @@ class Wallet {
       userId: m["userId"],
       managedAccessEnabled: m["managedAccessEnabled"],
       primaryWallet: m["primaryWallet"],
+      permissions: getPermissionList(m["permissions"]),
     );
+  }
+
+  List<Permission> getPermissionList(permissionArrayString) {
+    var permissions = <Permission>[];
+    for (var i = 0; i < permissionArrayString.length; i++) {
+      permissions.add(Permission(
+          createdAt: DateTime.parse(permissionArrayString[i]['createdAt']),
+          updatedAt: DateTime.parse(permissionArrayString[i]['updatedAt']),
+          walletPublicKey: permissionArrayString[i]['walletPublicKey'],
+          targetUsername: permissionArrayString[i]['targetUsername'],
+          permission: permissionArrayString[i]['permission']));
+    }
+    return permissions;
   }
 }

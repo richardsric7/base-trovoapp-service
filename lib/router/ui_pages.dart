@@ -55,6 +55,12 @@ const String SuccessViewPath = '/SuccessView';
 const String SecurityQuestionsForInactiveAccountsViewPath =
     '/SecurityQuestionsForInactiveAccounts';
 const String AddSharedAccessDetailsViewPath = '/AddSharedAccessDetailsView';
+const String SharedWalletInfoViewPath = '/SharedWalletInfoView';
+const String SharedWalletDetailsViewPath = '/SharedWalletDetailsView';
+const String SharedWalletAssetDetailsViewPath = '/SharedWalletAssetDetailsView';
+const String SendAssetSharedWalletViewPath = '/SendAssetSharedWalletView';
+const String RecieveAssetSharedWalletViewPath = '/RecieveAssetSharedWalletView';
+const String ConfirmInitiatePaymentViewPath = '/ConfirmInitiatePaymentView';
 
 enum Pages {
   Splash,
@@ -109,6 +115,12 @@ enum Pages {
   SuccessView,
   SecurityQuestionsForInactiveAccountsView,
   AddSharedAccessDetailsView,
+  SharedWalletInfoView,
+  SharedWalletDetailsView,
+  SharedWalletAssetDetailsView,
+  SendAssetSharedWalletView,
+  RecieveAssetSharedWalletView,
+  ConfirmInitiatePaymentView,
 }
 
 class PageConfiguration {
@@ -380,4 +392,34 @@ PageConfiguration AddSharedAccessDetailsViewPageConfig = PageConfiguration(
     key: 'AddSharedAccessDetailsView',
     path: AddSharedAccessDetailsViewPath,
     uiPage: Pages.AddSharedAccessDetailsView,
+    currentPageAction: null);
+PageConfiguration SharedWalletInfoViewPageConfig = PageConfiguration(
+    key: 'SharedWalletInfoView',
+    path: SharedWalletInfoViewPath,
+    uiPage: Pages.SharedWalletInfoView,
+    currentPageAction: null);
+PageConfiguration SharedWalletDetailsViewPageConfig = PageConfiguration(
+    key: 'SharedWalletDetailsView',
+    path: SharedWalletDetailsViewPath,
+    uiPage: Pages.SharedWalletDetailsView,
+    currentPageAction: null);
+PageConfiguration SharedWalletAssetDetailsViewPageConfig = PageConfiguration(
+    key: 'SharedWalletAssetDetailsView',
+    path: SharedWalletAssetDetailsViewPath,
+    uiPage: Pages.SharedWalletAssetDetailsView,
+    currentPageAction: null);
+PageConfiguration SendAssetSharedWalletViewPageConfig = PageConfiguration(
+    key: 'SendAssetSharedWalletView',
+    path: SendAssetSharedWalletViewPath,
+    uiPage: Pages.SendAssetSharedWalletView,
+    currentPageAction: null);
+PageConfiguration RecieveAssetSharedWalletViewPageConfig = PageConfiguration(
+    key: 'RecieveAssetSharedWalletView',
+    path: RecieveAssetSharedWalletViewPath,
+    uiPage: Pages.RecieveAssetSharedWalletView,
+    currentPageAction: null);
+PageConfiguration ConfirmInitiatePaymentViewPageConfig = PageConfiguration(
+    key: 'ConfirmInitiatePaymentView',
+    path: ConfirmInitiatePaymentViewPath,
+    uiPage: Pages.ConfirmInitiatePaymentView,
     currentPageAction: null);

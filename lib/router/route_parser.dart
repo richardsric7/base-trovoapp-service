@@ -109,6 +109,18 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return SecurityQuestionsForInactiveAccountsViewPageConfig;
       case AddSharedAccessDetailsViewPath:
         return AddSharedAccessDetailsViewPageConfig;
+      case SharedWalletInfoViewPath:
+        return SharedWalletInfoViewPageConfig;
+      case SharedWalletDetailsViewPath:
+        return SharedWalletDetailsViewPageConfig;
+      case SharedWalletAssetDetailsViewPath:
+        return SharedWalletAssetDetailsViewPageConfig;
+      case SendAssetSharedWalletViewPath:
+        return SendAssetSharedWalletViewPageConfig;
+      case RecieveAssetSharedWalletViewPath:
+        return RecieveAssetSharedWalletViewPageConfig;
+      case ConfirmInitiatePaymentViewPath:
+        return ConfirmInitiatePaymentViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -224,6 +236,20 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
             location: SecurityQuestionsForInactiveAccountsViewPath);
       case Pages.AddSharedAccessDetailsView:
         return const RouteInformation(location: AddSharedAccessDetailsViewPath);
+      case Pages.SharedWalletInfoView:
+        return const RouteInformation(location: SharedWalletInfoViewPath);
+      case Pages.SharedWalletDetailsView:
+        return const RouteInformation(location: SharedWalletDetailsViewPath);
+      case Pages.SharedWalletAssetDetailsView:
+        return const RouteInformation(
+            location: SharedWalletAssetDetailsViewPath);
+      case Pages.SendAssetSharedWalletView:
+        return const RouteInformation(location: SendAssetSharedWalletViewPath);
+      case Pages.RecieveAssetSharedWalletView:
+        return const RouteInformation(
+            location: RecieveAssetSharedWalletViewPath);
+      case Pages.ConfirmInitiatePaymentView:
+        return const RouteInformation(location: ConfirmInitiatePaymentViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

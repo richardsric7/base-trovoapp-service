@@ -1,3 +1,4 @@
+import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,8 +8,11 @@ import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+
+import '../utils/medeiaqury/medeiaqury.dart';
 
 void showSnackBar(String rel, BuildContext context) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
@@ -124,10 +128,12 @@ String calculateFiatValue(String assetBalance, String usdPrice, String currency,
             double.parse(assetBalance))
         .toString();
 
-String getFiatRate(String usdPrice, String currency, DataProvider appState) =>
-    NumberFormat("#,##0.00000", "en_US")
-        .format(appState.fiatRate[currency] * double.parse(usdPrice))
-        .toString();
+String getFiatRate(String usdPrice, String currency, DataProvider appState) {
+  usdPrice = usdPrice.isEmpty ? '0' : usdPrice;
+  return NumberFormat("#,##0.00000", "en_US")
+      .format(appState.fiatRate[currency] * double.parse(usdPrice))
+      .toString();
+}
 
 String getTotalFiatBalanceOfAllAssetsInWallet(
     String currency, DataProvider appState, dynamic assets) {
@@ -140,4 +146,160 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
     }
   }
   return formatNumber(balance);
+}
+
+Widget userItem(String name, Color color) {
+  return Padding(
+    padding: const EdgeInsets.all(3.0),
+    child: Container(
+      decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+          color: color),
+      child: Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: Wrap(
+          children: [
+            Text(
+              name,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              style: TextStyle(
+                  color: wihitecolor, fontFamily: fontbody, fontSize: 13.sp),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Widget buildExpandable(context) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+
+  return ExpandableNotifier(
+      child: ScrollOnExpand(
+    child: Container(
+      child: Column(
+        children: <Widget>[
+          ExpandablePanel(
+            theme: const ExpandableThemeData(
+              headerAlignment: ExpandablePanelHeaderAlignment.center,
+              tapBodyToExpand: true,
+              tapBodyToCollapse: true,
+              hasIcon: false,
+            ),
+            header: Container(
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text(
+                      "Learn more",
+                      style: TextStyle(
+                        color: notifier.getbluecolor,
+                        fontFamily: fontbody,
+                        fontSize: 13.sp,
+                      ),
+                    ),
+                    ExpandableIcon(
+                      theme: ExpandableThemeData(
+                        expandIcon: Icons.keyboard_arrow_right,
+                        collapseIcon: Icons.keyboard_arrow_down_outlined,
+                        iconColor: notifier.getbluecolor,
+                        iconSize: 28.0,
+                        iconRotationAngle: 1.9 / 2,
+                        iconPadding: EdgeInsets.only(right: 5),
+                        hasIcon: false,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            collapsed: Container(),
+            expanded: Container(
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: width / 6,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "What is shared access?",
+                        style: TextStyle(
+                          color: notifier.getbluecolor90,
+                          fontFamily: fontsemibold,
+                          fontSize: 13.sp,
+                        ),
+                      ),
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                      SizedBox(
+                        width: width / 1.7,
+                        child: Text(
+                          "Lorem ipsum dolor emmet what does shared access mean?",
+                          style: TextStyle(
+                            color: notifier.getbluecolor90,
+                            fontFamily: fontbody,
+                            fontSize: 13.sp,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                      SizedBox(
+                        width: width / 1.7,
+                        child: Text(
+                          "We can also explain more or emphasise very important information here.",
+                          style: TextStyle(
+                            color: notifier.getbluecolor90,
+                            fontFamily: fontbody,
+                            fontSize: 13.sp,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  ));
+}
+
+postProcessData(context, messageShown, messageLength, data,
+    {required void Function() callback}) {
+  // we would like to display all messages returned from the initial
+  // request to server using a popup. In order to achieve that we
+  // employ the use of a little recursion here. Please recursive
+  // functions can turn into a nightmare fast so be carefull here.
+  if (messageShown <= messageLength - 1) {
+    showResponseMessage(
+        context,
+        data['messages'][messageShown],
+        () => {
+              print('postProcessData: $messageShown'),
+              postProcessData(context, messageShown, messageLength, data,
+                  callback: callback),
+            });
+
+    messageShown++;
+    return;
+  }
+
+  callback();
 }

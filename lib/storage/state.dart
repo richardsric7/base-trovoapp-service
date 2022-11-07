@@ -2,15 +2,19 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
+import 'package:trovo_wallet/Models/WalletsListViewData.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../Models/User.dart';
-import '../Models/WalletsListViewData.dart';
+import '../Models/Permission.dart';
+import '../Models/Permission.dart';
+import '../Models/Permission.dart';
 import '../router/PageActions.dart';
 import 'cache.dart';
 
@@ -277,9 +281,15 @@ class DataProvider with ChangeNotifier {
     String? query,
   }) async {
     try {
-      print('fetching history for: ${activeWallet!.publicKey!}');
-      var uri =
-          '/v1/users/payments/${activeWallet!.publicKey}?limit=$limit${query}';
+      // viewData![PaymentHistoryViewPageConfig.key] will not be null when the
+      // the payment history view is opened from shared wallet. So we use the
+      // viewData to get the public key of the shared wallet and fetch its transaction
+      // history.
+      var publicKey = viewData![PaymentHistoryViewPageConfig.key] != null
+          ? viewData![PaymentHistoryViewPageConfig.key]['walletPublicKey']
+          : activeWallet!.publicKey!;
+      print('================fetching history for: $publicKey!');
+      var uri = '/v1/users/payments/${publicKey}?limit=$limit${query}';
       if (!filterAsset.contains("*")) {
         var splitAssetInfo = filterAsset.split("|");
         uri +=
@@ -288,7 +298,7 @@ class DataProvider with ChangeNotifier {
       Map responseData = await makeGetRequest(
           uri: uri,
           signer: activeWallet!.signer!,
-          publicKey: activeWallet!.publicKey!,
+          publicKey: publicKey,
           secretKey: secretKeys[0]);
 
       print('response: ${responseData['data']}');

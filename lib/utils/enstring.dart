@@ -235,6 +235,11 @@ class LanguageEn {
   static String get thisisanassetissuerwallet =>
       "Use this wallet for minting tokens";
 
+  static String get doyouwanttoaddapprovers => "Grant approver access";
+
+  static String get nopendingapprovals =>
+      "You do not have any pending transactions to approve";
+
   static String get invalidateoldsigner =>
       "Invalidate old signer from primary wallet";
 
@@ -425,7 +430,7 @@ class LanguageEn {
       "Your wallet has been successfully created. \n\n\nWe strongly recommend that you backup your wallet before proceeding.\n\n\nBacking up your wallet is the only way to restore your wallet if you lose your device";
 
   static String get subwalletcreatesuccess =>
-      "You have successfully created a subwallet. \n\n\nWe strongly recommend that you backup this new subwallet before proceeding.\n\n\nIf you do not backup your wallet, you can lose your assets if something happens to your device.\n\n\nBacking up your wallet also allows you to migrate this account to another device if you ever wish to.";
+      "You have successfully created a subwallet. \n\nWe strongly recommend that you backup this new subwallet before proceeding.\n\nIf you do not backup your wallet, you can lose your assets if something happens to your device.\n\nBacking up your wallet also allows you to migrate this account to another device if you ever wish to.";
 
   static String get backup => "Backup";
 
@@ -824,7 +829,7 @@ class LanguageEn {
   static String get filterby => "Filter by";
 
   static String get enteraccountsusernameviewers =>
-      "Enter the usernames of all accounts that require viewer access to this wallet";
+      "Enter the usernames of all accounts that require viewer access to ";
 
   static String get enteraccountsusernameapprovers =>
       "Enter the usernames of all accounts that require approver access to this wallet";
@@ -832,12 +837,15 @@ class LanguageEn {
   static String get enteraccountsusernameinitiators =>
       "Enter the usernames of all accounts that require initiator access to this wallet";
 
-  static String get enternoofapprovals => "Enter number of approvals needed";
+  static String get enternoofapprover => "Enter total number of approvers";
+  static String get enternoofapprovals => "Enter number of required approvals";
   static String get approvers => "Approvers";
   static String get enternoofrequiredapprovers =>
       "Enter number of required approvers";
 
   static String get accesslist => "Access List";
+
+  static String get pendingapprovals => "Pending";
 
   static String get explainmintwallet =>
       "Please tick on this checkbox if the wallet you are importing has been used or will be used to mint a token.";

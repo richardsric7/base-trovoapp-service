@@ -274,6 +274,13 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                 onTap: () {
                   appState.viewData![RequestSpecificPaymentViewPageConfig.key] =
                       appState.viewData![ReceiveAssetViewPageConfig.key];
+                  // add the public key that the payment will be made into
+                  appState.viewData![RequestSpecificPaymentViewPageConfig.key]
+                      ['publicKey'] = appState.activeWallet!.publicKey!;
+                  // add the name of the alias of the wallet
+                  appState.viewData![RequestSpecificPaymentViewPageConfig.key]
+                      ['walletAlias'] = appState.activeWallet!.alias;
+
                   appState.currentAction = PageAction(
                       state: PageState.addPage,
                       page: RequestSpecificPaymentViewPageConfig);

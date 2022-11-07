@@ -15,12 +15,12 @@ import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
@@ -56,6 +56,8 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![AddSharedAccessDetailsViewPageConfig.key];
+    print('this is viewData');
+    print(viewData);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -117,7 +119,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                             height: height / 50,
                           ),
                           Text(
-                            viewData['accessType'] + ' access',
+                            'Wallet',
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -140,14 +142,15 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                           child: Wrap(
                                             alignment: WrapAlignment.center,
                                             children: [
-                                              for (var i = 0;
-                                                  i <
-                                                      viewData['usernames']
-                                                          .length;
-                                                  i++) ...[
-                                                userItem(
-                                                    viewData['usernames'][i])
-                                              ],
+                                              Text(
+                                                appState.activeWallet!.alias ??
+                                                    "",
+                                                style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: notifier
+                                                        .getbluewhitecolor,
+                                                    fontFamily: fontbody),
+                                              )
                                             ],
                                           )),
                                       SizedBox(height: 2),
@@ -169,7 +172,153 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
               SizedBox(
                 height: height / 50,
               ),
-              if (viewData['accessType'] == 'Approver') ...[
+              if (viewData["viewers"].length > 0) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(15.0)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Text(
+                              'Viewer access',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold),
+                            ),
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                              child: Container(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Container(
+                                            width: width / 1.3,
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              children: [
+                                                for (var i = 0;
+                                                    i <
+                                                        viewData['viewers']
+                                                            .length;
+                                                    i++) ...[
+                                                  userItem(
+                                                      '${viewData['viewers'][i]} [${viewData['userFullnames'][viewData['viewers'][i]]}]',
+                                                      notifier.getbluecolor)
+                                                ],
+                                              ],
+                                            )),
+                                        SizedBox(height: 2),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 50.0,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              SizedBox(
+                height: height / 50,
+              ),
+              if (viewData['addApprovers'] == true) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(15.0)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Text(
+                              'Approver access',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontsemibold),
+                            ),
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                              child: Container(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Container(
+                                            width: width / 1.3,
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              children: [
+                                                for (var i = 0;
+                                                    i <
+                                                        viewData['approvers']
+                                                            .length;
+                                                    i++) ...[
+                                                  userItem(
+                                                      '${viewData['approvers'][i]} [${viewData['userFullnames'][viewData['approvers'][i]]}]',
+                                                      notifier.getbluecolor),
+                                                ],
+                                              ],
+                                            )),
+                                        SizedBox(height: 2),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 50.0,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                   child: Container(
@@ -218,7 +367,8 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                                             .length;
                                                     i++) ...[
                                                   userItem(
-                                                      viewData['initiators'][i])
+                                                      '${viewData['initiators'][i]} [${viewData['userFullnames'][viewData['initiators'][i]]}]',
+                                                      notifier.getbluecolor)
                                                 ],
                                               ],
                                             )),
@@ -260,7 +410,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                               height: height / 50,
                             ),
                             Text(
-                              'No. of approvals needed',
+                              'No. of approvals required',
                               style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
@@ -274,7 +424,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
                                 child: Text(
-                                  viewData['noOfApprovalsNeeded'],
+                                  '${viewData['noOfApprovalsNeeded']}/${viewData['noOfApprovers']}',
                                   style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700,
@@ -346,31 +496,6 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
     );
   }
 
-  Widget userItem(String name) {
-    return Padding(
-      padding: const EdgeInsets.all(3.0),
-      child: Container(
-        decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            color: notifier.getbluecolor),
-        child: Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Wrap(
-            children: [
-              Text(
-                name,
-                overflow: TextOverflow.ellipsis,
-                softWrap: true,
-                style: TextStyle(
-                    color: wihitecolor, fontFamily: fontbody, fontSize: 15.sp),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void handleAuthorization() {
     if (!formKey.currentState!.validate()) {
       return;
@@ -415,20 +540,103 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
 
     try {
       showLoader(context);
-      // sign transaction
-      var signature = TrovoWalletSDK().signBase64Txn(
-        appState.secretKeys[0], // the primary wallet secret key,
-        viewData['transaction'],
-        viewData['networkPassPhrase'],
-      );
-      viewData['transactionSignature'] = signature;
 
-      String requestBody = jsonEncode(viewData);
+      var permissions = [];
+      print(viewData);
+
+      for (var i = 0; i < viewData['viewers'].length; i++) {
+        print(viewData['viewers'][i]);
+        permissions.add(
+          {
+            "targetUsername": viewData['viewers'][i],
+            // "name": "",
+            "permission": "VIEW-ONLY",
+          },
+        );
+      }
+
+      for (var i = 0; i < viewData['approvers'].length; i++) {
+        print(viewData['approvers'][i]);
+        permissions.add(
+          {
+            "targetUsername": viewData['approvers'][i],
+            // "name": "",
+            "permission": "APPROVER",
+          },
+        );
+      }
+
+      for (var i = 0; i < viewData['initiators'].length; i++) {
+        print(viewData['initiators'][i]);
+        permissions.add(
+          {
+            "targetUsername": viewData['initiators'][i],
+            // "name": "",
+            "permission": "INITIATOR",
+          },
+        );
+      }
+
+      var postData = {
+        "numberOfApprovalsNeeded": viewData['noOfApprovalsNeeded'],
+        "permissions": permissions,
+      };
+
+      String requestBody = jsonEncode(postData);
 
       print(requestBody);
 
       Map responseData = await makePostRequest(
-        uri: '/v1/users/payment',
+        uri: '/v1/shared-access/users/account',
+        body: requestBody,
+        signer: activeWallet!.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: activeWallet!.publicKey!,
+      );
+      print(responseData);
+
+      if (responseData['statusCode'] == 202) {
+        var messageLength = responseData['data']['messages'].length;
+        var messageShown = 0;
+        print('messagelenth: $messageLength');
+        postProcessData(
+            context, messageShown, messageLength, responseData['data'],
+            callback: () {
+          signAndSendToServerAgain(responseData['data']);
+        });
+        hideLoader(context);
+      } else {
+        popup(context,
+            title: LanguageEn.error, message: responseData['data']['message']);
+        hideLoader(context);
+      }
+    } catch (e) {
+      popup(context, title: LanguageEn.error, message: e.toString());
+      hideLoader(context);
+    }
+  }
+
+  void signAndSendToServerAgain(responseFromServer) async {
+    try {
+      print('signing and sending....');
+      showLoader(context);
+
+      //sign the transaction and the submit again
+      var signature = TrovoWalletSDK().signBase64Txn(
+        appState.secretKeys[0], // the primary wallet secret key,
+        responseFromServer['transaction'],
+        responseFromServer['networkPassPhrase'],
+      );
+      responseFromServer['transactionId'] = "";
+      responseFromServer['transactionSignature'] = signature;
+      print('second: ${responseFromServer}');
+
+      String requestBody = jsonEncode(responseFromServer);
+
+      print('second: ${requestBody}');
+
+      Map responseData = await makePostRequest(
+        uri: '/v1/shared-access/users/account',
         body: requestBody,
         signer: activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
@@ -436,19 +644,14 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
       );
 
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(
-          activeWallet!.signer!,
-          appState.secretKeys[0], // the primary wallet secret key
-          activeWallet!.publicKey!,
-          appState.userInfo!.username,
-          appState,
-        );
-        appState.viewData![TransactionSuccessViewPageConfig.key] =
-            responseData['data'];
-        appState.currentAction = PageAction(
-          state: PageState.replaceAll,
-          page: TransactionSuccessViewPageConfig,
-        );
+        print(responseData);
+        appState.viewData![SuccessViewPageConfig.key] = {
+          'title': 'Shared access enabled successfully',
+          'message':
+              'You have successfully enabled shared access on your wallet (${appState.activeWallet!.alias})!',
+        };
+        appState.currentAction =
+            PageAction(state: PageState.replace, page: SuccessViewPageConfig);
         hideLoader(context);
       } else {
         popup(context,

@@ -28,8 +28,8 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
       return true;
     }
 
-    // check if the close app dialog is open
     if (_routerDelegate.pages.length <= 1) {
+      // check if the close app dialog is open
       if (dialogOpen) {
         Navigator.of(
           _routerDelegate.navigatorKey.currentContext!,
@@ -37,22 +37,6 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
         ).pop(true);
         dialogOpen = false;
         return true;
-      }
-
-      if (appState.currentBottomTabIndex == 1) {
-        if (appState.walletView.view == WalletView.addSubWallet) {
-          appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
-          appState.walletView.actionText = LanguageEn.addsubwallet;
-          appState.walletView.view = WalletView.listWallets;
-          appState.updateListeners();
-          return true;
-        } else if (appState.walletView.view == WalletView.confirmAddSubWallet) {
-          appState.walletView.actionIcon = Icons.cancel_outlined;
-          appState.walletView.actionText = LanguageEn.cancel;
-          appState.walletView.view = WalletView.addSubWallet;
-          appState.updateListeners();
-          return true;
-        }
       }
 
       dialogOpen = true;

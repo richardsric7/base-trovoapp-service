@@ -241,27 +241,12 @@ class _QrScannerState extends State<QrScanner> {
 
             print('this is assetInfo: $assetInfo');
 
-            appState!.viewData = {
-              SendAssetViewPageConfig.key: {
-                'assetCode': assetInfo['assetCode'],
-                'assetIssuer': assetInfo['assetIssuer'],
-                'amount': assetInfo['amount'],
-                'imageUrl': assetInfo['imageUrl'],
-                'deepLinkInfo': deeplinkInfo,
-              },
-              // to avoid unexpected behaviour in the assetdetails page
-              // add the AssetDetailsViewPageConfig view data.
-              // The issue occurs when user goes through assetDetailsPage => sendAsset => scanQr
-              // apparently the previous page has to be rebuilt when you navigate using
-              // appState?.currentAction = PageAction(state: PageState.replace, page: SendAssetViewPageConfig);
-              // with PageState.replace.
-              AssetDetailsViewPageConfig.key: {
-                'assetCode': assetInfo['assetCode'],
-                'assetIssuer': assetInfo['assetIssuer'],
-                'amount': assetInfo['amount'],
-                'qrCode': assetInfo['qrCode'],
-                'imageUrl': assetInfo['imageUrl'],
-              }
+            appState!.viewData![SendAssetViewPageConfig.key] = {
+              'assetCode': assetInfo['assetCode'],
+              'assetIssuer': assetInfo['assetIssuer'],
+              'amount': assetInfo['amount'],
+              'imageUrl': assetInfo['imageUrl'],
+              'deepLinkInfo': deeplinkInfo,
             };
 
             hideLoader(context);
