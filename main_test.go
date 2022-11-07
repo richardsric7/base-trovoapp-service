@@ -2666,8 +2666,8 @@ func TestModifySharedAccess(t *testing.T) {
 	addedList = append(addedList,
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
-			TargetUsername:  "kenmaddy",
-			Permission:      "VIEW-ONLY"})
+			TargetUsername:  "onoja",
+			Permission:      "APPROVER"})
 
 	// modifyList = append(modifyList,
 	// 	WalletPermissionInfo{
@@ -2691,11 +2691,11 @@ func TestModifySharedAccess(t *testing.T) {
 	// 		TargetUsername:  "kenmaddy",
 	// 		Permission:      "APPROVER"})
 
-	revokeList = append(revokeList,
-		WalletPermissionInfo{
-			WalletPublicKey: accessToWallet,
-			TargetUsername:  "kenmaddy",
-			Permission:      "INITIATOR"})
+	// revokeList = append(revokeList,
+	// 	WalletPermissionInfo{
+	// 		WalletPublicKey: accessToWallet,
+	// 		TargetUsername:  "kenmaddy",
+	// 		Permission:      "INITIATOR"})
 	payload.AddedPermissions = addedList
 	payload.RevokedPermissions = revokeList
 	payload.ModifiedPermissions = modifyList
@@ -2894,7 +2894,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 }
 
 func TestApproveTransaction(t *testing.T) {
-approvalID := "2c280390-2da2-4b09-ad4f-0e759daa4f99"
+	approvalID := "2c280390-2da2-4b09-ad4f-0e759daa4f99"
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk := os.Getenv("RICPK")
@@ -2925,7 +2925,7 @@ approvalID := "2c280390-2da2-4b09-ad4f-0e759daa4f99"
 	// }
 	// approvalID := "1f8a4d47-cd71-44f5-8d7b-9eb9326be91f"
 	// approvalID := "6c8d4dd6-d0dc-4dcb-a67f-6e67f643d9d0"
-	
+
 	fullPath := "/v1/shared-access/approval/" + approvalID
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
@@ -3015,7 +3015,7 @@ approvalID := "2c280390-2da2-4b09-ad4f-0e759daa4f99"
 
 }
 func TestRejectTransaction(t *testing.T) {
-
+	approvalID := "35b43758-8925-4f2d-b2b7-dc9ed96e5e9d"
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk := os.Getenv("RICPK")
@@ -3046,7 +3046,7 @@ func TestRejectTransaction(t *testing.T) {
 	// }
 	// approvalID := "1f8a4d47-cd71-44f5-8d7b-9eb9326be91f"
 	// approvalID := "6134726e-1833-43f3-94ef-d4676a5f2662"
-	approvalID := "60dd3901-1128-4878-a544-2c03e68491f5"
+
 	fullPath := "/v1/shared-access/approval/" + approvalID
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000

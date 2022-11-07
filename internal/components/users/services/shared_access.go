@@ -923,7 +923,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 					revokedUsers = fmt.Sprintf("%s, ", revokedUsers)
 				}
 			}
-			description = fmt.Sprintf("%s\nPermissions to revoke :%v", description, revokedUsers)
+			description = fmt.Sprintf("%s\nPermissions to revoke:%v.", description, revokedUsers)
 		}
 
 		if len(modifiedList) > 0 {
@@ -934,7 +934,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 					modifiedUsers = fmt.Sprintf("%s, ", modifiedUsers)
 				}
 			}
-			description = fmt.Sprintf("%s\nModifying Permissions :%v", description, modifiedUsers)
+			description = fmt.Sprintf("%s\nModifying Permissions:%v.", description, modifiedUsers)
 		}
 
 		if len(addedList) > 0 {
@@ -945,7 +945,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 					addedUsers = fmt.Sprintf("%s, ", addedUsers)
 				}
 			}
-			description = fmt.Sprintf("%s.\nAdding New Permissions :%v.", description, addedUsers)
+			description = fmt.Sprintf("%s\nAdding New Permissions:%v.", description, addedUsers)
 		}
 		transactionByte, _ := json.Marshal(*accessInfo)
 		transactionStr := string(transactionByte)
