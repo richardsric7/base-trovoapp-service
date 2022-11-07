@@ -158,10 +158,11 @@ func (a *PendingAuth) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj AuthJSON) {
 	}
 	var walletOwnerUsername, walletAlias string
 	// walletOwner,e:=UserWalletID(a.WalletPublicKey).GetWalletOwner(gc.DB)
-	wallet, e := UserWalletID(a.WalletPublicKey).GetWallet(gc.DB)
+	wallet, e := UserWalletID(a.WalletPublicKey).GetWallet(gc.DB, gc)
 	if e == nil {
 		if wallet.Tag != nil {
-			walletOwnerUsername = *wallet.Tag
+			//subwallet
+			walletOwnerUsername = strings.Split(wallet.Alias, "_")[0]
 		} else {
 			//primary wallet
 			walletOwnerUsername = wallet.Alias

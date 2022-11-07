@@ -24,7 +24,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func GetApprovalList(publicKeysSharedWithUser []string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedAuths) {
+func GetApprovalList(approverUser *userModels.User, publicKeysSharedWithUser []string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedAuths) {
 	var err error
 	var authList []userModels.PendingAuth
 	records.Records = make([]userModels.AuthJSON, 0)
@@ -42,6 +42,7 @@ func GetApprovalList(publicKeysSharedWithUser []string, gc *sharedconfig.GlobalC
 	initiator := strings.TrimSpace(strings.ToLower(c.Query("initiator")))
 	description := strings.TrimSpace(strings.ToLower(c.Query("description")))
 	walletPublicKey := strings.TrimSpace(strings.ToUpper(c.Query("walletPublicKey")))
+	excludeUserApproved, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("excludeUserApproved", "1")), 10, 64)
 	walletAlias := strings.ToLower(strings.TrimSpace(c.Query("walletAlias")))
 	limitU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("limit", "25")), 10, 64)
 	limit := int(limitU)
@@ -50,7 +51,7 @@ func GetApprovalList(publicKeysSharedWithUser []string, gc *sharedconfig.GlobalC
 
 	// var walletOwnerPublicKey string
 	if len(walletAlias) > 2 {
-		wo, e := userModels.WalletAlias(walletAlias).GetWallet(gc.DB)
+		wo, e := userModels.WalletAlias(walletAlias).GetWallet(gc.DB, gc)
 		if e == nil {
 			walletPublicKey = wo.ID
 		}
@@ -73,13 +74,22 @@ func GetApprovalList(publicKeysSharedWithUser []string, gc *sharedconfig.GlobalC
 		countQuery = countQuery.Order(orderBy + " " + oD)
 
 	} else {
-		query = query.Order("created_at DESC")
-		countQuery = countQuery.Order("created_at DESC")
+		query = query.Order("transaction_status desc, wallet_public_key asc, approvals_gotten/approvals_needed asc")
+		// query = query.Order("created_at DESC")
+		// countQuery = countQuery.Order("created_at DESC")
+		countQuery = countQuery.Order("transaction_status desc, wallet_public_key asc, approvals_gotten/approvals_needed asc")
 	}
 
 	{
 		query = query.Where("(wallet_public_key IN (?))", publicKeysSharedWithUser)
 		countQuery = countQuery.Where("(wallet_public_key IN (?))", publicKeysSharedWithUser)
+
+	}
+	if excludeUserApproved == 1 {
+		query = query.Where(`id NOT IN (SELECT pending_auth_id FROM pending_transaction_signatures
+			WHERE approver = ? AND pending_auth_id = pending_auths.id)`, approverUser.Username)
+		countQuery = countQuery.Where(`id NOT IN (SELECT pending_auth_id FROM pending_transaction_signatures
+			WHERE approver = ? AND pending_auth_id = pending_auths.id)`, approverUser.Username)
 
 	}
 
@@ -220,7 +230,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	}
 	walletOwner.InvalidateUserCache(gc)
 
-	wallet, e := userModels.UserWalletID(p.WalletPublicKey).GetWallet(gc.DB)
+	wallet, e := userModels.UserWalletID(p.WalletPublicKey).GetWallet(gc.DB, gc)
 	if e != nil {
 		log.Println("[ApproveTransaction] error getting wallet object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
@@ -515,7 +525,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
 				if len(paymentInfo.Destination) < 31 {
-					destWallet, e := userModels.WalletAlias(paymentInfo.Destination).GetWallet(gc.DB)
+					destWallet, e := userModels.WalletAlias(paymentInfo.Destination).GetWallet(gc.DB, gc)
 					if e == nil {
 						dataPayload := make(map[string]string)
 						dataPayload["none"] = ""

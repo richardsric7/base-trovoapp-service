@@ -2542,11 +2542,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 
 		//Get Payment history
-		historyRecords := userServices.GetApprovalList(permittedPublicKeys, gc, c)
+		historyRecords := userServices.GetApprovalList(&signerUser, permittedPublicKeys, gc, c)
 
 		c.JSON(http.StatusOK, historyRecords)
-		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
-		// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
 
 	})
 
@@ -2752,7 +2750,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
 		{
 			//start push notificationMessage
-			wallet, e := userModels.UserWalletID(approvalRequest.WalletPublicKey).GetWallet(gc.DB)
+			wallet, e := userModels.UserWalletID(approvalRequest.WalletPublicKey).GetWallet(gc.DB, gc)
 			if e != nil {
 				return
 			}
@@ -2896,7 +2894,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
 		{
 			//start push notificationMessage
-			wallet, e := userModels.UserWalletID(approvalRequest.WalletPublicKey).GetWallet(gc.DB)
+			wallet, e := userModels.UserWalletID(approvalRequest.WalletPublicKey).GetWallet(gc.DB, gc)
 			if e != nil {
 				return
 			}

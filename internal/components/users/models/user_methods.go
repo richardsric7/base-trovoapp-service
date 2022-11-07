@@ -921,10 +921,10 @@ func (u *UserWallet) GetPermissionList(db *gorm.DB) (accessList []WalletPermissi
 	return
 }
 
-func (a WalletAlias) GetAccessList(db *gorm.DB) (accessList []WalletPermission) {
+func (a WalletAlias) GetAccessList(db *gorm.DB, gc *sharedconfig.GlobalConfig) (accessList []WalletPermission) {
 
 	accessList = make([]WalletPermission, 0)
-	wallet, e := a.GetWallet(db)
+	wallet, e := a.GetWallet(db, gc)
 	if e != nil {
 		return accessList
 	}
@@ -1201,7 +1201,26 @@ func (u *User) GetBulkPaymentWallet(db *gorm.DB) (wallet UserWallet, err error) 
 	return
 }
 
-func (id UserWalletID) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
+func (id UserWalletID) GetWallet(db *gorm.DB, gc *sharedconfig.GlobalConfig) (wallet UserWallet, err error) {
+	cacheKeyInfo := fmt.Sprintf("walletObj_%v", string(id))
+
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
+
+		if ok {
+
+			log.Printf("GetWallet[%v], served from cache\n", cacheKeyInfo)
+			json.Unmarshal(rawdata, &wallet)
+			return
+		}
+
+	}
+	// cacheKeyAlias := fmt.Sprintf("walletObj_%v", wallet.Alias)
+	// gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, wallet, 0)
+	// gc.RedisCache.StoreResultToCacheRaw(cacheKeyAlias, wallet, 0)
+
 	e := db.Preload(clause.Associations).Where("id = ?", string(id)).First(&wallet).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -1213,10 +1232,34 @@ func (id UserWalletID) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
 		}
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
+
+	cacheKeyAlias := fmt.Sprintf("walletObj_%v", wallet.Alias)
+
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, wallet, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyAlias, wallet, 0)
 	return
 }
 
-func (a WalletAlias) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
+func (a WalletAlias) GetWallet(db *gorm.DB, gc *sharedconfig.GlobalConfig) (wallet UserWallet, err error) {
+	cacheKeyInfo := fmt.Sprintf("walletObj_%v", string(a))
+
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
+
+		if ok {
+
+			log.Printf("GetWallet[%v], served from cache\n", cacheKeyInfo)
+			json.Unmarshal(rawdata, &wallet)
+			return
+		}
+
+	}
+	// cacheKeyAlias := fmt.Sprintf("walletObj_%v", wallet.Alias)
+	// gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, wallet, 0)
+	// gc.RedisCache.StoreResultToCacheRaw(cacheKeyAlias, wallet, 0)
+
 	e := db.Preload(clause.Associations).Where("alias = ?", string(a)).First(&wallet).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
@@ -1228,6 +1271,9 @@ func (a WalletAlias) GetWallet(db *gorm.DB) (wallet UserWallet, err error) {
 		}
 		err = &tErrors.ErrorTemporaryServerError{}
 	}
+	cacheKeyID := fmt.Sprintf("walletObj_%v", wallet.ID)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, wallet, 0)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyID, wallet, 0)
 	return
 }
 
@@ -1250,7 +1296,7 @@ func (id UserWalletID) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig)
 	if id == "" {
 		return true
 	}
-	wallet, err := id.GetWallet(gc.DB)
+	wallet, err := id.GetWallet(gc.DB, gc)
 	if err != nil {
 		return true
 	}
@@ -1538,7 +1584,7 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 		}
 
 		//use it to fetch wallet details
-		wallet, err := UserWalletID(assignedPermission.WalletPublicKey).GetWallet(gc.DB)
+		wallet, err := UserWalletID(assignedPermission.WalletPublicKey).GetWallet(gc.DB, gc)
 		if err != nil {
 			return
 		}
@@ -1741,7 +1787,9 @@ func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
 		cacheKey4 := fmt.Sprintf("userObj %v", w.ID)
 		cacheKeySigner := fmt.Sprintf("userObj %v", w.Signer)
 		cacheKeyUserID := fmt.Sprintf("userObj %v", w.UserID)
-		gc.RedisCache.DeleteFromCache(cacheKey1, cacheKey2, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID)
+		cacheKeyWalletAlias := fmt.Sprintf("walletObj_%v", w.Alias)
+		cacheKeyWalletID := fmt.Sprintf("walletObj_%v", w.ID)
+		gc.RedisCache.DeleteFromCache(cacheKeyWalletAlias, cacheKeyWalletID, cacheKey1, cacheKey2, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID)
 
 	}
 

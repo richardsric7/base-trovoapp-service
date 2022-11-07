@@ -460,7 +460,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	viewOnly := make(map[string]string, 0)
 	walletID := userModels.UserWalletID(accessInfo.WalletPublicKey)
 
-	fw, _ := walletID.GetWallet(gc.DB)
+	fw, _ := walletID.GetWallet(gc.DB, gc)
 	wallet = &fw
 	var oldNumberOfApprovers int
 	for _, perm := range wallet.Permissions {
@@ -764,7 +764,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	//invalidate all existing cache relating to this wallet
 	wallet.InvalidateUserCache(gc)
 	//it was successfully saved. now refresh the list to know the standing.
-	updatedWallet, e := walletID.GetWallet(dbTX)
+	updatedWallet, e := walletID.GetWallet(dbTX, gc)
 	if e != nil {
 		log.Println("[ModifySharedWalletAccess] error fetching updated wallet: ", e)
 		err = &tErrors.ErrorTemporaryServerError{}
