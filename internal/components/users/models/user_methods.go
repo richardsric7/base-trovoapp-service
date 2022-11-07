@@ -436,6 +436,53 @@ func (u *UserWallet) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (asse
 	return
 }
 
+func (id UserWalletID) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (assetBalances AssetBalances, err error) {
+
+	var wg sync.WaitGroup
+	var m sync.Mutex
+	//use go routine to fetch
+
+	assetBalances.Unclaimed = make([]Balance, 0)
+	assetBalances.Claimed = make([]Balance, 0)
+
+	u, e := id.GetWallet(gc.DB, gc)
+	if e != nil {
+		return
+	}
+	wg.Add(1)
+	go func(vg1 *UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
+		defer w.Done()
+		unclaimedBalance, errR1 := vg1.GetSortedUserBalance(true, gc)
+
+		if errR1 == nil {
+			//Unclaimed Assets
+			ml.Lock()
+			assetBalances.Unclaimed = unclaimedBalance
+			ml.Unlock()
+
+		}
+	}(&u, &wg, &m)
+	wg.Add(1)
+	go func(vg2 *UserWallet, w *sync.WaitGroup, ml *sync.Mutex) {
+		defer w.Done()
+		claimedWalletBalance, errR1 := vg2.GetSortedUserBalance(false, gc)
+
+		if errR1 != nil {
+			//log server error
+			log.Printf("[GetWalletAssetBalances] error getting claimed wallet balance for wallet:[%s] error:[%+v]\n", vg2.ID, errR1)
+
+		}
+		//Claimed Assets
+		ml.Lock()
+		assetBalances.Claimed = claimedWalletBalance
+		ml.Unlock()
+
+	}(&u, &wg, &m)
+	wg.Wait()
+
+	return
+}
+
 // GetAccountThresholds returns user signers
 func (u *UserWallet) GetAccountThresholds(temp bool) (thresholds horizon.AccountThresholds) {
 	account, _, err := u.GetBlockchainAccountDetail(temp)
@@ -1557,21 +1604,21 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 	if len(u.WalletsSharedWithUser) == 0 {
 		return
 	}
-	cacheKey := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", u.ID)
+	// cacheKey := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", u.ID)
 
-	{
+	// {
 
-		// search cache for balance
-		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
+	// 	// search cache for balance
+	// 	ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
 
-		if ok {
+	// 	if ok {
 
-			log.Printf("FetchWalletsPermissionsSharedWithUser[%v], served from cache\n", cacheKey)
-			json.Unmarshal(rawdata, &thirdPartyWallets)
-			return
-		}
+	// 		log.Printf("FetchWalletsPermissionsSharedWithUser[%v], served from cache\n", cacheKey)
+	// 		json.Unmarshal(rawdata, &thirdPartyWallets)
+	// 		return
+	// 	}
 
-	}
+	// }
 
 	for _, assignedPermission := range u.WalletsSharedWithUser {
 		//Get the permission assignment
@@ -1590,7 +1637,7 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 		if wallet.Description != nil {
 			thirdPartyWallet.WalletDescription = *wallet.Description
 		}
-
+		thirdPartyWallet.AssetBalances, _ = wallet.GetWalletAssetBalances(gc)
 		//use it to fetch wallet owner details
 		owner, err := UserWalletID(assignedPermission.WalletPublicKey).GetWalletOwner(gc.DB, gc)
 		if err != nil {
@@ -1603,7 +1650,7 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 
 	}
 	//save to cache
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, thirdPartyWallets, 2000)
+	// gc.RedisCache.StoreResultToCacheRaw(cacheKey, thirdPartyWallets, 0)
 
 	return
 }
