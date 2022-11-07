@@ -195,7 +195,7 @@ func (a *PendingAuth) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj AuthJSON) {
 		if len(a.PendingTransactionSignatures) > 0 {
 			for i, sig := range a.PendingTransactionSignatures {
 				jsonObj.ApprovedBy = fmt.Sprintf("%s|%s", sig.Approver, sig.CreatedAt.Format("2006-01-02"))
-				if i < len(a.PendingTransactionSignatures)+1 {
+				if i+1 < len(a.PendingTransactionSignatures) {
 					jsonObj.ApprovedBy = fmt.Sprintf("%s,\n", jsonObj.ApprovedBy)
 				}
 			}

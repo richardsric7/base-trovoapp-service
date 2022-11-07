@@ -2894,7 +2894,7 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 }
 
 func TestApproveTransaction(t *testing.T) {
-
+approvalID := "3c4e23fc-2797-4814-ad19-6cb5f1cbce26"
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// pk := os.Getenv("RICPK")
@@ -2925,7 +2925,7 @@ func TestApproveTransaction(t *testing.T) {
 	// }
 	// approvalID := "1f8a4d47-cd71-44f5-8d7b-9eb9326be91f"
 	// approvalID := "6c8d4dd6-d0dc-4dcb-a67f-6e67f643d9d0"
-	approvalID := "85548d93-fd6f-4d50-91b6-8b614e9975b1"
+	
 	fullPath := "/v1/shared-access/approval/" + approvalID
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
