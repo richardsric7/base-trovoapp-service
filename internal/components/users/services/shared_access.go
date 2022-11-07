@@ -458,13 +458,16 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return
 	}
 	viewOnly := make(map[string]string, 0)
+	// oldApproverPermissionMap := make(map[string]userModels.WalletPermission, 0)
 	walletID := userModels.UserWalletID(accessInfo.WalletPublicKey)
 
 	fw, _ := walletID.GetWallet(gc.DB, gc)
 	wallet = &fw
 	var oldNumberOfApprovers int
 	for _, perm := range wallet.Permissions {
+
 		if perm.Permission == "APPROVER" {
+			// oldApproverPermissionMap[perm.TargetUsername] = perm
 			oldNumberOfApprovers++
 		}
 	}
@@ -512,7 +515,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 			return
 		}
-		userPermission, e := walletID.GetUserPermissionOnWallet(v.TargetUsername, dbTX)
+		userPermission, e := walletID.GetUserPermissionOnWallet(v.TargetUsername, v.Permission, dbTX)
 		if e != nil {
 			continue
 		}
@@ -540,8 +543,6 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			PushNotificationToken: u.PushNotificationToken,
 		})
 		revokedList = append(revokedList, userModels.WalletPermission{
-			CreatedAt:       userPermission.CreatedAt,
-			UpdatedAt:       userPermission.UpdatedAt,
 			ID:              userPermission.ID,
 			TargetUsername:  v.TargetUsername,
 			Permission:      v.Permission,
@@ -553,6 +554,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			if e == nil {
 				ops = append(ops, op)
 			}
+
 		}
 
 	}
@@ -572,7 +574,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 			return
 		}
-		ePermission, e := walletID.GetUserPermissionOnWallet(v.TargetUsername, dbTX)
+		ePermission, e := walletID.GetUserPermissionOnWallet(v.TargetUsername, v.Permission, dbTX)
 		if e != nil {
 			continue
 		}
@@ -677,7 +679,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		if _, ok := checkAccess[v.TargetUsername+v.Permission]; ok {
 			continue
 		}
-		_, e := walletID.GetUserPermissionOnWallet(v.TargetUsername, dbTX)
+		_, e := walletID.GetUserPermissionOnWallet(v.TargetUsername, v.Permission, dbTX)
 		if e == nil {
 			// permission exists, so cannot be added
 			continue
@@ -1857,6 +1859,42 @@ func generateRemoveSharedAccessOps(wallet *userModels.UserWallet, walletOwner *u
 			op = &txnbuild.SetOptions{
 				Signer: &txnbuild.Signer{
 					Address: approver.PrimarySigner,
+					Weight:  0,
+				},
+				SourceAccount: wallet.ID,
+			}
+
+			return op, nil
+		}
+
+	}
+	return op, &tErrors.ErrorTemporaryServerError{}
+}
+
+func generateRemoveOldRecoveredSharedAccessOps(wallet *userModels.UserWallet, walletOwner *userModels.User, approverOldSigner string, gc *sharedconfig.GlobalConfig) (op txnbuild.Operation, err error) {
+	client := gc.BantuExpansionClient
+
+	//check if primary account has native enough native balance
+	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	_, _, _, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, wallet.ID, nativeAsset)
+	if errWalletAct != nil {
+		log.Printf("[generateRemoveSharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
+
+		return op, errWalletAct
+	}
+
+	//ensure u r using the account signer, since the account may have been recovered, or may be recovered in the future, changing the signer, but retaining the primary key
+	approverAccountExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, approverOldSigner, nativeAsset)
+
+	if approverAccountExists {
+		//account exists, check if it already it a signer in the wallet
+
+		//remove signer if already a signer
+		if wallet.SignerIsValidWA(approverOldSigner, walletSourceAccount) && walletOwner.PrimarySigner != wallet.Signer {
+
+			op = &txnbuild.SetOptions{
+				Signer: &txnbuild.Signer{
+					Address: approverOldSigner,
 					Weight:  0,
 				},
 				SourceAccount: wallet.ID,

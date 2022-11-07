@@ -1380,8 +1380,8 @@ func (id UserWalletID) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig
 	return
 }
 
-func (id UserWalletID) GetUserPermissionOnWallet(username string, db *gorm.DB) (walletPermission WalletPermission, err error) {
-	e := db.Where("target_username = ? AND wallet_public_key = ?", username, string(id)).First(&walletPermission).Error
+func (id UserWalletID) GetUserPermissionOnWallet(username, permission string, db *gorm.DB) (walletPermission WalletPermission, err error) {
+	e := db.Where("target_username = ? AND wallet_public_key = ? AND permission = ?", username, string(id), strings.ToUpper(permission)).First(&walletPermission).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no wallet was found
