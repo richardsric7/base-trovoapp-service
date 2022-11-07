@@ -78,14 +78,14 @@ func GetApprovalList(publicKeysSharedWithUser []string, gc *sharedconfig.GlobalC
 	}
 
 	{
-		query = query.Where("(wallet_public_key IN (?)", publicKeysSharedWithUser)
-		countQuery = countQuery.Where("(wallet_public_key IN (?)", publicKeysSharedWithUser)
+		query = query.Where("(wallet_public_key IN (?))", publicKeysSharedWithUser)
+		countQuery = countQuery.Where("(wallet_public_key IN (?))", publicKeysSharedWithUser)
 
 	}
 
 	if len(walletPublicKey) == 56 {
-		query = query.Where("(wallet_public_key = ?", walletPublicKey)
-		countQuery = countQuery.Where("(wallet_public_key = ?", walletPublicKey)
+		query = query.Where("(wallet_public_key = ?)", walletPublicKey)
+		countQuery = countQuery.Where("(wallet_public_key = ?)", walletPublicKey)
 
 	}
 

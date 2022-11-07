@@ -1286,15 +1286,15 @@ func TestClaimAssetMultiAccessEnabled(t *testing.T) {
 	// 	AssetIssuer: "GAD3DZNQY4SXJEUJOPLJZEK3OWTASEUK2LZYT3V7C52UN5QYOFP3PM5P",
 	// }
 
-	// claimPayload := PendingAssetToClaim{
-	// 	AssetCode:   "YAM",
-	// 	AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
-	// }
-
 	claimPayload := PendingAssetToClaim{
-		AssetCode:   "LUMI",
-		AssetIssuer: "GBGUHXVAK32BZTWRBML7RNIQ3532QDR5RRXOJ2P2MGEPHC3YJREMRTLE",
+		AssetCode:   "YAM",
+		AssetIssuer: "GAJ65QHSOIXOA6FZMKDIBNGMHXQ7U46TNRBKDL3MTHERF2VRVMWU2F57",
 	}
+
+	// claimPayload := PendingAssetToClaim{
+	// 	AssetCode:   "LUMI",
+	// 	AssetIssuer: "GBGUHXVAK32BZTWRBML7RNIQ3532QDR5RRXOJ2P2MGEPHC3YJREMRTLE",
+	// }
 	errorResponse := new(ErrorResponse)
 	claimResponse := new(PendingAssetToClaim)
 	log.Println("making request from wallet", fromWallet)
