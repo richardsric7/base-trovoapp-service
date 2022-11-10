@@ -1,13 +1,15 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get_utils/src/extensions/string_extensions.dart';
+import 'package:intl/intl.dart';
+import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/Permission.dart';
-import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
@@ -18,6 +20,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SharedAccess extends StatefulWidget {
@@ -37,7 +40,6 @@ class _SharedAccessState extends State<SharedAccess>
   TextEditingController initiatorsController = TextEditingController();
   final approversFormKey = GlobalKey<FormState>();
   late RefreshController _refreshController;
-
   List<Wallet>? wallets;
   Wallet? activeWallet;
   dynamic selectedWallet = '';
@@ -55,7 +57,6 @@ class _SharedAccessState extends State<SharedAccess>
   String approverUsernameErrorMessage = "";
   String initiatorUsernameErrorMessage = "";
   var allKey = Key(Random.secure().nextDouble().toString());
-
   var password = '';
   var viewers = <String>[];
   var initiators = <String>[]; // holds usernames of initiators
@@ -63,6 +64,74 @@ class _SharedAccessState extends State<SharedAccess>
   var userFullnames = {};
   int noOfApprovalsNeeded = 2;
   int noOfApprovers = 3;
+  ApprovalsListFilterType filterType = ApprovalsListFilterType.TransactionType;
+  var filterTypesMap = {
+    ApprovalsListFilterType.TransactionType: "Transaction type",
+    ApprovalsListFilterType.DateRange: "Date range",
+    ApprovalsListFilterType.TransactionId: "Transaction ID",
+    ApprovalsListFilterType.TransactionStatus: "Transaction status",
+    ApprovalsListFilterType.Initiator: "Initiator",
+    ApprovalsListFilterType.Description: "Description",
+    ApprovalsListFilterType.WalletPublicKey: "Wallet public key",
+    ApprovalsListFilterType.WalletAlias: "Wallet alias",
+  };
+  var transactionTypes = <String>[
+    'ALL',
+    'SWAP',
+    'PAYMENT',
+    'MODIFY SHARED ACCESS',
+    'DISABLE SHARED ACCESS',
+    'OPT IN ASSET',
+    'OPT OUT ASSET',
+    'ACCEPT PENDING ASSET',
+    'REJECT PENDING ASSET',
+    'MAKE MARKET OFFER',
+    'DELETE MARKET OFFER',
+    'MODIFY MARKET OFFER',
+    'MINT TOKEN',
+    'BURN TOKEN',
+    'BULK PAYMENT',
+  ];
+
+  var transactionStatus = <String>[
+    'ALL',
+    'PENDING',
+    'COMPLETED',
+    'REJECTED',
+  ];
+
+  List<DropdownMenuItem<String>> get transactionTypeDropdownItems {
+    return transactionTypes
+        .map<DropdownMenuItem<String>>((item) => DropdownMenuItem(
+            child: Text(
+              item.capitalizeFirst!,
+              overflow: TextOverflow.ellipsis,
+            ),
+            value: item))
+        .toList();
+  }
+
+  List<DropdownMenuItem<ApprovalsListFilterType>> get filterTypeDropdownItems {
+    List<DropdownMenuItem<ApprovalsListFilterType>> items = [];
+    filterTypesMap.forEach((key, value) {
+      items.add(
+        DropdownMenuItem(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  value,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+            value: key),
+      );
+    });
+
+    return items;
+  }
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
     return wallets!
@@ -123,7 +192,6 @@ class _SharedAccessState extends State<SharedAccess>
 
   List<DropdownMenuItem<int>> get getNoOfApprovalsDropdownItems {
     var items = <DropdownMenuItem<int>>[];
-    // if (noOfApprovers > 0) {
     for (var i = 1; i < noOfApprovers; i++) {
       items.add(DropdownMenuItem(
           child: Text(
@@ -132,14 +200,6 @@ class _SharedAccessState extends State<SharedAccess>
           ),
           value: i));
     }
-    // } else {
-    //   items.add(DropdownMenuItem(
-    //       child: Text(
-    //         '0',
-    //         overflow: TextOverflow.ellipsis,
-    //       ),
-    //       value: 0));
-    // }
     return items;
   }
 
@@ -159,6 +219,13 @@ class _SharedAccessState extends State<SharedAccess>
     getdarkmodepreviousstate();
     _tabController = TabController(length: 3, vsync: this);
     _refreshController = RefreshController(initialRefresh: false);
+    appState = Provider.of<DataProvider>(context, listen: false);
+    appState.filterTransactionType = 'All';
+    appState.filterQuery = "&transactionType=ALL";
+    appState.approvals = appState.fetchApprovals(
+      limit: appState.limit.toString(),
+      query: appState.filterQuery,
+    );
   }
 
   @override
@@ -226,7 +293,7 @@ class _SharedAccessState extends State<SharedAccess>
                     ),
                     Tab(
                       height: 50,
-                      text: LanguageEn.pendingapprovals,
+                      text: LanguageEn.approvals,
                     ),
                     Tab(
                       height: 50,
@@ -258,16 +325,426 @@ class _SharedAccessState extends State<SharedAccess>
 
   Widget pendingApprovals() {
     return Container(
-      height: height / 3,
-      child: Center(
-        child: Text(
-          LanguageEn.nopendingapprovals,
-          overflow: TextOverflow.visible,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 15,
-            fontFamily: fontsemibold,
-            color: notifier.getbluewhitecolor,
+      height: height / 1.22,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(height: height / 30),
+            Container(
+              width: width,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: width / 50,
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: dropdown(
+                      (newValue) async {
+                        // selectedWallet = newValue!;
+                        // appState.filterAsset = "*|*";
+                        // appState.activeWallet = wallets!.firstWhere(
+                        //     (wallet) => wallet.publicKey == newValue);
+                        // showLoader(context);
+                        // appState.limit = 20;
+                        // appState.totalRecords = 0;
+                        // appState.currentPage = 1;
+                        // await appState.getHistory(
+                        //   context,
+                        //   // onDone: () => adjustScrollPosition(),
+                        // );
+                        // hideLoader(context);
+                        filterType = newValue as ApprovalsListFilterType;
+                        showPopup(filterType);
+                        setState(() {});
+                      },
+                      filterTypeDropdownItems,
+                      ApprovalsListFilterType.TransactionType,
+                      null,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: getContent(filterType),
+                  ),
+                  SizedBox(
+                    width: width / 50,
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            FutureBuilder<Map>(
+              future: appState.approvals,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Container(
+                    height: height / 1.5,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(
+                          backgroundColor: notifier.getbluecolor,
+                          valueColor: new AlwaysStoppedAnimation<Color>(
+                            notifier.getgreencolor,
+                          ),
+                          strokeWidth: 3.0,
+                        ),
+                      ],
+                    ),
+                  );
+                } else if (snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.hasError) {
+                    return Container(
+                      height: height / 1.5,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              LanguageEn.somethingwentwrong,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  appState.getApprovals();
+                                });
+                              },
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        notifier.getbluecolor!),
+                              ),
+                              child: Text(
+                                LanguageEn.retry,
+                                style: TextStyle(
+                                  fontFamily: fontsemibold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else if (snapshot.hasData) {
+                    var records = snapshot.data!['records'];
+                    appState.totalRecords = snapshot.data!['totalRecords'];
+                    if (records.length > 0) {
+                      return LoadMore(
+                        isFinish: records.length == appState.totalRecords,
+                        onLoadMore: () async {
+                          appState.limit += 2;
+                          await appState.getApprovals();
+                          return records.length <= appState.totalRecords!;
+                        },
+                        textBuilder: (LoadMoreStatus status) {
+                          String text;
+                          switch (status) {
+                            case LoadMoreStatus.fail:
+                              text = "Tap to load more";
+                              break;
+                            case LoadMoreStatus.idle:
+                              text = "Tap to load more";
+                              break;
+                            default:
+                              text = "";
+                          }
+                          return text;
+                        },
+                        child: Column(
+                          children: [
+                            for (var i = 0; i < records.length; i++) ...[
+                              GestureDetector(
+                                onTap: () {
+                                  appState.viewData![
+                                          ApprovalDetailsViewPageConfig.key] =
+                                      records[i];
+
+                                  appState.currentAction = PageAction(
+                                    state: PageState.addPage,
+                                    page: ApprovalDetailsViewPageConfig,
+                                  );
+                                },
+                                child: approvalItem(
+                                  walletAlias: records[i]['alias'],
+                                  initiator: records[i]['initiator'],
+                                  transactionType: records[i]
+                                      ['transactionType'],
+                                  approvalsNeeded: records[i]
+                                      ['approvalsNeeded'],
+                                  approvalsGotten: records[i]
+                                      ['approvalsGotten'],
+                                  transactionStatus: records[i]
+                                      ['transactionStatus'],
+                                  createdAt: DateTime.tryParse(
+                                      records[i]['createdAt'])!,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    }
+
+                    return Container(
+                      height: height / 1.9,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'No results here.',
+                            overflow: TextOverflow.visible,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    return Center(
+                      child: Text(
+                        'Error fetching data. Please try again',
+                        overflow: TextOverflow.visible,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    );
+                  }
+                } else {
+                  return Text('State: ${snapshot.connectionState}');
+                }
+              },
+            ),
+            SizedBox(
+              height: height / 15,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget approvalItem(
+      {required String walletAlias,
+      required String initiator,
+      required String transactionType,
+      required int approvalsNeeded,
+      required int approvalsGotten,
+      required String transactionStatus,
+      required DateTime createdAt}) {
+    return Card(
+      elevation: notifier.isDark ? 0 : 5,
+      shadowColor: Colors.black,
+      color: notifier.gettilewihitecolor,
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: ListTile(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    walletAlias,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluecolor,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 70,
+              ),
+              Container(
+                width: width / 1.2,
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                      child: Text(
+                        'Transaction type:',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Container(
+                      width: width / 1.5,
+                      child: Text(
+                        transactionType.capitalizeFirst!,
+                        overflow: TextOverflow.visible,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontFamily: fontbody,
+                          color: notifier.getbluecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 90,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      'Initiated by:',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluecolor,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width / 70,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      initiator,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontbody,
+                        color: notifier.getbluecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 90,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      'Approval status:',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluecolor,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width / 70,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      '$approvalsGotten/$approvalsNeeded',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontbody,
+                        color: notifier.getbluecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 90,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      'Transaction status:',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluecolor,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width / 70,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      transactionStatus.capitalizeFirst!,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontbody,
+                        color: notifier.getbluecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 90,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      'Initiated:',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluecolor,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width / 70,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      DateFormat('MMMM dd, yyyy hh:mm a').format(createdAt),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontbody,
+                        color: notifier.getbluecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -2091,10 +2568,392 @@ class _SharedAccessState extends State<SharedAccess>
 
   void refreshData() async {
     try {
+      appState.getApprovals();
       await appState.refreshData();
+
       _refreshController.refreshCompleted();
     } catch (e) {
       _refreshController.refreshFailed();
     }
   }
+
+  Widget dropdown(void Function(Object?) onChanged,
+      List<DropdownMenuItem<Object>> items, Object? value, String? hint) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+      child: DropdownButtonFormField(
+        isDense: true,
+        isExpanded: true,
+        hint: Container(
+          // width: 150, //and here
+          child: hint != null
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      hint,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                )
+              : null,
+        ),
+        dropdownColor:
+            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+        decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          filled: true,
+          fillColor: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
+        ),
+        value: value,
+        icon: Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: notifier.getbluewhitecolor,
+        ),
+        elevation: 0,
+        style: TextStyle(
+          color: notifier.getbluewhitecolor,
+          fontSize: 15,
+          fontFamily: fontsemibold,
+          fontWeight: FontWeight.w500,
+        ),
+        onChanged: onChanged,
+        items: items,
+      ),
+    );
+  }
+
+  void showPopup(ApprovalsListFilterType filterType) {
+    switch (filterType) {
+      case ApprovalsListFilterType.TransactionStatus:
+        approvalListTransactionTypePopup(
+          context,
+          transactionStatus,
+          (status) {
+            appState.setFilterTransactionStatus = status.capitalizeFirst;
+            appState.setFilterQuery =
+                status == 'ALL' ? '' : "&transactionStatus=$status";
+            appState.getApprovals();
+            Navigator.of(context).pop(); // dismiss dialog,
+          },
+        );
+        break;
+      case ApprovalsListFilterType.TransactionType:
+        approvalListTransactionTypePopup(
+          context,
+          transactionTypes,
+          (transactionType) {
+            appState.setFilterTransactionType = transactionType.capitalizeFirst;
+            appState.setFilterQuery = "&transactionType=$transactionType";
+            appState.getApprovals();
+            Navigator.of(context).pop(); // dismiss dialog,
+          },
+        );
+        break;
+      case ApprovalsListFilterType.WalletAlias:
+        approvalTextFieldPopup(context,
+            label: 'Enter wallet alias',
+            value: appState.filterWalletAlias,
+            placeholder: 'Enter alias', onDone: (value) async {
+          if (value != null && value.toString().isNotEmpty) {
+            appState.setFilterWalletAlias = value;
+            appState.setFilterQuery = "&walletAlias=$value";
+            await appState.getApprovals(
+              onDone: () => {},
+            );
+          }
+        });
+        break;
+      case ApprovalsListFilterType.Description:
+        approvalTextFieldPopup(context,
+            label: 'Enter decription',
+            value: appState.filterDescription,
+            placeholder: 'Enter description', onDone: (value) async {
+          if (value != null && value.toString().isNotEmpty) {
+            appState.setFilterDescription = value;
+            appState.setFilterQuery = "&description=$value";
+            await appState.getApprovals(
+              onDone: () => {},
+            );
+          }
+        });
+        break;
+      case ApprovalsListFilterType.TransactionId:
+        approvalTextFieldPopup(context,
+            label: 'Enter Transaction ID',
+            value: appState.filterTransactionId,
+            placeholder: 'Transaction ID', onDone: (value) async {
+          if (value != null && value.toString().isNotEmpty) {
+            appState.setFilterTransactionId = value;
+            appState.setFilterQuery = "&transactionID=$value";
+            await appState.getApprovals(
+              onDone: () => {},
+            );
+          }
+        });
+        break;
+      case ApprovalsListFilterType.DateRange:
+        customDateRangePopup(context, onDone: () async {
+          appState.setFilterQuery =
+              "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+          await appState.getApprovals();
+        });
+        break;
+      case ApprovalsListFilterType.WalletPublicKey:
+        approvalTextFieldPopup(context,
+            label: 'Enter wallet public key',
+            value: appState.filterWalletPublicKey,
+            placeholder: 'Public Key', onDone: (value) async {
+          if (value != null && value.toString().isNotEmpty) {
+            appState.setFilterWalletPublicKey = value;
+            appState.setFilterQuery = "&walletPublicKey=$value";
+            await appState.getApprovals(
+              onDone: () => {},
+            );
+          }
+        });
+        break;
+      case ApprovalsListFilterType.Initiator:
+        approvalTextFieldPopup(context,
+            label: 'Enter initiator username',
+            value: appState.filterInitiatorUsername,
+            placeholder: 'Username', onDone: (value) async {
+          if (value != null && value.toString().isNotEmpty) {
+            appState.setFilterInitiatorUsername = value;
+            appState.setFilterQuery = "&initiator=$value";
+            await appState.getApprovals(
+              onDone: () => {},
+            );
+          }
+        });
+        break;
+      default:
+        break;
+    }
+  }
+
+  Widget content({required void Function() onPressed, required String label}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
+        ),
+        child: TextButton(
+          onPressed: onPressed,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                constraints: BoxConstraints(
+                  maxWidth: width / 2.9,
+                ),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.start,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontSize: appState.filterUsername != null ? 12 : 15,
+                      fontFamily: fontsemibold),
+                ),
+              ),
+              Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: notifier.getbluewhitecolor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget getContent(ApprovalsListFilterType type) {
+    switch (type) {
+      case ApprovalsListFilterType.TransactionStatus:
+        return content(
+          onPressed: () {
+            approvalListTransactionTypePopup(
+              context,
+              transactionStatus,
+              (status) {
+                print(status);
+                appState.setFilterTransactionStatus = status.capitalizeFirst;
+                appState.setFilterQuery =
+                    status == 'ALL' ? '' : "&transactionStatus=$status";
+                appState.getApprovals();
+                Navigator.of(context).pop(); // dismiss dialog,
+              },
+            );
+          },
+          label: appState.filterTransactionStatus.isEmpty
+              ? "Choose status"
+              : appState.filterTransactionStatus,
+        );
+      case ApprovalsListFilterType.WalletAlias:
+        return content(
+          onPressed: () {
+            approvalTextFieldPopup(context,
+                label: 'Enter wallet alias',
+                value: appState.filterWalletAlias,
+                placeholder: 'Enter alias', onDone: (value) async {
+              if (value != null && value.toString().isNotEmpty) {
+                appState.setFilterWalletAlias = value;
+                appState.setFilterQuery = "&walletAlias=$value";
+                await appState.getApprovals();
+              }
+            });
+          },
+          label: appState.filterWalletAlias.isEmpty
+              ? "Enter alias"
+              : appState.filterWalletAlias,
+        );
+      case ApprovalsListFilterType.Description:
+        return content(
+          onPressed: () {
+            approvalTextFieldPopup(context,
+                label: 'Enter decription',
+                value: appState.filterDescription,
+                placeholder: 'Enter description', onDone: (value) async {
+              if (value != null && value.toString().isNotEmpty) {
+                appState.setFilterDescription = value;
+                appState.setFilterQuery = "&description=$value";
+                await appState.getApprovals();
+              }
+            });
+          },
+          label: appState.filterDescription.isEmpty
+              ? "Enter description"
+              : truncate(appState.filterDescription, length: 30),
+        );
+
+      case ApprovalsListFilterType.WalletPublicKey:
+        return content(
+          onPressed: () {
+            approvalTextFieldPopup(context,
+                label: 'Enter wallet public key',
+                value: appState.filterWalletPublicKey,
+                placeholder: 'Public Key', onDone: (value) async {
+              if (value != null && value.toString().isNotEmpty) {
+                appState.setFilterWalletPublicKey = value;
+                appState.setFilterQuery = "&walletPublicKey=$value";
+                await appState.getApprovals();
+              }
+            });
+          },
+          label: getTruncatedPublicKey(appState.filterWalletPublicKey),
+        );
+      case ApprovalsListFilterType.TransactionId:
+        return content(
+          onPressed: () {
+            approvalTextFieldPopup(context,
+                label: 'Enter Transaction ID',
+                value: appState.filterTransactionId,
+                placeholder: 'Transaction ID', onDone: (value) async {
+              if (value != null && value.toString().isNotEmpty) {
+                appState.setFilterTransactionId = value;
+                appState.setFilterQuery = "&transactionID=$value";
+                await appState.getApprovals();
+              }
+            });
+          },
+          label: appState.filterTransactionId.isEmpty
+              ? 'Enter ID'
+              : appState.filterTransactionId,
+        );
+      case ApprovalsListFilterType.Initiator:
+        return content(
+          onPressed: () {
+            approvalTextFieldPopup(context,
+                label: 'Enter initiator username',
+                value: appState.filterInitiatorUsername,
+                placeholder: 'Username', onDone: (value) async {
+              if (value != null && value.toString().isNotEmpty) {
+                appState.setFilterInitiatorUsername = value;
+                appState.setFilterQuery = "&initiator=$value";
+                await appState.getApprovals();
+              }
+            });
+          },
+          label: appState.filterInitiatorUsername.isEmpty
+              ? 'Enter username'
+              : appState.filterInitiatorUsername,
+        );
+      case ApprovalsListFilterType.DateRange:
+        return content(
+          onPressed: () {
+            customDateRangePopup(context, onDone: () async {
+              appState.setFilterQuery =
+                  "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}|${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+              await appState.getApprovals();
+            });
+          },
+          label: getDateRangeValue(),
+        );
+      default: // ApprovalsListFilterType.TransactionType
+        return content(
+          onPressed: () {
+            approvalListTransactionTypePopup(
+              context,
+              transactionTypes,
+              (transactionType) {
+                appState.setFilterTransactionType =
+                    transactionType.capitalizeFirst;
+                appState.setFilterQuery = "&transactionType=$transactionType";
+                appState.getApprovals();
+                Navigator.of(context).pop(); // dismiss dialog,
+              },
+            );
+          },
+          label: appState.filterTransactionType,
+        );
+    }
+  }
+
+  getDateRangeValue() {
+    if (appState.filterStartDate != null && appState.filterEndDate != null) {
+      return "${DateFormat('dd/MM/yy').format(appState.filterStartDate!)} - ${DateFormat('dd/MM/yy').format(appState.filterEndDate!)} ";
+    }
+
+    return 'Enter range';
+  }
+
+  getTruncatedPublicKey(String publicKey) {
+    if (publicKey.isEmpty) return "Enter public key";
+    if (publicKey.length <= 7) return publicKey;
+    return truncate(publicKey, length: 7) +
+        publicKey.substring(publicKey.length - 7);
+  }
+}
+
+enum ApprovalsListFilterType {
+  TransactionType,
+  TransactionStatus,
+  TransactionId,
+  DateRange,
+  Initiator,
+  Description,
+  WalletPublicKey,
+  WalletAlias,
 }

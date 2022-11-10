@@ -43,6 +43,7 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
 import 'package:trovo_wallet/screens/SharedAccess/add_shared_access_details.dart';
+import 'package:trovo_wallet/screens/SharedAccess/approval_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/confirm_payment_initiation.dart';
 import 'package:trovo_wallet/screens/SharedAccess/recieve_asset_shared_access.dart';
 import 'package:trovo_wallet/screens/SharedAccess/send_asset_shared_wallet.dart';
@@ -290,6 +291,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               ConfirmInitiatePayment(), ConfirmInitiatePaymentViewPageConfig);
           break;
+        case Pages.ApprovalDetailsView:
+          _addPageData(ApprovalDetails(), ApprovalDetailsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -469,6 +473,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.ConfirmInitiatePaymentView:
         ConfirmInitiatePaymentViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ApprovalDetailsView:
+        ApprovalDetailsViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
