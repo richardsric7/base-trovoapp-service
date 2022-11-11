@@ -2,6 +2,7 @@ import 'package:app_settings/app_settings.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
@@ -1743,7 +1744,8 @@ amountRangePopup(context, {required void Function() onDone}) async {
 }
 
 textFieldPopup(context,
-    {required FilterType rel, required void Function(String?) onDone}) async {
+    {required HistoryFilterType rel,
+    required void Function(String?) onDone}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
@@ -1756,19 +1758,19 @@ textFieldPopup(context,
         return StatefulBuilder(builder: (context, setStateForDialog) {
           var appState = Provider.of<DataProvider>(context, listen: false);
           switch (rel) {
-            case FilterType.Username:
+            case HistoryFilterType.Username:
               textController.text = appState.filterUsername ?? "";
               textValue = appState.filterUsername ?? "";
               break;
-            case FilterType.FromPublicKey:
+            case HistoryFilterType.FromPublicKey:
               textController.text = appState.filterFromPublicKey ?? "";
               textValue = appState.filterFromPublicKey ?? "";
               break;
-            case FilterType.Memo:
+            case HistoryFilterType.Memo:
               textController.text = appState.filterMemo ?? "";
               textValue = appState.filterMemo ?? "";
               break;
-            default: // FilterType.ToPublicKey
+            default: // HistoryFilterType.ToPublicKey
               textController.text = appState.filterToPublicKey ?? "";
               textValue = appState.filterToPublicKey ?? "";
               break;
@@ -1944,26 +1946,26 @@ transactionTypePopup(context,
       });
 }
 
-String getLabelText(FilterType rel) {
+String getLabelText(HistoryFilterType rel) {
   switch (rel) {
-    case FilterType.FromPublicKey:
+    case HistoryFilterType.FromPublicKey:
       return 'Enter from public key below';
-    case FilterType.ToPublicKey:
+    case HistoryFilterType.ToPublicKey:
       return 'Enter to public key below';
-    case FilterType.Memo:
+    case HistoryFilterType.Memo:
       return 'Enter to memo text below';
     default:
       return 'Enter username or full name below';
   }
 }
 
-String getPlaceholder(FilterType rel) {
+String getPlaceholder(HistoryFilterType rel) {
   switch (rel) {
-    case FilterType.FromPublicKey:
+    case HistoryFilterType.FromPublicKey:
       return 'from public key';
-    case FilterType.ToPublicKey:
+    case HistoryFilterType.ToPublicKey:
       return 'to public key';
-    case FilterType.Memo:
+    case HistoryFilterType.Memo:
       return 'memo';
     default:
       return 'username';
@@ -2208,5 +2210,364 @@ shareAccessInfoPopup(context) async {
                 ],
               ),
             ));
+      });
+}
+
+void rejectionReasonPopup(context, void Function(String) action) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  final formKey = GlobalKey<FormState>();
+  String reason = '';
+
+  showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(23),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        'Reject transaction',
+                        style: TextStyle(
+                            color: notifier.getblck,
+                            fontSize: 18,
+                            fontFamily: fontsemibold),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 5,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Center(
+                              child: Text(
+                                'Please enter your reason for rejecting this transaction',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: notifier.getbluecolor,
+                                    fontSize: 15,
+                                    fontFamily: fontbody),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: height / 50,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 25.0, vertical: 5.0),
+                            child: Form(
+                              key: formKey,
+                              child: CustomTextFormField.textFieldWithoutIcon(
+                                'Enter reason',
+                                notifier.getbluewhitecolor,
+                                notifier.getgrey,
+                                notifier.getgrey,
+                                notifier.getblck,
+                                notifier.getgrey,
+                                70.sp,
+                                300.sp,
+                                validator: (String? value) {
+                                  if (value!.isEmpty)
+                                    return 'Please enter your reason ';
+
+                                  if (value.length < 5)
+                                    return 'Reason must be 5 characters or more';
+
+                                  return null;
+                                },
+                                onChanged: (value) {
+                                  reason = value!.trim();
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 5.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        print('elevated button pressed...$reason');
+                        if (!formKey.currentState!.validate()) {
+                          return;
+                        }
+                        action(reason);
+                        Navigator.of(context).pop(); // dismiss dialog,
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        LanguageEn.continuee,
+                        style:
+                            TextStyle(color: wihitecolor, fontFamily: fontbody),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: OutlinedButton(
+                      onPressed: () =>
+                          Navigator.of(context).pop(), // dismiss dialog,
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                            notifier.getsplashgrey),
+                        elevation: MaterialStateProperty.all<double>(0),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getwihitecolor!),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                              color: notifier.getgrey,
+                              width: 1,
+                              style: BorderStyle.solid),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        LanguageEn.cancel,
+                        style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ));
+      });
+}
+
+approvalListTransactionTypePopup(context, List<String> transactionTypes,
+    void Function(String) onSelected) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          'Select transaction type',
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              children: [
+                                for (var i = 0;
+                                    i < transactionTypes.length;
+                                    i++) ...[
+                                  quickDateRange(context,
+                                      text: transactionTypes[i]
+                                          .capitalizeFirst!, onPressed: () {
+                                    onSelected(transactionTypes[i]);
+                                  }),
+                                ]
+                              ],
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
+approvalTextFieldPopup(context,
+    {required String label,
+    required String value,
+    required String placeholder,
+    required void Function(String?) onDone}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  String? textValue;
+  var textController = TextEditingController();
+  textController.text = value;
+  textValue = value;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                          child: CustomTextFormField.textFieldWithoutIcon(
+                            placeholder,
+                            notifier.getbluecolor,
+                            notifier.getgrey,
+                            notifier.getprefixicon,
+                            notifier.getblck,
+                            notifier.getgrey,
+                            55.sp,
+                            300.sp,
+                            onChanged: (value) {
+                              if (value != null &&
+                                  value.toString().isNotEmpty) {
+                                textValue = value;
+                              }
+                            },
+                            controller: textController,
+                            keyboardtype: TextInputType.text,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 30,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          onDone(textValue);
+                          Navigator.of(context).pop(); // dismiss dialog,
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          LanguageEn.done,
+                          style: TextStyle(
+                              color: wihitecolor, fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: height / 50),
+                  ],
+                ),
+              ));
+        });
       });
 }

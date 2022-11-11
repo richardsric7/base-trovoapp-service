@@ -39,18 +39,18 @@ class Payment_HistoryState extends State<PaymentHistory>
   bool showFilter = false;
   late List<TransactionInfo>? historyData;
   var filterTypesMap = {
-    FilterType.TransactionType: "Transaction type",
-    FilterType.DateRange: "Date range",
-    FilterType.AmountRange: "Amount range",
-    FilterType.Username: "Username",
-    FilterType.FromPublicKey: "From public key",
-    FilterType.ToPublicKey: "To public key",
-    FilterType.Memo: "Memo",
+    HistoryFilterType.TransactionType: "Transaction type",
+    HistoryFilterType.DateRange: "Date range",
+    HistoryFilterType.AmountRange: "Amount range",
+    HistoryFilterType.Username: "Username",
+    HistoryFilterType.FromPublicKey: "From public key",
+    HistoryFilterType.ToPublicKey: "To public key",
+    HistoryFilterType.Memo: "Memo",
   };
 
   ScrollController scrollController = new ScrollController();
 
-  FilterType filterType = FilterType.TransactionType;
+  HistoryFilterType filterType = HistoryFilterType.TransactionType;
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
     var dropdownItems = wallets!
@@ -71,8 +71,8 @@ class Payment_HistoryState extends State<PaymentHistory>
     return dropdownItems;
   }
 
-  List<DropdownMenuItem<FilterType>> get filterTypeDropdownItems {
-    List<DropdownMenuItem<FilterType>> items = [];
+  List<DropdownMenuItem<HistoryFilterType>> get filterTypeDropdownItems {
+    List<DropdownMenuItem<HistoryFilterType>> items = [];
     filterTypesMap.forEach((key, value) {
       items.add(
         DropdownMenuItem(
@@ -135,16 +135,7 @@ class Payment_HistoryState extends State<PaymentHistory>
     super.initState();
     _refreshController = RefreshController(initialRefresh: false);
     appState = Provider.of<DataProvider>(context, listen: false);
-    appState.filterAsset = "*|*";
-    appState.filterEndDate = null;
-    appState.filterStartDate = null;
-    appState.filterFromPublicKey = null;
-    appState.filterToPublicKey = null;
-    appState.filterUsername = null;
-    appState.filterQuery = "";
-    appState.filterMaxAmount = null;
-    appState.filterMinAmount = null;
-    appState.filterMemo = null;
+    resetFilters();
   }
 
   @override
@@ -302,7 +293,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                           child: dropdown(
                             (newValue) async {
                               setState(() {
-                                filterType = newValue as FilterType;
+                                filterType = newValue as HistoryFilterType;
                                 showPopup(newValue);
                               });
                             },
@@ -636,9 +627,9 @@ class Payment_HistoryState extends State<PaymentHistory>
     return null;
   }
 
-  Widget getContent(FilterType type) {
+  Widget getContent(HistoryFilterType type) {
     switch (type) {
-      case FilterType.Username:
+      case HistoryFilterType.Username:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: Container(
@@ -650,7 +641,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
             child: TextButton(
               onPressed: () {
-                textFieldPopup(context, rel: FilterType.Username,
+                textFieldPopup(context, rel: HistoryFilterType.Username,
                     onDone: (value) async {
                   appState.setFilterUsername = value;
                   if (value != null && value.isNotEmpty) {
@@ -690,7 +681,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
           ),
         );
-      case FilterType.Memo:
+      case HistoryFilterType.Memo:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: Container(
@@ -702,7 +693,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
             child: TextButton(
               onPressed: () {
-                textFieldPopup(context, rel: FilterType.Memo,
+                textFieldPopup(context, rel: HistoryFilterType.Memo,
                     onDone: (value) async {
                   appState.setFilterMemo = value;
                   if (value != null && value.isNotEmpty) {
@@ -742,7 +733,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
           ),
         );
-      case FilterType.FromPublicKey:
+      case HistoryFilterType.FromPublicKey:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: Container(
@@ -754,7 +745,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
             child: TextButton(
               onPressed: () {
-                textFieldPopup(context, rel: FilterType.FromPublicKey,
+                textFieldPopup(context, rel: HistoryFilterType.FromPublicKey,
                     onDone: (value) async {
                   if (value != null && value.toString().isNotEmpty) {
                     appState.setFilterFromPublicKey = value;
@@ -793,7 +784,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
           ),
         );
-      case FilterType.ToPublicKey:
+      case HistoryFilterType.ToPublicKey:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: Container(
@@ -805,7 +796,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
             child: TextButton(
               onPressed: () {
-                textFieldPopup(context, rel: FilterType.ToPublicKey,
+                textFieldPopup(context, rel: HistoryFilterType.ToPublicKey,
                     onDone: (value) async {
                   if (value != null && value.toString().isNotEmpty) {
                     appState.setFilterToPublicKey = value;
@@ -844,7 +835,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
           ),
         );
-      case FilterType.AmountRange:
+      case HistoryFilterType.AmountRange:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: Container(
@@ -897,7 +888,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
           ),
         );
-      case FilterType.DateRange:
+      case HistoryFilterType.DateRange:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
           child: Container(
@@ -941,7 +932,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
           ),
         );
-      // FilterType.TransactionType
+      // HistoryFilterType.TransactionType
       default:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
@@ -1037,7 +1028,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   }
 
   getTransactionTypeValue() {
-    if (filterType == FilterType.TransactionType) {
+    if (filterType == HistoryFilterType.TransactionType) {
       if (appState.filterQuery.contains('swap')) return "Swap";
       if (appState.filterQuery.contains('payment')) return "Payment";
 
@@ -1045,10 +1036,10 @@ class Payment_HistoryState extends State<PaymentHistory>
     }
   }
 
-  void showPopup(FilterType filterType) {
+  void showPopup(HistoryFilterType filterType) {
     switch (filterType) {
-      case FilterType.Username:
-        textFieldPopup(context, rel: FilterType.Username,
+      case HistoryFilterType.Username:
+        textFieldPopup(context, rel: HistoryFilterType.Username,
             onDone: (value) async {
           print('timer fired! $value');
           appState.setFilterUsername = value;
@@ -1061,8 +1052,8 @@ class Payment_HistoryState extends State<PaymentHistory>
           }
         });
         break;
-      case FilterType.FromPublicKey:
-        textFieldPopup(context, rel: FilterType.FromPublicKey,
+      case HistoryFilterType.FromPublicKey:
+        textFieldPopup(context, rel: HistoryFilterType.FromPublicKey,
             onDone: (value) async {
           if (value != null && value.toString().isNotEmpty) {
             appState.setFilterFromPublicKey = value;
@@ -1074,8 +1065,8 @@ class Payment_HistoryState extends State<PaymentHistory>
           }
         });
         break;
-      case FilterType.ToPublicKey:
-        textFieldPopup(context, rel: FilterType.ToPublicKey,
+      case HistoryFilterType.ToPublicKey:
+        textFieldPopup(context, rel: HistoryFilterType.ToPublicKey,
             onDone: (value) async {
           if (value != null && value.toString().isNotEmpty) {
             appState.setFilterToPublicKey = value;
@@ -1087,7 +1078,7 @@ class Payment_HistoryState extends State<PaymentHistory>
           }
         });
         break;
-      case FilterType.AmountRange:
+      case HistoryFilterType.AmountRange:
         amountRangePopup(context, onDone: () async {
           if (appState.filterMinAmount != null &&
               appState.filterMaxAmount != null) {
@@ -1100,7 +1091,7 @@ class Payment_HistoryState extends State<PaymentHistory>
           }
         });
         break;
-      case FilterType.DateRange:
+      case HistoryFilterType.DateRange:
         customDateRangePopup(context, onDone: () async {
           appState.setFilterQuery =
               "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
@@ -1110,8 +1101,9 @@ class Payment_HistoryState extends State<PaymentHistory>
           );
         });
         break;
-      case FilterType.Memo:
-        textFieldPopup(context, rel: FilterType.Memo, onDone: (value) async {
+      case HistoryFilterType.Memo:
+        textFieldPopup(context, rel: HistoryFilterType.Memo,
+            onDone: (value) async {
           appState.setFilterMemo = value;
           if (value != null && value.isNotEmpty) {
             appState.setFilterQuery = "&memo=${value}";
@@ -1157,11 +1149,25 @@ class Payment_HistoryState extends State<PaymentHistory>
     }
   }
 
+  void resetFilters() {
+    appState.filterAsset = "*|*";
+    appState.filterEndDate = null;
+    appState.filterStartDate = null;
+    appState.filterFromPublicKey = null;
+    appState.filterToPublicKey = null;
+    appState.filterUsername = null;
+    appState.filterQuery = "";
+    appState.filterMaxAmount = null;
+    appState.filterMinAmount = null;
+    appState.filterMemo = null;
+  }
+
   @override
   void dispose() {
     super.dispose();
     print('disposing...');
     appState.viewData![PaymentHistoryViewPageConfig.key] = null;
+    resetFilters();
   }
 }
 
@@ -1171,7 +1177,7 @@ enum TransactionType {
   Swap,
 }
 
-enum FilterType {
+enum HistoryFilterType {
   TransactionType,
   DateRange,
   AmountRange,
