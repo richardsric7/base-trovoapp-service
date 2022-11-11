@@ -820,7 +820,7 @@ class LanguageEn {
 
   static String get referrals => "Referrals";
 
-  static String get grantaccess => "Grant Access";
+  static String get grantaccess => "Add";
 
   static String get choosewallet => "Choose Wallet";
 
@@ -843,9 +843,9 @@ class LanguageEn {
   static String get enternoofrequiredapprovers =>
       "Enter number of required approvers";
 
-  static String get accesslist => "Access List";
+  static String get accesslist => "Access";
 
-  static String get pendingapprovals => "Pending";
+  static String get approvals => "Approvals";
 
   static String get explainmintwallet =>
       "Please tick on this checkbox if the wallet you are importing has been used or will be used to mint a token.";

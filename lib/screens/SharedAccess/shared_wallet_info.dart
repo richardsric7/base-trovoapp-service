@@ -284,10 +284,6 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                       ),
                     );
                   } else if (snapshot.hasData) {
-                    // claimedAssets = snapshot.data!['assetBalances']['claimed'];
-                    // unclaimedAssets =
-                    //     snapshot.data!['assetBalances']['unclaimed'];
-
                     return Column(
                       children: [
                         Button(
@@ -360,8 +356,6 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
     );
   }
 
-  // we need to check that the username entered here is a valid
-  // username of an active trovo account
   Future<Map> fetchWalletBalance(
       {required String signer,
       required String secretKey,

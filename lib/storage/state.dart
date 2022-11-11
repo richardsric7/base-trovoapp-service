@@ -6,15 +6,11 @@ import 'package:trovo_wallet/Models/WalletsListViewData.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../Models/User.dart';
-import '../Models/Permission.dart';
-import '../Models/Permission.dart';
-import '../Models/Permission.dart';
 import '../router/PageActions.dart';
 import 'cache.dart';
 
@@ -332,6 +328,80 @@ class DataProvider with ChangeNotifier {
     } catch (e) {
       print(e);
     }
+  }
+
+  String filterTransactionType = "";
+  set setFilterTransactionType(value) {
+    filterTransactionType = value;
+    notifyListeners();
+  }
+
+  String filterTransactionId = "";
+  set setFilterTransactionId(value) {
+    filterTransactionId = value;
+    notifyListeners();
+  }
+
+  String filterInitiatorUsername = "";
+  set setFilterInitiatorUsername(value) {
+    filterInitiatorUsername = value;
+    notifyListeners();
+  }
+
+  String filterDescription = "";
+  set setFilterDescription(value) {
+    filterDescription = value;
+    notifyListeners();
+  }
+
+  String filterWalletAlias = "";
+  set setFilterWalletAlias(value) {
+    filterWalletAlias = value;
+    notifyListeners();
+  }
+
+  String filterWalletPublicKey = "";
+  set setFilterWalletPublicKey(value) {
+    filterWalletPublicKey = value;
+    notifyListeners();
+  }
+
+  String filterTransactionStatus = "";
+  set setFilterTransactionStatus(value) {
+    filterTransactionStatus = value;
+    notifyListeners();
+  }
+
+  late Future<Map> approvals;
+
+  Future<Map> fetchApprovals({String? limit, String? query}) async {
+    try {
+      var uri = '/v1/shared-access/approvals?limit=$limit${query}';
+
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: activeWallet!.publicKey!,
+        secretKey: secretKeys[0], // the primary wallet secret key
+        publicKey: activeWallet!.publicKey!,
+      );
+
+      print('response: ${responseData}');
+
+      if (responseData['statusCode'] == 200) {
+        return responseData['data'];
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      return Future.error('Error! ${e}');
+    }
+  }
+
+  getApprovals({void Function()? onDone}) {
+    approvals = fetchApprovals(limit: limit.toString(), query: filterQuery);
+    notifyListeners();
+    // scroll to the top of the list if historyData is not null
+    if (historyData.length > 0 && onDone != null) onDone();
   }
 
   // view data is where all the data that a particular view needs
