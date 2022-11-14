@@ -201,7 +201,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	router.GET("/v1/users/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 		if os.Getenv("LOG_IP_ADDRESS") == "1" {
-			log.Printf("IP address: %v\n", c.GetHeader(strings.ToUpper("x-forwarded-for")))
+			log.Printf("IP address: %v\nCLIENTIP: %v", c.GetHeader(strings.ToUpper("x-forwarded-for")), c.ClientIP())
 			log.Printf("%+v\n", c)
 		}
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
