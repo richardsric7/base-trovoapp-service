@@ -372,11 +372,21 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // excludes the ones that users have signed even if the
+  // transaction is still pending because it has not yet gotten
+  // number of required approvals
+  int excludeUserApproved = 1;
+  set setExcludeUserApproved(value) {
+    excludeUserApproved = value;
+    notifyListeners();
+  }
+
   late Future<Map> approvals;
 
   Future<Map> fetchApprovals({String? limit, String? query}) async {
     try {
-      var uri = '/v1/shared-access/approvals?limit=$limit${query}';
+      var uri =
+          '/v1/shared-access/approvals?&excludeUserApproved=${excludeUserApproved}&limit=$limit${query}';
 
       Map responseData = await makeGetRequest(
         uri: Uri.encodeFull(uri),

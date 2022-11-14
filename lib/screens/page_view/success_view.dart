@@ -129,10 +129,21 @@ class _SuccessView extends State<SuccessView> {
                   LanguageEn.done,
                   notifier.getbluecolor,
                   wihitecolor,
-                  onTap: () async {
-                    appState.currentAction = PageAction(
-                        state: PageState.replaceAll,
-                        page: BottomHomePageConfig);
+                  onTap: () {
+                    if (appState.viewData![SuccessViewPageConfig.key]
+                                ['useOnDone'] !=
+                            null &&
+                        appState.viewData![SuccessViewPageConfig.key]
+                                ['useOnDone'] ==
+                            true) {
+                      print('onDone is not null');
+                      appState.viewData![SuccessViewPageConfig.key]['onDone']();
+                    } else {
+                      print('onDone is null');
+                      appState.currentAction = PageAction(
+                          state: PageState.replaceAll,
+                          page: BottomHomePageConfig);
+                    }
                   },
                 ),
                 SizedBox(height: height / 10),
