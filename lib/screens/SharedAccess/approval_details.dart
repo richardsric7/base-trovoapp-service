@@ -135,7 +135,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                           displayInfo(
                               key: 'Initiated',
                               value:
-                                  '${DateFormat('MMMM dd, yyyy \'at\' hh:mm a').format(DateTime.parse(viewData['createdAt']))}'),
+                                  '${DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(viewData['createdAt']))}'),
                           // displayInfo(
                           //   key: 'Description',
                           //   value: getDescription(viewData['description'],
@@ -156,8 +156,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                           if (viewData['approvedBy'].toString().isNotEmpty) ...[
                             displayInfo(
                                 key: 'Approved by',
-                                value:
-                                    '${viewData['approvedBy'].toString().split('|')[0]} on ${viewData['approvedBy'].toString().split('|')[1]}'),
+                                value: '${viewData['approvedBy']}'),
                           ],
                           if (viewData['rejectedBy'].toString().isNotEmpty) ...[
                             displayInfo(
