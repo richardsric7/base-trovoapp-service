@@ -201,8 +201,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	router.GET("/v1/users/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 		if os.Getenv("LOG_IP_ADDRESS") == "1" {
-			log.Printf("IP address: %v\nCLIENTIP: %v", c.GetHeader(strings.ToUpper("x-forwarded-for")), c.ClientIP())
-			log.Printf("%+v\n", c)
+			log.Printf("<<<<<<<<<<<<<>>>>>>>>>>>IP address: %v\nCLIENTIP: %v", c.GetHeader(strings.ToUpper("x-forwarded-for")), c.ClientIP())
+			log.Printf("<<<<<<<<<<<<<<>>>>>>>>>>>%+v\n", c)
 		}
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		uDec, e := base64.URLEncoding.DecodeString(c.Param("targetUser"))
@@ -237,7 +237,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		pnt := c.Query("pnt")
 
 		cacheDurationInSeconds := 1 * 60 //1 minutes
-
+		if queryType == "import" {
+			u, e := usersDB.GetUser(identifier, gc.DB, gc)
+			if e == nil {
+				u.InvalidateUserCache(gc)
+			}
+		}
 		userInfo, err := userServices.GetUserInfo(identifier, middleware.ExtractSigner(c), gc)
 
 		if err != nil {

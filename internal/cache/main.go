@@ -258,7 +258,7 @@ func (r *RedisCache) DeleteFromCache(keys ...string) bool {
 	for _, i := range keys {
 		modKeys = append(modKeys, i+param)
 	}
-	log.Printf("[InvalidateCachedHttpResponse] [%v]\n", modKeys)
+	log.Printf("[DeleteFromCache] [%v]\n", modKeys)
 
 	_, err := r.Client.Del(r.Context, modKeys...).Result()
 
