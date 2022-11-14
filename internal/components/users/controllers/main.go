@@ -202,7 +202,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		// var err error
 		if os.Getenv("LOG_IP_ADDRESS") == "1" {
 			log.Printf("IP address: %v\n", c.GetHeader(strings.ToUpper("x-forwarded-for")))
-			log.Printf("%+v", c)
+			log.Printf("%+v\n", c)
 		}
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		uDec, e := base64.URLEncoding.DecodeString(c.Param("targetUser"))
