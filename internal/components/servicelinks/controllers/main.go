@@ -38,7 +38,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	callBackRetryChan := make(chan retryCallbacks, 20000)
 	go func(c chan retryCallbacks) {
-		log.Println("#####@started Routine to retry failed Payment callbacks....")
+		log.Println("#####@started Routine to retry failed auth/events/login callbacks....")
 		//loop
 		for {
 			callbackObj := <-c
@@ -97,6 +97,22 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				err := gc.DB.Where("expires_at < ?", time.Now()).Delete(servicelinkModels.ServiceLinkAuthorization{}).Error
 				if err != nil {
 					log.Printf("[Expire Authorizations Routine]unable to delete expired authorizations requests due to error [%v]\n", err)
+				}
+				time.Sleep(30 * time.Second)
+			}
+		}()
+	}
+
+	{
+		//auto expire events that are not within valid time.
+
+		go func() {
+			log.Println("@@@@@Started routine to Auto remove <service> events")
+
+			for {
+				err := gc.DB.Where("expires_at < ?", time.Now()).Delete(servicelinkModels.ServiceLinkEvent{}).Error
+				if err != nil {
+					log.Printf("[Expire Events Routine]unable to delete expired events requests due to error [%v]\n", err)
 				}
 				time.Sleep(30 * time.Second)
 			}
@@ -219,11 +235,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		if userInfo.PushNotificationToken != nil {
-			dataPayload := make(map[string]string)
-			dataPayload["link"] = data.DynamicLink
-			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for [%v] requested!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to request a login session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, serviceLinkRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-		}
+		// if userInfo.PushNotificationToken != nil {
+		// 	dataPayload := make(map[string]string)
+		// 	dataPayload["link"] = data.DynamicLink
+		// 	pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for [%v] requested!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to request a login session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, serviceLinkRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		// }
 
 		c.JSON(http.StatusOK, data)
 
@@ -635,14 +651,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		ownerUsername := mInfo.OwnerUsername
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/authorize/request/%v %v", trovoUser, ownerUsername), gc.DB)
-		// if mInfo.PublicKey != middleware.ExtractPublicKey(c) {
-		// 	//wrong access
-		// 	statusCode := http.StatusUnauthorized
-		// 	response := gin.H{"error": "error-invalid-service-access", "data": "Authentication", "message": "Authentication failed"}
-		// 	c.JSON(statusCode, response)
-		// 	return
-		// }
-		// log.Printf("service Info: %+v\n", mInfo)
+
 		if mInfo.AuthorizationPermission == 0 {
 			//wrong access
 			statusCode := http.StatusUnauthorized
@@ -740,6 +749,104 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		c.JSON(http.StatusOK, data)
 	})
 
+	//service event link request
+	router.POST("/v1/servicelinks/events/request", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
+
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(middleware.ExtractServiceLinkApiKey(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET service] error for service:", middleware.ExtractServiceLinkApiKey(c), "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		ownerUsername := mInfo.OwnerUsername
+
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/servicelinks/events/request %v", ownerUsername), gc.DB)
+
+		if mInfo.EventPermission == 0 {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Event link generation permission not enabled for this service"}
+			c.JSON(statusCode, response)
+			return
+		}
+
+		var serviceLinkRequestInput servicelinkModels.ServiceLinkEventRequestInput
+		reqBody, _ := io.ReadAll(c.Request.Body)
+
+		err = json.Unmarshal(reqBody, &serviceLinkRequestInput)
+
+		var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Println("Event Request Input JSON Error:", err)
+			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			return
+		}
+
+		eventID := uuid.NewString()
+		authorizationData := servicelinkModels.ServiceLinkEvent{
+			ID:            eventID,
+			ApiKey:        middleware.ExtractServiceLinkApiKey(c),
+			OwnerUsername: mInfo.OwnerUsername,
+		}
+		if len(serviceLinkRequestInput.CallbackURL) > 0 {
+			authorizationData.CallbackURL = &serviceLinkRequestInput.CallbackURL
+		}
+		period := time.Duration(3)
+		if os.Getenv("SERVICE_LINK_AUTHORIZATION_REQUEST_VALIDITY") != "" {
+			m, e := decimal.NewFromString(os.Getenv("SERVICE_LINK_AUTHORIZATION_REQUEST_VALIDITY"))
+			if e == nil {
+				if m.IsPositive() {
+					period = time.Duration(m.IntPart())
+				}
+			}
+		}
+		if serviceLinkRequestInput.ValidityInMinutes > 0 {
+			//check if validtity was submitted
+			period = time.Duration(serviceLinkRequestInput.ValidityInMinutes)
+
+		}
+		authorizationData.ExpiresAt = time.Now().Add(period * time.Minute)
+		err = gc.DB.Create(&authorizationData).Error
+		if err != nil {
+			log.Printf("unable to create event: %v\n", err)
+			//could not save login session
+			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
+			statusCode := http.StatusServiceUnavailable
+			c.JSON(statusCode, response)
+			return
+		}
+
+		data, err := dl.GenerateEventData(mInfo.OwnerUsername, mInfo.ShortName, serviceLinkRequestInput.EventDescription, serviceLinkRequestInput.DeviceInfo, eventID, gc)
+		if err != nil {
+			//could not create authorization session
+			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
+			statusCode := http.StatusServiceUnavailable
+			c.JSON(statusCode, response)
+			return
+		}
+
+		c.JSON(http.StatusOK, data)
+	})
+
 	//user authorization approval url
 	router.POST("/v1/users/servicelinks/authorize/approval/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
@@ -752,7 +859,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
 		authID := strings.TrimSpace(c.Query("authId"))
 		//get authorization data for user
-		authData, err := servicelinkServices.GetEventAuthorizationData(ownerUsername, authID, gc.DB)
+		authData, err := servicelinkServices.GetUserAuthorizationData(ownerUsername, identifier, authID, gc.DB)
 		if err != nil {
 
 			//other system error
@@ -835,263 +942,244 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 		//check if service is for an event registration/reward service: [2 = registration, 1 = reward, 0 = none]
-		if mInfo.RewardOnly == 2 {
 
-			if userInfo.MobileVerified == 0 && os.Getenv("ENABLE_MOBILE_VERIFICATION") == "1" {
+		//2FA must belong to the caller account
 
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "Your mobile phone number is not verified. Please make sure you have the latest version of the app and then go to settings/profile and click to verify your phone number before you can continue with this request."}
+		if identifier != userInfo.Username {
+			//wrong access
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "2FA/Authorization request does not belong to your Trovo Wallet"}
+			c.JSON(statusCode, response)
+			return
+		}
+		//get authorization data for user
 
-				c.JSON(statusCode, response)
+		if authData.Authorized == 1 {
+			response := gin.H{"error": "error-authorization-does-not-exist", "data": userInfo.Username, "message": "invalid/expired authorization request"}
+			statusCode := http.StatusNotFound
+			c.JSON(statusCode, response)
+			return
+		}
+		//exists and needs to be updated
+		authData.Authorized = 1
+
+		err = gc.DB.Save(&authData).Error
+		if err != nil {
+			//could not save authData
+			response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
+			statusCode := http.StatusServiceUnavailable
+			c.JSON(statusCode, response)
+			return
+		}
+
+		if userInfo.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["none"] = ""
+			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("2FA Action for %v authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username %v has been used to authorize a 2FA action on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+		//return report to user and not keep them waiting.
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+
+		//TODO: make callback request if callback is availble
+		if authData.CallbackURL != nil {
+
+			//make callback request
+			// callbackResponse := new(map[string]interface{})
+			type payload struct {
+				AuthID     string `json:"authId"`
+				TargetUser string `json:"targetUser"`
+				DeviceID   string `json:"deviceId"`
+			}
+			jsonPayload := payload{AuthID: authData.ID, TargetUser: authData.WalletUsername, DeviceID: c.GetHeader("X-TW-DEVICE-ID")}
+
+			/////
+			d := *authData.CallbackURL
+			body, err := json.Marshal(jsonPayload)
+			if err != nil {
+				log.Printf("[AuthCallback] could not unmarshal callback message due to [%v]\n", err)
+
+			}
+			log.Printf("[AuthCallback] JSON STRING: [%v]\n", string(body))
+
+			responseBody := bytes.NewBuffer(body)
+			//Leverage Go's HTTP Post function to make request
+			resp, err := http.Post(d, "application/json", responseBody)
+			//Handle Error
+			if err != nil {
+				log.Printf("[AuthCallback] could not send callback message due to [%v]\n", err)
 				return
 			}
-
-			if userInfo.PushNotificationToken != nil {
-				dataPayload := make(map[string]string)
-				dataPayload["none"] = ""
-				pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Event Registration/Attendance for [%v] authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to authorize an event registration/attendance action on [%v] service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-
-			//return report to user and not keep them waiting.
-			c.JSON(http.StatusOK, gin.H{"message": "success"})
-
-			//TODO: make callback request if callback is available
-			if authData.CallbackURL != nil {
-
-				//make callback request
-				// callbackResponse := new(map[string]interface{})
-				type payload struct {
-					AuthID     string `json:"authId"`
-					TargetUser string `json:"targetUser"`
-					DeviceID   string `json:"deviceId"`
-				}
-				jsonPayload := payload{AuthID: authData.ID, TargetUser: userInfo.Username, DeviceID: c.GetHeader("X-TW-DEVICE-ID")}
-				/////
-				d := *authData.CallbackURL
-				body, err := json.Marshal(jsonPayload)
-				if err != nil {
-					log.Printf("[EVENT CALLBACK AuthCallback] could not unmarshal callback message due to [%v]\n", err)
-
-				}
-				log.Printf("[EVENT CALLBACK AuthCallback] JSON STRING: [%v]\n", string(body))
-
-				responseBody := bytes.NewBuffer(body)
-				//Leverage Go's HTTP Post function to make request
-				resp, err := http.Post(d, "application/json", responseBody)
-				//Handle Error
-				if err != nil {
-					log.Printf("[EVENT CALLBACK AuthCallback] could not send callback message due to [%v]\n", err)
-					return
-				}
-				defer resp.Body.Close()
-				//Read the response body
-				body, err = io.ReadAll(resp.Body)
-				if err != nil {
-					//send to retry channel
-					log.Println("[EVENT CALLBACK AuthCallback] callback failed:", err)
-					c := retryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-					callBackRetryChan <- c
-				} else {
-					log.Printf("[EVENT CALLBACK AuthCallback] authorization Callback successful to: [%v], Response:[%v]\n\n", d, string(body))
-
-				}
+			defer resp.Body.Close()
+			//Read the response body
+			body, err = io.ReadAll(resp.Body)
+			if err != nil {
+				//send to retry channel
+				log.Println("[AuthCallback] callback failed:", err)
+				c := retryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
+				callBackRetryChan <- c
+			} else {
+				log.Printf("[AuthCallback] 2FA authorization Callback successful to: [%v], Response:[%v]\n\n", d, string(body))
 
 			}
 
+		}
+
+	})
+
+	//user events approval url
+	router.POST("/v1/users/servicelinks/events/approval/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+
+		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
+		if identifier == "null" {
+			log.Printf("user cannot be %v\n", identifier)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "user cannot be null"})
+			return
+		}
+		ownerUsername := strings.TrimSpace(strings.ToLower(c.Query("ownerUsername")))
+		eventID := strings.TrimSpace(c.Query("eventId"))
+		//get authorization data for user
+		eventData, err := servicelinkServices.GetEventAuthorizationData(ownerUsername, eventID, gc.DB)
+		if err != nil {
+
+			//other system error
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+			log.Println("Event authorization error:", response)
+			c.JSON(statusCode, response)
 			return
 
-		} else if mInfo.RewardOnly == 1 {
+		}
+		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/servicelinks/events/approval/%v %v/%v", identifier, ownerUsername, eventID), gc.DB)
 
-			if userInfo.MobileVerified == 0 && os.Getenv("ENABLE_MOBILE_VERIFICATION") == "1" {
+		mInfo, err := servicelinkServices.GetServiceLinkByAPIKey(eventData.ApiKey, gc.DB)
 
-				statusCode := http.StatusBadRequest
-				response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "Your mobile phone number is not verified. Please make sure you have the latest version of the app and then go to settings/profile and click to verify your phone number before you can continue with this request."}
-				c.JSON(statusCode, response)
-				return
+		if err != nil {
+			log.Println("[GET SERVICE] error for SERVICELINK:", ownerUsername, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
 			}
 
-			//get authorization data for user
-			authData, err := servicelinkServices.GetRewardOnlyAuthorizationData(ownerUsername, authID, gc.DB)
-			if err != nil {
-
-				//other system error
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
-
-			}
-
-			if userInfo.PushNotificationToken != nil {
-				dataPayload := make(map[string]string)
-				dataPayload["none"] = ""
-				pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Reward Action for [%v] authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to authorize a reward action on [%v] service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-			//return report to user and not keep them waiting.
-			c.JSON(http.StatusOK, gin.H{"message": "success"})
-
-			//TODO: make callback request if callback is available
-			if authData.CallbackURL != nil {
-
-				//make callback request
-				// callbackResponse := new(map[string]interface{})
-				type payload struct {
-					AuthID     string `json:"authId"`
-					TargetUser string `json:"targetUser"`
-					DeviceID   string `json:"deviceId"`
-				}
-				jsonPayload := payload{AuthID: authData.ID, TargetUser: userInfo.Username, DeviceID: c.GetHeader("X-TW-DEVICE-ID")}
-
-				/////
-				d := *authData.CallbackURL
-				body, err := json.Marshal(jsonPayload)
-				if err != nil {
-					log.Printf("[REWARD AuthCallback] could not unmarshal callback message due to [%v]\n", err)
-
-				}
-				log.Printf("[REWARD AuthCallback] JSON STRING: [%v]\n", string(body))
-
-				responseBody := bytes.NewBuffer(body)
-				//Leverage Go's HTTP Post function to make request
-				resp, err := http.Post(d, "application/json", responseBody)
-				//Handle Error
-				if err != nil {
-					log.Printf("[REWARD AuthCallback] could not send callback message due to [%v]\n", err)
-					return
-				}
-				defer resp.Body.Close()
-				//Read the response body
-				body, err = io.ReadAll(resp.Body)
-				if err != nil {
-					//send to retry channel
-					log.Println("[REWARD AuthCallback] callback failed:", err)
-					c := retryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-					callBackRetryChan <- c
-				} else {
-					log.Printf("[REWARD AuthCallback] authorization Callback successful to: [%v], Response:[%v]\n\n", d, string(body))
-
-				}
-
-			}
-
+			c.JSON(statusCode, response)
 			return
+		}
 
-		} else {
-			//2FA must belong to the caller account
+		if mInfo.EventPermission == 0 {
+			//wrong access
 
-			if (identifier != userInfo.Username) && mInfo.RewardOnly == 0 {
-				//wrong access
-				statusCode := http.StatusUnauthorized
-				response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "2FA/Authorization request does not belong to your Trovo Wallet"}
-				c.JSON(statusCode, response)
-				return
+			statusCode := http.StatusUnauthorized
+			response := gin.H{"error": "error-invalid-service-access", "data": "Permission", "message": "Event permission not enabled for this service."}
+			log.Printf("%+v\n", response)
+			c.JSON(statusCode, response)
+			return
+		}
+
+		userInfo, err := servicelinkServices.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+
+		if err != nil {
+			log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
+
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
 			}
-			//get authorization data for user
-			authData, err := servicelinkServices.GetUserAuthorizationData(ownerUsername, userInfo.Username, authID, gc.DB)
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		if userInfo.MobileVerified == 0 && os.Getenv("ENABLE_MOBILE_VERIFICATION") == "1" {
+
+			statusCode := http.StatusBadRequest
+			response := gin.H{"error": "error-invalid-user-access", "data": "Authentication", "message": "Your mobile phone number is not verified. Please make sure you have the latest version of the app and then go to settings/profile and click to verify your phone number before you can continue with this request."}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		if userInfo.PushNotificationToken != nil {
+			dataPayload := make(map[string]string)
+			dataPayload["none"] = ""
+			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Event Registration/Participation for %v authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username %v has been used to authorize an event registration/participation action on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		}
+
+		//return report to user and not keep them waiting.
+		c.JSON(http.StatusOK, gin.H{"message": "success"})
+
+		//TODO: make callback request if callback is available
+		if eventData.CallbackURL != nil {
+
+			//make callback request
+			// callbackResponse := new(map[string]interface{})
+			type payload struct {
+				EventID    string `json:"eventId"`
+				TargetUser string `json:"targetUser"`
+				DeviceID   string `json:"deviceId"`
+			}
+			jsonPayload := payload{EventID: eventData.ID, TargetUser: userInfo.Username, DeviceID: c.GetHeader("X-TW-DEVICE-ID")}
+			/////
+			d := *eventData.CallbackURL
+			body, err := json.Marshal(jsonPayload)
 			if err != nil {
-
-				//other system error
-				var ex tErrors.GenericError
-				var ok bool
-
-				ex, ok = err.(tErrors.GenericError)
-				var statusCode int = 0
-				var response interface{}
-
-				if ok {
-					statusCode = ex.HTTPCode()
-					response = ex.JSONError()
-				} else {
-					statusCode = http.StatusBadRequest
-					response = gin.H{"error": err.Error()}
-				}
-
-				c.JSON(statusCode, response)
-				return
+				log.Printf("[EVENT CALLBACK] could not unmarshal callback message due to [%v]\n", err)
 
 			}
-			if authData.Authorized == 1 {
-				response := gin.H{"error": "error-authorization-does-not-exist", "data": userInfo.Username, "message": "invalid/expired authorization request"}
-				statusCode := http.StatusNotFound
-				c.JSON(statusCode, response)
-				return
-			}
-			//exists and needs to be updated
-			authData.Authorized = 1
+			log.Printf("[EVENT CALLBACK] JSON STRING: [%v]\n", string(body))
 
-			err = gc.DB.Save(&authData).Error
+			responseBody := bytes.NewBuffer(body)
+			//Leverage Go's HTTP Post function to make request
+			resp, err := http.Post(d, "application/json", responseBody)
+			//Handle Error
 			if err != nil {
-				//could not save authData
-				response := gin.H{"error": "error-temporary-server-error", "data": "temporaryServerError", "message": "Temporary Server Error. Contact support."}
-				statusCode := http.StatusServiceUnavailable
-				c.JSON(statusCode, response)
+				log.Printf("[EVENT CALLBACK] could not send callback message due to [%v]\n", err)
 				return
 			}
-
-			if userInfo.PushNotificationToken != nil {
-				dataPayload := make(map[string]string)
-				dataPayload["none"] = ""
-				pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("2FA Action for [%v] authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to authorize a 2FA action on [%v] service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-			}
-			//return report to user and not keep them waiting.
-			c.JSON(http.StatusOK, gin.H{"message": "success"})
-
-			//TODO: make callback request if callback is availble
-			if authData.CallbackURL != nil {
-
-				//make callback request
-				// callbackResponse := new(map[string]interface{})
-				type payload struct {
-					AuthID     string `json:"authId"`
-					TargetUser string `json:"targetUser"`
-					DeviceID   string `json:"deviceId"`
-				}
-				jsonPayload := payload{AuthID: authData.ID, TargetUser: authData.WalletUsername, DeviceID: c.GetHeader("X-TW-DEVICE-ID")}
-
-				/////
-				d := *authData.CallbackURL
-				body, err := json.Marshal(jsonPayload)
-				if err != nil {
-					log.Printf("[LoginAuthCallback] could not unmarshal callback message due to [%v]\n", err)
-
-				}
-				log.Printf("[LoginAuthCallback] JSON STRING: [%v]\n", string(body))
-
-				responseBody := bytes.NewBuffer(body)
-				//Leverage Go's HTTP Post function to make request
-				resp, err := http.Post(d, "application/json", responseBody)
-				//Handle Error
-				if err != nil {
-					log.Printf("[LoginAuthCallback] could not send callback message due to [%v]\n", err)
-					return
-				}
-				defer resp.Body.Close()
-				//Read the response body
-				body, err = io.ReadAll(resp.Body)
-				if err != nil {
-					//send to retry channel
-					log.Println("[LoginAuthCallback] callback failed:", err)
-					c := retryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
-					callBackRetryChan <- c
-				} else {
-					log.Printf("[LoginAuthCallback] Login authorization Callback successful to: [%v], Response:[%v]\n\n", d, string(body))
-
-				}
+			defer resp.Body.Close()
+			//Read the response body
+			body, err = io.ReadAll(resp.Body)
+			if err != nil {
+				//send to retry channel
+				log.Println("[EVENT CALLBACK AuthCallback] callback failed:", err)
+				c := retryCallbacks{Req: responseBody, CallbackURL: d, Count: 0}
+				callBackRetryChan <- c
+			} else {
+				log.Printf("[EVENT CALLBACK] Event Callback successful to: [%v], Response:[%v]\n\n", d, string(body))
 
 			}
+
 		}
 
 	})

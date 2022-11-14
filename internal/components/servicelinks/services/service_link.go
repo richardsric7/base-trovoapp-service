@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 	merchantdb "trovo-wallet-api/internal/components/servicelinks/db"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	conDB "trovo-wallet-api/internal/db"
@@ -162,19 +163,19 @@ func GetRewardOnlyAuthorizationData(mInfo, authID string, db *gorm.DB) (authData
 }
 
 // GetEventAuthorizationData gets user authorization data
-func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData servicelinkModels.ServiceLinkAuthorization, err error) {
+func GetEventAuthorizationData(mInfo, eventID string, db *gorm.DB) (eventData servicelinkModels.ServiceLinkEvent, err error) {
 
 	conDB.PrintDBStats("GetEventAuthorizationData", db)
 
-	e := db.Where("owner_username = ?", mInfo).Where("id = ?", authID).First(&authData).Error
+	e := db.Where("owner_username = ?", mInfo).Where("id = ?", eventID).First(&eventData).Error
 
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
 			//no user was found
 			err = &tErrors.CustomError{
-				Param:      authID,
+				Param:      eventID,
 				Err:        "error: link data does not exist",
-				ErrMessage: "Link is either invalid or closed or expired.",
+				ErrMessage: "Event is either invalid or closed or expired.",
 				Code:       http.StatusNotFound,
 			}
 			return
@@ -186,20 +187,20 @@ func GetEventAuthorizationData(mInfo, authID string, db *gorm.DB) (authData serv
 
 	}
 
-	if authData.Authorized == 1 {
-		log.Println("[GetEventAuthorizationData] error: auth already authorized")
+	if eventData.ExpiresAt.Before(time.Now()) {
+		log.Println("[GetEventAuthorizationData] error: auth already expired")
 		//no user was found
 		err = &tErrors.CustomError{
-			Param:      authID,
-			Err:        "error: link data has expired",
-			ErrMessage: "Link is no longer valid.",
+			Param:      eventID,
+			Err:        "error link event has expired",
+			ErrMessage: "Event is no longer valid.",
 			Code:       http.StatusNotFound,
 		}
 		return
 
 	}
 
-	return authData, nil
+	return eventData, nil
 
 }
 

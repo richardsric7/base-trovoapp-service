@@ -5,6 +5,8 @@ import (
 	"strings"
 	assets "trovo-wallet-api/internal/components/assets/models"
 	"trovo-wallet-api/internal/sharedconfig"
+
+	"github.com/golang-module/carbon/v2"
 )
 
 func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
@@ -195,9 +197,9 @@ func (a *PendingAuth) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj AuthJSON) {
 	if a.PendingTransactionSignatures != nil {
 		if len(a.PendingTransactionSignatures) > 0 {
 			for i, sig := range a.PendingTransactionSignatures {
-				jsonObj.ApprovedBy = fmt.Sprintf("%s|%s", sig.Approver, sig.CreatedAt.Format("2006-01-02"))
+				jsonObj.ApprovedBy = fmt.Sprintf("%s on %s", sig.Approver, carbon.Time2Carbon(sig.CreatedAt).ToDateString())
 				if i+1 < len(a.PendingTransactionSignatures) {
-					jsonObj.ApprovedBy = fmt.Sprintf("%s,\n", jsonObj.ApprovedBy)
+					jsonObj.ApprovedBy = fmt.Sprintf("%s, ", jsonObj.ApprovedBy)
 				}
 			}
 		}

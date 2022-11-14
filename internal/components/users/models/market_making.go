@@ -23,6 +23,19 @@ type MarketOfferRequest struct {
 	Memo                 string   `json:"memo"`
 	ReturnedDescription  string   `json:"-"`
 }
+
+type DeleteOfferRequest struct {
+	ID                   string   `json:"Id"`
+	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	NetworkPassPhrase    string   `json:"networkPassPhrase"`
+	Messages             []string `json:"messages"`
+	Commit               int      `json:"commit"`
+	Multiparty           int      `json:"-"`
+	Memo                 string   `json:"memo"`
+	ReturnedDescription  string   `json:"-"`
+}
 type MarketOffer struct {
 	CreatedAt                   time.Time `gorm:"default:now()" json:"-"`
 	UpdatedAt                   time.Time `gorm:"default:now()" json:"-"`
@@ -44,4 +57,5 @@ type MarketOffer struct {
 	BlockchainOfferID           *string   `gorm:"null;size:100" json:"blockchainOfferId"`
 	RemainingQuantity           string    `gorm:"not null;size:100" json:"remainingQuantity"`
 	RemainingFeeValue           string    `gorm:"not null;size:100" json:"remainingFeeValue"`
+	Canceled                    int       `gorm:"type:integer;not null; default:0" json:"canceled"`
 }

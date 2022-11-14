@@ -920,7 +920,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		if len(revokedList) > 0 {
 			revokedUsers := ""
 			for i, u := range revokedList {
-				revokedUsers = fmt.Sprintf("%s|%v", u.TargetUsername, u.Permission)
+				revokedUsers = fmt.Sprintf("%s(%v)", u.TargetUsername, u.Permission)
 				if i < len(revokedList)-1 {
 					revokedUsers = fmt.Sprintf("%s, ", revokedUsers)
 				}
@@ -931,7 +931,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		if len(modifiedList) > 0 {
 			modifiedUsers := ""
 			for i, u := range modifiedList {
-				modifiedUsers = fmt.Sprintf("%s|%v", u.TargetUsername, u.Permission)
+				modifiedUsers = fmt.Sprintf("%s(%v)", u.TargetUsername, u.Permission)
 				if i < len(revokedList)-1 {
 					modifiedUsers = fmt.Sprintf("%s, ", modifiedUsers)
 				}
@@ -942,7 +942,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		if len(addedList) > 0 {
 			addedUsers := ""
 			for i, u := range addedList {
-				addedUsers = fmt.Sprintf("%s|%v", u.TargetUsername, u.Permission)
+				addedUsers = fmt.Sprintf("%s(%v)", u.TargetUsername, u.Permission)
 				if i < len(addedList)-1 {
 					addedUsers = fmt.Sprintf("%s, ", addedUsers)
 				}
@@ -1012,7 +1012,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		}
 	}
 	approvalsNeeded := wallet.NumberOfApprovalsNeeded
-	userPermissions := make([]string, 0)
+	var userPermissions string
 	walletOwner, e := wallet.GetWalletOwner(gc.DB, gc)
 	if e != nil {
 		return &tErrors.CustomError{
@@ -1023,7 +1023,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		}
 	}
 
-	for _, v := range accessList {
+	for i, v := range accessList {
 		u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 		if e != nil {
 			return &tErrors.CustomError{
@@ -1043,8 +1043,10 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		{
 			accessInfo.Permissions = append(accessInfo.Permissions, v.ToWalletPermissionInfo(&u, wallet, gc))
 		}
-		userPermissions = append(userPermissions, fmt.Sprintf("%s - (%v)", v.TargetUsername, v.Permission))
-
+		userPermissions = fmt.Sprintf("%s(%v)", v.TargetUsername, v.Permission)
+		if i < len(accessList)-1 {
+			userPermissions = fmt.Sprintf("%s, ", userPermissions)
+		}
 	}
 
 	// // if approver exists, then owner must sign transaction to add them as signers
@@ -1087,6 +1089,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 
 			//TODO: queue transaction and notify signers
 			id := uuid.New().String()
+
 			description := fmt.Sprintf("Disabling shared access on wallet %v.\nThis will remove the permissions:\n%v", wallet.Alias, userPermissions)
 			transactionByte, _ := json.Marshal(*accessInfo)
 			transactionStr := string(transactionByte)
@@ -1871,7 +1874,7 @@ func generateRemoveSharedAccessOps(wallet *userModels.UserWallet, walletOwner *u
 	return op, &tErrors.ErrorTemporaryServerError{}
 }
 
-func generateRemoveOldRecoveredSharedAccessOps(wallet *userModels.UserWallet, walletOwner *userModels.User, approverOldSigner string, gc *sharedconfig.GlobalConfig) (op txnbuild.Operation, err error) {
+func GenerateRemoveOldRecoveredSharedAccessOps(wallet *userModels.UserWallet, walletOwner *userModels.User, approverOldSigner string, gc *sharedconfig.GlobalConfig) (op txnbuild.Operation, err error) {
 	client := gc.BantuExpansionClient
 
 	//check if primary account has native enough native balance

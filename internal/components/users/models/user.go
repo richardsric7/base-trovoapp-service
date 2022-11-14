@@ -169,6 +169,8 @@ type UserSigner string
 
 type ApprovalID string
 
+type MarketOfferID string
+
 type Issuer string
 
 type TrackedWallet struct {

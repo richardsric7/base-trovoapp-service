@@ -22,6 +22,8 @@ import (
 )
 
 func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModels.UserWallet, offerRequest *userModels.MarketOfferRequest, gc *sharedconfig.GlobalConfig) (err error) {
+	offerRequest.Messages = make([]string, 0)
+
 	if sourceWallet.SharedAccessEnabled == 1 && sourceWallet.NumberOfApprovalsNeeded > 0 {
 		offerRequest.Multiparty = 1
 	}
@@ -69,12 +71,16 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 	}
 	mmSignerKeyPair, err := bc.MarketMakingSignerKeypair(walletOwner.Username, mmWallet.ID)
 	if err != nil {
-		// return &tErrors.CustomError{
-		// 	Param:      "assetCode",
-		// 	Err:        "error-retrieving-market-making-wallet",
-		// 	ErrMessage: "Market Making wallet could not be validated.",
-		// }
+
 		return &tErrors.ErrorTemporaryServerError{}
+	}
+	assetOfMarket := os.Getenv("NATIVE_ASSET_CODE")
+	if len(offerRequest.AssetIssuer) == 56 {
+		assetOfMarket = fmt.Sprintf("%v:%v...%v", offerRequest.AssetCode, offerRequest.AssetIssuer[0:4], offerRequest.AssetIssuer[51:55])
+	}
+	currencyOfMarket := os.Getenv("NATIVE_ASSET_CODE")
+	if len(offerRequest.CurrencyIssuer) == 56 {
+		currencyOfMarket = fmt.Sprintf("%v:%v...%v", offerRequest.CurrencyCode, offerRequest.CurrencyIssuer[0:4], offerRequest.CurrencyIssuer[51:55])
 	}
 
 	if strings.EqualFold(offerRequest.AssetCode, os.Getenv("NATIVE_ASSET_CODE")) {
@@ -143,7 +149,18 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 			RemainingFeeValue:           offerRequest.FeeValue,
 		}
 	}
-
+	var msgs string
+	for i, m := range offerRequest.Messages {
+		msgs = m
+		if i < len(offerRequest.Messages)-1 {
+			msgs = fmt.Sprintf("%s\n", msgs)
+		}
+	}
+	fp := offerRequest.FeeChargedOnAsset + "%"
+	offerRequest.ReturnedDescription = fmt.Sprintf("%v %v %v @ %v %v with %v fee of %v %v", offerRequest.OfferType, offerRequest.NetQuantity, assetOfMarket, offerRequest.PricePerUnit, currencyOfMarket, fp, offerRequest.FeeValue, assetOfMarket)
+	if len(msgs) > 0 {
+		offerRequest.ReturnedDescription = fmt.Sprintf("%s\nMessages: %v", offerRequest.ReturnedDescription, msgs)
+	}
 	if (offerRequest.Commit == 0 && sourceWallet.SharedAccessEnabled == 1 && sourceWallet.NumberOfApprovalsNeeded == 0) || (sourceWallet.SharedAccessEnabled == 0 && offerRequest.Commit == 0) {
 		dbTX := gc.DB.Begin()
 		defer dbTX.Rollback()
@@ -226,6 +243,59 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 	}
 
 	return &tErrors.ErrorTemporaryServerError{}
+}
+
+func CancelOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModels.UserWallet, deleteOfferRequest *userModels.DeleteOfferRequest, gc *sharedconfig.GlobalConfig) (err error) {
+
+	if len(deleteOfferRequest.ID) == 0 {
+		return &tErrors.ErrorMissingParameter{Parameter: "Id"}
+	}
+
+	marketOffer, err := sourceWallet.GetMarketOfferByID(deleteOfferRequest.ID, gc.DB, gc)
+	if err != nil {
+		return err
+	}
+
+	if marketOffer.Canceled == 1 {
+		return &tErrors.CustomError{
+			Param:      "id",
+			Err:        "error-offer-has been canceled",
+			ErrMessage: "Offer cannot be canceled because it has been already been canceled before.",
+		}
+	}
+
+	if decimal.RequireFromString(marketOffer.RemainingQuantity).IsZero() {
+		return &tErrors.CustomError{
+			Param:      "id",
+			Err:        "error-offer-has been filled",
+			ErrMessage: "Offer cannot be canceled because it has been filled.",
+		}
+	}
+	bOffer, err := marketOffer.GetBlockchainOfferDetail(gc)
+	if err != nil {
+		return err
+	}
+	if decimal.RequireFromString(bOffer.Amount).IsZero() {
+		return &tErrors.CustomError{
+			Param:      "id",
+			Err:        "error-offer-has been filled",
+			ErrMessage: "Offer cannot be canceled because it has been filled.",
+		}
+	}
+
+	// mmWallet, err := walletOwner.GetMartketMakingWallet(gc.DB)
+	// if err != nil {
+	// 	log.Printf("[MakeOffer]Error validating Market making wallet: %v", err)
+	// 	return err
+	// }
+
+	// mmSignerKeyPair, err := bc.MarketMakingSignerKeypair(walletOwner.Username, mmWallet.ID)
+	// if err != nil {
+
+	// 	return &tErrors.ErrorTemporaryServerError{}
+	// }
+
+	return
 }
 
 func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerRequest *userModels.MarketOfferRequest, mmSignerKeyPair *keypair.Full, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {

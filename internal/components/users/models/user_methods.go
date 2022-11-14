@@ -1898,3 +1898,80 @@ func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
 	}
 
 }
+
+func (w UserWallet) GetMarketOfferByID(offerID string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (marketOfer MarketOffer, err error) {
+	e := db.Where("id = ?", offerID).Where("source_wallet_public_key = ?", w.ID).First(&marketOfer).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-offer-not-found",
+				ErrMessage: "Offer not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+func (s MarketOfferID) GetMarketOffer(db *gorm.DB, gc *sharedconfig.GlobalConfig) (marketOfer MarketOffer, err error) {
+	e := db.Where("id = ?", string(s)).First(&marketOfer).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-offer-not-found",
+				ErrMessage: "Offer not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return
+}
+
+func (mo *MarketOffer) GetBlockchainOfferDetail(gc *sharedconfig.GlobalConfig) (offer horizon.Offer, err error) {
+	if mo.BlockchainOfferID == nil {
+		err = &tErrors.ErrorMissingParameter{Parameter: "blockchainOfferId"}
+		return
+	}
+
+	offer, e := gc.BantuExpansionClient.OfferDetails(*mo.BlockchainOfferID)
+
+	if e != nil {
+		log.Println("[GetBlockchainOffer]: ", e)
+		if strings.Contains(e.Error(), "timeout") || strings.Contains(e.Error(), "handshake") || strings.Contains(e.Error(), "no such host") || strings.Contains(e.Error(), "timeout") || strings.Contains(e.Error(), "dial") {
+			log.Printf("[GetBlockchainOffer Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
+			return offer, &tErrors.ErrorTemporaryServerError{}
+		}
+
+		return offer, &tErrors.ErrorTemporaryServerError{}
+
+	}
+	return offer, nil
+}
+
+func (mo *MarketOffer) CancelBlockchainOffer(gc *sharedconfig.GlobalConfig) (offer horizon.Offer, err error) {
+	if mo.BlockchainOfferID == nil {
+		err = &tErrors.ErrorMissingParameter{Parameter: "blockchainOfferId"}
+		return
+	}
+
+	offer, e := gc.BantuExpansionClient.OfferDetails(*mo.BlockchainOfferID)
+
+	if e != nil {
+		log.Println("[GetBlockchainOffer]: ", e)
+		if strings.Contains(e.Error(), "timeout") || strings.Contains(e.Error(), "handshake") || strings.Contains(e.Error(), "no such host") || strings.Contains(e.Error(), "timeout") || strings.Contains(e.Error(), "dial") {
+			log.Printf("[GetBlockchainOffer Network Failure]: %s\n", "Error Connecting to Blockchain API Service")
+			return offer, &tErrors.ErrorTemporaryServerError{}
+		}
+
+		return offer, &tErrors.ErrorTemporaryServerError{}
+
+	}
+	return offer, nil
+}

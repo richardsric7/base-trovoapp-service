@@ -27,6 +27,7 @@ import (
 
 // SwapSend function swaps an asset to another asset
 func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserWallet, swapInfo *swapModels.SwapSendInfo, gc *sharedconfig.GlobalConfig) error {
+	swapInfo.Messages = make([]string, 0)
 	if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
 		swapInfo.Multiparty = 1
 	}
@@ -98,7 +99,22 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		if len(swapInfo.DestinationAssetIssuer) == 56 {
 			destinationAsset = fmt.Sprintf("%v:%v...%v", swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer[0:4], swapInfo.DestinationAssetIssuer[51:55])
 		}
-		description := fmt.Sprintf("Swap from:%v|To: %v|Est. Value After: %v\nMemo: %v\nMessages: %v\n", sourceAsset, destinationAsset, swapInfo.SwappedEstimate, swapInfo.Memo, swapInfo.Messages)
+		description := fmt.Sprintf("Swap from:%v|To: %v|Est. Value After: %v", sourceAsset, destinationAsset, swapInfo.SwappedEstimate)
+		if len(swapInfo.Memo) > 0 {
+			description = fmt.Sprintf("%v\nMemo: %v", description, swapInfo.Memo)
+
+		}
+		if len(swapInfo.Messages) > 0 {
+			var msgs string
+			for i, m := range swapInfo.Messages {
+				msgs = m
+				if i < len(swapInfo.Messages)-1 {
+					msgs = fmt.Sprintf("%s\n", msgs)
+				}
+			}
+			description = fmt.Sprintf("%v\nMessages: %v", description, msgs)
+
+		}
 		swapInfo.ReturnedDescription = description
 		transactionByte, _ := json.Marshal(*swapInfo)
 		transactionStr := string(transactionByte)

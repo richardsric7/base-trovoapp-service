@@ -83,6 +83,11 @@ type TrovoWalletAuthorizationData struct {
 	QRCode      string `json:"qrCode"`
 	AuthID      string `json:"authId"`
 }
+type TrovoWalletEventData struct {
+	DynamicLink string `json:"dynamicLink"`
+	QRCode      string `json:"qrCode"`
+	EventID     string `json:"eventId"`
+}
 
 func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl string, redisCache *cache.RedisCache) (dynamicLink string, err error) {
 
@@ -314,6 +319,45 @@ func GenerateAuthorizationData(ownerUsername, serviceShortName, description, tar
 	p.QRCode = pngDataURI
 	p.AuthID = authID
 	// log.Printf("[GenerateAuthorizationData] App Data Link:[%+v]\n", p)
+	return p, nil
+}
+
+// GenerateEventData generates authorization Data
+func GenerateEventData(ownerUsername, serviceShortName, description, deviceInfo, eventID string, gc *sharedconfig.GlobalConfig) (p TrovoWalletEventData, err error) {
+	if len(description) == 0 {
+		description = fmt.Sprintf("This is a request to authorize event registration for your Trovo wallet user account on the service %s.", strings.ToUpper(serviceShortName))
+	}
+	var dynamicLink, pngDataURI string
+	params := url.Values{}
+	params.Add("action", "event")
+	params.Add("ownerUsername", ownerUsername)
+	params.Add("serviceShortName", serviceShortName)
+	params.Add("deviceInfo", deviceInfo)
+	params.Add("description", description)
+	params.Add("eventId", eventID)
+	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
+	// log.Println("[GenerateAuthorizationData]link=", link)
+
+	dynamicLink, err = GenerateDynamicLink(link, gc)
+
+	if err != nil {
+		log.Printf("[GenerateEventData] could not generate dynamic-link for [%v]. error: %v\n", link, err)
+		return
+	}
+	// log.Println("[v] generated dynamic link=", dynamicLink)
+	if len(dynamicLink) == 0 {
+		log.Println("[GenerateEventData] unable to generate dynamic link=", dynamicLink)
+		return
+	}
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc.RedisCache)
+	if err != nil {
+		log.Printf("[GenerateEventData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
+		return
+	}
+	p.DynamicLink = dynamicLink
+	p.QRCode = pngDataURI
+	p.EventID = eventID
+	// log.Printf("[GenerateEventData] App Data Link:[%+v]\n", p)
 	return p, nil
 }
 

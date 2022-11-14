@@ -2667,6 +2667,14 @@ func TestModifySharedAccess(t *testing.T) {
 		WalletPermissionInfo{
 			WalletPublicKey: accessToWallet,
 			TargetUsername:  "efizee",
+			Permission:      "INITIATOR"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			TargetUsername:  "muche",
+			Permission:      "INITIATOR"},
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			TargetUsername:  "muche",
 			Permission:      "APPROVER"})
 
 	// modifyList = append(modifyList,
@@ -2691,11 +2699,11 @@ func TestModifySharedAccess(t *testing.T) {
 	// 		TargetUsername:  "kenmaddy",
 	// 		Permission:      "APPROVER"})
 
-	// revokeList = append(revokeList,
-	// 	WalletPermissionInfo{
-	// 		WalletPublicKey: accessToWallet,
-	// 		TargetUsername:  "onoja",
-	// 		Permission:      "INITIATOR"})
+	revokeList = append(revokeList,
+		WalletPermissionInfo{
+			WalletPublicKey: accessToWallet,
+			TargetUsername:  "onoja",
+			Permission:      "APPROVER"})
 
 	payload.AddedPermissions = addedList
 	payload.RevokedPermissions = revokeList

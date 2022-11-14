@@ -163,6 +163,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/payment %v", signerAccountAlias), gc.DB)
 
+		//initiatlize message holder
+		paymentInfo.Messages = make([]string, 0)
 		//check if username is reserved. Reserved usernames should not send payments.
 		//TODO: cache this
 		_, checkReservedUserError := usersDB.UsernameIsReserved(signerAccountAlias, gc.DB)
@@ -592,6 +594,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/payment %v", sourceWalletOwnerAlias), gc.DB)
 
+		//initiatlize message holder
+		paymentInfo.Messages = make([]string, 0)
 		//check if username is reserved. Reserved usernames should not send payments.
 		//TODO: cache this
 		_, checkReservedUserError := usersDB.UsernameIsReserved(signerAccountAlias, gc.DB)

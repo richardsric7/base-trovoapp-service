@@ -39,7 +39,6 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	walletHasViewOnlyAccess := true
 	publicKeyPayment := len(paymentInfo.Destination) == 56 || len(paymentInfo.Destination) == 69
 
-
 	//check if destination is a wallet with memo
 	if publicKeyPayment {
 		memoWalletSlices28byte := strings.Split(os.Getenv("WALLETS_REQUIRE_28_BYTE_MEMO"), ",")
@@ -90,7 +89,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	}
 
 	if !publicKeyPayment && len(paymentInfo.Transaction) > 0 && len(paymentInfo.SHash) > 1 {
-		dUser, e := usersDB.GetUser(paymentInfo.Destination, db,gc)
+		dUser, e := usersDB.GetUser(paymentInfo.Destination, db, gc)
 		if e == nil {
 			destinationUser = &dUser
 		}
@@ -161,7 +160,22 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	if len(paymentInfo.AssetIssuer) == 56 {
 		assetOfPayment = fmt.Sprintf("%v:%v...%v", paymentInfo.AssetCode, paymentInfo.AssetIssuer[0:4], paymentInfo.AssetIssuer[51:55])
 	}
-	description := fmt.Sprintf("Payment from:%v|To:%v|Amount:%v %v\nMemo:%v\nMessages:%v\n", sourceWallet.Alias, paymentInfo.Destination, paymentInfo.Amount, assetOfPayment, paymentInfo.Memo, paymentInfo.Messages)
+	var msgs string
+	for i, m := range paymentInfo.Messages {
+		msgs = m
+		if i < len(paymentInfo.Messages)-1 {
+			msgs = fmt.Sprintf("%s\n", msgs)
+		}
+	}
+	description := fmt.Sprintf("Payment from:%v To:%v for %v %v", sourceWallet.Alias, paymentInfo.Destination, paymentInfo.Amount, assetOfPayment)
+	if len(paymentInfo.Memo) > 0 {
+		description = fmt.Sprintf("%v\nMemo:%v", description, paymentInfo.Memo)
+
+	}
+	if len(msgs) > 0 {
+		description = fmt.Sprintf("%v\nMessages:%v", description, msgs)
+	}
+
 	transactionByte, _ := json.Marshal(*paymentInfo)
 	transactionStr := string(transactionByte)
 	pendingAuth := userModels.PendingAuth{
@@ -215,7 +229,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		asset = txnbuild.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
 	}
 
-	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, db,gc)
+	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, db, gc)
 	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, db)
 
 	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {
@@ -571,7 +585,7 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	if len(paymentInfo.AssetCode) != 0 {
 		asset = txnbuild.CreditAsset{Code: paymentInfo.AssetCode, Issuer: paymentInfo.AssetIssuer}
 	}
-	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, gc.DB,gc)
+	destinationInfo, getDestinationError := usersDB.GetUser(paymentInfo.Destination, gc.DB, gc)
 	destinationWallet, _, _ := usersDB.GetWallet(paymentInfo.Destination, gc.DB)
 	charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	if getDestinationError != nil && len(paymentInfo.Destination) != 56 {

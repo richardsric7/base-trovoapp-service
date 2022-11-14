@@ -208,6 +208,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ServiceLinkAuthorization: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&servicelinkModels.ServiceLinkEvent{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ServiceLinkEvent: ", errMigrate)
+		}
 
 		errMigrate = gormDB.AutoMigrate(&SMS.SmsProvider{})
 		if errMigrate != nil {

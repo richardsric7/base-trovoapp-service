@@ -26,15 +26,16 @@ type ServiceLink struct {
 	LoginPermission            int       `json:"-" gorm:"type:integer;not null;default:0"`
 	PaymentPermission          int       `json:"-" gorm:"type:integer;not null;default:0"`
 	AuthorizationPermission    int       `json:"-" gorm:"type:integer;not null;default:0"`
+	EventPermission            int       `json:"-" gorm:"type:integer;not null;default:0"`
 	AllowUserInfo              int       `json:"-" gorm:"type:integer;not null;default:0"`
 	PushNotificationPermission int       `json:"-" gorm:"type:integer;not null;default:0"`
 	IncludePhoneNumbers        int       `json:"-" gorm:"type:integer;not null;default:0"`
 	IncludeUserBalances        int       `json:"-" gorm:"type:integer;not null;default:0"`
 	Verified                   int       `json:"-" gorm:"type:integer;not null;default:0"`
-	RewardOnly                 int       `json:"-" gorm:"type:integer;not null;default:0"`
-	Inactive                   int       `json:"inactive" gorm:"type:integer;not null;default:0"`
-	Suspended                  int       `json:"-" gorm:"type:integer;not null;default:0"`
-	SuspensionReason           *string   `json:"-" gorm:"null"`
+	// RewardOnly                 int       `json:"-" gorm:"type:integer;not null;default:0"`
+	Inactive         int     `json:"inactive" gorm:"type:integer;not null;default:0"`
+	Suspended        int     `json:"-" gorm:"type:integer;not null;default:0"`
+	SuspensionReason *string `json:"-" gorm:"null"`
 }
 type ServiceLinkApiKeyLog struct {
 	ID            int64     `json:"-"`
@@ -69,8 +70,25 @@ type ServiceLinkAuthorization struct {
 	Authorized     int     `gorm:"type:integer;not null;default:0"`
 }
 
+// ServiceLinkEvent holds event data model
+type ServiceLinkEvent struct {
+	ID            string `gorm:"size:100;primaryKey"`
+	CreatedAt     time.Time
+	ExpiresAt     time.Time `gorm:"default:now()"`
+	UpdatedAt     time.Time
+	ApiKey        string  `gorm:"size:50"`
+	OwnerUsername string  `gorm:"size:100;index:idx_eventdata;not null;check:,length(owner_username) >= 2"`
+	CallbackURL   *string `gorm:"null"`
+}
+
 type ServiceLinkRequestInput struct {
 	AuthDescription   string `json:"authDescription,omitempty"`
+	DeviceInfo        string `json:"deviceInfo,omitempty"`
+	CallbackURL       string `json:"callbackUrl,omitempty"`
+	ValidityInMinutes int    `json:"validityInMinutes,omitempty"`
+}
+type ServiceLinkEventRequestInput struct {
+	EventDescription  string `json:"eventDescription,omitempty"`
 	DeviceInfo        string `json:"deviceInfo,omitempty"`
 	CallbackURL       string `json:"callbackUrl,omitempty"`
 	ValidityInMinutes int    `json:"validityInMinutes,omitempty"`
