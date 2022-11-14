@@ -1002,7 +1002,7 @@ func TestGetUserInfo(t *testing.T) {
 	kp := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"
-	baseURL := devURL
+	baseURL := stagingURL
 	fullPath := fmt.Sprintf("/v1/users/%s", ownerUsername)
 	ts := time.Now().Unix() / 1000
 
