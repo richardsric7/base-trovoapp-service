@@ -1,6 +1,7 @@
 package users
 
 import (
+	"os"
 	paymentServices "trovo-wallet-api/internal/components/payments/services"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -199,7 +200,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	router.GET("/v1/users/:targetUser", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
-
+		if os.Getenv("LOG_IP_ADDRESS") == "1" {
+			log.Printf("IP address: %v\n", c.GetHeader(strings.ToUpper("x-forwarded-for")))
+			log.Printf("%+v", c)
+		}
 		identifier := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
 		uDec, e := base64.URLEncoding.DecodeString(c.Param("targetUser"))
 		if e == nil {

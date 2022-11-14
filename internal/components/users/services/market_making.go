@@ -563,3 +563,268 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 	return xdrBase64, nil
 
 }
+func generateDeleteMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerRequest *userModels.MarketOfferRequest, mmSignerKeyPair *keypair.Full, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+	offerFeePercentage := offerRequest.FeeChargedOnAsset + "%"
+	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
+	offerRequest.Messages = make([]string, 0)
+	var memo string
+	var currencyAsset, mainAsset txnbuild.Asset
+	if offerRequest.AssetCode+offerRequest.AssetIssuer == offerRequest.CurrencyCode+offerRequest.CurrencyIssuer {
+		return "", &tErrors.CustomError{
+			Param:      "AssetCode",
+			Err:        "error-asset-and-currency-are-the-same",
+			ErrMessage: "You cannot make a market against same asset",
+		}
+	}
+	offerRequest.OfferType = strings.ToUpper(offerRequest.OfferType)
+	fraction := decimal.RequireFromString(offerRequest.PricePerUnit).Rat()
+	d := int32(fraction.Denom().Int64())
+	n := int32(fraction.Num().Int64())
+	if offerRequest.AssetIssuer == "" {
+		mainAsset = txnbuild.NativeAsset{}
+	} else {
+		mainAsset = txnbuild.CreditAsset{Code: offerRequest.AssetCode, Issuer: offerRequest.AssetIssuer}
+	}
+
+	if offerRequest.CurrencyIssuer == "" {
+		currencyAsset = txnbuild.NativeAsset{}
+	} else {
+		currencyAsset = txnbuild.CreditAsset{Code: offerRequest.CurrencyCode, Issuer: offerRequest.CurrencyIssuer}
+	}
+
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
+
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
+	var sourceAccount *horizon.Account
+	var sourceMAccountExists, sourceMAccountTrustsAsset bool
+	var nativeMAccountBalance decimal.Decimal
+	if strings.EqualFold(offerRequest.OfferType, "BUY") {
+		sourceMAccountExists, sourceMAccountTrustsAsset, nativeMAccountBalance, _, sourceAccount, _ = network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, currencyAsset)
+
+		if !sourceMAccountExists {
+			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
+
+		}
+		if nativeMAccountBalance.LessThan(minBalance) {
+			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
+
+		}
+
+		if !mainAsset.IsNative() && !sourceMAccountTrustsAsset {
+
+			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", offerRequest.Quantity, currencyAsset.GetCode()), Code: http.StatusBadRequest}
+
+		}
+	}
+	if strings.EqualFold(offerRequest.OfferType, "SELL") {
+		sourceMAccountExists, sourceMAccountTrustsAsset, nativeMAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, mainAsset)
+
+		if !sourceMAccountExists {
+			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
+
+		}
+		if nativeMAccountBalance.LessThan(minBalance) {
+			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
+
+		}
+
+		if !mainAsset.IsNative() && !sourceMAccountTrustsAsset {
+
+			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", offerRequest.Quantity, mainAsset.GetCode()), Code: http.StatusBadRequest}
+
+		}
+	}
+
+	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+
+	if strings.EqualFold(offerRequest.OfferType, "BUY") {
+		if !currencyAsset.IsNative() {
+			//check if it has trustline to it and then create it.
+			_, mmAccountTrustsAsset, mmnativeAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmWallet.ID, currencyAsset)
+			if mmnativeAccountBalance.LessThan(minBalance) {
+				ops = append(ops, &txnbuild.Payment{
+					Asset:         txnbuild.NativeAsset{},
+					Destination:   mmWallet.ID,
+					Amount:        minBalance.Mul(decimal.NewFromInt(3)).String(),
+					SourceAccount: sourceWallet.ID,
+				})
+			}
+
+			if !mmAccountTrustsAsset {
+				//establish trustline automatically
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: currencyAsset},
+					Limit:         "900000000000",
+					SourceAccount: mmWallet.ID,
+				})
+			}
+
+		}
+		{
+			_, mmAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmWallet.ID, mainAsset)
+			if !mmAccountTrustsAsset {
+				//establish trustline automatically
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
+					Limit:         "900000000000",
+					SourceAccount: mmWallet.ID,
+				})
+			}
+		}
+		// move sellinng funds to the MM wallet
+		ops = append(ops, &txnbuild.Payment{
+			Asset:         currencyAsset,
+			Destination:   mmWallet.ID,
+			Amount:        offerRequest.Quantity,
+			SourceAccount: sourceWallet.ID,
+		})
+
+		//invert the price fraction
+		ops = append(ops, &txnbuild.ManageSellOffer{
+			Selling:       currencyAsset,
+			Buying:        mainAsset,
+			Amount:        offerRequest.NetQuantity,
+			Price:         xdr.Price{D: xdr.Int32(n), N: xdr.Int32(d)},
+			SourceAccount: mmWallet.ID,
+		})
+		memo = fmt.Sprintf("s%v-b%v", currencyAsset.GetCode(), mainAsset.GetCode())
+
+	}
+	if strings.EqualFold(offerRequest.OfferType, "SELL") {
+		if !mainAsset.IsNative() {
+			//check if it has trustline to it and then create it.
+			_, mmAccountTrustsAsset, mmnativeAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmWallet.ID, mainAsset)
+			if mmnativeAccountBalance.LessThan(minBalance) {
+				ops = append(ops, &txnbuild.Payment{
+					Asset:         txnbuild.NativeAsset{},
+					Destination:   mmWallet.ID,
+					Amount:        minBalance.Mul(decimal.NewFromInt(3)).String(),
+					SourceAccount: sourceWallet.ID,
+				})
+			}
+
+			if !mmAccountTrustsAsset {
+				//establish trustline automatically
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
+					Limit:         "900000000000",
+					SourceAccount: mmWallet.ID,
+				})
+			}
+
+		}
+		{
+			_, mmAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmWallet.ID, currencyAsset)
+			if !mmAccountTrustsAsset {
+				//establish trustline automatically
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: currencyAsset},
+					Limit:         "900000000000",
+					SourceAccount: mmWallet.ID,
+				})
+			}
+		}
+		// move sellinng funds to the MM wallet
+		ops = append(ops, &txnbuild.Payment{
+			Asset:         mainAsset,
+			Destination:   mmWallet.ID,
+			Amount:        offerRequest.Quantity,
+			SourceAccount: sourceWallet.ID,
+		})
+
+		// make offer with net quantity so that fee can be returned.
+		ops = append(ops, &txnbuild.ManageSellOffer{
+			Selling:       mainAsset,
+			Buying:        currencyAsset,
+			Amount:        offerRequest.NetQuantity,
+			Price:         xdr.Price{N: xdr.Int32(n), D: xdr.Int32(d)},
+			SourceAccount: mmWallet.ID,
+		})
+		memo = fmt.Sprintf("s%v-b%v", mainAsset.GetCode(), currencyAsset.GetCode())
+	}
+
+	//service fee
+	if decimal.RequireFromString(offerRequest.FeeValue).IsPositive() {
+
+		//process service fee
+
+		// ops = append(ops, &txnbuild.Payment{
+		// 	Destination:   os.Getenv("MARKET_MAKING_FEE_ADDRESS"),
+		// 	Amount:        offerRequest.FeeValue,
+		// 	SourceAccount: sourceWallet.ID,
+		// 	Asset:         mainAsset,
+		// })
+		//no need deducting it as we deduct it as market executes
+		feeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
+		if !mainAsset.IsNative() {
+			feeAssetCode = mainAsset.GetCode()
+		}
+		offerRequest.Messages = append(offerRequest.Messages, fmt.Sprintf("%v %v (%v) will be deducted from the total quantity as service fee and your offer will be placed with %v %v.", offerRequest.FeeValue, feeAssetCode, offerFeePercentage, offerRequest.NetQuantity, feeAssetCode))
+
+	}
+
+	// Construct the transaction that holds the operations to execute on the network
+
+	var tx *txnbuild.Transaction
+	// Construct the transaction that holds the operations to execute on the network
+	if offerRequest.Multiparty == 1 {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText(memo),
+			},
+		)
+	} else {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        sourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              txnbuild.MinBaseFee,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText(memo),
+			},
+		)
+	}
+	if err != nil {
+		log.Println("[generateMakeMarketXdr]error constructing transaction", err)
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+
+	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), mmSignerKeyPair)
+
+	if err != nil {
+		log.Println("[generateMakeMarketXdr] error signing transaction with custodial signer key ", err)
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if offerRequest.Multiparty == 1 {
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+
+		if err != nil {
+			log.Println("[generateMakeMarketXdr] error signing transaction with channelAccount key ", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
+	xdrBase64, err := tx.Base64()
+
+	if err != nil {
+		return "", err
+	}
+	offerRequest.Memo = memo
+	return xdrBase64, nil
+
+}

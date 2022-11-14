@@ -17,6 +17,7 @@ import (
 
 const devURL = "http://localhost:8080"
 const prodURL = "https://api.trovotechnologies.com"
+const stagingURL = "https://apidev.trovotechnologies.com"
 
 type ErrorResponse struct {
 	Error   string `json:"error"`
@@ -2638,7 +2639,7 @@ func TestModifySharedAccess(t *testing.T) {
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := prodURL
+	baseURL := stagingURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -2709,7 +2710,7 @@ func TestModifySharedAccess(t *testing.T) {
 	payload.RevokedPermissions = revokeList
 	payload.ModifiedPermissions = modifyList
 
-	log.Printf("[DEBUG] Payload: %+v\n", payload)
+	// log.Printf("[DEBUG] Payload: %+v\n", payload)
 	errorResponse := new(ErrorResponse)
 	payResponse := new(ModifySharedAccessInfo)
 
