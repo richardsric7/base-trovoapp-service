@@ -29,6 +29,19 @@ String getTrovoBaseURL() {
   return 'https://api.trovotechnologies.com';
 }
 
+String getTrovoTestnetBaseURL() {
+  // String trovoBaseURL;
+  // if (GlobalConfiguration().getString("network") == "Development") {
+  //   print('development...');
+  //   trovoBaseURL = 'https://api.trovotechnologies.com';
+  // } else {
+  //   print('not development...');
+  //   trovoBaseURL = 'https://api.trovotechnologies.com';
+  // }
+  // return trovoBaseURL;
+  return 'https://apidev.trovotechnologies.com';
+}
+
 String getTrovoWalletApiBaseURL() {
   // String trovoWalletBaseURL;
   // if (GlobalConfiguration().getString("network") == "Development") {
@@ -60,7 +73,8 @@ Future<Map> makePostRequest({
 
   try {
     http.Response response = await http
-        .post(Uri.parse(getTrovoBaseURL() + uri), body: body, headers: headers)
+        .post(Uri.parse(getTrovoTestnetBaseURL() + uri),
+            body: body, headers: headers)
         .timeout(Duration(seconds: 60));
     // print("The statucode is: ${response.statusCode}");
     // print("The Response Body is: ${response.body}");
@@ -140,7 +154,7 @@ Future<Map> makeGetRequest({
 
   try {
     http.Response response = await http
-        .get(Uri.parse(getTrovoBaseURL() + uri), headers: headers)
+        .get(Uri.parse(getTrovoTestnetBaseURL() + uri), headers: headers)
         .timeout(Duration(seconds: 60));
     //  print("The statucode is: ${response.statusCode}");
     //  print("The Response Body is: ${response.body}");
@@ -224,7 +238,8 @@ Future<Map> makePutRequest({
 
   try {
     http.Response response = await http
-        .put(Uri.parse(getTrovoBaseURL() + uri), body: body, headers: headers)
+        .put(Uri.parse(getTrovoTestnetBaseURL() + uri),
+            body: body, headers: headers)
         .timeout(Duration(seconds: 60));
     // print("The statucode is: ${response.statusCode}");
     // print("The Response Body is: ${response.body}");
@@ -293,7 +308,7 @@ Future<Map> makePutRequest({
 Future<Map> makeUnSecuredGetRequest(String path) async {
   try {
     http.Response response = await http
-        .get(Uri.parse(getTrovoBaseURL() + path))
+        .get(Uri.parse(getTrovoTestnetBaseURL() + path))
         .timeout(Duration(seconds: 60));
     //  print("The statucode is: ${response.statusCode}");
     //  print("The Response Body is: ${response.body}");
@@ -376,8 +391,8 @@ Future<Map> makePutRequestForMultipartFile({
   //print('frist body: $body, pubkey: $publicKey, url: $baseUrlTest$uri');
 
   try {
-    var request =
-        await http.MultipartRequest('PUT', Uri.parse(getTrovoBaseURL() + uri));
+    var request = await http.MultipartRequest(
+        'PUT', Uri.parse(getTrovoTestnetBaseURL() + uri));
     request.headers.addAll(headers);
     request.files.add(await http.MultipartFile.fromPath(
         'profilePicture', multipartFilePath,
@@ -466,7 +481,7 @@ Future<Map> makeDeleteRequest({
 
   try {
     http.Response response = await http
-        .delete(Uri.parse(getTrovoBaseURL() + uri),
+        .delete(Uri.parse(getTrovoTestnetBaseURL() + uri),
             body: body, headers: headers)
         .timeout(Duration(seconds: 60));
     // print("The statucode is: ${response.statusCode}");

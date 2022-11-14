@@ -11,6 +11,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompasswor
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
+import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../Custom_BlocObserver/notifire_clor.dart';
@@ -2388,11 +2389,14 @@ void rejectionReasonPopup(context, void Function(String) action) {
       });
 }
 
-approvalListTransactionTypePopup(context, List<String> transactionTypes,
-    void Function(String) onSelected) async {
+approvalListTransactionTypePopup(context, List<String> options, String label,
+    void Function(String) onSelected,
+    {ApprovalsListFilterType? rel}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var appState = Provider.of<DataProvider>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
+  bool isChecked = appState.excludeUserApproved == 0;
   return showDialog(
       context: context,
       barrierDismissible: true,
@@ -2416,7 +2420,7 @@ approvalListTransactionTypePopup(context, List<String> transactionTypes,
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          'Select transaction type',
+                          label,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontSize: 15,
@@ -2435,23 +2439,58 @@ approvalListTransactionTypePopup(context, List<String> transactionTypes,
                             Wrap(
                               alignment: WrapAlignment.center,
                               children: [
-                                for (var i = 0;
-                                    i < transactionTypes.length;
-                                    i++) ...[
+                                for (var i = 0; i < options.length; i++) ...[
                                   quickDateRange(context,
-                                      text: transactionTypes[i]
-                                          .capitalizeFirst!, onPressed: () {
-                                    onSelected(transactionTypes[i]);
+                                      text: options[i].capitalizeFirst!,
+                                      onPressed: () {
+                                    onSelected(options[i]);
                                   }),
                                 ]
                               ],
                             ),
-                            SizedBox(
-                              height: height / 70,
-                            ),
                           ],
                         ),
                       ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Transform.scale(
+                          scale: 1.sp,
+                          child: Checkbox(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(5.sp),
+                                ),
+                              ),
+                              activeColor: notifier.getbluecolor,
+                              side:
+                                  BorderSide(color: notifier.getbluewhitecolor),
+                              value: isChecked,
+                              onChanged: (value) {
+                                appState.setExcludeUserApproved =
+                                    appState.excludeUserApproved == 1 ? 0 : 1;
+                                isChecked = appState.excludeUserApproved == 0;
+                                print(
+                                    'Exclude user approved: ${appState.excludeUserApproved}');
+                                setStateForDialog(() {});
+                              }),
+                        ),
+                        Container(
+                          child: Text(
+                            'Include approvals I have signed',
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontbody,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: height / 70,
                     ),
                   ],
                 ),
