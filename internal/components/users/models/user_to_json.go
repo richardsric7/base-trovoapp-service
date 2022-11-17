@@ -104,7 +104,7 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 			if permission.Permission == "APPROVER" {
 				hasApprover = true
 			}
-			jsonObj.Permissions = append(jsonObj.Permissions, permission.ToJSON())
+			jsonObj.Permissions = append(jsonObj.Permissions, permission.ToJSON(gc))
 		}
 		jsonObj.NumberOfApprovalsNeeded = uw.NumberOfApprovalsNeeded
 		jsonObj.SharedAccessCreatedAt = uw.SharedAccessCreatedAt
@@ -144,12 +144,21 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 	return
 }
 
-func (wa *WalletPermission) ToJSON() (jsonObj WalletPermissionJSON) {
+func (wa *WalletPermission) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj WalletPermissionJSON) {
 	jsonObj.CreatedAt = wa.CreatedAt
 	jsonObj.UpdatedAt = wa.UpdatedAt
 	jsonObj.WalletPublicKey = wa.WalletPublicKey
 	jsonObj.TargetUsername = wa.TargetUsername
 	jsonObj.Permission = wa.Permission
+	var name string
+	u, e := Username(wa.TargetUsername).GetSimpleUser(gc.DB, gc)
+	if e == nil {
+		name = u.FirstName
+		if u.LastName != nil {
+			name = fmt.Sprintf("%s %s", name, *u.LastName)
+		}
+	}
+	jsonObj.FullName = name
 	return
 }
 

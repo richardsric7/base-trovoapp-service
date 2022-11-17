@@ -57,6 +57,7 @@ type WalletPermissionJSON struct {
 	UpdatedAt       time.Time `json:"updatedAt"`
 	WalletPublicKey string    `json:"walletPublicKey"`
 	TargetUsername  string    `json:"targetUsername"`
+	FullName        string    `json:"fullName"`
 	Permission      string    `json:"permission"`
 }
 

@@ -1710,7 +1710,9 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 			walletSettings := WalletSettings{
 				NumberOfApprovalsNeeded: wallet.NumberOfApprovalsNeeded,
 				WalletType:              wallet.WalletType,
-				Permissions:             wallet.Permissions,
+			}
+			for _, p := range wallet.Permissions {
+				walletSettings.Permissions = append(walletSettings.Permissions, p.ToJSON(gc))
 			}
 			thirdPartyWallet.WalletSettings = &walletSettings
 		}
