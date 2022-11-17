@@ -1705,6 +1705,16 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 
 		thirdPartyWallet.Owner = owner.Username
 
+		if assignedPermission.Permission == "INITIATOR" {
+			//set walletSettings SINCE INITIATORS CAN MODIFY WALLET
+			walletSettings := WalletSettings{
+				NumberOfApprovalsNeeded: wallet.NumberOfApprovalsNeeded,
+				WalletType:              wallet.WalletType,
+				Permissions:             wallet.Permissions,
+			}
+			thirdPartyWallet.WalletSettings = &walletSettings
+		}
+
 		thirdPartyWallets = append(thirdPartyWallets, thirdPartyWallet)
 
 	}
