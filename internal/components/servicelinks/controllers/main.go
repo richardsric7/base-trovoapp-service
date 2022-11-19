@@ -1664,23 +1664,27 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		if len(serviceLinkRequestInput.Message) > 100 {
-			message100Bytes := make([]byte, 0)
-
-			//trim to 100 bytes
-			for _, c := range []byte(serviceLinkRequestInput.Message) {
-				if (len(message100Bytes) + len(string(c))) <= 100 {
-					message100Bytes = append(message100Bytes, c)
-					if len(message100Bytes) == 100 {
-						break
-					}
-				}
-			}
-			serviceLinkRequestInput.Message = string(message100Bytes)
+		if len(serviceLinkRequestInput.Message) > 1000 {
+			messageBytes := []byte(serviceLinkRequestInput.Message)
+			msgB := messageBytes[0:999]
+			serviceLinkRequestInput.Message = string(msgB)
 		}
 
 		//Push Message
-		serviceLinkRequestInput.PushMessage(*userInfo.PushNotificationToken)
+		dataPayload := make(map[string]string)
+		if serviceLinkRequestInput.Action == "login" {
+			dataPayload["route"] = "login"
+		} else if serviceLinkRequestInput.Action == "payment" {
+			dataPayload["route"] = "payment"
+		} else if serviceLinkRequestInput.Action == "auth" {
+			dataPayload["route"] = "auth"
+		} else if serviceLinkRequestInput.Action == "event" {
+			dataPayload["route"] = "event"
+		} else {
+			dataPayload["route"] = "none"
+		}
+
+		userInfo.SendPushMessage(serviceLinkRequestInput.Title, serviceLinkRequestInput.Message, serviceLinkRequestInput.ImageURI, dataPayload, gc)
 
 		c.JSON(http.StatusOK, successResponseData)
 	})

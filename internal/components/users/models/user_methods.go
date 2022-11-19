@@ -1836,6 +1836,17 @@ func (u *User) SendPushMessage(title, body, imageURI string, dataPayload map[str
 	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, dataPayload, gc.PushNotificationClient, gc.PNSContext)
 
 }
+func (u *ServiceLinksUser) SendPushMessage(title, body, imageURI string, dataPayload map[string]string, gc *sharedconfig.GlobalConfig) {
+	//Send push notification to user
+	// log.Println(title, body)
+
+	if u.PushNotificationToken == nil {
+		return
+	}
+
+	pns.SendFirebaseMessage(*u.PushNotificationToken, title, body, imageURI, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+
+}
 
 func (u *User) ToServiceLinkUser(gc *sharedconfig.GlobalConfig) (slUser ServiceLinksUser) {
 

@@ -1,16 +1,7 @@
 package servicelinks
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"os"
 	"time"
-
-	"github.com/bantublockchain/push-notification-service/pkg/shove"
 )
 
 // ServiceLink holds ServiceLink data model
@@ -95,8 +86,10 @@ type ServiceLinkEventRequestInput struct {
 }
 
 type ServiceLinkPushNotificationInput struct {
-	Title   string `json:"title"`
-	Message string `json:"message"`
+	Title    string `json:"title"`
+	Message  string `json:"message"`
+	ImageURI string `json:"imageUri"`
+	Action   string `json:"action"` //login, payment, 2fa, event
 }
 type Android struct {
 	Priority     string               `json:"priority"`
@@ -117,196 +110,4 @@ type APNS struct {
 type Message struct {
 	Title   string `json:"title"`
 	Message string `json:"body"`
-}
-type payload struct {
-	To              string   `json:"to,omitempty"`
-	Token           string   `json:"token,omitempty"`
-	RegistrationIDs []string `json:"registration_ids,omitempty"`
-	Notification    Message  `json:"notification"`
-	Android         *Android `json:"android,omitempty"`
-	APNS            *APNS    `json:"apns,omitempty"`
-}
-
-func (m *ServiceLinkPushNotificationInput) PushMessage(token string) {
-
-	if os.Getenv("PUSH_NOTIFICATION_SERVICE_MODE") == "redis" {
-		//use redis queue
-		log.Println("Using redis for PNS:", os.Getenv("PNS_REDIS_HOST"))
-		type FCMNotification struct {
-			To              string   `json:"to,omitempty"`
-			Token           string   `json:"token,omitempty"`
-			RegistrationIDs []string `json:"registration_ids,omitempty"`
-			Notification    Message  `json:"notification"`
-			Android         *Android `json:"android,omitempty"`
-			APNS            *APNS    `json:"apns,omitempty"`
-		}
-		redisURL := fmt.Sprintf("redis://%v:%v", os.Getenv("PNS_REDIS_HOST"), os.Getenv("PNS_REDIS_PORT"))
-		log.Println("Using redis for PNS:", redisURL)
-
-		pwd := os.Getenv("PNS_REDIS_PASSWORD")
-
-		client := shove.NewRedisClient(redisURL, pwd)
-		message := Message{
-			Title:   m.Title,
-			Message: m.Message,
-		}
-		notification := FCMNotification{
-			Token:        token,
-			Notification: message,
-		}
-
-		raw, err := json.Marshal(notification)
-		if err != nil {
-			log.Printf("[PushMessage] could not unmarshal notification due to [%v]\n", err)
-		}
-		err = client.PushRaw("fcm", raw)
-		if err != nil {
-			log.Printf("[PushMessage] could not save raw redis message due to [%v]\n", err)
-		} else {
-			log.Printf("[PushMessage] Queued Message : [%v]\n", string(raw))
-
-		}
-
-		return
-	}
-	//use url
-	if len(os.Getenv("PUSH_NOTIFICATION_SERVICE_URL")) > 10 && os.Getenv("PUSH_NOTIFICATION_SERVICE_MODE") != "redis" {
-		//url exists, use it to push
-		//make callback request
-		log.Printf("[PushMessage] send FCM POST message [%v] to %v \n", m.Message, os.Getenv("PUSH_NOTIFICATION_SERVICE_URL"))
-
-		message := Message{
-			Title:   m.Title,
-			Message: m.Message,
-		}
-		//https://pns-alpha.dev.bantupay.org/api/push/fcm
-		jsonPayload := payload{Token: token, Notification: message}
-		body, err := json.Marshal(jsonPayload)
-		if err != nil {
-			log.Printf("[PushMessage] could not send unmarshal message due to [%v]\n", err)
-
-		}
-		log.Printf("JSON STRING: [%v]\n", string(body))
-
-		responseBody := bytes.NewBuffer(body)
-		//Leverage Go's HTTP Post function to make request
-		resp, err := http.Post(os.Getenv("PUSH_NOTIFICATION_SERVICE_URL"), "application/json", responseBody)
-		//Handle Error
-		if err != nil {
-			log.Printf("[PushMessage] could not send FCM POST message due to [%v]\n", err)
-			return
-		}
-		defer resp.Body.Close()
-		//Read the response body
-		body, err = io.ReadAll(resp.Body)
-		if err == nil {
-
-			log.Printf("[PushMessage] Response Body: [%v]\n", string(body))
-
-		}
-
-	}
-}
-
-func (m *ServiceLinkPushNotificationInput) PushMessage999Max(tokens []string) {
-	if len(tokens) == 0 || len(tokens) > 999 {
-		return
-	}
-	if os.Getenv("PUSH_NOTIFICATION_SERVICE_MODE") == "redis" {
-		//use redis queue
-
-		/////
-
-		redisURL := fmt.Sprintf("redis://%v:%v", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
-		pwd := os.Getenv("REDIS_PASSWORD")
-
-		client := shove.NewRedisClient(redisURL, pwd)
-		message := Message{
-			Title:   m.Title,
-			Message: m.Message,
-		}
-		var notification payload
-		if len(tokens) < 1000 {
-			notification = payload{
-				RegistrationIDs: tokens,
-				Notification:    message,
-			}
-
-			raw, err := json.Marshal(notification)
-			if err != nil {
-				log.Printf("[PushMessage] could not unmarshal notification due to [%v]\n", err)
-			}
-			err = client.PushRaw("fcm", raw)
-			if err != nil {
-				log.Printf("[PushMessage] could not save raw redis message due to [%v]\n", err)
-			}
-		}
-		return
-	}
-	//use url
-	if len(os.Getenv("PUSH_NOTIFICATION_SERVICE_URL")) > 10 && os.Getenv("PUSH_NOTIFICATION_SERVICE_MODE") != "redis" {
-		//url exists, use it to push
-		//make callback request
-		log.Printf("[PushMessage] send FCM POST message [%v] to %v \n", m.Message, os.Getenv("PUSH_NOTIFICATION_SERVICE_URL"))
-
-		message := Message{
-			Title:   m.Title,
-			Message: m.Message,
-		}
-		//https://pns-alpha.dev.bantupay.org/api/push/fcm
-
-		if len(tokens) < 1000 {
-			jsonPayload := payload{RegistrationIDs: tokens, Notification: message}
-			body, err := json.Marshal(jsonPayload)
-			if err != nil {
-				log.Printf("[PushMessage] could not send unmarshal message due to [%v]\n", err)
-
-			}
-			log.Printf("JSON STRING: [%v]\n", string(body))
-
-			responseBody := bytes.NewBuffer(body)
-			//Leverage Go's HTTP Post function to make request
-			resp, err := http.Post(os.Getenv("PUSH_NOTIFICATION_SERVICE_URL"), "application/json", responseBody)
-			//Handle Error
-			if err != nil {
-				log.Printf("[PushMessage] could not send FCM POST message due to [%v]\n", err)
-				return
-			}
-			defer resp.Body.Close()
-			//Read the response body
-			body, err = io.ReadAll(resp.Body)
-			if err == nil {
-
-				log.Printf("[PushMessage] Response Body: [%v]\n", string(body))
-
-			}
-		}
-
-	}
-}
-
-func (m *ServiceLinkPushNotificationInput) PushBulkMessage(tokens []string) {
-
-	if len(tokens) < 1000 {
-		m.PushMessage999Max(tokens)
-	} else {
-		//process max of 999 per batch
-		batch := make([]string, 0)
-
-		for _, t := range tokens {
-			batch = append(batch, t)
-			if len(batch) == 999 {
-				//send and reset
-				m.PushMessage999Max(batch)
-				//reset batch
-				batch = make([]string, 0)
-			}
-		}
-		//check if tokens still remianed in batch
-		if len(batch) > 0 {
-			m.PushMessage999Max(batch)
-		}
-
-	}
-
 }
