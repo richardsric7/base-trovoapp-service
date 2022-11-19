@@ -7,10 +7,12 @@ require (
 	firebase.google.com/go v3.12.0+incompatible
 	github.com/bantublockchain/push-notification-service v1.0.1
 	github.com/dghubble/sling v1.4.0
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ecnepsnai/discord v1.2.1
 	github.com/gin-gonic/gin v1.8.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gofrs/uuid v4.0.0+incompatible
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang-module/carbon/v2 v2.2.2
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0

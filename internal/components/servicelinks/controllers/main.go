@@ -9,6 +9,8 @@ import (
 	"time"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
 	servicelinkServices "trovo-wallet-api/internal/components/servicelinks/services"
+	userServices "trovo-wallet-api/internal/components/users/services"
+
 	conDB "trovo-wallet-api/internal/db"
 	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -178,7 +180,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -332,7 +334,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		userInfo, err := servicelinkServices.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+		userInfo, err := servicelinkServices.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for signer:", middleware.ExtractSigner(c), "error: ", err)
@@ -538,7 +540,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -565,7 +567,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		//store login data for verification
+		//get login data for verification
 		loginSession, err := servicelinkServices.GetLoginSession(ownerUsername, userInfo.Username, loginID, gc.DB)
 		if err != nil {
 			log.Printf("[error Verifying Login] for user [%v], error [%v]]\n", trovoUser, err)
@@ -607,11 +609,81 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		}
 
+		data, err := userServices.LogUserIn(userInfo, gc)
+		if err != nil {
+			log.Printf("[error Verifying Login] for user [%v], error [%v]]\n", trovoUser, err)
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusBadRequest
+				response = gin.H{"error": err.Error()}
+			}
+
+			cacheDurationInSeconds := 60 //1 minute
+
+			gc.RedisCache.CacheHttpResponse(cacheKey, statusCode, response, cacheDurationInSeconds)
+
+			c.JSON(statusCode, response)
+			return
+
+		}
 		cacheDurationInSeconds := 2 * 60 //2 minutes
 
-		gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, userInfo, cacheDurationInSeconds)
+		gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, data, cacheDurationInSeconds)
 
-		c.JSON(http.StatusOK, userInfo)
+		c.JSON(http.StatusOK, data)
+	})
+
+	//service login refresh token url
+	router.POST("/v1/servicelinks/token/refresh", func(c *gin.Context) {
+		mapToken := map[string]string{}
+		if err := c.ShouldBindJSON(&mapToken); err != nil {
+			log.Printf("[HandleRefreshToken] error could not bind json body: %v\n", err)
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "unable to retrieve refresh token"})
+			return
+		}
+		refreshToken := mapToken["refreshToken"]
+
+		//verify the token
+		refreshReponse, err := userServices.RefreshToken(refreshToken, gc)
+		if err != nil { //if any goes wrong
+			log.Printf("[Refresh Handle] error loging in: %v\n", err)
+			var ex tErrors.GenericError
+			var ok bool
+
+			ex, ok = err.(tErrors.GenericError)
+			var statusCode int = 0
+			var response interface{}
+
+			if ok {
+				statusCode = ex.HTTPCode()
+				response = ex.JSONError()
+			} else {
+				statusCode = http.StatusUnauthorized
+				response = gin.H{"error": "unauthorized to perform this action"}
+			}
+
+			c.JSON(statusCode, response)
+			return
+		}
+
+		c.JSON(http.StatusCreated, refreshReponse)
+
+	})
+
+	//service token verify
+	router.POST("/v1/servicelinks/token/verify", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
+
+		c.JSON(http.StatusCreated, gin.H{"message": "success"})
+
 	})
 
 	//service authorization request
@@ -660,7 +732,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -918,7 +990,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		userInfo, err := servicelinkServices.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+		userInfo, err := servicelinkServices.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
@@ -1097,7 +1169,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		userInfo, err := servicelinkServices.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB)
+		userInfo, err := servicelinkServices.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", identifier, "error: ", err)
@@ -1232,7 +1304,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -1359,7 +1431,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		_, err = servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
+		_, err = servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -1463,7 +1535,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		data, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
+		data, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)
@@ -1537,7 +1609,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc)
+		userInfo, err := servicelinkServices.GetUserForServiceLink(trovoUser, mInfo, gc.DB, gc)
 
 		if err != nil {
 			log.Println("[GET UserInfo] error for user:", trovoUser, "error: ", err)

@@ -6,9 +6,9 @@ import (
 	"log"
 	"os"
 
-	"firebase.google.com/go/storage"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/messaging"
+	"firebase.google.com/go/storage"
 	"google.golang.org/api/option"
 )
 
@@ -91,6 +91,34 @@ func SendFirebaseBroadcast(recipients []string, title, body, imageURI string, da
 		Data:   dataPayload,
 	})
 	log.Printf("[SendFirebaseBroadcast] response: %+v, error: %v\n", response, err)
+	return response, err
+}
+
+func SendPushNotificationBroadcast(recipients []string, title, body, imageURI string, dataPayload map[string]string, fcmClient *messaging.Client, ctx context.Context) (*messaging.BatchResponse, error) {
+	var err error
+	response := new(messaging.BatchResponse)
+	if len(recipients) <= 10000 {
+		return SendFirebaseBroadcast(recipients, title, body, imageURI, dataPayload, fcmClient, ctx)
+	}
+	i := 0
+	er := 10000
+	for i <= len(recipients)-1 {
+		// var rec []string
+
+		response, err = SendFirebaseBroadcast(recipients[i:er-1], title, body, imageURI, dataPayload, fcmClient, ctx)
+		if err != nil {
+			log.Printf("[SendPushNotificationBroadcast] error from batch range [%v:%v]: %v\n", i, er-1, err)
+		}
+		if len(recipients)-er <= 10000 {
+			i = er - 1
+			er = len(recipients)
+
+		} else {
+			i = er - 1
+			er += 10000
+		}
+
+	}
 	return response, err
 }
 

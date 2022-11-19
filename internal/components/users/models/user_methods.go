@@ -1837,6 +1837,44 @@ func (u *User) SendPushMessage(title, body, imageURI string, dataPayload map[str
 
 }
 
+func (u *User) ToServiceLinkUser(gc *sharedconfig.GlobalConfig) (slUser ServiceLinksUser) {
+
+	if u == nil {
+		return
+	}
+	slUser = ServiceLinksUser{
+		CreatedAt:             u.CreatedAt,
+		UpdatedAt:             u.UpdatedAt,
+		LastUpdatedMobileOn:   u.LastUpdatedMobileOn,
+		ID:                    u.ID,
+		Username:              u.Username,
+		Email:                 u.Email,
+		ImageThumbnailURL:     u.ImageThumbnailURL,
+		FirstName:             u.FirstName,
+		LastName:              u.LastName,
+		Mobile:                u.Mobile,
+		PublicKey:             u.PublicKey,
+		PrimarySigner:         u.PrimarySigner,
+		PushNotificationToken: u.PushNotificationToken,
+		Corporate:             u.Corporate,
+		MobileVerified:        u.MobileVerified,
+		KYCVerified:           u.KYCVerified,
+		Suspended:             u.Suspended,
+	}
+	return
+}
+
+func (u *ServiceLinksUser) ToServiceLinkUserInfo(gc *sharedconfig.GlobalConfig) (slUser ServiceLinkUserInfo) {
+
+	if u == nil {
+		return
+	}
+	slUser = ServiceLinkUserInfo{
+		UserData: *u,
+	}
+	return
+}
+
 func (w *UserWallet) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	userAccount, err := w.GetWalletOwner(gc.DB, gc)
 	if err != nil {

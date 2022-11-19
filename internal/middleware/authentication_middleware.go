@@ -124,3 +124,19 @@ func AuthenticationMiddlewareUsingTimestamp() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+func JwtTokenAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		err := TokenValid(c.Request)
+		if err != nil {
+			// log.Println("[JwtTokenAuthMiddleware] error:", err)
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+
+	}
+}

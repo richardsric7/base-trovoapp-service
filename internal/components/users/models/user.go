@@ -138,6 +138,31 @@ type Permission struct {
 	Permission string `gorm:"size:text" json:"permission"`
 }
 
+type ServiceLinksUser struct {
+	CreatedAt             time.Time `json:"createdAt"`
+	UpdatedAt             time.Time `json:"updatedAt"`
+	LastUpdatedMobileOn   time.Time `json:"lastUpdatedMobileOn"`
+	ID                    string    `json:"id"`
+	Username              string    `gorm:"size:16; index:idx_user_unique_username, unique" json:"username"`
+	Email                 string    `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
+	ImageThumbnailURL     *string   `json:"imageThumbnailURL"`
+	FirstName             string    `gorm:"size:50" json:"firstName"`
+	LastName              *string   `gorm:"size:50" json:"lastName"`
+	Mobile                *string   `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
+	PublicKey             string    `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
+	PrimarySigner         string    `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
+	PushNotificationToken *string   `json:"pushNotificationToken"`
+	Corporate             int       `gorm:"type:integer;not null; default:0" json:"corporate"`
+	MobileVerified        int       `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
+	KYCVerified           int       `gorm:"type:integer;not null; default:0" json:"kycVerified"`
+	Suspended             int       `gorm:"type:integer;not null;default:0" json:"suspended"`
+}
+
+// ServiceLinkBudsInfo model for bantu user directory info
+type ServiceLinkUserInfo struct {
+	UserData ServiceLinksUser `json:"userData,omitempty"`
+	Wallet   []Balance        `json:"wallet,omitempty"`
+}
 type UserRegistrationInfo struct {
 	Username              string `json:"username"`
 	Email                 string `json:"email"`

@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	merchantdb "trovo-wallet-api/internal/components/servicelinks/db"
 	servicelinkModels "trovo-wallet-api/internal/components/servicelinks/models"
+	usersDB "trovo-wallet-api/internal/components/users/db"
+	userModels "trovo-wallet-api/internal/components/users/models"
+
 	conDB "trovo-wallet-api/internal/db"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -205,18 +207,23 @@ func GetEventAuthorizationData(mInfo, eventID string, db *gorm.DB) (eventData se
 }
 
 // GetUserForServiceLink gets user information
-func GetUserForServiceLink(ID string, serviceLink servicelinkModels.ServiceLink, gc *sharedconfig.GlobalConfig) (userInfoForServiceLink servicelinkModels.User, err error) {
+func GetUserForServiceLink(ID string, serviceLink servicelinkModels.ServiceLink, db *gorm.DB, gc *sharedconfig.GlobalConfig) (userInfoForServiceLink userModels.ServiceLinksUser, err error) {
 	conDB.PrintDBStats("GetUserForServiceLink", gc.DB)
-
-	userInfoForServiceLink, err = merchantdb.GetServiceLinkUserInfo(ID, gc.DB)
+	user, err := usersDB.GetUser(ID, db, gc)
 
 	if err != nil {
 		return userInfoForServiceLink, err
 	}
+
+	userInfoForServiceLink = user.ToServiceLinkUser(gc)
+
 	if userInfoForServiceLink.Suspended == 1 {
 		return userInfoForServiceLink, &tErrors.ErrorUsernameIsSuspended{}
 	}
 
 	return userInfoForServiceLink, nil
 
+}
+func GetUserFromPrimarySigner(signerKey string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user userModels.User, err error) {
+	return usersDB.GetUserFromPrimarySigner(signerKey, gc.DB, gc)
 }

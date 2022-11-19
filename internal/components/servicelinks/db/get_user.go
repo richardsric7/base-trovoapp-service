@@ -2,49 +2,26 @@ package servicelinks
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"strings"
-	userModels "trovo-wallet-api/internal/components/servicelinks/models"
-	conDB "trovo-wallet-api/internal/db"
+	usersDB "trovo-wallet-api/internal/components/users/db"
+	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // GetServiceLinkUserInfo gets user data
-func GetServiceLinkUserInfo(userInfo string, db *gorm.DB) (user userModels.User, err error) {
+func GetServiceLinkUserInfo(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user userModels.ServiceLinksUser, err error) {
 	// var wallet usermodels.UserWallet
-	conDB.PrintDBStats("GetServiceLinkUserInfo", db)
+	u, err := usersDB.GetUser(userInfo, gc.DB, gc)
 
-	//e returns execution errors
-	var e error
-	if len(userInfo) == 56 {
-		//56 char public key is supplied
-
-		e = db.Preload(clause.Associations).Where("public_key = ?", userInfo).First(&user).Error
-	} else if strings.Contains(userInfo, "@") {
-		//email is supplied
-		e = db.Preload(clause.Associations).First(&user, userModels.User{Email: strings.ToLower(userInfo)}).Error
-	} else {
-		//username is supplied
-		e = db.Preload(clause.Associations).Where("username = ?", userInfo).First(&user).Error
+	if err != nil {
+		return user, err
 	}
 
-	if e != nil {
-		if errors.Is(e, gorm.ErrRecordNotFound) {
-			//no user was found
-			err = &tErrors.ErrorUserDoesNotExist{Username: userInfo}
-			return
-		}
-		log.Println("[GetServiceLinkUserInfo] error: ", e)
-		err = &tErrors.ErrorTemporaryServerError{}
-		return
-
-	}
-	// log.Printf("[GetServiceLinkUserInfo] %+v\n", user)
-	return user, nil
+	return u.ToServiceLinkUser(gc), nil
 
 }
 
