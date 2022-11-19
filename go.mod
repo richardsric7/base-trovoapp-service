@@ -5,7 +5,6 @@ go 1.18
 require (
 	cloud.google.com/go/storage v1.10.0
 	firebase.google.com/go v3.12.0+incompatible
-	github.com/bantublockchain/push-notification-service v1.0.1
 	github.com/dghubble/sling v1.4.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/ecnepsnai/discord v1.2.1
@@ -49,7 +48,6 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
@@ -85,7 +83,6 @@ require (
 	github.com/thebotguys/signalr v0.0.0-20190119054324-787ebe6729fc // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/yeqown/reedsolomon v1.0.0 // indirect
-	gitlab.com/pennersr/redq v0.0.0-20210323185356-5c672ce9cd53 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
