@@ -8,6 +8,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/Models/Permission.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
@@ -24,14 +25,15 @@ import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
-class AddSharedAccessDetails extends StatefulWidget {
-  const AddSharedAccessDetails({Key? key}) : super(key: key);
+class UpdateSharedAccessDetails extends StatefulWidget {
+  const UpdateSharedAccessDetails({Key? key}) : super(key: key);
 
   @override
-  State<AddSharedAccessDetails> createState() => _AddSharedAccessDetails();
+  State<UpdateSharedAccessDetails> createState() =>
+      _UpdateSharedAccessDetails();
 }
 
-class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
+class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
@@ -55,9 +57,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
-    viewData = appState.viewData![AddSharedAccessDetailsViewPageConfig.key];
-    print('this is viewData');
-    print(viewData);
+    viewData = appState.viewData![UpdateSharedAccessDetailsViewPageConfig.key];
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -69,9 +69,6 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 50,
-              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -88,14 +85,17 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
               SizedBox(
                 height: height / 20,
               ),
-              Text(
-                'You are about to grant access to the following users',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  'You are about to make the following modifications to your shared access',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               SizedBox(
@@ -126,9 +126,6 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                 color: notifier.getbluewhitecolor,
                                 fontFamily: fontsemibold),
                           ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
                           Padding(
                             padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                             child: Container(
@@ -143,8 +140,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                             alignment: WrapAlignment.center,
                                             children: [
                                               Text(
-                                                appState.activeWallet!.alias ??
-                                                    "",
+                                                viewData['walletAlias'],
                                                 style: TextStyle(
                                                     fontSize: 15,
                                                     color: notifier
@@ -205,31 +201,15 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                width: width / 1.27,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Column(
-                                      children: [
-                                        Container(
-                                            width: width / 1.3,
-                                            child: Wrap(
-                                              alignment: WrapAlignment.center,
-                                              children: [
-                                                for (var i = 0;
-                                                    i <
-                                                        viewData['viewers']
-                                                            .length;
-                                                    i++) ...[
-                                                  userItem(
-                                                      '${viewData['viewers'][i]} [${viewData['userFullnames'][viewData['viewers'][i]]}]',
-                                                      null,
-                                                      notifier.getbluecolor)
-                                                ],
-                                              ],
-                                            )),
-                                        SizedBox(height: 2),
-                                      ],
-                                    ),
+                                    for (var i = 0;
+                                        i < viewData['viewers'].length;
+                                        i++) ...[
+                                      getPermissionInfo(viewData['viewers'][i]),
+                                    ]
                                   ],
                                 ),
                               ),
@@ -280,31 +260,16 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                width: width / 1.27,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Column(
-                                      children: [
-                                        Container(
-                                            width: width / 1.3,
-                                            child: Wrap(
-                                              alignment: WrapAlignment.center,
-                                              children: [
-                                                for (var i = 0;
-                                                    i <
-                                                        viewData['approvers']
-                                                            .length;
-                                                    i++) ...[
-                                                  userItem(
-                                                      '${viewData['approvers'][i]} [${viewData['userFullnames'][viewData['approvers'][i]]}]',
-                                                      null,
-                                                      notifier.getbluecolor),
-                                                ],
-                                              ],
-                                            )),
-                                        SizedBox(height: 2),
-                                      ],
-                                    ),
+                                    for (var i = 0;
+                                        i < viewData['approvers'].length;
+                                        i++) ...[
+                                      getPermissionInfo(
+                                          viewData['approvers'][i]),
+                                    ]
                                   ],
                                 ),
                               ),
@@ -332,7 +297,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                           : notifier.getaddsubwalletgrey,
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      // mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Column(
                           children: [
@@ -353,31 +318,16 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                width: width / 1.27,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Column(
-                                      children: [
-                                        Container(
-                                            width: width / 1.3,
-                                            child: Wrap(
-                                              alignment: WrapAlignment.center,
-                                              children: [
-                                                for (var i = 0;
-                                                    i <
-                                                        viewData['initiators']
-                                                            .length;
-                                                    i++) ...[
-                                                  userItem(
-                                                      '${viewData['initiators'][i]} [${viewData['userFullnames'][viewData['initiators'][i]]}]',
-                                                      null,
-                                                      notifier.getbluecolor)
-                                                ],
-                                              ],
-                                            )),
-                                        SizedBox(height: 2),
-                                      ],
-                                    ),
+                                    for (var i = 0;
+                                        i < viewData['initiators'].length;
+                                        i++) ...[
+                                      getPermissionInfo(
+                                          viewData['initiators'][i]),
+                                    ]
                                   ],
                                 ),
                               ),
@@ -538,63 +488,184 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
     return null;
   }
 
+  Widget getPermissionInfo(permission) {
+    var text = '';
+    Color color;
+    switch (permission.permissionState) {
+      case PermissionState.Added:
+        text = 'Added';
+        color = notifier.getgreencolor;
+        break;
+      case PermissionState.Revoked:
+        text = 'Revoked';
+        color = Colors.red;
+        break;
+      case PermissionState.Modified:
+        text = 'Modified';
+        color = Colors.yellow;
+        break;
+      default:
+        text = 'Active';
+        color = notifier.getbluewhitecolor;
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            width: width / 1.75,
+            child: Text(
+              '${permission.targetUsername} [${permission.fullName}]',
+              style: TextStyle(
+                  fontSize: 13,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold),
+            ),
+          ),
+          Text(
+            text,
+            style: TextStyle(fontSize: 13, color: color, fontFamily: fontbody),
+          ),
+        ],
+      ),
+    );
+  }
+
   sendDataToServer() async {
     print('sending to server....');
 
     try {
       showLoader(context);
 
-      var permissions = [];
+      var addedPermissions = [];
+      var modifiedPermissions = [];
+      var revokedPermissions = [];
       print(viewData);
 
       for (var i = 0; i < viewData['viewers'].length; i++) {
-        print(viewData['viewers'][i]);
-        permissions.add(
-          {
-            "targetUsername": viewData['viewers'][i],
-            // "name": "",
-            "permission": "VIEW-ONLY",
-          },
-        );
+        if (viewData['viewers'][i].permissionState == PermissionState.Added) {
+          addedPermissions.add(
+            {
+              "targetUsername": viewData['viewers'][i].targetUsername,
+              // "name": "",
+              "permission": "VIEW-ONLY",
+            },
+          );
+        }
+
+        if (viewData['viewers'][i].permissionState ==
+            PermissionState.Modified) {
+          modifiedPermissions.add(
+            {
+              "targetUsername": viewData['viewers'][i].targetUsername,
+              // "name": "",
+              "permission": "VIEW-ONLY",
+            },
+          );
+        }
+
+        if (viewData['viewers'][i].permissionState == PermissionState.Revoked) {
+          revokedPermissions.add(
+            {
+              "targetUsername": viewData['viewers'][i].targetUsername,
+              // "name": "",
+              "permission": "VIEW-ONLY",
+            },
+          );
+        }
+
+        print('added: $addedPermissions');
+        print('modified: $modifiedPermissions');
+        print('revoked: $revokedPermissions');
       }
 
       for (var i = 0; i < viewData['approvers'].length; i++) {
-        print(viewData['approvers'][i]);
-        permissions.add(
-          {
-            "targetUsername": viewData['approvers'][i],
-            // "name": "",
-            "permission": "APPROVER",
-          },
-        );
+        if (viewData['approvers'][i].permissionState == PermissionState.Added) {
+          addedPermissions.add(
+            {
+              "targetUsername": viewData['approvers'][i].targetUsername,
+              // "name": "",
+              "permission": "APPROVER",
+            },
+          );
+        }
+
+        if (viewData['approvers'][i].permissionState ==
+            PermissionState.Modified) {
+          modifiedPermissions.add(
+            {
+              "targetUsername": viewData['approvers'][i].targetUsername,
+              // "name": "",
+              "permission": "APPROVER",
+            },
+          );
+        }
+
+        if (viewData['approvers'][i].permissionState ==
+            PermissionState.Revoked) {
+          revokedPermissions.add(
+            {
+              "targetUsername": viewData['approvers'][i].targetUsername,
+              // "name": "",
+              "permission": "APPROVER",
+            },
+          );
+        }
       }
 
       for (var i = 0; i < viewData['initiators'].length; i++) {
-        print(viewData['initiators'][i]);
-        permissions.add(
-          {
-            "targetUsername": viewData['initiators'][i],
-            // "name": "",
-            "permission": "INITIATOR",
-          },
-        );
+        if (viewData['initiators'][i].permissionState ==
+            PermissionState.Added) {
+          addedPermissions.add(
+            {
+              "targetUsername": viewData['initiators'][i].targetUsername,
+              // "name": "",
+              "permission": "INITIATOR",
+            },
+          );
+        }
+
+        if (viewData['initiators'][i].permissionState ==
+            PermissionState.Modified) {
+          modifiedPermissions.add(
+            {
+              "targetUsername": viewData['initiators'][i].targetUsername,
+              // "name": "",
+              "permission": "INITIATOR",
+            },
+          );
+        }
+
+        if (viewData['initiators'][i].permissionState ==
+            PermissionState.Revoked) {
+          revokedPermissions.add(
+            {
+              "targetUsername": viewData['initiators'][i].targetUsername,
+              // "name": "",
+              "permission": "INITIATOR",
+            },
+          );
+        }
       }
 
       var postData = {
         "numberOfApprovalsNeeded": viewData['noOfApprovalsNeeded'],
-        "permissions": permissions,
+        "revokedPermissions": revokedPermissions,
+        // "modifiedPermissions": modifiedPermissions,
+        "addedPermissions": addedPermissions,
       };
 
       String requestBody = jsonEncode(postData);
 
       print(requestBody);
 
-      Map responseData = await makePostRequest(
+      Map responseData = await makePutRequest(
         uri: '/v1/shared-access/users/account',
         body: requestBody,
         signer: activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.publicKey!,
+        publicKey: viewData['walletPublicKey'],
       );
       print(responseData);
 
@@ -605,7 +676,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
         postProcessData(
             context, messageShown, messageLength, responseData['data'],
             callback: () {
-          signAndSendToServerAgain(responseData['data']);
+          signAndCommitTransaction(responseData['data']);
         });
         hideLoader(context);
       } else {
@@ -619,39 +690,52 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
     }
   }
 
-  void signAndSendToServerAgain(responseFromServer) async {
+  void signAndCommitTransaction(responseFromServer) async {
     try {
       print('signing and sending....');
       showLoader(context);
 
-      //sign the transaction and the submit again
-      var signature = TrovoWalletSDK().signBase64Txn(
-        appState.secretKeys[0], // the primary wallet secret key,
-        responseFromServer['transaction'],
-        responseFromServer['networkPassPhrase'],
-      );
-      responseFromServer['transactionId'] = "";
-      responseFromServer['transactionSignature'] = signature;
+      if (responseFromServer['signatureRequired'] == 1) {
+        responseFromServer['commit'] = 0;
+        //sign the transaction and the submit again
+        var signature = TrovoWalletSDK().signBase64Txn(
+          appState.secretKeys[0], // the primary wallet secret key,
+          responseFromServer['transaction'],
+          responseFromServer['networkPassPhrase'],
+        );
+        responseFromServer['transactionId'] = "";
+        responseFromServer['transactionSignature'] = signature;
+      } else {
+        responseFromServer['commit'] = 1;
+      }
       print('second: ${responseFromServer}');
 
       String requestBody = jsonEncode(responseFromServer);
 
       print('second: ${requestBody}');
 
-      Map responseData = await makePostRequest(
+      Map responseData = await makePutRequest(
         uri: '/v1/shared-access/users/account',
         body: requestBody,
         signer: activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.publicKey!,
+        publicKey: viewData['walletPublicKey'],
       );
 
       if (responseData['statusCode'] == 200) {
         print(responseData);
         appState.viewData![SuccessViewPageConfig.key] = {
-          'title': 'Shared access enabled successfully',
+          'title': 'Request successfull submitted',
           'message':
-              'You have successfully enabled shared access on your wallet (${appState.activeWallet!.alias})!',
+              'Your request to modify shared access on wallet (${viewData['walletAlias']}) has been successfully submitted! This transaction will be completed when it gets the required number of approvals.',
+          'useOnDone': true,
+          'onDone': () {
+            appState.currentAction =
+                PageAction(state: PageState.addAll, pages: [
+              BottomHomePageConfig,
+              SharedAccessViewPageConfig,
+            ]);
+          },
         };
         appState.currentAction =
             PageAction(state: PageState.replace, page: SuccessViewPageConfig);

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
-import 'package:get/route_manager.dart';
 import 'package:intl/intl.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
@@ -60,7 +59,6 @@ class _ApprovalDetails extends State<ApprovalDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![ApprovalDetailsViewPageConfig.key];
-    print('=====viewData $viewData');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -87,19 +85,6 @@ class _ApprovalDetails extends State<ApprovalDetails>
                         fontFamily: fontsemibold),
                   ),
                 ],
-              ),
-              SizedBox(
-                height: height / 20,
-              ),
-              Text(
-                getHeadlineLabel(viewData['transactionStatus']),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                ),
               ),
               SizedBox(
                 height: height / 50,
@@ -264,7 +249,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                 ],
               ],
               SizedBox(
-                height: height / 10,
+                height: height / 15,
               ),
               Padding(
                   padding: EdgeInsets.only(
@@ -490,6 +475,11 @@ class _ApprovalDetails extends State<ApprovalDetails>
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Rejection submitted',
           'message': 'You have successfully rejected this transaction.',
+          'useOnDone': true,
+          'onDone': () {
+            appState.currentAction = PageAction(
+                state: PageState.replace, page: SharedAccessViewPageConfig);
+          },
         };
         appState.currentAction =
             PageAction(state: PageState.replace, page: SuccessViewPageConfig);

@@ -148,31 +148,6 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
   return formatNumber(balance);
 }
 
-Widget userItem(String name, Color color) {
-  return Padding(
-    padding: const EdgeInsets.all(3.0),
-    child: Container(
-      decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          color: color),
-      child: Padding(
-        padding: const EdgeInsets.all(5.0),
-        child: Wrap(
-          children: [
-            Text(
-              name,
-              overflow: TextOverflow.ellipsis,
-              softWrap: true,
-              style: TextStyle(
-                  color: wihitecolor, fontFamily: fontbody, fontSize: 13.sp),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
 Widget buildExpandable(context) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
@@ -302,4 +277,50 @@ postProcessData(context, messageShown, messageLength, data,
   }
 
   callback();
+}
+
+Widget userItem(
+  String name,
+  void Function()? onClick,
+  Color color, {
+  double? fontSize: 12,
+  bool restoreMode = false,
+}) {
+  return Padding(
+    padding: const EdgeInsets.all(3.0),
+    child: Container(
+      decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+          color: color),
+      child: Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              name,
+              textAlign: TextAlign.center,
+              softWrap: true,
+              style: TextStyle(
+                  color: wihitecolor, fontFamily: fontbody, fontSize: fontSize),
+            ),
+            SizedBox(
+              width: width / 70,
+            ),
+            if (onClick != null) ...[
+              GestureDetector(
+                  onTap: () {
+                    onClick();
+                  },
+                  child: Icon(
+                    restoreMode ? Icons.replay_sharp : Icons.cancel_outlined,
+                    color: wihitecolor,
+                  ))
+            ]
+          ],
+        ),
+      ),
+    ),
+  );
 }

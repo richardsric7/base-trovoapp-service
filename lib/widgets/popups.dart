@@ -2477,11 +2477,12 @@ approvalListTransactionTypePopup(context, List<String> options, String label,
                               }),
                         ),
                         Container(
+                          width: width / 1.7,
                           child: Text(
-                            'Include approvals I have signed',
+                            'Include pending approvals I have already signed',
                             overflow: TextOverflow.visible,
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 13,
                               fontFamily: fontbody,
                               color: notifier.getbluewhitecolor,
                             ),

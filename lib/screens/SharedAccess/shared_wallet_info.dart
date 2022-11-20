@@ -336,8 +336,12 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                           notifier.getwihitecolor,
                           notifier.getbluewhitecolor,
                           onTap: () {
-                            // appState.currentAction = PageAction(
-                            //     state: PageState.addPage, page: CreatePasswordPageConfig);
+                            appState.viewData![UpdateSharedAccessViewPageConfig
+                                .key] = viewData;
+                            appState.currentAction = PageAction(
+                                state: PageState.addPage,
+                                page: UpdateSharedAccessViewPageConfig);
+                            print('================${appState.viewData}');
                           },
                         ),
                       ],

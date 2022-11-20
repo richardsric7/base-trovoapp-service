@@ -51,6 +51,8 @@ import 'package:trovo_wallet/screens/SharedAccess/shared_wallet.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_wallet_asset_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_wallet_info.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
+import 'package:trovo_wallet/screens/SharedAccess/update_shared_access.dart';
+import 'package:trovo_wallet/screens/SharedAccess/update_shared_access_details.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -294,6 +296,13 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.ApprovalDetailsView:
           _addPageData(ApprovalDetails(), ApprovalDetailsViewPageConfig);
           break;
+        case Pages.UpdateSharedAccessView:
+          _addPageData(UpdateSharedAccess(), UpdateSharedAccessViewPageConfig);
+          break;
+        case Pages.UpdateSharedAccessDetailsView:
+          _addPageData(UpdateSharedAccessDetails(),
+              UpdateSharedAccessDetailsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -476,6 +485,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.ApprovalDetailsView:
         ApprovalDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.UpdateSharedAccessView:
+        UpdateSharedAccessViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.UpdateSharedAccessDetailsView:
+        UpdateSharedAccessDetailsViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

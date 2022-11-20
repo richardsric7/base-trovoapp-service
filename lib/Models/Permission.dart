@@ -1,14 +1,19 @@
 class Permission {
-  DateTime createdAt;
-  DateTime updatedAt;
-  String walletPublicKey;
+  DateTime? createdAt;
+  DateTime? updatedAt;
+  String? walletPublicKey;
   String targetUsername;
+  String fullName;
   String permission;
-  Permission({
-    required this.createdAt,
-    required this.updatedAt,
-    required this.walletPublicKey,
-    required this.targetUsername,
-    required this.permission,
-  });
+  PermissionState? permissionState;
+  Permission(
+      {required this.targetUsername,
+      required this.fullName,
+      required this.permission,
+      this.createdAt,
+      this.updatedAt,
+      this.walletPublicKey,
+      this.permissionState});
 }
+
+enum PermissionState { Revoked, Modified, Added }

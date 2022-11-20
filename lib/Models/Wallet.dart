@@ -10,6 +10,7 @@ class Wallet {
   String? signer;
   String? userId;
   int? managedAccessEnabled;
+  int? numberOfApprovalsNeeded;
   int? primaryWallet;
   List<Permission>? permissions;
 
@@ -23,6 +24,7 @@ class Wallet {
       this.signer,
       this.userId,
       this.managedAccessEnabled,
+      this.numberOfApprovalsNeeded,
       this.primaryWallet,
       this.permissions});
 
@@ -37,6 +39,7 @@ class Wallet {
       "signer": signer,
       "userId": userId,
       "managedAccessEnabled": managedAccessEnabled,
+      "numberOfApprovalsNeeded": numberOfApprovalsNeeded,
       "primaryWallet": primaryWallet,
       "permissions": permissions,
     };
@@ -53,6 +56,7 @@ class Wallet {
       signer: m["signer"],
       userId: m["userId"],
       managedAccessEnabled: m["managedAccessEnabled"],
+      numberOfApprovalsNeeded: m["numberOfApprovalsNeeded"],
       primaryWallet: m["primaryWallet"],
       permissions: getPermissionList(m["permissions"]),
     );
@@ -66,6 +70,7 @@ class Wallet {
           updatedAt: DateTime.parse(permissionArrayString[i]['updatedAt']),
           walletPublicKey: permissionArrayString[i]['walletPublicKey'],
           targetUsername: permissionArrayString[i]['targetUsername'],
+          fullName: permissionArrayString[i]['fullName'],
           permission: permissionArrayString[i]['permission']));
     }
     return permissions;
