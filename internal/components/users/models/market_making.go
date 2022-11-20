@@ -34,6 +34,7 @@ type DeleteOfferRequest struct {
 	Messages             []string `json:"messages"`
 	Commit               int      `json:"commit"`
 	Multiparty           int      `json:"-"`
+	SignatureRequired    int      `json:"signatureRequired"`
 	Memo                 string   `json:"memo"`
 	ReturnedDescription  string   `json:"-"`
 }

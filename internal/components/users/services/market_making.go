@@ -301,6 +301,9 @@ func CancelOffer(signerUser, walletOwner *userModels.User, sourceWallet *userMod
 	if err != nil {
 		return err
 	}
+	if sourceWallet.HasViewOnlyAccess(gc) {
+		deleteOfferRequest.SignatureRequired = 1
+	}
 	deleteOfferRequest.Transaction = xdrBase64
 	deleteOfferRequest.NetworkPassPhrase = gc.BantuNetworkPassphrase
 
