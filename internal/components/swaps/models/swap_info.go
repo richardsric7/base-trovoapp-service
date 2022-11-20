@@ -73,6 +73,7 @@ type SwapSendInfo struct {
 	Messages               []string `json:"messages"`
 	Memo                   string   `json:"-"`
 	Multiparty             int      `json:"-"`
+	SignatureRequired      int      `json:"signatureRequired"`
 	Commit                 int      `json:"commit"`
 	SHash                  string   `json:"sHash"`
 	ReturnedDescription    string   `json:"-"`

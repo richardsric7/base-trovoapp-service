@@ -27,7 +27,9 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 	if sourceWallet.SharedAccessEnabled == 1 && sourceWallet.NumberOfApprovalsNeeded > 0 {
 		offerRequest.Multiparty = 1
 	}
-
+	if sourceWallet.HasViewOnlyAccess(gc) {
+		offerRequest.SignatureRequired = 1
+	}
 	mmWallet, err := walletOwner.GetMartketMakingWallet(gc.DB)
 	if err != nil {
 		log.Printf("[MakeOffer]Error validating Market making wallet: %v", err)

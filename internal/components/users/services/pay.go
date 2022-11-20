@@ -86,6 +86,11 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	walletHasViewOnlyAccess = sourceWallet.HasViewOnlyAccess(gc)
 	if !walletHasViewOnlyAccess {
 		paymentInfo.Multiparty = 1
+
+	}
+	if walletHasViewOnlyAccess {
+		paymentInfo.SignatureRequired = 1
+
 	}
 
 	if !publicKeyPayment && len(paymentInfo.Transaction) > 0 && len(paymentInfo.SHash) > 1 {

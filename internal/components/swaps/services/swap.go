@@ -31,6 +31,10 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 	if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
 		swapInfo.Multiparty = 1
 	}
+
+	if wallet.HasViewOnlyAccess(gc) {
+		swapInfo.SignatureRequired = 1
+	}
 	client := gc.BantuExpansionClient
 	//transform codes and issuer
 	swapInfo.DestinationAssetCode = strings.ToUpper(swapInfo.DestinationAssetCode)

@@ -34,6 +34,9 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		pendingAssetToClaim.Multiparty = 1
 	}
+	if wallet.HasViewOnlyAccess(gc) {
+		pendingAssetToClaim.SignatureRequired = 1
+	}
 	var err error
 
 	//validators
@@ -146,6 +149,9 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWallet, pendingAssetToClaim *userModels.PendingAssetToClaim, gc *sharedconfig.GlobalConfig) (*userModels.PendingAssetToClaim, bool, error) {
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		pendingAssetToClaim.Multiparty = 1
+	}
+	if wallet.HasViewOnlyAccess(gc) {
+		pendingAssetToClaim.SignatureRequired = 1
 	}
 	var err error
 
@@ -841,6 +847,9 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		trustLineInfo.Multiparty = 1
 	}
+	if wallet.HasViewOnlyAccess(gc) {
+		trustLineInfo.SignatureRequired = 1
+	}
 	if wallet.Signer != signerUser.PrimarySigner && trustLineInfo.Multiparty == 1 {
 		return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
 
@@ -917,6 +926,9 @@ func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet
 	trustLineInfo.NetworkPassPhrase = gc.BantuNetworkPassphrase
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		trustLineInfo.Multiparty = 1
+	}
+	if wallet.HasViewOnlyAccess(gc) {
+		trustLineInfo.SignatureRequired = 1
 	}
 	if wallet.Signer != signerUser.PrimarySigner && trustLineInfo.Multiparty == 1 {
 		return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
