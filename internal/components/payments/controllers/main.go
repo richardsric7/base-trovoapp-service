@@ -733,7 +733,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			if paymentInfoReturned.TransactionID == "PENDING_AUTH" {
 				c.JSON(http.StatusOK, paymentInfoReturned)
-
+				notificationList := make(map[string]string)
 				{
 					accessList := sourceWallet.GetPermissionList(gc.DB)
 					// send push notifications
@@ -748,8 +748,14 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 						if a.Permission == "APPROVER" {
 							ph, e := usersDB.GetUser(a.TargetUsername, gc.DB, gc)
 							if e == nil {
+								if ph.PushNotificationToken == nil {
+									continue
+								}
+								if _, ok := notificationList[*ph.PushNotificationToken]; ok {
+									continue
+								}
 								ph.SendPushMessage("Trovo: Payment request awaiting approval!", fmt.Sprintf("You have a payment transaction of %v %v to %v initiated by %v from the wallet with alias %v, which is now awaiting approval from you or any other approver.", paymentInfo.Amount, assetCode, paymentInfo.Destination, accountSignerUser.Username, sourceWallet.Alias), "", dataPayload, gc)
-
+								notificationList[*ph.PushNotificationToken] = a.TargetUsername
 							}
 
 						}

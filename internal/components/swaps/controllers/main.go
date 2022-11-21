@@ -24,7 +24,7 @@ import (
 func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	router.POST("/v1/users/swap", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 
-		signerOwner, getUserError := usersdb.GetUser(middleware.ExtractSigner(c), gc.DB,gc)
+		signerOwner, getUserError := usersdb.GetUser(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if getUserError != nil {
 
@@ -63,6 +63,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
+		if signerOwner.PrimarySigner != wallet.Signer {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
+			return
+		}
+
 		if wallet.WalletType == 2 || wallet.WalletType == 3 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Market Making & Bulk Payment wallets are not allowed for this operation."})
 			return
@@ -75,7 +80,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		primarySigner := signerOwner.PrimarySigner
 
-		walletOwner, errWalletOwner := userModels.UserWalletID(wallet.ID).GetWalletOwner(gc.DB,gc)
+		walletOwner, errWalletOwner := userModels.UserWalletID(wallet.ID).GetWalletOwner(gc.DB, gc)
 
 		if errWalletOwner != nil {
 
@@ -175,7 +180,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 		}
 
-		signerOwner, getUserError := usersdb.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB,gc)
+		signerOwner, getUserError := usersdb.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
 		if getUserError != nil {
 
@@ -236,7 +241,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		walletOwner, errWalletOwner := userModels.UserWalletID(wallet.ID).GetWalletOwner(gc.DB,gc)
+		walletOwner, errWalletOwner := userModels.UserWalletID(wallet.ID).GetWalletOwner(gc.DB, gc)
 
 		if errWalletOwner != nil {
 
@@ -259,15 +264,31 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//TODO: check if the wallet belongs to the person making swap or if the person has permission to do swap.
 		hasInitiatorAccess := false
 		// check if user has initiator access to wallet.
-		for _, p := range signerOwner.WalletsSharedWithUser {
-			if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerOwner.Username && p.Permission == "INITIATOR" {
-				hasInitiatorAccess = true
-			}
-		}
-		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+		isViewOnly := wallet.HasViewOnlyAccess(gc)
+
+		if isViewOnly && wallet.Signer != signerOwner.PrimarySigner {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
 			return
 		}
+
+		if wallet.SharedAccessEnabled == 0 {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "Invalid shared access request on wallet without shared access."})
+			return
+		}
+		// check if user has initiator access to wallet.
+		if wallet.SharedAccessEnabled == 1 && !isViewOnly {
+
+			for _, p := range signerOwner.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerOwner.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
+				}
+			}
+			if !hasInitiatorAccess && !wallet.HasViewOnlyAccess(gc) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
+		}
+
 		var swapInfo swapModels.SwapSendInfo
 		var err error
 
@@ -319,7 +340,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 					for _, a := range accessList {
 
 						if a.Permission == "APPROVER" {
-							ph, e := usersdb.GetUser(a.TargetUsername, gc.DB,gc)
+							ph, e := usersdb.GetUser(a.TargetUsername, gc.DB, gc)
 							if e == nil {
 								ph.SendPushMessage(fmt.Sprintf("Trovo: SWAP %v %v awaiting approval!", swapInfo.SourceAmount, swapInfo.Memo), fmt.Sprintf("%v initiated swap request from %v now waiting for an approval. Request: %v", signerOwner.Username, wallet.Alias, swapInfo.ReturnedDescription), "", dataPayload, gc)
 

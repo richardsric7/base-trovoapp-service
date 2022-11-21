@@ -583,6 +583,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
+		if signerUser.PrimarySigner != wallet.Signer {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
+			return
+		}
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/trades %v", wallet.Alias), gc.DB)
 
 		err = userServices.MakeOffer(&signerUser, &walletOwner, &wallet, &makeOfferRequest, gc)
@@ -674,6 +678,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
+		if signerUser.PrimarySigner != wallet.Signer {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
+			return
+		}
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/opt-in %v", wallet.Alias), gc.DB)
 
 		returnedTrustLineInfo, err := userServices.TrustAsset(&signerUser, &wallet, &trustLineInfo, gc)
@@ -761,15 +769,24 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 
 		hasInitiatorAccess := false
-		// check if user has initiator access to wallet.
-		for _, p := range signerUser.WalletsSharedWithUser {
-			if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
-				hasInitiatorAccess = true
-			}
-		}
-		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+		isViewOnly := wallet.HasViewOnlyAccess(gc)
+
+		if isViewOnly && wallet.Signer != signerUser.PrimarySigner {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
 			return
+		}
+		// check if user has initiator access to wallet.
+		if wallet.SharedAccessEnabled == 1 && !isViewOnly {
+			// check if user has initiator access to wallet.
+			for _, p := range signerUser.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
+				}
+			}
+			if !hasInitiatorAccess && !wallet.HasViewOnlyAccess(gc) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
 		}
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/users/asset/opt-in %v", wallet.Alias), gc.DB)
@@ -800,11 +817,18 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		c.JSON(http.StatusOK, returnedTrustLineInfo)
 		if returnedTrustLineInfo.TransactionID == "PENDING_AUTH" {
 			//start push notificationMessage
-
+			notificationList := make(map[string]string)
 			permissionList := wallet.Permissions
 			for _, v := range permissionList {
 				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
+					continue
+				}
+				if u.PushNotificationToken == nil {
+					continue
+				}
+
+				if _, ok := notificationList[*u.PushNotificationToken]; ok {
 					continue
 				}
 
@@ -812,6 +836,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				dataPayload["none"] = ""
 
 				u.SendPushMessage(fmt.Sprintf("%v opt-in request from %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("Request: %v", returnedTrustLineInfo.ReturnedDescription), "", dataPayload, gc)
+				notificationList[*u.PushNotificationToken] = v.TargetUsername
 
 			}
 		}
@@ -973,16 +998,26 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 
 		hasInitiatorAccess := false
-		// check if user has initiator access to wallet.
-		for _, p := range signerUser.WalletsSharedWithUser {
-			if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
-				hasInitiatorAccess = true
-			}
-		}
-		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+		isViewOnly := wallet.HasViewOnlyAccess(gc)
+
+		if isViewOnly && wallet.Signer != signerUser.PrimarySigner {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
 			return
 		}
+		// check if user has initiator access to wallet.
+		if wallet.SharedAccessEnabled == 1 && !isViewOnly {
+			// check if user has initiator access to wallet.
+			for _, p := range signerUser.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
+				}
+			}
+			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
+		}
+
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/users/asset/opt-out %v", wallet.Alias), gc.DB)
 
 		returnedTrustLineInfo, err := userServices.RemoveAssetTrust(&signerUser, &wallet, &trustLineInfo, gc)
@@ -1008,11 +1043,18 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		c.JSON(http.StatusOK, returnedTrustLineInfo)
 		if returnedTrustLineInfo.TransactionID == "PENDING_AUTH" {
 			//start push notificationMessage
-
+			notificationList := make(map[string]string)
 			permissionList := wallet.Permissions
 			for _, v := range permissionList {
 				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
+					continue
+				}
+				if u.PushNotificationToken == nil {
+					continue
+				}
+
+				if _, ok := notificationList[*u.PushNotificationToken]; ok {
 					continue
 				}
 
@@ -1020,7 +1062,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				dataPayload["none"] = ""
 
 				u.SendPushMessage(fmt.Sprintf("%v opt-out request from %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("Request: %v", returnedTrustLineInfo.ReturnedDescription), "", dataPayload, gc)
-
+				notificationList[*u.PushNotificationToken] = v.TargetUsername
 			}
 		}
 
@@ -1290,15 +1332,25 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 
 		hasInitiatorAccess := false
-		// check if user has initiator access to wallet.
-		for _, p := range signerUser.WalletsSharedWithUser {
-			if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
-				hasInitiatorAccess = true
-			}
-		}
-		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+		isViewOnly := wallet.HasViewOnlyAccess(gc)
+
+		if isViewOnly && wallet.Signer != signerUser.PrimarySigner {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
 			return
+		}
+		// check if user has initiator access to wallet.
+		if wallet.SharedAccessEnabled == 1 && !isViewOnly {
+			// check if user has initiator access to wallet.
+
+			for _, p := range signerUser.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
+				}
+			}
+			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
 		}
 
 		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/shared-access/users/actions/claim-asset %v", middleware.ExtractPublicKey(c)), gc.DB)
@@ -1349,7 +1401,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			c.JSON(http.StatusOK, pendingAssetToClaim)
 			{
 				//start push notificationMessage
-
+				notificationList := make(map[string]string)
 				permissionList := wallet.Permissions
 				for _, v := range permissionList {
 					u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
@@ -1359,8 +1411,13 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 					dataPayload := make(map[string]string)
 					dataPayload["none"] = ""
-					if pendingAssetToClaim.TransactionID == "PENDING_AUTH" {
+					if pendingAssetToClaim.TransactionID == "PENDING_AUTH" && u.PushNotificationToken != nil {
+
+						if _, ok := notificationList[*u.PushNotificationToken]; ok {
+							continue
+						}
 						u.SendPushMessage(fmt.Sprintf("%v submitted %v request on wallet %v!", signerUser.Username, "ACCEPT PENDING ASSET", wallet.Alias), fmt.Sprintf("Request: %v", pendingAssetToClaim.ReturnedDescription), "", dataPayload, gc)
+						notificationList[*u.PushNotificationToken] = v.TargetUsername
 
 					}
 
@@ -1417,15 +1474,24 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 
 		hasInitiatorAccess := false
-		// check if user has initiator access to wallet.
-		for _, p := range signerUser.WalletsSharedWithUser {
-			if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
-				hasInitiatorAccess = true
-			}
-		}
-		if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+		isViewOnly := wallet.HasViewOnlyAccess(gc)
+
+		if isViewOnly && wallet.Signer != signerUser.PrimarySigner {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
 			return
+		}
+		// check if user has initiator access to wallet.
+		if wallet.SharedAccessEnabled == 1 && !isViewOnly {
+			// check if user has initiator access to wallet.
+			for _, p := range signerUser.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
+				}
+			}
+			if !hasInitiatorAccess && !wallet.HasViewOnlyAccess(gc) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
 		}
 
 		conDB.PrintDBStats(fmt.Sprintf("REJECT /v1/shared-access/users/actions/reject-asset %v", middleware.ExtractPublicKey(c)), gc.DB)
@@ -2148,6 +2214,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 		}
+
 		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
 		if err != nil {
@@ -2162,7 +2229,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			return
 		}
-
+		if signerUser.PrimarySigner != wallet.Signer {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
+			return
+		}
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/shared-access/users/account %v", middleware.ExtractPublicKey(c)), gc.DB)
 
 		var sharedAccessInfo userModels.UserWalletSharedAccessInfo
@@ -2272,6 +2342,27 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 
+		hasInitiatorAccess := false
+		isViewOnly := wallet.HasViewOnlyAccess(gc)
+		// check if user has initiator access to wallet.
+
+		if isViewOnly && wallet.Signer != signerUser.PrimarySigner {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+			return
+		}
+		// check if user has initiator access to wallet.
+		if wallet.SharedAccessEnabled == 1 && !isViewOnly {
+			for _, p := range signerUser.WalletsSharedWithUser {
+				if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == signerUser.Username && p.Permission == "INITIATOR" {
+					hasInitiatorAccess = true
+				}
+			}
+			if !hasInitiatorAccess && !userModels.UserWalletID(middleware.ExtractPublicKey(c)).PublicKeyHasViewOnlyAccess(gc) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+				return
+			}
+		}
+
 		conDB.PrintDBStats(fmt.Sprintf("PUT /v1/shared-access/users/account %v", middleware.ExtractPublicKey(c)), gc.DB)
 
 		var sharedAccessInfo userModels.ModifySharedAccessInfo
@@ -2320,15 +2411,21 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if sharedAccessInfo.TransactionID == "PENDING_AUTH" {
 				wallet, _, _ := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 				//saved to pending auth table for disabling shared access
+				notificationList := make(map[string]string)
 				for _, v := range wallet.Permissions {
 					if v.Permission == "APPROVER" {
 						u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
-						if e == nil {
+						if e == nil && u.PushNotificationToken != nil {
+
+							if _, ok := notificationList[*u.PushNotificationToken]; ok {
+								continue
+							}
+
 							log.Println("notifying approver:", v.TargetUsername)
 							dataPayload := make(map[string]string)
 							dataPayload["link"] = "authPending"
 							u.SendPushMessage(fmt.Sprintf("Pending Approval: Modify shared access on wallet %v!", wallet.Alias), fmt.Sprintf("You have a pending approval to modify shared access on the wallet %v. Please tap to choose the appropriate action.", wallet.Alias), "", dataPayload, gc)
-
+							notificationList[*u.PushNotificationToken] = v.TargetUsername
 						}
 					}
 				}
@@ -2494,12 +2591,19 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			} else {
 				//transaction was completed successfully
+				notificationList := make(map[string]string)
 				for _, v := range sharedAccessInfo.Permissions {
 
 					if v.PushNotificationToken != nil {
+
+						if _, ok := notificationList[*v.PushNotificationToken]; ok {
+							continue
+						}
+
 						dataPayload := make(map[string]string)
 						dataPayload["none"] = ""
 						pns.SendFirebaseMessage(*v.PushNotificationToken, fmt.Sprintf("Your %v permission on wallet %v has been removed!", v.Permission, v.WalletAlias), fmt.Sprintf("Your %v permission on the wallet [%v] has been removed as shared access has been disabled on the wallet. the wallet is no longer available on your list of shared access wallets.", v.Permission, v.WalletAlias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+						notificationList[*v.PushNotificationToken] = v.TargetUsername
 					}
 				}
 				c.JSON(http.StatusOK, sharedAccessInfo)
@@ -2677,14 +2781,15 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		permittedPublicKeys := make([]string, 0)
+		permittedPublicKeys := make(map[string]string, 0)
 
 		for _, k := range signerUser.WalletsSharedWithUser {
 			if k.Permission != "APPROVER" {
 				continue
 			}
 			// view only is not permitted to see transactions
-			permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
+			permittedPublicKeys[k.WalletPublicKey] = k.WalletPublicKey
+			// permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
 		}
 		if len(permittedPublicKeys) == 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access section."})
@@ -2715,6 +2820,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			return
 		}
 
+		if _, ok := permittedPublicKeys[approvalRequest.WalletPublicKey]; !ok {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permission."})
+			return
+		}
 		//check if user already approved before
 
 		{
@@ -2758,6 +2867,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
 		// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
 		{
+			notificationList := make(map[string]string)
 			//start push notificationMessage
 			wallet, e := userModels.UserWalletID(approvalRequest.WalletPublicKey).GetWallet(gc.DB, gc)
 			if e != nil {
@@ -2765,16 +2875,21 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			permissionList := wallet.Permissions
 			for _, v := range permissionList {
+
 				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
 					continue
 				}
+
 				if u.PushNotificationToken != nil && v.Permission != "VIEW-ONLY" {
+					if _, ok := notificationList[*u.PushNotificationToken]; ok {
+						continue
+					}
 					dataPayload := make(map[string]string)
 					dataPayload["none"] = ""
 					if approvalRequest.TransactionStatus != "COMPLETED" {
 						pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v Submitted an approval on wallet %v!", signerUser.Username, wallet.Alias), fmt.Sprintf("%v submitted an approval for request:\n%v\nApproval stage is now %v/%v", signerUser.Username, approvalRequest.Description, approvalRequest.ApprovalsGotten, approvalRequest.ApprovalsNeeded), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-
+						notificationList[*u.PushNotificationToken] = v.TargetUsername
 					}
 				}
 			}
@@ -2825,14 +2940,15 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 			return
 		}
-		permittedPublicKeys := make([]string, 0)
+		permittedPublicKeys := make(map[string]string, 0)
 
 		for _, k := range signerUser.WalletsSharedWithUser {
 			if k.Permission != "APPROVER" {
 				continue
 			}
 			// view only is not permitted to see transactions
-			permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
+			permittedPublicKeys[k.WalletPublicKey] = k.WalletPublicKey
+			// permittedPublicKeys = append(permittedPublicKeys, k.WalletPublicKey)
 		}
 		if len(permittedPublicKeys) == 0 {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permissions to access section."})
@@ -2874,6 +2990,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 		}
 
+		if _, ok := permittedPublicKeys[approvalRequest.WalletPublicKey]; !ok {
+			c.JSON(http.StatusForbidden, gin.H{"error": "error-access-forbidden", "message": "You do not have needed permission."})
+			return
+		}
+
 		err = userServices.RejectTransaction(&signerUser, &approvalRequest, &payload, gc)
 		if err != nil {
 			log.Println("[POST RejectRequest] error for signer:", signerUser.Username, "error: ", err)
@@ -2902,6 +3023,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
 		// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
 		{
+			notificationList := make(map[string]string)
+
 			//start push notificationMessage
 			wallet, e := userModels.UserWalletID(approvalRequest.WalletPublicKey).GetWallet(gc.DB, gc)
 			if e != nil {
@@ -2916,9 +3039,17 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 				dataPayload := make(map[string]string)
 				dataPayload["none"] = ""
-				if approvalRequest.TransactionStatus == "REJECTED" {
-					pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v rejected %v request on wallet %v!", signerUser.Username, approvalRequest.TransactionType, wallet.Alias), fmt.Sprintf("Reason: %v\nRequest:%v", *approvalRequest.ReasonForRejection, approvalRequest.Description), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+				if approvalRequest.TransactionStatus == "REJECTED" && u.PushNotificationToken != nil {
 
+					// notificationList := make(map[string]string)
+
+					if _, ok := notificationList[*u.PushNotificationToken]; ok {
+						continue
+					}
+					// notificationList[*u.PushNotificationToken] = v.TargetUsername
+
+					u.SendPushMessage(fmt.Sprintf("%v rejected %v request on wallet %v!", signerUser.Username, approvalRequest.TransactionType, wallet.Alias), fmt.Sprintf("Reason: %v\nRequest:%v", *approvalRequest.ReasonForRejection, approvalRequest.Description), "", dataPayload, gc)
+					notificationList[*u.PushNotificationToken] = v.TargetUsername
 				}
 
 			}
