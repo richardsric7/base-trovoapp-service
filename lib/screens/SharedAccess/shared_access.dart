@@ -64,12 +64,13 @@ class _SharedAccessState extends State<SharedAccess>
   var userFullnames = {};
   int noOfApprovalsNeeded = 2;
   int noOfApprovers = 3;
-  ApprovalsListFilterType filterType = ApprovalsListFilterType.TransactionType;
+  ApprovalsListFilterType filterType =
+      ApprovalsListFilterType.TransactionStatus;
   var filterTypesMap = {
+    ApprovalsListFilterType.TransactionStatus: "Transaction status",
     ApprovalsListFilterType.TransactionType: "Transaction type",
     ApprovalsListFilterType.DateRange: "Date range",
     ApprovalsListFilterType.TransactionId: "Transaction ID",
-    ApprovalsListFilterType.TransactionStatus: "Transaction status",
     ApprovalsListFilterType.Initiator: "Initiator",
     ApprovalsListFilterType.Description: "Description",
     ApprovalsListFilterType.WalletPublicKey: "Wallet public key",
@@ -220,8 +221,8 @@ class _SharedAccessState extends State<SharedAccess>
     _tabController = TabController(length: 3, vsync: this);
     _refreshController = RefreshController(initialRefresh: false);
     appState = Provider.of<DataProvider>(context, listen: false);
-    appState.filterTransactionType = 'All';
-    appState.filterQuery = "&transactionType=ALL";
+    appState.filterTransactionStatus = 'Pending';
+    appState.filterQuery = "&transactionStatus=PENDING";
     appState.approvals = appState.fetchApprovals(
       limit: appState.limit.toString(),
       query: appState.filterQuery,
@@ -360,7 +361,7 @@ class _SharedAccessState extends State<SharedAccess>
                         setState(() {});
                       },
                       filterTypeDropdownItems,
-                      ApprovalsListFilterType.TransactionType,
+                      ApprovalsListFilterType.TransactionStatus,
                       null,
                     ),
                   ),
@@ -2646,6 +2647,7 @@ class _SharedAccessState extends State<SharedAccess>
         approvalListTransactionTypePopup(
           context,
           transactionStatus,
+          'Select transaction status',
           (status) {
             appState.setFilterTransactionStatus = status.capitalizeFirst;
             appState.setFilterQuery =
@@ -2653,12 +2655,14 @@ class _SharedAccessState extends State<SharedAccess>
             appState.getApprovals();
             Navigator.of(context).pop(); // dismiss dialog,
           },
+          rel: ApprovalsListFilterType.TransactionStatus,
         );
         break;
       case ApprovalsListFilterType.TransactionType:
         approvalListTransactionTypePopup(
           context,
           transactionTypes,
+          'Select transaction type',
           (transactionType) {
             appState.setFilterTransactionType = transactionType.capitalizeFirst;
             appState.setFilterQuery = "&transactionType=$transactionType";
@@ -2797,6 +2801,7 @@ class _SharedAccessState extends State<SharedAccess>
             approvalListTransactionTypePopup(
               context,
               transactionStatus,
+              'Select transaction status',
               (status) {
                 print(status);
                 appState.setFilterTransactionStatus = status.capitalizeFirst;
@@ -2805,6 +2810,7 @@ class _SharedAccessState extends State<SharedAccess>
                 appState.getApprovals();
                 Navigator.of(context).pop(); // dismiss dialog,
               },
+              rel: ApprovalsListFilterType.TransactionStatus,
             );
           },
           label: appState.filterTransactionStatus.isEmpty
@@ -2917,6 +2923,7 @@ class _SharedAccessState extends State<SharedAccess>
             approvalListTransactionTypePopup(
               context,
               transactionTypes,
+              'Select transaction type',
               (transactionType) {
                 appState.setFilterTransactionType =
                     transactionType.capitalizeFirst;

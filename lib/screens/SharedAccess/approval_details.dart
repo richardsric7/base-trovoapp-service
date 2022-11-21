@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
+import 'package:get/route_manager.dart';
 import 'package:intl/intl.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
@@ -44,7 +45,6 @@ class _ApprovalDetails extends State<ApprovalDetails>
   final Authenticator _authenticator = Authenticator();
   late Account primaryWalletKeyPair;
   var viewData;
-  var splitDescriptionString;
   var rejectReason;
 
   @override
@@ -61,7 +61,6 @@ class _ApprovalDetails extends State<ApprovalDetails>
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![ApprovalDetailsViewPageConfig.key];
     print('=====viewData $viewData');
-    splitDescriptionString = viewData['description'].toString().split('\n');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -93,7 +92,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                 height: height / 20,
               ),
               Text(
-                'Your approval has been requested for this transaction',
+                getHeadlineLabel(viewData['transactionStatus']),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -115,9 +114,12 @@ class _ApprovalDetails extends State<ApprovalDetails>
                         : notifier.getaddsubwalletgrey,
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      SizedBox(
+                        width: width / 30,
+                      ),
                       Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(
                             height: height / 50,
@@ -133,17 +135,20 @@ class _ApprovalDetails extends State<ApprovalDetails>
                           displayInfo(
                               key: 'Initiated',
                               value:
-                                  '${DateFormat('MMMM dd, yyyy \'at\' hh:mm a').format(DateTime.parse(viewData['createdAt']))}'),
+                                  '${DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(viewData['createdAt']))}'),
+                          // displayInfo(
+                          //   key: 'Description',
+                          //   value: getDescription(viewData['description'],
+                          //       viewData['transactionType']),
+                          // ),
+                          // if (viewData['transactionType'] == 'PAYMENT') ...[
+                          //   displayInfo(
+                          //       key: 'Memo',
+                          //       value: getMemo(viewData['description'])),
+                          // ],
                           displayInfo(
-                            key: 'Description',
-                            value: getDescription(viewData['description'],
-                                viewData['transactionType']),
-                          ),
-                          if (viewData['transactionType'] == 'PAYMENT') ...[
-                            displayInfo(
-                                key: 'Memo',
-                                value: getMemo(viewData['description'])),
-                          ],
+                              key: 'Description',
+                              value: viewData['description']),
                           displayInfo(
                               key: 'Approval status',
                               value:
@@ -151,8 +156,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                           if (viewData['approvedBy'].toString().isNotEmpty) ...[
                             displayInfo(
                                 key: 'Approved by',
-                                value:
-                                    '${viewData['approvedBy'].toString().split('|')[0]} on ${viewData['approvedBy'].toString().split('|')[1]}'),
+                                value: '${viewData['approvedBy']}'),
                           ],
                           if (viewData['rejectedBy'].toString().isNotEmpty) ...[
                             displayInfo(
@@ -176,80 +180,91 @@ class _ApprovalDetails extends State<ApprovalDetails>
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 20,
-              ),
-              Form(
-                key: formKey,
-                child: CustomPasswordFormField(
-                  LanguageEn.password,
-                  notifier.getbluewhitecolor,
-                  Icons.lock,
-                  notifier.getgrey,
-                  notifier.getprefixicon,
-                  notifier.getblck,
-                  70.sp,
-                  300.sp,
-                  validator: validatePassword,
-                  onChanged: (value) {
-                    setState(() {
-                      password = value!.trim().replaceAll(' ', '');
-                    });
-                  },
+              // if transaction is still pending or transaction is not already
+              // signed by current user (whether approved or rejected) then show
+              // the approve or reject buttons
+              if (viewData['transactionStatus'] == 'PENDING' &&
+                  !(viewData['approvedBy']
+                          .toString()
+                          .contains(appState.userInfo!.username!) ||
+                      viewData['rejectedBy']
+                          .toString()
+                          .contains(appState.userInfo!.username!))) ...[
+                SizedBox(
+                  height: height / 20,
                 ),
-              ),
-              SizedBox(
-                height: height / 20,
-              ),
-              if (appState.biometricEnabled && password.isEmpty) ...[
-                Button(
-                  'Approve with biometrics',
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: toggleSwitch,
+                Form(
+                  key: formKey,
+                  child: CustomPasswordFormField(
+                    LanguageEn.password,
+                    notifier.getbluewhitecolor,
+                    Icons.lock,
+                    notifier.getgrey,
+                    notifier.getprefixicon,
+                    notifier.getblck,
+                    70.sp,
+                    300.sp,
+                    validator: validatePassword,
+                    onChanged: (value) {
+                      setState(() {
+                        password = value!.trim().replaceAll(' ', '');
+                      });
+                    },
+                  ),
                 ),
-              ] else ...[
-                Button(
-                  'Approve',
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: handleAuthorization,
+                SizedBox(
+                  height: height / 20,
                 ),
+                if (appState.biometricEnabled && password.isEmpty) ...[
+                  Button(
+                    'Approve with biometrics',
+                    notifier.getbluecolor,
+                    wihitecolor,
+                    onTap: toggleSwitch,
+                  ),
+                ] else ...[
+                  Button(
+                    'Approve',
+                    notifier.getbluecolor,
+                    wihitecolor,
+                    onTap: handleAuthorization,
+                  ),
+                ],
+                SizedBox(
+                  height: height / 50,
+                ),
+                if (appState.biometricEnabled && password.isEmpty) ...[
+                  ButtonOutlined(
+                    'Reject with biometrics',
+                    notifier.getwihitecolor,
+                    notifier.getbluewhitecolor,
+                    onTap: () {
+                      rejectionReasonPopup(context, (reason) {
+                        setState(() {
+                          rejectReason = reason;
+                        });
+                        toggleSwitch(approve: false);
+                      });
+                    },
+                  ),
+                ] else ...[
+                  ButtonOutlined(
+                    'Reject',
+                    notifier.getwihitecolor,
+                    notifier.getbluewhitecolor,
+                    onTap: () {
+                      rejectionReasonPopup(context, (reason) {
+                        setState(() {
+                          rejectReason = reason;
+                        });
+                        handleAuthorization(approve: false);
+                      });
+                    },
+                  ),
+                ],
               ],
               SizedBox(
-                height: height / 50,
-              ),
-              if (appState.biometricEnabled && password.isEmpty) ...[
-                ButtonOutlined(
-                  'Reject with biometrics',
-                  notifier.getwihitecolor,
-                  notifier.getbluewhitecolor,
-                  onTap: () {
-                    rejectionReasonPopup(context, (reason) {
-                      setState(() {
-                        rejectReason = reason;
-                      });
-                      toggleSwitch(approve: false);
-                    });
-                  },
-                ),
-              ] else ...[
-                ButtonOutlined(
-                  'Reject',
-                  notifier.getwihitecolor,
-                  notifier.getbluewhitecolor,
-                  onTap: () {
-                    rejectionReasonPopup(context, (reason) {
-                      setState(() {
-                        rejectReason = reason;
-                      });
-                      handleAuthorization(approve: false);
-                    });
-                  },
-                ),
-              ],
-              SizedBox(
-                height: height / 20,
+                height: height / 10,
               ),
               Padding(
                   padding: EdgeInsets.only(
@@ -261,58 +276,33 @@ class _ApprovalDetails extends State<ApprovalDetails>
     );
   }
 
-  String getDescription(String descriptionString, String transactionType) {
-    print(splitDescriptionString);
-    switch (transactionType) {
-      case 'PAYMENT':
-        return splitDescriptionString[0]
-            .toString()
-            .replaceAll('|', '\n')
-            .replaceAll(':', ': ');
-      case 'ACCEPT PENDING ASSET':
-      case 'REJECT PENDING ASSET':
-        return splitDescriptionString[0].toString();
-
-      default:
-        return splitDescriptionString[0].toString();
-    }
-  }
-
-  String getMemo(String descriptionString) {
-    for (var item in splitDescriptionString) {
-      if (item.contains('Memo')) {
-        return item.split(':').last;
-      }
-    }
-
-    return '';
-  }
-
   Widget displayInfo({required String key, required String value}) {
     return Column(
       children: [
-        Text(
-          key,
-          style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: notifier.getbluewhitecolor,
-              fontFamily: fontsemibold),
-        ),
-        SizedBox(
-          height: height / 90,
-        ),
         Container(
-          width: width / 1.3,
-          child: Text(
-            value,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w400,
-              color: notifier.getbluewhitecolor,
-              fontFamily: fontbody,
-            ),
+          width: width / 1.2,
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                '$key: ',
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontsemibold),
+              ),
+              Text(
+                value,
+                overflow: TextOverflow.visible,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                ),
+              ),
+            ],
           ),
         ),
         SizedBox(
@@ -320,6 +310,26 @@ class _ApprovalDetails extends State<ApprovalDetails>
         ),
       ],
     );
+  }
+
+  String getHeadlineLabel(transactionStatus) {
+    switch (transactionStatus) {
+      case 'PENDING':
+        return (viewData['approvedBy']
+                    .toString()
+                    .contains(appState.userInfo!.username!) ||
+                viewData['rejectedBy']
+                    .toString()
+                    .contains(appState.userInfo!.username!))
+            ? 'You have already signed this transaction '
+            : 'Your approval has been requested for this transaction';
+      case 'REJECTED':
+        return 'This transaction has already been rejected';
+      case 'COMPLETED':
+        return 'This transaction has been completed';
+      default:
+        return '';
+    }
   }
 
   void handleAuthorization({bool approve = true}) {
@@ -434,6 +444,11 @@ class _ApprovalDetails extends State<ApprovalDetails>
           'title': 'Transaction approval submitted',
           'message':
               'You have successfully submitted your own approval for this transaction. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+          'useOnDone': true,
+          'onDone': () {
+            appState.currentAction = PageAction(
+                state: PageState.replace, page: SharedAccessViewPageConfig);
+          },
         };
         appState.currentAction =
             PageAction(state: PageState.replace, page: SuccessViewPageConfig);
