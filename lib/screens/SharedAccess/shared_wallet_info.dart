@@ -7,6 +7,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/Models/Permission.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -25,6 +26,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
   late ColorNotifier notifier;
   late DataProvider appState;
   var viewData;
+  bool isInitiator = false;
   late Future<Map> responseData;
 
   getdarkmodepreviousstate() async {
@@ -44,6 +46,11 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
     appState = Provider.of<DataProvider>(context, listen: false);
     viewData = appState.viewData![SharedWalletInfoViewPageConfig.key];
     print(viewData);
+
+    for (var i = 0; i < viewData['permissions'].length; i++) {
+      if (viewData['permissions'][i] == 'INITIATOR') isInitiator = true;
+    }
+
     responseData = fetchWalletBalance(
         signer: appState.activeWallet!.signer!,
         secretKey: appState.secretKeys[0],
@@ -293,12 +300,15 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                           onTap: () {
                             appState.viewData![SharedWalletDetailsViewPageConfig
                                 .key] = viewData;
+
                             appState.viewData![SharedWalletDetailsViewPageConfig
                                     .key]['claimed'] =
                                 snapshot.data!['assetBalances']['claimed'];
+
                             appState.viewData![SharedWalletDetailsViewPageConfig
                                     .key]['unclaimed'] =
                                 snapshot.data!['assetBalances']['unclaimed'];
+
                             print('================${appState.viewData}');
                             appState.currentAction = PageAction(
                                 state: PageState.addPage,
@@ -315,9 +325,11 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                           onTap: () {
                             appState.viewData![
                                 PaymentHistoryViewPageConfig.key] = viewData;
+
                             appState.viewData![PaymentHistoryViewPageConfig.key]
                                     ['claimed'] =
                                 snapshot.data!['assetBalances']['claimed'];
+
                             appState.viewData![PaymentHistoryViewPageConfig.key]
                                     ['unclaimed'] =
                                 snapshot.data!['assetBalances']['unclaimed'];
@@ -330,20 +342,100 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                             appState.getHistory(context);
                           },
                         ),
-                        SizedBox(height: height / 50),
-                        ButtonOutlined(
-                          'Initiate access update',
-                          notifier.getwihitecolor,
-                          notifier.getbluewhitecolor,
-                          onTap: () {
-                            appState.viewData![UpdateSharedAccessViewPageConfig
-                                .key] = viewData;
-                            appState.currentAction = PageAction(
-                                state: PageState.addPage,
-                                page: UpdateSharedAccessViewPageConfig);
-                            print('================${appState.viewData}');
-                          },
-                        ),
+                        if (isInitiator) ...[
+                          SizedBox(height: height / 50),
+                          ButtonOutlined(
+                            'Initiate access update',
+                            notifier.getwihitecolor,
+                            notifier.getbluewhitecolor,
+                            onTap: () {
+                              var viewers = <Permission>[];
+                              var approvers = <Permission>[];
+                              var initiators = <Permission>[];
+                              for (var i = 0;
+                                  i <
+                                      viewData['walletSettings']['permissions']
+                                          .length;
+                                  i++) {
+                                if (viewData['walletSettings']['permissions'][i]
+                                        ['permission'] ==
+                                    'VIEW-ONLY') {
+                                  viewers.add(Permission(
+                                      targetUsername: viewData['walletSettings']
+                                          ['permissions'][i]['targetUsername'],
+                                      fullName: viewData['walletSettings']
+                                          ['permissions'][i]['fullName'],
+                                      permission: viewData['walletSettings']
+                                          ['permissions'][i]['permission']));
+                                }
+
+                                if (viewData['walletSettings']['permissions'][i]
+                                        ['permission'] ==
+                                    'APPROVER') {
+                                  approvers.add(Permission(
+                                      targetUsername: viewData['walletSettings']
+                                          ['permissions'][i]['targetUsername'],
+                                      fullName: viewData['walletSettings']
+                                          ['permissions'][i]['fullName'],
+                                      permission: viewData['walletSettings']
+                                          ['permissions'][i]['permission']));
+                                }
+
+                                if (viewData['walletSettings']['permissions'][i]
+                                        ['permission'] ==
+                                    'INITIATOR') {
+                                  initiators.add(Permission(
+                                      targetUsername: viewData['walletSettings']
+                                          ['permissions'][i]['targetUsername'],
+                                      fullName: viewData['walletSettings']
+                                          ['permissions'][i]['fullName'],
+                                      permission: viewData['walletSettings']
+                                          ['permissions'][i]['permission']));
+                                }
+                              }
+
+                              appState.viewData![
+                                  UpdateSharedAccessViewPageConfig.key] = {};
+
+                              appState.viewData![
+                                      UpdateSharedAccessViewPageConfig.key]
+                                  ['walletAlias'] = viewData['walletAlias'];
+
+                              appState.viewData![
+                                          UpdateSharedAccessViewPageConfig.key]
+                                      ['walletPublicKey'] =
+                                  viewData['walletPublicKey'];
+
+                              appState.viewData![
+                                      UpdateSharedAccessViewPageConfig.key]
+                                  ['viewers'] = viewers;
+
+                              appState.viewData![
+                                      UpdateSharedAccessViewPageConfig.key]
+                                  ['isPrimaryWallet'] = 0;
+
+                              appState.viewData![
+                                      UpdateSharedAccessViewPageConfig.key]
+                                  ['approvers'] = approvers;
+
+                              appState.viewData![
+                                      UpdateSharedAccessViewPageConfig.key]
+                                  ['initiators'] = initiators;
+
+                              appState.viewData![
+                                          UpdateSharedAccessViewPageConfig.key]
+                                      ['numberOfApprovalsNeeded'] =
+                                  viewData!['walletSettings']
+                                      ['numberOfApprovalsNeeded'];
+
+                              appState.currentAction = PageAction(
+                                  state: PageState.addPage,
+                                  page: UpdateSharedAccessViewPageConfig);
+
+                              print('================${appState.viewData}');
+                            },
+                          ),
+                        ]
                       ],
                     );
                   } else {

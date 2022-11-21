@@ -695,6 +695,12 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
       print('signing and sending....');
       showLoader(context);
 
+      // wallets with only shared view-only access are still not fully shared-wallets
+      // the owner can still solely initiate and complete transactions. So in
+      // the case that the wallet owner wants to now modify shared access on thier
+      // wallet the can still sign the transaction. If however, the wallet has
+      // shared approver and initiator access, then they cannot sign the transaction
+      // rather they set commit=1
       if (responseFromServer['signatureRequired'] == 1) {
         responseFromServer['commit'] = 0;
         //sign the transaction and the submit again

@@ -22,6 +22,7 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
@@ -57,6 +58,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![ConfirmTransactionViewPageConfig.key];
+    print('=====view: $viewData');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -131,7 +133,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                           Container(
                             width: width / 1.3,
                             child: Text(
-                              '- 3400 NGN',
+                              '- ${calculateFiatValue(viewData['amount'], viewData["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 13,

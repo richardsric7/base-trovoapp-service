@@ -579,7 +579,7 @@ class LanguageEn {
   static String get pendingassets => "Pending Asset ";
 
   static String get pendingassetwarning =>
-      "assetCode is not yet part of your approved assets to be received on wallet walletAlias. Do you wish to start receiving this asset?";
+      "[assetCode] is not yet part of your approved assets to be received on wallet [walletAlias]. Do you wish to start receiving this asset?";
 
   static String get pendingassetwarning2 =>
       'Claiming this asset will enable you to continue to receive it in the future and will add it to the list of assets on your wallet.';

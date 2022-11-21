@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -28,6 +29,7 @@ class _SharedWalletAssetDetailsState extends State<SharedWalletAssetDetails>
   var activeAsset;
   var claimedAssets;
   var walletDetails; // details of the current shared wallet
+  bool isInitiator = false;
 
   @override
   void initState() {
@@ -44,6 +46,9 @@ class _SharedWalletAssetDetailsState extends State<SharedWalletAssetDetails>
     activeAsset =
         appState.viewData![SharedWalletAssetDetailsViewPageConfig.key];
     walletDetails = activeAsset['walletInfo'];
+    for (var i = 0; i < walletDetails['permissions'].length; i++) {
+      if (walletDetails['permissions'][i] == 'INITIATOR') isInitiator = true;
+    }
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -94,7 +99,26 @@ class _SharedWalletAssetDetailsState extends State<SharedWalletAssetDetails>
               SizedBox(
                 height: height / 20,
               ),
-              actionButtons(),
+              if (isInitiator) ...[
+                actionButtons(),
+              ] else ...[
+                Button(
+                  'Receive',
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () {
+                    appState.viewData![
+                        RecieveAssetSharedWalletViewPageConfig
+                            .key] = appState
+                        .viewData![SharedWalletAssetDetailsViewPageConfig.key];
+
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: RecieveAssetSharedWalletViewPageConfig,
+                    );
+                  },
+                ),
+              ]
             ],
           ),
         ),

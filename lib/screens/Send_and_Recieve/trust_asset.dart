@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
@@ -37,6 +38,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
   var viewData;
   var walletDetails; // will contain information if we are viewing this page from shared wallet
   late bool isSharedWallet;
+  bool isInitiator = false;
 
   @override
   void initState() {
@@ -59,6 +61,12 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         SharedWalletDetailsViewPageConfig.key;
     walletDetails = viewData['walletInfo'];
 
+    if (isSharedWallet) {
+      for (var i = 0; i < walletDetails['permissions'].length; i++) {
+        if (walletDetails['permissions'][i] == 'INITIATOR') isInitiator = true;
+      }
+    }
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -69,6 +77,14 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
             centerTitle: true,
             elevation: 0,
             backgroundColor: notifier.getwihitecolor,
+            title: Text(
+              LanguageEn.pendingassets,
+              style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold),
+            ),
             leading: GestureDetector(
               onTap: () {
                 Navigator.of(context).pop();
@@ -83,24 +99,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
               SizedBox(
                 height: height / 50,
               ),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 20,
-                  ),
-                  Text(
-                    LanguageEn.pendingassets,
-                    style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
               showNotice(),
               SizedBox(
                 height: height / 50,
@@ -109,21 +107,33 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
               SizedBox(
                 height: height / 20,
               ),
-              Button(
-                LanguageEn.claimasset,
-                notifier.getbluecolor,
-                wihitecolor,
-                onTap: claimAsset,
-              ),
-              SizedBox(height: height / 50),
-              ButtonOutlined(
-                'Reject asset',
-                notifier.getwihitecolor,
-                notifier.getbluewhitecolor,
-                onTap: () {
-                  rejectAsset();
-                },
-              ),
+              if (!isSharedWallet || isInitiator) ...[
+                Button(
+                  LanguageEn.claimasset,
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: claimAsset,
+                ),
+                SizedBox(height: height / 50),
+                ButtonOutlined(
+                  'Reject asset',
+                  notifier.getwihitecolor,
+                  notifier.getbluewhitecolor,
+                  onTap: () {
+                    rejectAsset();
+                  },
+                ),
+              ] else ...[
+                Button(
+                  LanguageEn.back,
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+              SizedBox(height: height / 10),
             ],
           ),
         ),
@@ -173,19 +183,40 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   SizedBox(
                     height: height / 50.0,
                   ),
-                  Container(
-                    width: width / 1.3,
-                    child: Text(
-                      LanguageEn.pendingassetwarning2,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontbody,
+                  if (!isSharedWallet || isInitiator) ...[
+                    Container(
+                      width: width / 1.3,
+                      child: Text(
+                        LanguageEn.pendingassetwarning2,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ),
-                  ),
+                  ] else ...[
+                    Container(
+                      width: width / 1.3,
+                      child: Text(
+                        'You do not have enough permission to claim this asset on [walletAlias].'
+                            .replaceAll(
+                                'walletAlias',
+                                isSharedWallet
+                                    ? walletDetails['walletAlias']
+                                    : activeWallet!.alias!),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ],
                   SizedBox(height: 2),
                 ],
               ),
@@ -224,6 +255,15 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                         color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
+                  Text(
+                    'www.trovotech.io',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
                   SizedBox(
                     height: height / 50,
                   ),
@@ -244,12 +284,55 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                     height: height / 50.0,
                   ),
                   Text(
-                    'www.trovotech.io',
+                    'Issuer Public Key',
                     style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w400,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold),
+                  ),
+                  SizedBox(
+                    width: width / 1.7,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Text(
+                              truncate(viewData['assetIssuer'], length: 5) +
+                                  viewData['assetIssuer'].toString().substring(
+                                      viewData['assetIssuer']
+                                              .toString()
+                                              .length -
+                                          5),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 15.sp,
+                                fontFamily: fontbody,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () => {
+                              Clipboard.setData(
+                                ClipboardData(
+                                  text: viewData['assetIssuer'],
+                                ),
+                              ),
+                              showSnackBar('Issuer public key', context),
+                            },
+                            icon: Icon(Icons.copy),
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   SizedBox(height: 2),

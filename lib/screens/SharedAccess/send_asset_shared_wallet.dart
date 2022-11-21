@@ -42,6 +42,7 @@ class _SendAssetSharedWallet extends State<SendAssetSharedWallet>
   TextEditingController toController = TextEditingController();
   final amountController = TextEditingController();
   var walletDetails; // details of the current shared wallet
+  var acceptedNumbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
   @override
   void initState() {
@@ -229,16 +230,19 @@ class _SendAssetSharedWallet extends State<SendAssetSharedWallet>
                       300.sp,
                       onChanged: (value) {
                         setState(() {
-                          amount = value;
+                          amount = trim(value.toString(), '.');
                         });
                       },
                       controller: amountController,
                       readOnly: deeplinkInfo != null,
-                      keyboardtype:
-                          TextInputType.numberWithOptions(decimal: true),
+                      // keyboardtype:
+                      //     TextInputType.numberWithOptions(decimal: true),
                       validator: validateAmount,
                       onSaved: (value) =>
                           amount = value.trim().replaceAll(' ', ''),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
+                      ],
                     ),
                     if (!appState.hideBalances) ...[availableBalance()],
                     SizedBox(height: height / 50),
@@ -397,6 +401,8 @@ class _SendAssetSharedWallet extends State<SendAssetSharedWallet>
     appState.viewData![ConfirmInitiatePaymentViewPageConfig.key] = data;
     appState.viewData![ConfirmInitiatePaymentViewPageConfig.key]['walletInfo'] =
         asset['walletInfo'];
+    appState.viewData![ConfirmInitiatePaymentViewPageConfig.key]["usdPrice"] =
+        asset['usdPrice'];
 
     appState.currentAction = PageAction(
       state: PageState.addPage,

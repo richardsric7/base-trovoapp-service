@@ -613,6 +613,10 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     // go to the definition of appState.viewData
     // to learn more about viewData
     appState.viewData![ConfirmSwapViewPageConfig.key] = data;
+    appState.viewData![ConfirmSwapViewPageConfig.key]['sourceUsdPrice'] =
+        sourceAsset['usdPrice'];
+    appState.viewData![ConfirmSwapViewPageConfig.key]['destinationUsdPrice'] =
+        destinationAsset['usdPrice'];
 
     appState.currentAction =
         PageAction(state: PageState.addPage, page: ConfirmSwapViewPageConfig);

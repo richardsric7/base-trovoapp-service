@@ -233,7 +233,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       300.sp,
                       onChanged: (value) {
                         setState(() {
-                          amount = value;
+                          amount = trim(value.toString(), '.');
                         });
                       },
                       controller: amountController,
@@ -243,6 +243,9 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       validator: validateAmount,
                       onSaved: (value) =>
                           amount = value.trim().replaceAll(' ', ''),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
+                      ],
                     ),
                     if (!appState.hideBalances) ...[availableBalance()],
                     SizedBox(height: height / 50),
@@ -405,6 +408,8 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     // go to the definition of appState.viewData
     // to learn more about viewData
     appState.viewData![ConfirmTransactionViewPageConfig.key] = data;
+    appState.viewData![ConfirmTransactionViewPageConfig.key]["usdPrice"] =
+        asset['usdPrice'];
     print(appState.viewData);
 
     appState.currentAction = PageAction(

@@ -981,6 +981,7 @@ class _SharedAccessState extends State<SharedAccess>
             'owner': appState.sharedWallets[i]['owner'],
             'walletPublicKey': appState.sharedWallets[i]['walletPublicKey'],
             'walletDescription': appState.sharedWallets[i]['walletDescription'],
+            'walletSettings': appState.sharedWallets[i]['walletSettings'],
           };
         } else {
           // if we got here then the wallet is already on the map so we add
