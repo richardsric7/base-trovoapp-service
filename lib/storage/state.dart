@@ -390,9 +390,9 @@ class DataProvider with ChangeNotifier {
 
       Map responseData = await makeGetRequest(
         uri: Uri.encodeFull(uri),
-        signer: activeWallet!.publicKey!,
+        signer: activeWallet!.signer!,
         secretKey: secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.publicKey!,
+        publicKey: activeWallet!.signer!,
       );
 
       print('response: ${responseData}');

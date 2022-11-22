@@ -345,7 +345,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                         if (isInitiator) ...[
                           SizedBox(height: height / 50),
                           ButtonOutlined(
-                            'Initiate access update',
+                            'Modify shared access',
                             notifier.getwihitecolor,
                             notifier.getbluewhitecolor,
                             onTap: () {
@@ -360,13 +360,16 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                 if (viewData['walletSettings']['permissions'][i]
                                         ['permission'] ==
                                     'VIEW-ONLY') {
-                                  viewers.add(Permission(
+                                  viewers.add(
+                                    Permission(
                                       targetUsername: viewData['walletSettings']
                                           ['permissions'][i]['targetUsername'],
                                       fullName: viewData['walletSettings']
                                           ['permissions'][i]['fullName'],
                                       permission: viewData['walletSettings']
-                                          ['permissions'][i]['permission']));
+                                          ['permissions'][i]['permission'],
+                                    ),
+                                  );
                                 }
 
                                 if (viewData['walletSettings']['permissions'][i]

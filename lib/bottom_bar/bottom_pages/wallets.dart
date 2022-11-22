@@ -68,6 +68,33 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   // var actionIcon = Icons.add_circle_outline_sharp;
   // var actionText = LanguageEn.addsubwallet;
   late List<WalletTileColor> colors;
+  late List<String> walletTypes = [
+    'Standard',
+    'Token Minting',
+    'Market Making',
+    'Bulk Payment'
+  ];
+  int selectedWalletType = 0;
+
+  List<DropdownMenuItem<String>> get walletTypeDropdownItems {
+    var dropdownItems = walletTypes
+        .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  wallet,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+            value: walletTypes.indexOf(wallet).toString()))
+        .toList();
+
+    return dropdownItems;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -616,42 +643,32 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SizedBox(
-                              width: width / 10,
-                            ),
-                            Transform.scale(
-                              scale: 1.sp,
-                              child: Checkbox(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(5.sp),
-                                  ),
-                                ),
-                                activeColor: notifier.getbluecolor,
-                                side: BorderSide(
-                                    color: notifier.getbluewhitecolor),
-                                value: isAssetIssuerWallet == 1,
-                                onChanged: (value) {
-                                  setState(() {
-                                    isAssetIssuerWallet = value! ? 1 : 0;
-                                  });
-                                },
-                              ),
-                            ),
                             Container(
-                              width: width / 1.6,
-                              child: Text(
-                                LanguageEn.thisisanassetissuerwallet,
-                                overflow: TextOverflow.visible,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontFamily: fontsemibold,
-                                  color: notifier.getbluewhitecolor,
+                              width: width / 1.7,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: notifier.getbluecolor,
                                 ),
+                                borderRadius: const BorderRadius.all(
+                                    Radius.circular(15.0)),
+                              ),
+                              child: dropdown(
+                                (newValue) async {
+                                  selectedWalletType =
+                                      int.parse(newValue.toString());
+                                },
+                                walletTypeDropdownItems,
+                                selectedWalletType.toString(),
+                                null,
+                                context,
                               ),
                             ),
                           ],
+                        ),
+                        SizedBox(
+                          height: height / 50,
                         ),
                         Row(
                           children: [
@@ -890,7 +907,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     height: height / 50,
                   ),
                   Text(
-                    LanguageEn.thisisanassetissuerwallet,
+                    'Wallet type',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -899,7 +916,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     ),
                   ),
                   Text(
-                    isAssetIssuerWallet == 1 ? 'Yes' : 'No',
+                    walletTypes[selectedWalletType],
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -1084,7 +1101,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         "publickey": newSubWalletKeyPair.publicKey,
         "walletTag": tag,
         "WalletDescription": description,
-        "assetIssuerWallet": isAssetIssuerWallet,
+        // "assetIssuerWallet": isAssetIssuerWallet,
+        "walletType": selectedWalletType,
       };
       String requestBody = jsonEncode(map);
 

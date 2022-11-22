@@ -2141,7 +2141,7 @@ shareAccessInfoPopup(context) async {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                    padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 10.0),
                     child: Center(
                       child: Text(
                         'Shared Access',
@@ -2154,7 +2154,7 @@ shareAccessInfoPopup(context) async {
                   ),
                   Container(
                     constraints: BoxConstraints(
-                      maxHeight: height / 5,
+                      maxHeight: height / 1.8,
                     ),
                     // height: height / 5,
                     child: SingleChildScrollView(
@@ -2163,15 +2163,88 @@ shareAccessInfoPopup(context) async {
                         children: [
                           Padding(
                             padding: const EdgeInsets.symmetric(
-                                vertical: 10.0, horizontal: 5.0),
-                            child: Text(
-                              'Here is where we explain everything the user needs to know about shared access.',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w300,
-                                color: notifier.getbluecolor,
+                                vertical: 10.0, horizontal: 20.0),
+                            child: RichText(
+                              text: TextSpan(
+                                text:
+                                    'Here you can give others various access rights to your wallet.\n\n',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluecolor,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: 'Viewer Access ',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluecolor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        'enables other users to view your wallet balance, receive payment into your wallet and view your wallet history.\n\n',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontbody,
+                                      color: notifier.getbluecolor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'Initiator Access ',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluecolor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        'enables other users in addition to viewer access, to initiate a transaction from your wallet and pass it to the appropriate approvers to approve.\n\n',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontbody,
+                                      color: notifier.getbluecolor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'Approver Access ',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluecolor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        'enables other users in addition to viewer access, to become approvers on your wallet, this means that whenever a transaction is initiated from your wallet by the initiators, it must be approved by the required number of approvers out of the added approvers for the transaction to successfully go through.\n\n',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontbody,
+                                      color: notifier.getbluecolor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'Note: ',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontsemibold,
+                                      color: notifier.getbluecolor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        'You must be careful when giving approver access because once you give others approver access on any of your wallets, the wallet seizes to be your sole wallet, it now becomes a jointly owned wallet that must get the approval of all the required approvers for any transaction to take place on it successfully.\n\nIf you happen not to be an initiator on the wallet with approver access, even though the wallet is originally your wallet, you will no longer be able to initiate transactions from the wallet.\n\nAlso if you happen not to be an Approver on the wallet with approver access enabled, you cannot approve any transaction on the wallet as well, you can only view the wallet going forward.\n\nIndividuals can use Approver Access, however, it is best suited for organizations, businesses, associations, and any other use case where more than 1 person is required to operate a wallet.',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: fontbody,
+                                      color: notifier.getbluecolor,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              textAlign: TextAlign.center,
+                              textAlign: TextAlign.justify,
                             ),
                           ),
                         ],
@@ -2199,14 +2272,11 @@ shareAccessInfoPopup(context) async {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.continuee,
+                        LanguageEn.done,
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
                     ),
-                  ),
-                  SizedBox(
-                    height: height / 50,
                   ),
                 ],
               ),

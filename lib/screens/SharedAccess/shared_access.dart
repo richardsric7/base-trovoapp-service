@@ -821,86 +821,82 @@ class _SharedAccessState extends State<SharedAccess>
               SizedBox(
                 height: height / 50,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                child: Row(
-                  children: [
-                    Text(
-                      LanguageEn.filterby,
-                      style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontbody,
-                          fontSize: 15.sp),
-                    ),
-                    SizedBox(
-                      width: width / 10,
-                    ),
-                    Expanded(
-                      child: DropdownButtonFormField(
-                        isExpanded: true,
-                        dropdownColor: notifier.isDark
-                            ? darktilewhitecolor
-                            : notifier.getaddsubwalletgrey,
-                        decoration: InputDecoration(
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          filled: true,
-                          fillColor: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
-                        ),
-                        value: selectedFilter,
-                        icon: Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                        elevation: 0,
+              if (selectedAccessMode == 'Access granted to me') ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                  child: Row(
+                    children: [
+                      Text(
+                        LanguageEn.filterby,
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
-                            fontSize: 15.sp,
-                            fontFamily: fontsemibold,
-                            fontWeight: FontWeight.w500),
-                        onChanged: (newValue) {
-                          setState(() {
-                            selectedFilter = newValue!;
-                          });
-                        },
-                        items: sortDropdownItems,
+                            fontFamily: fontbody,
+                            fontSize: 15.sp),
                       ),
-                    ),
-                  ],
+                      SizedBox(
+                        width: width / 10,
+                      ),
+                      Expanded(
+                        child: DropdownButtonFormField(
+                          isExpanded: true,
+                          dropdownColor: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 0, horizontal: 20),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            filled: true,
+                            fillColor: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
+                          ),
+                          value: selectedFilter,
+                          icon: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                          elevation: 0,
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15.sp,
+                              fontFamily: fontsemibold,
+                              fontWeight: FontWeight.w500),
+                          onChanged: (newValue) {
+                            setState(() {
+                              selectedFilter = newValue!;
+                            });
+                          },
+                          items: sortDropdownItems,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              if (selectedAccessMode == 'Access granted to me') ...[
+                SizedBox(
+                  height: height / 50,
+                ),
                 getAccessGrantedToMe(appState),
               ] else ...[
                 Builder(builder: (context) {
-                  // we rename 'Viewer' to 'VIEW-ONLY' because that's what is
-                  // returned from the server.
-                  String filter = selectedFilter == 'Viewer'
-                      ? 'VIEW-ONLY'
-                      : selectedFilter.toString().toUpperCase();
-                  // filter the wallets according to the access type that
-                  // the user selected
+                  // filter the wallets to get the one that granted only viewer
+                  // access to others. Once I grant others approver and initiator access
+                  // the wallet no longer belongs to me.
                   var filteredWallets = <Wallet>[];
                   wallets!.forEach((wallet) {
-                    for (var permissionObj in wallet.permissions!) {
-                      if (filter == 'ALL' ||
-                          permissionObj.permission == filter) {
-                        filteredWallets.add(wallet);
-                        break;
-                      }
+                    if (wallet.permissions!
+                        .where((permission) =>
+                            permission.permission == 'INITIATOR' ||
+                            permission.permission == 'APPROVER')
+                        .isEmpty) {
+                      filteredWallets.add(wallet);
                     }
                   });
                   return Column(

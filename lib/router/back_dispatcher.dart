@@ -39,6 +39,24 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
         return true;
       }
 
+      // handle the back button on the wallets view to make sure the create
+      // subwallet views/modals are consistently handled
+      if (appState.currentBottomTabIndex == 1) {
+        if (appState.walletView.view == WalletView.addSubWallet) {
+          appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
+          appState.walletView.actionText = LanguageEn.addsubwallet;
+          appState.walletView.view = WalletView.listWallets;
+          appState.updateListeners();
+          return true;
+        } else if (appState.walletView.view == WalletView.confirmAddSubWallet) {
+          appState.walletView.actionIcon = Icons.cancel_outlined;
+          appState.walletView.actionText = LanguageEn.cancel;
+          appState.walletView.view = WalletView.addSubWallet;
+          appState.updateListeners();
+          return true;
+        }
+      }
+
       dialogOpen = true;
       return await _confirmAppExit() ?? true;
     } else {

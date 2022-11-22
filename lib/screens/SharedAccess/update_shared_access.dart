@@ -49,7 +49,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
 
   List<DropdownMenuItem<int>> get getNoOfApproversDropdownItems {
     var items = <DropdownMenuItem<int>>[];
-    for (var i = 1; i < 20; i++) {
+    for (var i = 3; i < 20; i++) {
       items.add(DropdownMenuItem(
           child: Text(
             i.toString(),
@@ -62,7 +62,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
 
   List<DropdownMenuItem<int>> get getNoOfApprovalsDropdownItems {
     var items = <DropdownMenuItem<int>>[];
-    for (var i = 1; i < noOfApprovers; i++) {
+    for (var i = 2; i < noOfApprovers; i++) {
       items.add(DropdownMenuItem(
           child: Text(
             i.toString(),
@@ -1207,11 +1207,12 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
         return false;
       }
 
-      if (approversList.length < noOfApprovers) {
+      if (approversList.length < noOfApprovers ||
+          approversList.length > noOfApprovers) {
         popup(context,
             title: 'Error!',
             message:
-                'Number of approver usernames cannot be less than the number of approvers you selected. Please add more approvers.');
+                'Number of approver usernames cannot be less than or more than the number of approvers you selected. Please add more approvers.');
         _tabController.animateTo(1);
         return false;
       }

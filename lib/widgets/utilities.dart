@@ -348,3 +348,70 @@ String trimRight(String from, String pattern) {
 String trim(String from, String pattern) {
   return trimLeft(trimRight(from, pattern), pattern);
 }
+
+Widget dropdown(
+    void Function(Object?) onChanged,
+    List<DropdownMenuItem<Object>> items,
+    Object? value,
+    String? hint,
+    BuildContext context) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: true);
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 5.0),
+    child: DropdownButtonFormField(
+      isDense: true,
+      isExpanded: true,
+      hint: Container(
+        // width: 150, //and here
+        child: hint != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    hint,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontSize: 15,
+                      fontFamily: fontsemibold,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              )
+            : null,
+      ),
+      dropdownColor:
+          notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+      decoration: InputDecoration(
+        contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        filled: true,
+        fillColor:
+            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+      ),
+      value: value,
+      icon: Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: notifier.getbluewhitecolor,
+      ),
+      elevation: 0,
+      style: TextStyle(
+        color: notifier.getbluewhitecolor,
+        fontSize: 15,
+        fontFamily: fontsemibold,
+        fontWeight: FontWeight.w500,
+      ),
+      onChanged: onChanged,
+      items: items,
+    ),
+  );
+}

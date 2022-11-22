@@ -651,7 +651,15 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Shared access enabled successfully',
           'message':
-              'You have successfully enabled shared access on your wallet (${appState.activeWallet!.alias})!',
+              'You have successfully enabled shared access on your wallet [${appState.activeWallet!.alias}]!',
+          'useOnDone': true,
+          'onDone': () {
+            appState.currentAction =
+                PageAction(state: PageState.addAll, pages: [
+              BottomHomePageConfig,
+              SharedAccessViewPageConfig,
+            ]);
+          },
         };
         appState.currentAction =
             PageAction(state: PageState.replace, page: SuccessViewPageConfig);
