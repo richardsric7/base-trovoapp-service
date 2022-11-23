@@ -1707,13 +1707,32 @@ func (u *User) FetchWalletsPermissionsSharedWithUser(gc *sharedconfig.GlobalConf
 
 		if assignedPermission.Permission == "INITIATOR" {
 			//set walletSettings SINCE INITIATORS CAN MODIFY WALLET
+			viewOnlyAccess := true
+			hasApprover := false
+			if wallet.SharedAccessEnabled == 0 {
+				viewOnlyAccess = false
+			}
 			walletSettings := WalletSettings{
 				NumberOfApprovalsNeeded: wallet.NumberOfApprovalsNeeded,
 				WalletType:              wallet.WalletType,
 			}
 			for _, p := range wallet.Permissions {
+				if p.Permission != "VIEW-ONLY" {
+					viewOnlyAccess = false
+				}
+				if p.Permission == "APPROVER" {
+					hasApprover = true
+				}
 				walletSettings.Permissions = append(walletSettings.Permissions, p.ToJSON(gc))
 			}
+			if viewOnlyAccess {
+				walletSettings.WalletThreshold = 1
+			} else if hasApprover {
+				walletSettings.WalletThreshold = 2
+			} else {
+				walletSettings.WalletThreshold = 0
+			}
+
 			thirdPartyWallet.WalletSettings = &walletSettings
 		}
 
