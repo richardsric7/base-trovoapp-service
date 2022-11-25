@@ -293,7 +293,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			}
 		}
 		name := fmt.Sprintf("%v", u.FirstName)
-		if u.LastName == nil {
+		if u.LastName != nil {
 			name = fmt.Sprintf("%v %v", name, *u.LastName)
 		}
 		pi := userModels.WalletPermissionInfo{
@@ -531,7 +531,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			return
 		}
 		name := fmt.Sprintf("%v", u.FirstName)
-		if u.LastName == nil {
+		if u.LastName != nil {
 			name = fmt.Sprintf("%v %v", name, *u.LastName)
 		}
 		revokedListInfo = append(revokedListInfo, userModels.WalletPermissionInfo{
@@ -607,7 +607,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		}
 
 		name := fmt.Sprintf("%v", u.FirstName)
-		if u.LastName == nil {
+		if u.LastName != nil {
 			name = fmt.Sprintf("%v %v", name, *u.LastName)
 		}
 		modifiedListInfo = append(modifiedListInfo, userModels.WalletPermissionInfo{
@@ -699,7 +699,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		}
 
 		name := fmt.Sprintf("%v", u.FirstName)
-		if u.LastName == nil {
+		if u.LastName != nil {
 			name = fmt.Sprintf("%v %v", name, *u.LastName)
 		}
 		// infor of shared access users
