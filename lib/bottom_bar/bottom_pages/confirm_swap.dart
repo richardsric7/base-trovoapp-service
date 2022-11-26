@@ -175,6 +175,56 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
               ),
               showAddressInfo(),
               SizedBox(
+                height: height / 50,
+              ),
+              Text(
+                LanguageEn.wallet,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                ),
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                    color: notifier.isDark
+                        ? darktilewhitecolor
+                        : notifier.getaddsubwalletgrey,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Column(
+                        children: [
+                          SizedBox(
+                            height: height / 50,
+                          ),
+                          Text(
+                            viewData['walletAlias'],
+                            style: TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w700,
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontsemibold),
+                          ),
+                          SizedBox(
+                            height: height / 50,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(
                 height: height / 20,
               ),
               Form(
@@ -258,21 +308,23 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluewhitecolor,
                         fontSize: 19.sp,
-                        fontFamily: fontbody,
+                        fontFamily: fontsemibold,
                       ),
                     ),
                     SizedBox(
                       height: 5,
                     ),
-                    Text(
-                      '+ ${calculateFiatValue(swappedEstimate, viewData["destinationUsdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
-                      style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: fontbody,
+                    if (viewData["destinationUsdPrice"] != null) ...[
+                      Text(
+                        '+ ${calculateFiatValue(swappedEstimate, viewData["destinationUsdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                        style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: fontbody,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 )
               ],
@@ -330,35 +382,56 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
 
     try {
       showLoader(context);
-      // sign transaction
-      var signature = TrovoWalletSDK().signBase64Txn(
-        appState.secretKeys[0], // the primary wallet secret key,
-        viewData['transaction'],
-        viewData['networkPassPhrase'],
-      );
-      viewData['transactionSignature'] = signature;
+
+      if (viewData['isShared'] == 1) {
+        viewData['commit'] = 1;
+      } else {
+        // sign transaction
+        var signature = TrovoWalletSDK().signBase64Txn(
+          appState.secretKeys[0], // the primary wallet secret key,
+          viewData['transaction'],
+          viewData['networkPassPhrase'],
+        );
+        viewData['transactionSignature'] = signature;
+      }
 
       String requestBody = jsonEncode(viewData);
 
       print(requestBody);
 
       Map responseData = await makePostRequest(
-        uri: '/v1/users/swap',
+        uri: viewData['isShared'] == 1
+            ? '/v1/shared-access/swap'
+            : '/v1/users/swap',
         body: requestBody,
         signer: activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.publicKey!,
+        publicKey: viewData['walletPublicKey'],
       );
 
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
         await updateUserInfo();
-        appState.viewData![SwapSuccessViewPageConfig.key] =
-            responseData['data'];
-        appState.currentAction = PageAction(
-          state: PageState.replaceAll,
-          page: SwapSuccessViewPageConfig,
-        );
+        if (viewData['isShared'] == 1) {
+          appState.viewData![SuccessViewPageConfig.key] = {
+            'title': 'Swap request submitted',
+            'message':
+                'You have successfully requested swap of [${sourceAmount} ${viewData['sourceAssetCode'].toString().isEmpty ? 'XBN' : viewData['sourceAssetCode']}] to [${swappedEstimate} ${viewData['destinationAssetCode'].toString().isEmpty ? 'XBN' : viewData['destinationAssetCode']}] on wallet [${viewData['walletAlias']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+          };
+          appState.currentAction =
+              PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        } else {
+          appState.viewData![SwapSuccessViewPageConfig.key] =
+              responseData['data'];
+          appState.viewData![SwapSuccessViewPageConfig.key]['sourceUsdPrice'] =
+              viewData["sourceUsdPrice"];
+          appState.viewData![SwapSuccessViewPageConfig.key]
+              ['destinationUsdPrice'] = viewData["destinationUsdPrice"];
+          appState.currentAction = PageAction(
+            state: PageState.replaceAll,
+            page: SwapSuccessViewPageConfig,
+          );
+        }
         hideLoader(context);
       } else {
         hideLoader(context);

@@ -255,6 +255,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                               selectedWallet,
                               null,
                               context,
+                              null,
                             ),
                           ),
                         ],
@@ -278,6 +279,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                             appState.filterAsset,
                             'Assets',
                             context,
+                            null,
                           ),
                         ),
                         SizedBox(
@@ -307,6 +309,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                             null,
                             filterTypesMap[filterType],
                             context,
+                            null,
                           ),
                         ),
                         Expanded(

@@ -225,7 +225,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
               height: 5,
             ),
             Text(
-              '- 34,000',
+              '- ${calculateFiatValue(sourceAmount, viewData["sourceUsdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
               style: TextStyle(
                 color: notifier.getbluewhitecolor,
                 fontSize: 12.sp,
@@ -263,15 +263,17 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
             SizedBox(
               height: 5,
             ),
-            Text(
-              '- 34,000',
-              style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w500,
-                fontFamily: fontbody,
+            if (viewData["destinationUsdPrice"] != null) ...[
+              Text(
+                '+ ${calculateFiatValue(swappedEstimate, viewData["destinationUsdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: fontbody,
+                ),
               ),
-            ),
+            ]
           ],
         )
       ],

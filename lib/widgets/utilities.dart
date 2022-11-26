@@ -350,15 +350,18 @@ String trim(String from, String pattern) {
 }
 
 Widget dropdown(
-    void Function(Object?) onChanged,
-    List<DropdownMenuItem<Object>> items,
-    Object? value,
-    String? hint,
-    BuildContext context) {
+  void Function(Object?) onChanged,
+  List<DropdownMenuItem<Object>> items,
+  Object? value,
+  String? hint,
+  BuildContext context,
+  List<Widget> Function(BuildContext)? selectedItemBuilder,
+) {
   var notifier = Provider.of<ColorNotifier>(context, listen: true);
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 5.0),
     child: DropdownButtonFormField(
+      selectedItemBuilder: selectedItemBuilder,
       isDense: true,
       isExpanded: true,
       hint: Container(

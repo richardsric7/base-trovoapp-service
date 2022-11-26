@@ -142,6 +142,12 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  var defaultAssets = [];
+  set setDefaultAssets(assets) {
+    defaultAssets = assets;
+    notifyListeners();
+  }
+
   set setNFTs(newNfts) {
     nfts = newNfts;
     notifyListeners();

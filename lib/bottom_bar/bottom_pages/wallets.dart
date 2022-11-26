@@ -663,6 +663,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                                 selectedWalletType.toString(),
                                 null,
                                 context,
+                                null,
                               ),
                             ),
                           ],
