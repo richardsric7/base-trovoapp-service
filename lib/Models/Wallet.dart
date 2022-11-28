@@ -9,7 +9,10 @@ class Wallet {
   String? alias;
   String? signer;
   String? userId;
-  int? managedAccessEnabled;
+  int? sharedAccessEnabled;
+  int? walletType;
+  int? walletThreshold;
+  int? numberOfApprovalsNeeded;
   int? primaryWallet;
   List<Permission>? permissions;
 
@@ -22,7 +25,10 @@ class Wallet {
       this.alias,
       this.signer,
       this.userId,
-      this.managedAccessEnabled,
+      this.sharedAccessEnabled,
+      this.walletType,
+      this.walletThreshold,
+      this.numberOfApprovalsNeeded,
       this.primaryWallet,
       this.permissions});
 
@@ -36,7 +42,10 @@ class Wallet {
       "alias": alias,
       "signer": signer,
       "userId": userId,
-      "managedAccessEnabled": managedAccessEnabled,
+      "sharedAccessEnabled": sharedAccessEnabled,
+      "walletType": walletType,
+      "walletThreshold": walletThreshold,
+      "numberOfApprovalsNeeded": numberOfApprovalsNeeded,
       "primaryWallet": primaryWallet,
       "permissions": permissions,
     };
@@ -52,7 +61,10 @@ class Wallet {
       alias: m["alias"],
       signer: m["signer"],
       userId: m["userId"],
-      managedAccessEnabled: m["managedAccessEnabled"],
+      sharedAccessEnabled: m["sharedAccessEnabled"],
+      walletType: m["walletType"],
+      walletThreshold: m["walletThreshold"],
+      numberOfApprovalsNeeded: m["numberOfApprovalsNeeded"],
       primaryWallet: m["primaryWallet"],
       permissions: getPermissionList(m["permissions"]),
     );
@@ -66,6 +78,7 @@ class Wallet {
           updatedAt: DateTime.parse(permissionArrayString[i]['updatedAt']),
           walletPublicKey: permissionArrayString[i]['walletPublicKey'],
           targetUsername: permissionArrayString[i]['targetUsername'],
+          fullName: permissionArrayString[i]['fullName'],
           permission: permissionArrayString[i]['permission']));
     }
     return permissions;

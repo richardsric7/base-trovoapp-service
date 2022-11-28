@@ -101,10 +101,13 @@ class _SplashScreenState extends State<SplashScreen>
             await StoreData().storeGetData('hideBalances') ?? false;
         appState.assetBalances =
             await StoreData().storeGetData('assetBalances');
+        appState.setDefaultAssets =
+            await StoreData().storeGetData('defaultAssets');
         appState.setNFTs = await StoreData().storeGetData('nfts');
         appState.setFiatRate = await StoreData().storeGetData('fiatRate');
         appState.setSharedWallets =
             await StoreData().storeGetData('walletsSharedWithUser');
+        print('=====================shared wallet ${appState.sharedWallets}');
         appState.sethideWalletList =
             await StoreData().storeGetData('hideWalletList') ??
                 List.filled(6, appState.hideBalances);

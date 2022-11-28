@@ -197,7 +197,6 @@ class _SharedWalletState extends State<SharedWallet>
                                   // is immutable I create a new assetObj and
                                   // copy all the data into it so that
                                   // I'll be able to change the data
-                                  print(asset);
                                   appState.viewData![
                                       SharedWalletAssetDetailsViewPageConfig
                                           .key] = {

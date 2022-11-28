@@ -142,6 +142,12 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  var defaultAssets = [];
+  set setDefaultAssets(assets) {
+    defaultAssets = assets;
+    notifyListeners();
+  }
+
   set setNFTs(newNfts) {
     nfts = newNfts;
     notifyListeners();
@@ -390,9 +396,9 @@ class DataProvider with ChangeNotifier {
 
       Map responseData = await makeGetRequest(
         uri: Uri.encodeFull(uri),
-        signer: activeWallet!.publicKey!,
+        signer: activeWallet!.signer!,
         secretKey: secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.publicKey!,
+        publicKey: activeWallet!.signer!,
       );
 
       print('response: ${responseData}');

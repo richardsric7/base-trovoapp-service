@@ -41,7 +41,6 @@ const String RequestSpecificPaymentDetailsViewPath =
 const String SecurityQuestionsViewPath = '/SecurityQuestionsView';
 const String RequestOtpViewPath = '/RequestOtpView';
 const String AccountRecoverySuccessViewPath = '/AccountRecoverySuccessView';
-const String SharedAccessViewPath = '/SharedAccessView';
 const String SetupAccountRecoveryViewPath = '/SetupAccountRecoveryView';
 const String DisableAccountRecoveryViewPath = '/DisableAccountRecoveryView';
 const String RecoverAccountViewPath = '/RecoverAccountView';
@@ -54,6 +53,7 @@ const String DisableAccountRecoveryInfoViewPath =
 const String SuccessViewPath = '/SuccessView';
 const String SecurityQuestionsForInactiveAccountsViewPath =
     '/SecurityQuestionsForInactiveAccounts';
+const String SharedAccessViewPath = '/SharedAccessView';
 const String AddSharedAccessDetailsViewPath = '/AddSharedAccessDetailsView';
 const String SharedWalletInfoViewPath = '/SharedWalletInfoView';
 const String SharedWalletDetailsViewPath = '/SharedWalletDetailsView';
@@ -62,6 +62,9 @@ const String SendAssetSharedWalletViewPath = '/SendAssetSharedWalletView';
 const String RecieveAssetSharedWalletViewPath = '/RecieveAssetSharedWalletView';
 const String ConfirmInitiatePaymentViewPath = '/ConfirmInitiatePaymentView';
 const String ApprovalDetailsViewPath = '/ApprovalDetailsView';
+const String UpdateSharedAccessViewPath = '/UpdateSharedAccessView';
+const String UpdateSharedAccessDetailsViewPath =
+    '/UpdateSharedAccessDetailsView';
 
 enum Pages {
   Splash,
@@ -123,6 +126,8 @@ enum Pages {
   RecieveAssetSharedWalletView,
   ConfirmInitiatePaymentView,
   ApprovalDetailsView,
+  UpdateSharedAccessView,
+  UpdateSharedAccessDetailsView,
 }
 
 class PageConfiguration {
@@ -429,4 +434,14 @@ PageConfiguration ApprovalDetailsViewPageConfig = PageConfiguration(
     key: 'ApprovalDetailsView',
     path: ApprovalDetailsViewPath,
     uiPage: Pages.ApprovalDetailsView,
+    currentPageAction: null);
+PageConfiguration UpdateSharedAccessViewPageConfig = PageConfiguration(
+    key: 'UpdateSharedAccessView',
+    path: UpdateSharedAccessViewPath,
+    uiPage: Pages.UpdateSharedAccessView,
+    currentPageAction: null);
+PageConfiguration UpdateSharedAccessDetailsViewPageConfig = PageConfiguration(
+    key: 'UpdateSharedAccessDetailsView',
+    path: UpdateSharedAccessDetailsViewPath,
+    uiPage: Pages.UpdateSharedAccessDetailsView,
     currentPageAction: null);

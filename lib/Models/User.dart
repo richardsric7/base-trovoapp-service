@@ -24,6 +24,7 @@ class UserInfo {
   int? verified;
   int? suspended;
   List<Wallet>? wallets;
+  List<Map<String, String>>? curatedSwapList;
 
   UserInfo({
     this.username,
@@ -49,6 +50,7 @@ class UserInfo {
     this.wallets,
     this.hasSecurityQuestions,
     this.accountRecoveryEnabled,
+    this.curatedSwapList,
   });
 
   toJSONEncodable() {
@@ -75,26 +77,11 @@ class UserInfo {
       "walletRecoveryEnabled": walletRecoveryEnabled,
       "verified": verified,
       "suspended": suspended,
+      "curatedSwapList": curatedSwapList,
     };
   }
 
   deserializeJson(Map<String, dynamic> m) {
-    var userWallets = m['userWallets'];
-    var wallets = <Wallet>[];
-    if (userWallets != null) {
-      for (var i = 0; i < userWallets.length; i++) {
-        var wallet = Wallet().deserializeJson(userWallets[i]);
-        if (wallet.primaryWallet == 1) {
-          // promote the primary wallet to appear first on the list
-          wallets.insert(0, wallet);
-          continue;
-        }
-        wallets.add(wallet);
-      }
-      wallets.forEach((wallet) {
-        print('${wallet.publicKey} ${wallet.primaryWallet}');
-      });
-    }
     return UserInfo(
       username: m['username'],
       firstName: m['firstName'],
@@ -118,7 +105,36 @@ class UserInfo {
       walletRecoveryEnabled: m['walletRecoveryEnabled'],
       verified: m['verified'],
       suspended: m['suspended'],
-      wallets: wallets,
+      curatedSwapList: deserializeSwapList(m),
+      wallets: deserializeWallets(m),
     );
+  }
+
+  List<Map<String, String>> deserializeSwapList(Map<String, dynamic> m) {
+    List<Map<String, String>> list = [];
+    m['curatedSwapList'].forEach((item) {
+      list.add({
+        'assetIssuer': item['assetIssuer'],
+        'assetCode': item['assetCode'],
+      });
+    });
+    return list;
+  }
+
+  List<Wallet> deserializeWallets(Map<String, dynamic> m) {
+    var userWallets = m['userWallets'];
+    var myWallets = <Wallet>[];
+    if (userWallets != null) {
+      for (var i = 0; i < userWallets.length; i++) {
+        var wallet = Wallet().deserializeJson(userWallets[i]);
+        if (wallet.primaryWallet == 1) {
+          // promote the primary wallet to appear first on the list
+          myWallets.insert(0, wallet);
+          continue;
+        }
+        myWallets.add(wallet);
+      }
+    }
+    return myWallets;
   }
 }

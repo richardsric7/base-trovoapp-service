@@ -157,13 +157,16 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                   300.sp,
                   onChanged: (value) {
                     setState(() {
-                      amount = value;
+                      amount = trim(value.toString(), '.');
                     });
                   },
                   controller: amountController,
                   keyboardtype: TextInputType.numberWithOptions(decimal: true),
                   validator: validateAmount,
                   onSaved: (value) => amount = value.trim().replaceAll(' ', ''),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9 \.]'))
+                  ],
                 ),
                 SizedBox(height: height / 50),
                 CustomTextFormField.textField(

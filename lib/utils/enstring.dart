@@ -8,6 +8,9 @@ class LanguageEn {
 
   static String get requestspecificamount => 'Request Specific Amount';
 
+  static String get sharedaccessinfo =>
+      'Here you can give others various access rights to your wallet.\n\nViewer Access enables other users to view your wallet balance, receive payment into your wallet and view your wallet history.\n\nInitiator Access enables other users in addition to viewer access, to initiate a transaction from your wallet and pass it to the appropriate approvers to approve.\n\nApprover Access enables other users in addition to viewer access, to become approvers on your wallet, this means that whenever a transaction is initiated from your wallet by the initiators, it must be approved by the required number of approvers out of the added approvers for the transaction to successfully go through.\n\nNote: You must be careful when giving approver access because once you give others approver access on any of your wallets, the wallet seizes to be your sole wallet, it now becomes a jointly owned wallet that must get the approval of all the required approvers for any transaction to take place on it successfully.\n\nIf you happen not to be an initiator on the wallet with approver access, even though the wallet is originally your wallet, you will no longer be able to initiate transactions from the wallet.\n\nAlso if you happen not to be an Approver on the wallet with approver access enabled, you cannot approve any transaction on the wallet as well, you can only view the wallet going forward.\n\nIndividuals can use Approver Access, however, it is best suited for organizations, businesses, associations, and any other use case where more than 1 person is required to operate a wallet.';
+
   static String get importexistingwallet => 'Import existing wallet';
 
   static String get chooseamethod => 'Choose a method';
@@ -579,7 +582,7 @@ class LanguageEn {
   static String get pendingassets => "Pending Asset ";
 
   static String get pendingassetwarning =>
-      "assetCode is not yet part of your approved assets to be received on wallet walletAlias. Do you wish to start receiving this asset?";
+      "[assetCode] is not yet part of your approved assets to be received on wallet [walletAlias]. Do you wish to start receiving this asset?";
 
   static String get pendingassetwarning2 =>
       'Claiming this asset will enable you to continue to receive it in the future and will add it to the list of assets on your wallet.';

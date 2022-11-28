@@ -254,25 +254,33 @@ class Payment_HistoryState extends State<PaymentHistory>
                               walletDropdownItems,
                               selectedWallet,
                               null,
+                              context,
+                              null,
                             ),
                           ),
                         ],
                         Expanded(
                           flex: 2,
-                          child: dropdown((newValue) async {
-                            print(newValue);
-                            showLoader(context);
-                            appState.limit = 20;
-                            appState.totalRecords = 0;
-                            appState.currentPage = 1;
-                            appState.setFilterAsset = newValue.toString();
-                            await appState.getHistory(
-                              context,
-                              onDone: () => adjustScrollPosition(),
-                            );
-                            hideLoader(context);
-                          }, assetsDropdownItems, appState.filterAsset,
-                              'Assets'),
+                          child: dropdown(
+                            (newValue) async {
+                              print(newValue);
+                              showLoader(context);
+                              appState.limit = 20;
+                              appState.totalRecords = 0;
+                              appState.currentPage = 1;
+                              appState.setFilterAsset = newValue.toString();
+                              await appState.getHistory(
+                                context,
+                                onDone: () => adjustScrollPosition(),
+                              );
+                              hideLoader(context);
+                            },
+                            assetsDropdownItems,
+                            appState.filterAsset,
+                            'Assets',
+                            context,
+                            null,
+                          ),
                         ),
                         SizedBox(
                           width: width / 50,
@@ -300,6 +308,8 @@ class Payment_HistoryState extends State<PaymentHistory>
                             filterTypeDropdownItems,
                             null,
                             filterTypesMap[filterType],
+                            context,
+                            null,
                           ),
                         ),
                         Expanded(
@@ -550,69 +560,6 @@ class Payment_HistoryState extends State<PaymentHistory>
     } catch (e) {
       _refreshController.refreshFailed();
     }
-  }
-
-  Widget dropdown(void Function(Object?) onChanged,
-      List<DropdownMenuItem<Object>> items, Object? value, String? hint) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5.0),
-      child: DropdownButtonFormField(
-        isDense: true,
-        isExpanded: true,
-        hint: Container(
-          // width: 150, //and here
-          child: hint != null
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      hint,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                )
-              : null,
-        ),
-        dropdownColor:
-            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide.none,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          border: OutlineInputBorder(
-            borderSide: BorderSide.none,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          filled: true,
-          fillColor: notifier.isDark
-              ? darktilewhitecolor
-              : notifier.getaddsubwalletgrey,
-        ),
-        value: value,
-        icon: Icon(
-          Icons.keyboard_arrow_down_rounded,
-          color: notifier.getbluewhitecolor,
-        ),
-        elevation: 0,
-        style: TextStyle(
-          color: notifier.getbluewhitecolor,
-          fontSize: 15,
-          fontFamily: fontsemibold,
-          fontWeight: FontWeight.w500,
-        ),
-        onChanged: onChanged,
-        items: items,
-      ),
-    );
   }
 
   String? extractUsername(String data) {

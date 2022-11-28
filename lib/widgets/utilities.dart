@@ -148,31 +148,6 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
   return formatNumber(balance);
 }
 
-Widget userItem(String name, Color color) {
-  return Padding(
-    padding: const EdgeInsets.all(3.0),
-    child: Container(
-      decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          color: color),
-      child: Padding(
-        padding: const EdgeInsets.all(5.0),
-        child: Wrap(
-          children: [
-            Text(
-              name,
-              overflow: TextOverflow.ellipsis,
-              softWrap: true,
-              style: TextStyle(
-                  color: wihitecolor, fontFamily: fontbody, fontSize: 13.sp),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
 Widget buildExpandable(context) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
@@ -302,4 +277,144 @@ postProcessData(context, messageShown, messageLength, data,
   }
 
   callback();
+}
+
+Widget userItem(
+  String name,
+  void Function()? onClick,
+  Color color, {
+  double? fontSize: 12,
+  bool restoreMode = false,
+}) {
+  return Padding(
+    padding: const EdgeInsets.all(3.0),
+    child: Container(
+      decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+          color: color),
+      child: Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              name,
+              textAlign: TextAlign.center,
+              softWrap: true,
+              style: TextStyle(
+                  color: wihitecolor, fontFamily: fontbody, fontSize: fontSize),
+            ),
+            SizedBox(
+              width: width / 70,
+            ),
+            if (onClick != null) ...[
+              GestureDetector(
+                  onTap: () {
+                    onClick();
+                  },
+                  child: Icon(
+                    restoreMode ? Icons.replay_sharp : Icons.cancel_outlined,
+                    color: wihitecolor,
+                  ))
+            ]
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+String trimLeft(String from, String pattern) {
+  if ((from).isEmpty || (pattern).isEmpty || pattern.length > from.length)
+    return from;
+
+  while (from.startsWith(pattern)) {
+    from = from.substring(pattern.length);
+  }
+  return from;
+}
+
+String trimRight(String from, String pattern) {
+  if ((from).isEmpty || (pattern).isEmpty || pattern.length > from.length)
+    return from;
+
+  while (from.endsWith(pattern)) {
+    from = from.substring(0, from.length - pattern.length);
+  }
+  return from;
+}
+
+String trim(String from, String pattern) {
+  return trimLeft(trimRight(from, pattern), pattern);
+}
+
+Widget dropdown(
+  void Function(Object?) onChanged,
+  List<DropdownMenuItem<Object>> items,
+  Object? value,
+  String? hint,
+  BuildContext context,
+  List<Widget> Function(BuildContext)? selectedItemBuilder,
+) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: true);
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 5.0),
+    child: DropdownButtonFormField(
+      selectedItemBuilder: selectedItemBuilder,
+      isDense: true,
+      isExpanded: true,
+      hint: Container(
+        // width: 150, //and here
+        child: hint != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    hint,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontSize: 15,
+                      fontFamily: fontsemibold,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              )
+            : null,
+      ),
+      dropdownColor:
+          notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+      decoration: InputDecoration(
+        contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        filled: true,
+        fillColor:
+            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+      ),
+      value: value,
+      icon: Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: notifier.getbluewhitecolor,
+      ),
+      elevation: 0,
+      style: TextStyle(
+        color: notifier.getbluewhitecolor,
+        fontSize: 15,
+        fontFamily: fontsemibold,
+        fontWeight: FontWeight.w500,
+      ),
+      onChanged: onChanged,
+      items: items,
+    ),
+  );
 }
