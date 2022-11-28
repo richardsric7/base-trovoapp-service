@@ -59,6 +59,7 @@ import 'package:trovo_wallet/storage/state.dart';
 import '../screens/Auth/fingerprint.dart';
 import '../screens/Auth/login.dart';
 import '../screens/Backup/backup.dart';
+import '../screens/SharedAccess/welcome_to_shared_access.dart';
 import '../screens/Splash_Screen/splashscreen.dart';
 import '../screens/qr_scanner_view.dart';
 import 'PageActions.dart';
@@ -303,6 +304,10 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(UpdateSharedAccessDetails(),
               UpdateSharedAccessDetailsViewPageConfig);
           break;
+        case Pages.WelcomeToSharedAccessView:
+          _addPageData(
+              WelcomeToSharedAccess(), WelcomeToSharedAccessViewPageConfig);
+          break;
         default:
           break;
       }
@@ -491,6 +496,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.UpdateSharedAccessDetailsView:
         UpdateSharedAccessDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.WelcomeToSharedAccessView:
+        WelcomeToSharedAccessViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

@@ -339,7 +339,8 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                 state: PageState.addPage,
                                 page: PaymentHistoryViewPageConfig);
                             appState.setFilterQuery = "";
-                            appState.getHistory(context);
+                            appState.getHistory(
+                                context, viewData['walletPublicKey']);
                           },
                         ),
                         if (isInitiator) ...[

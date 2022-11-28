@@ -32,8 +32,8 @@ class Payment_HistoryState extends State<PaymentHistory>
   late RefreshController _refreshController;
   late DataProvider appState;
   List<Wallet>? wallets;
-  Wallet? activeWallet;
-  dynamic selectedWallet = '';
+  String selectedWallet = '';
+  var walletsMap = {};
   var claimedAssets;
   late bool isSharedWallet;
   bool showFilter = false;
@@ -52,23 +52,68 @@ class Payment_HistoryState extends State<PaymentHistory>
 
   HistoryFilterType filterType = HistoryFilterType.TransactionType;
 
-  List<DropdownMenuItem<String>> get walletDropdownItems {
-    var dropdownItems = wallets!
-        .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  wallet.alias!,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-            value: wallet.publicKey))
-        .toList();
+  List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
+    var walletsList = <DropdownMenuItem<String>>[];
+    var wallets = appState.userInfo!.wallets;
+    for (var i = 0; i < wallets!.length; i++) {
+      walletsMap[wallets[i].publicKey!] = {
+        'alias': wallets[i].alias,
+        'isShared': 0,
+      };
+    }
 
-    return dropdownItems;
+    // then get all the shared wallets where I have initiator access on
+    for (var i = 0; i < appState.sharedWallets.length; i++) {
+      walletsMap[appState.sharedWallets[i]['walletPublicKey']] = {
+        'alias': '${appState.sharedWallets[i]['walletAlias']}',
+        'isShared': 1,
+        'claimedAssets': appState.sharedWallets[i]['assetBalances']['claimed'],
+      };
+    }
+
+    walletsMap.forEach((key, value) {
+      walletsList.add(
+        DropdownMenuItem(
+          child: Row(
+            children: [
+              Container(
+                constraints: isSelected
+                    ? BoxConstraints(maxWidth: width / 4)
+                    : BoxConstraints(maxWidth: width / 2.5),
+                child: Text(
+                  value['alias'],
+                  overflow:
+                      isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
+                ),
+              ),
+              if (value['isShared'] == 1) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.people_outline,
+                  size: 17,
+                  color: notifier.getbluecolor,
+                )
+              ],
+              if (!isSelected && key == selectedWallet) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.check,
+                  size: 18,
+                  color: notifier.getbluecolor,
+                )
+              ],
+            ],
+          ),
+          value: key,
+        ),
+      );
+    });
+
+    return walletsList;
   }
 
   List<DropdownMenuItem<HistoryFilterType>> get filterTypeDropdownItems {
@@ -136,6 +181,7 @@ class Payment_HistoryState extends State<PaymentHistory>
     _refreshController = RefreshController(initialRefresh: false);
     appState = Provider.of<DataProvider>(context, listen: false);
     resetFilters();
+    selectedWallet = appState.activeWallet!.publicKey!;
   }
 
   @override
@@ -145,13 +191,8 @@ class Payment_HistoryState extends State<PaymentHistory>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     wallets = appState.userInfo!.wallets!;
-    activeWallet = appState.activeWallet;
-    if (activeWallet == null && wallets!.length > 0) {
-      activeWallet = wallets![0];
-    }
-    selectedWallet = activeWallet!.publicKey;
     historyData = appState.historyData;
-    var assetBalances = appState.assetBalances;
+    walletDropdownItems(false);
     isSharedWallet =
         appState.viewData![PaymentHistoryViewPageConfig.key] != null;
 
@@ -159,7 +200,7 @@ class Payment_HistoryState extends State<PaymentHistory>
     // from viewData
     claimedAssets = isSharedWallet
         ? appState.viewData![PaymentHistoryViewPageConfig.key]['claimed']
-        : assetBalances[activeWallet!.publicKey]['claimed'];
+        : getAssets(walletsMap[selectedWallet]['isShared'] == 1);
 
     return ScreenUtilInit(
       builder: (context, child) => DefaultTabController(
@@ -233,16 +274,15 @@ class Payment_HistoryState extends State<PaymentHistory>
                             flex: 2,
                             child: dropdown(
                               (newValue) async {
-                                selectedWallet = newValue!;
+                                selectedWallet = newValue.toString();
                                 appState.filterAsset = "*|*";
-                                appState.activeWallet = wallets!.firstWhere(
-                                    (wallet) => wallet.publicKey == newValue);
                                 showLoader(context);
                                 appState.limit = 20;
                                 appState.totalRecords = 0;
                                 appState.currentPage = 1;
                                 await appState.getHistory(
                                   context,
+                                  selectedWallet,
                                   onDone: () => adjustScrollPosition(),
                                 );
                                 hideLoader(context);
@@ -251,11 +291,13 @@ class Payment_HistoryState extends State<PaymentHistory>
                                   setState(() {});
                                 }
                               },
-                              walletDropdownItems,
+                              walletDropdownItems(false),
                               selectedWallet,
                               null,
                               context,
-                              null,
+                              (context) {
+                                return walletDropdownItems(true);
+                              },
                             ),
                           ),
                         ],
@@ -271,6 +313,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                               appState.setFilterAsset = newValue.toString();
                               await appState.getHistory(
                                 context,
+                                selectedWallet,
                                 onDone: () => adjustScrollPosition(),
                               );
                               hideLoader(context);
@@ -343,7 +386,7 @@ class Payment_HistoryState extends State<PaymentHistory>
           isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {
             appState.limit += 20;
-            await appState.getHistory(context);
+            await appState.getHistory(context, selectedWallet);
             return historyData!.length <= appState.totalRecords!;
           },
           textBuilder: (LoadMoreStatus status) {
@@ -396,7 +439,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
             ElevatedButton(
               onPressed: () async {
-                await appState.getHistory(context);
+                await appState.getHistory(context, selectedWallet);
               },
               style: ButtonStyle(
                 backgroundColor:
@@ -426,7 +469,7 @@ class Payment_HistoryState extends State<PaymentHistory>
 
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
-    if (transaction.fromPublicKey == activeWallet!.publicKey) {
+    if (transaction.fromPublicKey == selectedWallet) {
       transactionType = TransactionType.Send;
       name =
           '${LanguageEn.sentto} ${extractUsername(transaction.to!) ?? truncate(transaction.toPublicKey!)}';
@@ -553,6 +596,7 @@ class Payment_HistoryState extends State<PaymentHistory>
       showLoader(context);
       await appState.getHistory(
         context,
+        selectedWallet,
         onDone: () => adjustScrollPosition(),
       );
       hideLoader(context);
@@ -595,6 +639,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                     appState.setFilterQuery = "&name=${value}";
                     await appState.getHistory(
                       context,
+                      selectedWallet,
                       onDone: () => adjustScrollPosition(),
                     );
                   }
@@ -647,6 +692,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                     appState.setFilterQuery = "&memo=${value}";
                     await appState.getHistory(
                       context,
+                      selectedWallet,
                       onDone: () => adjustScrollPosition(),
                     );
                   }
@@ -699,6 +745,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                     appState.setFilterQuery = "&fromPublicKey=$value";
                     await appState.getHistory(
                       context,
+                      selectedWallet,
                       onDone: () => adjustScrollPosition(),
                     );
                   }
@@ -750,6 +797,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                     appState.setFilterQuery = "&toPublicKey=$value";
                     await appState.getHistory(
                       context,
+                      selectedWallet,
                       onDone: () => adjustScrollPosition(),
                     );
                   }
@@ -801,6 +849,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                         "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
                     await appState.getHistory(
                       context,
+                      selectedWallet,
                       onDone: () => adjustScrollPosition(),
                     );
                   }
@@ -852,6 +901,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                       "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
                   await appState.getHistory(
                     context,
+                    selectedWallet,
                     onDone: () => adjustScrollPosition(),
                   );
                 });
@@ -898,6 +948,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                     appState.setFilterQuery = "";
                     appState.getHistory(
                       context,
+                      selectedWallet,
                       onDone: () => adjustScrollPosition(),
                     );
                     Navigator.of(context).pop(); // dismiss dialog,
@@ -906,6 +957,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                     appState.setFilterQuery = "&transactionType=payment";
                     appState.getHistory(
                       context,
+                      selectedWallet,
                       onDone: () => adjustScrollPosition(),
                     );
                     Navigator.of(context).pop(); // dismiss dialog,
@@ -914,6 +966,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                     appState.setFilterQuery = "&transactionType=swap";
                     appState.getHistory(
                       context,
+                      selectedWallet,
                       onDone: () => adjustScrollPosition(),
                     );
                     Navigator.of(context).pop(); // dismiss dialog,
@@ -994,6 +1047,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             appState.setFilterQuery = "&name=${value}";
             await appState.getHistory(
               context,
+              selectedWallet,
               onDone: () => adjustScrollPosition(),
             );
           }
@@ -1007,6 +1061,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             appState.setFilterQuery = "&fromPublicKey=$value";
             await appState.getHistory(
               context,
+              selectedWallet,
               onDone: () => adjustScrollPosition(),
             );
           }
@@ -1020,6 +1075,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             appState.setFilterQuery = "&toPublicKey=$value";
             await appState.getHistory(
               context,
+              selectedWallet,
               onDone: () => adjustScrollPosition(),
             );
           }
@@ -1033,6 +1089,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                 "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
             await appState.getHistory(
               context,
+              selectedWallet,
               onDone: () => adjustScrollPosition(),
             );
           }
@@ -1044,6 +1101,7 @@ class Payment_HistoryState extends State<PaymentHistory>
               "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
           await appState.getHistory(
             context,
+            selectedWallet,
             onDone: () => adjustScrollPosition(),
           );
         });
@@ -1056,6 +1114,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             appState.setFilterQuery = "&memo=${value}";
             await appState.getHistory(
               context,
+              selectedWallet,
               onDone: () => adjustScrollPosition(),
             );
           }
@@ -1071,6 +1130,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             appState.setFilterQuery = "";
             appState.getHistory(
               context,
+              selectedWallet,
               onDone: () => adjustScrollPosition(),
             );
             Navigator.of(context).pop(); // dismiss dialog,
@@ -1079,6 +1139,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             appState.setFilterQuery = "&transactionType=payment";
             appState.getHistory(
               context,
+              selectedWallet,
               onDone: () => adjustScrollPosition(),
             );
             Navigator.of(context).pop(); // dismiss dialog,
@@ -1087,6 +1148,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             appState.setFilterQuery = "&transactionType=swap";
             appState.getHistory(
               context,
+              selectedWallet,
               onDone: () => adjustScrollPosition(),
             );
             Navigator.of(context).pop(); // dismiss dialog,
@@ -1107,6 +1169,12 @@ class Payment_HistoryState extends State<PaymentHistory>
     appState.filterMaxAmount = null;
     appState.filterMinAmount = null;
     appState.filterMemo = null;
+  }
+
+  List<dynamic> getAssets(bool isShared) {
+    return isShared
+        ? walletsMap[selectedWallet]['claimedAssets']
+        : appState.assetBalances[selectedWallet]['claimed'];
   }
 
   @override

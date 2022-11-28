@@ -65,6 +65,7 @@ const String ApprovalDetailsViewPath = '/ApprovalDetailsView';
 const String UpdateSharedAccessViewPath = '/UpdateSharedAccessView';
 const String UpdateSharedAccessDetailsViewPath =
     '/UpdateSharedAccessDetailsView';
+const String WelcomeToSharedAccessViewPath = '/WelcomeToSharedAccessView';
 
 enum Pages {
   Splash,
@@ -128,6 +129,7 @@ enum Pages {
   ApprovalDetailsView,
   UpdateSharedAccessView,
   UpdateSharedAccessDetailsView,
+  WelcomeToSharedAccessView,
 }
 
 class PageConfiguration {
@@ -444,4 +446,9 @@ PageConfiguration UpdateSharedAccessDetailsViewPageConfig = PageConfiguration(
     key: 'UpdateSharedAccessDetailsView',
     path: UpdateSharedAccessDetailsViewPath,
     uiPage: Pages.UpdateSharedAccessDetailsView,
+    currentPageAction: null);
+PageConfiguration WelcomeToSharedAccessViewPageConfig = PageConfiguration(
+    key: 'WelcomeToSharedAccessView',
+    path: WelcomeToSharedAccessViewPath,
+    uiPage: Pages.WelcomeToSharedAccessView,
     currentPageAction: null);

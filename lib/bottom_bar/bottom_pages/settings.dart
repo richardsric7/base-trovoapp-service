@@ -201,8 +201,21 @@ class _SettingsState extends State<Settings> {
               ),
               SizedBox(height: height / 50),
               GestureDetector(
-                onTap: () => appState.currentAction = PageAction(
-                    state: PageState.addPage, page: SharedAccessViewPageConfig),
+                onTap: () {
+                  // if shared access is enabled on this user's account
+                  if (appState.sharedWallets.length > 0 ||
+                      appState.userInfo!.wallets!
+                          .where((wallet) => wallet.sharedAccessEnabled == 1)
+                          .isNotEmpty) {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: SharedAccessViewPageConfig);
+                  } else {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: WelcomeToSharedAccessViewPageConfig);
+                  }
+                },
                 child: iteamlist(
                     "assets/images/access.png", "", LanguageEn.sharedaccess),
               ),

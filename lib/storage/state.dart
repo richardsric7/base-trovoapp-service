@@ -267,9 +267,14 @@ class DataProvider with ChangeNotifier {
   int currentPage = 1;
   int? totalRecords = 0;
 
-  getHistory(context, {void Function()? onDone}) async {
+  getHistory(context, String forPublicKey, {void Function()? onDone}) async {
     showLoader(context);
-    await fetchHistory(context, limit: limit.toString(), query: filterQuery);
+    await fetchHistory(
+      context,
+      forPublicKey,
+      limit: limit.toString(),
+      query: filterQuery,
+    );
 
     notifyListeners();
     hideLoader(context);
@@ -278,7 +283,8 @@ class DataProvider with ChangeNotifier {
   }
 
   Future<void> fetchHistory(
-    context, {
+    context,
+    String forPublicKey, {
     String? limit,
     String? query,
   }) async {
@@ -287,11 +293,11 @@ class DataProvider with ChangeNotifier {
       // the payment history view is opened from shared wallet. So we use the
       // viewData to get the public key of the shared wallet and fetch its transaction
       // history.
-      var publicKey = viewData![PaymentHistoryViewPageConfig.key] != null
-          ? viewData![PaymentHistoryViewPageConfig.key]['walletPublicKey']
-          : activeWallet!.publicKey!;
-      print('================fetching history for: $publicKey!');
-      var uri = '/v1/users/payments/${publicKey}?limit=$limit${query}';
+      // var publicKey = viewData![PaymentHistoryViewPageConfig.key] != null
+      //     ? viewData![PaymentHistoryViewPageConfig.key]['walletPublicKey']
+      //     : activeWallet!.publicKey!;
+      print('================fetching history for: $forPublicKey!');
+      var uri = '/v1/users/payments/${forPublicKey}?limit=$limit${query}';
       if (!filterAsset.contains("*")) {
         var splitAssetInfo = filterAsset.split("|");
         uri +=
@@ -300,7 +306,7 @@ class DataProvider with ChangeNotifier {
       Map responseData = await makeGetRequest(
           uri: uri,
           signer: activeWallet!.signer!,
-          publicKey: publicKey,
+          publicKey: forPublicKey,
           secretKey: secretKeys[0]);
 
       print('response: ${responseData['data']}');

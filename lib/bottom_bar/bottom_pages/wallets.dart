@@ -62,6 +62,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   Wallet? mainWallet;
   var claimedAssets;
   var unclaimedAssets;
+  var mySharedWallets = {};
   final _formKey = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
   late RefreshController _refreshController;
@@ -129,6 +130,16 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         userInfo.wallets!.firstWhere((wallet) => wallet.primaryWallet == 1);
     nfts = appState.nfts;
 
+    for (var i = 0; i < appState.sharedWallets.length; i++) {
+      if (mySharedWallets[appState.sharedWallets[i]['walletPublicKey']] ==
+              null ||
+          mySharedWallets[appState.sharedWallets[i]['walletPublicKey']]
+                  ['permission'] !=
+              'INITIATOR') {
+        mySharedWallets[appState.sharedWallets[i]['walletPublicKey']] =
+            appState.sharedWallets[i];
+      }
+    }
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
           resizeToAvoidBottomInset: false,
@@ -334,6 +345,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       notifier.getpinkcolor60,
       notifier.getpinkcolor50,
     ];
+
     return Container(
       height: height / 2,
       child: GridView.count(
@@ -343,65 +355,29 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         mainAxisSpacing: 20,
         crossAxisSpacing: 20,
         childAspectRatio: 1.05,
-        children: [
-          if (selectedWalletMode == 'My wallets') ...[
-            for (var i = 0; i < wallets!.length; i++) ...[
-              GestureDetector(
-                onTap: () {
-                  appState.setActiveWallet = wallets![i];
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: WalletDetailsViewPageConfig);
-                },
-                child: walletTile(
-                  wallets![i].alias!.capitalizeFirst!,
-                  '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, assetBalances[wallets![i].publicKey]['claimed'])} USD',
-                  '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, assetBalances[wallets![i].publicKey]['claimed'])} ${appState.defaultCurrency}',
-                  i % 2 == 0
-                      ? colors[((i + 1) % colors.length)]
-                      : colors[((i) % colors.length)],
-                ),
-              ),
-            ]
-            // shared wallets
-          ] else ...[
-            for (var i = 0; i < appState.sharedWallets.length; i++) ...[
-              GestureDetector(
-                onTap: () {
-                  // add the shared access data to viewData so we can pass it to
-                  // shared access details view when user taps on it
-                  appState.viewData![SharedWalletInfoViewPageConfig.key] = {
-                    'walletAlias': appState.sharedWallets[i]['walletAlias'],
-                    'permissions': <String>[
-                      appState.sharedWallets[i]['permission']
-                    ],
-                    'owner': appState.sharedWallets[i]['owner'],
-                    'walletPublicKey': appState.sharedWallets[i]
-                        ['walletPublicKey'],
-                    'walletDescription': appState.sharedWallets[i]
-                        ['walletDescription'],
-                    'walletSettings': appState.sharedWallets[i]
-                        ['walletSettings'],
-                  };
-                  appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: SharedWalletInfoViewPageConfig,
-                  );
-                },
-                child: walletTile(
-                  appState.sharedWallets[i]['walletAlias']
-                      .toString()
-                      .capitalizeFirst!,
-                  '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, appState.sharedWallets[i]['assetBalances']['claimed'])} USD',
-                  '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, appState.sharedWallets[i]['assetBalances']['claimed'])} ${appState.defaultCurrency}',
-                  i % 2 == 0
-                      ? colors[((i + 1) % colors.length)]
-                      : colors[((i) % colors.length)],
-                ),
-              ),
-            ]
-          ]
-        ],
+        children: selectedWalletMode == 'My wallets'
+            ? [
+                for (var i = 0; i < wallets!.length; i++) ...[
+                  GestureDetector(
+                    onTap: () {
+                      appState.setActiveWallet = wallets![i];
+                      appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: WalletDetailsViewPageConfig);
+                    },
+                    child: walletTile(
+                      wallets![i].alias!.capitalizeFirst!,
+                      '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, assetBalances[wallets![i].publicKey]['claimed'])} USD',
+                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, assetBalances[wallets![i].publicKey]['claimed'])} ${appState.defaultCurrency}',
+                      i % 2 == 0
+                          ? colors[((i + 1) % colors.length)]
+                          : colors[((i) % colors.length)],
+                    ),
+                  ),
+                ]
+                // shared wallets
+              ]
+            : getSharedWallets(mySharedWallets, true),
       ),
     );
   }
@@ -509,70 +485,32 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       notifier.getpinkcolor50,
     ];
     return Column(
-      children: [
-        if (selectedWalletMode == 'My wallets') ...[
-          for (var i = 0; i < wallets!.length; i++) ...[
-            GestureDetector(
-              onTap: () {
-                appState.activeWallet = wallets![i];
-                appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: WalletDetailsViewPageConfig);
-              },
-              child: walletListItem(
-                wallets![i].alias!.capitalizeFirst!,
-                '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, assetBalances[wallets![i].publicKey]['claimed'])} USD',
-                '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, assetBalances[wallets![i].publicKey]['claimed'])} ${appState.defaultCurrency}',
-                colors[((i + 1) % colors.length)],
+      children: selectedWalletMode == 'My wallets'
+          ? [
+              for (var i = 0; i < wallets!.length; i++) ...[
+                GestureDetector(
+                  onTap: () {
+                    appState.activeWallet = wallets![i];
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: WalletDetailsViewPageConfig);
+                  },
+                  child: walletListItem(
+                    wallets![i].alias!.capitalizeFirst!,
+                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, assetBalances[wallets![i].publicKey]['claimed'])} USD',
+                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, assetBalances[wallets![i].publicKey]['claimed'])} ${appState.defaultCurrency}',
+                    colors[((i + 1) % colors.length)],
+                  ),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+              ],
+              SizedBox(
+                height: height / 15,
               ),
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-          ],
-        ] else ...[
-          for (var i = 0; i < appState.sharedWallets.length; i++) ...[
-            GestureDetector(
-              onTap: () {
-                // add the shared access data to viewData so we can pass it to
-                // shared access details view when user taps on it
-                appState.viewData![SharedWalletInfoViewPageConfig.key] = {
-                  'walletAlias': appState.sharedWallets[i]['walletAlias'],
-                  'permissions': <String>[
-                    appState.sharedWallets[i]['permission']
-                  ],
-                  'owner': appState.sharedWallets[i]['owner'],
-                  'walletPublicKey': appState.sharedWallets[i]
-                      ['walletPublicKey'],
-                  'walletDescription': appState.sharedWallets[i]
-                      ['walletDescription'],
-                  'walletSettings': appState.sharedWallets[i]['walletSettings'],
-                };
-                appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: SharedWalletInfoViewPageConfig,
-                );
-              },
-              child: walletListItem(
-                appState.sharedWallets[i]['walletAlias']
-                    .toString()
-                    .capitalizeFirst!,
-                '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, appState.sharedWallets[i]['assetBalances']['claimed'])} USD',
-                '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, appState.sharedWallets[i]['assetBalances']['claimed'])} ${appState.defaultCurrency}',
-                i % 2 == 0
-                    ? colors[((i + 1) % colors.length)]
-                    : colors[((i) % colors.length)],
-              ),
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-          ]
-        ],
-        SizedBox(
-          height: height / 15,
-        ),
-      ],
+            ]
+          : getSharedWallets(mySharedWallets, false),
     );
   }
 
@@ -1139,6 +1077,62 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       ],
       SizedBox(height: height / 20),
     ]);
+  }
+
+  List<Widget> getSharedWallets(Map sharedWalletsMap, isTileMode) {
+    var walletTiles = <Widget>[];
+    int i = 0;
+    sharedWalletsMap.forEach((key, value) {
+      walletTiles.add(
+        GestureDetector(
+          onTap: () {
+            // add the shared access data to viewData so we can pass it to
+            // shared access details view when user taps on it
+            appState.viewData![SharedWalletDetailsViewPageConfig.key] = {
+              'walletAlias': value['walletAlias'],
+              'permissions': <String>[value['permission']],
+              'owner': value['owner'],
+              'walletPublicKey': value['walletPublicKey'],
+              'walletDescription': value['walletDescription'],
+              'walletSettings': value['walletSettings'],
+              'claimed': value['assetBalances']['claimed'],
+              'unclaimed': value['assetBalances']['unclaimed'],
+            };
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: SharedWalletDetailsViewPageConfig,
+            );
+          },
+          child: isTileMode
+              ? walletTile(
+                  value['walletAlias'].toString().capitalizeFirst!,
+                  '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, value['assetBalances']['claimed'])} USD',
+                  '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, value['assetBalances']['claimed'])} ${appState.defaultCurrency}',
+                  i % 2 == 0
+                      ? colors[((i + 1) % colors.length)]
+                      : colors[((i) % colors.length)],
+                )
+              : Column(
+                  children: [
+                    walletListItem(
+                      value['walletAlias'].toString().capitalizeFirst!,
+                      '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, value['assetBalances']['claimed'])} USD',
+                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, value['assetBalances']['claimed'])} ${appState.defaultCurrency}',
+                      i % 2 == 0
+                          ? colors[((i + 1) % colors.length)]
+                          : colors[((i) % colors.length)],
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                  ],
+                ),
+        ),
+      );
+      i++;
+    });
+
+    return walletTiles;
   }
 
   String? validatePassword(String? value) {
