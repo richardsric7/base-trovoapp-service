@@ -1433,6 +1433,7 @@ func (u *User) GetCuratedSwapList(gc *sharedconfig.GlobalConfig) (list []assets.
 			AssetClass:                  a.AssetClass,
 			Organization:                a.Organization,
 			Withdrawable:                a.Withdrawable,
+			DecimalPlaces:               a.DecimalPlaces,
 		})
 	}
 
