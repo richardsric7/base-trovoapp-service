@@ -91,7 +91,7 @@ func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
 		log.Printf("[GetAssetImage] <<<<<<< unable to get curated assets. returning default asset image")
 		return defaultAssetImageURL
 	}
-	v, ok := cassets[i.AssetIssuer+":"+i.AssetCode]
+	v, ok := cassets[i.AssetCode+":"+i.AssetIssuer]
 	if !ok {
 		return defaultAssetImageURL
 
