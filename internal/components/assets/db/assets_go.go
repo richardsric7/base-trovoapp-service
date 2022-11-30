@@ -2,35 +2,51 @@ package assets
 
 import (
 	"encoding/json"
+	"log"
 	"sync"
-	blockchain "trovo-wallet-api/internal/components/assets/blockchain"
 	models "trovo-wallet-api/internal/components/assets/models"
 	bantuerrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/sharedconfig"
 
-	"github.com/shopspring/decimal"
-	"github.com/toorop/go-bittrex"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 // GetCuratedAssets returns list of Curated Assets
-func GetCuratedAssets(includeInactive bool, db *gorm.DB) (assets map[string]models.CuratedAsset, err error) {
-
+func GetCuratedAssets(includeInactive bool, gc *sharedconfig.GlobalConfig) (assets map[string]models.CuratedAsset) {
 	var fetchedAssets []models.CuratedAsset
 	tempAssets := make(map[string]models.CuratedAsset)
+	assets = make(map[string]models.CuratedAsset)
+
+	cacheKeyInfo := "curatedAssets_"
+	{
+
+		// search cache for balance
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKeyInfo)
+
+		if ok {
+
+			log.Printf("[GetCuratedAssets] %v, served from cache\n", cacheKeyInfo)
+			json.Unmarshal(rawdata, &assets)
+			return
+		}
+
+	}
+
 	var m sync.Mutex
 	var dberr error
 	if !includeInactive {
-		dberr = db.Preload(clause.Associations).Order("priority").Order("asset_code").Where("inactive = ?", 0).Find(&fetchedAssets).Error
+		dberr = gc.DB.Preload(clause.Associations).Order("priority").Order("asset_code").Where("inactive = ?", 0).Find(&fetchedAssets).Error
 
 	} else {
-		dberr = db.Preload(clause.Associations).Order("priority").Order("asset_code").Find(&fetchedAssets).Error
+		dberr = gc.DB.Preload(clause.Associations).Order("priority").Order("asset_code").Find(&fetchedAssets).Error
 	}
 
 	if dberr != nil {
-		return assets, &bantuerrors.ErrorTemporaryServerError{}
+		log.Printf("[GetCuratedAssets]error getting assets: %v\n", dberr)
+		return assets
 	}
-	usdPrice, _ := blockchain.GetXBNDollarAskPrice(db)
+	// usdPrice, _ := blockchain.GetXBNDollarAskPrice(db)
 	var wg sync.WaitGroup
 	for _, v := range fetchedAssets {
 
@@ -39,11 +55,11 @@ func GetCuratedAssets(includeInactive bool, db *gorm.DB) (assets map[string]mode
 			defer wg.Done()
 			//get native price
 			// log.Printf(">>>>>>>>>>>>>>>Fetched Asset: Code: %v, Issuer: %v\n", v.AssetCode, v.AssetIssuer)
-			nativePrice, _ := blockchain.GetNativeAskPrice(v.AssetCode, v.AssetIssuer)
-			v.NativePrice = nativePrice
-			usdPriceFloat := decimal.RequireFromString(usdPrice)
-			nativePriceFloat := decimal.RequireFromString(nativePrice)
-			v.UsdPrice = nativePriceFloat.Mul(usdPriceFloat).Truncate(7).String()
+			// nativePrice, _ := blockchain.GetNativeAskPrice(v.AssetCode, v.AssetIssuer)
+			// v.NativePrice = nativePrice
+			// usdPriceFloat := decimal.RequireFromString(usdPrice)
+			// nativePriceFloat := decimal.RequireFromString(nativePrice)
+			// v.UsdPrice = nativePriceFloat.Mul(usdPriceFloat).Truncate(7).String()
 			m.Lock()
 			tempAssets[v.AssetCode+":"+v.AssetIssuer] = v
 			m.Unlock()
@@ -51,17 +67,18 @@ func GetCuratedAssets(includeInactive bool, db *gorm.DB) (assets map[string]mode
 
 	}
 	wg.Wait()
-	tempAssets[":"] = models.CuratedAsset{UsdPrice: usdPrice,
-		AssetLogo:    nativeLogo(),
-		AssetName:    "Bantu Network Token",
-		Description:  "Description: XBN is the native asset and network utility token isued by the Bantu Blockchain Foundation",
-		Website:      "www.bantufoundation.org",
-		ContactEmail: "ops@bantufoundation.org",
-		Priority:     1,
-	}
+	// tempAssets[":"] = models.CuratedAsset{
+	// 	ImageURL:     nativeLogo(),
+	// 	AssetName:    "Bantu Network Token",
+	// 	Description:  "Description: XBN is the native asset and network utility token issued by the Bantu Blockchain Foundation",
+	// 	Website:      "www.bantufoundation.org",
+	// 	ContactEmail: "ops@bantufoundation.org",
+	// 	Priority:     1,
+	// }
 	assets = tempAssets
+	gc.RedisCache.StoreResultToCacheRaw(cacheKeyInfo, assets, 0)
 
-	return assets, nil
+	return assets
 }
 
 // GetAssetClasses returns list of Curated Assets
@@ -81,21 +98,4 @@ func GetAssetClasses(db *gorm.DB) (assetClassesOutput []models.AssetClassOutput,
 	}
 
 	return assetClassesOutput, nil
-}
-
-// GetBittrexChart returns bittrex chart
-func GetBittrexChart(db *gorm.DB) (charts []bittrex.Candle, err error) {
-	charts = make([]bittrex.Candle, 0)
-
-	var chart models.XbnMarketChart
-	dberr := db.Where("source = ?", "bittrex").First(&chart).Error
-	if dberr != nil {
-		return charts, &bantuerrors.ErrorTemporaryServerError{}
-	}
-
-	e := json.Unmarshal([]byte(chart.ChartString), &charts)
-	if e != nil {
-		return charts, &bantuerrors.ErrorTemporaryServerError{}
-	}
-	return charts, nil
 }

@@ -9,12 +9,11 @@ type CuratedAsset struct {
 	ID                          uint64     `gorm:"primaryKey" json:"-"`
 	CreatedAt                   time.Time  `json:"-"`
 	UpdatedAt                   time.Time  `json:"-"`
-	AssetCode                   string     `gorm:"size:12;unique;not null" json:"assetCode"`
-	AssetName                   string     `gorm:"size:50;null" json:"assetName"`
-	AssetIssuer                 string     `gorm:"size:56;not null;check:,length(asset_issuer) = 56" json:"assetIssuer"`
-	Description                 string     `gorm:"size:200; not null" json:"description"`
-	AssetLogo                   string     `gorm:"null" json:"assetLogo"`
-	Grapheme                    string     `gorm:"null;size:45" json:"grapheme"`
+	AssetCode                   string     `gorm:"size:12;unique;not null; default:''" json:"assetCode"`
+	AssetName                   string     `gorm:"size:50;null; default:''" json:"assetName"`
+	AssetIssuer                 string     `gorm:"size:56;not null; default:''" json:"assetIssuer"`
+	Description                 string     `gorm:"size:300; not null" json:"description"`
+	ImageURL                    string     `gorm:"null" json:"imageUrl"`
 	Website                     string     `gorm:"null;size:100" json:"website"`
 	AssetConditions             string     `gorm:"null;size:100" json:"assetConditions"`
 	AssetRedemptionInstructions string     `gorm:"null;size:100" json:"assetRedemptionInstructions"`
@@ -23,19 +22,32 @@ type CuratedAsset struct {
 	AssetClassID                uint64     `gorm:"not null; default:1" json:"assetClassId"`
 	AssetClass                  AssetClass `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetClass"`
 	Organization                string     `gorm:"null;size:100" json:"organization"`
-	UsdPrice                    string     `gorm:"null;size:50" json:"usdPrice"`
-	NativePrice                 string     `gorm:"null;size:50" json:"nativePrice"`
-	Inactive                    uint64     `gorm:"type:integer;not null;default:1" json:"-"`
+	// UsdPrice                    string     `gorm:"null;size:50" json:"usdPrice"`
+	// NativePrice                 string     `gorm:"null;size:50" json:"nativePrice"`
+	Withdrawable uint64 `gorm:"type:integer;not null;default:0" json:"withdrawable"`
+	Inactive     uint64 `gorm:"type:integer;not null;default:1" json:"-"`
 }
 
 // CuratedAsset model struct for CuratedAsset.
 type CuratedSwapAsset struct {
-	ID          uint64    `gorm:"primaryKey" json:"-"`
-	CreatedAt   time.Time `json:"-"`
-	UpdatedAt   time.Time `json:"-"`
-	AssetCode   string    `gorm:"size:12;unique;not null" json:"assetCode"`
-	AssetIssuer string    `gorm:"size:56;not null;check:,length(asset_issuer) = 56" json:"assetIssuer"`
-	Inactive    uint64    `gorm:"type:integer;not null;default:0" json:"-"`
+	ID                          uint64     `gorm:"primaryKey" json:"-"`
+	CreatedAt                   time.Time  `json:"-"`
+	UpdatedAt                   time.Time  `json:"-"`
+	AssetCode                   string     `gorm:"size:12;unique;not null" json:"assetCode"`
+	AssetName                   string     `gorm:"size:50;null" json:"assetName"`
+	AssetIssuer                 string     `gorm:"size:56;not null;" json:"assetIssuer"`
+	Description                 string     `gorm:"size:200; not null" json:"description"`
+	ImageURL                    string     `gorm:"null" json:"imageUrl"`
+	Website                     string     `gorm:"null;size:100" json:"website"`
+	AssetConditions             string     `gorm:"null;size:100" json:"assetConditions"`
+	AssetRedemptionInstructions string     `gorm:"null;size:100" json:"assetRedemptionInstructions"`
+	ContactEmail                string     `gorm:"null;size:100" json:"contactEmail"`
+	Priority                    uint64     `gorm:"null;unique" json:"-"`
+	AssetClassID                uint64     `gorm:"not null; default:1" json:"assetClassId"`
+	AssetClass                  AssetClass `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetClass"`
+	Organization                string     `gorm:"null;size:100" json:"organization"`
+	Withdrawable                uint64     `gorm:"type:integer;not null;default:0" json:"withdrawable"`
+	Inactive                    uint64     `gorm:"type:integer;not null;default:1" json:"-"`
 }
 
 // PaginatedCuratedAssets returns records sent for search

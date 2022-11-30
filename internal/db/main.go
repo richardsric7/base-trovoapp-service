@@ -233,9 +233,20 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error Migrating CurrencyRates: ", errMigrate)
 		}
 
-		errMigrate = gormDB.AutoMigrate(&assetModels.CuratedSwapAsset{})
+		errMigrate = gormDB.AutoMigrate(&assetModels.AssetClass{})
 		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating CuratedSwapAsset: ", errMigrate)
+			log.Fatalln("[OpenDb]Error Migrating AssetClass: ", errMigrate)
+		}
+
+		dberr := gormDB.First(&assetModels.AssetClass{}).Error
+		if errors.Is(dberr, gorm.ErrRecordNotFound) {
+			assetClasses := []assetModels.AssetClass{{AssetClass: "Token"}, {AssetClass: "Stablecoin"}, {AssetClass: "Security Token (STO)"}, {AssetClass: "Non Fungible Token (NFT)"}, {AssetClass: "Reward"}}
+			gormDB.Create(&assetClasses)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&assetModels.CuratedAsset{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating CuratedAsset: ", errMigrate)
 		}
 
 		errMigrate = gormDB.AutoMigrate(&assetModels.XbnDollarPrice{})

@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 	blockchain "trovo-wallet-api/internal/components/assets/blockchain"
+	assetsDB "trovo-wallet-api/internal/components/assets/db"
 	assets "trovo-wallet-api/internal/components/assets/models"
 	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -1410,14 +1411,31 @@ func (id UserWalletID) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig)
 	return true
 }
 
-func (u *User) GetCuratedSwapList(db *gorm.DB) (list []assets.CuratedSwapAsset) {
+func (u *User) GetCuratedSwapList(gc *sharedconfig.GlobalConfig) (list []assets.CuratedSwapAsset) {
 
 	list = make([]assets.CuratedSwapAsset, 0)
 	// var swapAsset assets.CuratedSwapAsset
-	e := db.Find(&list).Error
-	if e != nil {
-		return make([]assets.CuratedSwapAsset, 0)
+	am := assetsDB.GetCuratedAssets(false, gc)
+
+	for _, a := range am {
+		list = append(list, assets.CuratedSwapAsset{
+			AssetCode:                   a.AssetCode,
+			AssetIssuer:                 a.AssetIssuer,
+			AssetName:                   a.AssetName,
+			Description:                 a.Description,
+			ImageURL:                    a.ImageURL,
+			Website:                     a.Website,
+			AssetConditions:             a.AssetConditions,
+			AssetRedemptionInstructions: a.AssetRedemptionInstructions,
+			ContactEmail:                a.ContactEmail,
+			AssetClassID:                a.AssetClassID,
+			AssetClass:                  a.AssetClass,
+			Organization:                a.Organization,
+			Withdrawable:                a.Withdrawable,
+		})
 	}
+
+	//add the tokenized assets to the list
 	return list
 }
 

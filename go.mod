@@ -22,7 +22,6 @@ require (
 	github.com/nyaruka/phonenumbers v1.0.75
 	github.com/shopspring/decimal v1.3.1
 	github.com/stellar/go v0.0.0-20220527172504-97da5a558772
-	github.com/toorop/go-bittrex v0.0.5
 	github.com/yeqown/go-qrcode/v2 v2.2.1
 	github.com/yeqown/go-qrcode/writer/standard v1.2.1
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
@@ -80,7 +79,6 @@ require (
 	github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
-	github.com/thebotguys/signalr v0.0.0-20190119054324-787ebe6729fc // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	github.com/yeqown/reedsolomon v1.0.0 // indirect
 	go.opencensus.io v0.23.0 // indirect

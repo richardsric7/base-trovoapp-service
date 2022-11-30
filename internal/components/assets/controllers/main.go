@@ -26,9 +26,9 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			return
 		}
 
-		dbCon.PrintDBStats("[GET] /v2/curated-assets", gc.DB)
+		dbCon.PrintDBStats("[GET] /v1/curated-assets", gc.DB)
 
-		curatedAssets, _ := assets.GetCuratedAssets(gc.DB)
+		curatedAssets := assets.GetCuratedAssets(gc)
 
 		c.JSON(http.StatusOK, curatedAssets)
 

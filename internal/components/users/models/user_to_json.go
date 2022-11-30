@@ -3,7 +3,6 @@ package users
 import (
 	"fmt"
 	"strings"
-	assets "trovo-wallet-api/internal/components/assets/models"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/golang-module/carbon/v2"
@@ -24,10 +23,10 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 	jsonObj.Verified = u.Verified
 	jsonObj.Suspended = u.Suspended
 	jsonObj.HasSecurityQuestions = u.HasSecurityQuestions
-	jsonObj.CuratedSwapList = u.GetCuratedSwapList(gc.DB)
-	if jsonObj.CuratedSwapList == nil {
-		jsonObj.CuratedSwapList = make([]assets.CuratedSwapAsset, 0)
-	}
+	jsonObj.CuratedSwapList = u.GetCuratedSwapList(gc)
+	// if len(jsonObj.CuratedSwapList) == 0 {
+	// 	jsonObj.CuratedSwapList = make([]assets.CuratedSwapAsset, 0)
+	// }
 
 	// log.Println("[UserToJSON] set basic params")
 	//nullable
