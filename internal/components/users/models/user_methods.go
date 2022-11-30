@@ -167,7 +167,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			AssetCode:   "",
 			Amount:      decimal.Zero,
 			QRCode:      qrCode,
-			ImageURL:    os.Getenv("XBN_ASSET_IMAGE_URL"),
+			ImageURL:    os.Getenv("NATIVE_ASSET_IMAGE_URL"),
 			UsdPrice:    xbnUsdPrice,
 			NativePrice: xbnNativePrice,
 			InTrade: TradeLiabilties{
