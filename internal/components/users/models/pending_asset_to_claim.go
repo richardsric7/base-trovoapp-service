@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	assetsDB "trovo-wallet-api/internal/components/assets/db"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -69,6 +70,36 @@ func (i BantuAsset) GetDataKey(key string, gc *sharedconfig.GlobalConfig) string
 	return string(decData)
 
 }
+
+func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
+	cacheKey := fmt.Sprintf("url_%v_%v", i.AssetIssuer, i.AssetCode)
+	ok, response := gc.RedisCache.GetCachedResult(cacheKey)
+	if ok {
+		return response.(string)
+	}
+	defaultAssetImageURL := os.Getenv("DEFAULT_ASSET_IMAGE_URL")
+	if len(i.AssetCode) == 0 && len(i.AssetIssuer) == 0 {
+		return os.Getenv("NATIVE_ASSET_IMAGE_URL")
+	}
+	if len(strings.TrimSpace(i.AssetIssuer)) != 56 {
+		return defaultAssetImageURL
+	}
+	cassets := assetsDB.GetCuratedAssets(false, gc)
+
+	if len(cassets) == 0 {
+		return defaultAssetImageURL
+	}
+	v, ok := cassets[i.AssetIssuer+":"+i.AssetCode]
+	if !ok {
+		return defaultAssetImageURL
+
+	}
+	url := v.ImageURL
+
+	gc.RedisCache.StoreResultToCache(cacheKey, url, 0)
+	return url
+}
+
 func (i BantuAsset) GetAssetImageFromIssuer(gc *sharedconfig.GlobalConfig) string {
 	client := network.GetBlockchainClient()
 	cacheKey := fmt.Sprintf("url_%v_%v", i.AssetIssuer, i.AssetCode)
@@ -78,7 +109,7 @@ func (i BantuAsset) GetAssetImageFromIssuer(gc *sharedconfig.GlobalConfig) strin
 	}
 	defaultAssetImageURL := os.Getenv("DEFAULT_ASSET_IMAGE_URL")
 	if len(i.AssetCode) == 0 && len(i.AssetIssuer) == 0 {
-		return os.Getenv("XBN_ASSET_IMAGE_URL")
+		return os.Getenv("NATIVE_ASSET_IMAGE_URL")
 	}
 	if len(strings.TrimSpace(i.AssetIssuer)) != 56 {
 		return defaultAssetImageURL

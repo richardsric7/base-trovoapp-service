@@ -236,7 +236,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					qrCode = p.QRCode
 				}
 			}
-			imageUrl := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}.GetAssetImageFromIssuer(gc)
+			imageUrl := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}.GetAssetImage(gc)
 			balance := Balance{AssetIssuer: bal.Issuer,
 				AssetCode:   bal.Code,
 				Amount:      availableBalance,
