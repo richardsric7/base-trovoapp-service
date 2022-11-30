@@ -73,7 +73,7 @@ func (i BantuAsset) GetDataKey(key string, gc *sharedconfig.GlobalConfig) string
 }
 
 func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
-	cacheKey := fmt.Sprintf("url%v_%v", i.AssetIssuer, i.AssetCode)
+	cacheKey := fmt.Sprintf("url%v_%v", i.AssetCode, i.AssetIssuer)
 	ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 	if ok {
 		return response.(string)
@@ -104,7 +104,7 @@ func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
 
 func (i BantuAsset) GetAssetImageFromIssuer(gc *sharedconfig.GlobalConfig) string {
 	client := network.GetBlockchainClient()
-	cacheKey := fmt.Sprintf("url%v_%v", i.AssetIssuer, i.AssetCode)
+	cacheKey := fmt.Sprintf("url%v_%v", i.AssetCode, i.AssetIssuer)
 	ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 	if ok {
 		return response.(string)
