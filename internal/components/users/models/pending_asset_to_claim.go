@@ -3,6 +3,7 @@ package users
 import (
 	"encoding/base64"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	assetsDB "trovo-wallet-api/internal/components/assets/db"
@@ -87,6 +88,7 @@ func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
 	cassets := assetsDB.GetCuratedAssets(false, gc)
 
 	if len(cassets) == 0 {
+		log.Printf("[GetAssetImage] <<<<<<< unable to get curated assets. returning default asset image")
 		return defaultAssetImageURL
 	}
 	v, ok := cassets[i.AssetIssuer+":"+i.AssetCode]
