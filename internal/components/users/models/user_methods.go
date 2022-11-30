@@ -1426,6 +1426,7 @@ func (u *User) GetCuratedSwapList(gc *sharedconfig.GlobalConfig) (list []assets.
 			ImageURL:                    a.ImageURL,
 			Website:                     a.Website,
 			AssetConditions:             a.AssetConditions,
+			AssetLimit:                  a.AssetLimit,
 			AssetRedemptionInstructions: a.AssetRedemptionInstructions,
 			ContactEmail:                a.ContactEmail,
 			AssetClassID:                a.AssetClassID,
