@@ -686,7 +686,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
-		if token.Valid {
+		if !token.Valid {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "token is invalid"})
 			return
 		}
