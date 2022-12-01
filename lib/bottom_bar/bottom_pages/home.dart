@@ -54,7 +54,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     _tabController = TabController(length: tabLength, vsync: this);
     _tabController.addListener(tabListener);
     _refreshController = RefreshController(initialRefresh: false);
-    Timer(const Duration(seconds: 10), checkSecurityQuestion);
+    // Timer(const Duration(seconds: 10), checkSecurityQuestion);
   }
 
   void tabListener() {
@@ -90,30 +90,26 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     claimedAssets = assetBalances[activeWallet]['claimed'];
     unclaimedAssets = assetBalances[activeWallet]['unclaimed'];
 
-    // in order to make assets tab length dynamic we have to check
-    // for when we have pending asset and then change the tablength
-    // to 3 or back to 2 when we do not have pending assets.
-    if (unclaimedAssets != null && unclaimedAssets.length > 0) {
-      if (activeTabIndex == _tabController.length - 1) activeTabIndex = 2;
-      tabLength = 3;
-    } else {
-      tabLength = 2;
-      if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
-    }
+    // // in order to make assets tab length dynamic we have to check
+    // // for when we have pending asset and then change the tablength
+    // // to 3 or back to 2 when we do not have pending assets.
+    // if (unclaimedAssets != null && unclaimedAssets.length > 0) {
+    //   if (activeTabIndex == _tabController.length - 1) activeTabIndex = 2;
+    //   tabLength = 3;
+    // } else {
+    //   tabLength = 2;
+    //   if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
+    // }
 
-    if (tabLength != _tabController.length) {
-      // change the length of tabController too or you will have an error
-      _tabController = TabController(length: tabLength, vsync: this);
-      _tabController.addListener(tabListener);
-    }
-
-    print(
-        'tablength: $tabLength, tabcontroller.length: ${_tabController.length}');
-    print('hideWalletList: ${appState.hideWalletList}');
+    // if (tabLength != _tabController.length) {
+    //   // change the length of tabController too or you will have an error
+    //   _tabController = TabController(length: tabLength, vsync: this);
+    //   _tabController.addListener(tabListener);
+    // }
 
     // keep track of the active tab to avoid having it changed
     // on each page rebuild
-    _tabController.animateTo(activeTabIndex);
+    // _tabController.animateTo(activeTabIndex);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -131,8 +127,58 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 ),
                 firstRow(),
                 SizedBox(
-                  height: height / 50,
+                  height: height / 70,
                 ),
+                if (userInfo.hasSecurityQuestions == 0) ...[
+                  GestureDetector(
+                    onTap: () {
+                      var primaryWallet = appState.userInfo!.wallets!
+                          .firstWhere((wallet) => wallet.primaryWallet == 1);
+                      appState.viewData = {
+                        SecurityQuestionsViewPageConfig.key: {
+                          'signer': primaryWallet.signer,
+                          'publicKey': primaryWallet.publicKey,
+                          'secretKey': appState.secretKeys[0],
+                          'username': appState.userInfo!.username,
+                        }
+                      };
+
+                      appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: SecurityQuestionsViewPageConfig);
+                    },
+                    child: Container(
+                      color: Colors.red[400],
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: width / 50,
+                            ),
+                            Expanded(
+                              child: Text(
+                                'You have not setup security questions yet. Tap to setup security questions.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getwihitecolor,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: width / 50,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                ],
                 DefaultTabController(
                   length: tabLength,
                   child: Column(
@@ -151,17 +197,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             height: 20,
                             text: LanguageEn.assets,
                           ),
-                          if (unclaimedAssets != null && tabLength == 3) ...[
-                            Tab(
-                              height: 20,
-                              text:
-                                  '${LanguageEn.pending} (${unclaimedAssets.length})',
-                            ),
-                          ],
+                          // if (unclaimedAssets != null && tabLength == 3) ...[
                           Tab(
                             height: 20,
-                            text: LanguageEn.nfts,
+                            text:
+                                '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
                           ),
+                          // ],
+                          // Tab(
+                          //   height: 20,
+                          //   text: LanguageEn.nfts,
+                          // ),
                         ],
                       ),
                     ],
@@ -249,88 +295,88 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               ],
             ),
           ),
-          if (tabLength == 3) ...[
-            Container(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    if (unclaimedAssets != null &&
-                        unclaimedAssets.length > 0) ...[
-                      for (var asset in unclaimedAssets) ...[
-                        GestureDetector(
-                          onTap: () {
-                            appState.setActiveWallet = wallets!.firstWhere(
-                                (wallet) => wallet.publicKey == activeWallet);
-                            appState.viewData = {
-                              // since the original asset object
-                              // is immutable I create a new assetObj and
-                              // copy all the data into it so that
-                              // I'll be able to change the data
-                              PendingAssetDetailsViewPageConfig.key: {
-                                'assetCode': asset['assetCode'],
-                                'assetIssuer': asset['assetIssuer'],
-                                'amount': asset['amount'],
-                                'qrCode': asset['qrCode'],
-                                'imageUrl': asset['imageUrl'],
-                              }
-                            };
-                            print(appState.viewData);
-                            appState.currentAction = PageAction(
-                              state: PageState.addPage,
-                              page: PendingAssetDetailsViewPageConfig,
-                            );
-                          },
-                          child: tiles(asset, activeWalletIndex),
-                        ),
-                      ],
-                    ] else ...[
-                      Container(
-                        height: height / 4,
-                        child: Padding(
-                            padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
-                            child: Center(
-                              child: Text(
-                                LanguageEn.nopendingassets,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: fontsemibold,
-                                  color: notifier.getblck,
-                                ),
-                              ),
-                            )),
+          // if (tabLength == 3) ...[
+          Container(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  if (unclaimedAssets != null &&
+                      unclaimedAssets.length > 0) ...[
+                    for (var asset in unclaimedAssets) ...[
+                      GestureDetector(
+                        onTap: () {
+                          appState.setActiveWallet = wallets!.firstWhere(
+                              (wallet) => wallet.publicKey == activeWallet);
+                          appState.viewData = {
+                            // since the original asset object
+                            // is immutable I create a new assetObj and
+                            // copy all the data into it so that
+                            // I'll be able to change the data
+                            PendingAssetDetailsViewPageConfig.key: {
+                              'assetCode': asset['assetCode'],
+                              'assetIssuer': asset['assetIssuer'],
+                              'amount': asset['amount'],
+                              'qrCode': asset['qrCode'],
+                              'imageUrl': asset['imageUrl'],
+                            }
+                          };
+                          print(appState.viewData);
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: PendingAssetDetailsViewPageConfig,
+                          );
+                        },
+                        child: tiles(asset, activeWalletIndex),
                       ),
                     ],
-                    SizedBox(
-                      height: height / 22,
+                  ] else ...[
+                    Container(
+                      height: height / 4,
+                      child: Padding(
+                          padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
+                          child: Center(
+                            child: Text(
+                              LanguageEn.nopendingassets,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: fontsemibold,
+                                color: notifier.getblck,
+                              ),
+                            ),
+                          )),
                     ),
                   ],
-                ),
+                  SizedBox(
+                    height: height / 22,
+                  ),
+                ],
               ),
             ),
-          ],
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                // in situations where the blockchain has an issue,
-                // some values can be returned as null or empty
-                // so always null check for such situations
-                if (nfts != null && nfts != {}) ...[
-                  if (nfts[activeWallet] != null &&
-                      nfts[activeWallet].length > 0) ...[
-                    gridView(),
-                    SizedBox(height: 600),
-                  ] else ...[
-                    // showEmptyNFTs(),
-                    gridView(),
-                  ]
-                ] else ...[
-                  // showEmptyNFTs(),
-                  gridView(),
-                ],
-              ],
-            ),
           ),
+          // ],
+          // SingleChildScrollView(
+          //   child: Column(
+          //     children: [
+          //       // in situations where the blockchain has an issue,
+          //       // some values can be returned as null or empty
+          //       // so always null check for such situations
+          //       if (nfts != null && nfts != {}) ...[
+          //         if (nfts[activeWallet] != null &&
+          //             nfts[activeWallet].length > 0) ...[
+          //           gridView(),
+          //           SizedBox(height: 600),
+          //         ] else ...[
+          //           // showEmptyNFTs(),
+          //           gridView(),
+          //         ]
+          //       ] else ...[
+          //         // showEmptyNFTs(),
+          //         gridView(),
+          //       ],
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );
@@ -428,21 +474,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage, page: SearchViewPageConfig);
-              },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-                child: SvgPicture.asset(
-                  "assets/images/search.svg",
-                  color: notifier.getbluewhitecolor,
-                  height: height / 40,
-                ),
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     appState.currentAction = PageAction(
+            //         state: PageState.addPage, page: SearchViewPageConfig);
+            //   },
+            //   child: Padding(
+            //     padding:
+            //         const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+            //     child: SvgPicture.asset(
+            //       "assets/images/search.svg",
+            //       color: notifier.getbluewhitecolor,
+            //       height: height / 40,
+            //     ),
+            //   ),
+            // ),
             GestureDetector(
               onTap: () {
                 appState.currentAction = PageAction(
@@ -458,24 +504,24 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 ),
               ),
             ),
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: NotificationsViewPageConfig);
-              },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-                // child: Image.asset("assets/images/notifications.png",
-                //     color: notifier.getbluecolor),
-                child: SvgPicture.asset(
-                  "assets/images/notifications-active.svg",
-                  color: notifier.getbluewhitecolor,
-                  height: height / 40,
-                ),
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     appState.currentAction = PageAction(
+            //         state: PageState.addPage,
+            //         page: NotificationsViewPageConfig);
+            //   },
+            //   child: Padding(
+            //     padding:
+            //         const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+            //     // child: Image.asset("assets/images/notifications.png",
+            //     //     color: notifier.getbluecolor),
+            //     child: SvgPicture.asset(
+            //       "assets/images/notifications-active.svg",
+            //       color: notifier.getbluewhitecolor,
+            //       height: height / 40,
+            //     ),
+            //   ),
+            // ),
             SizedBox(
               width: height / 50,
             ),
@@ -798,9 +844,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     }
   }
 
-  void checkSecurityQuestion() {
-    if (userInfo.hasSecurityQuestions == 0) {
-      showSetSecurityQuestionsPopup(context);
-    }
-  }
+  // void checkSecurityQuestion() {
+  //   if (userInfo.hasSecurityQuestions == 0) {
+  //     showSetSecurityQuestionsPopup(context);
+  //   }
+  // }
 }

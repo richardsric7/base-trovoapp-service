@@ -24,7 +24,7 @@ class UserInfo {
   int? verified;
   int? suspended;
   List<Wallet>? wallets;
-  List<Map<String, String>>? curatedSwapList;
+  List<Map<String, dynamic>>? curatedSwapList;
 
   UserInfo({
     this.username,
@@ -110,12 +110,26 @@ class UserInfo {
     );
   }
 
-  List<Map<String, String>> deserializeSwapList(Map<String, dynamic> m) {
-    List<Map<String, String>> list = [];
+  List<Map<String, dynamic>> deserializeSwapList(Map<String, dynamic> m) {
+    List<Map<String, dynamic>> list = [];
     m['curatedSwapList'].forEach((item) {
+      print('======item: $item');
       list.add({
         'assetIssuer': item['assetIssuer'],
         'assetCode': item['assetCode'],
+        'assetName': item['assetName'],
+        'description': item['description'],
+        'imageUrl': item['imageUrl'],
+        'website': item['website'],
+        'assetConditions': item['assetConditions'],
+        'assetLimit': item['assetLimit'],
+        'assetRedemptionInstructions': item['assetRedemptionInstructions'],
+        'contactEmail': item['contactEmail'],
+        'assetClassId': item['assetClassId'],
+        'assetClass': item['assetClass'],
+        'organization': item['organization'],
+        'withdrawable': item['withdrawable'],
+        'decimalPlaces': item['decimalPlaces'],
       });
     });
     return list;
