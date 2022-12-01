@@ -1204,7 +1204,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		if userInfo.PushNotificationToken != nil {
 			dataPayload := make(map[string]string)
-			dataPayload["none"] = ""
+			dataPayload["route"] = ""
 			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Event Registration/Participation for %v authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username %v has been used to authorize an event registration/participation action on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 
