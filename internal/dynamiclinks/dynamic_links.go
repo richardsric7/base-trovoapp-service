@@ -245,7 +245,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 // GenerateLoginData generates Login Data
 func GenerateLoginData(ownerUsername, serviceShortName, targetUser, loginID, deviceInfo, loginDescription string, gc *sharedconfig.GlobalConfig) (p LoginWithTrovoWalletData, err error) {
 	if len(loginDescription) == 0 {
-		loginDescription = fmt.Sprintf("This is a request to authorize a login session for the Trovo wallet user account [%s] on the service %s.", targetUser, strings.ToUpper(serviceShortName))
+		loginDescription = fmt.Sprintf("This is a request to authorize a login session for the Trovo wallet user account %s on the service %s.", targetUser, strings.ToUpper(serviceShortName))
 	}
 	var dynamicLink, pngDataURI string
 	params := url.Values{}
@@ -285,7 +285,7 @@ func GenerateLoginData(ownerUsername, serviceShortName, targetUser, loginID, dev
 // GenerateAuthorizationData generates authorization Data
 func GenerateAuthorizationData(ownerUsername, serviceShortName, description, targetUser, deviceInfo, authID string, gc *sharedconfig.GlobalConfig) (p TrovoWalletAuthorizationData, err error) {
 	if len(description) == 0 {
-		description = fmt.Sprintf("This is a request to authorize a 2FA action for the Trovo wallet user account [%s] on the service %s.", targetUser, strings.ToUpper(serviceShortName))
+		description = fmt.Sprintf("This is a request to authorize a 2FA action for the Trovo wallet user account %s on the service %s.", targetUser, strings.ToUpper(serviceShortName))
 	}
 	var dynamicLink, pngDataURI string
 	params := url.Values{}

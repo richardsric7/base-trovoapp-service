@@ -416,8 +416,8 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		if userInfo.PushNotificationToken != nil {
 			dataPayload := make(map[string]string)
-			dataPayload["none"] = ""
-			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for [%v] authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been authorized to login on [%v] service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Login for %v authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username %v has been authorized to login on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 
 		//return response to user and  not keep them waiting.
@@ -813,11 +813,11 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(statusCode, response)
 			return
 		}
-		if userInfo.PushNotificationToken != nil {
-			dataPayload := make(map[string]string)
-			dataPayload["link"] = data.DynamicLink
-			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Authorization for [%v] requested!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to request an authorization session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, serviceLinkRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-		}
+		// if userInfo.PushNotificationToken != nil {
+		// 	dataPayload := make(map[string]string)
+		// 	dataPayload["route"] = data.DynamicLink
+		// 	pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("Authorization for trovo account %v requested!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username [%v] has been used to request an authorization session on [%v] service using [%v]. Click to continue.", userInfo.Username, mInfo.LongName, serviceLinkRequestInput.DeviceInfo), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+		// }
 		c.JSON(http.StatusOK, data)
 	})
 
@@ -1046,8 +1046,8 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		if userInfo.PushNotificationToken != nil {
 			dataPayload := make(map[string]string)
-			dataPayload["none"] = ""
-			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("2FA Action for %v authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username %v has been used to authorize a 2FA action on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			dataPayload["route"] = ""
+			pns.SendFirebaseMessage(*userInfo.PushNotificationToken, fmt.Sprintf("2FA Action for trovo account %v authorized!", userInfo.Username), fmt.Sprintf("Your Trovo Wallet username %v has been used to authorize a 2FA action on %v service.", userInfo.Username, mInfo.LongName), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
 		//return report to user and not keep them waiting.
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
