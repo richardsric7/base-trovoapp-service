@@ -22,6 +22,7 @@ import (
 	"strings"
 	"trovo-wallet-api/internal/middleware"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
@@ -690,8 +691,15 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "token is invalid"})
 			return
 		}
+		resp := struct {
+			Message string     `json:"message"`
+			Token   *jwt.Token `json:"token"`
+		}{
+			Message: "success",
+			Token:   token,
+		}
 
-		c.JSON(http.StatusOK, gin.H{"message": "success", "token": token})
+		c.JSON(http.StatusOK, resp)
 
 	})
 
