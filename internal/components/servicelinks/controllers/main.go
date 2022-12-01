@@ -695,6 +695,23 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	})
 
+	//service token verify
+	router.DELETE("/v1/servicelinks/token", func(c *gin.Context) {
+		au, err := middleware.ExtractTokenMetadata(c.Request)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"message": "successfully logged out"})
+			return
+		}
+
+		deleted, delErr := middleware.DeleteAuth(au.AccessUUID, gc.RedisCache)
+		if delErr != nil || deleted == 0 { //if any goes wrong
+			c.JSON(http.StatusOK, gin.H{"message": "successfully logged out"})
+			return
+
+		}
+
+	})
+
 	//service authorization request
 	router.POST("/v1/servicelinks/authorize/request/:targetUser", middleware.AuthenticationMiddlewareUsingAPIKey(gc), func(c *gin.Context) {
 		trovoUser := strings.TrimSpace(strings.ToLower(c.Param("targetUser")))
