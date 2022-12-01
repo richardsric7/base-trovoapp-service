@@ -503,6 +503,11 @@ func main() {
 
 	//run app
 	log.Println("##service started##")
-	log.Println(router.Run())
+	if len(os.Getenv("PORT")) > 0 {
+		log.Println(router.Run(":" + os.Getenv("PORT")))
+
+	} else {
+		log.Println(router.Run(":8080"))
+	}
 
 }
