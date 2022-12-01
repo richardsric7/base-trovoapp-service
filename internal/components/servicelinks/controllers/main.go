@@ -680,9 +680,18 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 	})
 
 	//service token verify
-	router.POST("/v1/servicelinks/token/verify", middleware.JwtTokenAuthMiddleware(), func(c *gin.Context) {
+	router.POST("/v1/servicelinks/token/verify", func(c *gin.Context) {
+		token, err := middleware.VerifyToken(c.Request)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+		if token.Valid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "token is invalid"})
+			return
+		}
 
-		c.JSON(http.StatusCreated, gin.H{"message": "success"})
+		c.JSON(http.StatusOK, gin.H{"message": "success", "token": token})
 
 	})
 
