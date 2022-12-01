@@ -361,7 +361,7 @@ func TestCreateAccount(t *testing.T) {
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := prodURL
+	baseURL := stagingURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -389,8 +389,19 @@ func TestCreateAccount(t *testing.T) {
 		MobileCountryCode: "NG",
 		PublicKey:         pk,
 		Referrer:          "ric",
-		VerificationCode:  "252362",
+		VerificationCode:  "355195",
 	}
+	// payload := UserRegistrationInfo{
+	// 	Username:          "ric",
+	// 	Email:             "richardsric7@gmail.com",
+	// 	FirstName:         "Ric",
+	// 	LastName:          "Rcichards",
+	// 	Mobile:            "+234-8180067955",
+	// 	MobileCountryCode: "NG",
+	// 	PublicKey:         pk,
+	// 	Referrer:          "",
+	// 	VerificationCode:  "120462",
+	// }
 	errorResponse := new(ErrorResponse)
 	rResponse := new(map[string]string)
 

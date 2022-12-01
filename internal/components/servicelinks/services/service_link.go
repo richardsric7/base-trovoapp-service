@@ -56,7 +56,7 @@ func GetServiceLinkByAPIKey(apiKey string, db *gorm.DB) (serviceLink servicelink
 
 	//e returns execution errors
 
-	e := db.Where(servicelinkModels.ServiceLink{ApiKey: apiKey}).First(&serviceLink).Error
+	e := db.Where("api_key = ?", apiKey).First(&serviceLink).Error
 
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {
