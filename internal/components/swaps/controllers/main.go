@@ -326,7 +326,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 		} else {
 			dataPayload := make(map[string]string)
-			dataPayload["route"] = "basicTransactionHistory"
+			dataPayload["route"] = "pendingApproval"
 
 			if swapInfo.TransactionID == "PENDING_AUTH" {
 				c.JSON(http.StatusOK, swapInfo)
@@ -334,9 +334,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				{
 					accessList := wallet.GetPermissionList(gc.DB)
 					// send push notifications
-
-					dataPayload := make(map[string]string)
-					dataPayload["route"] = "pendingAuth"
 					for _, a := range accessList {
 
 						if a.Permission == "APPROVER" {

@@ -377,7 +377,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 					}
 
 					dataPayload := make(map[string]string)
-					dataPayload["none"] = ""
+					dataPayload["route"] = "pendingApproval"
 					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
 					notificationList[*u.PushNotificationToken] = v.TargetUsername
 					u.InvalidateUserCache(gc)
@@ -427,7 +427,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 					}
 
 					dataPayload := make(map[string]string)
-					dataPayload["none"] = ""
+					dataPayload["route"] = "pendingApproval"
 					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
 					notificationList[*u.PushNotificationToken] = v.TargetUsername
 					u.InvalidateUserCache(gc)
@@ -444,7 +444,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				}
 				if u.PushNotificationToken != nil {
 					dataPayload := make(map[string]string)
-					dataPayload["none"] = ""
+					dataPayload["route"] = "pendingApproval"
 					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
 					u.InvalidateUserCache(gc)
 				}
@@ -460,14 +460,14 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				}
 				if u.PushNotificationToken != nil {
 					dataPayload := make(map[string]string)
-					dataPayload["none"] = ""
+					dataPayload["route"] = "pendingApproval"
 					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
 					u.InvalidateUserCache(gc)
 				}
 			}
 			if sendPushNotificationToApprover {
 				dataPayload := make(map[string]string)
-				dataPayload["none"] = ""
+				dataPayload["route"] = "pendingApproval"
 				signerUser.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
 				signerUser.InvalidateUserCache(gc)
 			}
@@ -484,7 +484,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 			notificationList := make(map[string]string)
 			dataPayload := make(map[string]string)
-			dataPayload["route"] = "pendingAuth"
+			dataPayload["route"] = "pendingApproval"
 			for _, v := range accessList {
 				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
@@ -500,8 +500,6 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 						continue
 					}
 
-					dataPayload := make(map[string]string)
-					dataPayload["none"] = ""
 					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
 					u.SendPushMessage("Trovo: Shared Wallet Debited!", fmt.Sprintf("Payment successfully sent %v %v from shared wallet with alias %v to %v", paymentInfo.Amount, assetCode, wallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 					notificationList[*u.PushNotificationToken] = v.TargetUsername
@@ -567,8 +565,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				if len(paymentInfo.Destination) < 31 {
 					destWallet, e := userModels.WalletAlias(paymentInfo.Destination).GetWallet(gc.DB, gc)
 					if e == nil {
-						dataPayload := make(map[string]string)
-						dataPayload["none"] = ""
+
 						if destWallet.SharedAccessEnabled == 1 {
 							if destWallet.HasViewOnlyAccess(gc) {
 								u, e := destWallet.GetWalletOwner(gc.DB, gc)
@@ -668,7 +665,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				}
 
 				dataPayload := make(map[string]string)
-				dataPayload["none"] = ""
+				dataPayload["route"] = "pendingApproval"
 				u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
 				notificationList[*u.PushNotificationToken] = v.TargetUsername
 
@@ -677,7 +674,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 			if sendPushNotificationToApprover {
 				dataPayload := make(map[string]string)
-				dataPayload["none"] = ""
+				dataPayload["route"] = "pendingApproval"
 				signerUser.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
 				signerUser.InvalidateUserCache(gc)
 			}
@@ -689,7 +686,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			accessList := wallet.GetPermissionList(gc.DB)
 			notificationList := make(map[string]string)
 			dataPayload := make(map[string]string)
-			dataPayload["route"] = "pendingAuth"
+			dataPayload["route"] = "pendingApproval"
 			for _, v := range accessList {
 				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
 				if e != nil {
@@ -704,15 +701,12 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 						continue
 					}
 
-					dataPayload := make(map[string]string)
-					dataPayload["none"] = ""
 					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
 					notificationList[*u.PushNotificationToken] = v.TargetUsername
 					u.InvalidateUserCache(gc)
 				}
 				if sendPushNotificationToApprover {
-					dataPayload := make(map[string]string)
-					dataPayload["none"] = ""
+
 					signerUser.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
 					signerUser.InvalidateUserCache(gc)
 				}

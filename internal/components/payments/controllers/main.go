@@ -418,8 +418,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
 				if getDestinationWalletError == nil {
-					dataPayload := make(map[string]string)
-					dataPayload["none"] = ""
+					// dataPayload := make(map[string]string)
+					// dataPayload["none"] = ""
 					if destinationWallet.SharedAccessEnabled == 1 {
 						if destinationWallet.HasViewOnlyAccess(gc) {
 							u, e := destinationWallet.GetWalletOwner(gc.DB, gc)
@@ -742,7 +742,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 						assetCode = os.Getenv("NATIVE_ASSET_CODE")
 					}
 					dataPayload := make(map[string]string)
-					dataPayload["route"] = "pendingAuth"
+					dataPayload["route"] = "pendingApproval"
 					for _, a := range accessList {
 
 						if a.Permission == "APPROVER" {

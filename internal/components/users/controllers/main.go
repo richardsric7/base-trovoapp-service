@@ -2423,7 +2423,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 							log.Println("notifying approver:", v.TargetUsername)
 							dataPayload := make(map[string]string)
-							dataPayload["link"] = "authPending"
+							dataPayload["route"] = "pendingApproval"
 							u.SendPushMessage(fmt.Sprintf("Pending Approval: Modify shared access on wallet %v!", wallet.Alias), fmt.Sprintf("You have a pending approval to modify shared access on the wallet %v. Please tap to choose the appropriate action.", wallet.Alias), "", dataPayload, gc)
 							notificationList[*u.PushNotificationToken] = v.TargetUsername
 						}
@@ -2434,7 +2434,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			log.Println("notifying walletOwner:", walletOwner.Username)
 			dataPayload := make(map[string]string)
-			dataPayload["link"] = "authPending"
+			dataPayload["route"] = "pendingApproval"
 			walletOwner.SendPushMessage(fmt.Sprintf("Pending Approval: Modify shared access on wallet %v!", wallet.Alias), fmt.Sprintf("You have a pending approval to modify shared access on the wallet %v. Please tap to choose the appropriate action.", wallet.Alias), "", dataPayload, gc)
 
 			c.JSON(http.StatusOK, sharedAccessInfo)
@@ -2886,7 +2886,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 						continue
 					}
 					dataPayload := make(map[string]string)
-					dataPayload["none"] = ""
+					dataPayload["route"] = "pendingApproval"
 					if approvalRequest.TransactionStatus != "COMPLETED" {
 						pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v Submitted an approval on wallet %v!", signerUser.Username, wallet.Alias), fmt.Sprintf("%v submitted an approval for request:\n%v\nApproval stage is now %v/%v", signerUser.Username, approvalRequest.Description, approvalRequest.ApprovalsGotten, approvalRequest.ApprovalsNeeded), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 						notificationList[*u.PushNotificationToken] = v.TargetUsername
@@ -3038,7 +3038,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 
 				dataPayload := make(map[string]string)
-				dataPayload["none"] = ""
+				dataPayload["route"] = "pendingApproval"
 				if approvalRequest.TransactionStatus == "REJECTED" && u.PushNotificationToken != nil {
 
 					// notificationList := make(map[string]string)
