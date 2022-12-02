@@ -444,6 +444,16 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 								u.InvalidateUserCache(gc)
 							}
 						}
+					} else {
+						u, e := destinationWallet.GetWalletOwner(gc.DB, gc)
+						if e == nil {
+							if u.PushNotificationToken != nil {
+
+								u.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
+								u.InvalidateUserCache(gc)
+
+							}
+						}
 					}
 				}
 				accountSignerUser.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
