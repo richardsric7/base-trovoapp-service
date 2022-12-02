@@ -875,7 +875,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 				response = ex.JSONError()
 			} else {
 				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
+				response = gin.H{"error": err.Error(), "message": err.Error()}
 			}
 
 			c.JSON(statusCode, response)
