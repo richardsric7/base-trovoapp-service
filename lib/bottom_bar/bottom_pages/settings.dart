@@ -334,6 +334,7 @@ class _SettingsState extends State<Settings> {
                 onTap: () {
                   appState.currentAction = PageAction(
                       state: PageState.replaceAll, page: LoginPageConfig);
+                  appState.isLoggedIn = false;
                 },
                 child:
                     logout("assets/images/logout.png", "", LanguageEn.logout),

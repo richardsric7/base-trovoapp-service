@@ -130,7 +130,7 @@ class WelcomeToSharedAccess extends StatelessWidget {
                 wihitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
-                      state: PageState.addPage,
+                      state: PageState.replace,
                       page: SharedAccessViewPageConfig);
                 },
               ),

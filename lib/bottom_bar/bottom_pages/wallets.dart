@@ -1097,6 +1097,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               'walletSettings': value['walletSettings'],
               'claimed': value['assetBalances']['claimed'],
               'unclaimed': value['assetBalances']['unclaimed'],
+              'rel': 'walletsView',
             };
             appState.currentAction = PageAction(
               state: PageState.addPage,

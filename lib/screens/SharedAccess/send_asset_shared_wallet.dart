@@ -403,6 +403,8 @@ class _SendAssetSharedWallet extends State<SendAssetSharedWallet>
         asset['walletInfo'];
     appState.viewData![ConfirmInitiatePaymentViewPageConfig.key]["usdPrice"] =
         asset['usdPrice'];
+    appState.viewData![ConfirmInitiatePaymentViewPageConfig.key]["rel"] =
+        asset['rel'];
 
     appState.currentAction = PageAction(
       state: PageState.addPage,

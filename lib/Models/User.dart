@@ -113,7 +113,6 @@ class UserInfo {
   List<Map<String, dynamic>> deserializeSwapList(Map<String, dynamic> m) {
     List<Map<String, dynamic>> list = [];
     m['curatedSwapList'].forEach((item) {
-      print('======item: $item');
       list.add({
         'assetIssuer': item['assetIssuer'],
         'assetCode': item['assetCode'],

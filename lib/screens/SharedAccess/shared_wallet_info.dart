@@ -334,7 +334,6 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                     ['unclaimed'] =
                                 snapshot.data!['assetBalances']['unclaimed'];
 
-                            print('================${appState.viewData}');
                             appState.currentAction = PageAction(
                                 state: PageState.addPage,
                                 page: PaymentHistoryViewPageConfig);
@@ -353,6 +352,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                               var viewers = <Permission>[];
                               var approvers = <Permission>[];
                               var initiators = <Permission>[];
+
                               for (var i = 0;
                                   i <
                                       viewData['walletSettings']['permissions']

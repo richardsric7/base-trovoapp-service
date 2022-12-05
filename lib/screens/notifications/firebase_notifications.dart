@@ -1,20 +1,27 @@
 import 'dart:math';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:get/get.dart';
-import 'package:trovo_wallet/screens/Auth/signup.dart';
+import 'package:trovo_wallet/Models/BottomTabPage.dart';
+import 'package:trovo_wallet/firebase_options.dart';
+import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 late BuildContext _context;
+late DataProvider _appState;
 
 String? selectedNotificationPayload;
 
-Future<void> initAppNotification(context) async {
+Future<void> initAppNotification(context, appState) async {
   _context = context;
+  _appState = appState;
   print('................App Notification initialized...................');
   // needed if you intend to initialize in the `main` function
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +30,7 @@ Future<void> initAppNotification(context) async {
       await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
   //String initialRoute = HomePage.routeName;
   if (notificationAppLaunchDetails!.didNotificationLaunchApp) {
-    selectedNotificationPayload = notificationAppLaunchDetails.payload!;
+    // selectedNotificationPayload = notificationAppLaunchDetails.payload!;
     // initialRoute = SecondPage.routeName;
   }
 
@@ -57,30 +64,51 @@ initMyNotification(BuildContext context) {
       alert: true, badge: true, sound: true);
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('Got a message whilst in the foreground!');
-    print('Message data: ${message.notification!.body}');
-    print('Message data: ${message.notification!.title}');
+    print('Got a message whilst in the foreground! ${message.toMap()}');
 
-    String notificationTitle = message.notification!.title!;
-    String notificationBody = message.notification!.body!;
-    showNotification(notificationTitle, notificationBody);
+    showNotification(message);
 
     if (message.notification != null) {
       print('Message also contained a notification: ${message.notification}');
     }
   });
+
+  //When the app is in the background, but not terminated.
+  FirebaseMessaging.onMessageOpenedApp.listen(
+    (message) {
+      print('==============message opened app:${message.notification!.title}');
+      print(message.toMap());
+      goToPageRoute(message.data['route'] ?? '');
+      return;
+    },
+    cancelOnError: false,
+    onDone: () {},
+  );
+
+  FirebaseMessaging.onBackgroundMessage((message) {
+    print('Got a message whilst in the background!');
+    print('Message data: ${message.notification!.body}');
+    print('Message data: ${message.notification!.title}');
+    // lets just return something that makes the compiler
+    // happy.
+    return Future.sync(() {});
+  });
 }
 
-void selectNotification(String? payload) async {
-  if (payload != null) {
-    print('notification payload: $payload');
-  } else {
-    print("Notification Done");
+void selectNotification(String? route) async {
+  if (route != null) {
+    print('================notification payload: $route');
+    goToPageRoute(route);
+    return;
   }
-  Get.to(() => SignUp(), arguments: payload);
 }
 
-Future<void> showNotification(title, message) async {
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print("Handling a background message");
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+}
+
+Future<void> showNotification(RemoteMessage payload) async {
   const AndroidNotificationDetails androidPlatformChannelSpecifics =
       AndroidNotificationDetails('Trovo Wallet', 'Trovo Technologies',
           channelDescription:
@@ -91,9 +119,9 @@ Future<void> showNotification(title, message) async {
   const NotificationDetails platformChannelSpecifics =
       NotificationDetails(android: androidPlatformChannelSpecifics);
   var rand = Random().nextInt(999999);
-  await flutterLocalNotificationsPlugin.show(
-      rand, title, message, platformChannelSpecifics,
-      payload: '$title&$message');
+  await flutterLocalNotificationsPlugin.show(rand, payload.notification!.title!,
+      payload.notification!.body!, platformChannelSpecifics,
+      payload: '${payload.data['route']}');
 }
 
 void onDidReceiveLocalNotification(
@@ -134,4 +162,34 @@ void requestPermissions() {
         badge: true,
         sound: true,
       );
+}
+
+void goToPageRoute(String route) {
+  if (_appState.isLoggedIn) {
+    switch (route) {
+      case 'basicTransactionHistory':
+        _appState.currentAction =
+            PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+        changeTabPage(_appState, ButtomTabPage.TransactionHistory.index);
+        break;
+      case 'pendingApproval':
+        _appState.currentAction = PageAction(
+          state: PageState.addAll,
+          pages: [BottomHomePageConfig, SharedAccessViewPageConfig],
+        );
+        // take the user to the pending approvals tab on the shared access view
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _appState.sharedAccesstabController.animateTo(1,
+              duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+        });
+        break;
+      default:
+        _appState.currentAction =
+            PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+        changeTabPage(_appState, ButtomTabPage.Dashboard.index);
+    }
+  } else {
+    _appState.currentAction =
+        PageAction(state: PageState.replaceAll, page: LoginPageConfig);
+  }
 }

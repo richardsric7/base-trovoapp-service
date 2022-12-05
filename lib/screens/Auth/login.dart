@@ -326,6 +326,7 @@ class _LoginState extends State<Login> {
       if (result) {
         appState.currentAction =
             PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+        appState.isLoggedIn = true;
       }
     } on PlatformException catch (e) {
       if (e.code == auth_error.notEnrolled ||
@@ -352,6 +353,7 @@ class _LoginState extends State<Login> {
     if (password == appState.password!) {
       appState.currentAction =
           PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+      appState.isLoggedIn = true;
     } else {
       popup(context,
           title: LanguageEn.oops, message: LanguageEn.invalidpassword);

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
@@ -25,6 +26,7 @@ void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await StoreData().storeDeleteItem('initialDynamicLink');
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   var dynamicLink = await FirebaseDynamicLinkInitializer().getInitialLink();
@@ -70,7 +72,7 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    initAppNotification(context);
+    initAppNotification(context, appState);
   }
 
   @override
@@ -128,6 +130,7 @@ class _AppState extends State<App> {
       setState(() {
         appState.currentAction =
             PageAction(state: PageState.replaceAll, page: LoginPageConfig);
+        appState.isLoggedIn = false;
       });
     }
   }

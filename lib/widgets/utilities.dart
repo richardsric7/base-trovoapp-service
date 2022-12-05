@@ -106,11 +106,15 @@ class doubleTypeFormatter extends TextInputFormatter {
 }
 
 void changeTabPage(appState, index) {
-  // moves user to the wallets list tab
-  appState.bottomTabPageController!.animateToPage(index,
-      duration: const Duration(milliseconds: 500), curve: Curves.ease);
-  // set this to the wallets list tab index
-  appState.currentBottomTabIndex = index;
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (appState.bottomTabPageController!.hasClients) {
+      appState.bottomTabPageController!.animateToPage(index,
+          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+
+      // set this to the current tab page index
+      appState.currentBottomTabIndex = index;
+    }
+  });
 }
 
 void handleDynamicLinkData(Uri parsedUri) {

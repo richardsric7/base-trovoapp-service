@@ -34,7 +34,6 @@ class _SharedAccessState extends State<SharedAccess>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late TabController _tabController;
   TextEditingController viewersController = TextEditingController();
   TextEditingController approversController = TextEditingController();
   TextEditingController initiatorsController = TextEditingController();
@@ -218,7 +217,6 @@ class _SharedAccessState extends State<SharedAccess>
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
-    _tabController = TabController(length: 3, vsync: this);
     _refreshController = RefreshController(initialRefresh: false);
     appState = Provider.of<DataProvider>(context, listen: false);
     appState.filterTransactionStatus = 'Pending';
@@ -227,6 +225,7 @@ class _SharedAccessState extends State<SharedAccess>
       limit: appState.limit.toString(),
       query: appState.filterQuery,
     );
+    appState.sharedAccesstabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -279,7 +278,7 @@ class _SharedAccessState extends State<SharedAccess>
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12.0, 20, 10.0),
                 child: TabBar(
-                  controller: _tabController,
+                  controller: appState.sharedAccesstabController,
                   labelColor: notifier.getbluewhitecolor,
                   indicatorColor: notifier.getbluewhitecolor,
                   labelStyle: TextStyle(
@@ -305,17 +304,19 @@ class _SharedAccessState extends State<SharedAccess>
               ),
               Container(
                 height: height / 1.22,
-                child: TabBarView(controller: _tabController, children: [
-                  SingleChildScrollView(
-                    child: accessList(),
-                  ),
-                  SingleChildScrollView(
-                    child: pendingApprovals(),
-                  ),
-                  SingleChildScrollView(
-                    child: grantAccess(),
-                  ),
-                ]),
+                child: TabBarView(
+                    controller: appState.sharedAccesstabController,
+                    children: [
+                      SingleChildScrollView(
+                        child: accessList(),
+                      ),
+                      SingleChildScrollView(
+                        child: pendingApprovals(),
+                      ),
+                      SingleChildScrollView(
+                        child: grantAccess(),
+                      ),
+                    ]),
               ),
             ],
           ),
@@ -891,11 +892,12 @@ class _SharedAccessState extends State<SharedAccess>
                   // the wallet no longer belongs to me.
                   var filteredWallets = <Wallet>[];
                   wallets!.forEach((wallet) {
-                    if (wallet.permissions!
-                        .where((permission) =>
-                            permission.permission == 'INITIATOR' ||
-                            permission.permission == 'APPROVER')
-                        .isEmpty) {
+                    if (wallet.permissions!.isNotEmpty &&
+                        wallet.permissions!
+                            .where((permission) =>
+                                permission.permission == 'INITIATOR' ||
+                                permission.permission == 'APPROVER')
+                            .isEmpty) {
                       filteredWallets.add(wallet);
                     }
                   });
@@ -977,7 +979,6 @@ class _SharedAccessState extends State<SharedAccess>
             'owner': appState.sharedWallets[i]['owner'],
             'walletPublicKey': appState.sharedWallets[i]['walletPublicKey'],
             'walletDescription': appState.sharedWallets[i]['walletDescription'],
-            'walletSettings': appState.sharedWallets[i]['walletSettings'],
           };
         } else {
           // if we got here then the wallet is already on the map so we add
@@ -986,6 +987,14 @@ class _SharedAccessState extends State<SharedAccess>
           wallets[appState.sharedWallets[i]['walletAlias']]['permissions']
               .add(appState.sharedWallets[i]['permission']);
         }
+
+        if (appState.sharedWallets[i]['walletSettings'] != null) {
+          wallets[appState.sharedWallets[i]['walletAlias']]['walletSettings'] =
+              appState.sharedWallets[i]['walletSettings'];
+        }
+
+        print(
+            '=========== ${wallets[appState.sharedWallets[i]['walletAlias']]}');
       }
     }
 

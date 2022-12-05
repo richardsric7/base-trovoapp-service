@@ -207,6 +207,7 @@ class _SharedWalletState extends State<SharedWallet>
                                     'qrCode': asset['qrCode'],
                                     'imageUrl': asset['imageUrl'],
                                     'walletInfo': viewData,
+                                    'rel': viewData['rel'],
                                   };
                                   appState.currentAction = PageAction(
                                     state: PageState.addPage,

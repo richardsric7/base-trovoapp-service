@@ -16,6 +16,7 @@ import 'cache.dart';
 
 class DataProvider with ChangeNotifier {
   UserInfo? userInfo;
+  bool isLoggedIn = false;
   List<String> secretKeys = [];
   bool isDark = false;
   bool biometricEnabled = false;
@@ -438,6 +439,8 @@ class DataProvider with ChangeNotifier {
   // anywhere in the app we will bring this function here where everybody can
   // reach it from anywhere.
   PageController? bottomTabPageController;
+
+  late TabController sharedAccesstabController;
 
   // use this to keep track of individual wallets' hidden state used
   // especially on the dashboard screen to track which wallet is set to hidden
