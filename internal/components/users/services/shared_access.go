@@ -431,6 +431,17 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 	accessInfo.TransactionID = txnHash
 
 	dbTX.Commit()
+	// invalidate cache
+	{
+
+		for _, v := range accessList {
+			u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+			if e == nil {
+				u.InvalidateUserCache(gc)
+			}
+		}
+		signerUser.InvalidateUserCache(gc)
+	}
 	return returnedWallet, nil
 }
 
