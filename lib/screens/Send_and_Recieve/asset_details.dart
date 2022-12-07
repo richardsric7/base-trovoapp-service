@@ -30,7 +30,7 @@ class _AssetDetailsState extends State<AssetDetails>
   late UserInfo userInfo;
   var assetBalances;
   List<Wallet>? wallets;
-  Wallet? activeWallet;
+  Map activeWallet = {};
   late Map activeAsset;
   var claimedAssets;
   late Map curatedAsset;
@@ -52,15 +52,49 @@ class _AssetDetailsState extends State<AssetDetails>
     return menuItems;
   }
 
-  List<DropdownMenuItem<String>> get walletDropdownItems {
-    return wallets!
-        .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
-            child: Text(
-              wallet.alias!,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: wallet.publicKey))
-        .toList();
+  List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
+    var walletsList = <DropdownMenuItem<String>>[];
+    appState.transactionableWallets.forEach((key, value) {
+      walletsList.add(
+        DropdownMenuItem(
+          child: Row(
+            children: [
+              Container(
+                constraints:
+                    isSelected ? BoxConstraints(maxWidth: width / 3) : null,
+                child: Text(
+                  value['alias'],
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (value['sharedAccessEnabled'] == 1) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.people_outline,
+                  size: 17,
+                  color: notifier.getbluecolor,
+                )
+              ],
+              if (!isSelected && key == selectedWallet) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.check,
+                  size: 18,
+                  color: notifier.getbluecolor,
+                )
+              ],
+            ],
+          ),
+          value: key,
+        ),
+      );
+    });
+
+    return walletsList;
   }
 
   @override
@@ -77,8 +111,6 @@ class _AssetDetailsState extends State<AssetDetails>
                 appState.viewData![AssetDetailsViewPageConfig.key]
                     ['assetIssuer'],
         orElse: () => {});
-
-    print('========$curatedAsset');
   }
 
   @override
@@ -90,9 +122,14 @@ class _AssetDetailsState extends State<AssetDetails>
     userInfo = appState.userInfo!;
     assetBalances = appState.assetBalances;
     wallets = userInfo.wallets!;
-    activeWallet = appState.activeWallet;
-    selectedWallet = activeWallet!.publicKey;
-    claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
+
+    if (activeWallet.isEmpty) {
+      activeWallet =
+          appState.transactionableWallets[appState.activeWallet!.publicKey!];
+    }
+
+    // selectedWallet = activeWallet!.publicKey;
+    // claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
     activeAsset = appState.viewData![AssetDetailsViewPageConfig.key];
     if (appState.viewData![AssetDetailsViewPageConfig.key] != null) {
       selectedAsset = "${getAssetCode(
@@ -101,8 +138,8 @@ class _AssetDetailsState extends State<AssetDetails>
         appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
       )}";
     }
-
-    print(activeAsset);
+    activeAsset['qrCode'] = '';
+    print('==========active asset: $activeAsset');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -126,66 +163,41 @@ class _AssetDetailsState extends State<AssetDetails>
                   child: Row(
                     children: [
                       Expanded(
-                        child: DropdownButtonFormField(
-                          isExpanded: true,
-                          dropdownColor: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 0, horizontal: 20),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            filled: true,
-                            fillColor: notifier.isDark
-                                ? darktilewhitecolor
-                                : notifier.getaddsubwalletgrey,
-                          ),
-                          value: selectedWallet,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                          elevation: 0,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontsemibold,
-                              fontWeight: FontWeight.w500),
-                          onChanged: (newValue) {
-                            setState(() {
-                              selectedWallet = newValue!;
-                              for (var asset in claimedAssets) {
-                                // we need to somehow take care of the selected asset
-                                // when switching wallets because of scenarios
-                                // where one wallet has an asset that is not listed
-                                // on the other. Here we are checking whether the
-                                // newly selected wallet contains the currently
-                                // selected asset and if it doesn't we switch
-                                // back to the default asset which is XBN
-                                if (asset['assetIssuer'] == selectedAsset ||
-                                    asset['assetIssuer'] == '') {
-                                  appState.viewData![
-                                      AssetDetailsViewPageConfig.key] = asset;
-                                  break;
-                                }
+                          child: dropdown(
+                        (newValue) {
+                          setState(() {
+                            selectedWallet = newValue!;
+                            for (var asset in claimedAssets) {
+                              // we need to somehow take care of the selected asset
+                              // when switching wallets because of scenarios
+                              // where one wallet has an asset that is not listed
+                              // on the other. Here we are checking whether the
+                              // newly selected wallet contains the currently
+                              // selected asset and if it doesn't we switch
+                              // back to the default asset which is XBN
+                              if (asset['assetIssuer'] == selectedAsset ||
+                                  asset['assetIssuer'] == '') {
+                                appState.viewData![
+                                    AssetDetailsViewPageConfig.key] = asset;
+                                break;
                               }
-                              print('this is new value: $newValue');
-                              appState.activeWallet = wallets!.firstWhere(
-                                  (wallet) => wallet.publicKey == newValue);
-                            });
-                          },
-                          items: walletDropdownItems,
-                        ),
-                      ),
+                            }
+                            appState.activeWallet = wallets!.firstWhere(
+                                (wallet) => wallet.publicKey == newValue);
+                          });
+                        },
+                        walletDropdownItems(false),
+                        selectedWallet.toString().isEmpty
+                            ? null
+                            : selectedWallet,
+                        null,
+                        context,
+                        (context) {
+                          return walletDropdownItems(true);
+                        },
+                      )),
                       SizedBox(
-                        width: width / 20,
+                        width: width / 40,
                       ),
                       Expanded(
                         child: DropdownButtonFormField(
@@ -241,7 +253,7 @@ class _AssetDetailsState extends State<AssetDetails>
                             items: assetDropdownItems),
                       ),
                       SizedBox(
-                        width: width / 20,
+                        width: width / 40,
                       ),
                     ],
                   ),
@@ -272,7 +284,7 @@ class _AssetDetailsState extends State<AssetDetails>
               WalletSlide(
                 backColor: notifier.getbluecolor,
                 foreColor: wihitecolor,
-                alias: activeWallet!.alias!.capitalizeFirst!,
+                alias: 'activeWallet!.alias!.capitalizeFirst!',
                 totalBalance:
                     '${formatNumber(double.parse(activeAsset['amount']))} ${getAssetCode(activeAsset['assetCode'])}',
                 fiatBalance:
@@ -301,6 +313,9 @@ class _AssetDetailsState extends State<AssetDetails>
         actionButton("assets/images/send.png", 'Send', () {
           appState.viewData![SendAssetViewPageConfig.key] =
               appState.viewData![AssetDetailsViewPageConfig.key];
+          // appState.viewData![SendAssetViewPageConfig.key]['isSharedWallet'] =
+          //     (activeWallet!.primaryWallet != 1 &&
+          //         activeWallet!.sharedAccessEnabled == 1);
 
           print(appState.viewData);
           appState.currentAction = PageAction(

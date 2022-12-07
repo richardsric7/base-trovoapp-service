@@ -24,6 +24,94 @@ class DataProvider with ChangeNotifier {
   String? password;
   var assetBalances;
   var nfts;
+  Map _transactionableWallets = {};
+  Map get transactionableWallets {
+    var wallets = userInfo!.wallets;
+
+    for (var i = 0; i < wallets!.length; i++) {
+      // get just the standard wallets since they are the only ones we can
+      // enable shared access on
+      if (wallets[i].walletType == 0) {
+        // do not add user wallets where user doesn't have initiator access
+        if (wallets[i].walletThreshold == 2 &&
+            wallets[i]
+                .permissions!
+                .where((perm) =>
+                    perm.permission == 'INITIATOR' &&
+                    perm.targetUsername == userInfo!.username)
+                .isEmpty) {
+          continue;
+        }
+
+        _transactionableWallets[wallets[i].publicKey!] = {
+          'publicKey': wallets[i].publicKey,
+          'alias': wallets[i].alias,
+          'threshold': wallets[i].walletThreshold,
+          'sharedAccessEnabled': wallets[i].primaryWallet == 1
+              ? 0
+              : wallets[i].sharedAccessEnabled,
+          'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
+        };
+      }
+    }
+
+    // then get all the shared wallets where I have initiator access on
+    for (var i = 0; i < sharedWallets.length; i++) {
+      if (sharedWallets[i]['permission'] == 'INITIATOR') {
+        _transactionableWallets[sharedWallets[i]['walletPublicKey']] = {
+          'publicKey': sharedWallets[i]['walletPublicKey'],
+          'alias': '${sharedWallets[i]['walletAlias']}',
+          'permission': sharedWallets[i]['permission'],
+          'threshold': sharedWallets[i]['walletSettings']['walletThreshold'],
+          'sharedAccessEnabled': 1,
+          'claimedAssets': sharedWallets[i]['assetBalances']['claimed'],
+        };
+      }
+    }
+    return _transactionableWallets;
+  }
+
+  Map _allWallets = {}; // both shared and non-shared
+  Map get allWallets {
+    var wallets = userInfo!.wallets;
+
+    for (var i = 0; i < wallets!.length; i++) {
+      if (wallets[i].walletType == 0) {
+        if (wallets[i].walletThreshold == 2 &&
+            wallets[i]
+                .permissions!
+                .where((perm) =>
+                    perm.permission == 'INITIATOR' &&
+                    perm.targetUsername == userInfo!.username)
+                .isEmpty) {
+          continue;
+        }
+
+        _allWallets[wallets[i].publicKey!] = {
+          'publicKey': wallets[i].publicKey,
+          'alias': wallets[i].alias,
+          'threshold': wallets[i].walletThreshold,
+          'sharedAccessEnabled': wallets[i].primaryWallet == 1
+              ? 0
+              : wallets[i].sharedAccessEnabled,
+          'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
+        };
+      }
+    }
+
+    for (var i = 0; i < sharedWallets.length; i++) {
+      _allWallets[sharedWallets[i]['walletPublicKey']] = {
+        'publicKey': sharedWallets[i]['walletPublicKey'],
+        'alias': '${sharedWallets[i]['walletAlias']}',
+        'permission': sharedWallets[i]['permission'],
+        'threshold': sharedWallets[i]['walletSettings']['walletThreshold'],
+        'sharedAccessEnabled': 1,
+        'claimedAssets': sharedWallets[i]['assetBalances']['claimed'],
+      };
+    }
+    return _allWallets;
+  }
+
   bool dialogOpen = false;
   WalletsListViewData walletView = WalletsListViewData(
       view: WalletView.listWallets,

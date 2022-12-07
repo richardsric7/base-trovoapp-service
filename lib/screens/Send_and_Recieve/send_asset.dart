@@ -33,17 +33,19 @@ class SendAsset extends StatefulWidget {
 class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  Wallet? activeWallet;
+  Map activeWallet = {};
   final formKey = GlobalKey<FormState>();
   String to = ''; // the reciever
   String amount = '';
   bool amountError = false;
   String? memo;
-  var asset;
+  var viewData;
   var deeplinkInfo;
   TextEditingController _utf8TextController = TextEditingController();
   TextEditingController toController = TextEditingController();
+  TextEditingController sendingWalletController = TextEditingController();
   final amountController = TextEditingController();
+  bool isSharedWallet = false;
 
   @override
   void initState() {
@@ -55,21 +57,29 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
-    activeWallet = appState.activeWallet;
-    print(
-        'this is appState: ${appState.viewData![SendAssetViewPageConfig.key]}');
-    asset = appState.viewData![SendAssetViewPageConfig.key];
 
-    if (asset['deepLinkInfo'] != null) {
-      deeplinkInfo = asset['deepLinkInfo'];
-      print('deeplink is here....$deeplinkInfo');
+    appState = Provider.of<DataProvider>(context, listen: true);
+    if (activeWallet.isEmpty) {
+      activeWallet =
+          appState.transactionableWallets[appState.activeWallet!.publicKey!];
+    }
+    print('this is appState: $activeWallet');
+    viewData = appState.viewData![SendAssetViewPageConfig.key];
+    isSharedWallet = viewData['isSharedWallet'];
+    print('this is viewData: ${viewData}');
+
+    if (viewData['deepLinkInfo'] != null) {
+      deeplinkInfo = viewData['deepLinkInfo'];
       toController.text = deeplinkInfo['receiver'];
       amountController.text = deeplinkInfo['amount'];
       amount = deeplinkInfo['amount'];
       _utf8TextController.text = deeplinkInfo['memo'];
-      asset['deepLinkInfo'] = null;
+      activeWallet =
+          appState.transactionableWallets[deeplinkInfo['sendingWallet']];
+      viewData['deepLinkInfo'] = null;
     }
+
+    sendingWalletController.text = activeWallet['alias'];
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -101,7 +111,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${LanguageEn.send} ${getAssetCode(asset['assetCode'])}',
+                      '${LanguageEn.send} ${getAssetCode(viewData['assetCode'])}',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -128,7 +138,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
               ),
               formFields(),
               SizedBox(
-                height: height / 20,
+                height: height / 10,
               ),
               Button(
                 LanguageEn.proceed,
@@ -159,8 +169,8 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         Flexible(
           child: Text(
             amount.isNotEmpty
-                ? "≈ ${formatNumber(double.parse(amount))} ${getAssetCode(asset['assetCode'])}"
-                : "≈ 0.0000 ${getAssetCode(asset['assetCode'])}",
+                ? "≈ ${formatNumber(double.parse(amount))} ${getAssetCode(viewData['assetCode'])}"
+                : "≈ 0.0000 ${getAssetCode(viewData['assetCode'])}",
             textScaleFactor: 1.0,
             style: TextStyle(
                 color: notifier.getdarkgrey,
@@ -173,7 +183,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
           visible: true,
           replacement: Container(),
           child: Text(
-            "${formatNumber(double.parse(asset['amount']))} ${getAssetCode(asset['assetCode'])}",
+            "${formatNumber(double.parse(viewData['amount']))} ${getAssetCode(viewData['assetCode'])}",
             textScaleFactor: 1.0,
             textAlign: TextAlign.right,
             style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
@@ -189,7 +199,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
-              height: height / 2.5,
               width: 300.sp,
               decoration: BoxDecoration(
                 borderRadius: const BorderRadius.all(Radius.circular(15.0)),
@@ -198,23 +207,47 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                 key: formKey,
                 child: Column(
                   children: [
+                    if (sendingWalletController.text.isNotEmpty) ...[
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                      CustomTextFormField.textField(
+                        'Sending wallet',
+                        notifier.getbluecolor,
+                        Icons.wallet,
+                        notifier.getgrey,
+                        notifier.getprefixicon,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        70.sp,
+                        300.sp,
+                        controller: sendingWalletController,
+                        readOnly: true,
+                        validator: validateTo,
+                        onSaved: (value) =>
+                            to = value.trim().replaceAll(' ', ''),
+                      ),
+                    ],
                     SizedBox(
                       height: height / 50,
                     ),
-                    CustomTextFormField.textField(
-                      LanguageEn.to,
-                      notifier.getbluecolor,
-                      Icons.send,
-                      notifier.getgrey,
-                      notifier.getprefixicon,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      300.sp,
-                      controller: toController,
-                      readOnly: deeplinkInfo != null,
-                      validator: validateTo,
-                      onSaved: (value) => to = value.trim().replaceAll(' ', ''),
+                    GestureDetector(
+                      child: CustomTextFormField.textField(
+                        LanguageEn.to,
+                        notifier.getbluecolor,
+                        Icons.send,
+                        notifier.getgrey,
+                        notifier.getprefixicon,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        70.sp,
+                        300.sp,
+                        controller: toController,
+                        readOnly: deeplinkInfo != null,
+                        validator: validateTo,
+                        onSaved: (value) =>
+                            to = value.trim().replaceAll(' ', ''),
+                      ),
                     ),
                     SizedBox(height: height / 50),
                     CustomTextFormField.textField(
@@ -225,11 +258,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       notifier.getprefixicon,
                       notifier.getblck,
                       notifier.getgrey,
-                      // dynamically change the size
-                      // of the textbox so it will
-                      // consistent when showing an
-                      // error message
-                      amountError ? 70.sp : 58.sp,
+                      70.sp,
                       300.sp,
                       onChanged: (value) {
                         setState(() {
@@ -237,7 +266,8 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                         });
                       },
                       controller: amountController,
-                      readOnly: deeplinkInfo != null,
+                      readOnly: deeplinkInfo != null &&
+                          deeplinkInfo['amount'].toString().isNotEmpty,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                       validator: validateAmount,
@@ -262,7 +292,8 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                       onSaved: (value) => memo = value,
                       maxLength: 28,
                       controller: _utf8TextController,
-                      readOnly: deeplinkInfo != null,
+                      readOnly: deeplinkInfo != null &&
+                          deeplinkInfo['memo'].toString().isNotEmpty,
                       buildCounter: (context,
                           {currentLength, isFocused, maxLength}) {
                         int utf8Length =
@@ -278,7 +309,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                         _Utf8LengthLimitingTextInputFormatter(28),
                       ],
                     ),
-                    SizedBox(height: height / 50),
+                    SizedBox(height: height / 20),
                   ],
                 ),
               )),
@@ -318,7 +349,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       return 'Value must be greater than 0';
     }
 
-    if (double.tryParse(value)! > (double.parse(asset['amount']) - 6)) {
+    if (double.tryParse(value)! > (double.parse(viewData['amount']) - 6)) {
       setState(() {
         amountError = true;
       });
@@ -339,10 +370,10 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
 
     form.save();
 
-    submitForm();
+    submit();
   }
 
-  submitForm() async {
+  submit() async {
     print('submitting form...');
     try {
       showLoader(context);
@@ -352,20 +383,19 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         "destination": to,
         "memo": memo,
         "amount": amount.toString(),
-        "assetCode": asset['assetCode'] == 'XBN' ? '' : asset['assetCode'],
-        "assetIssuer": asset['assetIssuer'],
+        "assetCode":
+            viewData['assetCode'] == 'XBN' ? '' : viewData['assetCode'],
+        "assetIssuer": viewData['assetIssuer'],
       };
       String requestBody = jsonEncode(map);
       print('this is request body $requestBody');
 
-      print(requestBody);
-
       Map responseData = await makePostRequest(
-        uri: '/v1/users/payment',
+        uri: isSharedWallet ? '/v1/shared-access/payment' : '/v1/users/payment',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: appState.activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.publicKey!,
+        publicKey: activeWallet['publicKey'],
       );
 
       print('response: $responseData');
@@ -408,14 +438,30 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     // go to the definition of appState.viewData
     // to learn more about viewData
     appState.viewData![ConfirmTransactionViewPageConfig.key] = data;
+    appState.viewData![ConfirmTransactionViewPageConfig.key]["walletInfo"] = {
+      'alias': activeWallet['alias'],
+      'publicKey': activeWallet['publicKey'],
+    };
     appState.viewData![ConfirmTransactionViewPageConfig.key]["usdPrice"] =
-        asset['usdPrice'];
+        viewData['usdPrice'];
+    appState.viewData![ConfirmTransactionViewPageConfig.key]["isSharedWallet"] =
+        isSharedWallet;
+    if (isSharedWallet) {
+      appState.viewData![ConfirmTransactionViewPageConfig.key]["rel"] =
+          'dashboard';
+    }
     print(appState.viewData);
 
     appState.currentAction = PageAction(
       state: PageState.addPage,
       page: ConfirmTransactionViewPageConfig,
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    viewData['deepLinkInfo'] = null;
   }
 }
 

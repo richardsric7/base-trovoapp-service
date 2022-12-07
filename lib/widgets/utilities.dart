@@ -40,6 +40,32 @@ void showSnackBar(String rel, BuildContext context) {
   );
 }
 
+void showSnackBarForInfo(String message, BuildContext context) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  ScaffoldMessenger.of(context).clearSnackBars();
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      backgroundColor: notifier.getbluecolor,
+      content: Text(
+        message,
+        style: TextStyle(
+          color: wihitecolor,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w500,
+          fontFamily: fontbody,
+        ),
+      ),
+      action: SnackBarAction(
+        label: 'DISMISS',
+        textColor: wihitecolor,
+        onPressed: () => {
+          ScaffoldMessenger.of(context).clearSnackBars(),
+        },
+      ),
+    ),
+  );
+}
+
 getAssetCode(assetCode) {
   // assign XBN to the asset which has an
   // empty assetCode value.

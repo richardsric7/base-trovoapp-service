@@ -173,7 +173,6 @@ class _QrScannerState extends State<QrScanner> {
 
   void _handleScanResult(String? scanResult) async {
     controller!.pauseCamera();
-    print('scan result:');
     print(scanResult);
     if (scanResult != null) {
       runDynamicLinks(Uri.parse(scanResult));
@@ -193,7 +192,6 @@ class _QrScannerState extends State<QrScanner> {
 
       if (data != null) {
         final Uri deepLink = data.link;
-        print('deeplink... $deepLink');
 
         // print('The deepLink data on success is $deepLink');
         print(deepLink.queryParameters);
@@ -201,58 +199,57 @@ class _QrScannerState extends State<QrScanner> {
         if (deepLink.queryParameters['action'] == 'payment') {
           if (deepLink.queryParameters['assetCode'] != '' &&
               deepLink.queryParameters['assetCode'] != null) {
-            var deeplinkInfo = {
-              "assetCode": deepLink.queryParameters['assetCode'],
-              "assetIssuer": deepLink.queryParameters['assetIssuer'],
-              "source": "qr2",
-              "receiver": deepLink.queryParameters['paymentDestination'],
-              "amount":
-                  deepLink.queryParameters['amount'], // amount we want to send
-              "memo": deepLink.queryParameters['memo'],
-              'action': 'payment'
-            };
-            print('this is deeplinkInfo: $deeplinkInfo');
-            var assetInfo = null;
+            showChooseWalletPopup(
+                context,
+                deepLink.queryParameters['assetCode'] == 'XBN'
+                    ? ''
+                    : deepLink.queryParameters['assetCode'],
+                deepLink.queryParameters['assetIssuer'],
+                onDone: (walletPublicKey, isSharedWallet) {
+              print(
+                  '=============$walletPublicKey; =============$isSharedWallet');
+              var deeplinkInfo = {
+                "assetCode": deepLink.queryParameters['assetCode'],
+                "assetIssuer": deepLink.queryParameters['assetIssuer'],
+                "source": "qr2",
+                "receiver": deepLink.queryParameters['paymentDestination'],
+                "amount": deepLink
+                    .queryParameters['amount'], // amount we want to send
+                "memo": deepLink.queryParameters['memo'],
+                'action': 'payment',
+                'sendingWallet': walletPublicKey,
+              };
 
-            var assetBalances = appState!.assetBalances;
-            var claimedAssets =
-                assetBalances[appState!.activeWallet!.publicKey]['claimed'];
+              var claimedAssets = appState!
+                  .transactionableWallets[walletPublicKey]['claimedAssets'];
 
-            var deeplinkAssetCode = deeplinkInfo['assetCode'] == 'XBN'
-                ? ''
-                : deeplinkInfo['assetCode'];
+              var deeplinkAssetCode = deeplinkInfo['assetCode'] == 'XBN'
+                  ? ''
+                  : deeplinkInfo['assetCode'];
 
-            for (var asset in claimedAssets) {
-              print('this is asset: $asset');
-              if (asset['assetCode'] == deeplinkAssetCode &&
-                  asset['assetIssuer'] == deeplinkInfo['assetIssuer']) {
-                assetInfo = {
-                  'assetCode': asset['assetCode'],
-                  'assetIssuer': asset['assetIssuer'],
-                  'amount': asset['amount'], // balance amount in the wallet
-                  'qrCode': asset['qrCode'],
-                  'imageUrl': asset['imageUrl'],
-                };
+              for (var asset in claimedAssets) {
+                if (asset['assetCode'] == deeplinkAssetCode &&
+                    asset['assetIssuer'] == deeplinkInfo['assetIssuer']) {
+                  appState!.viewData![SendAssetViewPageConfig.key] = {
+                    'assetCode': asset['assetCode'],
+                    'assetIssuer': asset['assetIssuer'],
+                    'amount': asset['amount'],
+                    'imageUrl': asset['imageUrl'],
+                    'usdPrice': asset['usdPrice'],
+                    'isSharedWallet': isSharedWallet,
+                  };
 
-                // exit the loop immediately we get what we are looking for
-                break;
+                  // exit the loop immediately we get what we are looking for
+                  break;
+                }
               }
-            }
 
-            print('this is assetInfo: $assetInfo');
-
-            appState!.viewData![SendAssetViewPageConfig.key] = {
-              'assetCode': assetInfo['assetCode'],
-              'assetIssuer': assetInfo['assetIssuer'],
-              'amount': assetInfo['amount'],
-              'imageUrl': assetInfo['imageUrl'],
-              'deepLinkInfo': deeplinkInfo,
-            };
-
+              appState!.viewData![SendAssetViewPageConfig.key]['deepLinkInfo'] =
+                  deeplinkInfo;
+              appState?.currentAction = PageAction(
+                  state: PageState.replace, page: SendAssetViewPageConfig);
+            });
             hideLoader(context);
-
-            appState?.currentAction = PageAction(
-                state: PageState.replace, page: SendAssetViewPageConfig);
           }
         } else {
           hideLoader(context);

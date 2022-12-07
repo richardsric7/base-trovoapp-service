@@ -38,12 +38,13 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
   late ColorNotifier notifier;
   late DataProvider appState;
   late UserInfo userInfo;
-  Wallet? activeWallet;
+  late Map sendingWallet;
   String password = '';
   final formKey = GlobalKey<FormState>();
   final Authenticator _authenticator = Authenticator();
   late Account primaryWalletKeyPair;
   var viewData;
+  bool isSharedWallet = false;
 
   @override
   void initState() {
@@ -56,9 +57,11 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    activeWallet = appState.activeWallet;
     viewData = appState.viewData![ConfirmTransactionViewPageConfig.key];
+    sendingWallet = viewData['walletInfo'];
+    isSharedWallet = viewData['isSharedWallet'];
     print('=====view: $viewData');
+    print('=====sendingWallet: $sendingWallet');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -433,34 +436,77 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
 
     try {
       showLoader(context);
-      // sign transaction
-      var signature = TrovoWalletSDK().signBase64Txn(
-        appState.secretKeys[0], // the primary wallet secret key,
-        viewData['transaction'],
-        viewData['networkPassPhrase'],
-      );
-      viewData['transactionSignature'] = signature;
+
+      if (isSharedWallet) {
+        viewData['commit'] = 1;
+      } else {
+        // sign transaction
+        var signature = TrovoWalletSDK().signBase64Txn(
+          appState.secretKeys[0], // the primary wallet secret key,
+          viewData['transaction'],
+          viewData['networkPassPhrase'],
+        );
+        viewData['transactionSignature'] = signature;
+      }
 
       String requestBody = jsonEncode(viewData);
 
       print(requestBody);
 
       Map responseData = await makePostRequest(
-        uri: '/v1/users/payment',
+        uri: isSharedWallet ? '/v1/shared-access/payment' : '/v1/users/payment',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: appState.activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.publicKey!,
+        publicKey: sendingWallet['publicKey']!,
       );
 
       if (responseData['statusCode'] == 200) {
+        print('we got here!');
         await updateUserInfo();
-        appState.viewData![TransactionSuccessViewPageConfig.key] =
-            responseData['data'];
-        appState.currentAction = PageAction(
-          state: PageState.replaceAll,
-          page: TransactionSuccessViewPageConfig,
-        );
+        if (isSharedWallet) {
+          appState.viewData![SuccessViewPageConfig.key] = {
+            'title': 'Payment request submitted',
+            'message':
+                'You have successfully requested payment of [${viewData['amount']} ${viewData['assetCode'].toString().isEmpty ? 'XBN' : viewData['assetCode']}] from [${sendingWallet['alias']}] to [${viewData['destination']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+            'useOnDone': true,
+            'onDone': () {
+              // if we got here through the wallets tab on dashboard
+              if (viewData['rel'] == 'walletsView') {
+                appState.currentAction = PageAction(
+                  state: PageState.addAll,
+                  pages: [
+                    BottomHomePageConfig,
+                    SharedWalletDetailsViewPageConfig
+                  ],
+                );
+              } else if (viewData['rel'] == 'dashboard') {
+                appState.currentAction = PageAction(
+                  state: PageState.addAll,
+                  pages: [BottomHomePageConfig],
+                );
+              } else {
+                // if we got here through the shared access page
+                appState.currentAction =
+                    PageAction(state: PageState.addAll, pages: [
+                  BottomHomePageConfig,
+                  SharedAccessViewPageConfig,
+                  SharedWalletInfoViewPageConfig,
+                  SharedWalletDetailsViewPageConfig
+                ]);
+              }
+            },
+          };
+          appState.currentAction =
+              PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        } else {
+          appState.viewData![TransactionSuccessViewPageConfig.key] =
+              responseData['data'];
+          appState.currentAction = PageAction(
+            state: PageState.replaceAll,
+            page: TransactionSuccessViewPageConfig,
+          );
+        }
         hideLoader(context);
       } else {
         popup(context,
@@ -477,12 +523,10 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     Map responseData = await makeGetRequest(
       uri:
           '/v1/users/${appState.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: activeWallet!.signer!,
+      signer: appState.activeWallet!.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: activeWallet!.publicKey!,
+      publicKey: appState.activeWallet!.publicKey!,
     );
-
-    print('secretkey: ${appState.secretKeys[0]}');
 
     print('response: ${responseData}');
 

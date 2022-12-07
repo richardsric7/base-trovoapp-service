@@ -241,6 +241,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       ],
                     ),
                   ),
+                  SizedBox(
+                    height: height / 70,
+                  ),
                   showTokenAssets(),
                 ],
               ],
