@@ -13,7 +13,6 @@ import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -33,7 +32,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
   late UserInfo userInfo;
   var assetBalances;
   List<Wallet>? wallets;
-  Wallet? activeWallet;
+  Map activeWallet = {};
   var activeAsset;
   var claimedAssets;
 
@@ -53,15 +52,49 @@ class _ReceiveAssetState extends State<ReceiveAsset>
     return menuItems;
   }
 
-  List<DropdownMenuItem<String>> get walletDropdownItems {
-    return wallets!
-        .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
-            child: Text(
-              wallet.alias!,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: wallet.publicKey))
-        .toList();
+  List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
+    var walletsList = <DropdownMenuItem<String>>[];
+    appState.allWallets.forEach((key, value) {
+      walletsList.add(
+        DropdownMenuItem(
+          child: Row(
+            children: [
+              Container(
+                constraints:
+                    isSelected ? BoxConstraints(maxWidth: width / 3) : null,
+                child: Text(
+                  value['alias'],
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (value['sharedAccessEnabled'] == 1) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.people_outline,
+                  size: 17,
+                  color: notifier.getbluecolor,
+                )
+              ],
+              if (!isSelected && key == selectedWallet) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.check,
+                  size: 18,
+                  color: notifier.getbluecolor,
+                )
+              ],
+            ],
+          ),
+          value: key,
+        ),
+      );
+    });
+
+    return walletsList;
   }
 
   @override
@@ -78,9 +111,12 @@ class _ReceiveAssetState extends State<ReceiveAsset>
     userInfo = appState.userInfo!;
     assetBalances = appState.assetBalances;
     wallets = userInfo.wallets!;
-    activeWallet = appState.activeWallet;
-    selectedWallet = activeWallet!.publicKey;
-    claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
+    if (activeWallet.isEmpty) {
+      activeWallet =
+          appState.viewData![ReceiveAssetViewPageConfig.key]['walletInfo'];
+    }
+    selectedWallet = activeWallet['publicKey'];
+    claimedAssets = activeWallet['claimedAssets'];
     activeAsset = appState.viewData![ReceiveAssetViewPageConfig.key];
     selectedAsset = getAssetIssuer(
       appState.viewData![ReceiveAssetViewPageConfig.key]['assetIssuer'],
@@ -108,63 +144,39 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                   child: Row(
                     children: [
                       Expanded(
-                        child: DropdownButtonFormField(
-                          isExpanded: true,
-                          dropdownColor: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 0, horizontal: 20),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            filled: true,
-                            fillColor: notifier.isDark
-                                ? darktilewhitecolor
-                                : notifier.getaddsubwalletgrey,
-                          ),
-                          value: selectedWallet,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                          elevation: 0,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontsemibold,
-                              fontWeight: FontWeight.w500),
-                          onChanged: (newValue) {
-                            setState(() {
-                              selectedWallet = newValue!;
-                              for (var asset in claimedAssets) {
-                                // we need to somehow take care of the selected asset
-                                // when switching wallets because of scenarios
-                                // where one wallet has an asset that is not listed
-                                // on the other. Here we are checking whether the
-                                // newly selected wallet contains the currently
-                                // selected asset and if it doesn't we switch
-                                // back to the default asset which is XBN
-                                if (asset['assetIssuer'] == selectedAsset ||
-                                    asset['assetIssuer'] == '') {
-                                  appState.viewData![
-                                      ReceiveAssetViewPageConfig.key] = asset;
-                                  break;
-                                }
+                          child: dropdown(
+                        (newValue) {
+                          setState(() {
+                            selectedWallet = newValue!;
+                            activeWallet = appState.allWallets[newValue];
+                            claimedAssets = activeWallet['claimedAssets'];
+                            for (var asset in claimedAssets) {
+                              // we need to somehow take care of the selected asset
+                              // when switching wallets because of scenarios
+                              // where one wallet has an asset that is not listed
+                              // on the other. Here we are checking whether the
+                              // newly selected wallet contains the currently
+                              // selected asset and if it doesn't we switch
+                              // back to the default asset which is XBN
+                              if (asset['assetIssuer'] == selectedAsset ||
+                                  asset['assetIssuer'] == '') {
+                                appState.viewData![
+                                    ReceiveAssetViewPageConfig.key] = asset;
+                                break;
                               }
-                              appState.activeWallet = wallets!.firstWhere(
-                                  (wallet) => wallet.publicKey == newValue);
-                            });
-                          },
-                          items: walletDropdownItems,
-                        ),
-                      ),
+                            }
+                          });
+                        },
+                        walletDropdownItems(false),
+                        selectedWallet.toString().isEmpty
+                            ? null
+                            : selectedWallet,
+                        null,
+                        context,
+                        (context) {
+                          return walletDropdownItems(true);
+                        },
+                      )),
                       SizedBox(
                         width: width / 20,
                       ),
@@ -255,10 +267,6 @@ class _ReceiveAssetState extends State<ReceiveAsset>
               SizedBox(
                 height: height / 50,
               ),
-              showUsername(),
-              SizedBox(
-                height: height / 50,
-              ),
               showPublicKey(),
               SizedBox(
                 height: height / 50,
@@ -276,10 +284,14 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                       appState.viewData![ReceiveAssetViewPageConfig.key];
                   // add the public key that the payment will be made into
                   appState.viewData![RequestSpecificPaymentViewPageConfig.key]
-                      ['publicKey'] = appState.activeWallet!.publicKey!;
+                      ['publicKey'] = activeWallet['publicKey'];
                   // add the name of the alias of the wallet
                   appState.viewData![RequestSpecificPaymentViewPageConfig.key]
-                      ['walletAlias'] = appState.activeWallet!.alias;
+                      ['walletAlias'] = activeWallet['alias'];
+                  // if its a shared wallet
+                  appState.viewData![RequestSpecificPaymentViewPageConfig.key]
+                          ['isSharedAccess'] =
+                      activeWallet['sharedAccessEnabled'] == 1;
 
                   appState.currentAction = PageAction(
                       state: PageState.addPage,
@@ -337,7 +349,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                   ),
                   SizedBox(height: height / 90),
                   Text(
-                    activeWallet!.alias!,
+                    activeWallet['alias'],
                     style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
@@ -387,7 +399,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                       Container(
                         width: 250,
                         child: Text(
-                          activeWallet!.publicKey!,
+                          activeWallet['publicKey'],
                           style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -399,77 +411,13 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                         onPressed: () {
                           Clipboard.setData(
                             ClipboardData(
-                              text: activeWallet!.publicKey!,
+                              text: activeWallet['publicKey'],
                             ),
                           );
                           showSnackBar('Public key', context);
                         },
                         icon: Icon(Icons.copy,
                             size: 20, color: notifier.getbluewhitecolor),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Padding showUsername() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.isDark
-              ? darktilewhitecolor
-              : notifier.getaddsubwalletgrey,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    LanguageEn.receivewithtrovousername,
-                    style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        userInfo.username!,
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          Clipboard.setData(
-                            ClipboardData(
-                              text: userInfo.username,
-                            ),
-                          );
-                          showSnackBar('Username', context);
-                        },
-                        icon: Icon(
-                          Icons.copy,
-                          size: 20,
-                          color: notifier.getbluewhitecolor,
-                        ),
                       ),
                     ],
                   ),

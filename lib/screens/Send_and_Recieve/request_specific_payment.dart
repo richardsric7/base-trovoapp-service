@@ -4,10 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
@@ -16,7 +14,6 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment_details.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -45,6 +42,8 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
   var deeplinkInfo;
   TextEditingController _utf8TextController = TextEditingController();
   TextEditingController toController = TextEditingController();
+  TextEditingController sendingWalletController = TextEditingController();
+
   final amountController = TextEditingController();
 
   @override
@@ -63,6 +62,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
     asset = appState.viewData![RequestSpecificPaymentViewPageConfig.key];
     print(asset['publicKey']);
     print(asset['walletAlias']);
+    sendingWalletController.text = asset['walletAlias'];
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -140,6 +140,20 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                 SizedBox(
                   height: height / 50,
                 ),
+                CustomTextFormField.textField(
+                  'Receiving wallet',
+                  notifier.getbluecolor,
+                  Icons.wallet,
+                  notifier.getgrey,
+                  notifier.getprefixicon,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  70.sp,
+                  300.sp,
+                  controller: sendingWalletController,
+                  readOnly: true,
+                  onSaved: (value) => to = value.trim().replaceAll(' ', ''),
+                ),
                 SizedBox(height: height / 50),
                 CustomTextFormField.textField(
                   LanguageEn.amount,
@@ -149,11 +163,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                   notifier.getprefixicon,
                   notifier.getblck,
                   notifier.getgrey,
-                  // dynamically change the size
-                  // of the textbox so it will
-                  // consistent when showing an
-                  // error message
-                  amountError ? 70.sp : 58.sp,
+                  70.sp,
                   300.sp,
                   onChanged: (value) {
                     setState(() {

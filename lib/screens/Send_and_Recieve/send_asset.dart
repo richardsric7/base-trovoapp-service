@@ -57,15 +57,17 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-
     appState = Provider.of<DataProvider>(context, listen: true);
+
+    viewData = appState.viewData![SendAssetViewPageConfig.key];
+    isSharedWallet = viewData['walletInfo']['sharedAccessEnabled'] == 1;
+
     if (activeWallet.isEmpty) {
-      activeWallet =
-          appState.transactionableWallets[appState.activeWallet!.publicKey!];
+      activeWallet = viewData['walletInfo'];
     }
     print('this is appState: $activeWallet');
-    viewData = appState.viewData![SendAssetViewPageConfig.key];
-    isSharedWallet = viewData['isSharedWallet'];
+
+    isSharedWallet = viewData['walletInfo']['sharedAccessEnabled'] == 1;
     print('this is viewData: ${viewData}');
 
     if (viewData['deepLinkInfo'] != null) {
@@ -223,7 +225,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                         300.sp,
                         controller: sendingWalletController,
                         readOnly: true,
-                        validator: validateTo,
                         onSaved: (value) =>
                             to = value.trim().replaceAll(' ', ''),
                       ),
@@ -461,7 +462,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
   @override
   void dispose() {
     super.dispose();
-    viewData['deepLinkInfo'] = null;
+    viewData?['deepLinkInfo'] = null;
   }
 }
 

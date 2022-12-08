@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
-import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -29,12 +28,12 @@ class _AssetDetailsState extends State<AssetDetails>
   late DataProvider appState;
   late UserInfo userInfo;
   var assetBalances;
-  List<Wallet>? wallets;
   Map activeWallet = {};
-  late Map activeAsset;
+  Map activeAsset = {};
   var claimedAssets;
   late Map curatedAsset;
-
+  bool isInitiator = false;
+  bool isSharedWallet = false;
   dynamic selectedWallet = '';
   dynamic selectedAsset = '';
 
@@ -54,7 +53,7 @@ class _AssetDetailsState extends State<AssetDetails>
 
   List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
     var walletsList = <DropdownMenuItem<String>>[];
-    appState.transactionableWallets.forEach((key, value) {
+    appState.allWallets.forEach((key, value) {
       walletsList.add(
         DropdownMenuItem(
           child: Row(
@@ -100,17 +99,6 @@ class _AssetDetailsState extends State<AssetDetails>
   @override
   void initState() {
     super.initState();
-    appState = Provider.of<DataProvider>(context, listen: false);
-    userInfo = appState.userInfo!;
-    curatedAsset = userInfo.curatedSwapList!.firstWhere(
-        (asset) =>
-            asset['assetCode'] ==
-                appState.viewData![AssetDetailsViewPageConfig.key]
-                    ['assetCode'] &&
-            asset['assetIssuer'] ==
-                appState.viewData![AssetDetailsViewPageConfig.key]
-                    ['assetIssuer'],
-        orElse: () => {});
   }
 
   @override
@@ -121,16 +109,24 @@ class _AssetDetailsState extends State<AssetDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     userInfo = appState.userInfo!;
     assetBalances = appState.assetBalances;
-    wallets = userInfo.wallets!;
+
+    curatedAsset = userInfo.curatedSwapList!.firstWhere(
+        (asset) =>
+            asset['assetCode'] ==
+                appState.viewData![AssetDetailsViewPageConfig.key]
+                    ['assetCode'] &&
+            asset['assetIssuer'] ==
+                appState.viewData![AssetDetailsViewPageConfig.key]
+                    ['assetIssuer'],
+        orElse: () => {});
 
     if (activeWallet.isEmpty) {
-      activeWallet =
-          appState.transactionableWallets[appState.activeWallet!.publicKey!];
+      activeWallet = appState.allWallets[appState.activeWallet!.publicKey!];
     }
-
-    // selectedWallet = activeWallet!.publicKey;
-    // claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
+    selectedWallet = activeWallet['publicKey'];
+    claimedAssets = activeWallet['claimedAssets'];
     activeAsset = appState.viewData![AssetDetailsViewPageConfig.key];
+
     if (appState.viewData![AssetDetailsViewPageConfig.key] != null) {
       selectedAsset = "${getAssetCode(
         appState.viewData![AssetDetailsViewPageConfig.key]['assetCode'],
@@ -138,8 +134,20 @@ class _AssetDetailsState extends State<AssetDetails>
         appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
       )}";
     }
-    activeAsset['qrCode'] = '';
-    print('==========active asset: $activeAsset');
+
+    isSharedWallet = activeWallet['sharedAccessEnabled'] == 1;
+
+    // if this is a shared wallet
+    if (isSharedWallet) {
+      if (activeWallet['permission'] == 'INITIATOR')
+        isInitiator = true;
+      else
+        isInitiator = false;
+    }
+
+    print('============: $activeWallet');
+    print('============: $isSharedWallet');
+    print('============: $isInitiator');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -165,26 +173,26 @@ class _AssetDetailsState extends State<AssetDetails>
                       Expanded(
                           child: dropdown(
                         (newValue) {
-                          setState(() {
-                            selectedWallet = newValue!;
-                            for (var asset in claimedAssets) {
-                              // we need to somehow take care of the selected asset
-                              // when switching wallets because of scenarios
-                              // where one wallet has an asset that is not listed
-                              // on the other. Here we are checking whether the
-                              // newly selected wallet contains the currently
-                              // selected asset and if it doesn't we switch
-                              // back to the default asset which is XBN
-                              if (asset['assetIssuer'] == selectedAsset ||
-                                  asset['assetIssuer'] == '') {
-                                appState.viewData![
-                                    AssetDetailsViewPageConfig.key] = asset;
-                                break;
-                              }
+                          selectedWallet = newValue!;
+                          activeWallet = appState.allWallets[newValue];
+                          claimedAssets = activeWallet['claimedAssets'];
+
+                          for (var asset in claimedAssets) {
+                            // we need to somehow take care of the selected asset
+                            // when switching wallets because of scenarios
+                            // where one wallet has an asset that is not listed
+                            // on the other. Here we are checking whether the
+                            // newly selected wallet contains the currently
+                            // selected asset and if it doesn't we switch
+                            // back to the default asset which is XBN
+                            if (asset['assetIssuer'] == selectedAsset ||
+                                asset['assetIssuer'] == '') {
+                              appState.viewData![
+                                  AssetDetailsViewPageConfig.key] = asset;
+                              break;
                             }
-                            appState.activeWallet = wallets!.firstWhere(
-                                (wallet) => wallet.publicKey == newValue);
-                          });
+                          }
+                          setState(() {});
                         },
                         walletDropdownItems(false),
                         selectedWallet.toString().isEmpty
@@ -232,8 +240,8 @@ class _AssetDetailsState extends State<AssetDetails>
                             ),
                             onChanged: (newValue) {
                               setState(() {
-                                newValue = newValue == nativeAssetIssuer
-                                    ? ''
+                                newValue = newValue.toString().contains('XBN')
+                                    ? '|'
                                     : newValue;
                                 for (var asset in claimedAssets) {
                                   var splitNewValue =
@@ -284,7 +292,7 @@ class _AssetDetailsState extends State<AssetDetails>
               WalletSlide(
                 backColor: notifier.getbluecolor,
                 foreColor: wihitecolor,
-                alias: 'activeWallet!.alias!.capitalizeFirst!',
+                alias: activeWallet['alias'].toString().capitalizeFirst!,
                 totalBalance:
                     '${formatNumber(double.parse(activeAsset['amount']))} ${getAssetCode(activeAsset['assetCode'])}',
                 fiatBalance:
@@ -298,7 +306,27 @@ class _AssetDetailsState extends State<AssetDetails>
               SizedBox(
                 height: height / 20,
               ),
-              actionButtons(),
+              if (!isSharedWallet || isInitiator) ...[
+                actionButtons(),
+              ] else ...[
+                Button(
+                  'Receive',
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () {
+                    appState.viewData![ReceiveAssetViewPageConfig.key] =
+                        appState.viewData![AssetDetailsViewPageConfig.key];
+                    appState.viewData![ReceiveAssetViewPageConfig.key]
+                        ['walletInfo'] = activeWallet;
+
+                    print(appState.viewData);
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: ReceiveAssetViewPageConfig,
+                    );
+                  },
+                ),
+              ]
             ],
           ),
         ),
@@ -313,9 +341,8 @@ class _AssetDetailsState extends State<AssetDetails>
         actionButton("assets/images/send.png", 'Send', () {
           appState.viewData![SendAssetViewPageConfig.key] =
               appState.viewData![AssetDetailsViewPageConfig.key];
-          // appState.viewData![SendAssetViewPageConfig.key]['isSharedWallet'] =
-          //     (activeWallet!.primaryWallet != 1 &&
-          //         activeWallet!.sharedAccessEnabled == 1);
+          appState.viewData![SendAssetViewPageConfig.key]['walletInfo'] =
+              activeWallet;
 
           print(appState.viewData);
           appState.currentAction = PageAction(
@@ -326,6 +353,8 @@ class _AssetDetailsState extends State<AssetDetails>
         actionButton("assets/images/receive.png", 'Receive', () {
           appState.viewData![ReceiveAssetViewPageConfig.key] =
               appState.viewData![AssetDetailsViewPageConfig.key];
+          appState.viewData![ReceiveAssetViewPageConfig.key]['walletInfo'] =
+              activeWallet;
 
           print(appState.viewData);
           appState.currentAction = PageAction(

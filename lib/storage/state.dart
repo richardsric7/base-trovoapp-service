@@ -24,6 +24,8 @@ class DataProvider with ChangeNotifier {
   String? password;
   var assetBalances;
   var nfts;
+  Wallet get primaryWallet =>
+      userInfo!.wallets!.firstWhere((wallet) => wallet.primaryWallet == 1);
   Map _transactionableWallets = {};
   Map get transactionableWallets {
     var wallets = userInfo!.wallets;
@@ -104,7 +106,8 @@ class DataProvider with ChangeNotifier {
         'publicKey': sharedWallets[i]['walletPublicKey'],
         'alias': '${sharedWallets[i]['walletAlias']}',
         'permission': sharedWallets[i]['permission'],
-        'threshold': sharedWallets[i]['walletSettings']['walletThreshold'],
+        'threshold':
+            sharedWallets[i]['walletSettings']?['walletThreshold'] ?? 0,
         'sharedAccessEnabled': 1,
         'claimedAssets': sharedWallets[i]['assetBalances']['claimed'],
       };

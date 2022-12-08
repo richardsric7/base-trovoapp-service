@@ -236,7 +236,7 @@ class _QrScannerState extends State<QrScanner> {
                     'amount': asset['amount'],
                     'imageUrl': asset['imageUrl'],
                     'usdPrice': asset['usdPrice'],
-                    'isSharedWallet': isSharedWallet,
+                    'walletInfo': {'isSharedWallet': isSharedWallet},
                   };
 
                   // exit the loop immediately we get what we are looking for
