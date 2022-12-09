@@ -147,19 +147,19 @@ class _SettingsState extends State<Settings> {
                 child: iteamlist(
                     "assets/images/profile.png", "", LanguageEn.myprofile),
               ),
-              GestureDetector(
-                onTap: () {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: ReferralInfoViewPageConfig);
-                },
-                child: iteamlist("assets/images/referrals-dark.png", "",
-                    LanguageEn.myreferrals),
-              ),
-              GestureDetector(
-                child: iteamlist(
-                    "assets/images/trovo-blue.png", "", LanguageEn.trovopatron),
-              ),
+              // GestureDetector(
+              //   onTap: () {
+              //     appState.currentAction = PageAction(
+              //         state: PageState.addPage,
+              //         page: ReferralInfoViewPageConfig);
+              //   },
+              //   child: iteamlist("assets/images/referrals-dark.png", "",
+              //       LanguageEn.myreferrals),
+              // ),
+              // GestureDetector(
+              //   child: iteamlist(
+              //       "assets/images/trovo-blue.png", "", LanguageEn.trovopatron),
+              // ),
               SizedBox(height: height / 25),
               Row(
                 children: [
@@ -349,10 +349,22 @@ class _SettingsState extends State<Settings> {
 
   Future<void> share() async {
     var label = await FirebaseRemoteConfig.instance
-        .getString('wallet_referral_share_label');
+        .getString('share_wallet_referral_label');
+
+    label = label
+        .replaceAll('[link]', appState.userInfo!.referralLink!)
+        .replaceAll('[username]', appState.userInfo!.username!);
+
+    var splitLabel = label.split('[newline]');
+    var buffer = StringBuffer();
+
+    for (var line in splitLabel) {
+      buffer.write('${line}\n\n');
+    }
+
     await FlutterShare.share(
       title: 'Trovo Wallet',
-      text: label,
+      text: buffer.toString().trim(),
     );
   }
 

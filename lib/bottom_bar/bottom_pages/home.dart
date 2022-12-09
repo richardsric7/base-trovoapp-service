@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
@@ -21,6 +23,7 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/WalletSlides.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class Home extends StatefulWidget {
@@ -183,69 +186,70 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 SizedBox(
                   height: height / 30,
                 ),
-                if (unclaimedAssets != null && unclaimedAssets.length > 0) ...[
-                  DefaultTabController(
-                    length: tabLength,
-                    child: Column(
-                      children: [
-                        TabBar(
-                          controller: _tabController,
-                          labelColor: notifier.getbluewhitecolor,
-                          indicatorColor: notifier.getbluewhitecolor,
-                          labelStyle: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: fontsemibold,
-                          ),
-                          tabs: [
-                            Tab(
-                              height: 20,
-                              text: LanguageEn.assets,
-                            ),
+                // if (unclaimedAssets != null && unclaimedAssets.length > 0) ...[
+                //   DefaultTabController(
+                //     length: tabLength,
+                //     child: Column(
+                //       children: [
+                //         TabBar(
+                //           controller: _tabController,
+                //           labelColor: notifier.getbluewhitecolor,
+                //           indicatorColor: notifier.getbluewhitecolor,
+                //           labelStyle: TextStyle(
+                //             fontSize: 14.sp,
+                //             fontWeight: FontWeight.w600,
+                //             fontFamily: fontsemibold,
+                //           ),
+                //           tabs: [
+                //             Tab(
+                //               height: 20,
+                //               text: LanguageEn.assets,
+                //             ),
 
-                            Tab(
-                              height: 20,
-                              text:
-                                  '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
-                            ),
-                            // Tab(
-                            //   height: 20,
-                            //   text: LanguageEn.nfts,
-                            // ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  assetsTabs(),
-                ] else ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 100.0),
-                    child: TabBar(
-                      controller: _tabController,
-                      labelColor: notifier.getbluewhitecolor,
-                      indicatorColor: notifier.getbluewhitecolor,
-                      labelStyle: TextStyle(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: fontsemibold,
-                      ),
-                      tabs: [
-                        Tab(
-                          height: 20,
-                          text: LanguageEn.assets,
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  showTokenAssets(),
-                ],
+                //             Tab(
+                //               height: 20,
+                //               text:
+                //                   '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
+                //             ),
+                //             // Tab(
+                //             //   height: 20,
+                //             //   text: LanguageEn.nfts,
+                //             // ),
+                //           ],
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                //   SizedBox(
+                //     height: height / 70,
+                //   ),
+                //   assetsTabs(),
+                // ] else ...[
+                //   Padding(
+                //     padding: const EdgeInsets.symmetric(horizontal: 100.0),
+                //     child: TabBar(
+                //       controller: _tabController,
+                //       labelColor: notifier.getbluewhitecolor,
+                //       indicatorColor: notifier.getbluewhitecolor,
+                //       labelStyle: TextStyle(
+                //         fontSize: 14.sp,
+                //         fontWeight: FontWeight.w600,
+                //         fontFamily: fontsemibold,
+                //       ),
+                //       tabs: [
+                //         Tab(
+                //           height: 20,
+                //           text: LanguageEn.assets,
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                //   SizedBox(
+                //     height: height / 70,
+                //   ),
+                //   showTokenAssets(),
+                // ],
+                showFundWallet()
               ],
             ),
           ),
@@ -873,9 +877,122 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     }
   }
 
-  // void checkSecurityQuestion() {
-  //   if (userInfo.hasSecurityQuestions == 0) {
-  //     showSetSecurityQuestionsPopup(context);
-  //   }
-  // }
+  Widget showFundWallet() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              child: Column(
+                children: [
+                  Text(
+                    'Your wallet is ready!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 90,
+                  ),
+                  Text(
+                    'But you cannot use it for any transaction just yet until it is activated with at least 10 Bantu tokens (XBN)',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: fontbody,
+                      color: notifier.getbluecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Text(
+                    'You can get Bantu tokens (XBN) for your wallet in 4 easy ways',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontFamily: fontbody,
+                      color: notifier.getbluecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+        Button(
+          'Request XBN from Trovo user',
+          notifier.getbluecolor,
+          wihitecolor,
+          onTap: () {
+            appState.viewData![RequestSpecificPaymentViewPageConfig.key] = {
+              'assetCode': '',
+              'assetIssuer': '',
+              'publicKey': appState.primaryWallet.publicKey,
+              'walletAlias': appState.primaryWallet.alias,
+              'isSharedAccess': 0,
+            };
+
+            appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: RequestSpecificPaymentViewPageConfig);
+          },
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+        ButtonOutlined(
+          'Send XBN to your wallet',
+          notifier.getbluecolor80,
+          wihitecolor,
+          onTap: () {
+            Clipboard.setData(
+              ClipboardData(
+                text: appState.primaryWallet.publicKey,
+              ),
+            );
+            showSnackBar('Public key', context);
+          },
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+        ButtonOutlined(
+          'Buy XBN on TrovoP2P',
+          notifier.getwihitecolor,
+          notifier.getbluewhitecolor,
+          onTap: () => _launchUrl(),
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _launchUrl() async {
+    Uri uri = Uri.https(trovoP2pUrl, '/login');
+    print('launching $uri');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $uri';
+    }
+  }
 }

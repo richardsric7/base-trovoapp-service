@@ -144,10 +144,7 @@ class _SplashScreenState extends State<SplashScreen>
         minimumFetchInterval: const Duration(minutes: 1),
       ));
 
-      await remoteConfig.setDefaults(const {
-        "wallet_referral_share_label":
-            "Earn tokens, discover gems, download Trovo Wallet \nwallet.trovotech.io",
-      });
+      await await FirebaseRemoteConfig.instance.fetchAndActivate();
     } catch (e) {
       print('firebase error: $e');
     }

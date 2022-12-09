@@ -92,6 +92,7 @@ dependencies:
   expandable: ^5.0.1
   enhance_stepper: ^0.1.1
   cupertino_stepper:
+  url_launcher: ^6.1.7
 
 
 dev_dependencies:
