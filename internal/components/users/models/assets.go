@@ -147,7 +147,7 @@ func (i BantuAsset) GetDepositAddresses(walletID string, gc *sharedconfig.Global
 		log.Printf("[GetDepositAddresses]Error getting deposit address, error: %v\n", e)
 	}
 	if len(depositAddresses) > 0 {
-		gc.RedisCache.StoreResultToCacheRaw(cacheKey, depositAddresses, 40000)
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, depositAddresses, 800)
 	}
 
 	return
