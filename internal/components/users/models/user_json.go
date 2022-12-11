@@ -6,30 +6,31 @@ import (
 )
 
 type UserJSON struct {
-	ID                     string                    `json:"-"`
-	Username               string                    `json:"username"`
-	Email                  string                    `json:"email"`
-	ImageThumbnailURL      string                    `json:"imageThumbnailURL"`
-	FirstName              string                    `json:"firstName"`
-	LastName               string                    `json:"lastName"`
-	Mobile                 string                    `json:"mobile"`
-	PublicKey              string                    `json:"publicKey"`
-	PrimarySigner          string                    `json:"primarySigner"`
-	Referrer               string                    `json:"referrer"`
-	ReferralLink           string                    `json:"referralLink"`
-	ReferralQrCode         string                    `json:"referralQrCode"`
-	PushNotificationToken  string                    `json:"pushNotificationToken"`
-	Corporate              int                       `json:"corporate"`
-	MobileVerified         int                       `json:"mobileVerified"`
-	MembershipType         int                       `json:"membershipType"`
-	MembershipExpiry       time.Time                 `json:"membershipExpiry"`
-	KYCVerified            int                       `json:"kycVerified"`
-	AccountRecoveryEnabled int                       `json:"accountRecoveryEnabled"`
-	UserWallets            []UserWalletJSON          `json:"userWallets"`
-	Verified               int                       `json:"verified"`
-	Suspended              int                       `json:"suspended"`
-	HasSecurityQuestions   int                       `json:"hasSecurityQuestions"`
-	CuratedSwapList        []assets.CuratedSwapAsset `json:"curatedSwapList"`
+	ID                           string                       `json:"-"`
+	Username                     string                       `json:"username"`
+	Email                        string                       `json:"email"`
+	ImageThumbnailURL            string                       `json:"imageThumbnailURL"`
+	FirstName                    string                       `json:"firstName"`
+	LastName                     string                       `json:"lastName"`
+	Mobile                       string                       `json:"mobile"`
+	PublicKey                    string                       `json:"publicKey"`
+	PrimarySigner                string                       `json:"primarySigner"`
+	Referrer                     string                       `json:"referrer"`
+	ReferralLink                 string                       `json:"referralLink"`
+	ReferralQrCode               string                       `json:"referralQrCode"`
+	PushNotificationToken        string                       `json:"pushNotificationToken"`
+	Corporate                    int                          `json:"corporate"`
+	MobileVerified               int                          `json:"mobileVerified"`
+	MembershipType               int                          `json:"membershipType"`
+	MembershipExpiry             time.Time                    `json:"membershipExpiry"`
+	KYCVerified                  int                          `json:"kycVerified"`
+	AccountRecoveryEnabled       int                          `json:"accountRecoveryEnabled"`
+	UserWallets                  []UserWalletJSON             `json:"userWallets"`
+	Verified                     int                          `json:"verified"`
+	Suspended                    int                          `json:"suspended"`
+	HasSecurityQuestions         int                          `json:"hasSecurityQuestions"`
+	CuratedSwapList              []assets.CuratedSwapAsset    `json:"curatedSwapList"`
+	CryptoWalletDepositAddresses []CryptoWalletDepositAddress `json:"cryptoWalletDepositAddresses"`
 }
 
 type UserWalletJSON struct {
