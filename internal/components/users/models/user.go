@@ -76,7 +76,7 @@ type CryptoWalletDepositAddress struct {
 	UserID               string    `gorm:"not null;" json:"-"`
 	TrovoWalletPublicKey string    `json:"TrovoWalletPublicKey"`
 	Currency             string    `gorm:"not null;size:12" json:"currency"`
-	DepositAddress       string    `gorm:"not null;size:150" json:"depositAddress"`
+	DepositAddress       string    `gorm:"not null;size:100" json:"depositAddress"`
 	Network              string    `gorm:"not null;size:100" json:"network"`
 }
 
@@ -90,6 +90,7 @@ type CryptoSubwalletsResponse struct {
 }
 type CryptoSubWallet struct {
 	WalletID     string          `json:"walletId"`
+	UID          string          `json:"uid"`
 	Addresses    []CryptoAddress `json:"addresses"`
 	Currency     string          `json:"currency"`
 	IntegratorPk string          `json:"integratorPk,omitempty"`

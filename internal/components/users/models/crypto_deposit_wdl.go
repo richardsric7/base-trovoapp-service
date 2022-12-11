@@ -28,9 +28,9 @@ type CryptoDepositResponse struct {
 }
 
 type CryptoDeposit struct {
-	TrovoWalletPublicKey string `json:"TrovoWalletPublicKey"`
+	TrovoWalletPublicKey string `gorm:"size:100" json:"TrovoWalletPublicKey"`
 	DepositID            string `gorm:"primaryKey" json:"depositId"`
-	TxID                 string `json:"txId"`
+	TxID                 string `gorm:"index:unique_txid,unique" json:"txId"`
 	Amount               string `json:"amount"`
 	CreatedAt            string `json:"createdAt"`
 	UpdatedAt            string `json:"updatedAt"`
@@ -41,5 +41,19 @@ type CryptoDeposit struct {
 	IsCompleted          bool   `json:"isCompleted"`
 	IsValid              bool   `json:"isValid"`
 	IsVerified           bool   `json:"isVerified"`
-	ToAddress            string `json:"toAddress"`
+	ToAddress            string `gorm:"index:unique_txid,unique" json:"toAddress"`
+}
+
+type CryptoWithdrawalResponse struct {
+	Message string `json:"message"`
+	Data    []struct {
+		Network              string `json:"network"`
+		Name                 string `json:"name"`
+		AddressRegex         string `json:"addressRegex"`
+		MemoRegex            string `json:"memoRegex"`
+		WithdrawFee          string `json:"withdrawFee"`
+		WithdrawMin          string `json:"withdrawMin"`
+		WithdrawMax          string `json:"withdrawMax"`
+		EstimatedArrivalTime int    `json:"estimatedArrivalTime"`
+	} `json:"data"`
 }
