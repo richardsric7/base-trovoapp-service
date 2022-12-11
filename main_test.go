@@ -84,29 +84,89 @@ type UserInfo struct {
 	DefaultAssets          []DefaultAsset           `json:"defaultAssets"`
 }
 type UserJSON struct {
-	ID                    string           `json:"-"`
-	Username              string           `json:"username"`
-	Email                 string           `json:"email"`
-	ImageThumbnailURL     string           `json:"imageThumbnailURL"`
-	FirstName             string           `json:"firstName"`
-	LastName              string           `json:"lastName"`
-	Mobile                string           `json:"mobile"`
-	PublicKey             string           `json:"publicKey"`
-	PrimarySigner         string           `json:"primarySigner"`
-	Referrer              string           `json:"referrer"`
-	ReferralLink          string           `json:"referralLink"`
-	ReferralQrCode        string           `json:"referralQrCode"`
-	PushNotificationToken string           `json:"pushNotificationToken"`
-	Corporate             uint             `json:"corporate"`
-	MobileVerified        uint             `json:"mobileVerified"`
-	MembershipType        uint             `json:"membershipType"`
-	MembershipExpiry      time.Time        `json:"membershipExpiry"`
-	KYCVerified           uint             `json:"kycVerified"`
-	WalletRecoveryEnabled uint             `json:"walletRecoveryEnabled"`
-	UserWallets           []UserWalletJSON `json:"userWallets"`
-	Verified              int              `json:"verified"`
-	Suspended             int              `json:"suspended"`
-	HasSecurityQuestions  int              `json:"hasSecurityQuestions"`
+	ID                           string                       `json:"-"`
+	Username                     string                       `json:"username"`
+	Email                        string                       `json:"email"`
+	ImageThumbnailURL            string                       `json:"imageThumbnailURL"`
+	FirstName                    string                       `json:"firstName"`
+	LastName                     string                       `json:"lastName"`
+	Mobile                       string                       `json:"mobile"`
+	PublicKey                    string                       `json:"publicKey"`
+	PrimarySigner                string                       `json:"primarySigner"`
+	Referrer                     string                       `json:"referrer"`
+	ReferralLink                 string                       `json:"referralLink"`
+	ReferralQrCode               string                       `json:"referralQrCode"`
+	PushNotificationToken        string                       `json:"pushNotificationToken"`
+	Corporate                    uint                         `json:"corporate"`
+	MobileVerified               uint                         `json:"mobileVerified"`
+	MembershipType               uint                         `json:"membershipType"`
+	MembershipExpiry             time.Time                    `json:"membershipExpiry"`
+	KYCVerified                  uint                         `json:"kycVerified"`
+	WalletRecoveryEnabled        uint                         `json:"walletRecoveryEnabled"`
+	UserWallets                  []UserWalletJSON             `json:"userWallets"`
+	Verified                     int                          `json:"verified"`
+	Suspended                    int                          `json:"suspended"`
+	HasSecurityQuestions         int                          `json:"hasSecurityQuestions"`
+	CuratedSwapList              []CuratedSwapAsset           `json:"curatedSwapList"`
+	CryptoWalletDepositAddresses []CryptoWalletDepositAddress `json:"cryptoWalletDepositAddresses"`
+}
+
+type CryptoWalletDepositAddress struct {
+	ID             string    `json:"id"`
+	CreatedAt      time.Time `gorm:"default:now()" json:"createdAt"`
+	UserID         string    `gorm:"not null;" json:"-"`
+	Currency       string    `gorm:"not null;size:12" json:"currency"`
+	DepositAddress string    `gorm:"not null;size:150" json:"depositAddress"`
+	Network        string    `gorm:"not null;size:100" json:"network"`
+}
+
+type CryptoSubwalletResponse struct {
+	Message string          `json:"message"`
+	Data    CryptoSubWallet `json:"data"`
+}
+type CryptoSubwalletsResponse struct {
+	Message string            `json:"message"`
+	Data    []CryptoSubWallet `json:"data"`
+}
+type CryptoSubWallet struct {
+	WalletID     string          `json:"walletId"`
+	Addresses    []CryptoAddress `json:"addresses"`
+	Currency     string          `json:"currency"`
+	IntegratorPk string          `json:"integratorPk,omitempty"`
+	CreatedAt    string          `json:"createdAt,omitempty"`
+	UpdatedAt    string          `json:"updatedAt,omitempty"`
+}
+type CryptoAddress struct {
+	Address string `json:"address"`
+	Network string `json:"network"`
+}
+
+type CuratedSwapAsset struct {
+	ID                          uint64     `gorm:"primaryKey" json:"-"`
+	CreatedAt                   time.Time  `json:"-"`
+	UpdatedAt                   time.Time  `json:"-"`
+	AssetCode                   string     `gorm:"size:12;unique;not null" json:"assetCode"`
+	AssetName                   string     `gorm:"size:50;null" json:"assetName"`
+	AssetIssuer                 string     `gorm:"size:56;not null;" json:"assetIssuer"`
+	Description                 string     `gorm:"size:200; not null" json:"description"`
+	ImageURL                    string     `gorm:"null" json:"imageUrl"`
+	Website                     string     `gorm:"null;size:100" json:"website"`
+	AssetConditions             string     `gorm:"null;size:100" json:"assetConditions"`
+	AssetLimit                  uint64     `gorm:"type:integer;not null;default:0" json:"assetLimit"` //0 = unlimited
+	AssetRedemptionInstructions string     `gorm:"null;size:100" json:"assetRedemptionInstructions"`
+	ContactEmail                string     `gorm:"null;size:100" json:"contactEmail"`
+	Priority                    uint64     `gorm:"null;unique" json:"-"`
+	AssetClassID                uint64     `gorm:"not null; default:1" json:"assetClassId"`
+	AssetClass                  AssetClass `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetClass"`
+	Organization                string     `gorm:"null;size:100" json:"organization"`
+	Withdrawable                uint64     `gorm:"type:integer;not null;default:0" json:"withdrawable"`
+	DecimalPlaces               uint64     `gorm:"type:integer;not null;default:7" json:"decimalPlaces"`
+	Inactive                    uint64     `gorm:"type:integer;not null;default:1" json:"-"`
+}
+
+type AssetClass struct {
+	ID         uint64 `gorm:"primaryKey" json:"-"`
+	AssetClass string `gorm:"size:45;unique;not null" json:"assetClass"`
 }
 
 type UserWalletJSON struct {
