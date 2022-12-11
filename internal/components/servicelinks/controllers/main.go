@@ -798,7 +798,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		var invalidJSON tErrors.ErrorInvalidJSON
 
 		if err != nil {
-			log.Println("Login Authorization Request Input JSON Error:", err)
+			log.Println("Authorization Request Input JSON Error:", err)
 			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
 			return
 		}
