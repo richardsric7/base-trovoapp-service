@@ -141,6 +141,41 @@ type CryptoAddress struct {
 	Network string `json:"network"`
 }
 
+type CryptoDepositResponse struct {
+	Message string `json:"message"`
+	Data    struct {
+		DepositID   string `json:"depositId"`
+		TxID        string `json:"txId"`
+		Amount      string `json:"amount"`
+		CreatedAt   string `json:"createdAt"`
+		UpdatedAt   string `json:"updatedAt"`
+		Currency    string `json:"currency"`
+		Decimal     int    `json:"decimal"`
+		Fees        string `json:"fees"`
+		FromAddress string `json:"fromAddress"`
+		IsCompleted bool   `json:"isCompleted"`
+		IsValid     bool   `json:"isValid"`
+		IsVerified  bool   `json:"isVerified"`
+		ToAddress   string `json:"toAddress"`
+	} `json:"data"`
+}
+
+type CryptoDeposit struct {
+	DepositID   string `json:"depositId"`
+	TxID        string `json:"txId"`
+	Amount      string `json:"amount"`
+	CreatedAt   string `json:"createdAt"`
+	UpdatedAt   string `json:"updatedAt"`
+	Currency    string `json:"currency"`
+	Decimal     int    `json:"decimal"`
+	Fees        string `json:"fees"`
+	FromAddress string `json:"fromAddress"`
+	IsCompleted bool   `json:"isCompleted"`
+	IsValid     bool   `json:"isValid"`
+	IsVerified  bool   `json:"isVerified"`
+	ToAddress   string `json:"toAddress"`
+}
+
 type CuratedSwapAsset struct {
 	ID                          uint64     `gorm:"primaryKey" json:"-"`
 	CreatedAt                   time.Time  `json:"-"`

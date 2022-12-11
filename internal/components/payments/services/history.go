@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
+	userModels "trovo-wallet-api/internal/components/users/models"
 	db "trovo-wallet-api/internal/db"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -184,6 +185,111 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	}
 
 	records = paymentModels.PaginatedPaymentHistory{CurrentPage: page, Pages: pages, TotalRecords: count, Limit: limit, Records: historiesJSON}
+
+	return records
+}
+
+func GetCryptoDepositHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedCryptoDepositHistory) {
+	var err error
+	var depositHistory []userModels.CryptoDeposit
+	records.Records = make([]userModels.CryptoDeposit, 0)
+	DB, _ := db.OpenDb()
+	DBC, _ := db.OpenDb()
+
+	// if err != nil {
+	// 	log.Fatalf("[main]Error opening DB %s", err)
+	// 	return
+	// }
+	// DB := gc.DB
+	// DBC := gc.DB
+	var query *gorm.DB
+	var countQuery *gorm.DB
+	oD := "ASC"
+	s := strings.TrimSpace(c.Query("s"))
+
+	limitU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("limit", "25")), 10, 64)
+	limit := int(limitU)
+	pageU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("page", "1")), 10, 64)
+	page := int(pageU)
+
+	// amountBetween := strings.TrimSpace(c.Query("amount"))
+	// dateBetween := strings.TrimSpace(c.Query("dateBetween"))
+
+	orderBy := strings.TrimSpace(c.DefaultQuery("orderby", "created_at"))
+	orderDirection := c.DefaultQuery("order", "DESC")
+
+	query = DB.Preload(clause.Associations)
+	countQuery = DBC.Group("tx_id")
+
+	if len(orderDirection) > 0 && strings.ToLower(orderDirection) == "desc" {
+		oD = "DESC"
+	}
+	if len(orderBy) > 0 {
+		query = query.Order(orderBy + " " + oD)
+		countQuery = countQuery.Order(orderBy + " " + oD)
+
+	}
+
+	{
+		query = query.Where("(trovo_wallet_public_key = ?)", targetPublicKey)
+		countQuery = countQuery.Where("(trovo_wallet_public_key = ?)", targetPublicKey)
+
+	}
+
+	if len(s) >= 2 {
+		query = query.Where("(from_address = ? OR to_address = ? OR currency = upper(?) OR upper(network) = upper(?) OR tx_id = ?)", s, s, s, s, s)
+		countQuery = countQuery.Where("(from_address = ? OR to_address = ? OR currency = upper(?) OR upper(network) = upper(?) OR tx_id = ?)", s, s, s, s, s)
+
+	}
+
+	// if len(dateBetween) == 21 && strings.Contains(dateBetween, "|") {
+	// 	// 2020-01-01|2020-02-31 full range date
+	// 	dateRange := strings.Split(dateBetween, "|")
+	// 	query = query.Where("transaction_date::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+	// 	countQuery = countQuery.Where("transaction_date::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+
+	// }
+	// if len(amountBetween) > 2 && strings.Contains(amountBetween, "|") {
+	// 	// 0|1
+	// 	amountRange := strings.Split(amountBetween, "|")
+	// 	query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
+	// 	countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
+
+	// }
+
+	var countR int64
+
+	errCount := countQuery.Find(&[]paymentModels.PaymentHistory{}).Count(&countR).Error
+	if errCount != nil {
+		log.Println("[GetPaymentHistory]Count Error:", errCount)
+		return records
+	}
+
+	if limit > 0 {
+		query.Limit(limit)
+	}
+	count := int(countR)
+	pages := 1
+	if count > limit {
+		// fmt.Println("count / limit = ", count/limit, "count%limit = ", count%limit)
+		pages = count / limit
+		if count%limit > 0 {
+			pages = pages + 1
+		}
+	}
+	if page > pages {
+		page = pages
+	}
+	if page > 1 {
+		// fmt.Println("Offset = ", (page-1)*limit)
+		query.Offset(((page - 1) * limit))
+	}
+	if err = query.Find(&depositHistory).Error; err != nil {
+		log.Println("[GetPaymentHistory] Query Error:", err)
+		return
+	}
+
+	records = userModels.PaginatedCryptoDepositHistory{CurrentPage: page, Pages: pages, TotalRecords: count, Limit: limit, Records: depositHistory}
 
 	return records
 }

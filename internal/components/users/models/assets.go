@@ -2,6 +2,7 @@ package users
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -100,6 +101,76 @@ func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
 
 	gc.RedisCache.StoreResultToCache(cacheKey, url, 0)
 	return url
+}
+
+func (i BantuAsset) CanDeposit(gc *sharedconfig.GlobalConfig) bool {
+
+	cassets := assetsDB.GetCuratedAssets(false, gc)
+
+	if len(cassets) == 0 {
+
+		return false
+	}
+	v, ok := cassets[i.AssetCode+":"+i.AssetIssuer]
+	if !ok {
+		return false
+
+	}
+	if v.GenerateDepositAddress == 1 {
+		return true
+	}
+
+	return false
+}
+func (i BantuAsset) GetDepositAddresses(walletID string, gc *sharedconfig.GlobalConfig) (depositAddresses []CryptoWalletDepositAddress) {
+	depositAddresses = make([]CryptoWalletDepositAddress, 0)
+	cacheKey := fmt.Sprintf("depositAddresses_%s_%s", i.AssetCode, walletID)
+	{
+
+		// search cache
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
+
+		if ok {
+
+			log.Printf("GetDepositAddresses[%v], served from cache\n", cacheKey)
+			json.Unmarshal(rawdata, &depositAddresses)
+			return
+		}
+
+	}
+	if !i.CanDeposit(gc) {
+		return
+	}
+	//get the deposit addresses
+	e := gc.DB.Where("trovo_wallet_public_key = ? AND currency = ?", walletID, i.AssetCode).Find(&depositAddresses).Error
+	if e != nil {
+		log.Printf("[GetDepositAddresses]Error getting deposit address, error: %v\n", e)
+	}
+	if len(depositAddresses) > 0 {
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, depositAddresses, 40000)
+	}
+
+	return
+}
+
+func (i BantuAsset) CanWithdraw(gc *sharedconfig.GlobalConfig) bool {
+
+	cassets := assetsDB.GetCuratedAssets(false, gc)
+
+	if len(cassets) == 0 {
+
+		return false
+	}
+	v, ok := cassets[i.AssetCode+":"+i.AssetIssuer]
+	if !ok {
+		return false
+
+	}
+	if v.Withdrawable == 1 {
+		return true
+	}
+
+	return false
 }
 
 func (i BantuAsset) GetAssetImageFromIssuer(gc *sharedconfig.GlobalConfig) string {

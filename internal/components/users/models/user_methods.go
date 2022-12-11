@@ -129,6 +129,7 @@ func (u *User) SignerIsValid(signerKey string, temp bool) bool {
 // GetBalance gets user wallet blockchain balance and return it as a map of assets  [code:issuer]Balance. Native key is [:]
 func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances map[string]Balance, err error) {
 	balances = make(map[string]Balance)
+	depositAddresses := make([]CryptoWalletDepositAddress, 0)
 	xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
 	xbnNativePrice := "1"
 	// log.Println("xbnUsdPrice", xbnUsdPrice)
@@ -174,6 +175,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 				SellingLiabilities: "0",
 				BuyingLiabilities:  "0",
 			},
+			CryptoWalletDepositAddresses: depositAddresses,
 		}
 
 		if !temp && err.Error() == "error-blockchain-account-not-activated" {
@@ -237,6 +239,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 				}
 			}
 			imageUrl := BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}.GetAssetImage(gc)
+
 			balance := Balance{AssetIssuer: bal.Issuer,
 				AssetCode:   bal.Code,
 				Amount:      availableBalance,
@@ -248,6 +251,10 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					SellingLiabilities: bal.SellingLiabilities,
 					BuyingLiabilities:  bal.BuyingLiabilities,
 				},
+			}
+			if !temp {
+				balance.CryptoWalletDepositAddresses = BantuAsset{AssetCode: bal.Code, AssetIssuer: bal.Issuer}.GetDepositAddresses(u.ID, gc)
+				//can deposit asset, now get the deposit addresses.
 			}
 			// log.Printf("[BALANCE] balance: %+v\n", bal)
 

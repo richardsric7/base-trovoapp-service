@@ -24,11 +24,11 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 	jsonObj.Suspended = u.Suspended
 	jsonObj.HasSecurityQuestions = u.HasSecurityQuestions
 	jsonObj.CuratedSwapList = u.GetCuratedSwapList(gc)
-	if len(u.CryptoWalletDepositAddresses) > 0 {
-		jsonObj.CryptoWalletDepositAddresses = u.CryptoWalletDepositAddresses
-	} else {
-		jsonObj.CryptoWalletDepositAddresses = make([]CryptoWalletDepositAddress, 0)
-	}
+	// if len(u.CryptoWalletDepositAddresses) > 0 {
+	// 	jsonObj.CryptoWalletDepositAddresses = u.CryptoWalletDepositAddresses
+	// } else {
+	// 	jsonObj.CryptoWalletDepositAddresses = make([]CryptoWalletDepositAddress, 0)
+	// }
 
 	// log.Println("[UserToJSON] set basic params")
 	//nullable
