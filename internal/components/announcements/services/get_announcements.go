@@ -8,10 +8,10 @@ import (
 	"gorm.io/gorm"
 )
 
-//HandleGetAnnouncement gets the announcements
+// HandleGetAnnouncement gets the announcements
 func HandleGetAnnouncement(ip string, db *gorm.DB) (announcements []announcementModels.Announcement, err error) {
 	geoData, _ := geoDB.GetGeoInfo(ip)
-	announcements, _ = announcementDB.GetAnnouncements(geoData, db)
+	announcements = announcementDB.GetAnnouncements(geoData, db)
 	return
 }
 

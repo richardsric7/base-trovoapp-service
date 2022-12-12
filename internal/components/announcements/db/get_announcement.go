@@ -9,15 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
-//GetAnnouncements gets announcement based on geo data data
-func GetAnnouncements(geoData geoModels.IPAPI, db *gorm.DB) (announcements []announcementModels.Announcement, err error) {
-
-	err = db.Where("expiry::date >= now()::date").
-		Where(db.Where("level = ?", "ALL").
-			Or("level = ?", geoData.CountryCode).
-			Or("level = ?", geoData.RegionName).
-			Or("level = ?", geoData.City)).
-		Order("created_at DESC").Find(&announcements).Error
+// GetAnnouncements gets announcement based on geo data data
+func GetAnnouncements(geoData geoModels.IPAPI, db *gorm.DB) (announcements []announcementModels.Announcement) {
+	announcements = make([]announcementModels.Announcement, 0)
+	err := db.Order("created_at DESC").Where("expiry::date >= now()::date").
+		Where("(level = ? OR level = ? OR level = ? OR level = ?)", "ALL", geoData.CountryCode, geoData.RegionName, geoData.City).
+		Find(&announcements).Error
 	if err != nil {
 		log.Println("[GetAnnouncements] error fetching announcementList:", err)
 	}
