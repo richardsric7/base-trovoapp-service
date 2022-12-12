@@ -22,14 +22,20 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 	var wdlNetworksResp userModels.CryptoWithdrawalNetworksResponse
 	client := http.DefaultClient
 	//get 'https://sandbox-api.oneliquidity.technology/wallets/v1/withdrawal/networks?currency=BTC'
-	cacheKey := fmt.Sprintf("wallets/v1/withdrawal/networks?currency=%s", currency)
+	// cacheKey := fmt.Sprintf("wallets/v1/withdrawal/networks?currency=%s", currency)
 	url := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", currency)
+	cacheKey := url
+
 	// url := "https://sandbox-api.oneliquidity.technology/wallets/v1/withdrawal/networks?currency=BTC"
 	{
 		ok, rawData := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
+			log.Println("[GetWithdrawalNetworks] served from cache:", cacheKey)
 			json.Unmarshal(rawData, &wdlNetworksResp)
-			return
+			if len(wdlNetworksResp.Data) > 0 {
+				return
+			}
+
 		}
 	}
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -52,9 +58,11 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 		log.Println("[GetWithdrawalNetworks] error decoding response for wdl networks id:", err)
 		return
 	}
-
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, wdlNetworksResp, 1000)
 	wdlNetworks = wdlNetworksResp.Data
+	if len(wdlNetworks) > 0 {
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, wdlNetworksResp, 1000)
+	}
+
 	return wdlNetworks, nil
 
 }
