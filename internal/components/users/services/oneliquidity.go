@@ -30,9 +30,10 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 	{
 		ok, rawData := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
-			log.Println("[GetWithdrawalNetworks] served from cache:", cacheKey)
+
 			json.Unmarshal(rawData, &wdlNetworksResp)
 			if len(wdlNetworksResp.Data) > 0 {
+				log.Println("[GetWithdrawalNetworks] served from cache:", cacheKey)
 				return
 			}
 
