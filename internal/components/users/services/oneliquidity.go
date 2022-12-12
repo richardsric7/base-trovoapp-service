@@ -20,10 +20,11 @@ import (
 
 func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlNetworks []userModels.WithdrawalNetwork, err error) {
 	var wdlNetworksResp userModels.CryptoWithdrawalNetworksResponse
-	client := &http.Client{}
+	client := http.DefaultClient
 	//get 'https://sandbox-api.oneliquidity.technology/wallets/v1/withdrawal/networks?currency=BTC'
 	cacheKey := fmt.Sprintf("wallets/v1/withdrawal/networks?currency=%s", currency)
-	url := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", currency)
+	// url := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", currency)
+	url := "https://sandbox-api.oneliquidity.technology/wallets/v1/withdrawal/networks?currency=BTC"
 	{
 		ok, rawData := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
