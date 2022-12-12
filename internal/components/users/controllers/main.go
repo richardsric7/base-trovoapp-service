@@ -3165,4 +3165,40 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	})
 
+	//CRYPTO
+	{
+		//get specific  wallet balance, middleware.AuthenticationMiddlewareUsingTimestamp()
+		router.GET("/v1/crypto/withdrawal-networks/:currency", func(c *gin.Context) {
+			// var err error
+			currency := c.Param("currency")
+
+			wdlNetworks, err := userServices.GetWithdrawalNetworks(currency, gc)
+			if err != nil {
+				log.Println("[GET Wdl networks] error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+				return
+			}
+			c.JSON(http.StatusOK, wdlNetworks)
+
+		})
+
+	}
+
 }

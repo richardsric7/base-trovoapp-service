@@ -8,24 +8,6 @@ type PaginatedCryptoDepositHistory struct {
 	Records      []CryptoDeposit `json:"records"`
 }
 
-type CryptoDepositResponse struct {
-	Message string `json:"message"`
-	Data    struct {
-		DepositID   string `json:"depositId"`
-		TxID        string `json:"txId"`
-		Amount      string `json:"amount"`
-		CreatedAt   string `json:"createdAt"`
-		UpdatedAt   string `json:"updatedAt"`
-		Currency    string `json:"currency"`
-		Decimal     int    `json:"decimal"`
-		Fees        string `json:"fees"`
-		FromAddress string `json:"fromAddress"`
-		IsCompleted bool   `json:"isCompleted"`
-		IsValid     bool   `json:"isValid"`
-		IsVerified  bool   `json:"isVerified"`
-		ToAddress   string `json:"toAddress"`
-	} `json:"data"`
-}
 
 type CryptoDeposit struct {
 	TrovoWalletPublicKey string `gorm:"size:100" json:"TrovoWalletPublicKey"`
@@ -44,16 +26,14 @@ type CryptoDeposit struct {
 	ToAddress            string `gorm:"index:unique_txid,unique" json:"toAddress"`
 }
 
-type CryptoWithdrawalNetworksResponse struct {
-	Message string `json:"message"`
-	Data    []struct {
-		Network              string `json:"network"`
-		Name                 string `json:"name"`
-		AddressRegex         string `json:"addressRegex"`
-		MemoRegex            string `json:"memoRegex"`
-		WithdrawFee          string `json:"withdrawFee"`
-		WithdrawMin          string `json:"withdrawMin"`
-		WithdrawMax          string `json:"withdrawMax"`
-		EstimatedArrivalTime int    `json:"estimatedArrivalTime"`
-	} `json:"data"`
+
+type WithdrawalNetwork struct {
+	Network              string `gorm:"primaryKey" json:"network"`
+	Name                 string `gorm:"size:100" json:"name"`
+	AddressRegex         string `json:"addressRegex"`
+	MemoRegex            string `gorm:"size:100" json:"memoRegex"`
+	WithdrawFee          string `gorm:"size:100" json:"withdrawFee"`
+	WithdrawMin          string `gorm:"size:100" json:"withdrawMin"`
+	WithdrawMax          string `gorm:"size:100" json:"withdrawMax"`
+	EstimatedArrivalTime int    `json:"estimatedArrivalTime"`
 }

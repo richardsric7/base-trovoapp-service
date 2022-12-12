@@ -70,37 +70,6 @@ type UserWallet struct {
 	FeeDisabled             int                `gorm:"type:integer; not null; default:0" json:"feeDisabled"`
 }
 
-type CryptoWalletDepositAddress struct {
-	ID                   string    `json:"id"`
-	CreatedAt            time.Time `gorm:"default:now()" json:"createdAt"`
-	UserID               string    `gorm:"not null;" json:"-"`
-	TrovoWalletPublicKey string    `json:"TrovoWalletPublicKey"`
-	Currency             string    `gorm:"not null;size:12" json:"currency"`
-	DepositAddress       string    `gorm:"not null;size:100" json:"depositAddress"`
-	Network              string    `gorm:"not null;size:100" json:"network"`
-}
-
-type CryptoSubwalletResponse struct {
-	Message string          `json:"message"`
-	Data    CryptoSubWallet `json:"data"`
-}
-type CryptoSubwalletsResponse struct {
-	Message string            `json:"message"`
-	Data    []CryptoSubWallet `json:"data"`
-}
-type CryptoSubWallet struct {
-	WalletID     string          `json:"walletId"`
-	UID          string          `json:"uid"`
-	Addresses    []CryptoAddress `json:"addresses"`
-	Currency     string          `json:"currency"`
-	IntegratorPk string          `json:"integratorPk,omitempty"`
-	CreatedAt    string          `json:"createdAt,omitempty"`
-	UpdatedAt    string          `json:"updatedAt,omitempty"`
-}
-type CryptoAddress struct {
-	Address string `json:"address"`
-	Network string `json:"network"`
-}
 type WalletPermission struct {
 	CreatedAt       time.Time `json:"createdAt"`
 	UpdatedAt       time.Time `json:"updatedAt"`
@@ -347,4 +316,15 @@ type RetryCallbacks struct {
 	Req         *bytes.Buffer
 	CallbackURL string
 	Count       int
+}
+
+type UserKyc struct {
+	UserID                      string `gorm:"primaryKey" json:"userId"`
+	Country                     string `gorm:"size:100" json:"country"`
+	FirstName                   string `gorm:"size:100" json:"firstName"`
+	LastName                    string `gorm:"size:100" json:"lastName"`
+	FacematchDrivingLicense     int    `gorm:"default:0" json:"facematchDrivingLicense"`
+	FacematchNationalID         int    `gorm:"default:0" json:"facematchNationalId"`
+	FacematchPassport           int    `gorm:"default:0" json:"facematchPassport"`
+	GovermentIDProofOfResidency int    `gorm:"default:0" json:"govermentIDProofOfResidency"`
 }

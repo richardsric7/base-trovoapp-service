@@ -1637,6 +1637,26 @@ func (u *User) HasAccessToPublicKey(publicKey string, gc *sharedconfig.GlobalCon
 	return false
 }
 
+func (u *User) GetKycData(gc *sharedconfig.GlobalConfig) (kycData UserKyc, err error) {
+
+	e := gc.DB.Preload(clause.Associations).Where("user_id = ?", u.ID).First(&kycData).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no wallet was found
+			err = &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-account-not-found",
+				ErrMessage: "Account not found",
+				Code:       404,
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+
+	return
+}
+
 func (u *User) GetAllWallets(gc *sharedconfig.GlobalConfig) (wallets []UserWallet) {
 	wallets = make([]UserWallet, 0)
 	if len(u.UserWallets) == 0 {
