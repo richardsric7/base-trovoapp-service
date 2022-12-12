@@ -34,6 +34,7 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 			json.Unmarshal(rawData, &wdlNetworksResp)
 			if len(wdlNetworksResp.Data) > 0 {
 				log.Println("[GetWithdrawalNetworks] served from cache:", cacheKey)
+				wdlNetworks = wdlNetworksResp.Data
 				return
 			}
 
