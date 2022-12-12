@@ -23,8 +23,8 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 	client := http.DefaultClient
 	//get 'https://sandbox-api.oneliquidity.technology/wallets/v1/withdrawal/networks?currency=BTC'
 	cacheKey := fmt.Sprintf("wallets/v1/withdrawal/networks?currency=%s", currency)
-	// url := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", currency)
-	url := "https://sandbox-api.oneliquidity.technology/wallets/v1/withdrawal/networks?currency=BTC"
+	url := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", currency)
+	// url := "https://sandbox-api.oneliquidity.technology/wallets/v1/withdrawal/networks?currency=BTC"
 	{
 		ok, rawData := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
@@ -40,7 +40,12 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 		log.Println("[GetWithdrawalNetworks] error sending request:", err)
 		return
 	}
-	log.Println("[GetWithdrawalNetworks] succeeded with code: ", resp.StatusCode)
+	if resp.StatusCode != 200 {
+		log.Println("[GetWithdrawalNetworks] error response with code: ", resp.StatusCode, resp.Status)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+
 	defer resp.Body.Close()
 	//Decode the data
 	if err = json.NewDecoder(resp.Body).Decode(&wdlNetworksResp); err != nil {
