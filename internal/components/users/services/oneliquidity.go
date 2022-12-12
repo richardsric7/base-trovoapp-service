@@ -81,7 +81,7 @@ func ComplianceStartNewVerification(firstName, lastName string) (verificationID 
 	if err != nil {
 		return "", err
 	}
-	client := &http.Client{}
+	client := http.DefaultClient
 	//get upload credentials
 	url := fmt.Sprintf("%s/%s?", os.Getenv("ONELIQUIDITY_BASE_URL"), "compliance/v1/verification")
 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(jbody))
@@ -121,7 +121,7 @@ func GetProofOfresidencyCred(user *userModels.User) (fMCred userModels.ProofOfRe
 
 	url := fmt.Sprintf("%s/compliance/v1/kyc/verification/signed-url?verificationId=%s&uploadDocType=proof_of_residency", os.Getenv("ONELIQUIDITY_BASE_URL"), verificationID)
 
-	client := &http.Client{}
+	client := http.DefaultClient
 	//get upload credentials
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -160,7 +160,7 @@ func GetFacematchPassportCred(user *userModels.User) (fMCred userModels.FaceMatc
 
 	url := fmt.Sprintf("%s/compliance/v1/kyc/verification/signed-url?verificationId=%s&uploadDocType=facematch&sourceDocType=passport", os.Getenv("ONELIQUIDITY_BASE_URL"), verificationID)
 
-	client := &http.Client{}
+	client := http.DefaultClient
 	//get upload credentials
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -200,7 +200,7 @@ func GetFacematchNationalIDCred(user *userModels.User) (fMCred userModels.FaceMa
 
 	url := fmt.Sprintf("%s/compliance/v1/kyc/verification/signed-url?verificationId=%s&uploadDocType=facematch&sourceDocType=national_id", os.Getenv("ONELIQUIDITY_BASE_URL"), verificationID)
 
-	client := &http.Client{}
+	client := http.DefaultClient
 	//get upload credentials
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -240,7 +240,7 @@ func GetFacematchDrivingLicenseCred(user *userModels.User) (fMCred userModels.Fa
 
 	url := fmt.Sprintf("%s/compliance/v1/kyc/verification/signed-url?verificationId=%s&uploadDocType=facematch&sourceDocType=driving_license", os.Getenv("ONELIQUIDITY_BASE_URL"), verificationID)
 
-	client := &http.Client{}
+	client := http.DefaultClient
 	//get upload credentials
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
@@ -311,7 +311,7 @@ func StartFacematchForPassport(user *userModels.User, selfieVideo, documentPictu
 	}
 	url := fmt.Sprintf("%s/compliance/v1/kyc/facematch", os.Getenv("ONELIQUIDITY_BASE_URL"))
 
-	client := &http.Client{}
+	client := http.DefaultClient
 	// get upload credentials
 	fmrequest := userModels.StartDocumentRequest{
 		VerificationID: verificationID,
@@ -404,7 +404,7 @@ func StartFacematchForDrivingLicense(user *userModels.User, selfieVideo, documen
 	}
 	url := fmt.Sprintf("%s/compliance/v1/kyc/facematch", os.Getenv("ONELIQUIDITY_BASE_URL"))
 
-	client := &http.Client{}
+	client := http.DefaultClient
 	// get upload credentials
 	fmrequest := userModels.StartDocumentRequest{
 		VerificationID: verificationID,
@@ -495,7 +495,7 @@ func StartFacematchForNationalID(user *userModels.User, selfieVideo, documentPic
 	}
 	url := fmt.Sprintf("%s/compliance/v1/kyc/facematch", os.Getenv("ONELIQUIDITY_BASE_URL"))
 
-	client := &http.Client{}
+	client := http.DefaultClient
 	// get upload credentials
 	fmrequest := userModels.StartDocumentRequest{
 		VerificationID: verificationID,
@@ -577,7 +577,7 @@ func StartGovernmentIDCheckForProofOfResidency(user *userModels.User, documentPi
 	}
 	url := fmt.Sprintf("%s/compliance/v1/kyc/gov-id", os.Getenv("ONELIQUIDITY_BASE_URL"))
 
-	client := &http.Client{}
+	client := http.DefaultClient
 	// get upload credentials
 	fmrequest := userModels.StartDocumentRequest{
 		VerificationID: verificationID,
