@@ -3199,6 +3199,77 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		})
 
+		router.POST("/v1/crypto/withdrawals", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			var err error
+
+			var wdlInput userModels.WithdrawalRequestInput
+
+			data, _ := io.ReadAll(c.Request.Body)
+			log.Println(string(data))
+			err = json.Unmarshal(data, &wdlInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+			wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			wdlItem, err := userServices.SubmitWithdrawalRequest(&wallet, wdlInput, gc)
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+			c.JSON(http.StatusOK, wdlItem)
+
+		})
+
+		router.POST("/v1/crypto/generate-addresses/:currency", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error
+			currency := c.Param("currency")
+			wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			depositAddressed := userServices.GetCryptoDepositAddresses(&wallet, currency, gc)
+
+			c.JSON(http.StatusOK, depositAddressed)
+
+		})
+
 	}
 
 }

@@ -1086,7 +1086,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//return report to user and not keep them waiting.
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 
-		//TODO: make callback request if callback is availble
 		if authData.CallbackURL != nil {
 
 			//make callback request
@@ -1245,7 +1244,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		//return report to user and not keep them waiting.
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 
-		//TODO: make callback request if callback is available
 		if eventData.CallbackURL != nil {
 
 			//make callback request

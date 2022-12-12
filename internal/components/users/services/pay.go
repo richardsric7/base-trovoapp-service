@@ -353,7 +353,18 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	log.Printf("[generatePaymentXdr]obtained source account balance:\n%v balance is %v\n%v balance is %v\n", nativeAssetCode, sourceAccountNativeBalance, asset.GetCode(), sourceAccountCustomBalance)
 
 	amountToSendDec := decimal.NewFromFloat(amountToSend)
-	//TODO; prevent minting of new tokens from this routine
+	//prevent minting of new tokens from this routine
+	if !asset.IsNative() {
+		if sourceWallet.ID == asset.GetIssuer() {
+			err = &tErrors.CustomError{
+				Param:      "destination",
+				Err:        "error-source-forbidden-to-sending-asset",
+				ErrMessage: fmt.Sprintf("%v, a token minting wallet, is forbidden from sending %v.", sourceWallet.Alias, asset.GetCode()),
+			}
+
+		}
+
+	}
 	if sourceWallet.ID != asset.GetIssuer() {
 
 		if asset.IsNative() {
@@ -970,10 +981,6 @@ func processDestinationAssetDoesNotTrustAsset(destinationUser *userModels.User, 
 		}
 
 	}
-	//TODO: check if wallet type is for custodial wallet then if the asset is custom,
-	//you must make sure only the sibbling accounts can send custom asset to it and asset
-	// trustline must be automatically established since it is custodial wallet.
-	//no errors, so do
 
 	baseReserve := network.GetBlockchainBaseReserve()
 
@@ -1080,11 +1087,6 @@ func processCustodialDestinationAssetDoesNotTrustAsset(destinationUser *userMode
 		}
 		return
 	}
-
-	//TODO: check if wallet type is for custodial wallet then if the asset is custom,
-	//you must make sure only the sibbling accounts can send custom asset to it and asset
-	// trustline must be automatically established since it is custodial wallet.
-	//no errors, so do
 
 	ops = append(ops, &txnbuild.ChangeTrust{
 		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},

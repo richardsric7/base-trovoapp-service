@@ -100,7 +100,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusBadRequest, (&swaperrors.ErrorInvalidPaymentSender{}).JSONError())
 			return
 		}
-		//TODO: check if the wallet belongs to the person making swap or if the person has permission to do swap.
 
 		var swapInfo swapModels.SwapSendInfo
 		var err error
@@ -261,7 +260,6 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
 			return
 		}
-		//TODO: check if the wallet belongs to the person making swap or if the person has permission to do swap.
 		hasInitiatorAccess := false
 		// check if user has initiator access to wallet.
 		isViewOnly := wallet.HasViewOnlyAccess(gc)

@@ -1,6 +1,7 @@
 package users
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -22,6 +23,7 @@ import (
 	pns "trovo-wallet-api/internal/pns"
 	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/google/uuid"
 	"github.com/mailgun/mailgun-go/v4"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
@@ -2101,4 +2103,122 @@ func (mo *MarketOffer) CancelBlockchainOffer(gc *sharedconfig.GlobalConfig) (off
 
 	}
 	return offer, nil
+}
+
+func (w UserWallet) GetCryptoDepositAddresses(currency string, gc *sharedconfig.GlobalConfig) (cryptoAddresses []CryptoWalletDepositAddress) {
+	cryptoAddresses = make([]CryptoWalletDepositAddress, 0)
+	e := gc.DB.Where("trovo_wallet_public_key = ? AND currency = ?", w.ID, currency).Find(&cryptoAddresses).Error
+	if e != nil {
+		log.Printf("[GetCryptoDepositAddresses] error fetching cryptoAddresses from db %v", e)
+	}
+	if len(cryptoAddresses) > 0 {
+		return cryptoAddresses
+	}
+	//create on remote service
+	subwallet, err := w.CreateCryptoSubwalletRequest(currency, gc)
+	if err != nil {
+		log.Printf("[GetCryptoDepositAddresses] error creating crypto deposit Addresses on remote service %v", err)
+		subwallet, err = w.GetCryptoSubwallet(currency, gc)
+		if err != nil {
+			log.Printf("[GetCryptoDepositAddresses] error fetching crypto deposit Addresses from remote service %v", err)
+			return
+		}
+	}
+
+	//subwallet retrieved. now build crypto addresses and return
+	for _, sw := range subwallet.Addresses {
+		cryptoAddresses = append(cryptoAddresses, CryptoWalletDepositAddress{
+			ID:                   uuid.NewString(),
+			CreatedAt:            time.Now(),
+			UserID:               w.UserID,
+			TrovoWalletPublicKey: w.ID,
+			Currency:             currency,
+			DepositAddress:       sw.Address,
+			Network:              sw.Network,
+		})
+	}
+
+	{
+		//save the created address
+		e := gc.DB.Create(&cryptoAddresses).Error
+		if e != nil {
+			log.Printf("[GetCryptoDepositAddresses] error creating cryptoAddresses in db %v", e)
+			// return empty list to be sure to redo it next time
+			return make([]CryptoWalletDepositAddress, 0)
+		}
+	}
+
+	return
+}
+
+func (w UserWallet) GetCryptoSubwallet(currency string, gc *sharedconfig.GlobalConfig) (subwallet CryptoSubWallet, err error) {
+
+	var wdlResp CryptoSubwalletResponse
+
+	client := http.DefaultClient
+	url := fmt.Sprintf("%s/%s?currency=%s&uid=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/sub", currency, w.Alias+"@"+os.Getenv("WALLET_DOMAIN"))
+
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Println("[CreateCryptoSubwalletRequest] error sending request:", err)
+		return
+	}
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
+		log.Println("[CreateCryptoSubwalletRequest] error response with code: ", resp.StatusCode, resp.Status)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+
+	defer resp.Body.Close()
+	//Decode the data
+	if err = json.NewDecoder(resp.Body).Decode(&wdlResp); err != nil {
+		log.Println("[CreateCryptoSubwalletRequest] error decoding response:", err)
+		return
+	}
+
+	return wdlResp.Data, nil
+
+}
+
+func (w UserWallet) CreateCryptoSubwalletRequest(currency string, gc *sharedconfig.GlobalConfig) (subwallet CryptoSubWallet, err error) {
+
+	var wdlResp CryptoSubwalletResponse
+
+	client := http.DefaultClient
+	url := fmt.Sprintf("%s/%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/sub")
+	jbody, err := json.Marshal(SubWalletInput{
+		Currency: currency,
+		UID:      w.Alias + "@" + os.Getenv("WALLET_DOMAIN"),
+	})
+	if err != nil {
+		log.Println("[CreateCryptoSubwalletRequest] error sending request:", err)
+
+		return
+	}
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(jbody))
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Println("[CreateCryptoSubwalletRequest] error sending request:", err)
+		return
+	}
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
+		log.Println("[CreateCryptoSubwalletRequest] error response with code: ", resp.StatusCode, resp.Status)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+
+	defer resp.Body.Close()
+	//Decode the data
+	if err = json.NewDecoder(resp.Body).Decode(&wdlResp); err != nil {
+		log.Println("[CreateCryptoSubwalletRequest] error decoding response:", err)
+		return
+	}
+
+	return wdlResp.Data, nil
+
 }

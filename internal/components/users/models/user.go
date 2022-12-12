@@ -222,7 +222,6 @@ type SubWalletInfo struct {
 	ChannelAccount          string   `json:"channelAccount"`
 	ChannelAccountSignature string   `json:"channelAccountSignature"`
 	SubWalletMustSign       int      `json:"subWalletMustSign"`
-	AssetIssuerWallet       int      `json:"assetIssuerWallet"` //redundancy. TODO: remove when not needed anymore
 	WalletType              int      `json:"walletType"`        //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
 	Messages                []string `json:"messages"`
 	SHash                   string   `json:"sHash"`

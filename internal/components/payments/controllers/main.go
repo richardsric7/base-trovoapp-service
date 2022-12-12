@@ -166,7 +166,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		//initiatlize message holder
 		paymentInfo.Messages = make([]string, 0)
 		//check if username is reserved. Reserved usernames should not send payments.
-		//TODO: cache this
+
 		_, checkReservedUserError := usersDB.UsernameIsReserved(signerAccountAlias, gc.DB)
 		if checkReservedUserError != nil {
 
@@ -360,8 +360,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			{
 
 				//start callback process here
-
-				//TODO: make callback request if callback is available
 
 				if d, ok := paymentInfoReturned.CallbackURLS["orderPaymentCallbackUrl"]; ok && len(d) > 5 {
 					log.Printf("[paymentNotification] found notification callbackUrl: [%v]\n\n", d)
@@ -607,7 +605,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		//initiatlize message holder
 		paymentInfo.Messages = make([]string, 0)
 		//check if username is reserved. Reserved usernames should not send payments.
-		//TODO: cache this
+
 		_, checkReservedUserError := usersDB.UsernameIsReserved(signerAccountAlias, gc.DB)
 		if checkReservedUserError != nil {
 

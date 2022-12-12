@@ -7,7 +7,13 @@ type PaginatedCryptoDepositHistory struct {
 	Limit        int             `json:"limit"`
 	Records      []CryptoDeposit `json:"records"`
 }
-
+type PaginatedCryptoWithdrawalHistory struct {
+	Pages        int       `json:"pages"`
+	CurrentPage  int       `json:"currentPage"`
+	TotalRecords int       `json:"totalRecords"`
+	Limit        int       `json:"limit"`
+	Records      []CryptoWithdrawal `json:"records"`
+}
 
 type CryptoDeposit struct {
 	TrovoWalletPublicKey string `gorm:"size:100" json:"TrovoWalletPublicKey"`
@@ -26,7 +32,6 @@ type CryptoDeposit struct {
 	ToAddress            string `gorm:"index:unique_txid,unique" json:"toAddress"`
 }
 
-
 type WithdrawalNetwork struct {
 	Network              string `gorm:"primaryKey" json:"network"`
 	Name                 string `gorm:"size:100" json:"name"`
@@ -36,4 +41,12 @@ type WithdrawalNetwork struct {
 	WithdrawMin          string `gorm:"size:100" json:"withdrawMin"`
 	WithdrawMax          string `gorm:"size:100" json:"withdrawMax"`
 	EstimatedArrivalTime int    `json:"estimatedArrivalTime"`
+}
+
+type WithdrawalRequestInput struct {
+	Currency  string  `json:"currency"`
+	Amount    float64 `json:"amount"`
+	ToAddress string  `json:"toAddress"`
+	Network   string  `json:"network"`
+	Memo      string  `json:"memo"`
 }

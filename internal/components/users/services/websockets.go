@@ -32,7 +32,7 @@ var upGrader = websocket.Upgrader{
 	},
 }
 
-//StartMessage is models for stream start message
+// StartMessage is models for stream start message
 type StartMessage struct {
 	Stream string `json:"stream"`
 }
@@ -43,7 +43,7 @@ type StreamObject struct {
 	request   interface{}
 }
 
-//UserWebSocketAPI handles websocket connections
+// UserWebSocketAPI handles websocket connections
 func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
 	var order = horizonclient.OrderAsc
@@ -99,7 +99,7 @@ func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 	data.Stream = strings.ToLower(data.Stream)
 	identifier := strings.TrimSpace(strings.ToLower(c.Param("identifier")))
 
-	user, err := usersDB.GetUser(identifier, gc.DB,gc)
+	user, err := usersDB.GetUser(identifier, gc.DB, gc)
 	if err != nil {
 		auth.Auth = false
 		auth.Message = "user could not be authenticated"
@@ -346,7 +346,7 @@ func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 				}
 
 			} else {
-				// TODO: handle account merge
+
 				userData := actionData{
 					ID:              o.GetID(),
 					TransactionHash: o.GetTransactionHash(),

@@ -24,12 +24,6 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 	var err error
 	var xdrBase64 string
 	var subWalletObj userModels.UserWallet
-	{
-		//TODO: remove redundancey when assetIssuerWallet nolonger applies.
-		if subWalletInfo.AssetIssuerWallet == 1 {
-			subWalletInfo.WalletType = 1
-		}
-	}
 
 	subWalletInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 	subWalletInfo.SubWalletMustSign = 1

@@ -90,12 +90,7 @@ func (uw *UserWallet) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserWalletJ
 	jsonObj.WalletType = uw.WalletType
 	viewOnlyAccess := true
 	hasApprover := false
-	{
-		//TODO: remove for after redundancy is not needed anymore
-		if uw.WalletType == 1 {
-			jsonObj.AssetIssuerWallet = 1
-		}
-	}
+
 	if uw.SharedAccessEnabled == 1 {
 		//get shared access
 		for _, permission := range uw.Permissions {

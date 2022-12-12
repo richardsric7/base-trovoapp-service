@@ -510,8 +510,6 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 				//start callback process here
 
-				//TODO: make callback request if callback is available
-
 				if d, ok := paymentInfo.CallbackURLS["orderPaymentCallbackUrl"]; ok && len(d) > 5 {
 					log.Printf("[paymentNotification] found notification callbackUrl: [%v]\n\n", d)
 					//make callback request
