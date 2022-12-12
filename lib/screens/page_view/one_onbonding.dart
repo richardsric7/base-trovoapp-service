@@ -45,7 +45,7 @@ class _OneonbondingState extends State<Oneonbonding> {
           child: Column(
             children: [
               SizedBox(height: height / 10.5),
-              Image.asset("assets/images/crypto-p2p.png", height: height / 2.5),
+              Image.asset("assets/images/crypto-p2p.png", height: height / 2.3),
               SizedBox(height: height / 20),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: width / 15),

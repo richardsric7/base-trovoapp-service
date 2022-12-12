@@ -486,14 +486,14 @@ class LanguageEn {
 
   static String get enablefaceid => "Enable Face ID";
 
-  static String get fingerprint => "Fingerprint";
+  static String get fingerprint => "Biometrics";
 
-  static String get unlockfinger =>
-      "Unlock Trovo Wallet with fingerprint,\nquick and secure";
+  static String get unlockwithbiometrics =>
+      "Unlock Trovo Wallet with biometrics,\nquick and secure";
 
   static String get biometrics => "Biometrics ";
 
-  static String get setupfingerprint => "Enable Fingerprint";
+  static String get enablebiometrics => "Enable Biometrics";
 
   static String get fingerprintnotenabled =>
       'Fingerprint is not set up on your device. Go to \'Settings > Security\' to add your fingerprint';

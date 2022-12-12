@@ -2682,7 +2682,8 @@ approvalTextFieldPopup(context,
 }
 
 void showChooseWalletPopup(context, assetCode, assetIssuer,
-    {required void Function(String, bool) onDone}) {
+    {required void Function(String, bool) onDone,
+    required void Function() onCancel}) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   var appState = Provider.of<DataProvider>(context, listen: false);
   height = MediaQuery.of(context).size.height;
@@ -2815,8 +2816,10 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: OutlinedButton(
-                      onPressed: () =>
-                          Navigator.of(context).pop(), // dismiss dialog,
+                      onPressed: () {
+                        onCancel();
+                      },
+                      // dismiss dialog,
                       style: ButtonStyle(
                         fixedSize: MaterialStateProperty.all(
                           Size(width / 1.5, height / 20),

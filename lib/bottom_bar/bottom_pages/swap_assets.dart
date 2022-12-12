@@ -454,28 +454,30 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        var splitNewValue =
-                            destinationAssetRawDropdownValue.split('|');
-                        if (claimedAssets
-                            .where((asset) =>
-                                asset['assetIssuer'] == splitNewValue[0] &&
-                                asset['assetCode'] == splitNewValue[1])
-                            .isNotEmpty) {
-                          var assetHolder = sourceAsset;
-                          var rawValueHolder = sourceAssetRawDropdownValue;
+                        if (destinationAssetRawDropdownValue != null) {
+                          var splitNewValue =
+                              destinationAssetRawDropdownValue.split('|');
+                          if (claimedAssets
+                              .where((asset) =>
+                                  asset['assetIssuer'] == splitNewValue[0] &&
+                                  asset['assetCode'] == splitNewValue[1])
+                              .isNotEmpty) {
+                            var assetHolder = sourceAsset;
+                            var rawValueHolder = sourceAssetRawDropdownValue;
 
-                          sourceAsset = destinationAsset;
-                          sourceAssetRawDropdownValue =
-                              destinationAssetRawDropdownValue;
-                          destinationAsset = assetHolder;
-                          destinationAssetRawDropdownValue = rawValueHolder;
-                        } else {
-                          sourceAsset = destinationAsset =
-                              sourceAssetRawDropdownValue =
-                                  destinationAssetRawDropdownValue = null;
+                            sourceAsset = destinationAsset;
+                            sourceAssetRawDropdownValue =
+                                destinationAssetRawDropdownValue;
+                            destinationAsset = assetHolder;
+                            destinationAssetRawDropdownValue = rawValueHolder;
+                          } else {
+                            sourceAsset = destinationAsset =
+                                sourceAssetRawDropdownValue =
+                                    destinationAssetRawDropdownValue = null;
+                          }
+
+                          amount = 0;
                         }
-
-                        amount = 0;
                       });
                     },
                     child: Image.asset(

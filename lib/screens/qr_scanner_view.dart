@@ -192,74 +192,9 @@ class _QrScannerState extends State<QrScanner> {
 
       if (data != null) {
         final Uri deepLink = data.link;
-
-        // print('The deepLink data on success is $deepLink');
         print(deepLink.queryParameters);
-
-        if (deepLink.queryParameters['action'] == 'payment') {
-          if (deepLink.queryParameters['assetCode'] != '' &&
-              deepLink.queryParameters['assetCode'] != null) {
-            showChooseWalletPopup(
-                context,
-                deepLink.queryParameters['assetCode'] == 'XBN'
-                    ? ''
-                    : deepLink.queryParameters['assetCode'],
-                deepLink.queryParameters['assetIssuer'],
-                onDone: (walletPublicKey, isSharedWallet) {
-              print(
-                  '=============$walletPublicKey; =============$isSharedWallet');
-              var deeplinkInfo = {
-                "assetCode": deepLink.queryParameters['assetCode'],
-                "assetIssuer": deepLink.queryParameters['assetIssuer'],
-                "source": "qr2",
-                "receiver": deepLink.queryParameters['paymentDestination'],
-                "amount": deepLink
-                    .queryParameters['amount'], // amount we want to send
-                "memo": deepLink.queryParameters['memo'],
-                'action': 'payment',
-                'sendingWallet': walletPublicKey,
-              };
-
-              var claimedAssets = appState!
-                  .transactionableWallets[walletPublicKey]['claimedAssets'];
-
-              var deeplinkAssetCode = deeplinkInfo['assetCode'] == 'XBN'
-                  ? ''
-                  : deeplinkInfo['assetCode'];
-
-              for (var asset in claimedAssets) {
-                if (asset['assetCode'] == deeplinkAssetCode &&
-                    asset['assetIssuer'] == deeplinkInfo['assetIssuer']) {
-                  appState!.viewData![SendAssetViewPageConfig.key] = {
-                    'assetCode': asset['assetCode'],
-                    'assetIssuer': asset['assetIssuer'],
-                    'amount': asset['amount'],
-                    'imageUrl': asset['imageUrl'],
-                    'usdPrice': asset['usdPrice'],
-                    'walletInfo': {'isSharedWallet': isSharedWallet},
-                  };
-
-                  // exit the loop immediately we get what we are looking for
-                  break;
-                }
-              }
-
-              appState!.viewData![SendAssetViewPageConfig.key]['deepLinkInfo'] =
-                  deeplinkInfo;
-              appState?.currentAction = PageAction(
-                  state: PageState.replace, page: SendAssetViewPageConfig);
-            });
-            hideLoader(context);
-          }
-        } else {
-          hideLoader(context);
-          popup(
-            context,
-            title: 'Error!',
-            message:
-                'The QR code is not meant for ${deepLink.queryParameters['assetCode']} payment. Please scan the correct QR code!',
-          );
-        }
+        appState!.processDeepLink(context, deepLink, rel: 'qrScanner');
+        hideLoader(context);
       } else {
         popup(context,
             title: 'Error!',

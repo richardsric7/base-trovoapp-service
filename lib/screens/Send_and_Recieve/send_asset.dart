@@ -65,10 +65,8 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     if (activeWallet.isEmpty) {
       activeWallet = viewData['walletInfo'];
     }
-    print('this is appState: $activeWallet');
 
     isSharedWallet = viewData['walletInfo']['sharedAccessEnabled'] == 1;
-    print('this is viewData: ${viewData}');
 
     if (viewData['deepLinkInfo'] != null) {
       deeplinkInfo = viewData['deepLinkInfo'];
@@ -82,6 +80,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     }
 
     sendingWalletController.text = activeWallet['alias'];
+    print('this is viewData: ${viewData}');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -93,12 +92,14 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
             centerTitle: true,
             elevation: 0,
             backgroundColor: notifier.getwihitecolor,
-            leading: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset("assets/images/back.png", scale: 5),
-            ),
+            leading: Navigator.canPop(context)
+                ? GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Image.asset("assets/images/back.png", scale: 5),
+                  )
+                : null,
           ),
         ),
         body: SingleChildScrollView(

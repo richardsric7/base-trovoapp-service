@@ -206,6 +206,12 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  String tempReferrerUsername = '';
+  set setTempReferrerUsername(value) {
+    tempReferrerUsername = value;
+    notifyListeners();
+  }
+
   bool tempInvalidateOldSigner = true;
   set setTempInvalidateOldSigner(value) {
     tempInvalidateOldSigner = value;
@@ -547,7 +553,7 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void initFirebaseListener() {
+  void initFirebaseListener(BuildContext context) {
     print('initing firebaselistener..............................');
     FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) async {
       try {
@@ -559,9 +565,9 @@ class DataProvider with ChangeNotifier {
             'current action is login ${dynamicLinkData.link.queryParameters['action']}');
         await StoreData().storeInsertData(
             'initialDynamicLink', dynamicLinkData.link.toString());
-        var deepLinkView = getDeepLinkView(dynamicLinkData.link);
+        processDeepLink(context, dynamicLinkData.link);
 
-        currentAction = deepLinkView;
+        // currentAction = deepLinkView;
       } catch (e) {
         print('error processing dynamic link');
       }
@@ -571,17 +577,13 @@ class DataProvider with ChangeNotifier {
     });
   }
 
-  PageAction getDeepLinkView(Uri initialDynamicLink) {
+  void processDeepLink(BuildContext context, Uri initialDynamicLink,
+      {String? rel}) {
     print(
         '-------------------------deeplink url: ${initialDynamicLink.toString()}');
-    PageAction pageAction =
-        PageAction(state: PageState.addAll, pages: [LoginPageConfig]);
-
     // action login
     if (initialDynamicLink.queryParameters['action'] == 'login') {
-      pageAction = PageAction(
-          state: PageState.addAll,
-          pages: [LoginPageConfig, AuthorizeLoginViewPageConfig]);
+      setSplashFinished();
       viewData![AuthorizeLoginViewPageConfig.key] = {
         'action': initialDynamicLink.queryParameters['action'],
         'loginId': initialDynamicLink.queryParameters['loginId'],
@@ -590,79 +592,79 @@ class DataProvider with ChangeNotifier {
         'targetUser': initialDynamicLink.queryParameters['targetUser'],
         'ownerUsername': initialDynamicLink.queryParameters['ownerUsername'],
         'serviceShortName':
-            initialDynamicLink.queryParameters['serviceShortName']
+            initialDynamicLink.queryParameters['serviceShortName'],
       };
+      currentAction = PageAction(
+          state: PageState.addAll,
+          pages: [LoginPageConfig, AuthorizeLoginViewPageConfig]);
     } else if (initialDynamicLink.queryParameters['action'] == 'payment') {
       // action payment
       if (initialDynamicLink.queryParameters['assetCode'] != '' &&
           initialDynamicLink.queryParameters['assetCode'] != null) {
-        var deeplinkInfo = {
-          "assetCode": initialDynamicLink.queryParameters['assetCode'],
-          "assetIssuer": initialDynamicLink.queryParameters['assetIssuer'],
-          "source": "qr2",
-          "receiver": initialDynamicLink.queryParameters['paymentDestination'],
-          "amount": initialDynamicLink
-              .queryParameters['amount'], // amount we want to send
-          "memo": initialDynamicLink.queryParameters['memo'],
-          'action': 'payment'
-        };
-        print('this is deeplinkInfo: $deeplinkInfo');
-        var assetInfo = null;
-        var claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
+        showChooseWalletPopup(
+            context,
+            initialDynamicLink.queryParameters['assetCode'] == 'XBN'
+                ? ''
+                : initialDynamicLink.queryParameters['assetCode'],
+            initialDynamicLink.queryParameters['assetIssuer'],
+            onDone: (walletPublicKey, isSharedWallet) {
+          print('=============$walletPublicKey; =============$isSharedWallet');
+          var deeplinkInfo = {
+            "assetCode": initialDynamicLink.queryParameters['assetCode'],
+            "assetIssuer": initialDynamicLink.queryParameters['assetIssuer'],
+            "source": "qr2",
+            "receiver":
+                initialDynamicLink.queryParameters['paymentDestination'],
+            "amount": initialDynamicLink
+                .queryParameters['amount'], // amount we want to send
+            "memo": initialDynamicLink.queryParameters['memo'],
+            'action': 'payment',
+            'sendingWallet': walletPublicKey,
+          };
 
-        var deeplinkAssetCode =
-            deeplinkInfo['assetCode'] == 'XBN' ? '' : deeplinkInfo['assetCode'];
+          var claimedAssets =
+              transactionableWallets[walletPublicKey]['claimedAssets'];
 
-        for (var asset in claimedAssets) {
-          print('this is asset: $asset');
-          if (asset['assetCode'] == deeplinkAssetCode &&
-              asset['assetIssuer'] == deeplinkInfo['assetIssuer']) {
-            assetInfo = {
-              'assetCode': asset['assetCode'],
-              'assetIssuer': asset['assetIssuer'],
-              'amount': asset['amount'], // balance amount in the wallet
-              'qrCode': asset['qrCode'],
-              'imageUrl': asset['imageUrl'],
-            };
+          var deeplinkAssetCode = deeplinkInfo['assetCode'] == 'XBN'
+              ? ''
+              : deeplinkInfo['assetCode'];
 
-            // exit the loop immediately we get what we are looking for
-            break;
+          for (var asset in claimedAssets) {
+            if (asset['assetCode'] == deeplinkAssetCode &&
+                asset['assetIssuer'] == deeplinkInfo['assetIssuer']) {
+              viewData![SendAssetViewPageConfig.key] = {
+                'assetCode': asset['assetCode'],
+                'assetIssuer': asset['assetIssuer'],
+                'amount': asset['amount'],
+                'imageUrl': asset['imageUrl'],
+                'usdPrice': asset['usdPrice'],
+                'walletInfo': {'isSharedWallet': isSharedWallet},
+              };
+
+              // exit the loop immediately we get what we are looking for
+              break;
+            }
           }
-        }
 
-        print('this is assetInfo: $assetInfo');
-
-        viewData = {
-          SendAssetViewPageConfig.key: {
-            'assetCode': assetInfo['assetCode'],
-            'assetIssuer': assetInfo['assetIssuer'],
-            'amount': assetInfo['amount'],
-            'imageUrl': assetInfo['imageUrl'],
-            'deepLinkInfo': deeplinkInfo,
-          },
-          // to avoid unexpected behaviour in the assetdetails page
-          // add the AssetDetailsViewPageConfig view data.
-          // The issue occurs when user goes through assetDetailsPage => sendAsset => scanQr
-          // apparently the previous page has to be rebuilt when you navigate using
-          // appState?.currentAction = PageAction(state: PageState.replace, page: SendAssetViewPageConfig);
-          // with PageState.replace.
-          AssetDetailsViewPageConfig.key: {
-            'assetCode': assetInfo['assetCode'],
-            'assetIssuer': assetInfo['assetIssuer'],
-            'amount': assetInfo['amount'],
-            'qrCode': assetInfo['qrCode'],
-            'imageUrl': assetInfo['imageUrl'],
+          viewData![SendAssetViewPageConfig.key]['deepLinkInfo'] = deeplinkInfo;
+          currentAction = PageAction(
+              state: PageState.addAll,
+              pages: isLoggedIn
+                  ? [BottomHomePageConfig, SendAssetViewPageConfig]
+                  : [LoginPageConfig, SendAssetViewPageConfig]);
+          setSplashFinished();
+        }, onCancel: () {
+          if (rel == 'qrScanner') {
+            Navigator.of(context).pop();
+          } else {
+            currentAction = PageAction(
+                state: PageState.addAll,
+                pages: isLoggedIn ? [BottomHomePageConfig] : [LoginPageConfig]);
           }
-        };
-        pageAction = PageAction(
-            state: PageState.addAll,
-            pages: [LoginPageConfig, SendAssetViewPageConfig]);
+          setSplashFinished();
+        });
       }
-    } else {
-      // action authorize
-      pageAction = PageAction(
-          state: PageState.addAll,
-          pages: [LoginPageConfig, AuthorizeActionViewPageConfig]);
+    } else if (initialDynamicLink.queryParameters['action'] == 'authorize') {
       viewData![AuthorizeActionViewPageConfig.key] = {
         'action': initialDynamicLink.queryParameters['action'],
         'authId': initialDynamicLink.queryParameters['authId'],
@@ -673,8 +675,19 @@ class DataProvider with ChangeNotifier {
         'serviceShortName':
             initialDynamicLink.queryParameters['serviceShortName']
       };
-    }
+      // action authorize
+      setSplashFinished();
+      currentAction = PageAction(
+          state: PageState.addAll,
+          pages: [LoginPageConfig, AuthorizeActionViewPageConfig]);
+    } else if (initialDynamicLink.queryParameters['action'] == 'register') {
+      setSplashFinished();
+      setTempReferrerUsername = initialDynamicLink.queryParameters['referrer'];
 
-    return pageAction;
+      // action register
+      currentAction = PageAction(
+          state: PageState.addAll,
+          pages: [LoginPageConfig, CreatePasswordPageConfig]);
+    }
   }
 }

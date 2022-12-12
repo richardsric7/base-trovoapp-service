@@ -186,70 +186,82 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 SizedBox(
                   height: height / 30,
                 ),
-                // if (unclaimedAssets != null && unclaimedAssets.length > 0) ...[
-                //   DefaultTabController(
-                //     length: tabLength,
-                //     child: Column(
-                //       children: [
-                //         TabBar(
-                //           controller: _tabController,
-                //           labelColor: notifier.getbluewhitecolor,
-                //           indicatorColor: notifier.getbluewhitecolor,
-                //           labelStyle: TextStyle(
-                //             fontSize: 14.sp,
-                //             fontWeight: FontWeight.w600,
-                //             fontFamily: fontsemibold,
-                //           ),
-                //           tabs: [
-                //             Tab(
-                //               height: 20,
-                //               text: LanguageEn.assets,
-                //             ),
+                // check if the user's xbn balance is 0. This usually is the si-
+                // tuation when a new user signs up and has not funded their wallet
+                // yet
+                if (claimedAssets
+                    .where((asset) =>
+                        (asset['assetCode'] == '' &&
+                            asset['assetIssuer'] == '') &&
+                        asset['amount'] != 0)
+                    .isNotEmpty) ...[
+                  if (unclaimedAssets != null &&
+                      unclaimedAssets.length > 0) ...[
+                    DefaultTabController(
+                      length: tabLength,
+                      child: Column(
+                        children: [
+                          TabBar(
+                            controller: _tabController,
+                            labelColor: notifier.getbluewhitecolor,
+                            indicatorColor: notifier.getbluewhitecolor,
+                            labelStyle: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: fontsemibold,
+                            ),
+                            tabs: [
+                              Tab(
+                                height: 20,
+                                text: LanguageEn.assets,
+                              ),
 
-                //             Tab(
-                //               height: 20,
-                //               text:
-                //                   '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
-                //             ),
-                //             // Tab(
-                //             //   height: 20,
-                //             //   text: LanguageEn.nfts,
-                //             // ),
-                //           ],
-                //         ),
-                //       ],
-                //     ),
-                //   ),
-                //   SizedBox(
-                //     height: height / 70,
-                //   ),
-                //   assetsTabs(),
-                // ] else ...[
-                //   Padding(
-                //     padding: const EdgeInsets.symmetric(horizontal: 100.0),
-                //     child: TabBar(
-                //       controller: _tabController,
-                //       labelColor: notifier.getbluewhitecolor,
-                //       indicatorColor: notifier.getbluewhitecolor,
-                //       labelStyle: TextStyle(
-                //         fontSize: 14.sp,
-                //         fontWeight: FontWeight.w600,
-                //         fontFamily: fontsemibold,
-                //       ),
-                //       tabs: [
-                //         Tab(
-                //           height: 20,
-                //           text: LanguageEn.assets,
-                //         ),
-                //       ],
-                //     ),
-                //   ),
-                //   SizedBox(
-                //     height: height / 70,
-                //   ),
-                //   showTokenAssets(),
-                // ],
-                showFundWallet()
+                              Tab(
+                                height: 20,
+                                text:
+                                    '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
+                              ),
+                              // Tab(
+                              //   height: 20,
+                              //   text: LanguageEn.nfts,
+                              // ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    assetsTabs(),
+                  ] else ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 100.0),
+                      child: TabBar(
+                        controller: _tabController,
+                        labelColor: notifier.getbluewhitecolor,
+                        indicatorColor: notifier.getbluewhitecolor,
+                        labelStyle: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: fontsemibold,
+                        ),
+                        tabs: [
+                          Tab(
+                            height: 20,
+                            text: LanguageEn.assets,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    showTokenAssets(),
+                  ],
+                ] else ...[
+                  showFundWallet(),
+                ]
               ],
             ),
           ),
@@ -919,7 +931,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     height: height / 50,
                   ),
                   Text(
-                    'You can get Bantu tokens (XBN) for your wallet in 4 easy ways',
+                    'You can get Bantu tokens (XBN) for your wallet in 3 easy ways',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 17,
