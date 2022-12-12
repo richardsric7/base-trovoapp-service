@@ -22,21 +22,21 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 	var wdlNetworksResp userModels.CryptoWithdrawalNetworksResponse
 	client := &http.Client{}
 	//get 'https://sandbox-api.oneliquidity.technology/wallets/v1/withdrawal/networks?currency=BTC'
-
+	cacheKey := fmt.Sprintf("wallets/v1/withdrawal/networks?currency=%s", currency)
 	url := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", currency)
 	{
-		ok, rawData := gc.RedisCache.GetCachedResultRaw(url)
+		ok, rawData := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
 			json.Unmarshal(rawData, &wdlNetworksResp)
 			return
 		}
 	}
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
 	resp, err := client.Do(request)
 	if err != nil {
-		log.Println("[GetWithdrawalNetworks] error starting new verification:", err)
+		log.Println("[GetWithdrawalNetworks] error sending request:", err)
 		return
 	}
 	log.Println("[GetWithdrawalNetworks] succeeded with code: ", resp.StatusCode)
@@ -47,7 +47,7 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 		return
 	}
 
-	gc.RedisCache.StoreResultToCacheRaw(url, wdlNetworksResp, 1000)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, wdlNetworksResp, 1000)
 	wdlNetworks = wdlNetworksResp.Data
 	return wdlNetworks, nil
 
@@ -68,7 +68,7 @@ func ComplianceStartNewVerification(firstName, lastName string) (verificationID 
 	client := &http.Client{}
 	//get upload credentials
 	url := fmt.Sprintf("%s/%s?", os.Getenv("ONELIQUIDITY_BASE_URL"), "compliance/v1/verification")
-	request, err := http.NewRequest("POST", url, bytes.NewReader(jbody))
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(jbody))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
 	resp, err := client.Do(request)
@@ -108,7 +108,7 @@ func GetProofOfresidencyCred(user *userModels.User) (fMCred userModels.ProofOfRe
 	client := &http.Client{}
 	//get upload credentials
 
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
 	resp, err := client.Do(request)
@@ -147,7 +147,7 @@ func GetFacematchPassportCred(user *userModels.User) (fMCred userModels.FaceMatc
 	client := &http.Client{}
 	//get upload credentials
 
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
 	resp, err := client.Do(request)
@@ -187,7 +187,7 @@ func GetFacematchNationalIDCred(user *userModels.User) (fMCred userModels.FaceMa
 	client := &http.Client{}
 	//get upload credentials
 
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
 	resp, err := client.Do(request)
@@ -227,7 +227,7 @@ func GetFacematchDrivingLicenseCred(user *userModels.User) (fMCred userModels.Fa
 	client := &http.Client{}
 	//get upload credentials
 
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
 	resp, err := client.Do(request)
@@ -318,7 +318,7 @@ func StartFacematchForPassport(user *userModels.User, selfieVideo, documentPictu
 		return err
 	}
 
-	request, err := http.NewRequest("POST", url, bytes.NewReader(jbody))
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(jbody))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
 	resp, err := client.Do(request)
@@ -411,7 +411,7 @@ func StartFacematchForDrivingLicense(user *userModels.User, selfieVideo, documen
 		return err
 	}
 
-	request, err := http.NewRequest("POST", url, bytes.NewReader(jbody))
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(jbody))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
 	resp, err := client.Do(request)
@@ -502,7 +502,7 @@ func StartFacematchForNationalID(user *userModels.User, selfieVideo, documentPic
 		return err
 	}
 
-	request, err := http.NewRequest("POST", url, bytes.NewReader(jbody))
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(jbody))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
 	resp, err := client.Do(request)
@@ -579,7 +579,7 @@ func StartGovernmentIDCheckForProofOfResidency(user *userModels.User, documentPi
 		return err
 	}
 
-	request, err := http.NewRequest("POST", url, bytes.NewReader(jbody))
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(jbody))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
 	resp, err := client.Do(request)
