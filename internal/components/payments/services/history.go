@@ -196,12 +196,6 @@ func GetCryptoDepositHistory(targetPublicKey string, gc *sharedconfig.GlobalConf
 	DB, _ := db.OpenDb()
 	DBC, _ := db.OpenDb()
 
-	// if err != nil {
-	// 	log.Fatalf("[main]Error opening DB %s", err)
-	// 	return
-	// }
-	// DB := gc.DB
-	// DBC := gc.DB
 	var query *gorm.DB
 	var countQuery *gorm.DB
 	oD := "ASC"
@@ -212,8 +206,8 @@ func GetCryptoDepositHistory(targetPublicKey string, gc *sharedconfig.GlobalConf
 	pageU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("page", "1")), 10, 64)
 	page := int(pageU)
 
-	// amountBetween := strings.TrimSpace(c.Query("amount"))
-	// dateBetween := strings.TrimSpace(c.Query("dateBetween"))
+	amountBetween := strings.TrimSpace(c.Query("amount"))
+	dateBetween := strings.TrimSpace(c.Query("dateBetween"))
 
 	orderBy := strings.TrimSpace(c.DefaultQuery("orderby", "created_at"))
 	orderDirection := c.DefaultQuery("order", "DESC")
@@ -242,26 +236,26 @@ func GetCryptoDepositHistory(targetPublicKey string, gc *sharedconfig.GlobalConf
 
 	}
 
-	// if len(dateBetween) == 21 && strings.Contains(dateBetween, "|") {
-	// 	// 2020-01-01|2020-02-31 full range date
-	// 	dateRange := strings.Split(dateBetween, "|")
-	// 	query = query.Where("transaction_date::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
-	// 	countQuery = countQuery.Where("transaction_date::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+	if len(dateBetween) == 21 && strings.Contains(dateBetween, "|") {
+		// 2020-01-01|2020-02-31 full range date
+		dateRange := strings.Split(dateBetween, "|")
+		query = query.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+		countQuery = countQuery.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
 
-	// }
-	// if len(amountBetween) > 2 && strings.Contains(amountBetween, "|") {
-	// 	// 0|1
-	// 	amountRange := strings.Split(amountBetween, "|")
-	// 	query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
-	// 	countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
+	}
+	if len(amountBetween) > 2 && strings.Contains(amountBetween, "|") {
+		// 0|1
+		amountRange := strings.Split(amountBetween, "|")
+		query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
+		countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
 
-	// }
+	}
 
 	var countR int64
 
 	errCount := countQuery.Find(&[]paymentModels.PaymentHistory{}).Count(&countR).Error
 	if errCount != nil {
-		log.Println("[GetPaymentHistory]Count Error:", errCount)
+		log.Println("[GetCryptoDepositHistory]Count Error:", errCount)
 		return records
 	}
 
@@ -285,11 +279,110 @@ func GetCryptoDepositHistory(targetPublicKey string, gc *sharedconfig.GlobalConf
 		query.Offset(((page - 1) * limit))
 	}
 	if err = query.Find(&depositHistory).Error; err != nil {
-		log.Println("[GetPaymentHistory] Query Error:", err)
+		log.Println("[GetCryptoDepositHistory] Query Error:", err)
 		return
 	}
 
 	records = userModels.PaginatedCryptoDepositHistory{CurrentPage: page, Pages: pages, TotalRecords: count, Limit: limit, Records: depositHistory}
+
+	return records
+}
+
+func GetCryptoWithdrawalHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedCryptoWithdrawalHistory) {
+	var err error
+	var wdlHistory []userModels.CryptoWithdrawal
+	records.Records = make([]userModels.CryptoWithdrawal, 0)
+	DB, _ := db.OpenDb()
+	DBC, _ := db.OpenDb()
+
+	var query *gorm.DB
+	var countQuery *gorm.DB
+	oD := "ASC"
+	s := strings.TrimSpace(c.Query("s"))
+
+	limitU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("limit", "25")), 10, 64)
+	limit := int(limitU)
+	pageU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("page", "1")), 10, 64)
+	page := int(pageU)
+
+	amountBetween := strings.TrimSpace(c.Query("amount"))
+	dateBetween := strings.TrimSpace(c.Query("dateBetween"))
+
+	orderBy := strings.TrimSpace(c.DefaultQuery("orderby", "created_at"))
+	orderDirection := c.DefaultQuery("order", "DESC")
+
+	query = DB.Preload(clause.Associations)
+	countQuery = DBC.Group("withdrawal_id")
+
+	if len(orderDirection) > 0 && strings.ToLower(orderDirection) == "desc" {
+		oD = "DESC"
+	}
+	if len(orderBy) > 0 {
+		query = query.Order(orderBy + " " + oD)
+		countQuery = countQuery.Order(orderBy + " " + oD)
+
+	}
+
+	{
+		query = query.Where("(trovo_wallet_public_key = ?)", targetPublicKey)
+		countQuery = countQuery.Where("(trovo_wallet_public_key = ?)", targetPublicKey)
+
+	}
+
+	if len(s) >= 2 {
+		query = query.Where("(to_address = ? OR currency = upper(?) OR upper(network) = upper(?) OR withdrawal_id = ?)", s, s, s, s, s)
+		countQuery = countQuery.Where("(to_address = ? OR currency = upper(?) OR upper(network) = upper(?) OR withdrawal_id = ?)", s, s, s, s, s)
+
+	}
+
+	if len(dateBetween) == 21 && strings.Contains(dateBetween, "|") {
+		// 2020-01-01|2020-02-31 full range date
+		dateRange := strings.Split(dateBetween, "|")
+		query = query.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+		countQuery = countQuery.Where("created_at::date BETWEEN ?::date AND ?::date", dateRange[0], dateRange[1])
+
+	}
+	if len(amountBetween) > 2 && strings.Contains(amountBetween, "|") {
+		// 0|1
+		amountRange := strings.Split(amountBetween, "|")
+		query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
+		countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
+
+	}
+
+	var countR int64
+
+	errCount := countQuery.Find(&[]paymentModels.PaymentHistory{}).Count(&countR).Error
+	if errCount != nil {
+		log.Println("[GetCryptoWithdrawalHistory]Count Error:", errCount)
+		return records
+	}
+
+	if limit > 0 {
+		query.Limit(limit)
+	}
+	count := int(countR)
+	pages := 1
+	if count > limit {
+		// fmt.Println("count / limit = ", count/limit, "count%limit = ", count%limit)
+		pages = count / limit
+		if count%limit > 0 {
+			pages = pages + 1
+		}
+	}
+	if page > pages {
+		page = pages
+	}
+	if page > 1 {
+		// fmt.Println("Offset = ", (page-1)*limit)
+		query.Offset(((page - 1) * limit))
+	}
+	if err = query.Find(&wdlHistory).Error; err != nil {
+		log.Println("[GetCryptoWithdrawalHistory] Query Error:", err)
+		return
+	}
+
+	records = userModels.PaginatedCryptoWithdrawalHistory{CurrentPage: page, Pages: pages, TotalRecords: count, Limit: limit, Records: wdlHistory}
 
 	return records
 }
