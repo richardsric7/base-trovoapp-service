@@ -191,8 +191,8 @@ class LanguageEn {
   static String get entervalidmobilenumber =>
       "Please enter a valid phone number";
 
-  static String get usernamenotfound =>
-      "Username not found. Do you want to create an account with the provided secret key?";
+  static String get accountnotfound =>
+      "Account not found. Do you want to create an account with the provided secret key?";
 
   static String get oops => "Oops!";
 

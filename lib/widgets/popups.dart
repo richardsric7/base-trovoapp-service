@@ -224,7 +224,7 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10.0, horizontal: 5.0),
                             child: Text(
-                              LanguageEn.usernamenotfound,
+                              LanguageEn.accountnotfound,
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
@@ -243,6 +243,9 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
+                        appState.viewData![SignupPageConfig.key] = {
+                          'importMode': true,
+                        };
                         appState.currentAction = PageAction(
                             state: PageState.addPage, page: SignupPageConfig);
                       },

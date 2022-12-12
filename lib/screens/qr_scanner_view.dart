@@ -198,7 +198,8 @@ class _QrScannerState extends State<QrScanner> {
       } else {
         popup(context,
             title: 'Error!',
-            message: 'The QR code is not meant for payment with Trovo Wallet');
+            message:
+                'Something went wrong. Could be caused by bad network or a bad qrcode image.');
         hideLoader(context);
       }
     } catch (e) {

@@ -557,19 +557,13 @@ class DataProvider with ChangeNotifier {
     print('initing firebaselistener..............................');
     FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) async {
       try {
-        print('one 1');
-        await StoreData().storeDeleteItem('initialDynamicLink');
-        // Navigator.pushNamed(context, dynamicLinkData.link.path);
-        print('this is dynamicLinkData: $dynamicLinkData');
-        print(
-            'current action is login ${dynamicLinkData.link.queryParameters['action']}');
         await StoreData().storeInsertData(
             'initialDynamicLink', dynamicLinkData.link.toString());
         processDeepLink(context, dynamicLinkData.link);
-
-        // currentAction = deepLinkView;
       } catch (e) {
         print('error processing dynamic link');
+        popup(context,
+            title: 'Error', message: 'error processing dynamic link');
       }
     }).onError((error) {
       // Handle errors

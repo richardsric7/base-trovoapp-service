@@ -51,11 +51,13 @@ class _SignUpState extends State<SignUp> {
   bool showError = false;
   bool hasAgreed = false; // to the terms of services
   final referrerController = TextEditingController();
+  final secretKeyController = TextEditingController();
   late FocusNode passPhraseFocusNode;
   late FocusNode secretKeyFocusNode;
   bool usePassPhrase = false;
   String passPhrase = '';
   String secretKey = '';
+  bool importMode = false;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -84,6 +86,12 @@ class _SignUpState extends State<SignUp> {
     if (state.tempReferrerUsername.isNotEmpty) {
       referrerController.text = state.tempReferrerUsername;
       state.tempReferrerUsername = '';
+    }
+    if (state.viewData![SignupPageConfig.key] != null &&
+        state.viewData![SignupPageConfig.key]['importMode']) {
+      secretKeyController.text = state.tempSecretKey;
+      importMode = true;
+      state.viewData![SignupPageConfig.key] = null;
     }
 
     return ScreenUtilInit(
@@ -214,58 +222,6 @@ class _SignUpState extends State<SignUp> {
                           h: 70.sp,
                           w: 300.sp,
                         ),
-                        Row(
-                          children: [
-                            Container(
-                              width: width / 1.2,
-                              child: checkUsePassphrase(),
-                            ),
-                          ],
-                        ),
-                        if (usePassPhrase) ...[
-                          // Pass phrase/Mnemonic
-                          passPhraseInput(
-                            '${LanguageEn.passphrase} (optional)',
-                            notifier.getbluecolor,
-                            notifier.getgrey,
-                            notifier.getblck,
-                            notifier.getgrey,
-                            100.sp,
-                            300.sp,
-                            onSaved: (value) {
-                              passPhrase = value;
-                            },
-                            minLines: 3,
-                            maxLines: null,
-                            keyboardtype: TextInputType.multiline,
-                            focusNode: passPhraseFocusNode,
-                          ),
-                        ] else ...[
-                          // Secret Key
-                          CustomPasswordFormField(
-                            '${LanguageEn.secretkey} (optional)',
-                            notifier.getbluecolor,
-                            Icons.lock,
-                            notifier.getgrey,
-                            notifier.getprefixicon,
-                            notifier.getblck,
-                            70.sp,
-                            300.sp,
-                            validator: (value) {
-                              var trimmedVal =
-                                  value!.trim().replaceAll(' ', '');
-                              if (trimmedVal.isNotEmpty &&
-                                  trimmedVal.length < 56) {
-                                return LanguageEn.secretkeyinvalid;
-                              }
-                            },
-                            onSaved: (value) {
-                              secretKey = value!.trim().replaceAll(' ', '');
-                            },
-                            maxLength: 56,
-                            focusNode: secretKeyFocusNode,
-                          )
-                        ],
                         SizedBox(height: height / 50),
                         // Referrer's Username
                         CustomTextFormField.textField(
@@ -284,6 +240,69 @@ class _SignUpState extends State<SignUp> {
                               referrer = value.trim().replaceAll(' ', ''),
                           maxLength: 16,
                         ),
+                        Row(
+                          children: [
+                            Container(
+                              width: width / 1.2,
+                              child: checkUseImportMode(),
+                            ),
+                          ],
+                        ),
+                        if (importMode) ...[
+                          if (usePassPhrase) ...[
+                            // Pass phrase/Mnemonic
+                            passPhraseInput(
+                              '${LanguageEn.passphrase} (optional)',
+                              notifier.getbluecolor,
+                              notifier.getgrey,
+                              notifier.getblck,
+                              notifier.getgrey,
+                              100.sp,
+                              300.sp,
+                              onSaved: (value) {
+                                passPhrase = value;
+                              },
+                              minLines: 3,
+                              maxLines: null,
+                              keyboardtype: TextInputType.multiline,
+                              focusNode: passPhraseFocusNode,
+                            ),
+                          ] else ...[
+                            // Secret Key
+                            CustomPasswordFormField(
+                              '${LanguageEn.secretkey} (optional)',
+                              notifier.getbluecolor,
+                              Icons.lock,
+                              notifier.getgrey,
+                              notifier.getprefixicon,
+                              notifier.getblck,
+                              70.sp,
+                              300.sp,
+                              validator: (value) {
+                                var trimmedVal =
+                                    value!.trim().replaceAll(' ', '');
+                                if (trimmedVal.isNotEmpty &&
+                                    trimmedVal.length < 56) {
+                                  return LanguageEn.secretkeyinvalid;
+                                }
+                              },
+                              onSaved: (value) {
+                                secretKey = value!.trim().replaceAll(' ', '');
+                              },
+                              controller: secretKeyController,
+                              maxLength: 56,
+                              focusNode: secretKeyFocusNode,
+                            )
+                          ],
+                          Row(
+                            children: [
+                              Container(
+                                width: width / 1.2,
+                                child: checkUsePassphrase(),
+                              ),
+                            ],
+                          ),
+                        ],
                         SizedBox(height: height / 50),
                         // Terms of Service
                         TermsOfService(
@@ -403,9 +422,78 @@ class _SignUpState extends State<SignUp> {
     );
   }
 
+  Widget checkUseImportMode() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Import existing wallet',
+                  style: TextStyle(
+                      fontSize: height / 55,
+                      color: notifier.getblck,
+                      fontFamily: fontbody),
+                ),
+              ],
+            ),
+          ],
+        ),
+        Transform.scale(
+          scale: 1.sp,
+          child: Checkbox(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(5.sp),
+              ),
+            ),
+            activeColor: notifier.isDark
+                ? notifier.getbluecolor50
+                : notifier.getbluecolor90,
+            side: BorderSide(
+              color: notifier.isDark
+                  ? notifier.getbluecolor50
+                  : notifier.getbluecolor90,
+            ),
+            value: importMode,
+            onChanged: (bool? value) {
+              setState(() {
+                importMode = value!;
+                if (usePassPhrase) {
+                  passPhraseFocusNode.requestFocus();
+                } else {
+                  secretKeyFocusNode.requestFocus();
+                }
+              });
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget checkUsePassphrase() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  LanguageEn.enterpassphrase,
+                  style: TextStyle(
+                      fontSize: height / 55,
+                      color: notifier.getblck,
+                      fontFamily: fontbody),
+                ),
+              ],
+            ),
+          ],
+        ),
         Transform.scale(
           scale: 1.sp,
           child: Checkbox(
@@ -435,22 +523,6 @@ class _SignUpState extends State<SignUp> {
             },
           ),
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  LanguageEn.enterpassphrase,
-                  style: TextStyle(
-                      fontSize: height / 55,
-                      color: notifier.getblck,
-                      fontFamily: fontbody),
-                ),
-              ],
-            ),
-          ],
-        )
       ],
     );
   }
@@ -810,8 +882,6 @@ class _SignUpState extends State<SignUp> {
         state.tempPublicKey = creds.publicKey;
         state.tempSecretKey = creds.secretKey;
       }
-
-      print('public: ${state.tempPublicKey}, secret: ${state.tempSecretKey}');
 
       Map responseData = await makePostRequest(
           uri: '/v1/users',
