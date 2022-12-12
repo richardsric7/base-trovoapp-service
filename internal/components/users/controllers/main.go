@@ -260,7 +260,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				response = ex.JSONError()
 			} else {
 				statusCode = http.StatusBadRequest
-				response = gin.H{"error": err.Error()}
+				response = gin.H{"error": err.Error(), "message": err.Error()}
+			}
+			if queryType == "import" {
+				c.JSON(http.StatusNotFound, response)
+				return
 			}
 
 			c.JSON(statusCode, response)

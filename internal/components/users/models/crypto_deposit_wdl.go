@@ -44,7 +44,7 @@ type CryptoDeposit struct {
 	ToAddress            string `gorm:"index:unique_txid,unique" json:"toAddress"`
 }
 
-type CryptoWithdrawalResponse struct {
+type CryptoWithdrawalNetworksResponse struct {
 	Message string `json:"message"`
 	Data    []struct {
 		Network              string `json:"network"`
