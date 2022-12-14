@@ -173,7 +173,6 @@ class _QrScannerState extends State<QrScanner> {
 
   void _handleScanResult(String? scanResult) async {
     controller!.pauseCamera();
-    print('scan result:');
     print(scanResult);
     if (scanResult != null) {
       runDynamicLinks(Uri.parse(scanResult));
@@ -193,80 +192,14 @@ class _QrScannerState extends State<QrScanner> {
 
       if (data != null) {
         final Uri deepLink = data.link;
-        print('deeplink... $deepLink');
-
-        // print('The deepLink data on success is $deepLink');
         print(deepLink.queryParameters);
-
-        if (deepLink.queryParameters['action'] == 'payment') {
-          if (deepLink.queryParameters['assetCode'] != '' &&
-              deepLink.queryParameters['assetCode'] != null) {
-            var deeplinkInfo = {
-              "assetCode": deepLink.queryParameters['assetCode'],
-              "assetIssuer": deepLink.queryParameters['assetIssuer'],
-              "source": "qr2",
-              "receiver": deepLink.queryParameters['paymentDestination'],
-              "amount":
-                  deepLink.queryParameters['amount'], // amount we want to send
-              "memo": deepLink.queryParameters['memo'],
-              'action': 'payment'
-            };
-            print('this is deeplinkInfo: $deeplinkInfo');
-            var assetInfo = null;
-
-            var assetBalances = appState!.assetBalances;
-            var claimedAssets =
-                assetBalances[appState!.activeWallet!.publicKey]['claimed'];
-
-            var deeplinkAssetCode = deeplinkInfo['assetCode'] == 'XBN'
-                ? ''
-                : deeplinkInfo['assetCode'];
-
-            for (var asset in claimedAssets) {
-              print('this is asset: $asset');
-              if (asset['assetCode'] == deeplinkAssetCode &&
-                  asset['assetIssuer'] == deeplinkInfo['assetIssuer']) {
-                assetInfo = {
-                  'assetCode': asset['assetCode'],
-                  'assetIssuer': asset['assetIssuer'],
-                  'amount': asset['amount'], // balance amount in the wallet
-                  'qrCode': asset['qrCode'],
-                  'imageUrl': asset['imageUrl'],
-                };
-
-                // exit the loop immediately we get what we are looking for
-                break;
-              }
-            }
-
-            print('this is assetInfo: $assetInfo');
-
-            appState!.viewData![SendAssetViewPageConfig.key] = {
-              'assetCode': assetInfo['assetCode'],
-              'assetIssuer': assetInfo['assetIssuer'],
-              'amount': assetInfo['amount'],
-              'imageUrl': assetInfo['imageUrl'],
-              'deepLinkInfo': deeplinkInfo,
-            };
-
-            hideLoader(context);
-
-            appState?.currentAction = PageAction(
-                state: PageState.replace, page: SendAssetViewPageConfig);
-          }
-        } else {
-          hideLoader(context);
-          popup(
-            context,
-            title: 'Error!',
-            message:
-                'The QR code is not meant for ${deepLink.queryParameters['assetCode']} payment. Please scan the correct QR code!',
-          );
-        }
+        appState!.processDeepLink(context, deepLink, rel: 'qrScanner');
+        hideLoader(context);
       } else {
         popup(context,
             title: 'Error!',
-            message: 'The QR code is not meant for payment with Trovo Wallet');
+            message:
+                'Something went wrong. Could be caused by bad network or a bad qrcode image.');
         hideLoader(context);
       }
     } catch (e) {

@@ -40,6 +40,32 @@ void showSnackBar(String rel, BuildContext context) {
   );
 }
 
+void showSnackBarForInfo(String message, BuildContext context) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  ScaffoldMessenger.of(context).clearSnackBars();
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      backgroundColor: notifier.getbluecolor,
+      content: Text(
+        message,
+        style: TextStyle(
+          color: wihitecolor,
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w500,
+          fontFamily: fontbody,
+        ),
+      ),
+      action: SnackBarAction(
+        label: 'DISMISS',
+        textColor: wihitecolor,
+        onPressed: () => {
+          ScaffoldMessenger.of(context).clearSnackBars(),
+        },
+      ),
+    ),
+  );
+}
+
 getAssetCode(assetCode) {
   // assign XBN to the asset which has an
   // empty assetCode value.
@@ -106,11 +132,15 @@ class doubleTypeFormatter extends TextInputFormatter {
 }
 
 void changeTabPage(appState, index) {
-  // moves user to the wallets list tab
-  appState.bottomTabPageController!.animateToPage(index,
-      duration: const Duration(milliseconds: 500), curve: Curves.ease);
-  // set this to the wallets list tab index
-  appState.currentBottomTabIndex = index;
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (appState.bottomTabPageController!.hasClients) {
+      appState.bottomTabPageController!.animateToPage(index,
+          duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+
+      // set this to the current tab page index
+      appState.currentBottomTabIndex = index;
+    }
+  });
 }
 
 void handleDynamicLinkData(Uri parsedUri) {

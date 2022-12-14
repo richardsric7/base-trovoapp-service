@@ -47,88 +47,84 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
-          child: Container(
-            height: height,
-            child: Column(
-              children: [
-                SizedBox(height: height / 6),
-                Text(
-                  '${LanguageEn.authorize} Login',
+          child: Column(
+            children: [
+              SizedBox(height: height / 10),
+              Text(
+                '${LanguageEn.authorize} Login',
+                style: TextStyle(
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontsemibold,
+                    fontSize: 27.sp),
+              ),
+              SizedBox(
+                height: height / 40,
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: width / 10),
+                child: Text(
+                  '${viewData['description']}',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontsemibold,
-                      fontSize: 27.sp),
+                      color: notifier.getgrey,
+                      fontSize: 19.sp,
+                      // wordSpacing: 3.sp,
+                      fontFamily: fontbody),
                 ),
-                SizedBox(
-                  height: height / 40,
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: width / 10),
-                  child: Text(
-                    '${viewData['description']}',
-                    textAlign: TextAlign.justify,
-                    style: TextStyle(
-                        color: notifier.getgrey,
-                        fontSize: 20.sp,
-                        wordSpacing: 3.sp,
-                        fontFamily: fontbody),
-                  ),
-                ),
-                SizedBox(
-                  height: height / 10,
-                ),
-                Form(
-                  key: formKey,
-                  child: CustomPasswordFormField(
-                    LanguageEn.password,
-                    notifier.getbluewhitecolor,
-                    Icons.lock,
-                    notifier.getgrey,
-                    notifier.getprefixicon,
-                    notifier.getblck,
-                    70.sp,
-                    300.sp,
-                    validator: validatePassword,
-                    onChanged: (value) {
-                      setState(() {
-                        password = value!.trim().replaceAll(' ', '');
-                      });
-                    },
-                  ),
-                ),
-                SizedBox(
-                  height: height / 20,
-                ),
-                if (appState.biometricEnabled && password.isEmpty) ...[
-                  Button(
-                    LanguageEn.authorizewithbiometrics,
-                    notifier.getbluecolor,
-                    wihitecolor,
-                    onTap: toggleSwitch,
-                  ),
-                ] else ...[
-                  Button(
-                    LanguageEn.authorize,
-                    notifier.getbluecolor,
-                    wihitecolor,
-                    onTap: handleAuthorization,
-                  ),
-                ],
-                SizedBox(height: height / 50.5),
-                ButtonOutlined(
-                  LanguageEn.cancel,
-                  notifier.getwihitecolor,
+              ),
+              SizedBox(
+                height: height / 10,
+              ),
+              Form(
+                key: formKey,
+                child: CustomPasswordFormField(
+                  LanguageEn.password,
                   notifier.getbluewhitecolor,
-                  onTap: () {
-                    Navigator.of(context).pop();
+                  Icons.lock,
+                  notifier.getgrey,
+                  notifier.getprefixicon,
+                  notifier.getblck,
+                  70.sp,
+                  300.sp,
+                  validator: validatePassword,
+                  onChanged: (value) {
+                    setState(() {
+                      password = value!.trim().replaceAll(' ', '');
+                    });
                   },
                 ),
-                SizedBox(height: height / 7.3),
-                Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom)),
+              ),
+              SizedBox(
+                height: height / 20,
+              ),
+              if (appState.biometricEnabled && password.isEmpty) ...[
+                Button(
+                  LanguageEn.authorizewithbiometrics,
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: toggleSwitch,
+                ),
+              ] else ...[
+                Button(
+                  LanguageEn.authorize,
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: handleAuthorization,
+                ),
               ],
-            ),
+              SizedBox(height: height / 50.5),
+              ButtonOutlined(
+                LanguageEn.cancel,
+                notifier.getwihitecolor,
+                notifier.getbluewhitecolor,
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+            ],
           ),
         ),
       ),

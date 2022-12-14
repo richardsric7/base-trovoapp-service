@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
-import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/WalletSlides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -30,11 +28,12 @@ class _AssetDetailsState extends State<AssetDetails>
   late DataProvider appState;
   late UserInfo userInfo;
   var assetBalances;
-  List<Wallet>? wallets;
-  Wallet? activeWallet;
-  var activeAsset;
+  Map activeWallet = {};
+  Map activeAsset = {};
   var claimedAssets;
-
+  late Map curatedAsset;
+  bool isInitiator = false;
+  bool isSharedWallet = false;
   dynamic selectedWallet = '';
   dynamic selectedAsset = '';
 
@@ -52,15 +51,49 @@ class _AssetDetailsState extends State<AssetDetails>
     return menuItems;
   }
 
-  List<DropdownMenuItem<String>> get walletDropdownItems {
-    return wallets!
-        .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
-            child: Text(
-              wallet.alias!,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: wallet.publicKey))
-        .toList();
+  List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
+    var walletsList = <DropdownMenuItem<String>>[];
+    appState.allWallets.forEach((key, value) {
+      walletsList.add(
+        DropdownMenuItem(
+          child: Row(
+            children: [
+              Container(
+                constraints:
+                    isSelected ? BoxConstraints(maxWidth: width / 3) : null,
+                child: Text(
+                  value['alias'],
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (value['sharedAccessEnabled'] == 1) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.people_outline,
+                  size: 17,
+                  color: notifier.getbluecolor,
+                )
+              ],
+              if (!isSelected && key == selectedWallet) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.check,
+                  size: 18,
+                  color: notifier.getbluecolor,
+                )
+              ],
+            ],
+          ),
+          value: key,
+        ),
+      );
+    });
+
+    return walletsList;
   }
 
   @override
@@ -76,11 +109,24 @@ class _AssetDetailsState extends State<AssetDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     userInfo = appState.userInfo!;
     assetBalances = appState.assetBalances;
-    wallets = userInfo.wallets!;
-    activeWallet = appState.activeWallet;
-    selectedWallet = activeWallet!.publicKey;
-    claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
+
+    curatedAsset = userInfo.curatedSwapList!.firstWhere(
+        (asset) =>
+            asset['assetCode'] ==
+                appState.viewData![AssetDetailsViewPageConfig.key]
+                    ['assetCode'] &&
+            asset['assetIssuer'] ==
+                appState.viewData![AssetDetailsViewPageConfig.key]
+                    ['assetIssuer'],
+        orElse: () => {});
+
+    if (activeWallet.isEmpty) {
+      activeWallet = appState.allWallets[appState.activeWallet!.publicKey!];
+    }
+    selectedWallet = activeWallet['publicKey'];
+    claimedAssets = activeWallet['claimedAssets'];
     activeAsset = appState.viewData![AssetDetailsViewPageConfig.key];
+
     if (appState.viewData![AssetDetailsViewPageConfig.key] != null) {
       selectedAsset = "${getAssetCode(
         appState.viewData![AssetDetailsViewPageConfig.key]['assetCode'],
@@ -88,6 +134,20 @@ class _AssetDetailsState extends State<AssetDetails>
         appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
       )}";
     }
+
+    isSharedWallet = activeWallet['sharedAccessEnabled'] == 1;
+
+    // if this is a shared wallet
+    if (isSharedWallet) {
+      if (activeWallet['permission'] == 'INITIATOR')
+        isInitiator = true;
+      else
+        isInitiator = false;
+    }
+
+    print('============: $activeWallet');
+    print('============: $isSharedWallet');
+    print('============: $isInitiator');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -111,66 +171,41 @@ class _AssetDetailsState extends State<AssetDetails>
                   child: Row(
                     children: [
                       Expanded(
-                        child: DropdownButtonFormField(
-                          isExpanded: true,
-                          dropdownColor: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 0, horizontal: 20),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            filled: true,
-                            fillColor: notifier.isDark
-                                ? darktilewhitecolor
-                                : notifier.getaddsubwalletgrey,
-                          ),
-                          value: selectedWallet,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                          elevation: 0,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontsemibold,
-                              fontWeight: FontWeight.w500),
-                          onChanged: (newValue) {
-                            setState(() {
-                              selectedWallet = newValue!;
-                              for (var asset in claimedAssets) {
-                                // we need to somehow take care of the selected asset
-                                // when switching wallets because of scenarios
-                                // where one wallet has an asset that is not listed
-                                // on the other. Here we are checking whether the
-                                // newly selected wallet contains the currently
-                                // selected asset and if it doesn't we switch
-                                // back to the default asset which is XBN
-                                if (asset['assetIssuer'] == selectedAsset ||
-                                    asset['assetIssuer'] == '') {
-                                  appState.viewData![
-                                      AssetDetailsViewPageConfig.key] = asset;
-                                  break;
-                                }
-                              }
-                              print('this is new value: $newValue');
-                              appState.activeWallet = wallets!.firstWhere(
-                                  (wallet) => wallet.publicKey == newValue);
-                            });
-                          },
-                          items: walletDropdownItems,
-                        ),
-                      ),
+                          child: dropdown(
+                        (newValue) {
+                          selectedWallet = newValue!;
+                          activeWallet = appState.allWallets[newValue];
+                          claimedAssets = activeWallet['claimedAssets'];
+
+                          for (var asset in claimedAssets) {
+                            // we need to somehow take care of the selected asset
+                            // when switching wallets because of scenarios
+                            // where one wallet has an asset that is not listed
+                            // on the other. Here we are checking whether the
+                            // newly selected wallet contains the currently
+                            // selected asset and if it doesn't we switch
+                            // back to the default asset which is XBN
+                            if (asset['assetIssuer'] == selectedAsset ||
+                                asset['assetIssuer'] == '') {
+                              appState.viewData![
+                                  AssetDetailsViewPageConfig.key] = asset;
+                              break;
+                            }
+                          }
+                          setState(() {});
+                        },
+                        walletDropdownItems(false),
+                        selectedWallet.toString().isEmpty
+                            ? null
+                            : selectedWallet,
+                        null,
+                        context,
+                        (context) {
+                          return walletDropdownItems(true);
+                        },
+                      )),
                       SizedBox(
-                        width: width / 20,
+                        width: width / 40,
                       ),
                       Expanded(
                         child: DropdownButtonFormField(
@@ -205,8 +240,8 @@ class _AssetDetailsState extends State<AssetDetails>
                             ),
                             onChanged: (newValue) {
                               setState(() {
-                                newValue = newValue == nativeAssetIssuer
-                                    ? ''
+                                newValue = newValue.toString().contains('XBN')
+                                    ? '|'
                                     : newValue;
                                 for (var asset in claimedAssets) {
                                   var splitNewValue =
@@ -226,7 +261,7 @@ class _AssetDetailsState extends State<AssetDetails>
                             items: assetDropdownItems),
                       ),
                       SizedBox(
-                        width: width / 20,
+                        width: width / 40,
                       ),
                     ],
                   ),
@@ -257,7 +292,7 @@ class _AssetDetailsState extends State<AssetDetails>
               WalletSlide(
                 backColor: notifier.getbluecolor,
                 foreColor: wihitecolor,
-                alias: activeWallet!.alias!.capitalizeFirst!,
+                alias: activeWallet['alias'].toString().capitalizeFirst!,
                 totalBalance:
                     '${formatNumber(double.parse(activeAsset['amount']))} ${getAssetCode(activeAsset['assetCode'])}',
                 fiatBalance:
@@ -267,11 +302,31 @@ class _AssetDetailsState extends State<AssetDetails>
               SizedBox(
                 height: height / 30,
               ),
-              assetInfo(),
+              if (curatedAsset.isNotEmpty) curatedAssetInfo() else assetInfo(),
               SizedBox(
                 height: height / 20,
               ),
-              actionButtons(),
+              if (!isSharedWallet || isInitiator) ...[
+                actionButtons(),
+              ] else ...[
+                Button(
+                  'Receive',
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () {
+                    appState.viewData![ReceiveAssetViewPageConfig.key] =
+                        appState.viewData![AssetDetailsViewPageConfig.key];
+                    appState.viewData![ReceiveAssetViewPageConfig.key]
+                        ['walletInfo'] = activeWallet;
+
+                    print(appState.viewData);
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: ReceiveAssetViewPageConfig,
+                    );
+                  },
+                ),
+              ]
             ],
           ),
         ),
@@ -286,6 +341,8 @@ class _AssetDetailsState extends State<AssetDetails>
         actionButton("assets/images/send.png", 'Send', () {
           appState.viewData![SendAssetViewPageConfig.key] =
               appState.viewData![AssetDetailsViewPageConfig.key];
+          appState.viewData![SendAssetViewPageConfig.key]['walletInfo'] =
+              activeWallet;
 
           print(appState.viewData);
           appState.currentAction = PageAction(
@@ -296,6 +353,8 @@ class _AssetDetailsState extends State<AssetDetails>
         actionButton("assets/images/receive.png", 'Receive', () {
           appState.viewData![ReceiveAssetViewPageConfig.key] =
               appState.viewData![AssetDetailsViewPageConfig.key];
+          appState.viewData![ReceiveAssetViewPageConfig.key]['walletInfo'] =
+              activeWallet;
 
           print(appState.viewData);
           appState.currentAction = PageAction(
@@ -340,11 +399,171 @@ class _AssetDetailsState extends State<AssetDetails>
     );
   }
 
+  Widget curatedAssetInfo() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
+        ),
+        constraints: BoxConstraints(minHeight: height / 2.5),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${getAssetCode(curatedAsset['assetCode'])} Token',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold),
+                  ),
+                  Text(
+                    curatedAsset['website'],
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontbody,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Container(
+                    width: width / 1.3,
+                    child: Text(
+                      curatedAsset['description'],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50.0,
+                  ),
+                  if (activeAsset['assetIssuer'].toString().isNotEmpty) ...[
+                    Text(
+                      'Issuer Public Key',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold),
+                    ),
+                    SizedBox(
+                      width: width / 1.7,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Text(
+                                truncate(activeAsset['assetIssuer'],
+                                        length: 5) +
+                                    activeAsset['assetIssuer']
+                                        .toString()
+                                        .substring(activeAsset['assetIssuer']
+                                                .toString()
+                                                .length -
+                                            5),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: notifier.getbluewhitecolor,
+                                  fontSize: 15.sp,
+                                  fontFamily: fontbody,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () => {
+                                Clipboard.setData(
+                                  ClipboardData(
+                                    text: activeAsset['assetIssuer'],
+                                  ),
+                                ),
+                                showSnackBar('Issuer public key', context),
+                              },
+                              icon: Icon(Icons.copy),
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    if (curatedAsset['contactEmail'].toString().isNotEmpty) ...[
+                      Text(
+                        'Contact Email',
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold),
+                      ),
+                      SizedBox(
+                        width: width / 1.7,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0),
+                                child: Text(
+                                  curatedAsset['contactEmail'],
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    color: notifier.getbluewhitecolor,
+                                    fontSize: 15.sp,
+                                    fontFamily: fontbody,
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                  SizedBox(height: 2),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget assetInfo() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
       child: Container(
-        height: height / 2.5,
+        constraints: BoxConstraints(minHeight: height / 2.5),
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
           color: notifier.isDark
@@ -374,29 +593,81 @@ class _AssetDetailsState extends State<AssetDetails>
                   ),
                   Container(
                     width: width / 1.3,
-                    child: Text(
-                      'TROV token (TROV) is the utility token that powers the Trovotech ecosystem. TROV token is used to access discounts, voting rights, airdrops, NFTs and other community incentives. ',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontbody,
-                      ),
+                    child: Image.network(
+                      activeAsset["imageUrl"],
+                      height: 80,
+                      width: 80,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/images/trovo.png',
+                          height: 80,
+                          width: 80,
+                        );
+                      },
                     ),
                   ),
                   SizedBox(
                     height: height / 50.0,
                   ),
-                  Text(
-                    'www.trovotech.io',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w400,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody,
+                  if (activeAsset['assetIssuer'].toString().isNotEmpty) ...[
+                    Text(
+                      'Issuer Public Key',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold),
                     ),
-                  ),
+                    SizedBox(
+                      width: width / 1.7,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Text(
+                                truncate(activeAsset['assetIssuer'],
+                                        length: 5) +
+                                    activeAsset['assetIssuer']
+                                        .toString()
+                                        .substring(activeAsset['assetIssuer']
+                                                .toString()
+                                                .length -
+                                            5),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: notifier.getbluewhitecolor,
+                                  fontSize: 15.sp,
+                                  fontFamily: fontbody,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () => {
+                                Clipboard.setData(
+                                  ClipboardData(
+                                    text: activeAsset['assetIssuer'],
+                                  ),
+                                ),
+                                showSnackBar('Issuer public key', context),
+                              },
+                              icon: Icon(Icons.copy),
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                  ],
                   SizedBox(height: 2),
                 ],
               ),

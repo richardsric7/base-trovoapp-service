@@ -68,7 +68,7 @@ class _FingerPrintState extends State<FingerPrint> {
             children: [
               Center(
                 child: Text(
-                  LanguageEn.fingerprint,
+                  LanguageEn.biometrics,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
@@ -79,7 +79,7 @@ class _FingerPrintState extends State<FingerPrint> {
               SizedBox(height: height / 45),
               Center(
                 child: Text(
-                  LanguageEn.unlockfinger,
+                  LanguageEn.unlockwithbiometrics,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontSize: 16.sp,
@@ -90,7 +90,7 @@ class _FingerPrintState extends State<FingerPrint> {
               SizedBox(height: height / 20),
               Center(
                 child: Icon(
-                  Icons.fingerprint,
+                  Icons.face_rounded,
                   color: notifier.isDark
                       ? notifier.getbluecolor50
                       : notifier.getbluecolor,
@@ -102,7 +102,7 @@ class _FingerPrintState extends State<FingerPrint> {
                 children: [
                   SizedBox(width: width / 10),
                   Icon(
-                    Icons.fingerprint,
+                    Icons.face_rounded,
                     color: notifier.isDark
                         ? notifier.getbluecolor50
                         : notifier.getbluecolor,
@@ -110,7 +110,7 @@ class _FingerPrintState extends State<FingerPrint> {
                   ),
                   SizedBox(width: width / 40),
                   Text(
-                    LanguageEn.setupfingerprint,
+                    LanguageEn.enablebiometrics,
                     style: TextStyle(
                         color: notifier.getgrey,
                         fontSize: 15.sp,
@@ -174,6 +174,7 @@ class _FingerPrintState extends State<FingerPrint> {
     StoreData().storeInsertData('isFirstTime', false);
     appState.currentAction =
         PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
+    appState.isLoggedIn = true;
   }
 
   void _persistBiometricState() async =>

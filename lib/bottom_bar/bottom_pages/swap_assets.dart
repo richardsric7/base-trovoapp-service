@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -54,51 +53,10 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   final GlobalKey<FormFieldState> key3 = GlobalKey<FormFieldState>();
   final textController = TextEditingController();
   double? sliderValue = 0;
-  Map walletsMap = {};
 
   List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
     var walletsList = <DropdownMenuItem<String>>[];
-    var wallets = userInfo.wallets;
-    for (var i = 0; i < wallets!.length; i++) {
-      // get just the standard wallets since they are the only ones we can
-      // enable shared access on
-      if (wallets[i].walletType == 0) {
-        // do not add user wallets where user doesn't have initiator access
-        if (wallets[i].walletThreshold == 2 &&
-            wallets[i]
-                .permissions!
-                .where((perm) =>
-                    perm.permission == 'INITIATOR' &&
-                    perm.targetUsername == userInfo.username)
-                .isEmpty) {
-          continue;
-        }
-
-        walletsMap[wallets[i].publicKey!] = {
-          'alias': wallets[i].alias,
-          'threshold': wallets[i].walletThreshold,
-          'sharedAccessEnabled': wallets[i].sharedAccessEnabled,
-          'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
-        };
-      }
-    }
-
-    // then get all the shared wallets where I have initiator access on
-    for (var i = 0; i < appState.sharedWallets.length; i++) {
-      if (appState.sharedWallets[i]['permission'] == 'INITIATOR') {
-        walletsMap[appState.sharedWallets[i]['walletPublicKey']] = {
-          'alias': '${appState.sharedWallets[i]['walletAlias']}',
-          'permission': appState.sharedWallets[i]['permission'],
-          'threshold': appState.sharedWallets[i]['walletSettings']
-              ['walletThreshold'],
-          'sharedAccessEnabled': 1,
-          'claimedAssets': appState.sharedWallets[i]['assetBalances']
-              ['claimed'],
-        };
-      }
-    }
-
-    walletsMap.forEach((key, value) {
+    appState.transactionableWallets.forEach((key, value) {
       walletsList.add(
         DropdownMenuItem(
           child: Row(
@@ -223,9 +181,10 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                                 destinationAssetRawDropdownValue = null;
                         print(sourceAsset);
                         print(destinationAsset);
-                        print(walletsMap[selectedWallet]);
+                        print(appState.transactionableWallets[selectedWallet]);
                         claimedAssets =
-                            walletsMap[selectedWallet]['claimedAssets'];
+                            appState.transactionableWallets[selectedWallet]
+                                ['claimedAssets'];
                         setState(() {});
                       },
                       walletDropdownItems(false),
@@ -459,11 +418,15 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         print('this is new value: $newValue');
                         sourceAssetRawDropdownValue = newValue;
                         var splitNewValue = newValue!.split('|');
-                        if (walletsMap[selectedWallet]['sharedAccessEnabled'] ==
+                        if (appState.transactionableWallets[selectedWallet]
+                                    ['sharedAccessEnabled'] ==
                                 1 &&
-                            walletsMap[selectedWallet]['threshold'] == 2) {
+                            appState.transactionableWallets[selectedWallet]
+                                    ['threshold'] ==
+                                2) {
                           var claimedAssets =
-                              walletsMap[selectedWallet]['claimedAssets'];
+                              appState.transactionableWallets[selectedWallet]
+                                  ['claimedAssets'];
                           for (var i = 0; i < claimedAssets.length; i++) {
                             if (claimedAssets[i]['assetIssuer'] ==
                                     splitNewValue[0] &&
@@ -491,28 +454,30 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        var splitNewValue =
-                            destinationAssetRawDropdownValue.split('|');
-                        if (claimedAssets
-                            .where((asset) =>
-                                asset['assetIssuer'] == splitNewValue[0] &&
-                                asset['assetCode'] == splitNewValue[1])
-                            .isNotEmpty) {
-                          var assetHolder = sourceAsset;
-                          var rawValueHolder = sourceAssetRawDropdownValue;
+                        if (destinationAssetRawDropdownValue != null) {
+                          var splitNewValue =
+                              destinationAssetRawDropdownValue.split('|');
+                          if (claimedAssets
+                              .where((asset) =>
+                                  asset['assetIssuer'] == splitNewValue[0] &&
+                                  asset['assetCode'] == splitNewValue[1])
+                              .isNotEmpty) {
+                            var assetHolder = sourceAsset;
+                            var rawValueHolder = sourceAssetRawDropdownValue;
 
-                          sourceAsset = destinationAsset;
-                          sourceAssetRawDropdownValue =
-                              destinationAssetRawDropdownValue;
-                          destinationAsset = assetHolder;
-                          destinationAssetRawDropdownValue = rawValueHolder;
-                        } else {
-                          sourceAsset = destinationAsset =
-                              sourceAssetRawDropdownValue =
-                                  destinationAssetRawDropdownValue = null;
+                            sourceAsset = destinationAsset;
+                            sourceAssetRawDropdownValue =
+                                destinationAssetRawDropdownValue;
+                            destinationAsset = assetHolder;
+                            destinationAssetRawDropdownValue = rawValueHolder;
+                          } else {
+                            sourceAsset = destinationAsset =
+                                sourceAssetRawDropdownValue =
+                                    destinationAssetRawDropdownValue = null;
+                          }
+
+                          amount = 0;
                         }
-
-                        amount = 0;
                       });
                     },
                     child: Image.asset(
@@ -710,15 +675,18 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     appState.viewData![ConfirmSwapViewPageConfig.key]['walletPublicKey'] =
         selectedWallet;
     appState.viewData![ConfirmSwapViewPageConfig.key]['walletAlias'] =
-        walletsMap[selectedWallet]['alias'];
+        appState.transactionableWallets[selectedWallet]['alias'];
     appState.viewData![ConfirmSwapViewPageConfig.key]['sourceUsdPrice'] =
         sourceAsset['usdPrice'];
     appState.viewData![ConfirmSwapViewPageConfig.key]['destinationUsdPrice'] =
         destinationAsset['usdPrice'];
     appState.viewData![ConfirmSwapViewPageConfig.key]['isShared'] =
         // if the wallet is share enabled and the user has initiator access
-        (walletsMap[selectedWallet]['sharedAccessEnabled'] == 1 &&
-                walletsMap[selectedWallet]['threshold'] == 2)
+        (appState.transactionableWallets[selectedWallet]
+                        ['sharedAccessEnabled'] ==
+                    1 &&
+                appState.transactionableWallets[selectedWallet]['threshold'] ==
+                    2)
             ? 1
             : 0;
 
@@ -805,8 +773,10 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
   String getEndpoint() {
     // if the wallet is share enabled and the user has initiator access
-    if (walletsMap[selectedWallet]['sharedAccessEnabled'] == 1 &&
-        walletsMap[selectedWallet]['threshold'] == 2) {
+    if (appState.transactionableWallets[selectedWallet]
+                ['sharedAccessEnabled'] ==
+            1 &&
+        appState.transactionableWallets[selectedWallet]['threshold'] == 2) {
       return '/v1/shared-access/swap';
     }
     return '/v1/users/swap';

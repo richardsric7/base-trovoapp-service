@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/screens/Auth/get_started.dart';
 import 'package:trovo_wallet/screens/page_view/onbonding_two.dart';
 import 'package:trovo_wallet/screens/page_view/onbondingthree.dart';
 import 'package:trovo_wallet/screens/page_view/one_onbonding.dart';
@@ -74,7 +75,7 @@ class _SwiperState extends State<Swiper> {
         children: [
           Container(
             color: Colors.transparent,
-            height: height / 1.5,
+            height: height / 1.3,
             child: PageView(
               physics: const ClampingScrollPhysics(),
               controller: _pageController,
@@ -94,40 +95,20 @@ class _SwiperState extends State<Swiper> {
           // SizedBox(height: height / 20.5),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: _buildPageIndicator(),
               ),
-              SizedBox(height: height / 30.5),
-              Button(
-                LanguageEn.getstarted,
-                notifier.getbluecolor,
-                notifier.getwihitecolor,
-                onTap: () {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage, page: CreatePasswordPageConfig);
-                },
-              ),
-              SizedBox(height: height / 50.5),
+              SizedBox(height: height / 20.5),
               ButtonOutlined(
-                LanguageEn.importwallet,
+                LanguageEn.skip,
                 notifier.getwihitecolor,
                 notifier.getbluecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
-                      state: PageState.addPage, page: ImportWalletPageConfig);
-                },
-              ),
-              SizedBox(height: height / 50),
-              ButtonOutlined(
-                LanguageEn.recoveraccount,
-                notifier.getbluecolor80,
-                wihitecolor,
-                onTap: () {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: RecoverAccountViewPageConfig);
+                      state: PageState.addPage, page: GetStartedViewPageConfig);
                 },
               ),
               SizedBox(height: height / 50),

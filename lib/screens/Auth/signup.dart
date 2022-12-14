@@ -8,6 +8,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.d
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -18,6 +19,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Models/User.dart';
+import '../../functions/trovo-sdk.dart';
 import '../../router/PageActions.dart';
 import '../../storage/state.dart';
 import '../../network/requests.dart';
@@ -48,6 +50,14 @@ class _SignUpState extends State<SignUp> {
   late int corporate = 0;
   bool showError = false;
   bool hasAgreed = false; // to the terms of services
+  final referrerController = TextEditingController();
+  final secretKeyController = TextEditingController();
+  late FocusNode passPhraseFocusNode;
+  late FocusNode secretKeyFocusNode;
+  bool usePassPhrase = false;
+  String passPhrase = '';
+  String secretKey = '';
+  bool importMode = false;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -63,6 +73,8 @@ class _SignUpState extends State<SignUp> {
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
+    passPhraseFocusNode = FocusNode();
+    secretKeyFocusNode = FocusNode();
   }
 
   @override
@@ -71,6 +83,17 @@ class _SignUpState extends State<SignUp> {
     state = Provider.of<DataProvider>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    if (state.tempReferrerUsername.isNotEmpty) {
+      referrerController.text = state.tempReferrerUsername;
+      state.tempReferrerUsername = '';
+    }
+    if (state.viewData![SignupPageConfig.key] != null &&
+        state.viewData![SignupPageConfig.key]['importMode']) {
+      secretKeyController.text = state.tempSecretKey;
+      importMode = true;
+      state.viewData![SignupPageConfig.key] = null;
+    }
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
@@ -106,15 +129,6 @@ class _SignUpState extends State<SignUp> {
                               fontFamily: fontsemibold),
                         ),
                         SizedBox(height: height / 20),
-                        // // Account Type
-                        // Text(
-                        //   LanguageEn.accounttype,
-                        //   style: TextStyle(
-                        //       fontSize: height / 55,
-                        //       color: notifier.getgrey,
-                        //       fontFamily: fontbody),
-                        // ),
-                        // SizedBox(height: height / 70),
                         ToggleSwitch(
                           minHeight: height / 16,
                           customWidths: [
@@ -220,11 +234,75 @@ class _SignUpState extends State<SignUp> {
                           notifier.getgrey,
                           70.sp,
                           300.sp,
+                          controller: referrerController,
                           validator: validateReferrer,
                           onSaved: (value) =>
                               referrer = value.trim().replaceAll(' ', ''),
                           maxLength: 16,
                         ),
+                        Row(
+                          children: [
+                            Container(
+                              width: width / 1.2,
+                              child: checkUseImportMode(),
+                            ),
+                          ],
+                        ),
+                        if (importMode) ...[
+                          if (usePassPhrase) ...[
+                            // Pass phrase/Mnemonic
+                            passPhraseInput(
+                              '${LanguageEn.passphrase} (optional)',
+                              notifier.getbluecolor,
+                              notifier.getgrey,
+                              notifier.getblck,
+                              notifier.getgrey,
+                              100.sp,
+                              300.sp,
+                              onSaved: (value) {
+                                passPhrase = value;
+                              },
+                              minLines: 3,
+                              maxLines: null,
+                              keyboardtype: TextInputType.multiline,
+                              focusNode: passPhraseFocusNode,
+                            ),
+                          ] else ...[
+                            // Secret Key
+                            CustomPasswordFormField(
+                              '${LanguageEn.secretkey} (optional)',
+                              notifier.getbluecolor,
+                              Icons.lock,
+                              notifier.getgrey,
+                              notifier.getprefixicon,
+                              notifier.getblck,
+                              70.sp,
+                              300.sp,
+                              validator: (value) {
+                                var trimmedVal =
+                                    value!.trim().replaceAll(' ', '');
+                                if (trimmedVal.isNotEmpty &&
+                                    trimmedVal.length < 56) {
+                                  return LanguageEn.secretkeyinvalid;
+                                }
+                              },
+                              onSaved: (value) {
+                                secretKey = value!.trim().replaceAll(' ', '');
+                              },
+                              controller: secretKeyController,
+                              maxLength: 56,
+                              focusNode: secretKeyFocusNode,
+                            )
+                          ],
+                          Row(
+                            children: [
+                              Container(
+                                width: width / 1.2,
+                                child: checkUsePassphrase(),
+                              ),
+                            ],
+                          ),
+                        ],
                         SizedBox(height: height / 50),
                         // Terms of Service
                         TermsOfService(
@@ -284,6 +362,168 @@ class _SignUpState extends State<SignUp> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget passPhraseInput(
+    labletext,
+    focuscolor,
+    lablecolor,
+    textcolor,
+    bordercolor,
+    h,
+    w, {
+    onChanged,
+    maxLength,
+    minLines,
+    maxLines,
+    validator,
+    onSaved,
+    keyboardtype,
+    focusNode,
+  }) {
+    return ScreenUtilInit(
+      builder: (context, child) => Container(
+        color: Colors.transparent,
+        height: h,
+        width: w,
+        child: TextFormField(
+          focusNode: focusNode,
+          maxLength: maxLength,
+          minLines: minLines,
+          maxLines: maxLines,
+          style: TextStyle(color: textcolor, fontFamily: fontbody),
+          cursorColor: lablecolor,
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            hintText: labletext,
+            hintStyle: TextStyle(color: lablecolor),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15.sp),
+            ),
+            labelStyle: TextStyle(color: lablecolor),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15.sp),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: bordercolor, width: 1),
+              borderRadius: BorderRadius.circular(15.sp),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: focuscolor, width: 1),
+              borderRadius: BorderRadius.circular(15.sp),
+            ),
+          ),
+          keyboardType: keyboardtype,
+          validator: validator,
+          onSaved: onSaved,
+        ),
+      ),
+    );
+  }
+
+  Widget checkUseImportMode() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Import existing wallet',
+                  style: TextStyle(
+                      fontSize: height / 55,
+                      color: notifier.getblck,
+                      fontFamily: fontbody),
+                ),
+              ],
+            ),
+          ],
+        ),
+        Transform.scale(
+          scale: 1.sp,
+          child: Checkbox(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(5.sp),
+              ),
+            ),
+            activeColor: notifier.isDark
+                ? notifier.getbluecolor50
+                : notifier.getbluecolor90,
+            side: BorderSide(
+              color: notifier.isDark
+                  ? notifier.getbluecolor50
+                  : notifier.getbluecolor90,
+            ),
+            value: importMode,
+            onChanged: (bool? value) {
+              setState(() {
+                importMode = value!;
+                if (usePassPhrase) {
+                  passPhraseFocusNode.requestFocus();
+                } else {
+                  secretKeyFocusNode.requestFocus();
+                }
+              });
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget checkUsePassphrase() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  LanguageEn.enterpassphrase,
+                  style: TextStyle(
+                      fontSize: height / 55,
+                      color: notifier.getblck,
+                      fontFamily: fontbody),
+                ),
+              ],
+            ),
+          ],
+        ),
+        Transform.scale(
+          scale: 1.sp,
+          child: Checkbox(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(5.sp),
+              ),
+            ),
+            activeColor: notifier.isDark
+                ? notifier.getbluecolor50
+                : notifier.getbluecolor90,
+            side: BorderSide(
+              color: notifier.isDark
+                  ? notifier.getbluecolor50
+                  : notifier.getbluecolor90,
+            ),
+            value: usePassPhrase,
+            onChanged: (bool? value) {
+              setState(() {
+                usePassPhrase = value!;
+                if (usePassPhrase) {
+                  passPhraseFocusNode.requestFocus();
+                } else {
+                  secretKeyFocusNode.requestFocus();
+                }
+              });
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -480,13 +720,24 @@ class _SignUpState extends State<SignUp> {
     return null;
   }
 
-  // String? validateMobile(PhoneNumber? value) {
-  //   print('phone: ${phoneNumber!.completeNumber}');
-  //   if (phoneNumber!.number.isEmpty) {
-  //     return LanguageEn.entervalidmobilenumber;
-  //   }
-  //   return null;
-  // }
+  Future<Account?> getCredsFromPassPhrase() async {
+    try {
+      var trimmedPassprase = passPhrase.trimLeft().trimRight();
+      print('trimmed pass phrase ${trimmedPassprase}');
+      Account account = await TrovoWalletSDK()
+          .retrieveCredentialsFromPassPhrase(trimmedPassprase);
+      print(account);
+      return account;
+    } catch (e) {
+      print('from getSecretKey');
+      print(e);
+      // must be some sort of server error
+      // let's throw it
+      popup(context,
+          title: LanguageEn.error, message: LanguageEn.invalidcredentials);
+      return null;
+    }
+  }
 
   String? validateFName(String? value) {
     String pattern = r'(?:\d+[a-z]|[a-z]+\d)[a-z\d]*';
@@ -549,6 +800,23 @@ class _SignUpState extends State<SignUp> {
     return null;
   }
 
+  Account? parseKey(String secretKey) {
+    try {
+      Account account =
+          TrovoWalletSDK().parseSecretKey(secretKey.toUpperCase());
+      print(account);
+      return account;
+    } catch (e) {
+      print('from parseKey');
+      print(e);
+      // must be some sort of server error
+      // let's throw it
+      popup(context,
+          title: LanguageEn.error, message: LanguageEn.invalidcredentials);
+      return null;
+    }
+  }
+
   bool checkTerms() {
     if (!hasAgreed) {
       // show error message if the user has not
@@ -602,18 +870,26 @@ class _SignUpState extends State<SignUp> {
 
       String jsonBody = jsonEncode(map);
       print(jsonBody);
+      Account? creds = null;
 
-      var publicKey = state.tempPublicKey;
-      var secretKey = state.tempSecretKey;
+      if (!usePassPhrase && secretKey.isNotEmpty) {
+        creds = parseKey(secretKey)!;
+      } else if (usePassPhrase && passPhrase.isNotEmpty) {
+        creds = await getCredsFromPassPhrase();
+      }
 
-      print('public: $publicKey, secret: $secretKey');
+      if (creds != null) {
+        state.tempPublicKey = creds.publicKey;
+        state.tempSecretKey = creds.secretKey;
+      }
 
       Map responseData = await makePostRequest(
           uri: '/v1/users',
           body: jsonBody,
-          signer: publicKey,
-          publicKey: publicKey,
-          secretKey: secretKey);
+          signer: state.tempPublicKey,
+          publicKey: state.tempPublicKey,
+          secretKey: state.tempSecretKey);
+
       print('$responseData');
       hideLoader(context);
 

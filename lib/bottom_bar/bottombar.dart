@@ -189,7 +189,8 @@ class _BottomHomeState extends State<BottomHome> {
       if (_selectedIndex != ButtomTabPage.TransactionHistory.index &&
           index == ButtomTabPage.TransactionHistory.index) {
         appState.setFilterQuery = "";
-        appState.getHistory(context);
+
+        appState.getHistory(context, appState.activeWallet!.publicKey!);
       }
       _selectedIndex = index;
       appState.currentBottomTabIndex = _selectedIndex;

@@ -451,7 +451,9 @@ class _PaymentDetails extends State<PaymentDetails>
                             text: name.toString().isEmpty ? publicKey : name!,
                           ),
                         ),
-                        showSnackBar('Address', context),
+                        showSnackBar(
+                            name.toString().isEmpty ? 'Address' : 'Username',
+                            context),
                       },
                       icon: Icon(Icons.copy),
                       color: notifier.getbluewhitecolor,

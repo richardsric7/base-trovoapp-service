@@ -207,6 +207,7 @@ class _SharedWalletState extends State<SharedWallet>
                                     'qrCode': asset['qrCode'],
                                     'imageUrl': asset['imageUrl'],
                                     'walletInfo': viewData,
+                                    'rel': viewData['rel'],
                                   };
                                   appState.currentAction = PageAction(
                                     state: PageState.addPage,
@@ -502,7 +503,7 @@ class _SharedWalletState extends State<SharedWallet>
             title: Row(
               children: [
                 Image.network(
-                  "https://drive.google.com/uc?export=view&id=103fw13pcBoCO2hkTPFX73BUKeWWkVpGZ",
+                  asset["imageUrl"],
                   height: 35,
                   width: 35,
                   errorBuilder: (context, error, stackTrace) {

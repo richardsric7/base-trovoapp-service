@@ -58,7 +58,11 @@ class _SplashScreenState extends State<SplashScreen>
     controller.repeat();
     Timer(const Duration(seconds: 4), () {
       if (appState.splashFinished) {
-        appState.currentAction = landingPage;
+        if (initialDynamicLink != null) {
+          appState.processDeepLink(context, Uri.parse(initialDynamicLink!));
+        } else {
+          appState.currentAction = landingPage;
+        }
       }
     });
   }
@@ -81,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen>
           await StoreData().storeGetData('defaultCurrency') ?? 'USD';
       appState.sethideWalletList = List.filled(6, appState.hideBalances);
 
-      if (!appState.appIsOpen) appState.initFirebaseListener();
+      if (!appState.appIsOpen) appState.initFirebaseListener(context);
 
       print('first time here: $isFirstTime');
 
@@ -124,9 +128,13 @@ class _SplashScreenState extends State<SplashScreen>
         // else wait for the dynamiclink handler to take over
         print(
             '----------------------------------------appIsOpen = $initialDynamicLink');
-        landingPage = initialDynamicLink == null
-            ? PageAction(state: PageState.replaceAll, page: LoginPageConfig)
-            : appState.getDeepLinkView(Uri.parse(initialDynamicLink!));
+        // if (initialDynamicLink == null) {
+        //   landingPage =
+        //       PageAction(state: PageState.replaceAll, page: LoginPageConfig);
+        //   appState.setSplashFinished();
+        // } else {
+        //   appState.processDeepLink(context, Uri.parse(initialDynamicLink!));
+        // }
         appState.setSplashFinished();
         appState.appIsOpen = true;
       }
@@ -144,10 +152,7 @@ class _SplashScreenState extends State<SplashScreen>
         minimumFetchInterval: const Duration(minutes: 1),
       ));
 
-      await remoteConfig.setDefaults(const {
-        "wallet_referral_share_label":
-            "Earn tokens, discover gems, download Trovo Wallet \nwallet.trovotech.io",
-      });
+      await await FirebaseRemoteConfig.instance.fetchAndActivate();
     } catch (e) {
       print('firebase error: $e');
     }

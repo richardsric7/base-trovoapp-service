@@ -224,7 +224,7 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10.0, horizontal: 5.0),
                             child: Text(
-                              LanguageEn.usernamenotfound,
+                              LanguageEn.accountnotfound,
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
@@ -243,6 +243,9 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
+                        appState.viewData![SignupPageConfig.key] = {
+                          'importMode': true,
+                        };
                         appState.currentAction = PageAction(
                             state: PageState.addPage, page: SignupPageConfig);
                       },
@@ -2386,7 +2389,6 @@ void rejectionReasonPopup(context, void Function(String) action) {
                         horizontal: 10.0, vertical: 5.0),
                     child: ElevatedButton(
                       onPressed: () {
-                        print('elevated button pressed...$reason');
                         if (!formKey.currentState!.validate()) {
                           return;
                         }
@@ -2679,5 +2681,183 @@ approvalTextFieldPopup(context,
                 ),
               ));
         });
+      });
+}
+
+void showChooseWalletPopup(context, assetCode, assetIssuer,
+    {required void Function(String, bool) onDone,
+    required void Function() onCancel}) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var appState = Provider.of<DataProvider>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  String selectedWallet = '';
+  var filteredWallets = {};
+  appState.transactionableWallets.forEach((key, value) {
+    print('key: $key, value: $value');
+    for (var i = 0; i < value['claimedAssets'].length; i++) {
+      print('assetCode: $assetCode, assetIssuer: $assetIssuer dsds');
+      print(
+          'assetCode: ${value['claimedAssets'][i]['assetCode']}, assetIssuer: ${value['claimedAssets'][i]['assetIssuer']}');
+      if (value['claimedAssets'][i]['assetIssuer'] == assetIssuer &&
+          value['claimedAssets'][i]['assetCode'] == assetCode) {
+        print('got here....');
+        filteredWallets[key] = value;
+      }
+    }
+  });
+
+  List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
+    var walletsList = <DropdownMenuItem<String>>[];
+    filteredWallets.forEach((key, value) {
+      walletsList.add(
+        DropdownMenuItem(
+          child: Row(
+            children: [
+              Container(
+                constraints:
+                    isSelected ? BoxConstraints(maxWidth: width / 3) : null,
+                child: Text(
+                  value['alias'],
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (value['sharedAccessEnabled'] == 1) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.people_outline,
+                  size: 17,
+                  color: notifier.getbluecolor,
+                )
+              ],
+              if (!isSelected && key == selectedWallet) ...[
+                SizedBox(
+                  width: 2,
+                ),
+                Icon(
+                  Icons.check,
+                  size: 18,
+                  color: notifier.getbluecolor,
+                )
+              ],
+            ],
+          ),
+          value: key,
+        ),
+      );
+    });
+
+    return walletsList;
+  }
+
+  showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(23),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        'Select sending wallet',
+                        style: TextStyle(
+                            color: notifier.getbluecolor,
+                            fontSize: 18,
+                            fontFamily: fontsemibold),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: width / 15,
+                      ),
+                      Expanded(
+                          child: dropdown(
+                        (newValue) {
+                          onDone(
+                              newValue.toString(),
+                              filteredWallets[newValue]
+                                      ['sharedAccessEnabled'] ==
+                                  1);
+                          Navigator.of(context).pop(); // dismiss dialog,
+                        },
+                        walletDropdownItems(false),
+                        selectedWallet.toString().isEmpty
+                            ? null
+                            : selectedWallet,
+                        'Choose wallet',
+                        context,
+                        (context) {
+                          return walletDropdownItems(true);
+                        },
+                      )),
+                      SizedBox(
+                        width: width / 15,
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        onCancel();
+                      },
+                      // dismiss dialog,
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                            notifier.getsplashgrey),
+                        elevation: MaterialStateProperty.all<double>(0),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getwihitecolor!),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                              color: notifier.getgrey,
+                              width: 1,
+                              style: BorderStyle.solid),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        LanguageEn.cancel,
+                        style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ));
       });
 }

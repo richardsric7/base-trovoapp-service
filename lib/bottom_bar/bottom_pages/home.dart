@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
@@ -21,6 +23,7 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/WalletSlides.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class Home extends StatefulWidget {
@@ -44,7 +47,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   String? activeWallet;
   var claimedAssets;
   var unclaimedAssets;
-  int tabLength = 2;
+  int tabLength = 1;
   int activeTabIndex = 0;
   int activeWalletIndex = 0;
 
@@ -54,7 +57,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     _tabController = TabController(length: tabLength, vsync: this);
     _tabController.addListener(tabListener);
     _refreshController = RefreshController(initialRefresh: false);
-    Timer(const Duration(seconds: 10), checkSecurityQuestion);
+    // Timer(const Duration(seconds: 10), checkSecurityQuestion);
   }
 
   void tabListener() {
@@ -94,11 +97,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     // for when we have pending asset and then change the tablength
     // to 3 or back to 2 when we do not have pending assets.
     if (unclaimedAssets != null && unclaimedAssets.length > 0) {
-      if (activeTabIndex == _tabController.length - 1) activeTabIndex = 2;
-      tabLength = 3;
-    } else {
+      // if (activeTabIndex == _tabController.length - 1) activeTabIndex = 1;
       tabLength = 2;
-      if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
+    } else {
+      tabLength = 1;
+      // if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
     }
 
     if (tabLength != _tabController.length) {
@@ -107,13 +110,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       _tabController.addListener(tabListener);
     }
 
-    print(
-        'tablength: $tabLength, tabcontroller.length: ${_tabController.length}');
-    print('hideWalletList: ${appState.hideWalletList}');
-
     // keep track of the active tab to avoid having it changed
     // on each page rebuild
-    _tabController.animateTo(activeTabIndex);
+    // _tabController.animateTo(activeTabIndex);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -131,13 +130,114 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 ),
                 firstRow(),
                 SizedBox(
-                  height: height / 50,
+                  height: height / 70,
                 ),
-                DefaultTabController(
-                  length: tabLength,
-                  child: Column(
-                    children: [
-                      TabBar(
+                if (userInfo.hasSecurityQuestions == 0) ...[
+                  GestureDetector(
+                    onTap: () {
+                      var primaryWallet = appState.userInfo!.wallets!
+                          .firstWhere((wallet) => wallet.primaryWallet == 1);
+                      appState.viewData = {
+                        SecurityQuestionsViewPageConfig.key: {
+                          'signer': primaryWallet.signer,
+                          'publicKey': primaryWallet.publicKey,
+                          'secretKey': appState.secretKeys[0],
+                          'username': appState.userInfo!.username,
+                        }
+                      };
+
+                      appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: SecurityQuestionsViewPageConfig);
+                    },
+                    child: Container(
+                      color: Colors.red[400],
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: width / 50,
+                            ),
+                            Expanded(
+                              child: Text(
+                                'You have not setup security questions yet. Tap to setup security questions.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: fontsemibold,
+                                  color: notifier.getwihitecolor,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: width / 50,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                ],
+                walletSlides(wallets!),
+                SizedBox(
+                  height: height / 30,
+                ),
+                // check if the user's xbn balance is 0. This usually is the si-
+                // tuation when a new user signs up and has not funded their wallet
+                // yet
+                if (claimedAssets
+                    .where((asset) =>
+                        (asset['assetCode'] == '' &&
+                            asset['assetIssuer'] == '') &&
+                        asset['amount'] != 0)
+                    .isNotEmpty) ...[
+                  if (unclaimedAssets != null &&
+                      unclaimedAssets.length > 0) ...[
+                    DefaultTabController(
+                      length: tabLength,
+                      child: Column(
+                        children: [
+                          TabBar(
+                            controller: _tabController,
+                            labelColor: notifier.getbluewhitecolor,
+                            indicatorColor: notifier.getbluewhitecolor,
+                            labelStyle: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: fontsemibold,
+                            ),
+                            tabs: [
+                              Tab(
+                                height: 20,
+                                text: LanguageEn.assets,
+                              ),
+
+                              Tab(
+                                height: 20,
+                                text:
+                                    '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
+                              ),
+                              // Tab(
+                              //   height: 20,
+                              //   text: LanguageEn.nfts,
+                              // ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    assetsTabs(),
+                  ] else ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 100.0),
+                      child: TabBar(
                         controller: _tabController,
                         labelColor: notifier.getbluewhitecolor,
                         indicatorColor: notifier.getbluewhitecolor,
@@ -151,26 +251,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             height: 20,
                             text: LanguageEn.assets,
                           ),
-                          if (unclaimedAssets != null && tabLength == 3) ...[
-                            Tab(
-                              height: 20,
-                              text:
-                                  '${LanguageEn.pending} (${unclaimedAssets.length})',
-                            ),
-                          ],
-                          Tab(
-                            height: 20,
-                            text: LanguageEn.nfts,
-                          ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: height / 70,
-                ),
-                assetsTabs(),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    showTokenAssets(),
+                  ],
+                ] else ...[
+                  showFundWallet(),
+                ]
               ],
             ),
           ),
@@ -185,71 +276,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       child: TabBarView(
         controller: _tabController,
         children: [
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                walletSlides(wallets!),
-                SizedBox(
-                  height: height / 30,
-                ),
-                if (claimedAssets.length > 0) ...[
-                  for (var asset in claimedAssets) ...[
-                    GestureDetector(
-                      onTap: () {
-                        appState.setActiveWallet = wallets!.firstWhere(
-                            (wallet) => wallet.publicKey == activeWallet);
-
-                        appState.viewData = {
-                          // since the original asset object
-                          // is immutable I create a new assetObj and
-                          // copy all the data into it so that
-                          // I'll be able to change the data
-                          AssetDetailsViewPageConfig.key: {
-                            'assetCode': asset['assetCode'],
-                            'assetIssuer': asset['assetIssuer'],
-                            'amount': asset['amount'],
-                            'usdPrice': asset['usdPrice'],
-                            'qrCode': asset['qrCode'],
-                            'imageUrl': asset['imageUrl'],
-                          }
-                        };
-                        print(appState.viewData);
-                        appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: AssetDetailsViewPageConfig,
-                        );
-                      },
-                      child: tiles(asset, activeWalletIndex),
-                    ),
-                  ],
-                  SizedBox(
-                    height: height / 22,
-                  ),
-                ] else ...[
-                  Container(
-                    height: height / 3,
-                    child: Padding(
-                        padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
-                        child: Center(
-                          child: Text(
-                            LanguageEn.noassets,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: fontsemibold,
-                              color: notifier.getblck,
-                            ),
-                          ),
-                        )),
-                  ),
-                ],
-                SizedBox(
-                  height: height / 22,
-                ),
-              ],
-            ),
-          ),
-          if (tabLength == 3) ...[
+          showTokenAssets(),
+          if (tabLength == 2) ...[
             Container(
               child: SingleChildScrollView(
                 child: Column(
@@ -309,27 +337,90 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               ),
             ),
           ],
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                // in situations where the blockchain has an issue,
-                // some values can be returned as null or empty
-                // so always null check for such situations
-                if (nfts != null && nfts != {}) ...[
-                  if (nfts[activeWallet] != null &&
-                      nfts[activeWallet].length > 0) ...[
-                    gridView(),
-                    SizedBox(height: 600),
-                  ] else ...[
-                    // showEmptyNFTs(),
-                    gridView(),
-                  ]
-                ] else ...[
-                  // showEmptyNFTs(),
-                  gridView(),
-                ],
-              ],
+          // SingleChildScrollView(
+          //   child: Column(
+          //     children: [
+          //       // in situations where the blockchain has an issue,
+          //       // some values can be returned as null or empty
+          //       // so always null check for such situations
+          //       if (nfts != null && nfts != {}) ...[
+          //         if (nfts[activeWallet] != null &&
+          //             nfts[activeWallet].length > 0) ...[
+          //           gridView(),
+          //           SizedBox(height: 600),
+          //         ] else ...[
+          //           // showEmptyNFTs(),
+          //           gridView(),
+          //         ]
+          //       ] else ...[
+          //         // showEmptyNFTs(),
+          //         gridView(),
+          //       ],
+          //     ],
+          //   ),
+          // ),
+        ],
+      ),
+    );
+  }
+
+  Widget showTokenAssets() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          if (claimedAssets.length > 0) ...[
+            for (var asset in claimedAssets) ...[
+              GestureDetector(
+                onTap: () {
+                  appState.setActiveWallet = wallets!
+                      .firstWhere((wallet) => wallet.publicKey == activeWallet);
+
+                  appState.viewData = {
+                    // since the original asset object
+                    // is immutable I create a new assetObj and
+                    // copy all the data into it so that
+                    // I'll be able to change the data
+                    AssetDetailsViewPageConfig.key: {
+                      'assetCode': asset['assetCode'],
+                      'assetIssuer': asset['assetIssuer'],
+                      'amount': asset['amount'],
+                      'usdPrice': asset['usdPrice'],
+                      'qrCode': asset['qrCode'],
+                      'imageUrl': asset['imageUrl'],
+                    }
+                  };
+                  print(appState.viewData);
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: AssetDetailsViewPageConfig,
+                  );
+                },
+                child: tiles(asset, activeWalletIndex),
+              ),
+            ],
+            SizedBox(
+              height: height / 22,
             ),
+          ] else ...[
+            Container(
+              height: height / 3,
+              child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
+                  child: Center(
+                    child: Text(
+                      LanguageEn.noassets,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: fontsemibold,
+                        color: notifier.getblck,
+                      ),
+                    ),
+                  )),
+            ),
+          ],
+          SizedBox(
+            height: height / 22,
           ),
         ],
       ),
@@ -428,21 +519,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage, page: SearchViewPageConfig);
-              },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-                child: SvgPicture.asset(
-                  "assets/images/search.svg",
-                  color: notifier.getbluewhitecolor,
-                  height: height / 40,
-                ),
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     appState.currentAction = PageAction(
+            //         state: PageState.addPage, page: SearchViewPageConfig);
+            //   },
+            //   child: Padding(
+            //     padding:
+            //         const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+            //     child: SvgPicture.asset(
+            //       "assets/images/search.svg",
+            //       color: notifier.getbluewhitecolor,
+            //       height: height / 40,
+            //     ),
+            //   ),
+            // ),
             GestureDetector(
               onTap: () {
                 appState.currentAction = PageAction(
@@ -458,24 +549,24 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 ),
               ),
             ),
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: NotificationsViewPageConfig);
-              },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-                // child: Image.asset("assets/images/notifications.png",
-                //     color: notifier.getbluecolor),
-                child: SvgPicture.asset(
-                  "assets/images/notifications-active.svg",
-                  color: notifier.getbluewhitecolor,
-                  height: height / 40,
-                ),
-              ),
-            ),
+            // GestureDetector(
+            //   onTap: () {
+            //     appState.currentAction = PageAction(
+            //         state: PageState.addPage,
+            //         page: NotificationsViewPageConfig);
+            //   },
+            //   child: Padding(
+            //     padding:
+            //         const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+            //     // child: Image.asset("assets/images/notifications.png",
+            //     //     color: notifier.getbluecolor),
+            //     child: SvgPicture.asset(
+            //       "assets/images/notifications-active.svg",
+            //       color: notifier.getbluewhitecolor,
+            //       height: height / 40,
+            //     ),
+            //   ),
+            // ),
             SizedBox(
               width: height / 50,
             ),
@@ -798,9 +889,122 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     }
   }
 
-  void checkSecurityQuestion() {
-    if (userInfo.hasSecurityQuestions == 0) {
-      showSetSecurityQuestionsPopup(context);
+  Widget showFundWallet() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              child: Column(
+                children: [
+                  Text(
+                    'Your wallet is ready!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 90,
+                  ),
+                  Text(
+                    'But you cannot use it for any transaction just yet until it is activated with at least 10 Bantu tokens (XBN)',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: fontbody,
+                      color: notifier.getbluecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Text(
+                    'You can get Bantu tokens (XBN) for your wallet in 3 easy ways',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontFamily: fontbody,
+                      color: notifier.getbluecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+        Button(
+          'Request XBN from Trovo user',
+          notifier.getbluecolor,
+          wihitecolor,
+          onTap: () {
+            appState.viewData![RequestSpecificPaymentViewPageConfig.key] = {
+              'assetCode': '',
+              'assetIssuer': '',
+              'publicKey': appState.primaryWallet.publicKey,
+              'walletAlias': appState.primaryWallet.alias,
+              'isSharedAccess': 0,
+            };
+
+            appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: RequestSpecificPaymentViewPageConfig);
+          },
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+        ButtonOutlined(
+          'Send XBN to your wallet',
+          notifier.getbluecolor80,
+          wihitecolor,
+          onTap: () {
+            Clipboard.setData(
+              ClipboardData(
+                text: appState.primaryWallet.publicKey,
+              ),
+            );
+            showSnackBar('Public key', context);
+          },
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+        ButtonOutlined(
+          'Buy XBN on TrovoP2P',
+          notifier.getwihitecolor,
+          notifier.getbluewhitecolor,
+          onTap: () => _launchUrl(),
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _launchUrl() async {
+    Uri uri = Uri.https(trovoP2pUrl, '/login');
+    print('launching $uri');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $uri';
     }
   }
 }

@@ -16,6 +16,7 @@ import 'cache.dart';
 
 class DataProvider with ChangeNotifier {
   UserInfo? userInfo;
+  bool isLoggedIn = false;
   List<String> secretKeys = [];
   bool isDark = false;
   bool biometricEnabled = false;
@@ -23,6 +24,97 @@ class DataProvider with ChangeNotifier {
   String? password;
   var assetBalances;
   var nfts;
+  Wallet get primaryWallet =>
+      userInfo!.wallets!.firstWhere((wallet) => wallet.primaryWallet == 1);
+  Map _transactionableWallets = {};
+  Map get transactionableWallets {
+    var wallets = userInfo!.wallets;
+
+    for (var i = 0; i < wallets!.length; i++) {
+      // get just the standard wallets since they are the only ones we can
+      // enable shared access on
+      if (wallets[i].walletType == 0) {
+        // do not add user wallets where user doesn't have initiator access
+        if (wallets[i].walletThreshold == 2 &&
+            wallets[i]
+                .permissions!
+                .where((perm) =>
+                    perm.permission == 'INITIATOR' &&
+                    perm.targetUsername == userInfo!.username)
+                .isEmpty) {
+          continue;
+        }
+
+        _transactionableWallets[wallets[i].publicKey!] = {
+          'publicKey': wallets[i].publicKey,
+          'alias': wallets[i].alias,
+          'threshold': wallets[i].walletThreshold,
+          'sharedAccessEnabled': wallets[i].primaryWallet == 1
+              ? 0
+              : wallets[i].sharedAccessEnabled,
+          'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
+        };
+      }
+    }
+
+    // then get all the shared wallets where I have initiator access on
+    for (var i = 0; i < sharedWallets.length; i++) {
+      if (sharedWallets[i]['permission'] == 'INITIATOR') {
+        _transactionableWallets[sharedWallets[i]['walletPublicKey']] = {
+          'publicKey': sharedWallets[i]['walletPublicKey'],
+          'alias': '${sharedWallets[i]['walletAlias']}',
+          'permission': sharedWallets[i]['permission'],
+          'threshold': sharedWallets[i]['walletSettings']['walletThreshold'],
+          'sharedAccessEnabled': 1,
+          'claimedAssets': sharedWallets[i]['assetBalances']['claimed'],
+        };
+      }
+    }
+    return _transactionableWallets;
+  }
+
+  Map _allWallets = {}; // both shared and non-shared
+  Map get allWallets {
+    var wallets = userInfo!.wallets;
+
+    for (var i = 0; i < wallets!.length; i++) {
+      if (wallets[i].walletType == 0) {
+        if (wallets[i].walletThreshold == 2 &&
+            wallets[i]
+                .permissions!
+                .where((perm) =>
+                    perm.permission == 'INITIATOR' &&
+                    perm.targetUsername == userInfo!.username)
+                .isEmpty) {
+          continue;
+        }
+
+        _allWallets[wallets[i].publicKey!] = {
+          'publicKey': wallets[i].publicKey,
+          'alias': wallets[i].alias,
+          'threshold': wallets[i].walletThreshold,
+          'sharedAccessEnabled': wallets[i].primaryWallet == 1
+              ? 0
+              : wallets[i].sharedAccessEnabled,
+          'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
+        };
+      }
+    }
+
+    for (var i = 0; i < sharedWallets.length; i++) {
+      _allWallets[sharedWallets[i]['walletPublicKey']] = {
+        'publicKey': sharedWallets[i]['walletPublicKey'],
+        'alias': '${sharedWallets[i]['walletAlias']}',
+        'permission': sharedWallets[i]['permission'],
+        'threshold':
+            sharedWallets[i]['walletSettings']?['walletThreshold'] ?? 0,
+        'sharedAccessEnabled': 1,
+        'claimedAssets': sharedWallets[i]['assetBalances']['claimed'],
+      };
+    }
+    return _allWallets;
+  }
+
   bool dialogOpen = false;
   WalletsListViewData walletView = WalletsListViewData(
       view: WalletView.listWallets,
@@ -111,6 +203,12 @@ class DataProvider with ChangeNotifier {
   String tempSecretKey = '';
   set setTempSecretKey(value) {
     tempSecretKey = value;
+    notifyListeners();
+  }
+
+  String tempReferrerUsername = '';
+  set setTempReferrerUsername(value) {
+    tempReferrerUsername = value;
     notifyListeners();
   }
 
@@ -267,9 +365,14 @@ class DataProvider with ChangeNotifier {
   int currentPage = 1;
   int? totalRecords = 0;
 
-  getHistory(context, {void Function()? onDone}) async {
+  getHistory(context, String forPublicKey, {void Function()? onDone}) async {
     showLoader(context);
-    await fetchHistory(context, limit: limit.toString(), query: filterQuery);
+    await fetchHistory(
+      context,
+      forPublicKey,
+      limit: limit.toString(),
+      query: filterQuery,
+    );
 
     notifyListeners();
     hideLoader(context);
@@ -278,7 +381,8 @@ class DataProvider with ChangeNotifier {
   }
 
   Future<void> fetchHistory(
-    context, {
+    context,
+    String forPublicKey, {
     String? limit,
     String? query,
   }) async {
@@ -287,11 +391,11 @@ class DataProvider with ChangeNotifier {
       // the payment history view is opened from shared wallet. So we use the
       // viewData to get the public key of the shared wallet and fetch its transaction
       // history.
-      var publicKey = viewData![PaymentHistoryViewPageConfig.key] != null
-          ? viewData![PaymentHistoryViewPageConfig.key]['walletPublicKey']
-          : activeWallet!.publicKey!;
-      print('================fetching history for: $publicKey!');
-      var uri = '/v1/users/payments/${publicKey}?limit=$limit${query}';
+      // var publicKey = viewData![PaymentHistoryViewPageConfig.key] != null
+      //     ? viewData![PaymentHistoryViewPageConfig.key]['walletPublicKey']
+      //     : activeWallet!.publicKey!;
+      print('================fetching history for: $forPublicKey!');
+      var uri = '/v1/users/payments/${forPublicKey}?limit=$limit${query}';
       if (!filterAsset.contains("*")) {
         var splitAssetInfo = filterAsset.split("|");
         uri +=
@@ -300,7 +404,7 @@ class DataProvider with ChangeNotifier {
       Map responseData = await makeGetRequest(
           uri: uri,
           signer: activeWallet!.signer!,
-          publicKey: publicKey,
+          publicKey: forPublicKey,
           secretKey: secretKeys[0]);
 
       print('response: ${responseData['data']}');
@@ -433,6 +537,8 @@ class DataProvider with ChangeNotifier {
   // reach it from anywhere.
   PageController? bottomTabPageController;
 
+  late TabController sharedAccesstabController;
+
   // use this to keep track of individual wallets' hidden state used
   // especially on the dashboard screen to track which wallet is set to hidden
   // by the user
@@ -447,23 +553,17 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void initFirebaseListener() {
+  void initFirebaseListener(BuildContext context) {
     print('initing firebaselistener..............................');
     FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) async {
       try {
-        print('one 1');
-        await StoreData().storeDeleteItem('initialDynamicLink');
-        // Navigator.pushNamed(context, dynamicLinkData.link.path);
-        print('this is dynamicLinkData: $dynamicLinkData');
-        print(
-            'current action is login ${dynamicLinkData.link.queryParameters['action']}');
         await StoreData().storeInsertData(
             'initialDynamicLink', dynamicLinkData.link.toString());
-        var deepLinkView = getDeepLinkView(dynamicLinkData.link);
-
-        currentAction = deepLinkView;
+        processDeepLink(context, dynamicLinkData.link);
       } catch (e) {
         print('error processing dynamic link');
+        popup(context,
+            title: 'Error', message: 'error processing dynamic link');
       }
     }).onError((error) {
       // Handle errors
@@ -471,17 +571,13 @@ class DataProvider with ChangeNotifier {
     });
   }
 
-  PageAction getDeepLinkView(Uri initialDynamicLink) {
+  void processDeepLink(BuildContext context, Uri initialDynamicLink,
+      {String? rel}) {
     print(
         '-------------------------deeplink url: ${initialDynamicLink.toString()}');
-    PageAction pageAction =
-        PageAction(state: PageState.addAll, pages: [LoginPageConfig]);
-
     // action login
     if (initialDynamicLink.queryParameters['action'] == 'login') {
-      pageAction = PageAction(
-          state: PageState.addAll,
-          pages: [LoginPageConfig, AuthorizeLoginViewPageConfig]);
+      setSplashFinished();
       viewData![AuthorizeLoginViewPageConfig.key] = {
         'action': initialDynamicLink.queryParameters['action'],
         'loginId': initialDynamicLink.queryParameters['loginId'],
@@ -490,79 +586,79 @@ class DataProvider with ChangeNotifier {
         'targetUser': initialDynamicLink.queryParameters['targetUser'],
         'ownerUsername': initialDynamicLink.queryParameters['ownerUsername'],
         'serviceShortName':
-            initialDynamicLink.queryParameters['serviceShortName']
+            initialDynamicLink.queryParameters['serviceShortName'],
       };
+      currentAction = PageAction(
+          state: PageState.addAll,
+          pages: [LoginPageConfig, AuthorizeLoginViewPageConfig]);
     } else if (initialDynamicLink.queryParameters['action'] == 'payment') {
       // action payment
       if (initialDynamicLink.queryParameters['assetCode'] != '' &&
           initialDynamicLink.queryParameters['assetCode'] != null) {
-        var deeplinkInfo = {
-          "assetCode": initialDynamicLink.queryParameters['assetCode'],
-          "assetIssuer": initialDynamicLink.queryParameters['assetIssuer'],
-          "source": "qr2",
-          "receiver": initialDynamicLink.queryParameters['paymentDestination'],
-          "amount": initialDynamicLink
-              .queryParameters['amount'], // amount we want to send
-          "memo": initialDynamicLink.queryParameters['memo'],
-          'action': 'payment'
-        };
-        print('this is deeplinkInfo: $deeplinkInfo');
-        var assetInfo = null;
-        var claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
+        showChooseWalletPopup(
+            context,
+            initialDynamicLink.queryParameters['assetCode'] == 'XBN'
+                ? ''
+                : initialDynamicLink.queryParameters['assetCode'],
+            initialDynamicLink.queryParameters['assetIssuer'],
+            onDone: (walletPublicKey, isSharedWallet) {
+          print('=============$walletPublicKey; =============$isSharedWallet');
+          var deeplinkInfo = {
+            "assetCode": initialDynamicLink.queryParameters['assetCode'],
+            "assetIssuer": initialDynamicLink.queryParameters['assetIssuer'],
+            "source": "qr2",
+            "receiver":
+                initialDynamicLink.queryParameters['paymentDestination'],
+            "amount": initialDynamicLink
+                .queryParameters['amount'], // amount we want to send
+            "memo": initialDynamicLink.queryParameters['memo'],
+            'action': 'payment',
+            'sendingWallet': walletPublicKey,
+          };
 
-        var deeplinkAssetCode =
-            deeplinkInfo['assetCode'] == 'XBN' ? '' : deeplinkInfo['assetCode'];
+          var claimedAssets =
+              transactionableWallets[walletPublicKey]['claimedAssets'];
 
-        for (var asset in claimedAssets) {
-          print('this is asset: $asset');
-          if (asset['assetCode'] == deeplinkAssetCode &&
-              asset['assetIssuer'] == deeplinkInfo['assetIssuer']) {
-            assetInfo = {
-              'assetCode': asset['assetCode'],
-              'assetIssuer': asset['assetIssuer'],
-              'amount': asset['amount'], // balance amount in the wallet
-              'qrCode': asset['qrCode'],
-              'imageUrl': asset['imageUrl'],
-            };
+          var deeplinkAssetCode = deeplinkInfo['assetCode'] == 'XBN'
+              ? ''
+              : deeplinkInfo['assetCode'];
 
-            // exit the loop immediately we get what we are looking for
-            break;
+          for (var asset in claimedAssets) {
+            if (asset['assetCode'] == deeplinkAssetCode &&
+                asset['assetIssuer'] == deeplinkInfo['assetIssuer']) {
+              viewData![SendAssetViewPageConfig.key] = {
+                'assetCode': asset['assetCode'],
+                'assetIssuer': asset['assetIssuer'],
+                'amount': asset['amount'],
+                'imageUrl': asset['imageUrl'],
+                'usdPrice': asset['usdPrice'],
+                'walletInfo': {'isSharedWallet': isSharedWallet},
+              };
+
+              // exit the loop immediately we get what we are looking for
+              break;
+            }
           }
-        }
 
-        print('this is assetInfo: $assetInfo');
-
-        viewData = {
-          SendAssetViewPageConfig.key: {
-            'assetCode': assetInfo['assetCode'],
-            'assetIssuer': assetInfo['assetIssuer'],
-            'amount': assetInfo['amount'],
-            'imageUrl': assetInfo['imageUrl'],
-            'deepLinkInfo': deeplinkInfo,
-          },
-          // to avoid unexpected behaviour in the assetdetails page
-          // add the AssetDetailsViewPageConfig view data.
-          // The issue occurs when user goes through assetDetailsPage => sendAsset => scanQr
-          // apparently the previous page has to be rebuilt when you navigate using
-          // appState?.currentAction = PageAction(state: PageState.replace, page: SendAssetViewPageConfig);
-          // with PageState.replace.
-          AssetDetailsViewPageConfig.key: {
-            'assetCode': assetInfo['assetCode'],
-            'assetIssuer': assetInfo['assetIssuer'],
-            'amount': assetInfo['amount'],
-            'qrCode': assetInfo['qrCode'],
-            'imageUrl': assetInfo['imageUrl'],
+          viewData![SendAssetViewPageConfig.key]['deepLinkInfo'] = deeplinkInfo;
+          currentAction = PageAction(
+              state: PageState.addAll,
+              pages: isLoggedIn
+                  ? [BottomHomePageConfig, SendAssetViewPageConfig]
+                  : [LoginPageConfig, SendAssetViewPageConfig]);
+          setSplashFinished();
+        }, onCancel: () {
+          if (rel == 'qrScanner') {
+            Navigator.of(context).pop();
+          } else {
+            currentAction = PageAction(
+                state: PageState.addAll,
+                pages: isLoggedIn ? [BottomHomePageConfig] : [LoginPageConfig]);
           }
-        };
-        pageAction = PageAction(
-            state: PageState.addAll,
-            pages: [LoginPageConfig, SendAssetViewPageConfig]);
+          setSplashFinished();
+        });
       }
-    } else {
-      // action authorize
-      pageAction = PageAction(
-          state: PageState.addAll,
-          pages: [LoginPageConfig, AuthorizeActionViewPageConfig]);
+    } else if (initialDynamicLink.queryParameters['action'] == 'authorize') {
       viewData![AuthorizeActionViewPageConfig.key] = {
         'action': initialDynamicLink.queryParameters['action'],
         'authId': initialDynamicLink.queryParameters['authId'],
@@ -573,8 +669,19 @@ class DataProvider with ChangeNotifier {
         'serviceShortName':
             initialDynamicLink.queryParameters['serviceShortName']
       };
-    }
+      // action authorize
+      setSplashFinished();
+      currentAction = PageAction(
+          state: PageState.addAll,
+          pages: [LoginPageConfig, AuthorizeActionViewPageConfig]);
+    } else if (initialDynamicLink.queryParameters['action'] == 'register') {
+      setSplashFinished();
+      setTempReferrerUsername = initialDynamicLink.queryParameters['referrer'];
 
-    return pageAction;
+      // action register
+      currentAction = PageAction(
+          state: PageState.addAll,
+          pages: [LoginPageConfig, CreatePasswordPageConfig]);
+    }
   }
 }

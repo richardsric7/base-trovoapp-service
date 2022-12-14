@@ -128,8 +128,6 @@ class RequestSpecificPaymentDetailsState
   }
 
   Future<void> share() async {
-    // var label = await FirebaseRemoteConfig.instance
-    //     .getString('wallet_referral_share_label');
     await FlutterShare.share(
       title: 'Trovo Wallet',
       text:

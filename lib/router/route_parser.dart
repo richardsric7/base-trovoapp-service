@@ -127,6 +127,10 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return UpdateSharedAccessViewPageConfig;
       case UpdateSharedAccessDetailsViewPath:
         return UpdateSharedAccessDetailsViewPageConfig;
+      case WelcomeToSharedAccessViewPath:
+        return WelcomeToSharedAccessViewPageConfig;
+      case GetStartedViewPath:
+        return GetStartedViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -263,6 +267,10 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
       case Pages.UpdateSharedAccessDetailsView:
         return const RouteInformation(
             location: UpdateSharedAccessDetailsViewPath);
+      case Pages.WelcomeToSharedAccessView:
+        return const RouteInformation(location: WelcomeToSharedAccessViewPath);
+      case Pages.GetStartedView:
+        return const RouteInformation(location: GetStartedViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

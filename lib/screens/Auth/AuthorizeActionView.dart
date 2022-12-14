@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
@@ -51,6 +52,7 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
               SizedBox(height: height / 10),
               Text(
                 '${LanguageEn.authorize} ${viewData!['serviceShortName']}',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
@@ -60,12 +62,11 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: Text(
-                  "Your Trovo Wallet with username [${viewData!['targetUser']}] has been used to request an authorization session on [${viewData!['serviceShortName']}] service using [Device: ${viewData!['deviceInfo']}]",
+                  viewData!['description'].toString().capitalizeFirst!,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getgrey,
-                      fontSize: 20.sp,
-                      wordSpacing: 3.sp,
+                      fontSize: 19.sp,
                       fontFamily: fontbody),
                 ),
               ),

@@ -62,6 +62,7 @@ class CustomTextFormField {
     controller,
     buildCounter,
     readOnly = false,
+    onTap,
     key,
   }) {
     return ScreenUtilInit(
@@ -113,6 +114,7 @@ class CustomTextFormField {
           validator: validator,
           controller: controller,
           onSaved: onSaved,
+          onTap: onTap,
           buildCounter: buildCounter,
         ),
       ),

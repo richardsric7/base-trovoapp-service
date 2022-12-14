@@ -57,6 +57,7 @@ class _ConfirmInitiatePayment extends State<ConfirmInitiatePayment>
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![ConfirmInitiatePaymentViewPageConfig.key];
+    print('=====rel: ${viewData['rel']}');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -460,13 +461,25 @@ class _ConfirmInitiatePayment extends State<ConfirmInitiatePayment>
               'You have successfully requested payment of [${viewData['amount']} ${viewData['assetCode'].toString().isEmpty ? 'XBN' : viewData['assetCode']}] from [${viewData['walletInfo']['walletAlias']}] to [${viewData['destination']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
           'useOnDone': true,
           'onDone': () {
-            appState.currentAction =
-                PageAction(state: PageState.addAll, pages: [
-              BottomHomePageConfig,
-              SharedAccessViewPageConfig,
-              SharedWalletInfoViewPageConfig,
-              SharedWalletDetailsViewPageConfig
-            ]);
+            // if we got here through the wallets tab on dashboard
+            if (viewData['rel'] == 'walletsView') {
+              appState.currentAction = PageAction(
+                state: PageState.addAll,
+                pages: [
+                  BottomHomePageConfig,
+                  SharedWalletDetailsViewPageConfig
+                ],
+              );
+            } else {
+              // if we got here through the shared access page
+              appState.currentAction =
+                  PageAction(state: PageState.addAll, pages: [
+                BottomHomePageConfig,
+                SharedAccessViewPageConfig,
+                SharedWalletInfoViewPageConfig,
+                SharedWalletDetailsViewPageConfig
+              ]);
+            }
           },
         };
         appState.currentAction =
