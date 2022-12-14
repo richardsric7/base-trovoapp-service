@@ -465,7 +465,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 			}
 		}
-		cacheKey = fmt.Sprintf("[GET] /v1/servicelinks/%v/%v/login/%v", mInfo.OwnerUsername, userInfo.Username, loginID)
+		cacheKey = fmt.Sprintf("GET /v1/servicelinks/login/verify/%v/%v/%v", mInfo.OwnerUsername, userInfo.Username, loginID)
 		gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
 
 	})
@@ -562,7 +562,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			}
 
 			c.JSON(statusCode, response)
-			cacheDurationInSeconds := 60 //1 minutes
+			cacheDurationInSeconds := 5 //1 minutes
 
 			gc.RedisCache.CacheHttpResponse(cacheKey, statusCode, response, cacheDurationInSeconds)
 			return
