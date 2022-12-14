@@ -120,8 +120,7 @@ class _AppState extends State<App> {
     _timer?.cancel();
     _timer = null;
 
-    bool isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
-    if (isFirstTime) {
+    if (appState.isFirstTime) {
       setState(() {
         appState.currentAction =
             PageAction(state: PageState.replaceAll, page: OnboardingPageConfig);

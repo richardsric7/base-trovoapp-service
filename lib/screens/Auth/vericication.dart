@@ -250,6 +250,7 @@ class _VeryficationState extends State<Veryfication> {
 
   storeUserInfo(userInfoMap) async {
     print('userInfoMap: ${userInfoMap['userData']}');
+    state.isFirstTime = false;
     var userInfo = userInfoMap['userData'] ?? {};
     var assetBalances = userInfoMap['assetBalances'] ?? {};
     var nfts = userInfoMap['nfts'] ?? {};
@@ -263,6 +264,7 @@ class _VeryficationState extends State<Veryfication> {
     await StoreData().storeInsertData('nftBalances', nfts);
     await StoreData()
         .storeInsertData('walletsSharedWithUser', walletsSharedWithUser);
+    await StoreData().storeInsertData('isFirstTime', false);
     await StoreData().storeInsertData('defaultAssets', defaultAssets);
     await StoreData().storeInsertData('password', state.tempPassword);
     await StoreData().storeInsertData('publicKey', state.tempPublicKey);

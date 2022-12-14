@@ -191,9 +191,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 // yet
                 if (claimedAssets
                     .where((asset) =>
-                        (asset['assetCode'] == '' &&
-                            asset['assetIssuer'] == '') &&
-                        asset['amount'] != 0)
+                        (asset['assetCode'].toString().isEmpty &&
+                            asset['assetIssuer'].toString().isEmpty) &&
+                        double.parse(asset['amount']) != 0)
                     .isNotEmpty) ...[
                   if (unclaimedAssets != null &&
                       unclaimedAssets.length > 0) ...[

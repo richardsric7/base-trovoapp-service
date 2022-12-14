@@ -42,6 +42,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {
+    appState = Provider.of<DataProvider>(context, listen: false);
     runAsync();
     super.initState();
     getdarkmodepreviousstate();
@@ -77,8 +78,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   getVal() async {
     try {
-      print('one 2');
-      bool isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
+      appState.isFirstTime =
+          await StoreData().storeGetData('isFirstTime') ?? true;
       initialDynamicLink = await StoreData().storeGetData('initialDynamicLink');
       appState.timeout = await StoreData().storeGetData('timeOut') ?? '5';
       appState.setDefaultCurrency =
@@ -87,10 +88,11 @@ class _SplashScreenState extends State<SplashScreen>
 
       if (!appState.appIsOpen) appState.initFirebaseListener(context);
 
-      print('first time here: $isFirstTime');
+      print(
+          'first time here: ${await StoreData().storeGetData('isFirstTime')}');
 
-      if (isFirstTime) {
-        print('first time here indeed: $isFirstTime');
+      if (appState.isFirstTime) {
+        print('first time here indeed: ${appState.isFirstTime}');
         landingPage =
             PageAction(state: PageState.replaceAll, page: OnboardingPageConfig);
         appState.setSplashFinished();
@@ -163,7 +165,6 @@ class _SplashScreenState extends State<SplashScreen>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,

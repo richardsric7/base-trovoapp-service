@@ -1,16 +1,15 @@
 import 'dart:convert';
-
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/Models/User.dart';
-import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -18,6 +17,7 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import 'package:path_provider/path_provider.dart' as syspaths;
 
 class RequestSpecificPaymentDetails extends StatefulWidget {
   const RequestSpecificPaymentDetails({Key? key}) : super(key: key);
@@ -31,6 +31,7 @@ class RequestSpecificPaymentDetailsState
     extends State<RequestSpecificPaymentDetails> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  GlobalKey qrArea = GlobalKey();
   var viewData;
 
   @override
@@ -96,7 +97,7 @@ class RequestSpecificPaymentDetailsState
               if (viewData['memo'].toString().isNotEmpty) ...[
                 showMemo(),
               ],
-              showQrCode(),
+              RepaintBoundary(key: qrArea, child: showQrCode()),
               SizedBox(
                 height: height / 20,
               ),
@@ -128,8 +129,14 @@ class RequestSpecificPaymentDetailsState
   }
 
   Future<void> share() async {
-    await FlutterShare.share(
+    final appDir = (await syspaths.getTemporaryDirectory()).path;
+    String fileName = '${appDir}/share.png';
+    var pngImageBytes = takeSnapshot(fileName);
+    print('========================================$fileName');
+
+    await FlutterShare.shareFile(
       title: 'Trovo Wallet',
+      filePath: pngImageBytes,
       text:
           'Tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${viewData['walletAlias']}] => ${viewData['dynamicLink']}',
     );
@@ -247,5 +254,14 @@ class RequestSpecificPaymentDetailsState
           child:
               Image.memory(base64.decode(viewData['qrCode'].split(',').last))),
     );
+  }
+
+  takeSnapshot(String fileName) async {
+    RenderRepaintBoundary boundary =
+        qrArea.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+
+    var image = await boundary.toImage();
+    var byteData = await image.toByteData(format: ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
   }
 }

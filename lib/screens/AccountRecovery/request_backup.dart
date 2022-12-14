@@ -29,19 +29,26 @@ class RequestBackup extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(height: height / 6),
-              Text(
-                '${LanguageEn.congratulations}',
-                style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Text(
+                  '${LanguageEn.congratulations}',
+                  style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                      fontSize: 27.sp),
+                ),
               ),
-              Text(
-                '${appState.tempUsername}!',
-                style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Text(
+                  '${appState.tempUsername}!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                      fontSize: 27.sp),
+                ),
               ),
               SizedBox(height: height / 50),
               Padding(

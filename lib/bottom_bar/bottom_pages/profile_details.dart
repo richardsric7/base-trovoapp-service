@@ -261,20 +261,6 @@ class _ProfileDetailsState extends State<ProfileDetails> {
     }
   }
 
-  Future<dynamic> getBase64Image(XFile image) async {
-    //
-    List<int> imageBytes = await image.readAsBytes();
-    String imageB64 = base64Encode(imageBytes);
-    return imageB64;
-    // String fileName = image.path.split("/").last;
-  }
-
-  Uint8List getBase64Decode(String image) {
-    Uint8List imageString = base64Decode(image);
-    return imageString;
-    // String fileName = image.path.split("/").last;
-  }
-
   Widget bioInfo() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
