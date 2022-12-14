@@ -379,7 +379,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   const EdgeInsets.symmetric(vertical: 35.0, horizontal: 20),
               child: Image.asset(
                 'assets/images/trovo_white.png',
-                fit: BoxFit.cover,
                 height: 100,
                 width: 100,
               ),
@@ -483,7 +482,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(20.0)),
         color: color.backColor,
-        // color: colors[i - 1],
       ),
       child: Stack(children: [
         Column(
@@ -495,7 +493,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               children: [
                 Image.asset(
                   'assets/images/trovo_white.png',
-                  fit: BoxFit.cover,
                   height: 80,
                   width: 80,
                 ),

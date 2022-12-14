@@ -514,56 +514,60 @@ class Payment_HistoryState extends State<PaymentHistory>
                 SizedBox(
                   width: width / 50,
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: width / 50,
-                    ),
-                    Text(
-                      formatAmount(transactionType, amount, assetCode),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                        color: transactionType == TransactionType.Send
-                            ? Colors.red
-                            : notifier.getgreencolor,
-                        fontFamily: fontbody,
+                Container(
+                  width: width / 1.5,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: width / 50,
                       ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Text(
-                          timeago.format(date!),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody,
-                          ),
+                      Text(
+                        formatAmount(transactionType, amount, assetCode),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: transactionType == TransactionType.Send
+                              ? Colors.red
+                              : notifier.getgreencolor,
+                          fontFamily: fontbody,
                         ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 2,
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          name,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody,
+                      ),
+                      Row(
+                        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Text(
+                            timeago.format(date!),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                      SizedBox(
+                        height: 2,
+                      ),
+                      Wrap(
+                        children: [
+                          Text(
+                            name,
+                            overflow: TextOverflow.visible,
+                            // textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w400,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

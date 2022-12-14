@@ -75,7 +75,7 @@ class _WalletSlideState extends State<WalletSlide> {
                     const EdgeInsets.symmetric(vertical: 35.0, horizontal: 20),
                 child: Image.asset(
                   'assets/images/trovo_white.png',
-                  color: widget.foreColor,
+                  width: 100,
                 ),
               ),
             ],

@@ -739,7 +739,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               vertical: 35.0, horizontal: 20),
-                          child: Image.asset('assets/images/trovo_white.png'),
+                          child: Image.asset('assets/images/trovo_white.png',
+                              width: 20),
                         ),
                       ],
                     ),

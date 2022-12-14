@@ -94,7 +94,7 @@ class _LoginState extends State<Login> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Image.asset(
-                            'assets/images/trovo-logo-bg.png',
+                            'assets/images/trovo_white.png',
                             height: height / 4.5,
                             color: notifier.isDark
                                 ? notifier.getdarkgrey
@@ -113,14 +113,14 @@ class _LoginState extends State<Login> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Image.asset(
-                            'assets/images/trovo-logo-bg.png',
+                            'assets/images/trovo_white.png',
                             height: height / 15,
                             color: notifier.isDark
                                 ? notifier.getdarkgrey
                                 : notifier.getsplashgrey,
                           ),
                           Image.asset(
-                            'assets/images/trovo-logo-bg.png',
+                            'assets/images/trovo_white.png',
                             height: height / 15,
                             color: notifier.isDark
                                 ? notifier.getdarkgrey
@@ -135,14 +135,14 @@ class _LoginState extends State<Login> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Image.asset(
-                            'assets/images/trovo-logo-bg.png',
+                            'assets/images/trovo_white.png',
                             height: height / 15,
                             color: notifier.isDark
                                 ? notifier.getdarkgrey
                                 : notifier.getsplashgrey,
                           ),
                           Image.asset(
-                            'assets/images/trovo-logo-bg.png',
+                            'assets/images/trovo_white.png',
                             height: height / 15,
                             color: notifier.isDark
                                 ? notifier.getdarkgrey
