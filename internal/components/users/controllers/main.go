@@ -613,7 +613,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			dataPayload["route"] = ""
 			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("%v %v %v offer accepted on %v!", makeOfferRequest.Quantity, makeOfferRequest.AssetCode, makeOfferRequest.OfferType, wallet.Alias), fmt.Sprintf("You have successfully submitted a market offer to %v %v %v @ %v %v on the wallet with alias [%v].", makeOfferRequest.OfferType, makeOfferRequest.Quantity, makeOfferRequest.AssetCode, makeOfferRequest.PricePerUnit, makeOfferRequest.CurrencyCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
-
+		walletOwner.InvalidateUserCache(gc)
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, makeOfferRequest)
@@ -708,7 +708,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			dataPayload["route"] = ""
 			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Asset %v opted in on %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully added the asset [%v] to the list of your trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
-
+		walletOwner.InvalidateUserCache(gc)
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, returnedTrustLineInfo)
@@ -937,7 +937,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			dataPayload["route"] = ""
 			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("Opt-out asset %v on %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("You have successfully opted-out of the asset [%v] from the list of your trusted assets that you can receive on the wallet with alias [%v].", returnedTrustLineInfo.AssetCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
-
+		walletOwner.InvalidateUserCache(gc)
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, returnedTrustLineInfo)
@@ -1175,6 +1175,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if len(pendingAssetToClaim.TransactionID) > 0 {
 				walletOwner.SendPushMessage(fmt.Sprintf("%v pending balance on wallet %v has been claimed!", pendingAssetToClaim.AssetCode, wallet.Alias), fmt.Sprintf("%v pending balance rejected", pendingAssetToClaim.AssetCode), "", dataPayload, gc)
 			}
+			walletOwner.InvalidateUserCache(gc)
 		} else {
 			c.JSON(http.StatusAccepted, pendingAssetToClaim)
 		}
@@ -1284,6 +1285,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if len(pendingAssetToClaim.TransactionID) > 0 {
 				walletOwner.SendPushMessage(fmt.Sprintf("%v pending balance rejected on wallet %v!", pendingAssetToClaim.AssetCode, wallet.Alias), fmt.Sprintf("%v pending balance rejected", pendingAssetToClaim.AssetCode), "", dataPayload, gc)
 			}
+
+			walletOwner.InvalidateUserCache(gc)
 
 		} else {
 			c.JSON(http.StatusAccepted, pendingAssetToClaim)
@@ -1724,7 +1727,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			dataPayload["none"] = ""
 			pns.SendFirebaseMessage(*user.PushNotificationToken, "Secret Questions/Answers saved!", fmt.Sprintf("You have successfully saved secret questions in your account [%v].", user.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 		}
-
+		user.InvalidateUserCache(gc)
 		//At this point, there was no error.
 
 		c.JSON(http.StatusOK, gin.H{"message": "success"})

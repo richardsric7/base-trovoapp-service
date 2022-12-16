@@ -153,11 +153,12 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 	//validate input
 	wdlNetworks, _ := GetWithdrawalNetworks(wdlInput.Currency, gc)
 	validNetwork := false
-	for _, wdn := range wdlNetworks {
+	var wdn userModels.WithdrawalNetwork
+	for _, wdn = range wdlNetworks {
 		if strings.EqualFold(wdn.Network, wdlInput.Network) {
 			validNetwork = true
 			//check amount if valid
-			if (decimal.NewFromFloat(wdlInput.Amount)).LessThan(decimal.RequireFromString(wdn.WithdrawMin)) {
+			if (decimal.NewFromFloat(wdlInput.AmountSubmitted)).LessThan(decimal.RequireFromString(wdn.WithdrawMin)) {
 				err = &tErrors.CustomError{
 					Param:      "amount",
 					Err:        "error amount less than minimum allowed",
@@ -167,7 +168,7 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 			}
 
 			//check amount if valid
-			if (decimal.NewFromFloat(wdlInput.Amount)).GreaterThan(decimal.RequireFromString(wdn.WithdrawMax)) {
+			if (decimal.NewFromFloat(wdlInput.AmountSubmitted)).GreaterThan(decimal.RequireFromString(wdn.WithdrawMax)) {
 				err = &tErrors.CustomError{
 					Param:      "amount",
 					Err:        "error amount greater than maximum allowed",
@@ -182,7 +183,7 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 	if !validNetwork {
 		err = &tErrors.CustomError{
 			Param:      "network",
-			Err:        "error  invalid network",
+			Err:        "error invalid network",
 			ErrMessage: "Invalid network",
 		}
 
@@ -197,8 +198,15 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 	//
 
 	client := http.DefaultClient
+	cryptoWdlInput := userModels.CryptoWithdrawalRequestInput{
+		Currency:  wdlInput.Currency,
+		Amount:    wdlInput.AmountToWithdraw,
+		ToAddress: wdlInput.ToAddress,
+		Network:   wdlInput.Network,
+		Memo:      wdlInput.Memo,
+	}
 	url := fmt.Sprintf("%s/%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal")
-	jbody, err := json.Marshal(wdlInput)
+	jbody, err := json.Marshal(cryptoWdlInput)
 	if err != nil {
 		log.Println("[SubmitWithdrawalRequest] error sending request:", err)
 
@@ -231,16 +239,19 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 			Param:      "withdrwalID",
 			Err:        "error withdrawal successful but unable to retrieve status at this time",
 			ErrMessage: "Withdrawal is already successful, but the status could not be confirmed at this time. Please refresh withdrwal history after 5mins to confirm status.",
+			Code:       http.StatusAccepted,
 		}
 		return
 	}
 	wdlItem.TrovoWalletPublicKey = wallet.ID
+	wdlItem.Fees = wdlInput.Fees
 	e = gc.DB.Save(&wdlItem).Error
 	if e != nil {
 		err = &tErrors.CustomError{
 			Param:      "withdrwalID",
 			Err:        "error withdrawal successful but unable to save status at this time",
 			ErrMessage: "Withdrawal is already successful, but the status could not be saved at this time. Please refresh withdrwal history after 5mins to confirm status.",
+			Code:       http.StatusAccepted,
 		}
 		return
 	}

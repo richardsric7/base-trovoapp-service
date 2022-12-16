@@ -785,9 +785,11 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 	}
 
 	if subjectUser.HasSecurityQuestions == 1 {
-		log.Println("[DoInactiveAccountRecover] error account has security question enabled")
-
-		return userInfo, &tErrors.CustomError{Param: "username", Err: "error option not allowed", ErrMessage: "Account not qualified to use this option. This user is not qualified to use this option of recovery. Please use wallet recovery option."}
+		log.Println("[DoInactiveAccountRecover] account has security question enabled")
+		if !ValidateSecurityAnswers(subjectUser, payload.SecurityAnswers, gc) {
+			return userInfo, &tErrors.CustomError{Param: "username", Err: "error invalid security answers", ErrMessage: "Answers to the security questions are invalid."}
+		}
+		// return userInfo, &tErrors.CustomError{Param: "username", Err: "error option not allowed", ErrMessage: "Account not qualified to use this option. This user is not qualified to use this option of recovery. Please use wallet recovery option."}
 	}
 
 	if subjectUser.AccountRecoveryEnabled == 1 {
@@ -806,8 +808,13 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 	_, err = userBc.GetBlockchainAccountDetail(subjectUser.PublicKey)
 	if err == nil {
 		//account already active
-		log.Println("[DoInactiveAccountRecover] error account is already activated")
-		return userInfo, &tErrors.CustomError{Param: "username", Err: "error option not allowed", ErrMessage: "Account not qualified to use this option. This user is not qualified to use this option of recovery. Please use wallet recovery option."}
+		log.Println("[DoInactiveAccountRecover]  account is already activated")
+
+		//check if account was created over 1 week ago
+		OneWeekAgo := time.Now().Add(1 * 24 * time.Hour)
+		if subjectUser.CreatedAt.Before(OneWeekAgo) {
+			return userInfo, &tErrors.CustomError{Param: "username", Err: "error option not allowed", ErrMessage: "Account was created over 24hrs ago. It is no longer qualified to use this option of recovery. Please contact support@trovotech.io"}
+		}
 	} else {
 		if err.Error() != "error-blockchain-account-not-activated" {
 			//other blockchain error
@@ -821,8 +828,10 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 		return userInfo, &tErrors.CustomError{Param: "username", Err: "error invalid email otp", ErrMessage: "Email OTP is invalid."}
 	}
 
-	if len(answers.A1) == 0 || len(answers.A2) == 0 || len(answers.A3) == 0 || answers.Q1 == 0 || answers.Q2 == 0 || answers.Q3 == 0 {
-		return userInfo, &tErrors.CustomError{Param: "securityAnswers", Err: "Questions-or-Answers must be 3", ErrMessage: "Questions/Answers must be 3"}
+	if subjectUser.HasSecurityQuestions == 0 {
+		if len(answers.A1) == 0 || len(answers.A2) == 0 || len(answers.A3) == 0 || answers.Q1 == 0 || answers.Q2 == 0 || answers.Q3 == 0 {
+			return userInfo, &tErrors.CustomError{Param: "securityAnswers", Err: "Questions-or-Answers must be 3", ErrMessage: "Questions/Answers must be 3"}
+		}
 	}
 
 	dbtx := gc.DB.Begin()
@@ -843,10 +852,12 @@ func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.
 	subjectUser.UserWallets = make([]userModels.UserWallet, 0)
 	subjectUser.BuildPrimaryWallet()
 
-	err = SaveUserSecurityQuestions(subjectUser, answers, dbtx)
-	if err != nil {
-		// error saving security questions
-		return userInfo, err
+	if subjectUser.HasSecurityQuestions == 0 {
+		err = SaveUserSecurityQuestions(subjectUser, answers, dbtx)
+		if err != nil {
+			// error saving security questions
+			return userInfo, err
+		}
 	}
 
 	e = dbtx.Save(subjectUser).Error

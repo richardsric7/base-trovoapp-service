@@ -162,6 +162,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating WithdrawalNetwork: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.CryptoWithdrawal{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating CryptoWithdrawal: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.WalletPermission{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating WalletPermission: ", errMigrate)

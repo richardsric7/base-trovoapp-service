@@ -26,5 +26,6 @@ func UploadProfilePicture(user *userModels.User, file multipart.File, fileNameWi
 		log.Printf("[UploadProfilePicture]error saving profile picture for %v: %v\n", user.Username, e)
 		return "", fmt.Errorf("error saving account profile picture url %v", url)
 	}
+	user.InvalidateUserCache(gc)
 	return url, nil
 }

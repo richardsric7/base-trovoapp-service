@@ -352,9 +352,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				receiverPaymentHistoryCacheKey := fmt.Sprintf("[GET] /v1/users/payments/%v", middleware.ExtractPublicKey(c))
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverCacheKey, receiverPaymentHistoryCacheKey)
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverPaymentHistoryCacheKey, senderBalanceCacheKey, receiverBalanceCacheKey)
+				returnedDestination.InvalidateUserCache(gc)
 			}
 			gc.RedisCache.InvalidateCachedHttpResponse(senderBalanceCacheKey, senderTempCacheKey, receiverBalanceCacheKey, receiverTempCacheKey, sNFT, rNTF)
-
+			accountSignerUser.InvalidateUserCache(gc)
 			c.JSON(http.StatusOK, paymentInfoReturned)
 
 			{

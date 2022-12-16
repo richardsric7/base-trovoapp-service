@@ -8,10 +8,10 @@ type PaginatedCryptoDepositHistory struct {
 	Records      []CryptoDeposit `json:"records"`
 }
 type PaginatedCryptoWithdrawalHistory struct {
-	Pages        int       `json:"pages"`
-	CurrentPage  int       `json:"currentPage"`
-	TotalRecords int       `json:"totalRecords"`
-	Limit        int       `json:"limit"`
+	Pages        int                `json:"pages"`
+	CurrentPage  int                `json:"currentPage"`
+	TotalRecords int                `json:"totalRecords"`
+	Limit        int                `json:"limit"`
 	Records      []CryptoWithdrawal `json:"records"`
 }
 
@@ -43,10 +43,19 @@ type WithdrawalNetwork struct {
 	EstimatedArrivalTime int    `json:"estimatedArrivalTime"`
 }
 
-type WithdrawalRequestInput struct {
+type CryptoWithdrawalRequestInput struct {
 	Currency  string  `json:"currency"`
 	Amount    float64 `json:"amount"`
 	ToAddress string  `json:"toAddress"`
 	Network   string  `json:"network"`
 	Memo      string  `json:"memo"`
+}
+type WithdrawalRequestInput struct {
+	Currency         string  `json:"currency"`
+	AmountSubmitted  float64 `json:"amountSubmitted"`
+	AmountToWithdraw float64 `json:"amountToWithdraw"`
+	ToAddress        string  `json:"toAddress"`
+	Network          string  `json:"network"`
+	Memo             string  `json:"memo"`
+	Fees             float64 `json:"fees"`
 }

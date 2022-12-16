@@ -206,15 +206,16 @@ type CryptoWithdrawalNetworksResponse struct {
 }
 
 type CryptoWithdrawal struct {
-	TrovoWalletPublicKey string `gorm:"size:100" json:"TrovoWalletPublicKey"`
-	WithdrawalID         string `gorm:"primaryKey" json:"withdrawalId"`
-	Amount               int    `json:"amount"`
-	CreatedAt            string `json:"createdAt"`
-	UpdatedAt            string `json:"updatedAt"`
-	Currency             string `gorm:"size:100" json:"currency"`
-	Network              string `gorm:"size:100" json:"network"`
-	ToAddress            string `gorm:"size:100" json:"toAddress"`
-	Status               string `json:"status"`
+	TrovoWalletPublicKey string  `gorm:"size:100" json:"TrovoWalletPublicKey"`
+	WithdrawalID         string  `gorm:"primaryKey" json:"withdrawalId"`
+	Amount               float64 `json:"amount"`
+	Fees                 float64 `json:"fees"`
+	PerformedOn          string  `json:"createdAt"`
+	UpdatedOn            string  `json:"updatedAt"`
+	Currency             string  `gorm:"size:100" json:"currency"`
+	Network              string  `gorm:"size:100" json:"network"`
+	ToAddress            string  `gorm:"size:100" json:"toAddress"`
+	Status               string  `json:"status"`
 }
 
 type SubWalletInput struct {
