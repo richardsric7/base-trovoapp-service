@@ -282,9 +282,11 @@ func main() {
 		if len(scas) >= 1 {
 
 			for _, v := range scas {
-
-				k := keypair.MustParseFull(strings.ReplaceAll(v, " ", ""))
-
+				k, e := keypair.ParseFull(strings.ReplaceAll(v, " ", ""))
+				if e != nil {
+					log.Printf("[PARSE CHANNEL ACCOUNT]error parsing account %v:%v\n", v, e)
+					continue
+				}
 				log.Printf("Channel Account to be used:%v\n", k.Address())
 				//check minimum balance
 				if len(channelAccountsCSV) == 0 {
