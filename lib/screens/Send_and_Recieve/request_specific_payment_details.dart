@@ -1,11 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_share/flutter_share.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
@@ -17,7 +12,6 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import 'package:path_provider/path_provider.dart' as syspaths;
 
 class RequestSpecificPaymentDetails extends StatefulWidget {
   const RequestSpecificPaymentDetails({Key? key}) : super(key: key);
@@ -105,7 +99,12 @@ class RequestSpecificPaymentDetailsState
                 LanguageEn.share,
                 notifier.getbluecolor,
                 wihitecolor,
-                onTap: share,
+                onTap: () {
+                  share(
+                    'Scan Qrcode or tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${viewData['walletAlias']}] => ${viewData['dynamicLink']}',
+                    qrArea,
+                  );
+                },
               ),
               SizedBox(height: height / 50.5),
               ButtonOutlined(
@@ -125,20 +124,6 @@ class RequestSpecificPaymentDetailsState
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> share() async {
-    final appDir = (await syspaths.getTemporaryDirectory()).path;
-    String fileName = '${appDir}/share.png';
-    var pngImageBytes = takeSnapshot(fileName);
-    print('========================================$fileName');
-
-    await FlutterShare.shareFile(
-      title: 'Trovo Wallet',
-      filePath: pngImageBytes,
-      text:
-          'Tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${viewData['walletAlias']}] => ${viewData['dynamicLink']}',
     );
   }
 
@@ -254,14 +239,5 @@ class RequestSpecificPaymentDetailsState
           child:
               Image.memory(base64.decode(viewData['qrCode'].split(',').last))),
     );
-  }
-
-  takeSnapshot(String fileName) async {
-    RenderRepaintBoundary boundary =
-        qrArea.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-
-    var image = await boundary.toImage();
-    var byteData = await image.toByteData(format: ImageByteFormat.png);
-    return byteData!.buffer.asUint8List();
   }
 }

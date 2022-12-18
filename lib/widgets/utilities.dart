@@ -1,14 +1,20 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_share/flutter_share.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
+import 'package:path_provider/path_provider.dart' as syspaths;
+
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 
@@ -446,5 +452,24 @@ Widget dropdown(
       onChanged: onChanged,
       items: items,
     ),
+  );
+}
+
+Future<void> share(String message, GlobalKey snapshotAreaKey) async {
+  final appDir = await syspaths.getExternalStorageDirectory();
+  String fileName = '${appDir!.path}/share.png';
+  RenderRepaintBoundary boundary = snapshotAreaKey.currentContext!
+      .findRenderObject()! as RenderRepaintBoundary;
+
+  var image = await boundary.toImage();
+  var byteData = await image.toByteData(format: ImageByteFormat.png);
+  File file = await File(fileName).create();
+  file.writeAsBytesSync(byteData!.buffer.asUint8List());
+  print('========================================$fileName');
+
+  await FlutterShare.shareFile(
+    title: 'Trovo Wallet',
+    filePath: fileName,
+    text: message,
   );
 }

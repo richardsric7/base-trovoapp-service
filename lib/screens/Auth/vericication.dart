@@ -250,7 +250,6 @@ class _VeryficationState extends State<Veryfication> {
 
   storeUserInfo(userInfoMap) async {
     print('userInfoMap: ${userInfoMap['userData']}');
-    state.isFirstTime = false;
     var userInfo = userInfoMap['userData'] ?? {};
     var assetBalances = userInfoMap['assetBalances'] ?? {};
     var nfts = userInfoMap['nfts'] ?? {};
