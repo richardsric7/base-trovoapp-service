@@ -325,7 +325,7 @@ class _SettingsState extends State<Settings> {
                     "assets/images/terms.png", "", LanguageEn.termsofuse),
               ),
               GestureDetector(
-                onTap: () => appState.goToWebView(trovoServicesUrl),
+                onTap: () => appState.goToWebView(trovoLandingPage),
                 child: iteamlist("assets/images/copyright.png", "",
                     LanguageEn.abouttrovowallet),
               ),

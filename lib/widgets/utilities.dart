@@ -14,6 +14,8 @@ import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:path_provider/path_provider.dart' as syspaths;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -457,7 +459,7 @@ Widget dropdown(
 
 Future<void> share(String message, GlobalKey snapshotAreaKey) async {
   final appDir = await syspaths.getExternalStorageDirectory();
-  String fileName = '${appDir!.path}/share.png';
+  String fileName = '${appDir!.path}/receipt.png';
   RenderRepaintBoundary boundary = snapshotAreaKey.currentContext!
       .findRenderObject()! as RenderRepaintBoundary;
 
@@ -466,6 +468,36 @@ Future<void> share(String message, GlobalKey snapshotAreaKey) async {
   File file = await File(fileName).create();
   file.writeAsBytesSync(byteData!.buffer.asUint8List());
   print('========================================$fileName');
+
+  await FlutterShare.shareFile(
+    title: 'Trovo Wallet',
+    filePath: fileName,
+    text: message,
+  );
+}
+
+Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {
+  final appDir = await syspaths.getExternalStorageDirectory();
+  String fileName = '${appDir!.path}/receipt.pdf';
+  RenderRepaintBoundary boundary = snapshotAreaKey.currentContext!
+      .findRenderObject()! as RenderRepaintBoundary;
+  final pdf = pw.Document();
+
+  var image = await boundary.toImage();
+  var byteData = await image.toByteData(format: ImageByteFormat.png);
+
+  final pdfImage = pw.MemoryImage(
+    byteData!.buffer.asUint8List(),
+  );
+
+  pdf.addPage(pw.Page(build: (pw.Context context) {
+    return pw.Center(
+      child: pw.Image(pdfImage),
+    ); // Center
+  }));
+
+  File file = await File(fileName).create();
+  file.writeAsBytesSync(await pdf.save());
 
   await FlutterShare.shareFile(
     title: 'Trovo Wallet',

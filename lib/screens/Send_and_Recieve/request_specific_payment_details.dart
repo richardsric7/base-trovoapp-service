@@ -25,7 +25,7 @@ class RequestSpecificPaymentDetailsState
     extends State<RequestSpecificPaymentDetails> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  GlobalKey qrArea = GlobalKey();
+  GlobalKey shareArea = GlobalKey();
   var viewData;
 
   @override
@@ -84,16 +84,23 @@ class RequestSpecificPaymentDetailsState
               SizedBox(
                 height: height / 30,
               ),
-              showReceivingWallet(),
-              SizedBox(
-                height: height / 50,
-              ),
-              if (viewData['memo'].toString().isNotEmpty) ...[
-                showMemo(),
-              ],
-              RepaintBoundary(key: qrArea, child: showQrCode()),
-              SizedBox(
-                height: height / 20,
+              RepaintBoundary(
+                key: shareArea,
+                child: Column(
+                  children: [
+                    showReceivingWallet(),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    if (viewData['memo'].toString().isNotEmpty) ...[
+                      showMemo(),
+                    ],
+                    showQrCode(),
+                    SizedBox(
+                      height: height / 20,
+                    ),
+                  ],
+                ),
               ),
               Button(
                 LanguageEn.share,
@@ -102,7 +109,7 @@ class RequestSpecificPaymentDetailsState
                 onTap: () {
                   share(
                     'Scan Qrcode or tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${viewData['walletAlias']}] => ${viewData['dynamicLink']}',
-                    qrArea,
+                    shareArea,
                   );
                 },
               ),
