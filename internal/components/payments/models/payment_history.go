@@ -10,13 +10,13 @@ type PaymentHistory struct {
 	TransactionType string    `gorm:"index:idx_payment_history_unique_key,unique"`
 	TransactionDate time.Time `json:"transactionDate" gorm:"index:idx_payment_history_tx_time"`
 	From            *string   `json:"from" gorm:"size:150;index:idx_payment_history_from;null"` //trovoWallet alias and name
-	FromPublicKey   string    `json:"fromPublicKey" gorm:"size:150;index:idx_payment_history_from_pk;not null;index:idx_payment_history_unique_key,unique;index:idx_payment_history_unique_key,unique"`
+	FromPublicKey   string    `json:"fromPublicKey" gorm:"size:150;index:idx_payment_history_from_pk;not null"`
 	To              *string   `json:"to" gorm:"size:56;index:idx_payment_history_to;null"` //trovoWallet alias and name
-	ToPublicKey     string    `json:"toPublicKey" gorm:"size:56;index:idx_payment_history_to_pk;not null;index:idx_payment_history_unique_key,unique"`
+	ToPublicKey     string    `json:"toPublicKey" gorm:"size:56;index:idx_payment_history_to_pk;not null;"`
 	Memo            *string   `json:"memo" gorm:"size:28;null"`
 	AssetIssuer     *string   `json:"assetIssuer" gorm:"size:56;null;"`
-	AssetCode       string    `json:"assetCode" gorm:"size:12;not null;index:idx_payment_history_unique_key,unique"`
-	Amount          string    `json:"amount" gorm:"index:idx_payment_history_unique_key,unique"`
+	AssetCode       string    `json:"assetCode" gorm:"size:12;not null;"`
+	Amount          string    `json:"amount" gorm:"index:idx_amount_ph"`
 	TransactionID   string    `json:"transactionId" gorm:"size:70;not null;index:idx_payment_history_txid;index:idx_payment_history_unique_key,unique"`
 	PT              string    `json:"-" gorm:"size:70;not null;index:idx_payment_history_unique_key,unique;"`
 }
