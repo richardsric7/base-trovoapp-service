@@ -414,13 +414,7 @@ func getStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 		SourceAmount:       pathInput.SourceAmount,
 	}
 
-	// tryCount := 0
-	// for err != nil && tryCount <= 5 {
 	swapPaths, err = client.StrictSendPaths(sspr)
-	// log.Printf("[client.StrictSendPathsErr] failed at count: %v, err: %v\n", tryCount, err)
-	// tryCount++
-	// }
-	//successful or 5 retries exceeded
 
 	if err != nil {
 		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
@@ -428,6 +422,21 @@ func getStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 			discord.Say(fmt.Sprintf("[getStrictSendPaths] error connecting to expansion service: %v\nSwapPathRequest: %+v", err, sspr))
 
 			return paths, "", &tErrors.ErrorTemporaryServerError{}
+		}
+		if strings.Contains(err.Error(), "liquid") {
+			destAsset := os.Getenv("NATIVE_ASSET_CODE")
+			sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+			if len(pathInput.SourceAssetCode) > 0 {
+				sourceAsset = pathInput.SourceAssetCode
+			}
+			if pathInput.DestinationAssets != "native" {
+				destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
+			}
+			return paths, "", &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-low-liquidity",
+				ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+			}
 		}
 		horizonException, ok := err.(*horizonclient.Error)
 
@@ -439,7 +448,26 @@ func getStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 				log.Printf("Extras: %v is %v\n", key, val)
 			}
 
-			resultCodes, _ := horizonException.ResultCodes()
+			resultCodes, e := horizonException.ResultCodes()
+			if e != nil {
+				log.Println("[client.StrictSendPathsErr] Error getting result codes:", e)
+				if strings.Contains(e.Error(), "liquid") {
+					destAsset := os.Getenv("NATIVE_ASSET_CODE")
+					sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+					if len(pathInput.SourceAssetCode) > 0 {
+						sourceAsset = pathInput.SourceAssetCode
+					}
+					if pathInput.DestinationAssets != "native" {
+						destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
+					}
+					return paths, "", &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-low-liquidity",
+						ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+					}
+				}
+				return paths, "", &tErrors.ErrorTemporaryServerError{}
+			}
 
 			for key, val := range resultCodes.OperationCodes {
 				log.Printf("Result code: %v is %v\n", key, val)

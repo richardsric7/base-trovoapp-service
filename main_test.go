@@ -484,7 +484,7 @@ func TestCreateAccount(t *testing.T) {
 		MobileCountryCode: "NG",
 		PublicKey:         pk,
 		Referrer:          "ric",
-		VerificationCode:  "355195",
+		VerificationCode:  "157490",
 	}
 	// payload := UserRegistrationInfo{
 	// 	Username:          "ric",
