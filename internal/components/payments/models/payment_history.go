@@ -6,19 +6,20 @@ import (
 
 // PaymentHistory holds payment information
 type PaymentHistory struct {
-	ID              string
-	TransactionType string    `gorm:"index:idx_payment_history_unique_key,unique"`
-	TransactionDate time.Time `json:"transactionDate" gorm:"index:idx_payment_history_tx_time"`
-	From            *string   `json:"from" gorm:"size:150;index:idx_payment_history_from;null"` //trovoWallet alias and name
-	FromPublicKey   string    `json:"fromPublicKey" gorm:"size:150;index:idx_payment_history_from_pk;not null"`
-	To              *string   `json:"to" gorm:"size:56;index:idx_payment_history_to;null"` //trovoWallet alias and name
-	ToPublicKey     string    `json:"toPublicKey" gorm:"size:56;index:idx_payment_history_to_pk;not null;"`
-	Memo            *string   `json:"memo" gorm:"size:28;null"`
-	AssetIssuer     *string   `json:"assetIssuer" gorm:"size:56;null;"`
-	AssetCode       string    `json:"assetCode" gorm:"size:12;not null;"`
-	Amount          string    `json:"amount" gorm:"index:idx_amount_ph"`
-	TransactionID   string    `json:"transactionId" gorm:"size:70;not null;index:idx_payment_history_txid;index:idx_payment_history_unique_key,unique"`
-	PT              string    `json:"-" gorm:"size:70;not null;index:idx_payment_history_unique_key,unique;"`
+	ID                    string
+	TransactionType       string    `gorm:"index:idx_payment_history_unique_key,unique"`
+	TransactionDate       time.Time `json:"transactionDate" gorm:"index:idx_payment_history_tx_time"`
+	From                  *string   `json:"from" gorm:"size:150;index:idx_payment_history_from;null"` //trovoWallet alias and name
+	FromPublicKey         string    `json:"fromPublicKey" gorm:"size:150;index:idx_payment_history_from_pk;not null"`
+	To                    *string   `json:"to" gorm:"size:56;index:idx_payment_history_to;null"` //trovoWallet alias and name
+	ToPublicKey           string    `json:"toPublicKey" gorm:"size:56;index:idx_payment_history_to_pk;not null;"`
+	Memo                  *string   `json:"memo" gorm:"size:28;null"`
+	AssetIssuer           *string   `json:"assetIssuer" gorm:"size:56;null;"`
+	AssetCode             string    `json:"assetCode" gorm:"size:12;not null;"`
+	Amount                string    `json:"amount" gorm:"index:idx_amount_ph"`
+	TransactionID         string    `json:"transactionId" gorm:"size:70;not null;index:idx_payment_history_txid;index:idx_payment_history_unique_key,unique"`
+	PT                    string    `json:"-" gorm:"size:70;not null;index:idx_payment_history_unique_key,unique;"`
+	SourceAccountSequence string    `json:"-" gorm:"size:70;not null;index:idx_payment_history_unique_key,unique;"`
 }
 
 // PaymentHistoryJSON holds payment information in json format
