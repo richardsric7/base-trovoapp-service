@@ -86,13 +86,16 @@ class _WalletSlideState extends State<WalletSlide> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    widget.alias,
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: widget.foreColor,
-                        fontFamily: fontsemibold),
+                  Container(
+                    width: width / 1.8,
+                    child: Text(
+                      widget.alias,
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: widget.foreColor,
+                          fontFamily: fontsemibold),
+                    ),
                   ),
                   SizedBox(
                     height: height / 50,
@@ -129,13 +132,16 @@ class _WalletSlideState extends State<WalletSlide> {
                   SizedBox(
                     height: height / 98.0,
                   ),
-                  Text(
-                    getBalance(widget.totalBalance),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: widget.foreColor,
-                      fontFamily: fontsemibold,
+                  Container(
+                    width: width / 1.8,
+                    child: Text(
+                      getBalance(widget.totalBalance),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: widget.foreColor,
+                        fontFamily: fontsemibold,
+                      ),
                     ),
                   ),
                   SizedBox(height: 2),

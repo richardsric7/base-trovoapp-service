@@ -681,7 +681,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 },
               )
             }),
-        height: height / 4.7,
+        height: height / 4.4,
         padEnds: false,
         enableInfiniteScroll: false,
         clipBehavior: Clip.antiAlias,
@@ -841,7 +841,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  getBalance(formatNumber(double.parse(asset["amount"])),
+                  getBalance(
+                      formatHistoryNumber(
+                          double.parse(asset["amount"]), 99000000000),
                       indexOfWallet),
                   style: TextStyle(
                     fontSize: 12,

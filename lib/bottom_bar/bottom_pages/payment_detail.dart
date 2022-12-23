@@ -118,6 +118,7 @@ class _PaymentDetails extends State<PaymentDetails>
               Text(
                 formatAmount(
                     transactionType, viewData.amount, viewData.assetCode),
+                textAlign: TextAlign.center,
                 style: TextStyle(
                     color: transactionType == TransactionType.Send
                         ? Colors.red

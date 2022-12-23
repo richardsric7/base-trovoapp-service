@@ -37,13 +37,18 @@ class _AssetDetailsState extends State<AssetDetails>
   dynamic selectedWallet = '';
   dynamic selectedAsset = '';
 
-  List<DropdownMenuItem<String>> get assetDropdownItems {
+  List<DropdownMenuItem<String>> assetDropdownItems(bool isSelected) {
     List<DropdownMenuItem<String>> menuItems = [];
     for (var asset in claimedAssets) {
       menuItems.add(DropdownMenuItem(
           child: Text(
-            getAssetCode(asset['assetCode']),
-            overflow: TextOverflow.ellipsis,
+            isSelected
+                ? truncate(
+                    getAssetCode(asset['assetCode']),
+                    length: 3,
+                  )
+                : getAssetCode(asset['assetCode']),
+            overflow: TextOverflow.visible,
           ),
           value:
               '${getAssetCode(asset['assetCode'])}|${getAssetIssuer(asset['assetIssuer'])}'));
@@ -207,56 +212,59 @@ class _AssetDetailsState extends State<AssetDetails>
                       Expanded(
                         flex: 3,
                         child: DropdownButtonFormField(
-                            dropdownColor: notifier.isDark
+                          dropdownColor: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 0, horizontal: 20),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            filled: true,
+                            fillColor: notifier.isDark
                                 ? darktilewhitecolor
                                 : notifier.getaddsubwalletgrey,
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(
-                                  vertical: 0, horizontal: 20),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              filled: true,
-                              fillColor: notifier.isDark
-                                  ? darktilewhitecolor
-                                  : notifier.getaddsubwalletgrey,
-                            ),
-                            value: selectedAsset,
-                            icon: Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                            style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontsemibold,
-                            ),
-                            onChanged: (newValue) {
-                              setState(() {
-                                newValue = newValue.toString().contains('XBN')
-                                    ? '|'
-                                    : newValue;
-                                for (var asset in claimedAssets) {
-                                  var splitNewValue =
-                                      newValue.toString().split('|');
-                                  if (asset['assetCode'] == splitNewValue[0] &&
-                                      asset['assetIssuer'] ==
-                                          splitNewValue[1]) {
-                                    appState.viewData![
-                                        AssetDetailsViewPageConfig.key] = asset;
-                                  }
+                          ),
+                          value: selectedAsset,
+                          icon: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                          ),
+                          onChanged: (newValue) {
+                            setState(() {
+                              newValue = newValue.toString().contains('XBN')
+                                  ? '|'
+                                  : newValue;
+                              for (var asset in claimedAssets) {
+                                var splitNewValue =
+                                    newValue.toString().split('|');
+                                if (asset['assetCode'] == splitNewValue[0] &&
+                                    asset['assetIssuer'] == splitNewValue[1]) {
+                                  appState.viewData![
+                                      AssetDetailsViewPageConfig.key] = asset;
                                 }
-                              });
-                            },
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(15),
-                            ),
-                            items: assetDropdownItems),
+                              }
+                            });
+                          },
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(15),
+                          ),
+                          items: assetDropdownItems(false),
+                          selectedItemBuilder: (context) {
+                            return assetDropdownItems(true);
+                          },
+                        ),
                       ),
                       SizedBox(
                         width: width / 40,

@@ -589,7 +589,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   }
 
   String formatAmount(TransactionType transactionType, amount, assetCode) {
-    var am = formatHistoryNumber(double.parse(amount.toString()));
+    var am = formatHistoryNumber(double.parse(amount.toString()), 1000000);
     return transactionType == TransactionType.Send
         ? '- $am $assetCode'
         : '+ $am $assetCode';
