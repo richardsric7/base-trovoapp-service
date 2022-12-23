@@ -131,6 +131,12 @@ class DataProvider with ChangeNotifier {
 
   void updateListeners() => notifyListeners();
 
+  bool introducedSharedAccess = false;
+  set setIntroducedSharedAccess(value) {
+    introducedSharedAccess = value;
+    notifyListeners();
+  }
+
   var sharedWallets;
   set setSharedWallets(wallets) {
     sharedWallets = wallets;

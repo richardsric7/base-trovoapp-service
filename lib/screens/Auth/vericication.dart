@@ -256,11 +256,12 @@ class _VeryficationState extends State<Veryfication> {
     var walletsSharedWithUser = userInfoMap['walletsSharedWithUser'] ?? [];
     var defaultAssets = userInfoMap['defaultAssets'] ?? [];
 
+    // delete all user data already stored on the app
     await StoreData().storeDeleteData();
 
     await StoreData().storeInsertData('userInfo', userInfo);
     await StoreData().storeInsertData('assetBalances', assetBalances);
-    await StoreData().storeInsertData('nftBalances', nfts);
+    await StoreData().storeInsertData('nfts', nfts);
     await StoreData()
         .storeInsertData('walletsSharedWithUser', walletsSharedWithUser);
     await StoreData().storeInsertData('isFirstTime', false);
@@ -283,8 +284,6 @@ class _VeryficationState extends State<Veryfication> {
     state.setPassword = state.tempPassword;
     state.currentAction =
         PageAction(state: PageState.addPage, page: CongratulationsPageConfig);
-
-    print('secretkey from state ${state.secretKeys}');
   }
 
   // void resendOTP() async {

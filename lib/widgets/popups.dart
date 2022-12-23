@@ -1230,7 +1230,6 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
                               LanguageEn.chooseimagesource,
                               style: TextStyle(
                                 fontSize: 17,
-                                fontWeight: FontWeight.bold,
                                 color: notifier.getbluecolor,
                               ),
                               textAlign: TextAlign.center,

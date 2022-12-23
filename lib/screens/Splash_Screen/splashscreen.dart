@@ -110,10 +110,11 @@ class _SplashScreenState extends State<SplashScreen>
         appState.setDefaultAssets =
             await StoreData().storeGetData('defaultAssets');
         appState.setNFTs = await StoreData().storeGetData('nfts');
-        appState.setFiatRate = await StoreData().storeGetData('fiatRate');
+        appState.setFiatRate = await StoreData().storeGetData('fiatRate') ?? {};
         appState.setSharedWallets =
             await StoreData().storeGetData('walletsSharedWithUser');
-        print('=====================shared wallet ${appState.sharedWallets}');
+        appState.introducedSharedAccess =
+            await StoreData().storeGetData('introducedSharedAccess') ?? false;
         appState.sethideWalletList =
             await StoreData().storeGetData('hideWalletList') ??
                 List.filled(6, appState.hideBalances);
@@ -130,13 +131,6 @@ class _SplashScreenState extends State<SplashScreen>
         // else wait for the dynamiclink handler to take over
         print(
             '----------------------------------------appIsOpen = $initialDynamicLink');
-        // if (initialDynamicLink == null) {
-        //   landingPage =
-        //       PageAction(state: PageState.replaceAll, page: LoginPageConfig);
-        //   appState.setSplashFinished();
-        // } else {
-        //   appState.processDeepLink(context, Uri.parse(initialDynamicLink!));
-        // }
         appState.setSplashFinished();
         appState.appIsOpen = true;
       }

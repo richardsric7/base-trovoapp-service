@@ -145,10 +145,6 @@ class _AssetDetailsState extends State<AssetDetails>
         isInitiator = false;
     }
 
-    print('============: $activeWallet');
-    print('============: $isSharedWallet');
-    print('============: $isInitiator');
-
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -171,43 +167,45 @@ class _AssetDetailsState extends State<AssetDetails>
                   child: Row(
                     children: [
                       Expanded(
+                          flex: 5,
                           child: dropdown(
-                        (newValue) {
-                          selectedWallet = newValue!;
-                          activeWallet = appState.allWallets[newValue];
-                          claimedAssets = activeWallet['claimedAssets'];
+                            (newValue) {
+                              selectedWallet = newValue!;
+                              activeWallet = appState.allWallets[newValue];
+                              claimedAssets = activeWallet['claimedAssets'];
 
-                          for (var asset in claimedAssets) {
-                            // we need to somehow take care of the selected asset
-                            // when switching wallets because of scenarios
-                            // where one wallet has an asset that is not listed
-                            // on the other. Here we are checking whether the
-                            // newly selected wallet contains the currently
-                            // selected asset and if it doesn't we switch
-                            // back to the default asset which is XBN
-                            if (asset['assetIssuer'] == selectedAsset ||
-                                asset['assetIssuer'] == '') {
-                              appState.viewData![
-                                  AssetDetailsViewPageConfig.key] = asset;
-                              break;
-                            }
-                          }
-                          setState(() {});
-                        },
-                        walletDropdownItems(false),
-                        selectedWallet.toString().isEmpty
-                            ? null
-                            : selectedWallet,
-                        null,
-                        context,
-                        (context) {
-                          return walletDropdownItems(true);
-                        },
-                      )),
+                              for (var asset in claimedAssets) {
+                                // we need to somehow take care of the selected asset
+                                // when switching wallets because of scenarios
+                                // where one wallet has an asset that is not listed
+                                // on the other. Here we are checking whether the
+                                // newly selected wallet contains the currently
+                                // selected asset and if it doesn't we switch
+                                // back to the default asset which is XBN
+                                if (asset['assetIssuer'] == selectedAsset ||
+                                    asset['assetIssuer'] == '') {
+                                  appState.viewData![
+                                      AssetDetailsViewPageConfig.key] = asset;
+                                  break;
+                                }
+                              }
+                              setState(() {});
+                            },
+                            walletDropdownItems(false),
+                            selectedWallet.toString().isEmpty
+                                ? null
+                                : selectedWallet,
+                            null,
+                            context,
+                            (context) {
+                              return walletDropdownItems(true);
+                            },
+                          )),
                       SizedBox(
                         width: width / 40,
                       ),
                       Expanded(
+                        flex: 3,
                         child: DropdownButtonFormField(
                             dropdownColor: notifier.isDark
                                 ? darktilewhitecolor

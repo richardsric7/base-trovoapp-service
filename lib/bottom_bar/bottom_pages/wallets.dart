@@ -74,7 +74,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   late List<WalletTileColor> colors;
   late List<String> walletTypes = [
     'Standard',
-    'Token Minting',
+    'Minting/Asset Tokenization',
     'Market Making',
     'Bulk Payment'
   ];
@@ -386,10 +386,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
           ),
           Center(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                SizedBox(
-                  height: height / 50,
-                ),
                 Text(
                   walletName,
                   textAlign: TextAlign.center,
@@ -412,27 +410,25 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     ),
                   ),
                 ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                  child: Text(
-                    appState.hideBalances ? hideBalanceText : usdBal,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontbody,
-                      color: color.foreColor,
+                if (appState.defaultCurrency != 'USD') ...[
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                    child: Text(
+                      appState.hideBalances ? hideBalanceText : usdBal,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontbody,
+                        color: color.foreColor,
+                      ),
                     ),
                   ),
-                ),
-                // Icon(
-                //   CupertinoIcons.eye_slash,
-                //   color: color.foreColor,
-                // ),
+                ],
               ],
             ),
           ),
         ],
-      ), //SizedBox
+      ),
     );
   }
 
@@ -537,15 +533,17 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                 ],
               ),
               SizedBox(height: height / 80),
-              Text(
-                appState.hideBalances ? hideBalanceText : balanceUsd,
-                style: TextStyle(
-                  fontWeight: FontWeight.w300,
-                  fontSize: 13,
-                  color: color.foreColor,
-                  fontFamily: fontbody,
+              if (appState.defaultCurrency != 'USD') ...[
+                Text(
+                  appState.hideBalances ? hideBalanceText : balanceUsd,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w300,
+                    fontSize: 13,
+                    color: color.foreColor,
+                    fontFamily: fontbody,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -700,31 +698,31 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                             ),
                           ],
                         ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
-                        Row(
-                          children: [
-                            SizedBox(
-                              width: width / 4.4,
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                mintWalletExplainerPopup(context);
-                              },
-                              child: Text(
-                                'What does it mean?',
-                                style: TextStyle(
-                                  decoration: TextDecoration.underline,
-                                  color: notifier.getbluewhitecolor,
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w500,
-                                  fontFamily: fontbody,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                        // SizedBox(
+                        //   height: height / 50,
+                        // ),
+                        // Row(
+                        //   children: [
+                        //     SizedBox(
+                        //       width: width / 4.4,
+                        //     ),
+                        //     GestureDetector(
+                        //       onTap: () {
+                        //         mintWalletExplainerPopup(context);
+                        //       },
+                        //       child: Text(
+                        //         'What does it mean?',
+                        //         style: TextStyle(
+                        //           decoration: TextDecoration.underline,
+                        //           color: notifier.getbluewhitecolor,
+                        //           fontSize: 12.sp,
+                        //           fontWeight: FontWeight.w500,
+                        //           fontFamily: fontbody,
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
                         SizedBox(
                           height: height / 50,
                         ),
@@ -982,6 +980,21 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     ),
                   ),
                   SizedBox(
+                    height: height / 20,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    child: Text(
+                      'Please note that completing this process will attract some charges.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
                     height: height / 30,
                   ),
                 ],
@@ -1002,11 +1015,16 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         70.sp,
         300.sp,
         validator: validatePassword,
+        textInputAction: TextInputAction.done,
         onChanged: (value) {
           setState(() {
             password = value!.trim().replaceAll(' ', '');
           });
         },
+        // onSubmitted: (value) {
+        //   print('email: $value');
+        //   secretKey = value!.trim().replaceAll(' ', '');
+        // },
         onSaved: (value) {
           print('email: $value');
           secretKey = value!.trim().replaceAll(' ', '');

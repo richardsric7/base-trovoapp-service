@@ -157,38 +157,38 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                     fontSize: 13.sp),
               ),
               SizedBox(height: height / 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  children: [
-                    Text(
-                      LanguageEn.bio,
-                      style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold,
-                          fontSize: 16.sp),
-                    ),
-                  ],
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //   child: Row(
+              //     children: [
+              //       Text(
+              //         LanguageEn.bio,
+              //         style: TextStyle(
+              //             color: notifier.getbluewhitecolor,
+              //             fontFamily: fontsemibold,
+              //             fontSize: 16.sp),
+              //       ),
+              //     ],
+              //   ),
+              // ),
               bioInfo(),
               SizedBox(height: height / 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  children: [
-                    Text(
-                      LanguageEn.socials,
-                      style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold,
-                          fontSize: 16.sp),
-                    ),
-                  ],
-                ),
-              ),
-              socials(),
-              SizedBox(height: height / 20),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //   child: Row(
+              //     children: [
+              //       Text(
+              //         LanguageEn.socials,
+              //         style: TextStyle(
+              //             color: notifier.getbluewhitecolor,
+              //             fontFamily: fontsemibold,
+              //             fontSize: 16.sp),
+              //       ),
+              //     ],
+              //   ),
+              // ),
+              // socials(),
+              // SizedBox(height: height / 20),
             ],
           ),
         ),

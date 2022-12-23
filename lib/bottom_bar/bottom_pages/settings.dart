@@ -203,10 +203,7 @@ class _SettingsState extends State<Settings> {
               GestureDetector(
                 onTap: () {
                   // if shared access is enabled on this user's account
-                  if (appState.sharedWallets.length > 0 ||
-                      appState.userInfo!.wallets!
-                          .where((wallet) => wallet.sharedAccessEnabled == 1)
-                          .isNotEmpty) {
+                  if (appState.introducedSharedAccess) {
                     appState.currentAction = PageAction(
                         state: PageState.addPage,
                         page: SharedAccessViewPageConfig);

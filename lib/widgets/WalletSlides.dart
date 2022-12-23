@@ -63,97 +63,98 @@ class _WalletSlideState extends State<WalletSlide> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          // color: colors[0],
           color: widget.backColor,
         ),
-        child: Stack(children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 35.0, horizontal: 20),
-                child: Image.asset(
-                  'assets/images/trovo_white.png',
-                  width: 100,
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 25.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(
-                  widget.alias,
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 35.0, horizontal: 20),
+                  child: Image.asset(
+                    'assets/images/trovo_white.png',
+                    width: 100,
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 25.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.alias,
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: widget.foreColor,
+                        fontFamily: fontsemibold),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        LanguageEn.totalbalance,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: widget.foreColor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 15,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          if (localHideBalance) {
+                            authenticateAndToggle();
+                          } else
+                            toggleHideBalance();
+                        },
+                        child: Icon(
+                          getIcon(),
+                          size: 20,
+                          color: widget.foreColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: height / 98.0,
+                  ),
+                  Text(
+                    getBalance(widget.totalBalance),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                       color: widget.foreColor,
-                      fontFamily: fontsemibold),
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                Row(
-                  children: [
+                      fontFamily: fontsemibold,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  if (widget.fiatBalance != null) ...[
                     Text(
-                      LanguageEn.totalbalance,
+                      getBalance(widget.fiatBalance!),
                       style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
+                        fontWeight: FontWeight.w300,
+                        fontSize: 13,
                         color: widget.foreColor,
                         fontFamily: fontbody,
                       ),
                     ),
-                    SizedBox(
-                      width: 15,
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        if (localHideBalance) {
-                          authenticateAndToggle();
-                        } else
-                          toggleHideBalance();
-                      },
-                      child: Icon(
-                        getIcon(),
-                        size: 20,
-                        color: widget.foreColor,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: height / 98.0,
-                ),
-                Text(
-                  getBalance(widget.totalBalance),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: widget.foreColor,
-                    fontFamily: fontsemibold,
-                  ),
-                ),
-                SizedBox(height: 2),
-                if (widget.fiatBalance != null) ...[
-                  Text(
-                    getBalance(widget.fiatBalance!),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w300,
-                      fontSize: 13,
-                      color: widget.foreColor,
-                      fontFamily: fontbody,
-                    ),
-                  ),
-                ]
-              ],
+                  ]
+                ],
+              ),
             ),
-          ),
-        ]),
+          ],
+        ),
       ),
     );
   }
@@ -198,9 +199,6 @@ class _WalletSlideState extends State<WalletSlide> {
   toggleHideBalance() {
     setState(() {
       localHideBalance = !localHideBalance;
-      // appState.toggleActiveBalances = localHideBalance;
-      print(
-          'localHideBalance: $localHideBalance, appState.hideBalances: ${appState.hideBalances}');
       if (widget.onHiddenStateChanged != null) {
         widget.onHiddenStateChanged!(localHideBalance);
       }

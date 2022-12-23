@@ -63,6 +63,7 @@ class _SharedAccessState extends State<SharedAccess>
   var userFullnames = {};
   int noOfApprovalsNeeded = 2;
   int noOfApprovers = 3;
+  int noOfTransactionsToSign = 0;
   ApprovalsListFilterType filterType =
       ApprovalsListFilterType.TransactionStatus;
   var filterTypesMap = {
@@ -283,21 +284,34 @@ class _SharedAccessState extends State<SharedAccess>
                   indicatorColor: notifier.getbluewhitecolor,
                   labelStyle: TextStyle(
                     fontSize: 15.sp,
-                    fontWeight: FontWeight.w600,
                     fontFamily: fontsemibold,
                   ),
                   tabs: [
                     Tab(
                       height: 50,
-                      text: LanguageEn.accesslist,
+                      child: Icon(Icons.people_alt_outlined),
                     ),
                     Tab(
                       height: 50,
-                      text: LanguageEn.approvals,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.list_alt_outlined),
+                          Text(
+                            '($noOfTransactionsToSign)',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: fontsemibold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     Tab(
                       height: 50,
-                      text: LanguageEn.grantaccess,
+                      child: Icon(Icons.group_add_outlined),
                     ),
                   ],
                 ),
@@ -344,19 +358,6 @@ class _SharedAccessState extends State<SharedAccess>
                     flex: 2,
                     child: dropdown(
                       (newValue) async {
-                        // selectedWallet = newValue!;
-                        // appState.filterAsset = "*|*";
-                        // appState.activeWallet = wallets!.firstWhere(
-                        //     (wallet) => wallet.publicKey == newValue);
-                        // showLoader(context);
-                        // appState.limit = 20;
-                        // appState.totalRecords = 0;
-                        // appState.currentPage = 1;
-                        // await appState.getHistory(
-                        //   context,
-                        //   // onDone: () => adjustScrollPosition(),
-                        // );
-                        // hideLoader(context);
                         filterType = newValue as ApprovalsListFilterType;
                         showPopup(filterType);
                         setState(() {});
@@ -439,6 +440,7 @@ class _SharedAccessState extends State<SharedAccess>
                     );
                   } else if (snapshot.hasData) {
                     var records = snapshot.data!['records'];
+                    noOfTransactionsToSign = snapshot.data!['totalRecords'];
                     appState.totalRecords = snapshot.data!['totalRecords'];
                     if (records.length > 0) {
                       return LoadMore(
@@ -1605,7 +1607,7 @@ class _SharedAccessState extends State<SharedAccess>
                 context,
                 title: 'Alert',
                 message:
-                    'This user is already added to approver access which gives them implicit view access. Please remove them from approver access if you want to grant them view-only access.',
+                    'This user is already added to approver access which gives them view access. Please remove them from approver access if you want to grant them view-only access.',
                 bodyColor: notifier.getbluecolor,
               );
               return;
@@ -1617,7 +1619,7 @@ class _SharedAccessState extends State<SharedAccess>
                 context,
                 title: 'Error',
                 message:
-                    'This user is already added to initiator access which gives them implicit view access. Please remove them from initiator access if you want to grant them view-only access.',
+                    'This user is already added to initiator access which gives them view access. Please remove them from initiator access if you want to grant them view-only access.',
                 bodyColor: notifier.getbluecolor,
               );
               return;
@@ -2057,7 +2059,7 @@ class _SharedAccessState extends State<SharedAccess>
               // to the approvers list
               if (viewers.contains(username)) {
                 showResponseMessage(context,
-                    'This user will be removed from the view-only access as they will have implicit view access as an approver',
+                    'This user will be removed from the view-only access as they will have view access as an approver/initiator',
                     () {
                   viewers.removeWhere((userItem) => userItem == username);
                   approvers.add(username);
@@ -2288,7 +2290,7 @@ class _SharedAccessState extends State<SharedAccess>
               // initiators.add(username);
               // initiatorsController.text = '';
               showResponseMessage(context,
-                  'This user will be removed from the view-only access as they will have implicit view access as an initiator',
+                  'This user will be removed from the view-only access as they will have view access as an initiator',
                   () {
                 viewers.removeWhere((username) => username == username);
                 initiators.add(username);

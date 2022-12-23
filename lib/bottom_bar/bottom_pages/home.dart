@@ -272,7 +272,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Widget assetsTabs() {
     return Container(
-      height: height / 1.33,
+      height: height / 1.70,
       child: TabBarView(
         controller: _tabController,
         children: [

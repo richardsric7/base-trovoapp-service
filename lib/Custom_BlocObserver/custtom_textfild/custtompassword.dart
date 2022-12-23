@@ -54,8 +54,10 @@ class CustomPasswordFormField extends StatefulWidget {
   int? maxLength;
   TextEditingController? controller;
   final void Function(String?)? onChanged;
+  final void Function(String?)? onSubmitted;
   final String? Function(String?)? validator;
   final void Function(String?)? onSaved;
+  TextInputAction? textInputAction;
   FocusNode? focusNode;
 
   CustomPasswordFormField(
@@ -69,11 +71,13 @@ class CustomPasswordFormField extends StatefulWidget {
     this.width, {
     Key? key,
     this.maxLength,
+    this.onSubmitted,
     this.onChanged,
     this.validator,
     this.onSaved,
     this.focusNode,
     this.controller,
+    this.textInputAction,
   }) : super(key: key);
 
   @override
@@ -97,6 +101,7 @@ class _CustomPasswordFormFieldState extends State<CustomPasswordFormField> {
           controller: widget.controller,
           style: TextStyle(color: widget.textColor, fontFamily: fontbody),
           obscureText: hidePassword, //show/hide password
+          textInputAction: widget.textInputAction,
           decoration: InputDecoration(
             counterStyle: TextStyle(
               fontFamily: fontbody,
@@ -132,6 +137,7 @@ class _CustomPasswordFormFieldState extends State<CustomPasswordFormField> {
             ),
           ),
           onChanged: widget.onChanged,
+          onFieldSubmitted: widget.onSubmitted,
           validator: widget.validator,
           onSaved: widget.onSaved,
         ),
