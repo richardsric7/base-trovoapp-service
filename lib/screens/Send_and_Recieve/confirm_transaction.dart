@@ -502,6 +502,8 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
         } else {
           appState.viewData![TransactionSuccessViewPageConfig.key] =
               responseData['data'];
+          appState.viewData![TransactionSuccessViewPageConfig.key]
+              ['sendingWallet'] = sendingWallet;
           appState.currentAction = PageAction(
             state: PageState.replaceAll,
             page: TransactionSuccessViewPageConfig,

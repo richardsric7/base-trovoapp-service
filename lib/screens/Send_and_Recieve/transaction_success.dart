@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,9 +8,11 @@ import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -30,7 +34,6 @@ class _TransactionSuccess extends State<TransactionSuccess>
   late UserInfo userInfo;
   var assetBalances;
   var nfts;
-  Wallet? activeWallet;
   var claimedAssets;
   var unclaimedAssets;
   int tabLength = 2;
@@ -49,9 +52,8 @@ class _TransactionSuccess extends State<TransactionSuccess>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    activeWallet = appState.activeWallet;
     viewData = appState.viewData![TransactionSuccessViewPageConfig.key];
-
+    print('this is viewData ===== $viewData');
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -59,7 +61,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 10),
+              SizedBox(height: height / 20),
               Center(
                 child: Image.asset("assets/images/success.gif",
                     height: height / 10),
@@ -227,9 +229,39 @@ class _TransactionSuccess extends State<TransactionSuccess>
                 height: height / 20,
               ),
               Button(
-                LanguageEn.dashboard,
+                'Generate receipt',
                 notifier.getbluecolor,
                 wihitecolor,
+                onTap: () {
+                  TransactionInfo transaction = TransactionInfo(
+                    transactionDate: DateTime.now(),
+                    transactionType: 'Send',
+                    from: viewData['sendingWallet']['alias'],
+                    fromPublicKey: viewData['sendingWallet']['publicKey'],
+                    to: viewData['destination'],
+                    toPublicKey: '',
+                    assetCode: viewData['assetCode'],
+                    assetIssuer: viewData['assetIssuer'].toString(),
+                    amount: double.parse(viewData['amount']),
+                    memo: viewData['memo'],
+                    transactionId: viewData['transactionId'],
+                  );
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: ShareReceiptViewPageConfig,
+                  );
+
+                  appState.viewData![ShareReceiptViewPageConfig.key] =
+                      transaction;
+                },
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              ButtonOutlined(
+                LanguageEn.dashboard,
+                notifier.getwihitecolor,
+                notifier.getbluewhitecolor,
                 onTap: () {
                   appState.currentAction = PageAction(
                     state: PageState.replaceAll,
@@ -238,7 +270,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                 },
               ),
               SizedBox(
-                height: height / 10,
+                height: height / 20,
               ),
             ],
           ),

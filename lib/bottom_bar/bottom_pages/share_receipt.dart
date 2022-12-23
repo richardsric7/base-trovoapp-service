@@ -64,7 +64,9 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     viewData = appState.viewData![ShareReceiptViewPageConfig.key];
     print('viewData: $viewData');
     transactionType = TransactionType.Receive;
-    name = '${extractUsername(viewData.from!)}';
+    name = viewData.from.toString().contains('[')
+        ? '${extractUsername(viewData.from!)}'
+        : viewData.from;
     publicKey = viewData.fromPublicKey;
     memo = viewData.memo!;
 
@@ -72,7 +74,9 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     // then it was a send transaction
     if (viewData.fromPublicKey == activeWallet!.publicKey) {
       transactionType = TransactionType.Send;
-      name = '${extractUsername(viewData.to!)}';
+      name = viewData.to.toString().contains('[')
+          ? '${extractUsername(viewData.to!)}'
+          : viewData.to;
       publicKey = viewData.toPublicKey;
     }
 
@@ -332,53 +336,58 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                     SizedBox(
                                       height: height / 90,
                                     ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20.0),
-                                      child: Text(
-                                        'To Public Key',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          color: notifier.getbluewhitecolor,
-                                          fontSize: 16.sp,
-                                          fontFamily: fontsemibold,
+                                    if (viewData.toPublicKey
+                                        .toString()
+                                        .isNotEmpty) ...[
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20.0),
+                                        child: Text(
+                                          'To Public Key',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            color: notifier.getbluewhitecolor,
+                                            fontSize: 16.sp,
+                                            fontFamily: fontsemibold,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    SizedBox(
-                                      width: width / 1.2,
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 3,
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 20.0),
-                                              child: Text(
-                                                truncate(viewData.toPublicKey!,
-                                                        length: 5) +
-                                                    viewData.toPublicKey!
-                                                        .substring(viewData
-                                                                .toPublicKey!
-                                                                .length -
-                                                            5),
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: notifier
-                                                      .getbluewhitecolor,
-                                                  fontSize: 15.sp,
-                                                  fontFamily: fontbody,
+                                      SizedBox(
+                                        width: width / 1.2,
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              flex: 3,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 20.0),
+                                                child: Text(
+                                                  truncate(
+                                                          viewData.toPublicKey!,
+                                                          length: 5) +
+                                                      viewData.toPublicKey!
+                                                          .substring(viewData
+                                                                  .toPublicKey!
+                                                                  .length -
+                                                              5),
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    color: notifier
+                                                        .getbluewhitecolor,
+                                                    fontSize: 15.sp,
+                                                    fontFamily: fontbody,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    Divider(
-                                      height: 5,
-                                    ),
+                                      Divider(
+                                        height: 5,
+                                      ),
+                                    ],
                                   ],
                                   if (viewData.memo!.isNotEmpty) ...[
                                     SizedBox(
