@@ -473,81 +473,90 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     WalletTileColor color,
   ) {
     return Container(
-      height: height / 6.6,
+      // height: height / 6.6,
       margin: EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.all(Radius.circular(20.0)),
         color: color.backColor,
       ),
-      child: Stack(children: [
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Image.asset(
-                  'assets/images/trovo_white.png',
-                  height: 80,
-                  width: 80,
-                ),
-                SizedBox(
-                  width: width / 20,
-                ),
-              ],
-            ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        alignment: AlignmentDirectional.centerEnd,
+        children: [
+          Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    walletName,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: color.foreColor,
-                      fontFamily: fontsemibold,
-                    ),
+                  Image.asset(
+                    'assets/images/trovo_white.png',
+                    height: 80,
+                    width: 80,
+                  ),
+                  SizedBox(
+                    width: width / 20,
                   ),
                 ],
               ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                children: [
+            ],
+          ),
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 200,
+                      child: Text(
+                        walletName,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: color.foreColor,
+                          fontFamily: fontsemibold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      appState.hideBalances
+                          ? hideBalanceText
+                          : preferredFiatBal,
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: color.foreColor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height / 80),
+                if (appState.defaultCurrency != 'USD') ...[
                   Text(
-                    appState.hideBalances ? hideBalanceText : preferredFiatBal,
+                    appState.hideBalances ? hideBalanceText : balanceUsd,
                     style: TextStyle(
-                      fontSize: 20,
+                      fontWeight: FontWeight.w300,
+                      fontSize: 13,
                       color: color.foreColor,
                       fontFamily: fontbody,
                     ),
                   ),
                 ],
-              ),
-              SizedBox(height: height / 80),
-              if (appState.defaultCurrency != 'USD') ...[
-                Text(
-                  appState.hideBalances ? hideBalanceText : balanceUsd,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w300,
-                    fontSize: 13,
-                    color: color.foreColor,
-                    fontFamily: fontbody,
-                  ),
-                ),
               ],
-            ],
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 

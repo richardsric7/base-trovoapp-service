@@ -63,7 +63,6 @@ class _SharedAccessState extends State<SharedAccess>
   var userFullnames = {};
   int noOfApprovalsNeeded = 2;
   int noOfApprovers = 3;
-  int noOfTransactionsToSign = 0;
   ApprovalsListFilterType filterType =
       ApprovalsListFilterType.TransactionStatus;
   var filterTypesMap = {
@@ -220,6 +219,7 @@ class _SharedAccessState extends State<SharedAccess>
     getdarkmodepreviousstate();
     _refreshController = RefreshController(initialRefresh: false);
     appState = Provider.of<DataProvider>(context, listen: false);
+    appState.totalRecords = 0;
     appState.filterTransactionStatus = 'Pending';
     appState.filterQuery = "&transactionStatus=PENDING";
     appState.approvals = appState.fetchApprovals(
@@ -238,6 +238,7 @@ class _SharedAccessState extends State<SharedAccess>
     wallets = appState.userInfo!.wallets!;
     activeWallet = appState.activeWallet;
     selectedWallet = activeWallet!.publicKey;
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         floatingActionButton: FloatingActionButton(
@@ -297,14 +298,39 @@ class _SharedAccessState extends State<SharedAccess>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(Icons.list_alt_outlined),
-                          Text(
-                            '($noOfTransactionsToSign)',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: fontsemibold,
-                            ),
+                          FutureBuilder<Map>(
+                            future: appState.approvals,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                      ConnectionState.done &&
+                                  snapshot.hasData) {
+                                var noOfTransactionsToSign =
+                                    appState.filterQuery.contains('PENDING')
+                                        ? snapshot.data!['totalRecords'] ?? 0
+                                        : 0;
+                                if (noOfTransactionsToSign > 0) {
+                                  return Text(
+                                    '($noOfTransactionsToSign)',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: fontsemibold,
+                                    ),
+                                  );
+                                }
+                              }
+
+                              return Text(
+                                '',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: fontsemibold,
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -440,8 +466,18 @@ class _SharedAccessState extends State<SharedAccess>
                     );
                   } else if (snapshot.hasData) {
                     var records = snapshot.data!['records'];
-                    noOfTransactionsToSign = snapshot.data!['totalRecords'];
                     appState.totalRecords = snapshot.data!['totalRecords'];
+
+                    WidgetsBinding.instance.addPostFrameCallback((_) async {
+                      if (appState.filterQuery.contains('PENDING') &&
+                          appState.totalRecords == 0) {
+                        appState.excludeUserApproved = 0;
+                        appState.filterTransactionStatus = 'All';
+                        appState.filterQuery = '';
+                        await appState.getApprovals();
+                      }
+                    });
+
                     if (records.length > 0) {
                       return LoadMore(
                         isFinish: records.length == appState.totalRecords,
@@ -2888,6 +2924,14 @@ class _SharedAccessState extends State<SharedAccess>
     if (publicKey.length <= 7) return publicKey;
     return truncate(publicKey, length: 7) +
         publicKey.substring(publicKey.length - 7);
+  }
+
+  @override
+  void dispose() {
+    appState.excludeUserApproved = 1;
+    appState.totalRecords = 0;
+    appState.filterQuery = '';
+    super.dispose();
   }
 }
 

@@ -428,7 +428,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Transaction approval submitted',
           'message':
-              'You have successfully submitted your own approval for this transaction. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+              'You have successfully submitted your own approval for this transaction.',
           'useOnDone': true,
           'onDone': () {
             appState.currentAction = PageAction(

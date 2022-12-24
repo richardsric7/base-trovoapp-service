@@ -102,27 +102,6 @@ class _WalletDetailsState extends State<WalletDetails>
         body: SingleChildScrollView(
           child: Column(
             children: [
-              WalletSlide(
-                backColor: notifier.getbluecolor,
-                foreColor: wihitecolor,
-                alias: activeWallet!.alias!.capitalizeFirst!,
-                totalBalance:
-                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
-                fiatBalance: appState.defaultCurrency == 'USD'
-                    ? null
-                    : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
-                initialHiddenState: appState.hideBalances,
-                onHiddenStateChanged: (state) => {
-                  setState(
-                    () => {
-                      localHideBalance = state,
-                    },
-                  )
-                },
-              ),
-              SizedBox(
-                height: height / 30,
-              ),
               assetsTabs(),
             ],
           ),
@@ -133,7 +112,7 @@ class _WalletDetailsState extends State<WalletDetails>
 
   Widget assetsTabs() {
     return Container(
-      height: height / 1.46,
+      height: height / 1.1,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -184,6 +163,27 @@ class _WalletDetailsState extends State<WalletDetails>
                           child: SingleChildScrollView(
                             child: Column(
                               children: [
+                                WalletSlide(
+                                  backColor: notifier.getbluecolor,
+                                  foreColor: wihitecolor,
+                                  alias: activeWallet!.alias!.capitalizeFirst!,
+                                  totalBalance:
+                                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
+                                  fiatBalance: appState.defaultCurrency == 'USD'
+                                      ? null
+                                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
+                                  initialHiddenState: appState.hideBalances,
+                                  onHiddenStateChanged: (state) => {
+                                    setState(
+                                      () => {
+                                        localHideBalance = state,
+                                      },
+                                    )
+                                  },
+                                ),
+                                SizedBox(
+                                  height: height / 30,
+                                ),
                                 if (claimedAssets.length > 0) ...[
                                   for (var asset in claimedAssets) ...[
                                     GestureDetector(

@@ -333,31 +333,34 @@ class _TransactionSuccess extends State<TransactionSuccess>
         SizedBox(
           width: width / 70,
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              viewData['destination'].toString(),
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: notifier.getbluewhitecolor,
-                fontSize: 19.sp,
-                fontFamily: fontbody,
+        Container(
+          width: width / 1.8,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                viewData['destination'].toString(),
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 19.sp,
+                  fontFamily: fontbody,
+                ),
               ),
-            ),
-            SizedBox(
-              height: 5,
-            ),
-            Text(
-              '${viewData['destinationFirstName']} ${viewData['destinationLastName']}',
-              style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w500,
-                fontFamily: fontbody,
+              SizedBox(
+                height: 5,
               ),
-            ),
-          ],
+              Text(
+                '${viewData['destinationFirstName']} ${viewData['destinationLastName']}',
+                style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: fontbody,
+                ),
+              ),
+            ],
+          ),
         )
       ],
     );

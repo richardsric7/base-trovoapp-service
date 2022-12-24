@@ -2541,8 +2541,6 @@ approvalListTransactionTypePopup(context, List<String> options, String label,
                                 appState.setExcludeUserApproved =
                                     appState.excludeUserApproved == 1 ? 0 : 1;
                                 isChecked = appState.excludeUserApproved == 0;
-                                print(
-                                    'Exclude user approved: ${appState.excludeUserApproved}');
                                 setStateForDialog(() {});
                               }),
                         ),
