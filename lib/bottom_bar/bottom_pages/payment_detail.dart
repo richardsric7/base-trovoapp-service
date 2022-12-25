@@ -41,7 +41,6 @@ class _PaymentDetails extends State<PaymentDetails>
   int touchedIndex = -1;
   String password = '';
   late TransactionInfo viewData;
-  late TransactionType transactionType;
   String? name;
   String? publicKey;
   double? amount;
@@ -63,22 +62,19 @@ class _PaymentDetails extends State<PaymentDetails>
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![PaymentDetailsViewPageConfig.key];
     print('viewData: $viewData');
-    transactionType = TransactionType.Receive;
     name = '${extractUsername(viewData.from!)}';
     publicKey = viewData.fromPublicKey;
     memo = viewData.memo!;
 
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
-    if (viewData.fromPublicKey == activeWallet!.publicKey) {
-      transactionType = TransactionType.Send;
+    if (viewData.transactionDirection == TransactionDirection.Send) {
       name = '${extractUsername(viewData.to!)}';
       publicKey = viewData.toPublicKey;
     }
 
     if (viewData.transactionType!.contains('SWAP') &&
         viewData.memo!.contains('>')) {
-      transactionType = TransactionType.Swap;
       var splitResult = viewData.memo!.split('>');
       memo = "Swapped ${splitResult[0]} to ${splitResult[1]}";
     }
@@ -114,11 +110,12 @@ class _PaymentDetails extends State<PaymentDetails>
               ),
               SizedBox(height: height / 30),
               Text(
-                formatAmount(
-                    transactionType, viewData.amount, viewData.assetCode),
+                formatAmount(viewData.transactionDirection!, viewData.amount,
+                    viewData.assetCode),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: transactionType == TransactionType.Send
+                    color: viewData.transactionDirection! ==
+                            TransactionDirection.Send
                         ? Colors.red
                         : notifier.getgreencolor,
                     fontFamily: fontsemibold,
@@ -143,12 +140,14 @@ class _PaymentDetails extends State<PaymentDetails>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (TransactionType.Swap != transactionType) ...[
+                          if (TransactionDirection.Swap !=
+                              viewData.transactionDirection!) ...[
                             Padding(
                               padding:
                                   const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
                               child: Text(
-                                transactionType == TransactionType.Send
+                                viewData.transactionDirection! ==
+                                        TransactionDirection.Send
                                     ? LanguageEn.sentto
                                     : LanguageEn.receivedfrom,
                                 style: TextStyle(
@@ -167,7 +166,8 @@ class _PaymentDetails extends State<PaymentDetails>
                               height: 5,
                             ),
                           ],
-                          if (TransactionType.Swap != transactionType) ...[
+                          if (TransactionDirection.Swap !=
+                              viewData.transactionDirection!) ...[
                             SizedBox(
                               height: height / 90,
                             ),
@@ -410,7 +410,8 @@ class _PaymentDetails extends State<PaymentDetails>
                   ),
                   Image.asset(
                     'assets/images/trovo_white.png',
-                    height: TransactionType.Swap != transactionType
+                    height: TransactionDirection.Swap !=
+                            viewData.transactionDirection!
                         ? height / 4.5
                         : height / 6.5,
                     color: notifier.isDark
@@ -512,9 +513,9 @@ class _PaymentDetails extends State<PaymentDetails>
     );
   }
 
-  String formatAmount(TransactionType transactionType, amount, assetCode) {
+  String formatAmount(TransactionDirection transactionType, amount, assetCode) {
     var am = formatNumber(double.parse(amount.toString()));
-    return transactionType == TransactionType.Send
+    return transactionType == TransactionDirection.Send
         ? '- $am $assetCode'
         : '+ $am $assetCode';
   }

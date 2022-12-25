@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:share/share.dart';
@@ -40,7 +39,6 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
   int touchedIndex = -1;
   String password = '';
   late TransactionInfo viewData;
-  late TransactionType transactionType;
   String? name;
   String? publicKey;
   double? amount;
@@ -63,7 +61,6 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![ShareReceiptViewPageConfig.key];
     print('viewData: $viewData');
-    transactionType = TransactionType.Receive;
     name = viewData.from.toString().contains('[')
         ? '${extractUsername(viewData.from!)}'
         : viewData.from;
@@ -72,8 +69,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
 
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
-    if (viewData.fromPublicKey == activeWallet!.publicKey) {
-      transactionType = TransactionType.Send;
+    if (viewData.transactionDirection == TransactionDirection.Send) {
       name = viewData.to.toString().contains('[')
           ? '${extractUsername(viewData.to!)}'
           : viewData.to;
@@ -82,7 +78,6 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
 
     if (viewData.transactionType!.contains('SWAP') &&
         viewData.memo!.contains('>')) {
-      transactionType = TransactionType.Swap;
       var splitResult = viewData.memo!.split('>');
       memo = "Swapped ${splitResult[0]} to ${splitResult[1]}";
     }
@@ -163,13 +158,14 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  if (TransactionType.Swap !=
-                                      transactionType) ...[
+                                  if (TransactionDirection.Swap !=
+                                      viewData.transactionDirection) ...[
                                     Padding(
                                       padding: const EdgeInsets.fromLTRB(
                                           20.0, 15, 0, 0),
                                       child: Text(
-                                        transactionType == TransactionType.Send
+                                        viewData.transactionDirection ==
+                                                TransactionDirection.Send
                                             ? LanguageEn.sentto
                                             : LanguageEn.receivedfrom,
                                         style: TextStyle(
@@ -216,12 +212,15 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                                 20.0, 0, 0, 0),
                                             child: Text(
                                               formatAmount(
-                                                  transactionType,
+                                                  viewData
+                                                      .transactionDirection!,
                                                   viewData.amount,
                                                   viewData.assetCode),
                                               style: TextStyle(
-                                                  color: transactionType ==
-                                                          TransactionType.Send
+                                                  color: viewData
+                                                              .transactionDirection ==
+                                                          TransactionDirection
+                                                              .Send
                                                       ? Colors.red
                                                       : notifier.getgreencolor,
                                                   fontFamily: fontsemibold,
@@ -279,8 +278,8 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                   Divider(
                                     height: 5,
                                   ),
-                                  if (TransactionType.Swap !=
-                                      transactionType) ...[
+                                  if (TransactionDirection.Swap !=
+                                      viewData.transactionDirection) ...[
                                     SizedBox(
                                       height: height / 90,
                                     ),
@@ -569,9 +568,9 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     );
   }
 
-  String formatAmount(TransactionType transactionType, amount, assetCode) {
+  String formatAmount(TransactionDirection transactionType, amount, assetCode) {
     var am = formatNumber(double.parse(amount.toString()));
-    return transactionType == TransactionType.Send
+    return transactionType == TransactionDirection.Send
         ? '- $am $assetCode'
         : '+ $am $assetCode';
   }
@@ -592,12 +591,12 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
 
   void shareText() {
     String? shareString;
-    switch (transactionType) {
-      // case TransactionType.swap:
+    switch (viewData.transactionDirection) {
+      // case TransactionDirection.swap:
       //   shareString =
       //       'Swapped from ${transaction.asset.name} to ${transaction.destinationAsset?.name} \nAmount: ${_getSwapValue(transaction, truncateLength: 7)} \nTransaction Id: ${transaction.transactionId.toLowerCase()} \nTime: ${_getTimestampString(transaction.timestamp)}';
       //   break;
-      case TransactionType.Send:
+      case TransactionDirection.Send:
         shareString =
             'Sent $amount $assetCode \n\nTo: ${name.toString().isEmpty ? publicKey! : name} \n\nFor: ${viewData.memo} \n\nTransaction Id: ${viewData.transactionId!.toLowerCase()} \n\nTime: ${date} \n\nBlockchain Proof: ${bantuBlockchainExplorerBaseUrl + viewData.transactionId!}';
         break;

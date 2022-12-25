@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,7 +8,6 @@ import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/Transaction.dart';
 import 'package:trovo_wallet/Models/User.dart';
-import 'package:trovo_wallet/Models/Wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
@@ -240,6 +237,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                     fromPublicKey: viewData['sendingWallet']['publicKey'],
                     to: viewData['destination'],
                     toPublicKey: '',
+                    transactionDirection: TransactionDirection.Send,
                     assetCode: viewData['assetCode'],
                     assetIssuer: viewData['assetIssuer'].toString(),
                     amount: double.parse(viewData['amount']),
