@@ -67,6 +67,8 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       }
     }
 
+    print('viewData: $viewData');
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -97,16 +99,16 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
           child: Column(
             children: [
               SizedBox(
-                height: height / 50,
+                height: height / 20,
               ),
               showNotice(),
               SizedBox(
-                height: height / 50,
+                height: height / 10,
               ),
-              assetInfo(),
-              SizedBox(
-                height: height / 20,
-              ),
+              // assetInfo(),
+              // SizedBox(
+              //   height: height / 20,
+              // ),
               if (!isSharedWallet || isInitiator) ...[
                 Button(
                   LanguageEn.claimasset,
