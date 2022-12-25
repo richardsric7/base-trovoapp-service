@@ -336,6 +336,14 @@ class _SettingsState extends State<Settings> {
                 child:
                     logout("assets/images/logout.png", "", LanguageEn.logout),
               ),
+              SizedBox(height: height / 30),
+              Text(
+                '${LanguageEn.version} $appVersion',
+                style: TextStyle(
+                    color: notifier.getdarkgrey,
+                    fontSize: 13.5.sp,
+                    fontFamily: fontbody),
+              ),
               SizedBox(height: height / 10),
             ],
           ),
