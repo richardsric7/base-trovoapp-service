@@ -1,5 +1,7 @@
 import 'package:trovo_wallet/Models/User.dart';
+import 'package:trovo_wallet/Models/announcement.dart';
 import 'package:trovo_wallet/network/requests.dart';
+import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 
 Future<void> updateUserInfo(
@@ -55,5 +57,50 @@ Future<void> getFiatRates(
   if (responseData['statusCode'] == 200) {
     appState.setFiatRate = responseData['data'];
     await StoreData().storeInsertData('fiatRate', responseData['data']);
+  }
+}
+
+Future<void> fetchNotifications(DataProvider appState) async {
+  print('fetching announcements...');
+  var uri = '/v1/announcements';
+
+  Map responseData = await makeUnSecuredGetRequest(
+    Uri.encodeFull(uri),
+  );
+
+  print('response: ${responseData}');
+
+  if (responseData['statusCode'] == 200) {
+    //  get the date when the user viewed announcements last
+    DateTime? lastNotificationViewDate = DateTime.tryParse(
+        await StoreData().storeGetData('lastNotificationViewDate') ??
+            DateTime.now().add(Duration(days: -30)).toIso8601String());
+    // get all announcements
+    var announcementsMap = await StoreData().storeGetData('announcements');
+    if (announcementsMap == null) {
+      await StoreData().storeInsertData('announcements', responseData['data']);
+      appState.setHasNewAnnouncement = true;
+      return;
+    }
+
+    // deserialize the existing announcements stored in the phone storage
+    var announcements = Announcement().deserializeJsonList(announcementsMap);
+    // loop through the announcements
+    for (var i = 0; i < responseData['data'].length; i++) {
+      // deserialize the current item in this iteration
+      var announcement =
+          Announcement().deserializeJson(responseData['data'][i]);
+      // if there's been any new announcements since the user opened announcements
+      // last, then setHasNewAnnouncements to true
+      if (lastNotificationViewDate!.isBefore(announcement.createdAt!)) {
+        announcements.add(announcement);
+        appState.setHasNewAnnouncement = true;
+      }
+    }
+
+    StoreData().storeInsertData(
+      'announcements',
+      Announcement().toJSONEncodableList(announcements),
+    );
   }
 }

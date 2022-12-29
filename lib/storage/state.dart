@@ -143,15 +143,11 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // bool hideActiveWalletBalance = false;
-  // set toggleActiveBalances(bool value) {
-  //   hideActiveWalletBalance = value;
-  //   notifyListeners();
-  // }
-
-  // void resetActiveWalletBalances() {
-  //   hideActiveWalletBalance = hideBalances;
-  // }
+  bool hasNewAnnouncement = false;
+  set setHasNewAnnouncement(bool value) {
+    hasNewAnnouncement = value;
+    notifyListeners();
+  }
 
   // used to check if dynamic link was used while the app is open
   // for some reason the splashscreen finishes before the firebase dynamiclink

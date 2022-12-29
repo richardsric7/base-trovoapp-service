@@ -243,6 +243,7 @@ class _VeryficationState extends State<Veryfication> {
     print('response: ${responseData}');
 
     if (responseData['statusCode'] == 200) {
+      fetchNotifications(state);
       getFiatRates(publicKey, secretKey, publicKey,
           state.userInfo!.username!.trim().replaceAll(' ', ''), state);
       await storeUserInfo(responseData['data']);

@@ -636,12 +636,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 appState.currentAction = PageAction(
                     state: PageState.addPage,
                     page: NotificationsViewPageConfig);
+                appState.hasNewAnnouncement = false;
               },
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
                 child: SvgPicture.asset(
-                  "assets/images/notifications-active.svg",
+                  appState.hasNewAnnouncement
+                      ? "assets/images/notifications-active.svg"
+                      : "assets/images/notifications.svg",
                   color: notifier.getbluewhitecolor,
                   height: height / 40,
                 ),

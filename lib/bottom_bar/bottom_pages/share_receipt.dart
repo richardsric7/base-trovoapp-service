@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:intl/intl.dart';
 import 'package:share/share.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
@@ -105,17 +106,18 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
               RepaintBoundary(
                 key: shareArea,
                 child: Container(
-                  color: Colors.white,
+                  color: notifier.isDark ? null : notifier.getbluewhitecolor,
                   child: Column(
                     children: [
                       SizedBox(height: height / 50),
                       Image.asset(
                         'assets/images/trovo-horizontal-logo.png',
                         height: height / 16.5,
+                        color: Colors.white,
                       ),
                       SizedBox(height: height / 30),
                       Text(
-                        'Transaction Receipt',
+                        '${viewData.transactionType!.capitalizeFirst!} ${LanguageEn.details}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,

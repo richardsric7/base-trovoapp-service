@@ -340,7 +340,7 @@ class _SettingsState extends State<Settings> {
               Text(
                 '${LanguageEn.version} $appVersion',
                 style: TextStyle(
-                    color: notifier.getbluewhitecolor,
+                    color: notifier.getdarkgrey,
                     fontSize: 13.5.sp,
                     fontFamily: fontbody),
               ),

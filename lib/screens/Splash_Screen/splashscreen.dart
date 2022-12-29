@@ -13,6 +13,7 @@ import '../../router/PageActions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_wallet/Models/announcement.dart' as myNotification;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -125,6 +126,7 @@ class _SplashScreenState extends State<SplashScreen>
             primaryWallet.publicKey, appState.userInfo!.username!, appState);
         getFiatRates(primaryWallet.signer, appState.secretKeys[0],
             primaryWallet.publicKey, appState.userInfo!.username!, appState);
+        fetchNotifications(appState);
         appState.activeWallet = primaryWallet;
         // check if app was not already open
         // if app was not already open then move to the next view
