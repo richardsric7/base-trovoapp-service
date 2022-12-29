@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get_utils/get_utils.dart';
 import 'package:intl/intl.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
@@ -101,7 +102,7 @@ class _PaymentDetails extends State<PaymentDetails>
             children: [
               SizedBox(height: height / 30),
               Text(
-                LanguageEn.transactionDetails,
+                '${viewData.transactionType!.capitalizeFirst!} ${LanguageEn.details}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,

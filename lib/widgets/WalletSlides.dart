@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
@@ -66,6 +67,7 @@ class _WalletSlideState extends State<WalletSlide> {
           color: widget.backColor,
         ),
         child: Stack(
+          alignment: AlignmentDirectional.centerEnd,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -75,7 +77,7 @@ class _WalletSlideState extends State<WalletSlide> {
                       vertical: 35.0, horizontal: 20),
                   child: Image.asset(
                     'assets/images/trovo_white.png',
-                    width: 100,
+                    width: 80,
                   ),
                 ),
               ],
@@ -87,7 +89,7 @@ class _WalletSlideState extends State<WalletSlide> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: width / 1.8,
+                    width: width / 1.9,
                     child: Text(
                       widget.alias,
                       style: TextStyle(

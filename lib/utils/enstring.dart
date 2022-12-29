@@ -656,6 +656,8 @@ class LanguageEn {
 
   static String get transactionDetails => "Transaction Details";
 
+  static String get details => "Details";
+
   static String get wallets => "Wallets";
 
   static String get yousend => "You Send";

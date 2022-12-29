@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
@@ -84,23 +85,20 @@ class RequestSpecificPaymentDetailsState
               SizedBox(
                 height: height / 30,
               ),
-              RepaintBoundary(
-                key: shareArea,
-                child: Column(
-                  children: [
-                    showReceivingWallet(),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    if (viewData['memo'].toString().isNotEmpty) ...[
-                      showMemo(),
-                    ],
-                    showQrCode(),
-                    SizedBox(
-                      height: height / 20,
-                    ),
+              Column(
+                children: [
+                  showReceivingWallet(),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  if (viewData['memo'].toString().isNotEmpty) ...[
+                    showMemo(),
                   ],
-                ),
+                  showQrCode(),
+                  SizedBox(
+                    height: height / 20,
+                  ),
+                ],
               ),
               Button(
                 LanguageEn.share,
@@ -163,13 +161,33 @@ class RequestSpecificPaymentDetailsState
                         fontFamily: fontsemibold),
                   ),
                   SizedBox(height: height / 90),
-                  Text(
-                    viewData['walletAlias'],
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                  Row(
+                    children: [
+                      Container(
+                        width: 250,
+                        child: Text(
+                          viewData['walletAlias'],
+                          overflow: TextOverflow.visible,
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          Clipboard.setData(
+                            ClipboardData(
+                              text: viewData['walletAlias'],
+                            ),
+                          );
+                          showSnackBar('Wallet alias', context);
+                        },
+                        icon: Icon(Icons.copy,
+                            size: 20, color: notifier.getbluewhitecolor),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -234,17 +252,20 @@ class RequestSpecificPaymentDetailsState
   }
 
   Widget showQrCode() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-      child: Container(
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.isDark
-                ? darktilewhitecolor
-                : notifier.getaddsubwalletgrey,
-          ),
-          child:
-              Image.memory(base64.decode(viewData['qrCode'].split(',').last))),
+    return RepaintBoundary(
+      key: shareArea,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+        child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: Image.memory(
+                base64.decode(viewData['qrCode'].split(',').last))),
+      ),
     );
   }
 }

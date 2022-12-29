@@ -12,6 +12,7 @@ import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/WalletSlides.dart';
+import 'package:trovo_wallet/widgets/topDropdowns.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -173,103 +174,48 @@ class _AssetDetailsState extends State<AssetDetails>
                   width: width / 1.2,
                   child: Row(
                     children: [
-                      Expanded(
-                          flex: 5,
-                          child: dropdown(
-                            (newValue) {
-                              selectedWallet = newValue!;
-                              activeWallet = appState.allWallets[newValue];
-                              claimedAssets = activeWallet['claimedAssets'];
+                      TopDropdowns(
+                        onWalletChanged: (newValue) {
+                          selectedWallet = newValue;
+                          activeWallet = appState.allWallets[newValue];
+                          claimedAssets = activeWallet['claimedAssets'];
 
-                              for (var asset in claimedAssets) {
-                                // we need to somehow take care of the selected asset
-                                // when switching wallets because of scenarios
-                                // where one wallet has an asset that is not listed
-                                // on the other. Here we are checking whether the
-                                // newly selected wallet contains the currently
-                                // selected asset and if it doesn't we switch
-                                // back to the default asset which is XBN
-                                if (asset['assetIssuer'] == selectedAsset ||
-                                    asset['assetIssuer'] == '') {
-                                  appState.viewData![
-                                      AssetDetailsViewPageConfig.key] = asset;
-                                  break;
-                                }
+                          for (var asset in claimedAssets) {
+                            // we need to somehow take care of the selected asset
+                            // when switching wallets because of scenarios
+                            // where one wallet has an asset that is not listed
+                            // on the other. Here we are checking whether the
+                            // newly selected wallet contains the currently
+                            // selected asset and if it doesn't we switch
+                            // back to the default asset which is XBN
+                            if (asset['assetIssuer'] == selectedAsset ||
+                                asset['assetIssuer'] == '') {
+                              appState.viewData![
+                                  AssetDetailsViewPageConfig.key] = asset;
+                              break;
+                            }
+                          }
+                          setState(() {});
+                        },
+                        onAssetChanged: (newValue) {
+                          setState(() {
+                            newValue = newValue.toString().contains('XBN')
+                                ? '|'
+                                : newValue;
+                            for (var asset in claimedAssets) {
+                              var splitNewValue =
+                                  newValue.toString().split('|');
+                              if (asset['assetCode'] == splitNewValue[0] &&
+                                  asset['assetIssuer'] == splitNewValue[1]) {
+                                appState.viewData![
+                                    AssetDetailsViewPageConfig.key] = asset;
                               }
-                              setState(() {});
-                            },
-                            walletDropdownItems(false),
-                            selectedWallet.toString().isEmpty
-                                ? null
-                                : selectedWallet,
-                            null,
-                            context,
-                            (context) {
-                              return walletDropdownItems(true);
-                            },
-                          )),
-                      SizedBox(
-                        width: width / 40,
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: DropdownButtonFormField(
-                          dropdownColor: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 0, horizontal: 20),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            filled: true,
-                            fillColor: notifier.isDark
-                                ? darktilewhitecolor
-                                : notifier.getaddsubwalletgrey,
-                          ),
-                          value: selectedAsset,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                          style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                          ),
-                          onChanged: (newValue) {
-                            setState(() {
-                              newValue = newValue.toString().contains('XBN')
-                                  ? '|'
-                                  : newValue;
-                              for (var asset in claimedAssets) {
-                                var splitNewValue =
-                                    newValue.toString().split('|');
-                                if (asset['assetCode'] == splitNewValue[0] &&
-                                    asset['assetIssuer'] == splitNewValue[1]) {
-                                  appState.viewData![
-                                      AssetDetailsViewPageConfig.key] = asset;
-                                }
-                              }
-                            });
-                          },
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(15),
-                          ),
-                          items: assetDropdownItems(false),
-                          selectedItemBuilder: (context) {
-                            return assetDropdownItems(true);
-                          },
-                        ),
-                      ),
-                      SizedBox(
-                        width: width / 40,
+                            }
+                          });
+                        },
+                        claimedAssets: claimedAssets,
+                        selectedAsset: selectedAsset,
+                        selectedWallet: selectedWallet,
                       ),
                     ],
                   ),
