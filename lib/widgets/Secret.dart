@@ -56,11 +56,14 @@ class _SecretState extends State<Secret> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    widget.alias,
-                    style: TextStyle(
-                      fontFamily: fontbody,
-                      color: notifier.getblck,
+                  Container(
+                    width: 200,
+                    child: Text(
+                      widget.alias,
+                      style: TextStyle(
+                        fontFamily: fontbody,
+                        color: notifier.getblck,
+                      ),
                     ),
                   ),
                   IconButton(

@@ -38,7 +38,7 @@ class _WalletDetailsState extends State<WalletDetails>
   List<Wallet>? wallets;
   var claimedAssets;
   var unclaimedAssets;
-  int tabLength = 2;
+  int tabLength = 1;
   int activeTabIndex = 0;
   late bool localHideBalance;
 
@@ -76,22 +76,17 @@ class _WalletDetailsState extends State<WalletDetails>
     // in order to make assets tab length dynamic we have to check
     // for when we have pending asset and then change the tablength
     // to 3 or back to 2 when we do not have pending assets.
-    // if (unclaimedAssets != null && unclaimedAssets.length > 0) {
-    //   if (activeTabIndex == _tabController.length - 1) activeTabIndex = 2;
-    //   tabLength = 3;
-    // } else {
-    //   tabLength = 2;
-    //   if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
-    // }
+    if (unclaimedAssets != null && unclaimedAssets.length > 0) {
+      tabLength = 2;
+    } else {
+      tabLength = 1;
+    }
 
-    // if (tabLength != _tabController.length) {
-    //   // change the length of tabController too or you will have an error
-    //   _tabController = TabController(length: tabLength, vsync: this);
-    //   _tabController.addListener(tabListener);
-    // }
-    // // keep track of the active tab to avoid having it changed
-    // // on each page rebuild
-    // _tabController.animateTo(activeTabIndex);
+    if (tabLength != _tabController.length) {
+      // change the length of tabController too or you will have an error
+      _tabController = TabController(length: tabLength, vsync: this);
+      _tabController.addListener(tabListener);
+    }
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -121,32 +116,36 @@ class _WalletDetailsState extends State<WalletDetails>
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          TabBar(
-            controller: _tabController,
-            labelColor: notifier.getbluewhitecolor,
-            indicatorColor: notifier.getbluewhitecolor,
-            labelStyle: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              fontFamily: fontsemibold,
+          Padding(
+            padding:
+                EdgeInsets.symmetric(horizontal: tabLength > 1 ? 0.0 : 100.0),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: notifier.getbluewhitecolor,
+              indicatorColor: notifier.getbluewhitecolor,
+              labelStyle: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                fontFamily: fontsemibold,
+              ),
+              tabs: [
+                Tab(
+                  height: 20,
+                  text: LanguageEn.assets,
+                ),
+                if (unclaimedAssets != null && tabLength == 2) ...[
+                  Tab(
+                    height: 20,
+                    text:
+                        '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
+                  ),
+                ],
+                // Tab(
+                //   height: 20,
+                //   text: LanguageEn.nfts,
+                // ),
+              ],
             ),
-            tabs: [
-              Tab(
-                height: 20,
-                text: LanguageEn.assets,
-              ),
-              // if (unclaimedAssets != null && tabLength == 3) ...[
-              Tab(
-                height: 20,
-                text:
-                    '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
-              ),
-              // ],
-              // Tab(
-              //   height: 20,
-              //   text: LanguageEn.nfts,
-              // ),
-            ],
           ),
           Positioned(
             child: Column(
@@ -250,72 +249,73 @@ class _WalletDetailsState extends State<WalletDetails>
                           ),
                         ),
                       ),
-                      // if (tabLength == 3) ...[
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-                        child: Container(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                if (unclaimedAssets != null &&
-                                    unclaimedAssets.length > 0) ...[
-                                  for (var asset in unclaimedAssets) ...[
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          activeTabIndex = _tabController.index;
-                                        });
-                                        // since the original asset object
-                                        // is immutable I create a new assetObj and
-                                        // copy all the data into it so that
-                                        // I'll be able to change the data
-                                        appState.viewData![
-                                            PendingAssetDetailsViewPageConfig
-                                                .key] = {
-                                          'assetCode': asset['assetCode'],
-                                          'assetIssuer': asset['assetIssuer'],
-                                          'amount': asset['amount'],
-                                          'qrCode': asset['qrCode'],
-                                          'imageUrl': asset['imageUrl'],
-                                        };
-                                        print(appState.viewData);
-                                        appState.currentAction = PageAction(
-                                          state: PageState.addPage,
-                                          page:
-                                              PendingAssetDetailsViewPageConfig,
-                                        );
-                                      },
-                                      child: tiles(asset),
+                      if (tabLength == 2) ...[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+                          child: Container(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  if (unclaimedAssets != null &&
+                                      unclaimedAssets.length > 0) ...[
+                                    for (var asset in unclaimedAssets) ...[
+                                      GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            activeTabIndex =
+                                                _tabController.index;
+                                          });
+                                          // since the original asset object
+                                          // is immutable I create a new assetObj and
+                                          // copy all the data into it so that
+                                          // I'll be able to change the data
+                                          appState.viewData![
+                                              PendingAssetDetailsViewPageConfig
+                                                  .key] = {
+                                            'assetCode': asset['assetCode'],
+                                            'assetIssuer': asset['assetIssuer'],
+                                            'amount': asset['amount'],
+                                            'qrCode': asset['qrCode'],
+                                            'imageUrl': asset['imageUrl'],
+                                          };
+                                          print(appState.viewData);
+                                          appState.currentAction = PageAction(
+                                            state: PageState.addPage,
+                                            page:
+                                                PendingAssetDetailsViewPageConfig,
+                                          );
+                                        },
+                                        child: tiles(asset),
+                                      ),
+                                    ],
+                                  ] else ...[
+                                    Container(
+                                      height: height / 4,
+                                      child: Padding(
+                                          padding: const EdgeInsets.fromLTRB(
+                                              10, 28.0, 10, 0),
+                                          child: Center(
+                                            child: Text(
+                                              LanguageEn.nopendingassets,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: fontsemibold,
+                                                color: notifier.getblck,
+                                              ),
+                                            ),
+                                          )),
                                     ),
                                   ],
-                                ] else ...[
-                                  Container(
-                                    height: height / 4,
-                                    child: Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            10, 28.0, 10, 0),
-                                        child: Center(
-                                          child: Text(
-                                            LanguageEn.nopendingassets,
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: fontsemibold,
-                                              color: notifier.getblck,
-                                            ),
-                                          ),
-                                        )),
+                                  SizedBox(
+                                    height: height / 22,
                                   ),
                                 ],
-                                SizedBox(
-                                  height: height / 22,
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      // ],
+                      ],
                       // Container(
                       //   height: height / 2,
                       //   child: SingleChildScrollView(

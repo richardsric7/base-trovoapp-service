@@ -7,6 +7,7 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_detail.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/profile_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/referral_info.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/share_receipt.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/subwalletCreateSuccess.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/notificationsView.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/searchview.dart';
@@ -312,6 +313,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.GetStartedView:
           _addPageData(GetStarted(), GetStartedViewPageConfig);
           break;
+        case Pages.ShareReceiptView:
+          _addPageData(ShareReceipt(), ShareReceiptViewPageConfig);
+          break;
         default:
           break;
       }
@@ -506,6 +510,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.GetStartedView:
         GetStartedViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ShareReceiptView:
+        ShareReceiptViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

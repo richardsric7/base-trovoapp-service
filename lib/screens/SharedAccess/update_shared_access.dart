@@ -1163,7 +1163,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             permList[index].permissionState = null;
             setState(() {});
           },
-          Colors.red,
+          backColor: Colors.red,
+          foreColor: wihitecolor,
           restoreMode: true,
         );
       case PermissionState.Added:
@@ -1173,7 +1174,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             permList.removeAt(index);
             setState(() {});
           },
-          notifier.getgreencolor,
+          backColor: notifier.getgreencolor,
+          foreColor: wihitecolor,
         );
 
       default:
@@ -1187,7 +1189,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               setState(() {});
             });
           },
-          notifier.getbluecolor,
+          backColor: notifier.getbluebackcolor,
+          foreColor: wihitecolor,
         );
     }
   }

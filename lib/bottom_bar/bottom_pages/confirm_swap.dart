@@ -16,6 +16,7 @@ import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
@@ -411,7 +412,13 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
 
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo();
+        updateUserInfo(
+          activeWallet!.signer,
+          appState.secretKeys[0],
+          activeWallet!.publicKey,
+          appState.userInfo!.username!.trim().replaceAll(' ', ''),
+          appState,
+        );
         if (viewData['isShared'] == 1) {
           appState.viewData![SuccessViewPageConfig.key] = {
             'title': 'Swap request submitted',
@@ -445,43 +452,43 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> updateUserInfo() async {
-    Map responseData = await makeGetRequest(
-      uri:
-          '/v1/users/${appState.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: activeWallet!.signer!,
-      secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: activeWallet!.publicKey!,
-    );
+  // Future<void> updateUserInfo() async {
+  //   Map responseData = await makeGetRequest(
+  //     uri:
+  //         '/v1/users/${appState.userInfo!.username!.trim().replaceAll(' ', '')}',
+  //     signer: activeWallet!.signer!,
+  //     secretKey: appState.secretKeys[0], // the primary wallet secret key
+  //     publicKey: activeWallet!.publicKey!,
+  //   );
 
-    print('secretkey: ${appState.secretKeys[0]}');
+  //   print('secretkey: ${appState.secretKeys[0]}');
 
-    print('response: ${responseData}');
+  //   print('response: ${responseData}');
 
-    if (responseData['statusCode'] == 200) {
-      await storeUserInfo(responseData['data']);
-    }
-  }
+  //   if (responseData['statusCode'] == 200) {
+  //     await storeUserInfo(responseData['data']);
+  //   }
+  // }
 
-  Future<void> storeUserInfo(userInfoMap) async {
-    print('userInfoMap: ${userInfoMap['userData']}');
-    var userInfo = userInfoMap['userData'] ?? {};
-    var assetBalances = userInfoMap['assetBalances'] ?? {};
-    var nfts = userInfoMap['nfts'] ?? {};
-    var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
-    var defaultAssets = userInfoMap['defaultAssets'] ?? [];
+  // Future<void> storeUserInfo(userInfoMap) async {
+  //   print('userInfoMap: ${userInfoMap['userData']}');
+  //   var userInfo = userInfoMap['userData'] ?? {};
+  //   var assetBalances = userInfoMap['assetBalances'] ?? {};
+  //   var nfts = userInfoMap['nfts'] ?? {};
+  //   var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
+  //   var defaultAssets = userInfoMap['defaultAssets'] ?? [];
 
-    await StoreData().storeInsertData('userInfo', userInfo);
-    await StoreData().storeInsertData('assetBalances', assetBalances);
-    await StoreData().storeInsertData('nftBalances', nfts);
-    await StoreData()
-        .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
-    await StoreData().storeInsertData('defaultAssets', defaultAssets);
+  //   await StoreData().storeInsertData('userInfo', userInfo);
+  //   await StoreData().storeInsertData('assetBalances', assetBalances);
+  //   await StoreData().storeInsertData('nftBalances', nfts);
+  //   await StoreData()
+  //       .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
+  //   await StoreData().storeInsertData('defaultAssets', defaultAssets);
 
-    // save useInfo to appstate
-    appState.setUser = UserInfo().deserializeJson(userInfo);
-    appState.setNFTs = nfts;
-    appState.setassetBalances = assetBalances;
-    print('stored new user data.................');
-  }
+  //   // save useInfo to appstate
+  //   appState.setUser = UserInfo().deserializeJson(userInfo);
+  //   appState.setNFTs = nfts;
+  //   appState.setassetBalances = assetBalances;
+  //   print('stored new user data.................');
+  // }
 }

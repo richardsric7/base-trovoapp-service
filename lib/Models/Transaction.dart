@@ -1,6 +1,9 @@
+import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
+
 class TransactionInfo {
   DateTime? transactionDate;
   String? transactionType;
+  TransactionDirection? transactionDirection;
   String? from;
   String? fromPublicKey;
   String? to;
@@ -14,6 +17,7 @@ class TransactionInfo {
   TransactionInfo({
     this.transactionDate,
     this.transactionType,
+    this.transactionDirection,
     this.from,
     this.fromPublicKey,
     this.to,

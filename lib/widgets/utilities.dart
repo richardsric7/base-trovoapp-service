@@ -1,14 +1,22 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_share/flutter_share.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
+import 'package:path_provider/path_provider.dart' as syspaths;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 
@@ -100,9 +108,9 @@ getAssetIssuer(assetIssuer) {
 formatNumber(double number) =>
     NumberFormat("#,##0.0000", "en_US").format(number);
 
-formatHistoryNumber(double number) {
+formatHistoryNumber(double number, double trimNum) {
   // if number is greater than 1million return 1m or 1.2m
-  if (number >= 1000000) {
+  if (number >= trimNum) {
     return NumberFormat.compact().format(number);
   }
 
@@ -311,8 +319,9 @@ postProcessData(context, messageShown, messageLength, data,
 
 Widget userItem(
   String name,
-  void Function()? onClick,
-  Color color, {
+  void Function()? onClick, {
+  required Color backColor,
+  required Color foreColor,
   double? fontSize: 12,
   bool restoreMode = false,
 }) {
@@ -321,7 +330,7 @@ Widget userItem(
     child: Container(
       decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          color: color),
+          color: backColor),
       child: Padding(
         padding: const EdgeInsets.all(5.0),
         child: Wrap(
@@ -333,7 +342,7 @@ Widget userItem(
               textAlign: TextAlign.center,
               softWrap: true,
               style: TextStyle(
-                  color: wihitecolor, fontFamily: fontbody, fontSize: fontSize),
+                  color: foreColor, fontFamily: fontbody, fontSize: fontSize),
             ),
             SizedBox(
               width: width / 70,
@@ -446,5 +455,54 @@ Widget dropdown(
       onChanged: onChanged,
       items: items,
     ),
+  );
+}
+
+Future<void> share(String message, GlobalKey snapshotAreaKey) async {
+  final appDir = await syspaths.getExternalStorageDirectory();
+  String fileName = '${appDir!.path}/receipt.png';
+  RenderRepaintBoundary boundary = snapshotAreaKey.currentContext!
+      .findRenderObject()! as RenderRepaintBoundary;
+
+  var image = await boundary.toImage();
+  var byteData = await image.toByteData(format: ImageByteFormat.png);
+  File file = await File(fileName).create();
+  file.writeAsBytesSync(byteData!.buffer.asUint8List());
+  print('========================================$fileName');
+
+  await FlutterShare.shareFile(
+    title: 'Trovo Wallet',
+    filePath: fileName,
+    text: message,
+  );
+}
+
+Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {
+  final appDir = await syspaths.getExternalStorageDirectory();
+  String fileName = '${appDir!.path}/receipt.pdf';
+  RenderRepaintBoundary boundary = snapshotAreaKey.currentContext!
+      .findRenderObject()! as RenderRepaintBoundary;
+  final pdf = pw.Document();
+
+  var image = await boundary.toImage();
+  var byteData = await image.toByteData(format: ImageByteFormat.png);
+
+  final pdfImage = pw.MemoryImage(
+    byteData!.buffer.asUint8List(),
+  );
+
+  pdf.addPage(pw.Page(build: (pw.Context context) {
+    return pw.Center(
+      child: pw.Image(pdfImage),
+    ); // Center
+  }));
+
+  File file = await File(fileName).create();
+  file.writeAsBytesSync(await pdf.save());
+
+  await FlutterShare.shareFile(
+    title: 'Trovo Wallet',
+    filePath: fileName,
+    text: message,
   );
 }

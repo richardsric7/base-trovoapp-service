@@ -39,7 +39,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   bool showFilter = false;
   late List<TransactionInfo>? historyData;
   var filterTypesMap = {
-    HistoryFilterType.TransactionType: "Transaction type",
+    HistoryFilterType.TransactionDirection: "Transaction type",
     HistoryFilterType.DateRange: "Date range",
     HistoryFilterType.AmountRange: "Amount range",
     HistoryFilterType.Username: "Username",
@@ -50,7 +50,7 @@ class Payment_HistoryState extends State<PaymentHistory>
 
   ScrollController scrollController = new ScrollController();
 
-  HistoryFilterType filterType = HistoryFilterType.TransactionType;
+  HistoryFilterType filterType = HistoryFilterType.TransactionDirection;
 
   List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
     var walletsList = <DropdownMenuItem<String>>[];
@@ -181,7 +181,12 @@ class Payment_HistoryState extends State<PaymentHistory>
     _refreshController = RefreshController(initialRefresh: false);
     appState = Provider.of<DataProvider>(context, listen: false);
     resetFilters();
-    selectedWallet = appState.activeWallet!.publicKey!;
+    isSharedWallet =
+        appState.viewData![PaymentHistoryViewPageConfig.key] != null;
+    selectedWallet = isSharedWallet
+        ? appState.viewData![PaymentHistoryViewPageConfig.key]
+            ['walletPublicKey']
+        : appState.activeWallet!.publicKey!;
   }
 
   @override
@@ -193,8 +198,6 @@ class Payment_HistoryState extends State<PaymentHistory>
     wallets = appState.userInfo!.wallets!;
     historyData = appState.historyData;
     walletDropdownItems(false);
-    isSharedWallet =
-        appState.viewData![PaymentHistoryViewPageConfig.key] != null;
 
     // if this page is viewed from shared wallet then get the claimed assets
     // from viewData
@@ -460,7 +463,7 @@ class Payment_HistoryState extends State<PaymentHistory>
 
   Widget tile(TransactionInfo transaction) {
     // lets start by setting transactionType to receive
-    TransactionType transactionType = TransactionType.Receive;
+    transaction.transactionDirection = TransactionDirection.Receive;
     var amount = transaction.amount;
     var assetCode = transaction.assetCode;
     var date = transaction.transactionDate;
@@ -470,13 +473,13 @@ class Payment_HistoryState extends State<PaymentHistory>
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
     if (transaction.fromPublicKey == selectedWallet) {
-      transactionType = TransactionType.Send;
+      transaction.transactionDirection = TransactionDirection.Send;
       name =
           '${LanguageEn.sentto} ${extractUsername(transaction.to!) ?? truncate(transaction.toPublicKey!)}';
     }
 
     if (transaction.transactionType!.contains('SWAP')) {
-      transactionType = TransactionType.Swap;
+      transaction.transactionDirection = TransactionDirection.Swap;
       var splitResult =
           transaction.transactionType!.replaceAll('SWAP', '').trim().split('>');
       name = "Swapped ${splitResult[0]} to ${splitResult[1]}";
@@ -506,7 +509,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             child: Row(
               children: [
                 Image.asset(
-                  getIcon(transactionType),
+                  getIcon(transaction.transactionDirection!),
                   width: width / 12,
                   color: notifier.getbluewhitecolor,
                   height: 25,
@@ -524,11 +527,13 @@ class Payment_HistoryState extends State<PaymentHistory>
                         width: width / 50,
                       ),
                       Text(
-                        formatAmount(transactionType, amount, assetCode),
+                        formatAmount(transaction.transactionDirection!, amount,
+                            assetCode),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w400,
-                          color: transactionType == TransactionType.Send
+                          color: transaction.transactionDirection ==
+                                  TransactionDirection.Send
                               ? Colors.red
                               : notifier.getgreencolor,
                           fontFamily: fontbody,
@@ -577,20 +582,20 @@ class Payment_HistoryState extends State<PaymentHistory>
     );
   }
 
-  String getIcon(TransactionType transactionType) {
+  String getIcon(TransactionDirection transactionType) {
     switch (transactionType) {
-      case TransactionType.Swap:
+      case TransactionDirection.Swap:
         return "assets/images/swap.png";
-      case TransactionType.Send:
+      case TransactionDirection.Send:
         return 'assets/images/send.png';
       default:
         return 'assets/images/receive.png';
     }
   }
 
-  String formatAmount(TransactionType transactionType, amount, assetCode) {
-    var am = formatHistoryNumber(double.parse(amount.toString()));
-    return transactionType == TransactionType.Send
+  String formatAmount(TransactionDirection transactionType, amount, assetCode) {
+    var am = formatHistoryNumber(double.parse(amount.toString()), 1000000);
+    return transactionType == TransactionDirection.Send
         ? '- $am $assetCode'
         : '+ $am $assetCode';
   }
@@ -933,7 +938,7 @@ class Payment_HistoryState extends State<PaymentHistory>
             ),
           ),
         );
-      // HistoryFilterType.TransactionType
+      // HistoryFilterType.TransactionDirection
       default:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 5.0),
@@ -981,7 +986,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    getTransactionTypeValue(),
+                    getTransactionDirectionValue(),
                     textAlign: TextAlign.start,
                     style: TextStyle(
                         color: notifier.getbluewhitecolor,
@@ -1031,8 +1036,8 @@ class Payment_HistoryState extends State<PaymentHistory>
         publicKey.substring(publicKey.length - 7);
   }
 
-  getTransactionTypeValue() {
-    if (filterType == HistoryFilterType.TransactionType) {
+  getTransactionDirectionValue() {
+    if (filterType == HistoryFilterType.TransactionDirection) {
       if (appState.filterQuery.contains('swap')) return "Swap";
       if (appState.filterQuery.contains('payment')) return "Payment";
 
@@ -1190,14 +1195,14 @@ class Payment_HistoryState extends State<PaymentHistory>
   }
 }
 
-enum TransactionType {
+enum TransactionDirection {
   Send,
   Receive,
   Swap,
 }
 
 enum HistoryFilterType {
-  TransactionType,
+  TransactionDirection,
   DateRange,
   AmountRange,
   Username,

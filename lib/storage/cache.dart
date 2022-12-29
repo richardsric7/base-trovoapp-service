@@ -18,7 +18,7 @@ Future<void> updateUserInfo(
   }
 }
 
-Future<void> storeUserInfo(userInfoMap, appState) async {
+storeUserInfo(userInfoMap, state) async {
   print('userInfoMap: ${userInfoMap['userData']}');
   var userInfo = userInfoMap['userData'] ?? {};
   var assetBalances = userInfoMap['assetBalances'] ?? {};
@@ -28,17 +28,17 @@ Future<void> storeUserInfo(userInfoMap, appState) async {
 
   await StoreData().storeInsertData('userInfo', userInfo);
   await StoreData().storeInsertData('assetBalances', assetBalances);
-  await StoreData().storeInsertData('nftBalances', nfts);
+  await StoreData().storeInsertData('nfts', nfts);
   await StoreData()
       .storeInsertData('walletsSharedWithUser', walletsSharedWithUser);
+  await StoreData().storeInsertData('isFirstTime', false);
   await StoreData().storeInsertData('defaultAssets', defaultAssets);
 
   // save useInfo to appstate
-  appState.setUser = UserInfo().deserializeJson(userInfo);
-  appState.setSharedWallets = walletsSharedWithUser;
-  appState.setNFTs = nfts;
-  appState.setassetBalances = assetBalances;
-  print('stored new user data.................');
+  state.setUser = UserInfo().deserializeJson(userInfo);
+  state.setNFTs = nfts;
+  state.setSharedWallets = walletsSharedWithUser;
+  state.setassetBalances = assetBalances;
 }
 
 Future<void> getFiatRates(

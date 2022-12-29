@@ -1,11 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_share/flutter_share.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
@@ -17,7 +13,6 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import 'package:path_provider/path_provider.dart' as syspaths;
 
 class RequestSpecificPaymentDetails extends StatefulWidget {
   const RequestSpecificPaymentDetails({Key? key}) : super(key: key);
@@ -31,7 +26,7 @@ class RequestSpecificPaymentDetailsState
     extends State<RequestSpecificPaymentDetails> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  GlobalKey qrArea = GlobalKey();
+  GlobalKey shareArea = GlobalKey();
   var viewData;
 
   @override
@@ -90,22 +85,31 @@ class RequestSpecificPaymentDetailsState
               SizedBox(
                 height: height / 30,
               ),
-              showReceivingWallet(),
-              SizedBox(
-                height: height / 50,
-              ),
-              if (viewData['memo'].toString().isNotEmpty) ...[
-                showMemo(),
-              ],
-              RepaintBoundary(key: qrArea, child: showQrCode()),
-              SizedBox(
-                height: height / 20,
+              Column(
+                children: [
+                  showReceivingWallet(),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  if (viewData['memo'].toString().isNotEmpty) ...[
+                    showMemo(),
+                  ],
+                  showQrCode(),
+                  SizedBox(
+                    height: height / 20,
+                  ),
+                ],
               ),
               Button(
                 LanguageEn.share,
                 notifier.getbluecolor,
                 wihitecolor,
-                onTap: share,
+                onTap: () {
+                  share(
+                    'Scan Qrcode or tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${viewData['walletAlias']}] => ${viewData['dynamicLink']}',
+                    shareArea,
+                  );
+                },
               ),
               SizedBox(height: height / 50.5),
               ButtonOutlined(
@@ -125,20 +129,6 @@ class RequestSpecificPaymentDetailsState
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> share() async {
-    final appDir = (await syspaths.getTemporaryDirectory()).path;
-    String fileName = '${appDir}/share.png';
-    var pngImageBytes = takeSnapshot(fileName);
-    print('========================================$fileName');
-
-    await FlutterShare.shareFile(
-      title: 'Trovo Wallet',
-      filePath: pngImageBytes,
-      text:
-          'Tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${viewData['walletAlias']}] => ${viewData['dynamicLink']}',
     );
   }
 
@@ -171,13 +161,33 @@ class RequestSpecificPaymentDetailsState
                         fontFamily: fontsemibold),
                   ),
                   SizedBox(height: height / 90),
-                  Text(
-                    viewData['walletAlias'],
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
+                  Row(
+                    children: [
+                      Container(
+                        width: 250,
+                        child: Text(
+                          viewData['walletAlias'],
+                          overflow: TextOverflow.visible,
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          Clipboard.setData(
+                            ClipboardData(
+                              text: viewData['walletAlias'],
+                            ),
+                          );
+                          showSnackBar('Wallet alias', context);
+                        },
+                        icon: Icon(Icons.copy,
+                            size: 20, color: notifier.getbluewhitecolor),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -242,26 +252,20 @@ class RequestSpecificPaymentDetailsState
   }
 
   Widget showQrCode() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-      child: Container(
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-            color: notifier.isDark
-                ? darktilewhitecolor
-                : notifier.getaddsubwalletgrey,
-          ),
-          child:
-              Image.memory(base64.decode(viewData['qrCode'].split(',').last))),
+    return RepaintBoundary(
+      key: shareArea,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+        child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: Image.memory(
+                base64.decode(viewData['qrCode'].split(',').last))),
+      ),
     );
-  }
-
-  takeSnapshot(String fileName) async {
-    RenderRepaintBoundary boundary =
-        qrArea.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-
-    var image = await boundary.toImage();
-    var byteData = await image.toByteData(format: ImageByteFormat.png);
-    return byteData!.buffer.asUint8List();
   }
 }
