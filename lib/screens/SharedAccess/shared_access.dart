@@ -611,7 +611,7 @@ class _SharedAccessState extends State<SharedAccess>
                     style: TextStyle(
                       fontSize: 20,
                       fontFamily: fontsemibold,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                 ],
@@ -630,7 +630,7 @@ class _SharedAccessState extends State<SharedAccess>
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily: fontsemibold,
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                         ),
                       ),
                     ),
@@ -649,7 +649,7 @@ class _SharedAccessState extends State<SharedAccess>
                         style: TextStyle(
                           fontSize: 14,
                           fontFamily: fontbody,
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                         ),
                       ),
                     ),
@@ -668,7 +668,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -682,7 +682,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontbody,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -700,7 +700,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -714,7 +714,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontbody,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -732,7 +732,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -746,7 +746,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontbody,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -764,7 +764,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -778,7 +778,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontbody,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -794,17 +794,78 @@ class _SharedAccessState extends State<SharedAccess>
   Widget accessList() {
     return Container(
       height: height / 1.22,
-      child: Scaffold(
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(height: height / 30),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            SizedBox(height: height / 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                children: [
+                  Text(
+                    'Mode',
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                        fontSize: 15.sp),
+                  ),
+                  SizedBox(
+                    width: width / 10,
+                  ),
+                  Expanded(
+                    child: DropdownButtonFormField(
+                      isExpanded: true,
+                      dropdownColor: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                      decoration: InputDecoration(
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        filled: true,
+                        fillColor: notifier.isDark
+                            ? darktilewhitecolor
+                            : notifier.getaddsubwalletgrey,
+                      ),
+                      value: selectedAccessMode,
+                      icon: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                      elevation: 0,
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15.sp,
+                          fontFamily: fontsemibold,
+                          fontWeight: FontWeight.w500),
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedAccessMode = newValue!;
+                        });
+                      },
+                      items: accessModeDropdownItems,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            if (selectedAccessMode == 'Access granted to me') ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: Row(
                   children: [
                     Text(
-                      'Mode',
+                      LanguageEn.filterby,
                       style: TextStyle(
                           color: notifier.getbluewhitecolor,
                           fontFamily: fontbody,
@@ -835,7 +896,7 @@ class _SharedAccessState extends State<SharedAccess>
                               ? darktilewhitecolor
                               : notifier.getaddsubwalletgrey,
                         ),
-                        value: selectedAccessMode,
+                        value: selectedFilter,
                         icon: Icon(
                           Icons.keyboard_arrow_down_rounded,
                           color: notifier.getbluewhitecolor,
@@ -848,10 +909,10 @@ class _SharedAccessState extends State<SharedAccess>
                             fontWeight: FontWeight.w500),
                         onChanged: (newValue) {
                           setState(() {
-                            selectedAccessMode = newValue!;
+                            selectedFilter = newValue!;
                           });
                         },
-                        items: accessModeDropdownItems,
+                        items: sortDropdownItems,
                       ),
                     ),
                   ],
@@ -860,134 +921,69 @@ class _SharedAccessState extends State<SharedAccess>
               SizedBox(
                 height: height / 50,
               ),
-              if (selectedAccessMode == 'Access granted to me') ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                  child: Row(
-                    children: [
-                      Text(
-                        LanguageEn.filterby,
-                        style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody,
-                            fontSize: 15.sp),
-                      ),
-                      SizedBox(
-                        width: width / 10,
-                      ),
-                      Expanded(
-                        child: DropdownButtonFormField(
-                          isExpanded: true,
-                          dropdownColor: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
-                          decoration: InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 0, horizontal: 20),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            filled: true,
-                            fillColor: notifier.isDark
-                                ? darktilewhitecolor
-                                : notifier.getaddsubwalletgrey,
-                          ),
-                          value: selectedFilter,
-                          icon: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                          elevation: 0,
+              getAccessGrantedToMe(appState),
+            ] else ...[
+              Builder(builder: (context) {
+                // filter the wallets to get the one that granted only viewer
+                // access to others. Once I grant others approver and initiator access
+                // the wallet no longer belongs to me.
+                var filteredWallets = <Wallet>[];
+                wallets!.forEach((wallet) {
+                  if (wallet.permissions!.isNotEmpty &&
+                      wallet.permissions!
+                          .where((permission) =>
+                              permission.permission == 'INITIATOR' ||
+                              permission.permission == 'APPROVER')
+                          .isEmpty) {
+                    filteredWallets.add(wallet);
+                  }
+                });
+                return Column(
+                  children: [
+                    if (filteredWallets.length > 0) ...[
+                      for (var walletIndex = 0;
+                          walletIndex < filteredWallets.length;
+                          walletIndex++) ...{
+                        if (filteredWallets[walletIndex].permissions != null &&
+                            filteredWallets[walletIndex].permissions!.length >
+                                0) ...[
+                          accessGrantedByMe(
+                              numberOfApprovalsNeeded:
+                                  filteredWallets[walletIndex]
+                                      .numberOfApprovalsNeeded!,
+                              isPrimaryWallet:
+                                  filteredWallets[walletIndex].primaryWallet!,
+                              walletPublicKey:
+                                  filteredWallets[walletIndex].publicKey!,
+                              walletAlias: filteredWallets[walletIndex].alias!,
+                              permissions:
+                                  filteredWallets[walletIndex].permissions),
+                        ]
+                      }
+                    ] else ...[
+                      Center(
+                        heightFactor: 15.sp,
+                        child: Text(
+                          'Nothing to show here',
                           style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15.sp,
-                              fontFamily: fontsemibold,
-                              fontWeight: FontWeight.w500),
-                          onChanged: (newValue) {
-                            setState(() {
-                              selectedFilter = newValue!;
-                            });
-                          },
-                          items: sortDropdownItems,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                getAccessGrantedToMe(appState),
-              ] else ...[
-                Builder(builder: (context) {
-                  // filter the wallets to get the one that granted only viewer
-                  // access to others. Once I grant others approver and initiator access
-                  // the wallet no longer belongs to me.
-                  var filteredWallets = <Wallet>[];
-                  wallets!.forEach((wallet) {
-                    if (wallet.permissions!.isNotEmpty &&
-                        wallet.permissions!
-                            .where((permission) =>
-                                permission.permission == 'INITIATOR' ||
-                                permission.permission == 'APPROVER')
-                            .isEmpty) {
-                      filteredWallets.add(wallet);
-                    }
-                  });
-                  return Column(
-                    children: [
-                      if (filteredWallets.length > 0) ...[
-                        for (var walletIndex = 0;
-                            walletIndex < filteredWallets.length;
-                            walletIndex++) ...{
-                          if (filteredWallets[walletIndex].permissions !=
-                                  null &&
-                              filteredWallets[walletIndex].permissions!.length >
-                                  0) ...[
-                            accessGrantedByMe(
-                                numberOfApprovalsNeeded:
-                                    filteredWallets[walletIndex]
-                                        .numberOfApprovalsNeeded!,
-                                isPrimaryWallet:
-                                    filteredWallets[walletIndex].primaryWallet!,
-                                walletPublicKey:
-                                    filteredWallets[walletIndex].publicKey!,
-                                walletAlias:
-                                    filteredWallets[walletIndex].alias!,
-                                permissions:
-                                    filteredWallets[walletIndex].permissions),
-                          ]
-                        }
-                      ] else ...[
-                        Center(
-                          heightFactor: 15.sp,
-                          child: Text(
-                            'Nothing to show here',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontFamily: fontbody,
-                              color: notifier.getbluecolor,
-                            ),
+                            fontSize: 17,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
                           ),
                         ),
-                      ]
-                    ],
-                  );
-                })
-              ],
-              SizedBox(
-                height: height / 10,
-              ),
-              Padding(
-                  padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+                      ),
+                    ]
+                  ],
+                );
+              })
             ],
-          ),
+            SizedBox(
+              height: height / 10,
+            ),
+            Padding(
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom)),
+          ],
         ),
       ),
     );
@@ -1070,7 +1066,7 @@ class _SharedAccessState extends State<SharedAccess>
               style: TextStyle(
                 fontSize: 17,
                 fontFamily: fontbody,
-                color: notifier.getbluecolor,
+                color: notifier.getbluewhitecolor,
               ),
             ),
           ),
@@ -1107,7 +1103,7 @@ class _SharedAccessState extends State<SharedAccess>
                     style: TextStyle(
                       fontSize: 17,
                       fontFamily: fontsemibold,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                 ],
@@ -1124,7 +1120,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -1138,7 +1134,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontbody,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -1153,7 +1149,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                   ),
@@ -1168,7 +1164,7 @@ class _SharedAccessState extends State<SharedAccess>
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily: fontbody,
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                         ),
                       ),
                     ),
@@ -1180,7 +1176,7 @@ class _SharedAccessState extends State<SharedAccess>
                           style: TextStyle(
                             fontSize: 15,
                             fontFamily: fontbody,
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                           ),
                         ),
                       ),
@@ -1260,7 +1256,7 @@ class _SharedAccessState extends State<SharedAccess>
                       style: TextStyle(
                         fontSize: 19,
                         fontFamily: fontsemibold,
-                        color: notifier.getbluecolor,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
 
@@ -1280,7 +1276,7 @@ class _SharedAccessState extends State<SharedAccess>
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontFamily: fontsemibold,
-                                  color: notifier.getbluecolor,
+                                  color: notifier.getbluewhitecolor,
                                 ),
                               ),
                             ),
@@ -1295,7 +1291,7 @@ class _SharedAccessState extends State<SharedAccess>
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontFamily: fontbody,
-                                  color: notifier.getbluecolor,
+                                  color: notifier.getbluewhitecolor,
                                 ),
                               ),
                             ),
@@ -1320,7 +1316,7 @@ class _SharedAccessState extends State<SharedAccess>
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontFamily: fontsemibold,
-                                  color: notifier.getbluecolor,
+                                  color: notifier.getbluewhitecolor,
                                 ),
                               ),
                             ),
@@ -1334,7 +1330,7 @@ class _SharedAccessState extends State<SharedAccess>
                               style: TextStyle(
                                 fontSize: 13,
                                 fontFamily: fontbody,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                               ),
                             ),
                           ),
@@ -1357,7 +1353,7 @@ class _SharedAccessState extends State<SharedAccess>
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontFamily: fontsemibold,
-                                  color: notifier.getbluecolor,
+                                  color: notifier.getbluewhitecolor,
                                 ),
                               ),
                             ),
@@ -1371,7 +1367,7 @@ class _SharedAccessState extends State<SharedAccess>
                               style: TextStyle(
                                 fontSize: 13,
                                 fontFamily: fontbody,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                               ),
                             ),
                           ),
@@ -1539,7 +1535,9 @@ class _SharedAccessState extends State<SharedAccess>
                                       () {
                                     viewers.removeAt(i);
                                     setState(() {});
-                                  }, notifier.getbluecolor)
+                                  },
+                                      foreColor: wihitecolor,
+                                      backColor: notifier.getbluebackcolor)
                                 ],
                               ] else ...[
                                 Text(
@@ -2015,7 +2013,9 @@ class _SharedAccessState extends State<SharedAccess>
                                         () {
                                       approvers.removeAt(i);
                                       setState(() {});
-                                    }, notifier.getbluecolor)
+                                    },
+                                        foreColor: wihitecolor,
+                                        backColor: notifier.getbluebackcolor)
                                   ],
                                 ] else ...[
                                   Text(
@@ -2239,7 +2239,9 @@ class _SharedAccessState extends State<SharedAccess>
                                       () {
                                     initiators.removeAt(i);
                                     setState(() {});
-                                  }, notifier.getbluecolor)
+                                  },
+                                      foreColor: wihitecolor,
+                                      backColor: notifier.getbluebackcolor)
                                 ],
                               ] else ...[
                                 Text(

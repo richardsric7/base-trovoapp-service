@@ -223,7 +223,9 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                                   userItem(
                                                       '${viewData['viewers'][i]} [${viewData['userFullnames'][viewData['viewers'][i]]}]',
                                                       null,
-                                                      notifier.getbluecolor)
+                                                      foreColor: wihitecolor,
+                                                      backColor: notifier
+                                                          .getbluebackcolor)
                                                 ],
                                               ],
                                             )),
@@ -298,7 +300,9 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                                   userItem(
                                                       '${viewData['approvers'][i]} [${viewData['userFullnames'][viewData['approvers'][i]]}]',
                                                       null,
-                                                      notifier.getbluecolor),
+                                                      foreColor: wihitecolor,
+                                                      backColor: notifier
+                                                          .getbluebackcolor),
                                                 ],
                                               ],
                                             )),
@@ -369,9 +373,12 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
                                                             .length;
                                                     i++) ...[
                                                   userItem(
-                                                      '${viewData['initiators'][i]} [${viewData['userFullnames'][viewData['initiators'][i]]}]',
-                                                      null,
-                                                      notifier.getbluecolor)
+                                                    '${viewData['initiators'][i]} [${viewData['userFullnames'][viewData['initiators'][i]]}]',
+                                                    null,
+                                                    foreColor: wihitecolor,
+                                                    backColor: notifier
+                                                        .getbluebackcolor,
+                                                  )
                                                 ],
                                               ],
                                             )),

@@ -203,24 +203,35 @@ class _RecoverAccountState extends State<RecoverAccount> {
         ),
         SizedBox(height: height / 50),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
-          child: OTPTextField(
-            length: 6,
-            width: MediaQuery.of(context).size.width,
-            fieldWidth: 40,
-            style: TextStyle(color: notifier.getblck, fontFamily: fontbody),
-            textFieldAlignment: MainAxisAlignment.spaceAround,
-            fieldStyle: FieldStyle.box,
-            otpFieldStyle: OtpFieldStyle(
-              borderColor: Colors.black38,
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
             ),
-            onChanged: (pin) {
-              appState.tempEmailOtp = pin;
-            },
-            onCompleted: (pin) {
-              appState.tempEmailOtp = pin;
-              verifyOTPAndProceed();
-            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 30),
+              child: OTPTextField(
+                length: 6,
+                width: MediaQuery.of(context).size.width,
+                fieldWidth: 40,
+                style: TextStyle(color: notifier.getblck, fontFamily: fontbody),
+                textFieldAlignment: MainAxisAlignment.spaceAround,
+                fieldStyle: FieldStyle.box,
+                otpFieldStyle: OtpFieldStyle(
+                  borderColor: Colors.black38,
+                ),
+                onChanged: (pin) {
+                  appState.tempEmailOtp = pin;
+                },
+                onCompleted: (pin) {
+                  appState.tempEmailOtp = pin;
+                  verifyOTPAndProceed();
+                },
+              ),
+            ),
           ),
         ),
         SizedBox(height: height / 70),

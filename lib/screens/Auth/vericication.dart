@@ -110,25 +110,37 @@ class _VeryficationState extends State<Veryfication> {
               ),
               SizedBox(height: height / 30),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: OTPTextField(
-                  length: 6,
-                  width: MediaQuery.of(context).size.width,
-                  fieldWidth: 40,
-                  style:
-                      TextStyle(color: notifier.getblck, fontFamily: fontbody),
-                  textFieldAlignment: MainAxisAlignment.spaceAround,
-                  fieldStyle: FieldStyle.box,
-                  otpFieldStyle: OtpFieldStyle(
-                    borderColor: Colors.black38,
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                    color: notifier.isDark
+                        ? darktilewhitecolor
+                        : notifier.getaddsubwalletgrey,
                   ),
-                  onChanged: (pin) {
-                    otp = pin;
-                  },
-                  onCompleted: (pin) {
-                    otp = pin;
-                    completeRegistration();
-                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 30),
+                    child: OTPTextField(
+                      length: 6,
+                      width: MediaQuery.of(context).size.width,
+                      fieldWidth: 40,
+                      style: TextStyle(
+                          color: notifier.getblck, fontFamily: fontbody),
+                      textFieldAlignment: MainAxisAlignment.spaceAround,
+                      fieldStyle: FieldStyle.box,
+                      otpFieldStyle: OtpFieldStyle(
+                        borderColor: Colors.black38,
+                      ),
+                      onChanged: (pin) {
+                        otp = pin;
+                      },
+                      onCompleted: (pin) {
+                        otp = pin;
+                        completeRegistration();
+                      },
+                    ),
+                  ),
                 ),
               ),
               SizedBox(height: height / 10),

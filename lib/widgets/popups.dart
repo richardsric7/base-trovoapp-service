@@ -303,7 +303,8 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                       child: Text(
                         LanguageEn.cancel,
                         style: TextStyle(
-                            color: notifier.getbluecolor, fontFamily: fontbody),
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody),
                       ),
                     ),
                   ),
@@ -1230,7 +1231,7 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
                               LanguageEn.chooseimagesource,
                               style: TextStyle(
                                 fontSize: 17,
-                                color: notifier.getbluecolor,
+                                color: notifier.getbluewhitecolor,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -1267,7 +1268,7 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
                       child: Text(
                         LanguageEn.gallery,
                         style: TextStyle(
-                            color: notifier.getwihitecolor,
+                            color: notifier.getbluewhitecolor,
                             fontFamily: fontbody),
                       ),
                     ),
@@ -1307,7 +1308,8 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
                       child: Text(
                         LanguageEn.camera,
                         style: TextStyle(
-                            color: notifier.getbluecolor, fontFamily: fontbody),
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody),
                       ),
                     ),
                   ),
@@ -2172,7 +2174,7 @@ shareAccessInfoPopup(context) async {
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontFamily: fontbody,
-                                  color: notifier.getbluecolor,
+                                  color: notifier.getbluewhitecolor,
                                 ),
                                 children: [
                                   TextSpan(
@@ -2180,7 +2182,7 @@ shareAccessInfoPopup(context) async {
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontsemibold,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                   ),
                                   TextSpan(
@@ -2189,7 +2191,7 @@ shareAccessInfoPopup(context) async {
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontbody,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                   ),
                                   TextSpan(
@@ -2197,7 +2199,7 @@ shareAccessInfoPopup(context) async {
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontsemibold,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                   ),
                                   TextSpan(
@@ -2206,7 +2208,7 @@ shareAccessInfoPopup(context) async {
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontbody,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                   ),
                                   TextSpan(
@@ -2214,7 +2216,7 @@ shareAccessInfoPopup(context) async {
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontsemibold,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                   ),
                                   TextSpan(
@@ -2223,7 +2225,7 @@ shareAccessInfoPopup(context) async {
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontbody,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                   ),
                                   TextSpan(
@@ -2231,7 +2233,7 @@ shareAccessInfoPopup(context) async {
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontsemibold,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                   ),
                                   TextSpan(
@@ -2240,7 +2242,7 @@ shareAccessInfoPopup(context) async {
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontbody,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                   ),
                                 ],
@@ -2340,7 +2342,7 @@ void rejectionReasonPopup(context, void Function(String) action) {
                                 'Please enter your reason for rejecting this transaction',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                     fontSize: 15,
                                     fontFamily: fontbody),
                               ),
@@ -2725,7 +2727,7 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
                 Icon(
                   Icons.people_outline,
                   size: 17,
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                 )
               ],
               if (!isSelected && key == selectedWallet) ...[
@@ -2735,7 +2737,7 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
                 Icon(
                   Icons.check,
                   size: 18,
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                 )
               ],
             ],
@@ -2773,7 +2775,7 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
                       child: Text(
                         'Select sending wallet',
                         style: TextStyle(
-                            color: notifier.getbluecolor,
+                            color: notifier.getbluewhitecolor,
                             fontSize: 18,
                             fontFamily: fontsemibold),
                       ),

@@ -21,7 +21,6 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/WalletSlides.dart';
-import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -341,14 +340,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               Text(
                                 'Tap to view all',
                                 style: TextStyle(
-                                    color: notifier.getbluecolor,
+                                    color: notifier.getbluewhitecolor,
                                     fontSize: 13.5.sp,
                                     fontFamily: fontsemibold),
                               ),
                               SizedBox(
                                 width: width / 50,
                               ),
-                              Icon(Icons.arrow_forward),
+                              Icon(
+                                Icons.arrow_forward,
+                                color: notifier.getbluewhitecolor,
+                              ),
                             ],
                           ),
                         ),
@@ -463,14 +465,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     Text(
                       'Tap to view all',
                       style: TextStyle(
-                          color: notifier.getbluecolor,
+                          color: notifier.getbluewhitecolor,
                           fontSize: 13.5.sp,
                           fontFamily: fontsemibold),
                     ),
                     SizedBox(
                       width: width / 50,
                     ),
-                    Icon(Icons.arrow_forward),
+                    Icon(
+                      Icons.arrow_forward,
+                      color: notifier.getbluewhitecolor,
+                    ),
                   ],
                 ),
               ),
@@ -626,24 +631,22 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 ),
               ),
             ),
-            // GestureDetector(
-            //   onTap: () {
-            //     appState.currentAction = PageAction(
-            //         state: PageState.addPage,
-            //         page: NotificationsViewPageConfig);
-            //   },
-            //   child: Padding(
-            //     padding:
-            //         const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-            //     // child: Image.asset("assets/images/notifications.png",
-            //     //     color: notifier.getbluecolor),
-            //     child: SvgPicture.asset(
-            //       "assets/images/notifications-active.svg",
-            //       color: notifier.getbluewhitecolor,
-            //       height: height / 40,
-            //     ),
-            //   ),
-            // ),
+            GestureDetector(
+              onTap: () {
+                appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: NotificationsViewPageConfig);
+              },
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+                child: SvgPicture.asset(
+                  "assets/images/notifications-active.svg",
+                  color: notifier.getbluewhitecolor,
+                  height: height / 40,
+                ),
+              ),
+            ),
             SizedBox(
               width: height / 50,
             ),
@@ -1000,7 +1003,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 17,
                       fontFamily: fontsemibold,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   SizedBox(
@@ -1012,7 +1015,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 16,
                       fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   SizedBox(
@@ -1024,7 +1027,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 17,
                       fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   SizedBox(

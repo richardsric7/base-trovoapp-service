@@ -319,8 +319,9 @@ postProcessData(context, messageShown, messageLength, data,
 
 Widget userItem(
   String name,
-  void Function()? onClick,
-  Color color, {
+  void Function()? onClick, {
+  required Color backColor,
+  required Color foreColor,
   double? fontSize: 12,
   bool restoreMode = false,
 }) {
@@ -329,7 +330,7 @@ Widget userItem(
     child: Container(
       decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          color: color),
+          color: backColor),
       child: Padding(
         padding: const EdgeInsets.all(5.0),
         child: Wrap(
@@ -341,7 +342,7 @@ Widget userItem(
               textAlign: TextAlign.center,
               softWrap: true,
               style: TextStyle(
-                  color: wihitecolor, fontFamily: fontbody, fontSize: fontSize),
+                  color: foreColor, fontFamily: fontbody, fontSize: fontSize),
             ),
             SizedBox(
               width: width / 70,
