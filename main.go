@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	msc "trovo-wallet-api/internal/components/announcements/controllers"
 	payments "trovo-wallet-api/internal/components/payments/controllers"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	rates "trovo-wallet-api/internal/components/rates/controllers"
@@ -502,7 +503,8 @@ func main() {
 
 	rates.Init(router, &globalConfig)
 	log.Println("##rates services initialized##")
-
+	msc.Init(router, &globalConfig)
+	log.Println("##announcements/version services initialized##")
 	//run app
 	log.Println("##service started##")
 	if len(os.Getenv("PORT")) > 0 {
