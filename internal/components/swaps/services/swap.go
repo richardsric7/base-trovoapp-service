@@ -111,7 +111,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		if len(swapInfo.DestinationAssetIssuer) == 56 {
 			destinationAsset = fmt.Sprintf("%v:%v...%v", swapInfo.DestinationAssetCode, swapInfo.DestinationAssetIssuer[0:4], swapInfo.DestinationAssetIssuer[51:55])
 		}
-		description := fmt.Sprintf("Swap from:%v|To: %v|Est. Value After: %v", sourceAsset, destinationAsset, swapInfo.SwappedEstimate)
+		description := fmt.Sprintf("Swap\n From:%v,\n To:%v,\n Est. Value After: %v", sourceAsset, destinationAsset, swapInfo.SwappedEstimate)
 		if len(swapInfo.Memo) > 0 {
 			description = fmt.Sprintf("%v\nMemo: %v", description, swapInfo.Memo)
 
