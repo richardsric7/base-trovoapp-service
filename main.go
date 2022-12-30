@@ -172,6 +172,11 @@ func main() {
 			return
 		}
 	}
+	{
+		// clear cache
+		cacheKeyInfo := "curatedAssets_"
+		redisCache.DeleteFromCache(cacheKeyInfo)
+	}
 
 	cas := strings.Split(os.Getenv("FBDL_SERVICE_URLS"), ",")
 	dynamicLinkServiceUrlChan := make(chan string, len(cas))
