@@ -135,7 +135,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 		marketOffer = &userModels.MarketOffer{
 			ID:                          uuid.NewString(),
 			SourceWalletAlias:           sourceWallet.Alias,
-			SourcewalletPublicKey:       sourceWallet.ID,
+			SourceWalletPublicKey:       sourceWallet.ID,
 			MarketMakingWalletPublicKey: mmWallet.ID,
 			OfferType:                   offerRequest.OfferType,
 			AssetCode:                   offerRequest.AssetCode,

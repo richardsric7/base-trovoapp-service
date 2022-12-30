@@ -3258,13 +3258,13 @@ func TestCreateMarketOffer(t *testing.T) {
 	}
 
 	payload := MarketOfferRequest{
-		OfferType:      "SELL",
+		OfferType:      "BUY",
 		AssetCode:      "TROV",
 		AssetIssuer:    "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
 		CurrencyCode:   "XBN",
 		CurrencyIssuer: "",
-		PricePerUnit:   "700",
-		Quantity:       "5000000",
+		PricePerUnit:   "500.2",
+		Quantity:       "2000000",
 	}
 
 	errorResponse := new(ErrorResponse)
@@ -3325,15 +3325,18 @@ func TestCreateMarketOffer(t *testing.T) {
 			Set("X-TW-SIGNATURE", signedHttpHeader).
 			Set("X-TW-TIMESTAMP", tsString).
 			Base(baseURL).
-			Post(fullPath).BodyJSON(p).Receive(p, errorResponse)
-		if len(errorResponse.Error) > 0 {
-			log.Println("[TestCreateMarketOffer] server 2nd response error:", *errorResponse)
-			t.Errorf(errorResponse.Error)
+			Post(fullPath).BodyJSON(p).Receive(rResponse, errorResponse)
+
+		if err != nil {
+			log.Println("[TestCreateMarketOffer] server 2nd response error:", err.Error())
+
+			t.Errorf("[TestCreateMarketOffer] server second response error: %v", err)
 			return
 
 		}
-		if err != nil {
-			t.Errorf(err.Error())
+		if len(errorResponse.Error) > 0 {
+			log.Println("[TestCreateMarketOffer] server 2nd response error:", *errorResponse)
+			t.Errorf(errorResponse.Error)
 			return
 
 		}

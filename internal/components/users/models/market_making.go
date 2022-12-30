@@ -43,7 +43,7 @@ type MarketOffer struct {
 	UpdatedAt                   time.Time `gorm:"default:now()" json:"-"`
 	ID                          string    `gorm:"size:100" json:"id"`
 	SourceWalletAlias           string    `gorm:"not null;size:100" json:"sourceWalletAlias"`
-	SourcewalletPublicKey       string    `gorm:"vsize:100" json:"sourceWalletPublicKey"`
+	SourceWalletPublicKey       string    `gorm:"vsize:100" json:"sourceWalletPublicKey"`
 	MarketMakingWalletPublicKey string    `gorm:"not null;size:100" json:"marketMakingWalletPublicKey"`
 	OfferType                   string    `gorm:"not null;size:100" json:"offerType"`
 	AssetCode                   string    `gorm:"not null;size:100" json:"assetCode"`
@@ -55,7 +55,7 @@ type MarketOffer struct {
 	FeeChargedOnAsset           string    `gorm:"not null;size:100" json:"feeChargedOnAsset"`
 	FeeValue                    string    `gorm:"not null;size:100" json:"FeeValue"`
 	NetQuantity                 string    `gorm:"not null;size:100" json:"netQuantity"`
-	TransactionID               *string   `gorm:"not null;size:100" json:"transactionId"`
+	TransactionID               *string   `gorm:"null;size:100" json:"transactionId"`
 	BlockchainOfferID           *string   `gorm:"null;size:100" json:"blockchainOfferId"`
 	RemainingQuantity           string    `gorm:"not null;size:100" json:"remainingQuantity"`
 	RemainingFeeValue           string    `gorm:"not null;size:100" json:"remainingFeeValue"`
