@@ -250,7 +250,7 @@ func SubmitXdrWithSignatureReturnsTrx(client *horizonclient.Client, signerPublic
 	txn, err = txn.AddSignatureBase64(GetBlockchainNetworkPassPhrase(), signerPublicKey, signature)
 
 	if err != nil {
-		log.Println("[SubmitXdrWithSignature] Failed to verify signature on [", GetBlockchainNetworkPassPhrase(), "] and [", signature, "] for [", xdrBase64, "] and public key ", signerPublicKey, ", error [", err, "]")
+		log.Println("[SubmitXdrWithSignatureReturnsTrx] Failed to verify signature on [", GetBlockchainNetworkPassPhrase(), "] and [", signature, "] for [", xdrBase64, "] and public key ", signerPublicKey, ", error [", err, "]")
 
 		return txnResult, err
 	}
@@ -268,7 +268,7 @@ func SubmitXdrWithSignatureReturnsTrx(client *horizonclient.Client, signerPublic
 
 	if err != nil {
 		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
-			discord.Say(fmt.Sprintf("[SubmitXdrWithSignature] error connecting to expansion service: %v\nXDR: %v", err, xdrBase64))
+			discord.Say(fmt.Sprintf("[SubmitXdrWithSignatureReturnsTrx] error connecting to expansion service: %v\nXDR: %v", err, xdrBase64))
 		}
 
 		horizonException, ok := err.(*horizonclient.Error)
@@ -278,24 +278,24 @@ func SubmitXdrWithSignatureReturnsTrx(client *horizonclient.Client, signerPublic
 			extraErrors := horizonException.Problem.Extras
 
 			for key, val := range extraErrors {
-				log.Printf("[SubmitXdrWithSignature] Extras: %v is %v\nOwner publicKey: %v\n", key, val, signerPublicKey)
-				logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignature] Extras: %v is %v\nSigner publicKey: %v\n", key, val, signerPublicKey))
+				log.Printf("[SubmitXdrWithSignatureReturnsTrx] Extras: %v is %v\nOwner publicKey: %v\n", key, val, signerPublicKey)
+				logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignatureReturnsTrx] Extras: %v is %v\nSigner publicKey: %v\n", key, val, signerPublicKey))
 
 			}
 
 			resultCodes, errRes := horizonException.ResultCodes()
 			if errRes == nil {
 				for key, val := range resultCodes.OperationCodes {
-					log.Printf("[SubmitXdrWithSignature] Result code: %v is %v\nSigner publicKey: %v\n", key, val, signerPublicKey)
-					logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignature] Result code: %v is %v\nSigner publicKey: %v\n", key, val, signerPublicKey))
+					log.Printf("[SubmitXdrWithSignatureReturnsTrx] Result code: %v is %v\nSigner publicKey: %v\n", key, val, signerPublicKey)
+					logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignatureReturnsTrx] Result code: %v is %v\nSigner publicKey: %v\n", key, val, signerPublicKey))
 
 				}
 			} else {
-				log.Printf("[SubmitXdrWithSignature] Error getting result codes: %v\n", errRes)
+				log.Printf("[SubmitXdrWithSignatureReturnsTrx] Error getting result codes: %v\n", errRes)
 			}
 
 		} else {
-			log.Printf("[SubmitXdrWithSignature] not horizon error: %v\n", err)
+			log.Printf("[SubmitXdrWithSignatureReturnsTrx] not horizon error: %v\n", err)
 
 		}
 		if strings.Contains(err.Error(), "liquid") {

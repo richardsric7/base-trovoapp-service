@@ -168,7 +168,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 		defer dbTX.Rollback()
 		e = dbTX.Create(&marketOffer).Error
 		if e != nil {
-			log.Printf("[MakeOffer]Error saving market offer: %+v\nError: %v\n", marketOffer, err)
+			log.Printf("[MakeOffer]Error creating market offer: %+v\nError: %v\n", marketOffer, err)
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 		txnResult, err := network.SubmitXdrWithSignatureReturnsTrx(gc.BantuExpansionClient, sourceWallet.Signer, xdrBase64, offerRequest.TransactionSignature)
@@ -185,7 +185,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 			var re xdr.TransactionResult
 			e := xdr.SafeUnmarshalBase64(txnResult.ResultXdr, &re)
 			if e != nil {
-				fmt.Println(e)
+				log.Println(e)
 			}
 			log.Println(re)
 			or, _ := re.OperationResults()
@@ -243,7 +243,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 		return nil
 
 	}
-
+	log.Println("[MakeOffer]unknown conditions for makr market")
 	return &tErrors.ErrorTemporaryServerError{}
 }
 

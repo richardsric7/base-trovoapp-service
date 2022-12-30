@@ -3263,7 +3263,7 @@ func TestCreateMarketOffer(t *testing.T) {
 		AssetIssuer:    "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
 		CurrencyCode:   "XBN",
 		CurrencyIssuer: "",
-		PricePerUnit:   "650",
+		PricePerUnit:   "700",
 		Quantity:       "5000000",
 	}
 
