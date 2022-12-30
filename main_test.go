@@ -3299,6 +3299,7 @@ func TestCreateMarketOffer(t *testing.T) {
 		p.Commit = 1
 		//sign transaction
 		if p.SignatureRequired == 1 {
+			p.Commit = 0
 			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
 			if err != nil {
 				log.Println("[TestCreateMarketOffer] confirm transaction error:", err)
