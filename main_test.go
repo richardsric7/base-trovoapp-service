@@ -3324,7 +3324,7 @@ func TestCreateMarketOffer(t *testing.T) {
 			Set("X-TW-SIGNATURE", signedHttpHeader).
 			Set("X-TW-TIMESTAMP", tsString).
 			Base(baseURL).
-			Delete(fullPath).BodyJSON(p).Receive(p, errorResponse)
+			Post(fullPath).BodyJSON(p).Receive(p, errorResponse)
 		if len(errorResponse.Error) > 0 {
 			log.Println("[TestCreateMarketOffer] server 2nd response error:", *errorResponse)
 			t.Errorf(errorResponse.Error)

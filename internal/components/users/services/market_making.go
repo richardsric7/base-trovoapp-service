@@ -542,7 +542,14 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 			Price:         xdr.Price{D: xdr.Int32(n), N: xdr.Int32(d)},
 			SourceAccount: mmWallet.ID,
 		})
-		memo = fmt.Sprintf("s%v-b%v", currencyAsset.GetCode(), mainAsset.GetCode())
+		bcode, scode := mainAsset.GetCode(), currencyAsset.GetCode()
+		if mainAsset.IsNative() {
+			bcode = os.Getenv("NATIVE_ASSET_CODE")
+		}
+		if currencyAsset.IsNative() {
+			scode = os.Getenv("NATIVE_ASSET_CODE")
+		}
+		memo = fmt.Sprintf("s%v-b%v", scode, bcode)
 
 	}
 	if strings.EqualFold(offerRequest.OfferType, "SELL") {
@@ -595,7 +602,14 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 			Price:         xdr.Price{N: xdr.Int32(n), D: xdr.Int32(d)},
 			SourceAccount: mmWallet.ID,
 		})
-		memo = fmt.Sprintf("s%v-b%v", mainAsset.GetCode(), currencyAsset.GetCode())
+		scode, bcode := mainAsset.GetCode(), currencyAsset.GetCode()
+		if mainAsset.IsNative() {
+			scode = os.Getenv("NATIVE_ASSET_CODE")
+		}
+		if currencyAsset.IsNative() {
+			bcode = os.Getenv("NATIVE_ASSET_CODE")
+		}
+		memo = fmt.Sprintf("s%v-b%v", scode, bcode)
 	}
 
 	//service fee
