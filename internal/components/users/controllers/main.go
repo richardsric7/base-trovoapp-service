@@ -524,101 +524,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		c.JSON(http.StatusOK, url)
 	})
 
-	router.POST("/v1/users/trades", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
-		var err error
-
-		var makeOfferRequest userModels.MarketOfferRequest
-		// var err error
-
-		data, _ := io.ReadAll(c.Request.Body)
-
-		err = json.Unmarshal(data, &makeOfferRequest)
-
-		var invalidJSON tErrors.ErrorInvalidJSON
-
-		if err != nil {
-			c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-			return
-		}
-
-		signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
-
-		if err != nil {
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			if ok {
-				c.JSON(http.StatusBadRequest, ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			}
-			return
-		}
-		walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
-
-		if err != nil {
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			if ok {
-				c.JSON(http.StatusBadRequest, ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			}
-			return
-		}
-		wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
-
-		if err != nil {
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			if ok {
-				c.JSON(http.StatusBadRequest, ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			}
-			return
-		}
-		if wallet.WalletType != 0 {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
-			return
-		}
-		if signerUser.PrimarySigner != wallet.Signer {
-			c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
-			return
-		}
-		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/trades %v", wallet.Alias), gc.DB)
-
-		err = userServices.MakeOffer(&signerUser, &walletOwner, &wallet, &makeOfferRequest, gc)
-
-		if err != nil {
-			var ex tErrors.GenericError
-			var ok bool
-
-			ex, ok = err.(tErrors.GenericError)
-			if ok {
-				c.JSON(http.StatusBadRequest, ex.JSONError())
-			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			}
-			return
-		}
-
-		if walletOwner.PushNotificationToken != nil && len(makeOfferRequest.TransactionID) > 0 && makeOfferRequest.TransactionID != "PENDING_AUTH" {
-			dataPayload := make(map[string]string)
-			dataPayload["route"] = ""
-			pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("%v %v %v offer accepted on %v!", makeOfferRequest.Quantity, makeOfferRequest.AssetCode, makeOfferRequest.OfferType, wallet.Alias), fmt.Sprintf("You have successfully submitted a market offer to %v %v %v @ %v %v on the wallet with alias [%v].", makeOfferRequest.OfferType, makeOfferRequest.Quantity, makeOfferRequest.AssetCode, makeOfferRequest.PricePerUnit, makeOfferRequest.CurrencyCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
-		}
-		walletOwner.InvalidateUserCache(gc)
-		//At this point, there was no error.
-
-		c.JSON(http.StatusOK, makeOfferRequest)
-	})
-
 	router.POST("/v1/users/asset/opt-in", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
@@ -3168,6 +3073,104 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	})
 
+	// market making
+	{
+		router.POST("/v1/users/trades", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			var err error
+
+			var makeOfferRequest userModels.MarketOfferRequest
+			// var err error
+
+			data, _ := io.ReadAll(c.Request.Body)
+
+			err = json.Unmarshal(data, &makeOfferRequest)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+
+			signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				}
+				return
+			}
+			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				}
+				return
+			}
+			wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				}
+				return
+			}
+			if wallet.WalletType != 0 {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-forbidden", "message": "Operation not allowed on any special type of wallets. Only standard wallets are allowed."})
+				return
+			}
+			if signerUser.PrimarySigner != wallet.Signer {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission on this wallet."})
+				return
+			}
+			conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/trades %v", wallet.Alias), gc.DB)
+
+			err = userServices.MakeOffer(&signerUser, &walletOwner, &wallet, &makeOfferRequest, gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				}
+				return
+			}
+
+			if walletOwner.PushNotificationToken != nil && len(makeOfferRequest.TransactionID) > 0 && makeOfferRequest.TransactionID != "PENDING_AUTH" {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				pns.SendFirebaseMessage(*walletOwner.PushNotificationToken, fmt.Sprintf("%v %v %v offer accepted on %v!", makeOfferRequest.Quantity, makeOfferRequest.AssetCode, makeOfferRequest.OfferType, wallet.Alias), fmt.Sprintf("You have successfully submitted a market offer to %v %v %v @ %v %v on the wallet with alias [%v].", makeOfferRequest.OfferType, makeOfferRequest.Quantity, makeOfferRequest.AssetCode, makeOfferRequest.PricePerUnit, makeOfferRequest.CurrencyCode, wallet.Alias), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+			walletOwner.InvalidateUserCache(gc)
+			//At this point, there was no error.
+
+			c.JSON(http.StatusOK, makeOfferRequest)
+		})
+
+	}
 	//CRYPTO
 	{
 		//get specific  wallet balance, middleware.AuthenticationMiddlewareUsingTimestamp()

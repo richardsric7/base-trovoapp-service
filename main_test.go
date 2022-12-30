@@ -443,6 +443,23 @@ type ApprovalPayload struct {
 type RejectPayload struct {
 	RejectionReason string `json:"rejectionReason"`
 }
+type MarketOfferRequest struct {
+	OfferType            string   `json:"offerType"`
+	AssetCode            string   `json:"assetCode"`
+	AssetIssuer          string   `json:"assetIssuer"`
+	CurrencyCode         string   `json:"currencyCode"`
+	CurrencyIssuer       string   `json:"currencyIssuer"`
+	PricePerUnit         string   `json:"pricePerUnit"`
+	Quantity             string   `json:"quantity"`
+	Transaction          string   `json:"transaction"`
+	TransactionSignature string   `json:"transactionSignature"`
+	TransactionID        string   `json:"transactionId"`
+	NetworkPassPhrase    string   `json:"networkPassPhrase"`
+	Messages             []string `json:"messages"`
+	Commit               int      `json:"commit"`
+	SignatureRequired    int      `json:"signatureRequired"`
+	Memo                 string   `json:"memo"`
+}
 
 func TestCreateAccount(t *testing.T) {
 
@@ -3206,5 +3223,124 @@ func TestRejectTransaction(t *testing.T) {
 	log.Printf("Confirmation Response:[%+v]\n", payResponse)
 
 	log.Println("[TestRejectTransaction] completed")
+
+}
+
+func TestCreateMarketOffer(t *testing.T) {
+
+	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	pk := "GCZ77KBBPINJRHZEYZMCF7SSR5WZVDCUPFG6OSB6FORQVEJV2UOHBG3B"
+	secretKey := "SA37LXNUXO62HXXL2SUXVLDCUA6SSQAOUSO2B3LNVMAO3WPE3RDK5OPZ"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	baseURL := stagingURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/users/trades"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	payload := MarketOfferRequest{
+		OfferType:      "SELL",
+		AssetCode:      "TROV",
+		AssetIssuer:    "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
+		CurrencyCode:   "XBN",
+		CurrencyIssuer: "",
+		PricePerUnit:   "650",
+		Quantity:       "5000000",
+	}
+
+	errorResponse := new(ErrorResponse)
+	rResponse := new(MarketOfferRequest)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(payload).Receive(rResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestCreateMarketOffer] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
+		return
+
+	}
+
+	if err != nil {
+		log.Println("[TestCreateMarketOffer]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Response:[%+v]\n", rResponse)
+	{
+		//run the payment signing and submission
+		p := *rResponse
+		p.Commit = 1
+		//sign transaction
+		if p.SignatureRequired == 1 {
+			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
+			if err != nil {
+				log.Println("[TestCreateMarketOffer] confirm transaction error:", err)
+				t.Errorf(err.Error())
+
+				return
+			}
+
+			p.TransactionSignature = signedBase64
+		}
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", kp.Address()).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Delete(fullPath).BodyJSON(p).Receive(p, errorResponse)
+		if len(errorResponse.Error) > 0 {
+			log.Println("[TestCreateMarketOffer] server 2nd response error:", *errorResponse)
+			t.Errorf(errorResponse.Error)
+			return
+
+		}
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+
+		log.Printf("Create market offer Response:[%+v]\n", p)
+	}
+
+	log.Println("[TestCreateMarketOffer] completed")
+	// time.Sleep(time.Second * 10)
 
 }

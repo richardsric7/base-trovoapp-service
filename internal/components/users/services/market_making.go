@@ -472,7 +472,7 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 		}
 	}
 	if strings.EqualFold(offerRequest.OfferType, "SELL") {
-		sourceMAccountExists, sourceMAccountTrustsAsset, nativeMAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, mainAsset)
+		sourceMAccountExists, sourceMAccountTrustsAsset, nativeMAccountBalance, _, sourceAccount, _ = network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, mainAsset)
 
 		if !sourceMAccountExists {
 			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
@@ -603,15 +603,27 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 
 		//process service fee
 
-		// ops = append(ops, &txnbuild.Payment{
-		// 	Destination:   os.Getenv("MARKET_MAKING_FEE_ADDRESS"),
-		// 	Amount:        offerRequest.FeeValue,
-		// 	SourceAccount: sourceWallet.ID,
-		// 	Asset:         mainAsset,
-		// })
 		//no need deducting it as we deduct it as market executes
 		feeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
 		if !mainAsset.IsNative() {
+			//ensure that the fee address is can accept the asset.
+			// but bcos  fee address needs to sign, it cannot be done here
+			mmFeeAddress := os.Getenv("MARKET_MAKING_FEE_ADDRESS")
+			{
+				_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmFeeAddress, mainAsset)
+				if !feeAccountTrustsAsset {
+					//throw error
+
+					return "", &tErrors.CustomError{Param: "publicKey", Err: "error-asset-not-configured-for-fee-address", ErrMessage: fmt.Sprintf("Please contact support to configure %v fee for before you can perform this task.", mainAsset.GetCode()), Code: http.StatusBadRequest}
+
+					//establish trustline automatically
+					// ops = append(ops, &txnbuild.ChangeTrust{
+					// 	Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
+					// 	Limit:         "900000000000",
+					// 	SourceAccount: mmFeeAddress,
+					// })
+				}
+			}
 			feeAssetCode = mainAsset.GetCode()
 		}
 		offerRequest.Messages = append(offerRequest.Messages, fmt.Sprintf("%v %v (%v) will be deducted from the total quantity as service fee and your offer will be placed with %v %v.", offerRequest.FeeValue, feeAssetCode, offerFeePercentage, offerRequest.NetQuantity, feeAssetCode))
