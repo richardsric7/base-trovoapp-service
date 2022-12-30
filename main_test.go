@@ -3259,12 +3259,12 @@ func TestCreateMarketOffer(t *testing.T) {
 
 	payload := MarketOfferRequest{
 		OfferType:      "BUY",
-		AssetCode:      "TROV",
-		AssetIssuer:    "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
-		CurrencyCode:   "XBN",
-		CurrencyIssuer: "",
-		PricePerUnit:   "500.2",
-		Quantity:       "2000000",
+		AssetCode:      "FREECOUPON",
+		AssetIssuer:    "GDCSKNR625ZF3KSOTE4C5NF2WOHUBESM7DRKLLHVNR47LACHD3GG5HSD",
+		CurrencyCode:   "TROV",
+		CurrencyIssuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
+		PricePerUnit:   "0.00002",
+		Quantity:       "20000000",
 	}
 
 	errorResponse := new(ErrorResponse)

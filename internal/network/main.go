@@ -223,6 +223,14 @@ func SubmitXdrWithSignature(client *horizonclient.Client, signerPublicKey string
 				ErrMessage: "There is not enough market to exchange for your source asset at this time. Please try again later or reduce the quantity you are swapping and try again.",
 			}
 		}
+
+		if strings.Contains(err.Error(), "op_line_full") {
+			return "", &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-above-asset-limit",
+				ErrMessage: "The resulting asset quantity is above the limit your wallet can hold. Please reduce the quantity you are trading/swapping and try again.",
+			}
+		}
 		return "", &tErrors.CustomError{Param: "publicKey", Err: "error operation failed", ErrMessage: "Operation Failed", Code: 500}
 
 	}
@@ -303,6 +311,13 @@ func SubmitXdrWithSignatureReturnsTrx(client *horizonclient.Client, signerPublic
 				Param:      "destinationAssetCode",
 				Err:        "error-low-liquidity",
 				ErrMessage: "There is not enough market to exchange for your source asset at this time. Please try again later or reduce the quantity you are swapping and try again.",
+			}
+		}
+		if strings.Contains(err.Error(), "op_line_full") {
+			return txnResult, &tErrors.CustomError{
+				Param:      "destinationAssetCode",
+				Err:        "error-above-asset-limit",
+				ErrMessage: "The resulting asset quantity is above the limit your wallet can hold. Please reduce the quantity you are trading/swapping and try again.",
 			}
 		}
 		return txnResult, &tErrors.CustomError{Param: "publicKey", Err: "error operation failed", ErrMessage: "Operation Failed", Code: 500}
