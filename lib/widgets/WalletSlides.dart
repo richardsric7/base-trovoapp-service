@@ -84,30 +84,31 @@ class _WalletSlideState extends State<WalletSlide> {
             ),
             Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 25.0),
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Container(
-                    width: width / 1.9,
+                    width: width / 2,
                     child: Text(
                       widget.alias,
                       style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: widget.foreColor,
                           fontFamily: fontsemibold),
                     ),
                   ),
                   SizedBox(
-                    height: height / 50,
+                    height: height / 90,
                   ),
                   Row(
                     children: [
                       Text(
                         LanguageEn.totalbalance,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 13,
                           fontWeight: FontWeight.w400,
                           color: widget.foreColor,
                           fontFamily: fontbody,

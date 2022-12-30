@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
@@ -297,7 +298,7 @@ class _SharedAccessState extends State<SharedAccess>
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.list_alt_outlined),
+                          Icon(CupertinoIcons.square_list),
                           FutureBuilder<Map>(
                             future: appState.approvals,
                             builder: (context, snapshot) {

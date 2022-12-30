@@ -522,9 +522,6 @@ class DataProvider with ChangeNotifier {
 
   getApprovals({void Function()? onDone}) {
     approvals = fetchApprovals(limit: limit.toString(), query: filterQuery);
-    notifyListeners();
-    // scroll to the top of the list if historyData is not null
-    if (historyData.length > 0 && onDone != null) onDone();
   }
 
   // view data is where all the data that a particular view needs

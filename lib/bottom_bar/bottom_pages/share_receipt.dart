@@ -106,14 +106,14 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
               RepaintBoundary(
                 key: shareArea,
                 child: Container(
-                  color: notifier.isDark ? null : notifier.getbluewhitecolor,
+                  color: notifier.isDark ? null : wihitecolor,
                   child: Column(
                     children: [
                       SizedBox(height: height / 50),
                       Image.asset(
                         'assets/images/trovo-horizontal-logo.png',
                         height: height / 16.5,
-                        color: Colors.white,
+                        color: notifier.isDark ? Colors.white : null,
                       ),
                       SizedBox(height: height / 30),
                       Text(
