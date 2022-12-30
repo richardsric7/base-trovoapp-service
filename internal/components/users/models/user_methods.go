@@ -1277,6 +1277,24 @@ func (u *UserWallet) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig) 
 	return
 }
 
+func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (swapFee string) {
+	fee := decimal.RequireFromString(os.Getenv("SWAP_FEE_AMOUNT"))
+
+	//TODO: check if user has zero swap fees
+
+	swapFee = fee.String()
+	return
+}
+
+func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (sharedAccessFee string) {
+	fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+
+	//TODO: get shared access fees
+
+	sharedAccessFee = fee.String()
+	return
+}
+
 func (u *User) GetMartketMakingWallet(db *gorm.DB) (wallet UserWallet, err error) {
 	e := db.Preload(clause.Associations).Where("user_id = ? AND wallet_type = 2", u.ID).First(&wallet).Error
 	if e != nil {

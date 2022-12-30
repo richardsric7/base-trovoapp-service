@@ -22,6 +22,9 @@ type PaymentInfo struct {
 	Multiparty              int               `json:"-"`
 	SignatureRequired       int               `json:"signatureRequired"`
 	Commit                  int               `json:"commit"`
+	Fee                     string            `json:"fee"`
+	FeeAmount               string            `json:"feeAmount"`
+	AmountToPay             string            `json:"amountToPay"`
 	SHash                   string            `json:"sHash"`
 	ChannelAccount          string            `json:"channelAccount"`
 	ChannelAccountSignature string            `json:"channelAccountSignature"`

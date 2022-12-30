@@ -31,6 +31,14 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 	if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
 		swapInfo.Multiparty = 1
 	}
+	fee := decimal.RequireFromString(wallet.GetSwapFee(gc))
+
+	feeAmount := ((fee.Mul(decimal.RequireFromString(swapInfo.SourceAmount))).Div(decimal.NewFromInt(100))).Truncate(7)
+
+	swapAmount := decimal.RequireFromString(swapInfo.SourceAmount).Sub(feeAmount)
+	swapInfo.SwapAmount = swapAmount.String()
+	swapInfo.Fee = fee.String()
+	swapInfo.FeeAmount = feeAmount.String()
 
 	if wallet.HasViewOnlyAccess(gc) {
 		swapInfo.SignatureRequired = 1
@@ -209,6 +217,7 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 			appliedCharge = baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7)
 			// appliedCharge = baseReserve.Mul(decimal.RequireFromString(charge)).Truncate(7)
 			totalFees = appliedCharge
+			log.Println("[generateSwapXdr] total fees:", totalFees)
 			//establish trustline
 			ops = append(ops, &txnbuild.ChangeTrust{
 				Line:          txnbuild.ChangeTrustAssetWrapper{Asset: destinationAsset},
@@ -224,17 +233,27 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	amountToSwapDec := amountToSwap
 
 	if sourceAsset.IsNative() {
-		if sourceAccountNativeBalance.LessThan(amountToSwapDec.Add(appliedCharge)) {
-			return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+		if !sourceAccountTrustsDestinationAsset {
+			if sourceAccountNativeBalance.LessThan(amountToSwapDec.Add(appliedCharge)) {
+				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to accommodate the amount needed to opt you into the destination asset or you reduce same from the amount you want to swap.", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+			}
+		} else {
+			if sourceAccountNativeBalance.LessThan(amountToSwapDec) {
+				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+			}
 		}
+
 	} else {
+
+		if !sourceAccountTrustsDestinationAsset {
+			if sourceAccountNativeBalance.LessThan(appliedCharge) {
+				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to complete this transaction", appliedCharge.Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+			}
+		}
 		if sourceAccountCustomBalance.LessThan(amountToSwapDec) {
-			return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
+			return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
 		}
-		//if it is custom asset check if the native balance can carry the charge for trusting asset
-		if sourceAccountNativeBalance.LessThan(appliedCharge) {
-			return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to complete this transaction", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
-		}
+
 	}
 
 	//get sendPath
@@ -259,53 +278,34 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	//native asset
 	ops = append(ops, &txnbuild.PathPaymentStrictSend{
 		SendAsset:     sourceAsset,
-		SendAmount:    swapInfo.SourceAmount,
+		SendAmount:    swapInfo.SwapAmount,
 		Destination:   wallet.ID,
 		DestAsset:     destinationAsset,
 		DestMin:       swapDestMin.String(),
 		Path:          path,
 		SourceAccount: wallet.ID,
 	})
-	serviceFee, e := decimal.NewFromString(os.Getenv("SWAP_FEE_AMOUNT"))
+	serviceFee, e := decimal.NewFromString(swapInfo.FeeAmount)
 	if e != nil {
 		serviceFee = decimal.Zero
 	}
-	totalFees = totalFees.Add(serviceFee)
-
+	// totalFees = totalFees.Add(serviceFee)
+	feeLabel := swapInfo.Fee + "%"
 	if serviceFee.IsPositive() {
 		//process service fee
 
-		if len(os.Getenv("SWAP_FEE_ASSET_ISSUER")) == 56 {
-			feeAsset := txnbuild.CreditAsset{Code: os.Getenv("SWAP_FEE_ASSET_CODE"), Issuer: os.Getenv("SWAP_FEE_ASSET_ISSUER")}
-			_, _, _, sourceAccountCustomBalance, _, _ := network.BlockchainAccountProperties(client, wallet.ID, feeAsset)
-			if sourceAccountCustomBalance.LessThan(totalFees) {
-
-				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to cover for fees.", totalFees.Sub(sourceAccountCustomBalance), feeAsset.GetCode())}
-
-			}
-			ops = append(ops, &txnbuild.Payment{
-				Destination:   os.Getenv("SWAP_FEE_ADDRESS"),
-				Amount:        serviceFee.String(),
-				SourceAccount: wallet.ID,
-				Asset:         feeAsset,
-			})
-			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SWAP_FEE_AMOUNT"), os.Getenv("SWAP_FEE_ASSET_CODE"), wallet.Alias))
-
-		} else {
-			if sourceAccountNativeBalance.LessThan(totalFees) {
-
-				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to cover for fees.", totalFees.Sub(sourceAccountCustomBalance), nativeAssetCode)}
-
-			}
-			ops = append(ops, &txnbuild.Payment{
-				Destination:   os.Getenv("SWAP_FEE_ADDRESS"),
-				Amount:        serviceFee.String(),
-				SourceAccount: wallet.ID,
-				Asset:         txnbuild.NativeAsset{},
-			})
-			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SWAP_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
-
+		ops = append(ops, &txnbuild.Payment{
+			Destination:   os.Getenv("SWAP_FEE_ADDRESS"),
+			Amount:        serviceFee.String(),
+			SourceAccount: wallet.ID,
+			Asset:         sourceAsset,
+		})
+		swapAssetCode := os.Getenv("NATIVE_ASSET_CODE")
+		if !sourceAsset.IsNative() {
+			swapAssetCode = sourceAsset.GetCode()
 		}
+
+		messages = append(messages, fmt.Sprintf("%v %v will be deducted as service fee (%v) and you receive value for swapping %v %v.", serviceFee.String(), swapAssetCode, feeLabel, swapInfo.SwapAmount, swapAssetCode))
 
 	}
 

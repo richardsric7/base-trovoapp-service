@@ -76,6 +76,9 @@ type SwapSendInfo struct {
 	SignatureRequired      int      `json:"signatureRequired"`
 	Commit                 int      `json:"commit"`
 	SHash                  string   `json:"sHash"`
+	Fee                    string   `json:"fee"`
+	FeeAmount              string   `json:"feeAmount"`
+	SwapAmount              string   `json:"swapAmount"`
 	ReturnedDescription    string   `json:"-"`
 }
 

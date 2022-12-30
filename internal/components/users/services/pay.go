@@ -82,10 +82,20 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 		}
 
 	}
-
+	paymentInfo.AmountToPay = paymentInfo.Amount
 	walletHasViewOnlyAccess = sourceWallet.HasViewOnlyAccess(gc)
 	if !walletHasViewOnlyAccess {
 		paymentInfo.Multiparty = 1
+		{
+			//calculate fees
+			fee := decimal.RequireFromString(sourceWallet.GetSharedAccessPaymentFee(gc))
+			paymentInfo.Fee = fee.String()
+			feeAmount := ((decimal.RequireFromString(paymentInfo.Amount).Mul(fee)).Div(decimal.NewFromInt(100))).Truncate(7)
+			paymentInfo.FeeAmount = feeAmount.String()
+			amountToPay := decimal.RequireFromString(paymentInfo.Amount).Add(feeAmount)
+			paymentInfo.AmountToPay = amountToPay.String()
+
+		}
 
 	}
 	if walletHasViewOnlyAccess {
@@ -222,7 +232,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	}
 
 	var amountToSend float64
-	if amountToSend, err = strconv.ParseFloat(paymentInfo.Amount, 64); err != nil {
+	if amountToSend, err = strconv.ParseFloat(paymentInfo.AmountToPay, 64); err != nil {
 		return "", nil, &tPayErrors.ErrorInvalidPaymentAmount{}
 	}
 
@@ -472,32 +482,25 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 	}
 	//service fee
-	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	serviceFee, e := decimal.NewFromString(paymentInfo.FeeAmount)
 	if e != nil {
 		serviceFee = decimal.Zero
 	}
 	if serviceFee.IsPositive() {
 		if paymentInfo.Multiparty == 1 {
 			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: sourceWallet.ID,
-					Asset:         txnbuild.NativeAsset{},
-				})
-				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), sourceWallet.Alias))
-
-			} else {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: sourceWallet.ID,
-					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
-				})
-				paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), sourceWallet.Alias))
-
+			feeLabel := paymentInfo.Fee + "%"
+			assetCode := os.Getenv("NATIVE_ASSET_CODE")
+			if !asset.IsNative() {
+				assetCode = asset.GetCode()
 			}
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+				Amount:        serviceFee.String(),
+				SourceAccount: sourceWallet.ID,
+				Asset:         asset,
+			})
+			paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be added from wallet %v as service fee (%v).", serviceFee.String(), assetCode, sourceWallet.Alias, feeLabel))
 
 		}
 	}
