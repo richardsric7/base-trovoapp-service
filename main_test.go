@@ -1119,9 +1119,11 @@ func TestGetUserInfo(t *testing.T) {
 	// primaryPK := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
 	// primarySecretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
-	primaryPK := os.Getenv("RICPK")
-	primarySecretKey := os.Getenv("RICSC")
-	ownerUsername := "ric"
+	primaryPK := "GCZ77KBBPINJRHZEYZMCF7SSR5WZVDCUPFG6OSB6FORQVEJV2UOHBG3B"
+	primarySecretKey := "SA37LXNUXO62HXXL2SUXVLDCUA6SSQAOUSO2B3LNVMAO3WPE3RDK5OPZ"
+	// primaryPK := os.Getenv("RICPK")
+	// primarySecretKey := os.Getenv("RICSC")
+	ownerUsername := "ric1"
 	kp := keypair.MustParseFull(primarySecretKey)
 	// log.Println(kp.Address())
 	// baseURL := "http://localhost:8080"

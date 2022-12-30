@@ -215,10 +215,11 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			}
 
 			//liability when u hv placed a BUY
-			buyingLiabilities, _ := decimal.NewFromString(bal.BuyingLiabilities)
-			sellingLiabilities, _ := decimal.NewFromString(bal.SellingLiabilities)
+			// buyingLiabilities, _ := decimal.NewFromString(bal.BuyingLiabilities)
+			// sellingLiabilities, _ := decimal.NewFromString(bal.SellingLiabilities)
 			// availableBalance := amount.Sub(sellingLiabilities)
-			availableBalance := amount.Sub(sellingLiabilities.Add(buyingLiabilities))
+			// availableBalance := amount.Sub(sellingLiabilities.Add(buyingLiabilities))
+			availableBalance := amount
 			// availableBalance := availableBal.Truncate(7).String()
 			if bal.Issuer != "" && bal.Code != "" {
 				assetNativePrice, _ := blockchain.GetNativeAskPrice(bal.Code, bal.Issuer)
