@@ -57,6 +57,7 @@ type MarketOffer struct {
 	NetQuantity                 string    `gorm:"not null;size:100" json:"netQuantity"`
 	TransactionID               *string   `gorm:"null;size:100" json:"transactionId"`
 	BlockchainOfferID           *string   `gorm:"null;size:100" json:"blockchainOfferId"`
+	LastProcessedCursor         *string   `gorm:"null;size:100" json:"lastProcessedCursor"`
 	RemainingQuantity           string    `gorm:"not null;size:100" json:"remainingQuantity"`
 	RemainingFeeValue           string    `gorm:"not null;size:100" json:"remainingFeeValue"`
 	Canceled                    int       `gorm:"type:integer;not null; default:0" json:"canceled"`

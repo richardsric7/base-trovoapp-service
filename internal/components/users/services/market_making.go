@@ -131,6 +131,13 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 			Code:       404,
 		}
 	}
+	var assetIssuer, currencyIssuer *string
+	if len(offerRequest.AssetIssuer) > 0 {
+		assetIssuer = &offerRequest.AssetIssuer
+	}
+	if len(offerRequest.CurrencyIssuer) > 0 {
+		currencyIssuer = &offerRequest.CurrencyIssuer
+	}
 	{
 		marketOffer = &userModels.MarketOffer{
 			ID:                          uuid.NewString(),
@@ -139,9 +146,9 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 			MarketMakingWalletPublicKey: mmWallet.ID,
 			OfferType:                   offerRequest.OfferType,
 			AssetCode:                   offerRequest.AssetCode,
-			AssetIssuer:                 &offerRequest.AssetIssuer,
+			AssetIssuer:                 assetIssuer,
 			CurrencyCode:                offerRequest.CurrencyCode,
-			CurrencyIssuer:              &offerRequest.CurrencyIssuer,
+			CurrencyIssuer:              currencyIssuer,
 			PricePerUnit:                offerRequest.PricePerUnit,
 			Quantity:                    offerRequest.Quantity,
 			FeeChargedOnAsset:           offerRequest.FeeChargedOnAsset,
