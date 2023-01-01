@@ -288,7 +288,28 @@ func SubmitXdrWithSignatureReturnsTrx(client *horizonclient.Client, signerPublic
 			for key, val := range extraErrors {
 				log.Printf("[SubmitXdrWithSignatureReturnsTrx] Extras: %v is %v\nOwner publicKey: %v\n", key, val, signerPublicKey)
 				logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignatureReturnsTrx] Extras: %v is %v\nSigner publicKey: %v\n", key, val, signerPublicKey))
-
+				errorString := fmt.Sprintf("%v", val)
+				if strings.Contains(errorString, "liquid") {
+					return txnResult, &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-low-liquidity",
+						ErrMessage: "There is not enough market to exchange for your source asset at this time. Please try again later or reduce the quantity you are swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "op_line_full") {
+					return txnResult, &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-above-asset-limit",
+						ErrMessage: "The resulting asset quantity is above the limit your wallet can hold. Please reduce the quantity you are trading/swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "tx_bad_seq") {
+					return txnResult, &tErrors.CustomError{
+						Param:      "publicKey",
+						Err:        "error-please-reject-transaction",
+						ErrMessage: "This transaction has become invalid and cannot be completed. Please reject this transaction and initiate a fresh one.",
+					}
+				}
 			}
 
 			resultCodes, errRes := horizonException.ResultCodes()
@@ -414,6 +435,29 @@ func SubmitApprovalsXdrWithSignatures(client *horizonclient.Client, approvalID s
 				log.Printf("[SubmitApprovalXdrWithSignature] Extras: %v is %v\nWallet publicKey: %v\n", key, val, pendingAuth.WalletPublicKey)
 				logDiscordFailedPayment(fmt.Sprintf("[SubmitApprovalXdrWithSignature] Extras: %v is %v\nWallet publicKey: %v\n", key, val, pendingAuth.WalletPublicKey))
 
+				errorString := fmt.Sprintf("%v", val)
+				if strings.Contains(errorString, "liquid") {
+					return "", &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-low-liquidity",
+						ErrMessage: "There is not enough market to exchange for your source asset at this time. Please try again later or reduce the quantity you are swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "op_line_full") {
+					return "", &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-above-asset-limit",
+						ErrMessage: "The resulting asset quantity is above the limit your wallet can hold. Please reduce the quantity you are trading/swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "tx_bad_seq") {
+					return "", &tErrors.CustomError{
+						Param:      "publicKey",
+						Err:        "error-please-reject-transaction",
+						ErrMessage: "This transaction has become invalid and cannot be completed. Please reject this transaction and initiate a fresh one.",
+					}
+				}
+
 			}
 
 			resultCodes, errRes := horizonException.ResultCodes()
@@ -525,7 +569,29 @@ func SubmitApprovalsXdrWithSignaturesReturnsTrx(client *horizonclient.Client, ap
 			for key, val := range extraErrors {
 				log.Printf("[SubmitApprovalXdrWithSignature] Extras: %v is %v\nWallet publicKey: %v\n", key, val, pendingAuth.WalletPublicKey)
 				logDiscordFailedPayment(fmt.Sprintf("[SubmitApprovalXdrWithSignature] Extras: %v is %v\nWallet publicKey: %v\n", key, val, pendingAuth.WalletPublicKey))
-
+				//check the value of val
+				errorString := fmt.Sprintf("%v", val)
+				if strings.Contains(errorString, "liquid") {
+					return txnResult, &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-low-liquidity",
+						ErrMessage: "There is not enough market to exchange for your source asset at this time. Please try again later or reduce the quantity you are swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "op_line_full") {
+					return txnResult, &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-above-asset-limit",
+						ErrMessage: "The resulting asset quantity is above the limit your wallet can hold. Please reduce the quantity you are trading/swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "tx_bad_seq") {
+					return txnResult, &tErrors.CustomError{
+						Param:      "publicKey",
+						Err:        "error-please-reject-transaction",
+						ErrMessage: "This transaction has become invalid and cannot be completed. Please reject this transaction and initiate a fresh one.",
+					}
+				}
 			}
 
 			resultCodes, errRes := horizonException.ResultCodes()
@@ -606,6 +672,28 @@ func SubmitXdrWithSignatureChannelAccounts(client *horizonclient.Client, signerP
 
 			for key, val := range extraErrors {
 				log.Printf("Extras: %v is %v\n", key, val)
+				errorString := fmt.Sprintf("%v", val)
+				if strings.Contains(errorString, "liquid") {
+					return "", &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-low-liquidity",
+						ErrMessage: "There is not enough market to exchange for your source asset at this time. Please try again later or reduce the quantity you are swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "op_line_full") {
+					return "", &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-above-asset-limit",
+						ErrMessage: "The resulting asset quantity is above the limit your wallet can hold. Please reduce the quantity you are trading/swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "tx_bad_seq") {
+					return "", &tErrors.CustomError{
+						Param:      "publicKey",
+						Err:        "error-please-reject-transaction",
+						ErrMessage: "This transaction has become invalid and cannot be completed. Please reject this transaction and initiate a fresh one.",
+					}
+				}
 			}
 
 			resultCodes, _ := horizonException.ResultCodes()
