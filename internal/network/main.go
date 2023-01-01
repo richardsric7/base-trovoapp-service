@@ -199,6 +199,28 @@ func SubmitXdrWithSignature(client *horizonclient.Client, signerPublicKey string
 				log.Printf("[SubmitXdrWithSignature] Extras: %v is %v\nOwner publicKey: %v\n", key, val, signerPublicKey)
 				logDiscordFailedPayment(fmt.Sprintf("[SubmitXdrWithSignature] Extras: %v is %v\nSigner publicKey: %v\n", key, val, signerPublicKey))
 
+				errorString := fmt.Sprintf("%v", val)
+				if strings.Contains(errorString, "liquid") {
+					return "", &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-low-liquidity",
+						ErrMessage: "There is not enough market to exchange for your source asset at this time. Please try again later or reduce the quantity you are swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "op_line_full") {
+					return "", &tErrors.CustomError{
+						Param:      "destinationAssetCode",
+						Err:        "error-above-asset-limit",
+						ErrMessage: "The resulting asset quantity is above the limit your wallet can hold. Please reduce the quantity you are trading/swapping and try again.",
+					}
+				}
+				if strings.Contains(errorString, "tx_bad_seq") {
+					return "", &tErrors.CustomError{
+						Param:      "publicKey",
+						Err:        "error-please-reject-transaction",
+						ErrMessage: "This transaction has become invalid and cannot be completed. Please reject this transaction and initiate a fresh one.",
+					}
+				}
 			}
 
 			resultCodes, errRes := horizonException.ResultCodes()
