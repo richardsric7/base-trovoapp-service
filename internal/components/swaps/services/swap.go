@@ -496,7 +496,11 @@ func getStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 	// discord.Say(fmt.Sprintf("[getStrictSendPaths] swapPaths: %+v\nRequestParams: %+v", swapPaths, sspr))
 	// log.Printf("[getStrictSendPaths] swapPaths: %+v\n", swapPaths)
 	if len(swapPaths.Embedded.Records) == 0 {
-		return paths, "", &swapErrors.ErrorSwapOfferNotAvailable{}
+		return paths, "", &tErrors.CustomError{
+			Param:      "destinationAssetCode",
+			Err:        "error-low-liquidity",
+			ErrMessage: fmt.Sprintf("There is not enough %v market to exchange for your %v at this time. Please try again later or reduce the quantity of %v to try again.", destAsset, sourceAsset, sourceAsset),
+		}
 	}
 	destAmountDec, _ := decimal.NewFromString(swapPaths.Embedded.Records[0].DestinationAmount)
 	if destAmountDec.LessThan(network.GetBlockchainSwapDestinationMin()) {
