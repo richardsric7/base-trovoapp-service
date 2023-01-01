@@ -496,6 +496,14 @@ func getStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 	// discord.Say(fmt.Sprintf("[getStrictSendPaths] swapPaths: %+v\nRequestParams: %+v", swapPaths, sspr))
 	// log.Printf("[getStrictSendPaths] swapPaths: %+v\n", swapPaths)
 	if len(swapPaths.Embedded.Records) == 0 {
+		destAsset := os.Getenv("NATIVE_ASSET_CODE")
+		sourceAsset := os.Getenv("NATIVE_ASSET_CODE")
+		if len(pathInput.SourceAssetCode) > 0 {
+			sourceAsset = pathInput.SourceAssetCode
+		}
+		if pathInput.DestinationAssets != "native" {
+			destAsset = strings.Split(pathInput.DestinationAssets, ":")[0]
+		}
 		return paths, "", &tErrors.CustomError{
 			Param:      "destinationAssetCode",
 			Err:        "error-low-liquidity",
