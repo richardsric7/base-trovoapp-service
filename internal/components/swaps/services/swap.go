@@ -291,7 +291,7 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 		serviceFee = decimal.Zero
 	}
 	// totalFees = totalFees.Add(serviceFee)
-	feeLabel := swapInfo.Fee + "%"
+	// feeLabel := swapInfo.Fee + "%"
 	if serviceFee.IsPositive() {
 		//process service fee
 
@@ -306,7 +306,8 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 		// 	swapAssetCode = sourceAsset.GetCode()
 		// }
 
-		messages = append(messages, fmt.Sprintf("%v will be deducted as service fee.", feeLabel))
+		// messages = append(messages, fmt.Sprintf("%v will be deducted as service fee.", feeLabel))
+		messages = append(messages, "Service fee will apply.")
 
 	}
 
