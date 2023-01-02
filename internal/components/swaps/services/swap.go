@@ -211,10 +211,11 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	if !destinationAsset.IsNative() {
 
 		if !sourceAccountTrustsDestinationAsset {
-			message := fmt.Sprintf("You have not opted in to accept the %v you are trying to swap to. Upto %v %v may be deducted from the wallet [%v] to automatically opt you into accepting %v. The balance will remain in your wallet.", swapInfo.DestinationAssetCode, appliedCharge, os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias, swapInfo.DestinationAssetCode)
+			appliedCharge = baseReserve.Mul(decimal.NewFromInt(2)).Truncate(7)
+			message := fmt.Sprintf("%v not yet accepted on [%v]. Continuing may deduct upto %v %v from [%v] to activate %v on [%v].", swapInfo.DestinationAssetCode, wallet.Alias, appliedCharge, os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias, swapInfo.DestinationAssetCode, wallet.Alias)
 			messages = append(messages, message)
 			log.Printf("message[0]: %v\n", message)
-			appliedCharge = baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7)
+
 			// appliedCharge = baseReserve.Mul(decimal.RequireFromString(charge)).Truncate(7)
 			totalFees = appliedCharge
 			log.Println("[generateSwapXdr] total fees:", totalFees)
