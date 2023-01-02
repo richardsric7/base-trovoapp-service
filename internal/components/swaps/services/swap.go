@@ -212,7 +212,7 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 
 		if !sourceAccountTrustsDestinationAsset {
 			appliedCharge = baseReserve.Mul(decimal.NewFromInt(2)).Truncate(7)
-			message := fmt.Sprintf("%v not yet accepted on [%v]. Continuing may deduct upto %v %v from [%v] to activate %v on [%v].", swapInfo.DestinationAssetCode, wallet.Alias, appliedCharge, os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias, swapInfo.DestinationAssetCode, wallet.Alias)
+			message := fmt.Sprintf("%v not yet accepted on [%v]. Continuing will deduct some %v from [%v] to cover cost of activating %v on [%v].", swapInfo.DestinationAssetCode, wallet.Alias, os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias, swapInfo.DestinationAssetCode, wallet.Alias)
 			messages = append(messages, message)
 			log.Printf("message[0]: %v\n", message)
 
