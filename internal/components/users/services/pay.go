@@ -490,17 +490,18 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		if paymentInfo.Multiparty == 1 {
 			//process service fee
 			feeLabel := paymentInfo.Fee + "%"
-			assetCode := os.Getenv("NATIVE_ASSET_CODE")
-			if !asset.IsNative() {
-				assetCode = asset.GetCode()
-			}
+			// assetCode := os.Getenv("NATIVE_ASSET_CODE")
+			// if !asset.IsNative() {
+			// 	assetCode = asset.GetCode()
+			// }
 			ops = append(ops, &txnbuild.Payment{
 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
 				Amount:        serviceFee.String(),
 				SourceAccount: sourceWallet.ID,
 				Asset:         asset,
 			})
-			paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be added from wallet %v as service fee (%v).", serviceFee.String(), assetCode, sourceWallet.Alias, feeLabel))
+			// paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be added from wallet %v as service fee (%v).", serviceFee.String(), assetCode, sourceWallet.Alias, feeLabel))
+			paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v will be added from wallet %v as service fee.", feeLabel, sourceWallet.Alias))
 
 		}
 	}

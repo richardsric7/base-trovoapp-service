@@ -300,12 +300,12 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 			SourceAccount: wallet.ID,
 			Asset:         sourceAsset,
 		})
-		swapAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-		if !sourceAsset.IsNative() {
-			swapAssetCode = sourceAsset.GetCode()
-		}
+		// swapAssetCode := os.Getenv("NATIVE_ASSET_CODE")
+		// if !sourceAsset.IsNative() {
+		// 	swapAssetCode = sourceAsset.GetCode()
+		// }
 
-		messages = append(messages, fmt.Sprintf("%v %v will be deducted as service fee (%v) and you receive value for swapping %v %v.", serviceFee.String(), swapAssetCode, feeLabel, swapInfo.SwapAmount, swapAssetCode))
+		messages = append(messages, fmt.Sprintf("%v will be deducted as service fee.", feeLabel))
 
 	}
 
