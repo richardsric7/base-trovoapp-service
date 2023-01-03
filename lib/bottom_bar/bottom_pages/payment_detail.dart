@@ -143,14 +143,213 @@ class _PaymentDetails extends State<PaymentDetails>
                         children: [
                           if (TransactionDirection.Swap !=
                               viewData.transactionDirection!) ...[
+                            // SizedBox(
+                            //   height: height / 90,
+                            // ),
+                            // Padding(
+                            //   padding: const EdgeInsets.symmetric(
+                            //     horizontal: 20.0,
+                            //   ),
+                            //   child: Text(
+                            //     'From Public Key',
+                            //     style: TextStyle(
+                            //       fontWeight: FontWeight.w500,
+                            //       color: notifier.getbluewhitecolor,
+                            //       fontSize: 16.sp,
+                            //       fontFamily: fontsemibold,
+                            //     ),
+                            //   ),
+                            // ),
+                            // SizedBox(
+                            //   width: width / 1.7,
+                            //   child: Row(
+                            //     children: [
+                            //       Expanded(
+                            //         flex: 3,
+                            //         child: Padding(
+                            //           padding: const EdgeInsets.symmetric(
+                            //               horizontal: 20.0),
+                            //           child: Text(
+                            //             truncate(viewData.fromPublicKey!,
+                            //                     length: 5) +
+                            //                 viewData.fromPublicKey!.substring(
+                            //                     viewData.fromPublicKey!.length -
+                            //                         5),
+                            //             style: TextStyle(
+                            //               fontWeight: FontWeight.w500,
+                            //               color: notifier.getbluewhitecolor,
+                            //               fontSize: 15.sp,
+                            //               fontFamily: fontbody,
+                            //             ),
+                            //           ),
+                            //         ),
+                            //       ),
+                            //       Expanded(
+                            //         flex: 1,
+                            //         child: IconButton(
+                            //           padding: EdgeInsets.zero,
+                            //           onPressed: () => {
+                            //             Clipboard.setData(
+                            //               ClipboardData(
+                            //                 text: viewData.fromPublicKey!,
+                            //               ),
+                            //             ),
+                            //             showSnackBar(
+                            //                 'From public key', context),
+                            //           },
+                            //           icon: Icon(
+                            //             Icons.copy,
+                            //             size: 20,
+                            //           ),
+                            //           color: notifier.getbluewhitecolor,
+                            //         ),
+                            //       ),
+                            //     ],
+                            //   ),
+                            // ),
+                            // Divider(
+                            //   height: 5,
+                            // ),
+                            SizedBox(
+                              height: height / 90,
+                            ),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Text(
+                                viewData.transactionDirection! ==
+                                        TransactionDirection.Send
+                                    ? LanguageEn.sentfrom
+                                    : 'Received on',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: notifier.getbluewhitecolor,
+                                  fontSize: 16.sp,
+                                  fontFamily: fontsemibold,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              width: width / 1.7,
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 3,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 20.0),
+                                          child: Text(
+                                            viewData.transactionDirection! ==
+                                                    TransactionDirection.Send
+                                                ? '${extractUsername(viewData.from!)}'
+                                                : '${extractUsername(viewData.to!)}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: notifier.getbluewhitecolor,
+                                              fontSize: 18.sp,
+                                              fontFamily: fontbody,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 1,
+                                        child: IconButton(
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () => {
+                                            Clipboard.setData(
+                                              ClipboardData(
+                                                text: viewData.toPublicKey!,
+                                              ),
+                                            ),
+                                            showSnackBar(
+                                                'To username', context),
+                                          },
+                                          icon: Icon(
+                                            Icons.copy,
+                                            size: 20,
+                                          ),
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 3,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 20.0),
+                                          child: Text(
+                                            viewData.transactionDirection! ==
+                                                    TransactionDirection.Send
+                                                ? truncate(
+                                                        viewData.fromPublicKey!,
+                                                        length: 5) +
+                                                    viewData.fromPublicKey!
+                                                        .substring(viewData
+                                                                .fromPublicKey!
+                                                                .length -
+                                                            5)
+                                                : truncate(
+                                                        viewData.toPublicKey!,
+                                                        length: 5) +
+                                                    viewData.toPublicKey!
+                                                        .substring(viewData
+                                                                .toPublicKey!
+                                                                .length -
+                                                            5),
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              color: notifier.getbluewhitecolor,
+                                              fontSize: 13.sp,
+                                              fontFamily: fontbody,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 1,
+                                        child: IconButton(
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () => {
+                                            Clipboard.setData(
+                                              ClipboardData(
+                                                text: viewData.toPublicKey!,
+                                              ),
+                                            ),
+                                            showSnackBar(
+                                                'To public key', context),
+                                          },
+                                          icon: Icon(
+                                            Icons.copy,
+                                            size: 20,
+                                          ),
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Divider(
+                              height: 5,
+                            ),
+                          ],
+                          if (TransactionDirection.Swap !=
+                              viewData.transactionDirection!) ...[
                             Padding(
                               padding:
                                   const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
                               child: Text(
                                 viewData.transactionDirection! ==
                                         TransactionDirection.Send
-                                    ? LanguageEn.sentto
-                                    : LanguageEn.receivedfrom,
+                                    ? LanguageEn.to
+                                    : 'From',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: notifier.getbluewhitecolor,
@@ -163,141 +362,6 @@ class _PaymentDetails extends State<PaymentDetails>
                               height: 5,
                             ),
                             showUserInfo(),
-                            Divider(
-                              height: 5,
-                            ),
-                          ],
-                          if (TransactionDirection.Swap !=
-                              viewData.transactionDirection!) ...[
-                            SizedBox(
-                              height: height / 90,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20.0,
-                              ),
-                              child: Text(
-                                'From Public Key',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: notifier.getbluewhitecolor,
-                                  fontSize: 16.sp,
-                                  fontFamily: fontsemibold,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: width / 1.7,
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20.0),
-                                      child: Text(
-                                        truncate(viewData.fromPublicKey!,
-                                                length: 5) +
-                                            viewData.fromPublicKey!.substring(
-                                                viewData.fromPublicKey!.length -
-                                                    5),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          color: notifier.getbluewhitecolor,
-                                          fontSize: 15.sp,
-                                          fontFamily: fontbody,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 1,
-                                    child: IconButton(
-                                      padding: EdgeInsets.zero,
-                                      onPressed: () => {
-                                        Clipboard.setData(
-                                          ClipboardData(
-                                            text: viewData.fromPublicKey!,
-                                          ),
-                                        ),
-                                        showSnackBar(
-                                            'From public key', context),
-                                      },
-                                      icon: Icon(
-                                        Icons.copy,
-                                        size: 20,
-                                      ),
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Divider(
-                              height: 5,
-                            ),
-                            SizedBox(
-                              height: height / 90,
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20.0),
-                              child: Text(
-                                'To Public Key',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: notifier.getbluewhitecolor,
-                                  fontSize: 16.sp,
-                                  fontFamily: fontsemibold,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: width / 1.7,
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20.0),
-                                      child: Text(
-                                        truncate(viewData.toPublicKey!,
-                                                length: 5) +
-                                            viewData.toPublicKey!.substring(
-                                                viewData.toPublicKey!.length -
-                                                    5),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          color: notifier.getbluewhitecolor,
-                                          fontSize: 15.sp,
-                                          fontFamily: fontbody,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 1,
-                                    child: IconButton(
-                                      padding: EdgeInsets.zero,
-                                      onPressed: () => {
-                                        Clipboard.setData(
-                                          ClipboardData(
-                                            text: viewData.toPublicKey!,
-                                          ),
-                                        ),
-                                        showSnackBar('To public key', context),
-                                      },
-                                      icon: Icon(
-                                        Icons.copy,
-                                        size: 20,
-                                      ),
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                             Divider(
                               height: 5,
                             ),
@@ -402,6 +466,41 @@ class _PaymentDetails extends State<PaymentDetails>
                               ],
                             ),
                           ),
+                          Divider(
+                            height: 5,
+                          ),
+                          SizedBox(
+                            height: height / 50,
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Text(
+                              'Date',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 16.sp,
+                                fontFamily: fontsemibold,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: height / 50,
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Text(
+                              '$date',
+                              style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w500,
+                                fontFamily: fontbody,
+                              ),
+                            ),
+                          ),
                           SizedBox(
                             height: height / 50,
                           ),
@@ -470,7 +569,7 @@ class _PaymentDetails extends State<PaymentDetails>
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluewhitecolor,
-                        fontSize: 15.sp,
+                        fontSize: 18.sp,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -498,15 +597,46 @@ class _PaymentDetails extends State<PaymentDetails>
                   ),
                 ],
               ),
-              Text(
-                '$date',
-                style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: fontbody,
+              if (name.toString().isNotEmpty) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: Text(
+                        truncate(publicKey!, length: 5) +
+                            publicKey!.substring(publicKey!.length - 5),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 13.sp,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => {
+                          Clipboard.setData(
+                            ClipboardData(
+                              text: publicKey,
+                            ),
+                          ),
+                          showSnackBar(
+                              name.toString().isEmpty ? 'Address' : 'Username',
+                              context),
+                        },
+                        icon: Icon(
+                          Icons.copy,
+                          size: 20,
+                        ),
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
+              ],
             ],
           ),
         )

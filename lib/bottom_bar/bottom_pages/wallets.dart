@@ -363,7 +363,12 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   }
 
   Widget walletTile(
-      walletName, usdBal, preferredFiatBal, WalletTileColor color) {
+    walletName,
+    usdBal,
+    preferredFiatBal,
+    WalletTileColor color, {
+    isShared = false,
+  }) {
     return Card(
       elevation: 5,
       shadowColor: Colors.black,
@@ -381,6 +386,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                 'assets/images/trovo_white.png',
                 height: 100,
                 width: 100,
+                color: Color(0x3CFFFFFF),
               ),
             ),
           ),
@@ -388,13 +394,30 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Text(
-                  walletName,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontFamily: fontsemibold,
-                    color: color.foreColor,
+                Container(
+                  width: width / 3,
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    children: [
+                      Text(
+                        walletName,
+                        textAlign: TextAlign.center,
+                        overflow: TextOverflow.visible,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontFamily: fontsemibold,
+                          color: color.foreColor,
+                        ),
+                      ),
+                      if (isShared) ...[
+                        SizedBox(width: width / 90),
+                        Icon(
+                          Icons.people_alt_outlined,
+                          color: color.foreColor,
+                          size: 20,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 Padding(
@@ -470,8 +493,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     walletName,
     balanceUsd,
     preferredFiatBal,
-    WalletTileColor color,
-  ) {
+    WalletTileColor color, {
+    isShared = false,
+  }) {
     return Container(
       // height: height / 6.6,
       margin: EdgeInsets.symmetric(horizontal: 20),
@@ -508,11 +532,11 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 200,
-                      child: Text(
+                Container(
+                  width: width / 2,
+                  child: Wrap(
+                    children: [
+                      Text(
                         walletName,
                         style: TextStyle(
                           fontSize: 16,
@@ -520,8 +544,16 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                           fontFamily: fontsemibold,
                         ),
                       ),
-                    ),
-                  ],
+                      if (isShared) ...[
+                        SizedBox(width: width / 90),
+                        Icon(
+                          Icons.people_alt_outlined,
+                          color: color.foreColor,
+                          size: 20,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
                 SizedBox(
                   height: height / 50,
@@ -1060,7 +1092,10 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     ]);
   }
 
-  List<Widget> getWallets(List<Wallet> wallets, isTileMode) {
+  List<Widget> getWallets(
+    List<Wallet> wallets,
+    isTileMode,
+  ) {
     List<Wallet> filteredWallets =
         wallets.where((wallet) => wallet.sharedAccessEnabled == 0).toList();
     return [
@@ -1129,6 +1164,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   i % 2 == 0
                       ? colors[((i + 1) % colors.length)]
                       : colors[((i) % colors.length)],
+                  isShared: true,
                 )
               : Column(
                   children: [
@@ -1139,6 +1175,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       i % 2 == 0
                           ? colors[((i + 1) % colors.length)]
                           : colors[((i) % colors.length)],
+                      isShared: true,
                     ),
                     SizedBox(
                       height: height / 50,

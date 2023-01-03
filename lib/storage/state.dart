@@ -79,27 +79,24 @@ class DataProvider with ChangeNotifier {
     var wallets = userInfo!.wallets;
 
     for (var i = 0; i < wallets!.length; i++) {
-      if (wallets[i].walletType == 0) {
-        if (wallets[i].walletThreshold == 2 &&
-            wallets[i]
-                .permissions!
-                .where((perm) =>
-                    perm.permission == 'INITIATOR' &&
-                    perm.targetUsername == userInfo!.username)
-                .isEmpty) {
-          continue;
-        }
-
-        _allWallets[wallets[i].publicKey!] = {
-          'publicKey': wallets[i].publicKey,
-          'alias': wallets[i].alias,
-          'threshold': wallets[i].walletThreshold,
-          'sharedAccessEnabled': wallets[i].primaryWallet == 1
-              ? 0
-              : wallets[i].sharedAccessEnabled,
-          'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
-        };
+      if (wallets[i].walletThreshold == 2 &&
+          wallets[i]
+              .permissions!
+              .where((perm) =>
+                  perm.permission == 'INITIATOR' &&
+                  perm.targetUsername == userInfo!.username)
+              .isEmpty) {
+        continue;
       }
+
+      _allWallets[wallets[i].publicKey!] = {
+        'publicKey': wallets[i].publicKey,
+        'alias': wallets[i].alias,
+        'threshold': wallets[i].walletThreshold,
+        'sharedAccessEnabled':
+            wallets[i].primaryWallet == 1 ? 0 : wallets[i].sharedAccessEnabled,
+        'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
+      };
     }
 
     for (var i = 0; i < sharedWallets.length; i++) {

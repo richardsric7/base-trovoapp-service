@@ -353,6 +353,8 @@ class LanguageEn {
 
   static String get sentto => 'Sent to';
 
+  static String get sentfrom => 'Sent from';
+
   static String get swapped => 'Swapped';
 
   static String get receivedfrom => 'Received from';
