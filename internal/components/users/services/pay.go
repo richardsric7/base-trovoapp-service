@@ -184,7 +184,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 	}
 	description := fmt.Sprintf("Payment \nFrom: %v, \nTo: %v, \nAmount: %v %v", sourceWallet.Alias, paymentInfo.Destination, paymentInfo.Amount, assetOfPayment)
 	if len(paymentInfo.Memo) > 0 {
-		description = fmt.Sprintf("%v \nMemo: %v", description, paymentInfo.Memo)
+		description = fmt.Sprintf("%v \nFor: %v", description, paymentInfo.Memo)
 
 	}
 	if len(msgs) > 0 {

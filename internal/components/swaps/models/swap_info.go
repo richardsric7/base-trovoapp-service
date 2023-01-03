@@ -59,6 +59,15 @@ type SwapSendPathInput struct {
 }
 
 // SwapSendPathInput model struct for user input when importing keys for new user
+type SwapPathInput struct {
+	DestinationAccount string
+	DestinationAssets  string
+	SourceAssetCode    string
+	SourceAssetIssuer  string
+	SourceAmount       string
+}
+
+// SwapSendPathInput model struct for user input when importing keys for new user
 type SwapSendInfo struct {
 	DestinationAssetCode   string   `json:"destinationAssetCode"`
 	DestinationAssetIssuer string   `json:"destinationAssetIssuer"`

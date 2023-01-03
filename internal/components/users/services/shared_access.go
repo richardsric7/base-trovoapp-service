@@ -325,13 +325,14 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		}
 		checkAccess[v.TargetUsername+v.Permission] = pi
 	}
+	displayMessage := false
 	if len(viewOnly) > 0 {
 		message := "Unnecessary VIEW-ONLY access for these accounts where removed:"
 		for _, v := range viewOnly {
 			for _, a := range accessInfo.Permissions {
 				if v.TargetUsername == a.TargetUsername && (a.Permission == "APPROVER" || a.Permission == "INITIATOR") {
 					// remove the view only since the approver and initiator has view access already
-
+					displayMessage = true
 					delete(checkAccess, v.TargetUsername+"VIEW-ONLY")
 					message = fmt.Sprintf("%v,%v", message, v.TargetUsername)
 				}
@@ -342,7 +343,10 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		for _, ca := range checkAccess {
 			accessListInfo = append(accessListInfo, ca)
 		}
-		accessInfo.Messages = append(accessInfo.Messages, message)
+		if displayMessage {
+			accessInfo.Messages = append(accessInfo.Messages, message)
+		}
+
 	}
 
 	if numberOfSubmittedApprovers <= accessInfo.NumberOfApprovalsNeeded && accessInfo.NumberOfApprovalsNeeded > 1 {
@@ -1098,7 +1102,6 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		if accessInfo.Commit == 1 {
 			accessInfo.TransactionID = "PENDING_AUTH"
 
-			
 			id := uuid.New().String()
 
 			description := fmt.Sprintf("Disabling shared access on wallet %v.\nThis will remove the permissions:\n%v", wallet.Alias, userPermissions)
