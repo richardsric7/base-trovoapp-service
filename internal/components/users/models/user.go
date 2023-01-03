@@ -222,9 +222,11 @@ type SubWalletInfo struct {
 	ChannelAccount          string   `json:"channelAccount"`
 	ChannelAccountSignature string   `json:"channelAccountSignature"`
 	SubWalletMustSign       int      `json:"subWalletMustSign"`
-	WalletType              int      `json:"walletType"`        //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
+	WalletType              int      `json:"walletType"` //0=normal, 1= assetIssuing, 2= marketMaking, 3 = bulkPayment
 	Messages                []string `json:"messages"`
 	SHash                   string   `json:"sHash"`
+	FeeAmount               string   `json:"feeAmount"`
+	FeeCode                 string   `json:"feeCode"`
 }
 
 type SecurityQuestion struct {

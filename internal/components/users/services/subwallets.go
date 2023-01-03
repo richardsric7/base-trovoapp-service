@@ -393,40 +393,43 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 		}
 
 	}
-	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	serviceFee, e := decimal.NewFromString(os.Getenv("SUBWALLET_FEE_AMOUNT_USD"))
 	if e != nil {
 		serviceFee = decimal.Zero
 	}
 	if serviceFee.IsPositive() {
 		//add fees if enabled.
 		//process service fee
-		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {
+		subWalletInfo.FeeAmount = serviceFee.String()
+		subWalletInfo.FeeCode = os.Getenv("SUBWALLET_FEE_ASSET_CODE")
+
+		if len(os.Getenv("SUBWALLET_FEE_ASSET_ISSUER")) == 56 {
 			ops = append(ops, &txnbuild.Payment{
-				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+				Destination:   os.Getenv("SUBWALLET_FEE_ADDRESS"),
+				Amount:        os.Getenv("SUBWALLET_FEE_AMOUNT_USD"),
 				SourceAccount: accountOwner.PublicKey,
-				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SUBWALLET_FEE_ASSET_CODE"), Issuer: os.Getenv("SUBWALLET_FEE_ASSET_ISSUER")},
 			})
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE")))
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee.", os.Getenv("SUBWALLET_FEE_AMOUNT_USD"), os.Getenv("SUBWALLET_FEE_ASSET_CODE")))
 
 		} else {
 			ops = append(ops, &txnbuild.Payment{
-				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+				Destination:   os.Getenv("SUBWALLET_FEE_ADDRESS"),
+				Amount:        os.Getenv("SUBWALLET_FEE_AMOUNT_USD"),
 				SourceAccount: accountOwner.PublicKey,
 				Asset:         txnbuild.NativeAsset{},
 			})
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE")))
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee.", os.Getenv("SUBWALLET_FEE_AMOUNT_USD"), os.Getenv("NATIVE_ASSET_CODE")))
 
 		}
 	}
 
 	if subWalletInfo.WalletType == 0 {
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted from your primary wallet and be used to activate the sub-wallet.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be sent from your primary wallet to this new sub-wallet for wallet activation.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 	if subWalletInfo.WalletType == 1 {
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an asset issuing wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that asset issuing wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be a token minting wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that token minting wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 	if subWalletInfo.WalletType == 2 {
