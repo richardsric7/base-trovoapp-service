@@ -532,25 +532,28 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Wrap(
-                  children: [
-                    Text(
-                      walletName,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: color.foreColor,
-                        fontFamily: fontsemibold,
+                Container(
+                  width: width / 2,
+                  child: Wrap(
+                    children: [
+                      Text(
+                        walletName,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: color.foreColor,
+                          fontFamily: fontsemibold,
+                        ),
                       ),
-                    ),
-                    if (isShared) ...[
-                      SizedBox(width: width / 90),
-                      Icon(
-                        Icons.people_alt_outlined,
-                        color: color.foreColor,
-                        size: 20,
-                      ),
+                      if (isShared) ...[
+                        SizedBox(width: width / 90),
+                        Icon(
+                          Icons.people_alt_outlined,
+                          color: color.foreColor,
+                          size: 20,
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
                 SizedBox(
                   height: height / 50,
