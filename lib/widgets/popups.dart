@@ -1267,9 +1267,8 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
                       ),
                       child: Text(
                         LanguageEn.gallery,
-                        style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
+                        style:
+                            TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
                     ),
                   ),

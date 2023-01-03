@@ -393,68 +393,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 child: tiles(claimedAssets[i], activeWalletIndex),
               ),
             ],
-            for (var i = 0;
-                i < (claimedAssets.length > 5 ? 5 : claimedAssets.length);
-                i++) ...[
-              GestureDetector(
-                onTap: () {
-                  appState.setActiveWallet = wallets!
-                      .firstWhere((wallet) => wallet.publicKey == activeWallet);
-
-                  appState.viewData = {
-                    // since the original asset object
-                    // is immutable I create a new assetObj and
-                    // copy all the data into it so that
-                    // I'll be able to change the data
-                    AssetDetailsViewPageConfig.key: {
-                      'assetCode': claimedAssets[i]['assetCode'],
-                      'assetIssuer': claimedAssets[i]['assetIssuer'],
-                      'amount': claimedAssets[i]['amount'],
-                      'usdPrice': claimedAssets[i]['usdPrice'],
-                      'qrCode': claimedAssets[i]['qrCode'],
-                      'imageUrl': claimedAssets[i]['imageUrl'],
-                    }
-                  };
-                  print(appState.viewData);
-                  appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: AssetDetailsViewPageConfig,
-                  );
-                },
-                child: tiles(claimedAssets[i], activeWalletIndex),
-              ),
-            ],
-            for (var i = 0;
-                i < (claimedAssets.length > 5 ? 5 : claimedAssets.length);
-                i++) ...[
-              GestureDetector(
-                onTap: () {
-                  appState.setActiveWallet = wallets!
-                      .firstWhere((wallet) => wallet.publicKey == activeWallet);
-
-                  appState.viewData = {
-                    // since the original asset object
-                    // is immutable I create a new assetObj and
-                    // copy all the data into it so that
-                    // I'll be able to change the data
-                    AssetDetailsViewPageConfig.key: {
-                      'assetCode': claimedAssets[i]['assetCode'],
-                      'assetIssuer': claimedAssets[i]['assetIssuer'],
-                      'amount': claimedAssets[i]['amount'],
-                      'usdPrice': claimedAssets[i]['usdPrice'],
-                      'qrCode': claimedAssets[i]['qrCode'],
-                      'imageUrl': claimedAssets[i]['imageUrl'],
-                    }
-                  };
-                  print(appState.viewData);
-                  appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: AssetDetailsViewPageConfig,
-                  );
-                },
-                child: tiles(claimedAssets[i], activeWalletIndex),
-              ),
-            ],
             SizedBox(
               height: height / 22,
             ),
@@ -580,12 +518,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               onTap: () {
                 appState.currentAction = PageAction(
                     state: PageState.addPage, page: SharedAccessViewPageConfig);
-                // take the user to the pending approvals tab on the shared access view
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  appState.sharedAccesstabController.animateTo(1,
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.easeInOut);
-                });
+
+                if (noOfTransactionsToSign > 0) {
+                  // take the user to the pending approvals tab on the shared access view
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    appState.sharedAccesstabController.animateTo(1,
+                        duration: Duration(milliseconds: 500),
+                        curve: Curves.easeInOut);
+                  });
+                }
               },
               child: Padding(
                 padding:
@@ -594,8 +535,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      CupertinoIcons.square_list,
-                      size: 28.sp,
+                      Icons.people_alt_outlined,
+                      size: 25.sp,
                       color: notifier.getbluewhitecolor,
                     ),
                     FutureBuilder<Map>(

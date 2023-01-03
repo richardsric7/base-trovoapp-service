@@ -93,7 +93,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                 Icon(
                   Icons.people_outline,
                   size: 17,
-                  color: notifier.getbluecolor,
+                  color: notifier.getbluewhitecolor,
                 )
               ],
               if (!isSelected && key == selectedWallet) ...[

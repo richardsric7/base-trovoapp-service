@@ -178,6 +178,56 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
               SizedBox(
                 height: height / 50,
               ),
+              // Text(
+              //   'Fees',
+              //   textAlign: TextAlign.center,
+              //   style: TextStyle(
+              //     fontSize: 15,
+              //     fontWeight: FontWeight.w400,
+              //     color: notifier.getbluewhitecolor,
+              //     fontFamily: fontbody,
+              //   ),
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
+              // Padding(
+              //   padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+              //   child: Container(
+              //     decoration: BoxDecoration(
+              //       borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+              //       color: notifier.isDark
+              //           ? darktilewhitecolor
+              //           : notifier.getaddsubwalletgrey,
+              //     ),
+              //     child: Row(
+              //       mainAxisAlignment: MainAxisAlignment.center,
+              //       children: [
+              //         Column(
+              //           children: [
+              //             SizedBox(
+              //               height: height / 50,
+              //             ),
+              //             Text(
+              //               viewData['walletAlias'],
+              //               style: TextStyle(
+              //                   fontSize: 19,
+              //                   fontWeight: FontWeight.w700,
+              //                   color: notifier.getbluewhitecolor,
+              //                   fontFamily: fontsemibold),
+              //             ),
+              //             SizedBox(
+              //               height: height / 50,
+              //             ),
+              //           ],
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
+              // SizedBox(
+              //   height: height / 50,
+              // ),
               Text(
                 LanguageEn.wallet,
                 textAlign: TextAlign.center,
