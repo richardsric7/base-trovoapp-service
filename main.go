@@ -500,6 +500,8 @@ func main() {
 			for _, c := range cl {
 				//fetching currency withdrawal network list
 				log.Println("<<<<<FETCHING/UPDATING WITHDRAWAL NETWORK PARAM FOR:", c)
+				cacheKey := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", c)
+				redisCache.DeleteFromCache(cacheKey)
 				userServices.GetWithdrawalNetworks(c, &globalConfig)
 			}
 
