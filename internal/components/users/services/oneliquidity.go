@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -26,44 +25,45 @@ func GetCryptoDepositAddresses(wallet *userModels.UserWallet, currency string, g
 	if e != nil {
 		log.Printf("[GetCryptoDepositAddresses] error fetching cryptoAddresses from db %v", e)
 	}
-	if len(cryptoAddresses) > 0 {
-		return cryptoAddresses
-	}
-	//create on remote service
-	subwallet, err := CreateCryptoSubwalletRequest(wallet, currency, gc)
-	if err != nil {
-		log.Printf("[GetCryptoDepositAddresses] error creating crypto deposit Addresses on remote service %v", err)
-		subwallet, err = GetCryptoSubwallet(wallet, currency, gc)
-		if err != nil {
-			log.Printf("[GetCryptoDepositAddresses] error fetching crypto deposit Addresses from remote service %v", err)
-			return
-		}
-	}
+	// if len(cryptoAddresses) > 0 {
+	// return cryptoAddresses
+	// }
+	return cryptoAddresses
+	// //create on remote service
+	// subwallet, err := CreateCryptoSubwalletRequest(wallet, currency, gc)
+	// if err != nil {
+	// 	log.Printf("[GetCryptoDepositAddresses] error creating crypto deposit Addresses on remote service %v", err)
+	// 	subwallet, err = GetCryptoSubwallet(wallet, currency, gc)
+	// 	if err != nil {
+	// 		log.Printf("[GetCryptoDepositAddresses] error fetching crypto deposit Addresses from remote service %v", err)
+	// 		return
+	// 	}
+	// }
 
-	//subwallet retrieved. now build crypto addresses and return
-	for _, sw := range subwallet.Addresses {
-		cryptoAddresses = append(cryptoAddresses, userModels.CryptoWalletDepositAddress{
-			ID:                   uuid.NewString(),
-			CreatedAt:            time.Now(),
-			UserID:               wallet.UserID,
-			TrovoWalletPublicKey: wallet.ID,
-			Currency:             currency,
-			DepositAddress:       sw.Address,
-			Network:              sw.Network,
-		})
-	}
+	// //subwallet retrieved. now build crypto addresses and return
+	// for _, sw := range subwallet.Addresses {
+	// 	cryptoAddresses = append(cryptoAddresses, userModels.CryptoWalletDepositAddress{
+	// 		ID:                   uuid.NewString(),
+	// 		CreatedAt:            time.Now(),
+	// 		UserID:               wallet.UserID,
+	// 		TrovoWalletPublicKey: wallet.ID,
+	// 		Currency:             currency,
+	// 		DepositAddress:       sw.Address,
+	// 		Network:              sw.Network,
+	// 	})
+	// }
 
-	{
-		//save the created address
-		e := gc.DB.Create(&cryptoAddresses).Error
-		if e != nil {
-			log.Printf("[GetCryptoDepositAddresses] error creating cryptoAddresses in db %v", e)
-			// return empty list to be sure to redo it next time
-			return make([]userModels.CryptoWalletDepositAddress, 0)
-		}
-	}
+	// {
+	// 	//save the created address
+	// 	e := gc.DB.Create(&cryptoAddresses).Error
+	// 	if e != nil {
+	// 		log.Printf("[GetCryptoDepositAddresses] error creating cryptoAddresses in db %v", e)
+	// 		// return empty list to be sure to redo it next time
+	// 		return make([]userModels.CryptoWalletDepositAddress, 0)
+	// 	}
+	// }
 
-	return
+	// return
 }
 
 func GetCryptoSubwallet(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (subwallet userModels.CryptoSubWallet, err error) {
@@ -342,7 +342,7 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 	}
 	wdlNetworks = wdlNetworksResp.Data
 	if len(wdlNetworks) > 0 {
-		gc.RedisCache.StoreResultToCacheRaw(cacheKey, wdlNetworksResp, 1000)
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, wdlNetworksResp, 50000)
 	}
 
 	return wdlNetworks, nil

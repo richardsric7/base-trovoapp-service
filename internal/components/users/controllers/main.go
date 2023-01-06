@@ -3174,7 +3174,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	//CRYPTO
 	{
 		//get specific  wallet balance, middleware.AuthenticationMiddlewareUsingTimestamp()
-		router.GET("/v1/crypto/withdrawal-networks/:currency", func(c *gin.Context) {
+		router.GET("/v1/crypto/withdrawal-networks/:currency", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			// var err error
 			currency := c.Param("currency")
 
@@ -3269,10 +3269,59 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				return
 			}
+			accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
 
-			depositAddressed := userServices.GetCryptoDepositAddresses(&wallet, currency, gc)
+			if getUserError != nil {
+				log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
 
-			c.JSON(http.StatusOK, depositAddressed)
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+				}
+				return
+			}
+			//check if shared wallet, then check if user has access
+			if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
+				//check if signer has access
+				hasInitiatorAccess := false
+				// check if user has initiator access to wallet.
+				for _, p := range accountSignerUser.WalletsSharedWithUser {
+					if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+						hasInitiatorAccess = true
+					}
+				}
+				if !hasInitiatorAccess {
+					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+					return
+				}
+			}
+
+			if wallet.SharedAccessEnabled == 0 || wallet.HasViewOnlyAccess(gc) {
+				if wallet.UserID != accountSignerUser.ID {
+					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission to access this wallet."})
+					return
+				}
+			}
+
+			depositAddresses, err := userServices.GenerateDepositAddresses(&wallet, currency, gc)
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+			c.JSON(http.StatusOK, depositAddresses)
 
 		})
 

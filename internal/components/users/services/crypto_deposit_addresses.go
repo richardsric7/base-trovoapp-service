@@ -1,0 +1,46 @@
+package users
+
+import (
+	userModels "trovo-wallet-api/internal/components/users/models"
+	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/sharedconfig"
+
+	"github.com/google/uuid"
+)
+
+func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (depositAddresses []userModels.CryptoWalletDepositAddress, err error) {
+	depositAddresses = make([]userModels.CryptoWalletDepositAddress, 0)
+	sub, e := CreateCryptoSubwalletRequest(wallet, currency, gc)
+	if e != nil {
+
+		err = &tErrors.CustomError{
+			Param:      "walletID",
+			Err:        "error unable to generate deposit address",
+			ErrMessage: "Unable to generate deposit address. Please try again.",
+		}
+		return
+	}
+	// var depositAddresses []userModels.CryptoWalletDepositAddress
+	for _, v := range sub.Addresses {
+		da := userModels.CryptoWalletDepositAddress{
+			ID:                   uuid.NewString(),
+			UserID:               wallet.UserID,
+			TrovoWalletPublicKey: wallet.ID,
+			Currency:             currency,
+			DepositAddress:       v.Address,
+			Network:              v.Network,
+		}
+		depositAddresses = append(depositAddresses, da)
+	}
+	if len(depositAddresses) > 0 {
+		e := gc.DB.Create(&depositAddresses).Error
+		if e != nil {
+			err = &tErrors.ErrorTemporaryServerError{}
+		}
+		wallet.InvalidateUserCache(gc)
+		return depositAddresses, nil
+	}
+
+	err = &tErrors.ErrorTemporaryServerError{}
+	return
+}

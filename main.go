@@ -23,6 +23,7 @@ import (
 	swaps "trovo-wallet-api/internal/components/swaps/controllers"
 	users "trovo-wallet-api/internal/components/users/controllers"
 	userModels "trovo-wallet-api/internal/components/users/models"
+	userServices "trovo-wallet-api/internal/components/users/services"
 	db "trovo-wallet-api/internal/db"
 	dl "trovo-wallet-api/internal/dynamiclinks"
 	m "trovo-wallet-api/internal/mail"
@@ -85,7 +86,7 @@ func main() {
 			"MNEMONIC_BULK_PAYMENT", "BULK_PAYMENT_SALT", "ENCODER_SALT", "MARKET_MAKING_SALT",
 			"MNEMONIC_MARKET_MAKING", "MAX_ISSUED_ASSETS_PER_WALLET", "CHECK_CHANNEL_ACCOUNT_BALANCE",
 			"JWT_ACCESS_SECRET", "JWT_TOKEN_EXPIRY", "JWT_REFRESH_TOKEN_EXPIRY",
-			"SUBWALLET_FEE_AMOUNT_USD","SUBWALLET_FEE_ASSET_ISSUER","SUBWALLET_FEE_ASSET_CODE",
+			"SUBWALLET_FEE_AMOUNT_USD", "SUBWALLET_FEE_ASSET_ISSUER", "SUBWALLET_FEE_ASSET_CODE",
 			"SUBWALLET_FEE_ADDRESS",
 		}
 
@@ -486,6 +487,27 @@ func main() {
 		}
 
 	}()
+
+	go func() {
+		//LOAD WITHDAWAL NETWORKS FROM 1L
+		cl := strings.Split(os.Getenv("ONELIQUIDITY_WITHDRAWAL_CURRENCY_LIST"), ",")
+		if len(cl) == 0 {
+			//exit routine
+			return
+		}
+		for {
+
+			for _, c := range cl {
+				//fetching currency withdrawal network list
+				log.Println("<<<<<FETCHING/UPDATING WITHDRAWAL NETWORK PARAM FOR:", c)
+				userServices.GetWithdrawalNetworks(c, &globalConfig)
+			}
+
+			time.Sleep(49999 * time.Second)
+		}
+
+	}()
+
 	//setup router
 
 	if os.Getenv("GIN_MODE") == "release" {
