@@ -23,7 +23,6 @@ import (
 	pns "trovo-wallet-api/internal/pns"
 	"trovo-wallet-api/internal/sharedconfig"
 
-	"github.com/google/uuid"
 	"github.com/mailgun/mailgun-go/v4"
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
@@ -2126,45 +2125,9 @@ func (mo *MarketOffer) CancelBlockchainOffer(gc *sharedconfig.GlobalConfig) (off
 
 func (w UserWallet) GetCryptoDepositAddresses(currency string, gc *sharedconfig.GlobalConfig) (cryptoAddresses []CryptoWalletDepositAddress) {
 	cryptoAddresses = make([]CryptoWalletDepositAddress, 0)
-	e := gc.DB.Where("trovo_wallet_public_key = ? AND currency = ?", w.ID, currency).Find(&cryptoAddresses).Error
+	e := gc.DB.Where("trovo_wallet_public_key = ? AND LOWER(currency) = ?", w.ID, strings.ToLower(currency)).Find(&cryptoAddresses).Error
 	if e != nil {
 		log.Printf("[GetCryptoDepositAddresses] error fetching cryptoAddresses from db %v", e)
-	}
-	if len(cryptoAddresses) > 0 {
-		return cryptoAddresses
-	}
-	//create on remote service
-	subwallet, err := w.CreateCryptoSubwalletRequest(currency, gc)
-	if err != nil {
-		log.Printf("[GetCryptoDepositAddresses] error creating crypto deposit Addresses on remote service %v", err)
-		subwallet, err = w.GetCryptoSubwallet(currency, gc)
-		if err != nil {
-			log.Printf("[GetCryptoDepositAddresses] error fetching crypto deposit Addresses from remote service %v", err)
-			return
-		}
-	}
-
-	//subwallet retrieved. now build crypto addresses and return
-	for _, sw := range subwallet.Addresses {
-		cryptoAddresses = append(cryptoAddresses, CryptoWalletDepositAddress{
-			ID:                   uuid.NewString(),
-			CreatedAt:            time.Now(),
-			UserID:               w.UserID,
-			TrovoWalletPublicKey: w.ID,
-			Currency:             currency,
-			DepositAddress:       sw.Address,
-			Network:              sw.Network,
-		})
-	}
-
-	{
-		//save the created address
-		e := gc.DB.Create(&cryptoAddresses).Error
-		if e != nil {
-			log.Printf("[GetCryptoDepositAddresses] error creating cryptoAddresses in db %v", e)
-			// return empty list to be sure to redo it next time
-			return make([]CryptoWalletDepositAddress, 0)
-		}
 	}
 
 	return
