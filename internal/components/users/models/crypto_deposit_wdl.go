@@ -33,6 +33,7 @@ type CryptoDeposit struct {
 }
 
 type WithdrawalNetwork struct {
+	Currency             string `gorm:"primaryKey" json:"currency"`
 	Network              string `gorm:"primaryKey" json:"network"`
 	Name                 string `gorm:"size:100" json:"name"`
 	AddressRegex         string `json:"addressRegex"`

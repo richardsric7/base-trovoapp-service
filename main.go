@@ -503,7 +503,7 @@ func main() {
 				userServices.GetWithdrawalNetworks(c, &globalConfig)
 			}
 
-			time.Sleep(49999 * time.Second)
+			time.Sleep(800 * time.Second)
 		}
 
 	}()

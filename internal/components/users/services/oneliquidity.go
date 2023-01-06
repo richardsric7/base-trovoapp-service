@@ -315,6 +315,10 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 			if len(wdlNetworksResp.Data) > 0 {
 				log.Println("[GetWithdrawalNetworks] served from cache:", cacheKey)
 				wdlNetworks = wdlNetworksResp.Data
+				for key, v := range wdlNetworks {
+					v.Currency = currency
+					wdlNetworks[key] = v
+				}
 				return
 			}
 
@@ -341,8 +345,22 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 		return
 	}
 	wdlNetworks = wdlNetworksResp.Data
+	for key, v := range wdlNetworks {
+		v.Currency = currency
+		wdlNetworks[key] = v
+	}
 	if len(wdlNetworks) > 0 {
-		gc.RedisCache.StoreResultToCacheRaw(cacheKey, wdlNetworksResp, 50000)
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, wdlNetworksResp, 1000)
+	}
+	dbTX := gc.DB.Begin()
+	defer dbTX.Rollback()
+	dbTX.Raw("delete from withdrawal_networks")
+	e := dbTX.Create(&wdlNetworks).Error
+	if e != nil {
+		log.Println("[GetWithdrawalNetworks] error creating wdlNetworks e:", e)
+
+	} else {
+		dbTX.Commit()
 	}
 
 	return wdlNetworks, nil
