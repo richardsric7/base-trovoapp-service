@@ -353,9 +353,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverCacheKey, receiverPaymentHistoryCacheKey)
 				gc.RedisCache.InvalidateCachedHttpResponse(receiverPaymentHistoryCacheKey, senderBalanceCacheKey, receiverBalanceCacheKey)
 				returnedDestination.InvalidateUserCache(gc)
+				destinationWallet.InvalidateUserCache(gc)
 			}
 			gc.RedisCache.InvalidateCachedHttpResponse(senderBalanceCacheKey, senderTempCacheKey, receiverBalanceCacheKey, receiverTempCacheKey, sNFT, rNTF)
 			accountSignerUser.InvalidateUserCache(gc)
+			sourceWallet.InvalidateUserCache(gc)
 			c.JSON(http.StatusOK, paymentInfoReturned)
 
 			{
@@ -756,6 +758,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 						if a.Permission == "APPROVER" {
 							ph, e := usersDB.GetUser(a.TargetUsername, gc.DB, gc)
+							ph.InvalidateUserCache(gc)
 							if e == nil {
 								if ph.PushNotificationToken == nil {
 									continue
@@ -770,7 +773,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 						}
 					}
 					accountSignerUser.SendPushMessage("Trovo: Payment Request Submitted!", fmt.Sprintf("You have successfully submitted payment request of %v %v to %v on the wallet with alias %v. The listed approvers have been notifed to attend to the request.", paymentInfo.Amount, assetCode, paymentInfo.Destination, sourceWallet.Alias), "", dataPayload, gc)
-
+					accountSignerUser.InvalidateUserCache(gc)
 				}
 
 				return
@@ -787,8 +790,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "basicTransactionHistory"
 				if getDestinationWalletError == nil {
+					destinationUser.InvalidateUserCache(gc)
 					destinationUser.SendPushMessage("Trovo: Wallet Credited!", fmt.Sprintf("You have received %v %v from %v to your wallet with alias %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 				}
+				accountSignerUser.InvalidateUserCache(gc)
 				accountSignerUser.SendPushMessage("Trovo: Wallet Debited!", fmt.Sprintf("You have successfully sent %v %v from your wallet with alias %v to %v", paymentInfo.Amount, assetCode, sourceWallet.Alias, paymentInfo.Destination), "", dataPayload, gc)
 
 			}

@@ -142,7 +142,7 @@ func (i BantuAsset) GetDepositAddresses(walletID string, gc *sharedconfig.Global
 		return
 	}
 	//get the deposit addresses
-	e := gc.DB.Where("trovo_wallet_public_key = ? AND currency = ?", walletID, i.AssetCode).Find(&depositAddresses).Error
+	e := gc.DB.Where("trovo_wallet_public_key = ? AND LOWER(currency) = ?", walletID, strings.ToLower(i.AssetCode)).Find(&depositAddresses).Error
 	if e != nil {
 		log.Printf("[GetDepositAddresses]Error getting deposit address, error: %v\n", e)
 	}
