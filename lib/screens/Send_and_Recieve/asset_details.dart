@@ -260,7 +260,8 @@ class _AssetDetailsState extends State<AssetDetails>
               SizedBox(
                 height: height / 20,
               ),
-              if (!isSharedWallet || isInitiator) ...[
+              if ((!isSharedWallet || isInitiator) &&
+                  activeWallet['walletType'] == 0) ...[
                 actionButtons(),
               ] else ...[
                 Button(
@@ -273,7 +274,6 @@ class _AssetDetailsState extends State<AssetDetails>
                     appState.viewData![ReceiveAssetViewPageConfig.key]
                         ['walletInfo'] = activeWallet;
 
-                    print(appState.viewData);
                     appState.currentAction = PageAction(
                       state: PageState.addPage,
                       page: ReceiveAssetViewPageConfig,
@@ -298,7 +298,6 @@ class _AssetDetailsState extends State<AssetDetails>
           appState.viewData![SendAssetViewPageConfig.key]['walletInfo'] =
               activeWallet;
 
-          print(appState.viewData);
           appState.currentAction = PageAction(
             state: PageState.addPage,
             page: SendAssetViewPageConfig,
@@ -310,7 +309,6 @@ class _AssetDetailsState extends State<AssetDetails>
           appState.viewData![ReceiveAssetViewPageConfig.key]['walletInfo'] =
               activeWallet;
 
-          print(appState.viewData);
           appState.currentAction = PageAction(
             state: PageState.addPage,
             page: ReceiveAssetViewPageConfig,

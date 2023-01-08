@@ -64,11 +64,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   void tabListener() {
-    print('adding event listeners...');
-    print("${_tabController.index}");
     // Tab Changed swiping to a new tab
     activeTabIndex = _tabController.index;
-    print('index changed.');
     setState(() {});
   }
 
@@ -290,7 +287,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                 'imageUrl': unclaimedAssets[i]['imageUrl'],
                               }
                             };
-                            print(appState.viewData);
                             appState.currentAction = PageAction(
                               state: PageState.addPage,
                               page: PendingAssetDetailsViewPageConfig,
@@ -377,7 +373,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       'imageUrl': claimedAssets[i]['imageUrl'],
                     }
                   };
-                  print(appState.viewData);
                   appState.currentAction = PageAction(
                     state: PageState.addPage,
                     page: AssetDetailsViewPageConfig,
@@ -541,7 +536,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               appState.filterQuery.contains('PENDING')
                                   ? snapshot.data!['totalRecords'] ?? 0
                                   : 0;
-                          print('snapshot has data: ${snapshot.data}');
                           if (noOfTransactionsToSign > 0) {
                             return Text(
                               '($noOfTransactionsToSign)',
@@ -715,7 +709,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   activeWallet = wallets[activeWalletIndex].publicKey,
                   claimedAssets = assetBalances[activeWallet]['claimed'],
                   unclaimedAssets = assetBalances[activeWallet]['unclaimed'],
-                  print('activeWallet: $activeWallet'),
                 },
               )
             }),
@@ -1051,7 +1044,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Future<void> _launchUrl() async {
     Uri uri = Uri.https(trovoP2pUrl, '/login');
-    print('launching $uri');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       throw 'Could not launch $uri';
     }

@@ -80,7 +80,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     }
 
     sendingWalletController.text = activeWallet['alias'];
-    print('this is viewData: ${viewData}');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -376,7 +375,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
   }
 
   submit() async {
-    print('submitting form...');
     try {
       showLoader(context);
       // make initial request to the server using the
@@ -390,7 +388,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         "assetIssuer": viewData['assetIssuer'],
       };
       String requestBody = jsonEncode(map);
-      print('this is request body $requestBody');
 
       Map responseData = await makePostRequest(
         uri: isSharedWallet ? '/v1/shared-access/payment' : '/v1/users/payment',
@@ -400,7 +397,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         publicKey: activeWallet['publicKey'],
       );
 
-      print('response: $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
@@ -413,13 +409,11 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
             title: LanguageEn.error, message: responseData['data']['message']);
       }
     } catch (e) {
-      print(e);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
   }
 
   postProcessData(messageShown, messageLength, data) {
-    print('messageShown: $messageShown messageLength $messageLength');
     // we would like to display all messages returned from the initial
     // request to server using a popup. In order to achieve that we
     // employ the use of a little recursion here. Please recursive
@@ -429,7 +423,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
           context,
           data['messages'][messageShown],
           () => {
-                print('postProcessData: $messageShown'),
                 postProcessData(messageShown, messageLength, data),
               });
 
@@ -452,8 +445,6 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       appState.viewData![ConfirmTransactionViewPageConfig.key]["rel"] =
           'dashboard';
     }
-    print(appState.viewData);
-
     appState.currentAction = PageAction(
       state: PageState.addPage,
       page: ConfirmTransactionViewPageConfig,

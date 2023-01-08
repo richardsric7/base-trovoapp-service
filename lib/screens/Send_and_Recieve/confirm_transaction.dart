@@ -178,6 +178,55 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
               if (viewData['memo'].toString().isNotEmpty) ...[
                 showMemo(),
               ],
+              if (isSharedWallet) ...[
+                SizedBox(
+                  height: height / 50,
+                ),
+                Text(
+                  'Service Fee',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                  ),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(15.0)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                            myKeyValueRow("Fee: ", viewData['fee'] + '%'),
+                            myKeyValueRow("Amount (Calculated): ",
+                                "${viewData['feeAmount']} ${viewData['assetCode'].toString().isEmpty ? 'XBN' : viewData['assetCode']}"),
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               SizedBox(
                 height: height / 20,
               ),
@@ -229,6 +278,25 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
         ),
       ),
     );
+  }
+
+  Widget myKeyValueRow(String key, String value) {
+    return Row(children: [
+      Text(
+        key,
+        style: TextStyle(
+            fontSize: 15,
+            color: notifier.getbluewhitecolor,
+            fontFamily: fontsemibold),
+      ),
+      Text(
+        value,
+        style: TextStyle(
+            fontSize: 15,
+            color: notifier.getbluewhitecolor,
+            fontFamily: fontbody),
+      ),
+    ]);
   }
 
   Widget showAddressInfo() {
@@ -435,8 +503,6 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
   }
 
   sendDataToServer() async {
-    print('sending to server....');
-
     try {
       showLoader(context);
 
@@ -454,7 +520,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
 
       String requestBody = jsonEncode(viewData);
 
-      print(requestBody);
+      // print(requestBody);
 
       Map responseData = await makePostRequest(
         uri: isSharedWallet ? '/v1/shared-access/payment' : '/v1/users/payment',
@@ -465,7 +531,6 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
       );
 
       if (responseData['statusCode'] == 200) {
-        print('we got here!');
         await updateUserInfo();
         if (isSharedWallet) {
           appState.viewData![SuccessViewPageConfig.key] = {
@@ -532,8 +597,6 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: appState.activeWallet!.publicKey!,
     );
-
-    print('response: ${responseData}');
 
     if (responseData['statusCode'] == 200) {
       await storeUserInfo(responseData['data'], appState);

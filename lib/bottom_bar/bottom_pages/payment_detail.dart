@@ -62,7 +62,6 @@ class _PaymentDetails extends State<PaymentDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![PaymentDetailsViewPageConfig.key];
-    print('viewData: $viewData');
     name = '${extractUsername(viewData.from!)}';
     publicKey = viewData.fromPublicKey;
     memo = viewData.memo!;
@@ -78,6 +77,10 @@ class _PaymentDetails extends State<PaymentDetails>
         viewData.memo!.contains('>')) {
       var splitResult = viewData.memo!.split('>');
       memo = "Swapped ${splitResult[0]} to ${splitResult[1]}";
+    } else if (viewData.transactionDirection == TransactionDirection.Send &&
+        viewData.memo!.contains('>')) {
+      var splitResult = viewData.memo!.split('>');
+      memo = "${splitResult[0]} to ${splitResult[1]} swap fee";
     }
 
     amount = viewData.amount;
@@ -585,13 +588,11 @@ class _PaymentDetails extends State<PaymentDetails>
   }
 
   String extractUsername(String data) {
-    print('data $data');
     if (data.isNotEmpty) {
       const start = '[';
       const end = ']';
       final startIndex = data.indexOf(start);
       final endIndex = data.indexOf(end);
-      print('data $data');
       return data.substring(startIndex + start.length, endIndex);
     }
 
