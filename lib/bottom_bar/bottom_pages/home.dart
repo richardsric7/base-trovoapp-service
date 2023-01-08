@@ -271,12 +271,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       // if assets is greater than 5 then show five assets
                       // and then add a button to view all in the wallet
                       // details view
-                      for (var i = 0;
-                          i <
-                              (unclaimedAssets.length > 5
-                                  ? 5
-                                  : unclaimedAssets.length);
-                          i++) ...[
+                      for (var i = 0; i < unclaimedAssets.length; i++) ...[
                         GestureDetector(
                           onTap: () {
                             appState.setActiveWallet = wallets!.firstWhere(
@@ -362,9 +357,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       child: Column(
         children: [
           if (claimedAssets.length > 0) ...[
-            for (var i = 0;
-                i < (claimedAssets.length > 5 ? 5 : claimedAssets.length);
-                i++) ...[
+            for (var i = 0; i < claimedAssets.length; i++) ...[
               GestureDetector(
                 onTap: () {
                   appState.setActiveWallet = wallets!

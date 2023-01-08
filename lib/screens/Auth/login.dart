@@ -1,16 +1,23 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import '../../router/PageActions.dart';
@@ -50,6 +57,9 @@ class _LoginState extends State<Login> {
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      versionControl();
+    });
   }
 
   @override
@@ -59,6 +69,7 @@ class _LoginState extends State<Login> {
     userInfo = appState.userInfo!;
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
@@ -357,6 +368,79 @@ class _LoginState extends State<Login> {
     } else {
       popup(context,
           title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+    }
+  }
+
+  versionControl() async {
+    Map appVersionData = await StoreData().storeGetData('appVersion') ?? {};
+
+    print('The app version $appVersionData');
+
+    if (appVersionData.isNotEmpty) {
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+      String phoneVersion = packageInfo.version.replaceAll('.', '');
+
+      String minVersion =
+          await appVersionData['minVersion'].replaceAll('.', '');
+
+      String currentVersion =
+          await appVersionData['version'].replaceAll('.', '');
+
+      var currentVersionRaw = await appVersionData['version'];
+
+      var forceUpdate = await appVersionData['forceUpdate'];
+
+      print(
+          'this is app version $appVersionData \nforce update is $forceUpdate \nminVersion $minVersion  \ncurrentVersion $currentVersion \nphone version $phoneVersion');
+
+      // the min version is ahead of current phone version. Force update
+
+      if (num.tryParse(minVersion)! > num.tryParse(phoneVersion)!) {
+        updateAppMessagePopup(context,
+            'You must upgrade to Trovo Wallet version $currentVersionRaw to continue to use the wallet.',
+            () async {
+          Uri uri = Uri.parse(
+            Platform.isAndroid
+                ? appVersionData['androidUrl'].toString()
+                : appVersionData['iosUrl'].toString(),
+          );
+          print('launching $uri');
+          if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+            throw 'Could not launch $uri';
+          }
+        });
+        //You must upgrade to BantuPay Version $currentVersionRaw to continue to use the wallet.');
+        return;
+      }
+
+      // new version available but doesn't require force update
+
+      if (num.tryParse(currentVersion)! > num.tryParse(phoneVersion)!) {
+        // the current version requires force update.
+        if (forceUpdate == 1) {
+          // print('Force Update to happen');
+          // goToNextScreenWithOutBack(context, '/ScreenAppUpdate');
+          updateAppMessagePopup(context,
+              'You must upgrade to Trovo Wallet version: $currentVersionRaw to continue using the wallet.',
+              () async {
+            Uri uri = Uri.parse(
+              Platform.isAndroid
+                  ? appVersionData['androidUrl'].toString()
+                  : appVersionData['iosUrl'].toString(),
+            );
+            print('launching $uri');
+            if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+              throw 'Could not launch $uri';
+            }
+          });
+          return;
+        }
+
+        showSnackBarForInfo(
+            'Trovo Wallet version $currentVersionRaw available for download',
+            context);
+      }
     }
   }
 }

@@ -714,15 +714,15 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     var assetsMap = {};
     List<DropdownMenuItem<String>> dropDownItems = [];
 
-    assets.forEach((asset) {
-      assetsMap['${asset['assetIssuer']}|${asset['assetCode']}'] =
-          asset['assetCode'];
-    });
-
     if (isDestination) {
       // add the default assets to the list of destination assets
       userInfo.curatedSwapList!.forEach((asset) {
         print('for swap: $asset');
+        assetsMap['${asset['assetIssuer']}|${asset['assetCode']}'] =
+            asset['assetCode'];
+      });
+    } else {
+      assets.forEach((asset) {
         assetsMap['${asset['assetIssuer']}|${asset['assetCode']}'] =
             asset['assetCode'];
       });

@@ -744,9 +744,8 @@ void warnSkipBackupDialog(context, onSkip) {
       });
 }
 
-void showSetSecurityQuestionsPopup(context) {
+void updateAppMessagePopup(context, message, Function() onTap) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
-  var appState = Provider.of<DataProvider>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
   showDialog(
@@ -772,7 +771,7 @@ void showSetSecurityQuestionsPopup(context) {
                     padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
                     child: Center(
                       child: Text(
-                        "${LanguageEn.setup} ${LanguageEn.securityquestions}",
+                        'Update App',
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -792,7 +791,7 @@ void showSetSecurityQuestionsPopup(context) {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10.0, horizontal: 5.0),
                             child: Text(
-                              LanguageEn.pleasesetupsecurityquestions,
+                              message,
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
@@ -810,23 +809,7 @@ void showSetSecurityQuestionsPopup(context) {
                         horizontal: 10.0, vertical: 5.0),
                     child: ElevatedButton(
                       onPressed: () {
-                        var primaryWallet = appState.userInfo!.wallets!
-                            .firstWhere((wallet) => wallet.primaryWallet == 1);
-                        appState.viewData = {
-                          SecurityQuestionsViewPageConfig.key: {
-                            'signer': primaryWallet.signer,
-                            'publicKey': primaryWallet.publicKey,
-                            'secretKey': appState.secretKeys[0],
-                            'username': appState.userInfo!.username,
-                          }
-                        };
-                        // we want to force all users to setup their security
-                        // questions so let's not allow them out of the security
-                        // questions screen till the fill it out and submit.
-                        appState.currentAction = PageAction(
-                            state: PageState.replaceAll,
-                            page: SecurityQuestionsViewPageConfig);
-                        Navigator.of(context).pop();
+                        onTap();
                       },
                       style: ButtonStyle(
                         fixedSize: MaterialStateProperty.all(
@@ -844,7 +827,7 @@ void showSetSecurityQuestionsPopup(context) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.proceed,
+                        LanguageEn.update,
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),

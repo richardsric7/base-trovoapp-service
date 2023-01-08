@@ -3,17 +3,21 @@ import 'dart:math';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/User.dart';
 import '../../router/PageActions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import 'package:trovo_wallet/Models/announcement.dart' as myNotification;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -27,6 +31,7 @@ class _SplashScreenState extends State<SplashScreen>
   late ColorNotifier notifier;
   late DataProvider appState;
   late AnimationController controller;
+  bool timerIsDone = false;
   String? initialDynamicLink;
   PageAction landingPage =
       PageAction(state: PageState.replaceAll, page: LoginPageConfig);
@@ -48,6 +53,20 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     getdarkmodepreviousstate();
 
+    // PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    // String version = packageInfo.version;
+    // print('version: $version');
+
+    // String appName = packageInfo.appName;
+    // print('app Name: $appName');
+
+    // String buildNumber = packageInfo.buildNumber;
+    // print('build number: $buildNumber');
+
+    // String packageName = packageInfo.packageName;
+    // print('package name: $packageName');
+
     controller = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 11000),
@@ -58,14 +77,8 @@ class _SplashScreenState extends State<SplashScreen>
     });
 
     controller.repeat();
-    Timer(const Duration(seconds: 4), () {
-      if (appState.splashFinished) {
-        if (initialDynamicLink != null) {
-          appState.processDeepLink(context, Uri.parse(initialDynamicLink!));
-        } else {
-          appState.currentAction = landingPage;
-        }
-      }
+    Timer(const Duration(seconds: 20), () {
+      timerIsDone = true;
     });
   }
 
@@ -79,6 +92,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   getVal() async {
     try {
+      fetchVersionInfo(appState);
       appState.isFirstTime =
           await StoreData().storeGetData('isFirstTime') ?? true;
       initialDynamicLink = await StoreData().storeGetData('initialDynamicLink');
@@ -133,8 +147,22 @@ class _SplashScreenState extends State<SplashScreen>
         // else wait for the dynamiclink handler to take over
         print(
             '----------------------------------------appIsOpen = $initialDynamicLink');
-        appState.setSplashFinished();
-        appState.appIsOpen = true;
+        Timer.periodic(Duration(milliseconds: 200), (timer) {
+          if (timerIsDone) {
+            print('timer done');
+            timer.cancel();
+            appState.setSplashFinished();
+            appState.appIsOpen = true;
+
+            if (initialDynamicLink != null) {
+              appState.processDeepLink(context, Uri.parse(initialDynamicLink!));
+            } else {
+              appState.currentAction = landingPage;
+            }
+          } else {
+            print('timer not done');
+          }
+        });
       }
     } catch (e) {
       print('[getVal]getVal exception:' + e.toString());
@@ -178,7 +206,14 @@ class _SplashScreenState extends State<SplashScreen>
             ),
             SizedBox(height: height / 45),
             Text(
-              "Trovo Wallet",
+              "Trovo",
+              style: TextStyle(
+                  color: notifier.getdarkgrey,
+                  fontFamily: 'Matahari_Semi_Bold',
+                  fontSize: 35.sp),
+            ),
+            Text(
+              "Wallet",
               style: TextStyle(
                   color: notifier.getdarkgrey,
                   fontFamily: 'Matahari_Semi_Bold',

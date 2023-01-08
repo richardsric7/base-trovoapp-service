@@ -94,7 +94,7 @@ dependencies:
   cupertino_stepper:
   url_launcher: ^6.1.7
   pdf: ^3.8.4
-
+  package_info_plus: 
 
 dev_dependencies:
   flutter_test:

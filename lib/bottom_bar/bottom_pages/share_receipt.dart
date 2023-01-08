@@ -161,15 +161,120 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   if (TransactionDirection.Swap !=
-                                      viewData.transactionDirection) ...[
+                                      viewData.transactionDirection!) ...[
+                                    SizedBox(
+                                      height: height / 90,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20.0),
+                                      child: Text(
+                                        viewData.transactionDirection! ==
+                                                TransactionDirection.Send
+                                            ? LanguageEn.sentfrom
+                                            : 'Received on',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: notifier.getbluewhitecolor,
+                                          fontSize: 16.sp,
+                                          fontFamily: fontsemibold,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: width / 1.7,
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                flex: 3,
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                          .symmetric(
+                                                      horizontal: 20.0),
+                                                  child: Text(
+                                                    viewData.transactionDirection! ==
+                                                            TransactionDirection
+                                                                .Send
+                                                        ? '${extractUsername(viewData.from!)}'
+                                                        : '${extractUsername(viewData.to!)}',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: notifier
+                                                          .getbluewhitecolor,
+                                                      fontSize: 18.sp,
+                                                      fontFamily: fontbody,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                flex: 3,
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                          .symmetric(
+                                                      horizontal: 20.0,
+                                                      vertical: 5),
+                                                  child: Text(
+                                                    viewData.transactionDirection! ==
+                                                            TransactionDirection
+                                                                .Send
+                                                        ? truncate(
+                                                                viewData
+                                                                    .fromPublicKey!,
+                                                                length: 5) +
+                                                            viewData
+                                                                .fromPublicKey!
+                                                                .substring(viewData
+                                                                        .fromPublicKey!
+                                                                        .length -
+                                                                    5)
+                                                        : truncate(
+                                                                viewData
+                                                                    .toPublicKey!,
+                                                                length: 5) +
+                                                            viewData
+                                                                .toPublicKey!
+                                                                .substring(viewData
+                                                                        .toPublicKey!
+                                                                        .length -
+                                                                    5),
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: notifier
+                                                          .getbluewhitecolor,
+                                                      fontSize: 13.sp,
+                                                      fontFamily: fontbody,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Divider(
+                                      height: 5,
+                                    ),
+                                  ],
+                                  if (TransactionDirection.Swap !=
+                                      viewData.transactionDirection!) ...[
                                     Padding(
                                       padding: const EdgeInsets.fromLTRB(
-                                          20.0, 15, 0, 0),
+                                          20.0, 10, 0, 0),
                                       child: Text(
-                                        viewData.transactionDirection ==
+                                        viewData.transactionDirection! ==
                                                 TransactionDirection.Send
-                                            ? LanguageEn.sentto
-                                            : LanguageEn.receivedfrom,
+                                            ? LanguageEn.to
+                                            : 'From',
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
@@ -185,210 +290,6 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                     Divider(
                                       height: 5,
                                     ),
-                                  ],
-                                  SizedBox(
-                                    height: height / 90,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0,
-                                    ),
-                                    child: Text(
-                                      'Amount',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        color: notifier.getbluewhitecolor,
-                                        fontSize: 16.sp,
-                                        fontFamily: fontsemibold,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: width / 1.2,
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 7,
-                                          child: Padding(
-                                            padding: const EdgeInsets.fromLTRB(
-                                                20.0, 0, 0, 0),
-                                            child: Text(
-                                              formatAmount(
-                                                  viewData
-                                                      .transactionDirection!,
-                                                  viewData.amount,
-                                                  viewData.assetCode),
-                                              style: TextStyle(
-                                                  color: viewData
-                                                              .transactionDirection ==
-                                                          TransactionDirection
-                                                              .Send
-                                                      ? Colors.red
-                                                      : notifier.getgreencolor,
-                                                  fontFamily: fontsemibold,
-                                                  fontSize: 15.sp),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Divider(
-                                    height: 5,
-                                  ),
-                                  SizedBox(
-                                    height: height / 90,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 20.0,
-                                    ),
-                                    child: Text(
-                                      'Date',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        color: notifier.getbluewhitecolor,
-                                        fontSize: 16.sp,
-                                        fontFamily: fontsemibold,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: width / 1.2,
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 7,
-                                          child: Padding(
-                                            padding: const EdgeInsets.fromLTRB(
-                                                20.0, 0, 0, 0),
-                                            child: Text(
-                                              '$date',
-                                              style: TextStyle(
-                                                color:
-                                                    notifier.getbluewhitecolor,
-                                                fontSize: 15.sp,
-                                                fontWeight: FontWeight.w500,
-                                                fontFamily: fontbody,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Divider(
-                                    height: 5,
-                                  ),
-                                  if (TransactionDirection.Swap !=
-                                      viewData.transactionDirection) ...[
-                                    SizedBox(
-                                      height: height / 90,
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0,
-                                      ),
-                                      child: Text(
-                                        'From Public Key',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          color: notifier.getbluewhitecolor,
-                                          fontSize: 16.sp,
-                                          fontFamily: fontsemibold,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: width / 1.2,
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 3,
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 20.0),
-                                              child: Text(
-                                                truncate(
-                                                        viewData.fromPublicKey!,
-                                                        length: 5) +
-                                                    viewData.fromPublicKey!
-                                                        .substring(viewData
-                                                                .fromPublicKey!
-                                                                .length -
-                                                            5),
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w500,
-                                                  color: notifier
-                                                      .getbluewhitecolor,
-                                                  fontSize: 15.sp,
-                                                  fontFamily: fontbody,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Divider(
-                                      height: 5,
-                                    ),
-                                    SizedBox(
-                                      height: height / 90,
-                                    ),
-                                    if (viewData.toPublicKey
-                                        .toString()
-                                        .isNotEmpty) ...[
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 20.0),
-                                        child: Text(
-                                          'To Public Key',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            color: notifier.getbluewhitecolor,
-                                            fontSize: 16.sp,
-                                            fontFamily: fontsemibold,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: width / 1.2,
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              flex: 3,
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 20.0),
-                                                child: Text(
-                                                  truncate(
-                                                          viewData.toPublicKey!,
-                                                          length: 5) +
-                                                      viewData.toPublicKey!
-                                                          .substring(viewData
-                                                                  .toPublicKey!
-                                                                  .length -
-                                                              5),
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w500,
-                                                    color: notifier
-                                                        .getbluewhitecolor,
-                                                    fontSize: 15.sp,
-                                                    fontFamily: fontbody,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Divider(
-                                        height: 5,
-                                      ),
-                                    ],
                                   ],
                                   if (viewData.memo!.isNotEmpty) ...[
                                     SizedBox(
@@ -474,6 +375,38 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       ],
                                     ),
                                   ),
+                                  Divider(
+                                    height: 5,
+                                  ),
+                                  SizedBox(
+                                    height: height / 50,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20.0),
+                                    child: Text(
+                                      'Date',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: notifier.getbluewhitecolor,
+                                        fontSize: 16.sp,
+                                        fontFamily: fontsemibold,
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20.0, vertical: 5),
+                                    child: Text(
+                                      '$date',
+                                      style: TextStyle(
+                                        color: notifier.getbluewhitecolor,
+                                        fontSize: 13.sp,
+                                        fontWeight: FontWeight.w500,
+                                        fontFamily: fontbody,
+                                      ),
+                                    ),
+                                  ),
                                   SizedBox(
                                     height: height / 50,
                                   ),
@@ -498,7 +431,9 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  share('', shareArea);
+                  share(
+                      'Blockchain proof\n$bantuBlockchainExplorerBaseUrl${viewData.transactionId!}',
+                      shareArea);
                 },
               ),
               SizedBox(
@@ -509,7 +444,9 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                 notifier.getbluecolor70,
                 wihitecolor,
                 onTap: () {
-                  sharePDF('', shareArea);
+                  sharePDF(
+                      'Blockchain proof\n${bantuBlockchainExplorerBaseUrl}${viewData.transactionId!}',
+                      shareArea);
                 },
               ),
               SizedBox(
@@ -594,17 +531,13 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
   void shareText() {
     String? shareString;
     switch (viewData.transactionDirection) {
-      // case TransactionDirection.swap:
-      //   shareString =
-      //       'Swapped from ${transaction.asset.name} to ${transaction.destinationAsset?.name} \nAmount: ${_getSwapValue(transaction, truncateLength: 7)} \nTransaction Id: ${transaction.transactionId.toLowerCase()} \nTime: ${_getTimestampString(transaction.timestamp)}';
-      //   break;
       case TransactionDirection.Send:
         shareString =
-            'Sent $amount $assetCode \n\nTo: ${name.toString().isEmpty ? publicKey! : name} \n\nFor: ${viewData.memo} \n\nTransaction Id: ${viewData.transactionId!.toLowerCase()} \n\nTime: ${date} \n\nBlockchain Proof: ${bantuBlockchainExplorerBaseUrl + viewData.transactionId!}';
+            'Payment Details\n____________________\n\nSent $amount $assetCode \n\nTo: ${name.toString().isEmpty ? publicKey! : name} \n\nFor: ${viewData.memo} \n\nTransaction Id: ${viewData.transactionId!.toLowerCase()} \n\nTime: ${date} \n\nBlockchain Proof: ${bantuBlockchainExplorerBaseUrl + viewData.transactionId!}';
         break;
       default:
         shareString =
-            'Recieved $amount $assetCode \n\nFrom: ${name.toString().isEmpty ? publicKey! : name} \n\nFor: ${viewData.memo} \n\nTransaction Id: ${viewData.transactionId!.toLowerCase()} \n\nTime: ${date} \n\nBlockchain Proof: ${bantuBlockchainExplorerBaseUrl + viewData.transactionId!}';
+            'Payment Details\n____________________\n\nRecieved $amount $assetCode \n\nFrom: ${name.toString().isEmpty ? publicKey! : name} \n\nFor: ${viewData.memo} \n\nTransaction Id: ${viewData.transactionId!.toLowerCase()} \n\nTime: ${date} \n\nBlockchain Proof: ${bantuBlockchainExplorerBaseUrl + viewData.transactionId!}';
     }
 
     Share.share(shareString);

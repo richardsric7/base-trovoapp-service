@@ -371,6 +371,8 @@ class LanguageEn {
 
   static String get proceed => 'Proceed';
 
+  static String get update => 'Update';
+
   static String get welcome => "Welcome back";
 
   static String get invitefriends =>
