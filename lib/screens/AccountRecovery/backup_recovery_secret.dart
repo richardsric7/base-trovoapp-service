@@ -155,7 +155,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
       print('response: $responseData');
       hideLoader(context);
 
-      if (responseData['statusCode'] == 202) {
+      if (responseData['statusCode'] == 200) {
         state.currentAction = PageAction(
             state: PageState.addPage,
             page: AccountRecoverySuccessViewPageConfig);

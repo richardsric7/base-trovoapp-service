@@ -3,10 +3,15 @@ import 'dart:math';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/User.dart';
 import '../../router/PageActions.dart';
@@ -26,9 +31,8 @@ class _SplashScreenState extends State<SplashScreen>
   late ColorNotifier notifier;
   late DataProvider appState;
   late AnimationController controller;
+  bool timerIsDone = false;
   String? initialDynamicLink;
-  PageAction landingPage =
-      PageAction(state: PageState.replaceAll, page: LoginPageConfig);
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -42,9 +46,24 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {
+    appState = Provider.of<DataProvider>(context, listen: false);
     runAsync();
     super.initState();
     getdarkmodepreviousstate();
+
+    // PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    // String version = packageInfo.version;
+    // print('version: $version');
+
+    // String appName = packageInfo.appName;
+    // print('app Name: $appName');
+
+    // String buildNumber = packageInfo.buildNumber;
+    // print('build number: $buildNumber');
+
+    // String packageName = packageInfo.packageName;
+    // print('package name: $packageName');
 
     controller = AnimationController(
       vsync: this,
@@ -57,13 +76,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     controller.repeat();
     Timer(const Duration(seconds: 4), () {
-      if (appState.splashFinished) {
-        if (initialDynamicLink != null) {
-          appState.processDeepLink(context, Uri.parse(initialDynamicLink!));
-        } else {
-          appState.currentAction = landingPage;
-        }
-      }
+      timerIsDone = true;
     });
   }
 
@@ -77,8 +90,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   getVal() async {
     try {
-      print('one 2');
-      bool isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
+      fetchVersionInfo(appState);
+      appState.isFirstTime =
+          await StoreData().storeGetData('isFirstTime') ?? true;
       initialDynamicLink = await StoreData().storeGetData('initialDynamicLink');
       appState.timeout = await StoreData().storeGetData('timeOut') ?? '5';
       appState.setDefaultCurrency =
@@ -87,13 +101,23 @@ class _SplashScreenState extends State<SplashScreen>
 
       if (!appState.appIsOpen) appState.initFirebaseListener(context);
 
-      print('first time here: $isFirstTime');
+      print(
+          'first time here: ${await StoreData().storeGetData('isFirstTime')}');
 
-      if (isFirstTime) {
-        print('first time here indeed: $isFirstTime');
-        landingPage =
-            PageAction(state: PageState.replaceAll, page: OnboardingPageConfig);
-        appState.setSplashFinished();
+      if (appState.isFirstTime) {
+        print('first time here indeed: ${appState.isFirstTime}');
+
+        Timer.periodic(Duration(milliseconds: 200), (timer) {
+          if (timerIsDone) {
+            print('timer done');
+            timer.cancel();
+            appState.setSplashFinished();
+            appState.currentAction = PageAction(
+                state: PageState.replaceAll, page: OnboardingPageConfig);
+          } else {
+            print('timer not done');
+          }
+        });
       } else {
         var data = await StoreData().storeGetData('userInfo');
         appState.setUser = UserInfo().deserializeJson(data);
@@ -108,10 +132,11 @@ class _SplashScreenState extends State<SplashScreen>
         appState.setDefaultAssets =
             await StoreData().storeGetData('defaultAssets');
         appState.setNFTs = await StoreData().storeGetData('nfts');
-        appState.setFiatRate = await StoreData().storeGetData('fiatRate');
+        appState.setFiatRate = await StoreData().storeGetData('fiatRate') ?? {};
         appState.setSharedWallets =
             await StoreData().storeGetData('walletsSharedWithUser');
-        print('=====================shared wallet ${appState.sharedWallets}');
+        appState.introducedSharedAccess =
+            await StoreData().storeGetData('introducedSharedAccess') ?? false;
         appState.sethideWalletList =
             await StoreData().storeGetData('hideWalletList') ??
                 List.filled(6, appState.hideBalances);
@@ -122,21 +147,30 @@ class _SplashScreenState extends State<SplashScreen>
             primaryWallet.publicKey, appState.userInfo!.username!, appState);
         getFiatRates(primaryWallet.signer, appState.secretKeys[0],
             primaryWallet.publicKey, appState.userInfo!.username!, appState);
+        fetchNotifications(appState);
         appState.activeWallet = primaryWallet;
         // check if app was not already open
         // if app was not already open then move to the next view
         // else wait for the dynamiclink handler to take over
         print(
             '----------------------------------------appIsOpen = $initialDynamicLink');
-        // if (initialDynamicLink == null) {
-        //   landingPage =
-        //       PageAction(state: PageState.replaceAll, page: LoginPageConfig);
-        //   appState.setSplashFinished();
-        // } else {
-        //   appState.processDeepLink(context, Uri.parse(initialDynamicLink!));
-        // }
-        appState.setSplashFinished();
-        appState.appIsOpen = true;
+        Timer.periodic(Duration(milliseconds: 200), (timer) {
+          if (timerIsDone) {
+            print('timer done');
+            timer.cancel();
+            appState.setSplashFinished();
+            appState.appIsOpen = true;
+
+            if (initialDynamicLink != null) {
+              appState.processDeepLink(context, Uri.parse(initialDynamicLink!));
+            } else {
+              appState.currentAction = PageAction(
+                  state: PageState.replaceAll, page: LoginPageConfig);
+            }
+          } else {
+            print('timer not done');
+          }
+        });
       }
     } catch (e) {
       print('[getVal]getVal exception:' + e.toString());
@@ -163,7 +197,6 @@ class _SplashScreenState extends State<SplashScreen>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
@@ -181,7 +214,14 @@ class _SplashScreenState extends State<SplashScreen>
             ),
             SizedBox(height: height / 45),
             Text(
-              "Trovo Wallet",
+              "Trovo",
+              style: TextStyle(
+                  color: notifier.getdarkgrey,
+                  fontFamily: 'Matahari_Semi_Bold',
+                  fontSize: 35.sp),
+            ),
+            Text(
+              "Wallet",
               style: TextStyle(
                   color: notifier.getdarkgrey,
                   fontFamily: 'Matahari_Semi_Bold',

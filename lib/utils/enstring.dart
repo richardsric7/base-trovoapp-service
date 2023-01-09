@@ -353,6 +353,8 @@ class LanguageEn {
 
   static String get sentto => 'Sent to';
 
+  static String get sentfrom => 'Sent from';
+
   static String get swapped => 'Swapped';
 
   static String get receivedfrom => 'Received from';
@@ -368,6 +370,8 @@ class LanguageEn {
   static String get blockchainproof => 'Blockchain Proof (Transaction ID)';
 
   static String get proceed => 'Proceed';
+
+  static String get update => 'Update';
 
   static String get welcome => "Welcome back";
 
@@ -430,10 +434,10 @@ class LanguageEn {
       "You have successfully recovered your account. Please use your new secret key to import your wallet on your device.";
 
   static String get walletcreatesuccess =>
-      "Your wallet has been successfully created. \n\n\nWe strongly recommend that you backup your wallet before proceeding.\n\n\nBacking up your wallet is the only way to restore your wallet if you lose your device";
+      "Your wallet has been successfully created. \n\n\nWe strongly recommend that you backup your wallet before proceeding.\n\n\nBacking up your wallet is a way to restore your wallet if you lose your device";
 
   static String get subwalletcreatesuccess =>
-      "You have successfully created a subwallet. \n\nWe strongly recommend that you backup this new subwallet before proceeding.\n\nIf you do not backup your wallet, you can lose your assets if something happens to your device.\n\nBacking up your wallet also allows you to migrate this account to another device if you ever wish to.";
+      "You have successfully created a subwallet. \n\nWe strongly recommend that you backup this new subwallet before proceeding.\n\nBacking up your wallet allows you to migrate this wallet to another device if you ever wish to.";
 
   static String get backup => "Backup";
 
@@ -457,7 +461,7 @@ class LanguageEn {
       "I have ensured that no one is looking and I understand that I should never share my secret key with anyone.";
 
   static String get iunderstandimportanceofsecretkey =>
-      "I understand that I need to securely store my secret key and that if this app is deleted or moved to another device, I can only restore my wallet with the secret key.";
+      "I understand that I need to securely store my secret key and that if this app is deleted or moved to another device without opting in for the Account Recovery service, I can only restore my wallet with the secret key.";
 
   static String get iunderstandliability =>
       "I understand that if I lose my secret key. Trovotech is not liable to any loss and that my funds are securely held and controlled on this device not by Trovotech.";
@@ -656,6 +660,8 @@ class LanguageEn {
 
   static String get transactionDetails => "Transaction Details";
 
+  static String get details => "Details";
+
   static String get wallets => "Wallets";
 
   static String get yousend => "You Send";
@@ -848,7 +854,7 @@ class LanguageEn {
 
   static String get accesslist => "Access";
 
-  static String get approvals => "Approvals";
+  static String get transactions => "Transactions";
 
   static String get explainmintwallet =>
       "Please tick on this checkbox if the wallet you are importing has been used or will be used to mint a token.";

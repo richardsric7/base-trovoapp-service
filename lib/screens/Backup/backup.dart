@@ -104,8 +104,7 @@ class _BackupState extends State<Backup> {
   }
 
   gotoNext() async {
-    var isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
-    if (isFirstTime) {
+    if (state.isFirstTime) {
       state.currentAction =
           PageAction(state: PageState.addPage, page: FingerprintPageConfig);
     } else {

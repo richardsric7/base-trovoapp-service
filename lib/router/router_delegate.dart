@@ -7,8 +7,10 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_detail.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/profile_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/referral_info.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/share_receipt.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/announcementView.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/subwalletCreateSuccess.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/notificationsView.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/announcementsView.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/searchview.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
@@ -36,6 +38,8 @@ import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
 import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/asset_details.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/confirm_transaction.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/select_deposit_address.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/generate_deposit_address.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/recieve_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment_details.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment.dart';
@@ -43,6 +47,7 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/send_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/wrapped_asset.dart';
 import 'package:trovo_wallet/screens/SharedAccess/add_shared_access_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/approval_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/confirm_payment_initiation.dart';
@@ -153,7 +158,7 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(SearchView(), SearchViewPageConfig);
           break;
         case Pages.NotificationsView:
-          _addPageData(NotificationsView(), NotificationsViewPageConfig);
+          _addPageData(AnnouncementsView(), NotificationsViewPageConfig);
           break;
         case Pages.CreateSubWalletSuccessView:
           _addPageData(CreateSubWalletSuccessView(),
@@ -311,6 +316,23 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.GetStartedView:
           _addPageData(GetStarted(), GetStartedViewPageConfig);
+          break;
+        case Pages.ShareReceiptView:
+          _addPageData(ShareReceipt(), ShareReceiptViewPageConfig);
+          break;
+        case Pages.AnnouncementView:
+          _addPageData(AnnouncementView(), AnnouncementViewPageConfig);
+          break;
+        case Pages.WrappedAssetView:
+          _addPageData(WrappedAsset(), WrappedAssetViewPageConfig);
+          break;
+        case Pages.GenerateDepositAddressView:
+          _addPageData(
+              GenerateDepositAddress(), GenerateDepositAddressViewPageConfig);
+          break;
+        case Pages.SelectDepositAddressView:
+          _addPageData(
+              SelectDepositAddress(), SelectDepositAddressViewPageConfig);
           break;
         default:
           break;
@@ -506,6 +528,21 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.GetStartedView:
         GetStartedViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ShareReceiptView:
+        ShareReceiptViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AnnouncementView:
+        AnnouncementViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.WrappedAssetView:
+        WrappedAssetViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.GenerateDepositAddressView:
+        GenerateDepositAddressViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SelectDepositAddressView:
+        SelectDepositAddressViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

@@ -203,10 +203,7 @@ class _SettingsState extends State<Settings> {
               GestureDetector(
                 onTap: () {
                   // if shared access is enabled on this user's account
-                  if (appState.sharedWallets.length > 0 ||
-                      appState.userInfo!.wallets!
-                          .where((wallet) => wallet.sharedAccessEnabled == 1)
-                          .isNotEmpty) {
+                  if (appState.introducedSharedAccess) {
                     appState.currentAction = PageAction(
                         state: PageState.addPage,
                         page: SharedAccessViewPageConfig);
@@ -325,7 +322,7 @@ class _SettingsState extends State<Settings> {
                     "assets/images/terms.png", "", LanguageEn.termsofuse),
               ),
               GestureDetector(
-                onTap: () => appState.goToWebView(trovoServicesUrl),
+                onTap: () => appState.goToWebView(trovoLandingPage),
                 child: iteamlist("assets/images/copyright.png", "",
                     LanguageEn.abouttrovowallet),
               ),
@@ -339,7 +336,15 @@ class _SettingsState extends State<Settings> {
                 child:
                     logout("assets/images/logout.png", "", LanguageEn.logout),
               ),
-              SizedBox(height: height / 10),
+              SizedBox(height: height / 30),
+              Text(
+                '${LanguageEn.version} $appVersion',
+                style: TextStyle(
+                    color: notifier.getdarkgrey,
+                    fontSize: 13.5.sp,
+                    fontFamily: fontbody),
+              ),
+              SizedBox(height: height / 30),
             ],
           ),
         ),

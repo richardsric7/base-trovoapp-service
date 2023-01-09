@@ -916,7 +916,11 @@ class _SignUpState extends State<SignUp> {
     } catch (e) {
       print(e);
       hideLoader(context);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context,
+          title: LanguageEn.error,
+          message: e.toString().contains('firebase')
+              ? 'Network error! Please check your connection and try again.'
+              : e.toString());
     }
   }
 }

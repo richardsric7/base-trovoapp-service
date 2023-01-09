@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,7 +16,6 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/screens/notifications/firebase_dynamic_links.dart';
 import 'package:trovo_wallet/screens/notifications/firebase_notifications.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
 import 'Custom_BlocObserver/notifire_clor.dart';
 import 'firebase_options.dart';
 import 'storage/store.dart';
@@ -120,8 +118,7 @@ class _AppState extends State<App> {
     _timer?.cancel();
     _timer = null;
 
-    bool isFirstTime = await StoreData().storeGetData('isFirstTime') ?? true;
-    if (isFirstTime) {
+    if (appState.isFirstTime) {
       setState(() {
         appState.currentAction =
             PageAction(state: PageState.replaceAll, page: OnboardingPageConfig);

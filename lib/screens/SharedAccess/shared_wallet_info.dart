@@ -85,7 +85,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
               style: TextStyle(
                 fontSize: 20,
                 fontFamily: fontsemibold,
-                color: notifier.getbluecolor,
+                color: notifier.getbluewhitecolor,
               ),
             ),
             SizedBox(
@@ -113,7 +113,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                             style: TextStyle(
                               fontSize: 17,
                               fontFamily: fontsemibold,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                             ),
                           ),
                           SizedBox(
@@ -124,7 +124,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                             style: TextStyle(
                               fontSize: 16,
                               fontFamily: fontbody,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                             ),
                           ),
                           SizedBox(
@@ -135,7 +135,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                             style: TextStyle(
                               fontSize: 17,
                               fontFamily: fontsemibold,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                             ),
                           ),
                           SizedBox(
@@ -146,7 +146,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                             style: TextStyle(
                               fontSize: 16,
                               fontFamily: fontbody,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                             ),
                           ),
                           SizedBox(
@@ -157,7 +157,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                             style: TextStyle(
                               fontSize: 17,
                               fontFamily: fontsemibold,
-                              color: notifier.getbluecolor,
+                              color: notifier.getbluewhitecolor,
                             ),
                           ),
                           SizedBox(
@@ -173,7 +173,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontFamily: fontbody,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                   ),
                                   Text(
@@ -183,7 +183,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontFamily: fontsemibold,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                   ),
                                   if (viewData['permissions'].length > 1) ...[
@@ -195,7 +195,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontFamily: fontbody,
-                                        color: notifier.getbluecolor,
+                                        color: notifier.getbluewhitecolor,
                                       ),
                                     ),
                                     SizedBox(
@@ -208,7 +208,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontFamily: fontsemibold,
-                                        color: notifier.getbluecolor,
+                                        color: notifier.getbluewhitecolor,
                                       ),
                                     ),
                                     SizedBox(
@@ -220,7 +220,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontFamily: fontbody,
-                                      color: notifier.getbluecolor,
+                                      color: notifier.getbluewhitecolor,
                                     ),
                                   ),
                                 ]),

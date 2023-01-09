@@ -78,6 +78,7 @@ class FCM {
   Future<String> getPushNotificationToken() async {
     // String? savedToken = await StoreData().storeGetData('token');
     String? token = await _firebaseMessaging.getToken();
+    print('FCM Token ${token}');
     return token!;
 
     //   print('------------------I have gotten the token----------------');

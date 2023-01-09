@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -21,7 +22,6 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/WalletSlides.dart';
-import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -50,6 +50,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   int tabLength = 1;
   int activeTabIndex = 0;
   int activeWalletIndex = 0;
+  var noOfTransactionsToSign;
 
   @override
   void initState() {
@@ -57,15 +58,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     _tabController = TabController(length: tabLength, vsync: this);
     _tabController.addListener(tabListener);
     _refreshController = RefreshController(initialRefresh: false);
-    // Timer(const Duration(seconds: 10), checkSecurityQuestion);
+    appState = Provider.of<DataProvider>(context, listen: false);
+    appState.filterQuery = "&transactionStatus=PENDING";
+    appState.getApprovals();
   }
 
   void tabListener() {
-    print('adding event listeners...');
-    print("${_tabController.index}");
     // Tab Changed swiping to a new tab
     activeTabIndex = _tabController.index;
-    print('index changed.');
     setState(() {});
   }
 
@@ -126,7 +126,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             child: Column(
               children: [
                 SizedBox(
-                  height: height / 15,
+                  height: height / 20,
                 ),
                 firstRow(),
                 SizedBox(
@@ -191,17 +191,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 // yet
                 if (claimedAssets
                     .where((asset) =>
-                        (asset['assetCode'] == '' &&
-                            asset['assetIssuer'] == '') &&
-                        asset['amount'] != 0)
+                        (asset['assetCode'].toString().isEmpty &&
+                            asset['assetIssuer'].toString().isEmpty) &&
+                        double.parse(asset['amount']) != 0)
                     .isNotEmpty) ...[
-                  if (unclaimedAssets != null &&
-                      unclaimedAssets.length > 0) ...[
-                    DefaultTabController(
-                      length: tabLength,
-                      child: Column(
-                        children: [
-                          TabBar(
+                  DefaultTabController(
+                    length: tabLength,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: tabLength == 2 ? 0 : 100,
+                          ),
+                          child: TabBar(
                             controller: _tabController,
                             labelColor: notifier.getbluewhitecolor,
                             indicatorColor: notifier.getbluewhitecolor,
@@ -215,50 +217,29 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                 height: 20,
                                 text: LanguageEn.assets,
                               ),
+                              if (unclaimedAssets != null &&
+                                  tabLength == 2) ...[
+                                Tab(
+                                  height: 20,
+                                  text:
+                                      '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
+                                ),
+                              ],
 
-                              Tab(
-                                height: 20,
-                                text:
-                                    '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
-                              ),
                               // Tab(
                               //   height: 20,
                               //   text: LanguageEn.nfts,
                               // ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
-                    assetsTabs(),
-                  ] else ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 100.0),
-                      child: TabBar(
-                        controller: _tabController,
-                        labelColor: notifier.getbluewhitecolor,
-                        indicatorColor: notifier.getbluewhitecolor,
-                        labelStyle: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: fontsemibold,
                         ),
-                        tabs: [
-                          Tab(
-                            height: 20,
-                            text: LanguageEn.assets,
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
-                    showTokenAssets(),
-                  ],
+                  ),
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                  assetsTabs(),
                 ] else ...[
                   showFundWallet(),
                 ]
@@ -272,7 +253,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Widget assetsTabs() {
     return Container(
-      height: height / 1.33,
+      height: height / 1.85,
       child: TabBarView(
         controller: _tabController,
         children: [
@@ -284,7 +265,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   children: [
                     if (unclaimedAssets != null &&
                         unclaimedAssets.length > 0) ...[
-                      for (var asset in unclaimedAssets) ...[
+                      // if assets is greater than 5 then show five assets
+                      // and then add a button to view all in the wallet
+                      // details view
+                      for (var i = 0; i < unclaimedAssets.length; i++) ...[
                         GestureDetector(
                           onTap: () {
                             appState.setActiveWallet = wallets!.firstWhere(
@@ -295,20 +279,20 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               // copy all the data into it so that
                               // I'll be able to change the data
                               PendingAssetDetailsViewPageConfig.key: {
-                                'assetCode': asset['assetCode'],
-                                'assetIssuer': asset['assetIssuer'],
-                                'amount': asset['amount'],
-                                'qrCode': asset['qrCode'],
-                                'imageUrl': asset['imageUrl'],
+                                'assetCode': unclaimedAssets[i]['assetCode'],
+                                'assetIssuer': unclaimedAssets[i]
+                                    ['assetIssuer'],
+                                'amount': unclaimedAssets[i]['amount'],
+                                'qrCode': unclaimedAssets[i]['qrCode'],
+                                'imageUrl': unclaimedAssets[i]['imageUrl'],
                               }
                             };
-                            print(appState.viewData);
                             appState.currentAction = PageAction(
                               state: PageState.addPage,
                               page: PendingAssetDetailsViewPageConfig,
                             );
                           },
-                          child: tiles(asset, activeWalletIndex),
+                          child: tiles(unclaimedAssets[i], activeWalletIndex),
                         ),
                       ],
                     ] else ...[
@@ -369,7 +353,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       child: Column(
         children: [
           if (claimedAssets.length > 0) ...[
-            for (var asset in claimedAssets) ...[
+            for (var i = 0; i < claimedAssets.length; i++) ...[
               GestureDetector(
                 onTap: () {
                   appState.setActiveWallet = wallets!
@@ -381,21 +365,20 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     // copy all the data into it so that
                     // I'll be able to change the data
                     AssetDetailsViewPageConfig.key: {
-                      'assetCode': asset['assetCode'],
-                      'assetIssuer': asset['assetIssuer'],
-                      'amount': asset['amount'],
-                      'usdPrice': asset['usdPrice'],
-                      'qrCode': asset['qrCode'],
-                      'imageUrl': asset['imageUrl'],
+                      'assetCode': claimedAssets[i]['assetCode'],
+                      'assetIssuer': claimedAssets[i]['assetIssuer'],
+                      'amount': claimedAssets[i]['amount'],
+                      'usdPrice': claimedAssets[i]['usdPrice'],
+                      'qrCode': claimedAssets[i]['qrCode'],
+                      'imageUrl': claimedAssets[i]['imageUrl'],
                     }
                   };
-                  print(appState.viewData);
                   appState.currentAction = PageAction(
                     state: PageState.addPage,
                     page: AssetDetailsViewPageConfig,
                   );
                 },
-                child: tiles(asset, activeWalletIndex),
+                child: tiles(claimedAssets[i], activeWalletIndex),
               ),
             ],
             SizedBox(
@@ -519,21 +502,69 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // GestureDetector(
-            //   onTap: () {
-            //     appState.currentAction = PageAction(
-            //         state: PageState.addPage, page: SearchViewPageConfig);
-            //   },
-            //   child: Padding(
-            //     padding:
-            //         const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-            //     child: SvgPicture.asset(
-            //       "assets/images/search.svg",
-            //       color: notifier.getbluewhitecolor,
-            //       height: height / 40,
-            //     ),
-            //   ),
-            // ),
+            GestureDetector(
+              onTap: () {
+                appState.currentAction = PageAction(
+                    state: PageState.addPage, page: SharedAccessViewPageConfig);
+
+                if (noOfTransactionsToSign > 0) {
+                  // take the user to the pending approvals tab on the shared access view
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    appState.sharedAccesstabController.animateTo(1,
+                        duration: Duration(milliseconds: 500),
+                        curve: Curves.easeInOut);
+                  });
+                }
+              },
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.people_alt_outlined,
+                      size: 25.sp,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                    FutureBuilder<Map>(
+                      future: appState.approvals,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done &&
+                            snapshot.hasData) {
+                          noOfTransactionsToSign =
+                              appState.filterQuery.contains('PENDING')
+                                  ? snapshot.data!['totalRecords'] ?? 0
+                                  : 0;
+                          if (noOfTransactionsToSign > 0) {
+                            return Text(
+                              '($noOfTransactionsToSign)',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            );
+                          }
+                        }
+
+                        return Text(
+                          '',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: fontsemibold,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
             GestureDetector(
               onTap: () {
                 appState.currentAction = PageAction(
@@ -549,24 +580,25 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 ),
               ),
             ),
-            // GestureDetector(
-            //   onTap: () {
-            //     appState.currentAction = PageAction(
-            //         state: PageState.addPage,
-            //         page: NotificationsViewPageConfig);
-            //   },
-            //   child: Padding(
-            //     padding:
-            //         const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-            //     // child: Image.asset("assets/images/notifications.png",
-            //     //     color: notifier.getbluecolor),
-            //     child: SvgPicture.asset(
-            //       "assets/images/notifications-active.svg",
-            //       color: notifier.getbluewhitecolor,
-            //       height: height / 40,
-            //     ),
-            //   ),
-            // ),
+            GestureDetector(
+              onTap: () {
+                appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: NotificationsViewPageConfig);
+                appState.hasNewAnnouncement = false;
+              },
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
+                child: SvgPicture.asset(
+                  appState.hasNewAnnouncement
+                      ? "assets/images/notifications-active.svg"
+                      : "assets/images/notifications.svg",
+                  color: notifier.getbluewhitecolor,
+                  height: height / 40,
+                ),
+              ),
+            ),
             SizedBox(
               width: height / 50,
             ),
@@ -677,11 +709,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   activeWallet = wallets[activeWalletIndex].publicKey,
                   claimedAssets = assetBalances[activeWallet]['claimed'],
                   unclaimedAssets = assetBalances[activeWallet]['unclaimed'],
-                  print('activeWallet: $activeWallet'),
                 },
               )
             }),
-        height: height / 4.7,
+        height: height / 5.4,
         padEnds: false,
         enableInfiniteScroll: false,
         clipBehavior: Clip.antiAlias,
@@ -723,7 +754,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             }
 
             return GestureDetector(
-              onTap: () => changeTabPage(appState, ButtomTabPage.Wallets.index),
+              onTap: () {
+                changeTabPage(appState, ButtomTabPage.Wallets.index);
+                setState(() {});
+              },
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                 child: Container(
@@ -732,47 +766,53 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     color: colors[0],
                     // color: colors[wallets.indexOf(wallet)],
                   ),
-                  child: Stack(children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 35.0, horizontal: 20),
-                          child: Image.asset('assets/images/trovo_white.png'),
-                        ),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0, vertical: 25.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
+                  child: Stack(
+                    alignment: AlignmentDirectional.centerEnd,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Row(
-                            children: [
-                              Text(
-                                LanguageEn.taptoviewall,
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: wihitecolor,
-                                    fontFamily: fontsemibold),
-                              ),
-                              SizedBox(
-                                width: width / 50,
-                              ),
-                              Icon(
-                                Icons.arrow_forward,
-                                color: wihitecolor,
-                              )
-                            ],
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 35.0, horizontal: 20),
+                            child: Image.asset(
+                              'assets/images/trovo_white.png',
+                              width: 80,
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ]),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20.0, vertical: 25.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  LanguageEn.taptoviewall,
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: wihitecolor,
+                                      fontFamily: fontsemibold),
+                                ),
+                                SizedBox(
+                                  width: width / 50,
+                                ),
+                                Icon(
+                                  Icons.arrow_forward,
+                                  color: wihitecolor,
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -840,7 +880,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  getBalance(formatNumber(double.parse(asset["amount"])),
+                  getBalance(
+                      formatHistoryNumber(
+                          double.parse(asset["amount"]), 99000000000),
                       indexOfWallet),
                   style: TextStyle(
                     fontSize: 12,
@@ -912,7 +954,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 17,
                       fontFamily: fontsemibold,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   SizedBox(
@@ -924,7 +966,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 16,
                       fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   SizedBox(
@@ -936,7 +978,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     style: TextStyle(
                       fontSize: 17,
                       fontFamily: fontbody,
-                      color: notifier.getbluecolor,
+                      color: notifier.getbluewhitecolor,
                     ),
                   ),
                   SizedBox(
@@ -1002,7 +1044,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Future<void> _launchUrl() async {
     Uri uri = Uri.https(trovoP2pUrl, '/login');
-    print('launching $uri');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       throw 'Could not launch $uri';
     }

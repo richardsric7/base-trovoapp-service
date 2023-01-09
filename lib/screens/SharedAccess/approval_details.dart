@@ -122,18 +122,45 @@ class _ApprovalDetails extends State<ApprovalDetails>
                               value:
                                   '${DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(viewData['createdAt']))}'),
                           // displayInfo(
-                          //   key: 'Description',
-                          //   value: getDescription(viewData['description'],
-                          //       viewData['transactionType']),
-                          // ),
-                          // if (viewData['transactionType'] == 'PAYMENT') ...[
-                          //   displayInfo(
-                          //       key: 'Memo',
-                          //       value: getMemo(viewData['description'])),
-                          // ],
-                          displayInfo(
-                              key: 'Description',
-                              value: viewData['description']),
+                          //     key: 'Description',
+                          //     value: viewData['description']),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Description: ',
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontsemibold),
+                              ),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Container(
+                                width: width / 1.2,
+                                child: Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    Text(
+                                      viewData['description'],
+                                      overflow: TextOverflow.visible,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w400,
+                                        color: notifier.getbluewhitecolor,
+                                        fontFamily: fontbody,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: height / 50.0,
+                              ),
+                            ],
+                          ),
                           displayInfo(
                               key: 'Approval status',
                               value:
@@ -428,7 +455,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Transaction approval submitted',
           'message':
-              'You have successfully submitted your own approval for this transaction. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+              'You have successfully submitted your own approval for this transaction.',
           'useOnDone': true,
           'onDone': () {
             appState.currentAction = PageAction(

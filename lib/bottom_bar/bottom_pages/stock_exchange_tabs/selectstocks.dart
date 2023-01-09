@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/notification.dart';
 import 'package:trovo_wallet/button_tabs/chart.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
@@ -47,7 +46,7 @@ class _SelectStocksState extends State<SelectStocks> {
               // ),
               GestureDetector(
                 onTap: () {
-                  Get.to(() => const Notifi());
+                  // Get.to(() => const Notifi());
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),

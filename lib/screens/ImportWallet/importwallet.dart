@@ -420,6 +420,7 @@ class _ImportWalletState extends State<ImportWallet> {
         print('response: ${responseData}');
 
         if (responseData['statusCode'] == 200) {
+          fetchNotifications(appState);
           getFiatRates(creds.publicKey, creds.secretKey, creds.publicKey,
               username, appState);
           storeUserInfo(responseData['data']);

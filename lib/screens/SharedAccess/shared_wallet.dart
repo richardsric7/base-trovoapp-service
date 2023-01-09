@@ -38,7 +38,7 @@ class _SharedWalletState extends State<SharedWallet>
   Wallet? activeWallet;
   var claimedAssets;
   var unclaimedAssets;
-  int tabLength = 2;
+  int tabLength = 1;
   int activeTabIndex = 0;
   late bool localHideBalance;
   var viewData;
@@ -73,11 +73,9 @@ class _SharedWalletState extends State<SharedWallet>
     // for when we have pending asset and then change the tablength
     // to 3 or back to 2 when we do not have pending assets.
     if (unclaimedAssets != null && unclaimedAssets.length > 0) {
-      if (activeTabIndex == _tabController.length - 1) activeTabIndex = 2;
-      tabLength = 3;
-    } else {
       tabLength = 2;
-      if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
+    } else {
+      tabLength = 1;
     }
 
     if (tabLength != _tabController.length) {
@@ -85,9 +83,6 @@ class _SharedWalletState extends State<SharedWallet>
       _tabController = TabController(length: tabLength, vsync: this);
       _tabController.addListener(tabListener);
     }
-    // keep track of the active tab to avoid having it changed
-    // on each page rebuild
-    _tabController.animateTo(activeTabIndex);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -129,31 +124,35 @@ class _SharedWalletState extends State<SharedWallet>
         SizedBox(
           height: 20.sp,
         ),
-        TabBar(
-          controller: _tabController,
-          labelColor: notifier.getbluewhitecolor,
-          indicatorColor: notifier.getbluewhitecolor,
-          labelStyle: TextStyle(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w600,
-            fontFamily: fontsemibold,
-          ),
-          tabs: [
-            Tab(
-              height: 20,
-              text: LanguageEn.assets,
+        Padding(
+          padding:
+              EdgeInsets.symmetric(horizontal: tabLength > 1 ? 0.0 : 100.0),
+          child: TabBar(
+            controller: _tabController,
+            labelColor: notifier.getbluewhitecolor,
+            indicatorColor: notifier.getbluewhitecolor,
+            labelStyle: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              fontFamily: fontsemibold,
             ),
-            if (unclaimedAssets != null && tabLength == 3) ...[
+            tabs: [
               Tab(
                 height: 20,
-                text: '${LanguageEn.pending} (${unclaimedAssets.length})',
+                text: LanguageEn.assets,
               ),
+              if (unclaimedAssets != null && tabLength == 2) ...[
+                Tab(
+                  height: 20,
+                  text: '${LanguageEn.pending} (${unclaimedAssets.length})',
+                ),
+              ],
+              // Tab(
+              //   height: 20,
+              //   text: LanguageEn.nfts,
+              // ),
             ],
-            Tab(
-              height: 20,
-              text: LanguageEn.nfts,
-            ),
-          ],
+          ),
         ),
         SizedBox(
           height: 20.sp,
@@ -255,7 +254,7 @@ class _SharedWalletState extends State<SharedWallet>
                   ),
                 ),
               ),
-              if (tabLength == 3) ...[
+              if (tabLength == 2) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
                   child: Container(
@@ -319,30 +318,30 @@ class _SharedWalletState extends State<SharedWallet>
                   ),
                 ),
               ],
-              Container(
-                height: height / 2,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      // in situations where the blockchain has an issue,
-                      // some values can be returned as null or empty
-                      // so always null check for such situations
-                      // if (nfts != null && nfts != {}) ...[
-                      //   if (nfts[activeWallet!.publicKey] != null &&
-                      //       nfts[activeWallet!.publicKey].length >
-                      //           0) ...[
-                      gridView(),
-                      //     SizedBox(height: 600),
-                      //   ] else ...[
-                      //     showEmptyNFTs(),
-                      //   ]
-                      // ] else ...[
-                      //   showEmptyNFTs(),
-                      // ],
-                    ],
-                  ),
-                ),
-              ),
+              // Container(
+              //   height: height / 2,
+              //   child: SingleChildScrollView(
+              //     child: Column(
+              //       children: [
+              //         // in situations where the blockchain has an issue,
+              //         // some values can be returned as null or empty
+              //         // so always null check for such situations
+              //         // if (nfts != null && nfts != {}) ...[
+              //         //   if (nfts[activeWallet!.publicKey] != null &&
+              //         //       nfts[activeWallet!.publicKey].length >
+              //         //           0) ...[
+              //         gridView(),
+              //         //     SizedBox(height: 600),
+              //         //   ] else ...[
+              //         //     showEmptyNFTs(),
+              //         //   ]
+              //         // ] else ...[
+              //         //   showEmptyNFTs(),
+              //         // ],
+              //       ],
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),

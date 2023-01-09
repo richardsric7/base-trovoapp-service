@@ -20,6 +20,7 @@ class DataProvider with ChangeNotifier {
   List<String> secretKeys = [];
   bool isDark = false;
   bool biometricEnabled = false;
+  bool isFirstTime = true;
   String timeout = '5'; // 5 minutes
   String? password;
   var assetBalances;
@@ -78,31 +79,30 @@ class DataProvider with ChangeNotifier {
     var wallets = userInfo!.wallets;
 
     for (var i = 0; i < wallets!.length; i++) {
-      if (wallets[i].walletType == 0) {
-        if (wallets[i].walletThreshold == 2 &&
-            wallets[i]
-                .permissions!
-                .where((perm) =>
-                    perm.permission == 'INITIATOR' &&
-                    perm.targetUsername == userInfo!.username)
-                .isEmpty) {
-          continue;
-        }
-
-        _allWallets[wallets[i].publicKey!] = {
-          'publicKey': wallets[i].publicKey,
-          'alias': wallets[i].alias,
-          'threshold': wallets[i].walletThreshold,
-          'sharedAccessEnabled': wallets[i].primaryWallet == 1
-              ? 0
-              : wallets[i].sharedAccessEnabled,
-          'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
-        };
+      if (wallets[i].walletThreshold == 2 &&
+          wallets[i]
+              .permissions!
+              .where((perm) =>
+                  perm.permission == 'INITIATOR' &&
+                  perm.targetUsername == userInfo!.username)
+              .isEmpty) {
+        continue;
       }
+      _allWallets[wallets[i].publicKey!] = {
+        'walletType': wallets[i].walletType,
+        'publicKey': wallets[i].publicKey,
+        'alias': wallets[i].alias,
+        'threshold': wallets[i].walletThreshold,
+        'sharedAccessEnabled':
+            wallets[i].primaryWallet == 1 ? 0 : wallets[i].sharedAccessEnabled,
+        'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
+      };
     }
 
     for (var i = 0; i < sharedWallets.length; i++) {
       _allWallets[sharedWallets[i]['walletPublicKey']] = {
+        // since the wallet type is unknown give it a number that can't make transactions
+        'walletType': sharedWallets[i]['walletSettings']?['walletType'] ?? 2,
         'publicKey': sharedWallets[i]['walletPublicKey'],
         'alias': '${sharedWallets[i]['walletAlias']}',
         'permission': sharedWallets[i]['permission'],
@@ -124,11 +124,16 @@ class DataProvider with ChangeNotifier {
   bool hideBalances = false;
   set sethideBalances(bool value) {
     hideBalances = value;
-    print('notifying listeners...');
     notifyListeners();
   }
 
   void updateListeners() => notifyListeners();
+
+  bool introducedSharedAccess = false;
+  set setIntroducedSharedAccess(value) {
+    introducedSharedAccess = value;
+    notifyListeners();
+  }
 
   var sharedWallets;
   set setSharedWallets(wallets) {
@@ -136,15 +141,11 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // bool hideActiveWalletBalance = false;
-  // set toggleActiveBalances(bool value) {
-  //   hideActiveWalletBalance = value;
-  //   notifyListeners();
-  // }
-
-  // void resetActiveWalletBalances() {
-  //   hideActiveWalletBalance = hideBalances;
-  // }
+  bool hasNewAnnouncement = false;
+  set setHasNewAnnouncement(bool value) {
+    hasNewAnnouncement = value;
+    notifyListeners();
+  }
 
   // used to check if dynamic link was used while the app is open
   // for some reason the splashscreen finishes before the firebase dynamiclink
@@ -156,7 +157,6 @@ class DataProvider with ChangeNotifier {
   bool get splashFinished => _splashFinished;
   void setSplashFinished() {
     _splashFinished = true;
-    print(_splashFinished);
     notifyListeners();
   }
 
@@ -276,7 +276,6 @@ class DataProvider with ChangeNotifier {
 
   String initialUrl = "";
   goToWebView(url) {
-    print('going to: $url');
     initialUrl = url;
     currentAction =
         PageAction(state: PageState.addPage, page: WebViewPageConfig);
@@ -394,7 +393,6 @@ class DataProvider with ChangeNotifier {
       // var publicKey = viewData![PaymentHistoryViewPageConfig.key] != null
       //     ? viewData![PaymentHistoryViewPageConfig.key]['walletPublicKey']
       //     : activeWallet!.publicKey!;
-      print('================fetching history for: $forPublicKey!');
       var uri = '/v1/users/payments/${forPublicKey}?limit=$limit${query}';
       if (!filterAsset.contains("*")) {
         var splitAssetInfo = filterAsset.split("|");
@@ -407,7 +405,6 @@ class DataProvider with ChangeNotifier {
           publicKey: forPublicKey,
           secretKey: secretKeys[0]);
 
-      print('response: ${responseData['data']}');
       if (responseData['statusCode'] == 200) {
         totalRecords = responseData['data']['totalRecords'];
         currentPage = responseData['data']['currentPage'];
@@ -417,17 +414,13 @@ class DataProvider with ChangeNotifier {
               .deserializeJson(responseData['data']['records'][i]));
         }
 
-        print('transactions: $transactions');
-
         historyData = transactions;
         notifyListeners();
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
       }
-    } catch (e) {
-      print('................................in transaction history: $e');
-    }
+    } catch (e) {}
   }
 // end region transaction history filter
 
@@ -436,7 +429,7 @@ class DataProvider with ChangeNotifier {
       await updateUserInfo(userInfo!.wallets![0].signer, secretKeys[0],
           userInfo!.wallets![0].publicKey, userInfo!.username, this);
     } catch (e) {
-      print(e);
+      // print(e);
     }
   }
 
@@ -505,8 +498,6 @@ class DataProvider with ChangeNotifier {
         publicKey: activeWallet!.signer!,
       );
 
-      print('response: ${responseData}');
-
       if (responseData['statusCode'] == 200) {
         return responseData['data'];
       } else {
@@ -519,9 +510,6 @@ class DataProvider with ChangeNotifier {
 
   getApprovals({void Function()? onDone}) {
     approvals = fetchApprovals(limit: limit.toString(), query: filterQuery);
-    notifyListeners();
-    // scroll to the top of the list if historyData is not null
-    if (historyData.length > 0 && onDone != null) onDone();
   }
 
   // view data is where all the data that a particular view needs
@@ -554,27 +542,22 @@ class DataProvider with ChangeNotifier {
   }
 
   void initFirebaseListener(BuildContext context) {
-    print('initing firebaselistener..............................');
     FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) async {
       try {
         await StoreData().storeInsertData(
             'initialDynamicLink', dynamicLinkData.link.toString());
         processDeepLink(context, dynamicLinkData.link);
       } catch (e) {
-        print('error processing dynamic link');
         popup(context,
             title: 'Error', message: 'error processing dynamic link');
       }
     }).onError((error) {
       // Handle errors
-      print('this is dynamicLink error: $error');
     });
   }
 
   void processDeepLink(BuildContext context, Uri initialDynamicLink,
       {String? rel}) {
-    print(
-        '-------------------------deeplink url: ${initialDynamicLink.toString()}');
     // action login
     if (initialDynamicLink.queryParameters['action'] == 'login') {
       setSplashFinished();
@@ -602,7 +585,6 @@ class DataProvider with ChangeNotifier {
                 : initialDynamicLink.queryParameters['assetCode'],
             initialDynamicLink.queryParameters['assetIssuer'],
             onDone: (walletPublicKey, isSharedWallet) {
-          print('=============$walletPublicKey; =============$isSharedWallet');
           var deeplinkInfo = {
             "assetCode": initialDynamicLink.queryParameters['assetCode'],
             "assetIssuer": initialDynamicLink.queryParameters['assetIssuer'],

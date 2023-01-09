@@ -157,38 +157,38 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                     fontSize: 13.sp),
               ),
               SizedBox(height: height / 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  children: [
-                    Text(
-                      LanguageEn.bio,
-                      style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold,
-                          fontSize: 16.sp),
-                    ),
-                  ],
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //   child: Row(
+              //     children: [
+              //       Text(
+              //         LanguageEn.bio,
+              //         style: TextStyle(
+              //             color: notifier.getbluewhitecolor,
+              //             fontFamily: fontsemibold,
+              //             fontSize: 16.sp),
+              //       ),
+              //     ],
+              //   ),
+              // ),
               bioInfo(),
               SizedBox(height: height / 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Row(
-                  children: [
-                    Text(
-                      LanguageEn.socials,
-                      style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold,
-                          fontSize: 16.sp),
-                    ),
-                  ],
-                ),
-              ),
-              socials(),
-              SizedBox(height: height / 20),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //   child: Row(
+              //     children: [
+              //       Text(
+              //         LanguageEn.socials,
+              //         style: TextStyle(
+              //             color: notifier.getbluewhitecolor,
+              //             fontFamily: fontsemibold,
+              //             fontSize: 16.sp),
+              //       ),
+              //     ],
+              //   ),
+              // ),
+              // socials(),
+              // SizedBox(height: height / 20),
             ],
           ),
         ),
@@ -259,20 +259,6 @@ class _ProfileDetailsState extends State<ProfileDetails> {
       hideLoader(context);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
-  }
-
-  Future<dynamic> getBase64Image(XFile image) async {
-    //
-    List<int> imageBytes = await image.readAsBytes();
-    String imageB64 = base64Encode(imageBytes);
-    return imageB64;
-    // String fileName = image.path.split("/").last;
-  }
-
-  Uint8List getBase64Decode(String image) {
-    Uint8List imageString = base64Decode(image);
-    return imageString;
-    // String fileName = image.path.split("/").last;
   }
 
   Widget bioInfo() {

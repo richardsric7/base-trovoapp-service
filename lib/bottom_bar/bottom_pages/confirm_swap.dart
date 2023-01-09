@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,8 +15,8 @@ import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -178,6 +177,54 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 height: height / 50,
               ),
               Text(
+                'Service Fee',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                ),
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                    color: notifier.isDark
+                        ? darktilewhitecolor
+                        : notifier.getaddsubwalletgrey,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: height / 50,
+                          ),
+                          myKeyValueRow("Fee: ", viewData['fee'] + '%'),
+                          myKeyValueRow("Amount (Calculated): ",
+                              "${viewData['feeAmount']} ${viewData['sourceAssetCode'].toString().isEmpty ? 'XBN' : viewData['sourceAssetCode']}"),
+                          myKeyValueRow("Swap amount: ",
+                              "${viewData['swapAmount']} ${viewData['sourceAssetCode'].toString().isEmpty ? 'XBN' : viewData['sourceAssetCode']}"),
+                          SizedBox(
+                            height: height / 50,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              Text(
                 LanguageEn.wallet,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -275,6 +322,25 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  Widget myKeyValueRow(String key, String value) {
+    return Row(children: [
+      Text(
+        key,
+        style: TextStyle(
+            fontSize: 15,
+            color: notifier.getbluewhitecolor,
+            fontFamily: fontsemibold),
+      ),
+      Text(
+        value,
+        style: TextStyle(
+            fontSize: 15,
+            color: notifier.getbluewhitecolor,
+            fontFamily: fontbody),
+      ),
+    ]);
   }
 
   Widget showAddressInfo() {
@@ -378,8 +444,6 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
   }
 
   sendDataToServer() async {
-    print('sending to server....');
-
     try {
       showLoader(context);
 
@@ -397,7 +461,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
 
       String requestBody = jsonEncode(viewData);
 
-      print(requestBody);
+      // print(requestBody);
 
       Map responseData = await makePostRequest(
         uri: viewData['isShared'] == 1
@@ -409,9 +473,15 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
         publicKey: viewData['walletPublicKey'],
       );
 
-      print('response: $responseData');
+      // print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo();
+        updateUserInfo(
+          activeWallet!.signer,
+          appState.secretKeys[0],
+          activeWallet!.publicKey,
+          appState.userInfo!.username!.trim().replaceAll(' ', ''),
+          appState,
+        );
         if (viewData['isShared'] == 1) {
           appState.viewData![SuccessViewPageConfig.key] = {
             'title': 'Swap request submitted',
@@ -427,6 +497,10 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
               viewData["sourceUsdPrice"];
           appState.viewData![SwapSuccessViewPageConfig.key]
               ['destinationUsdPrice'] = viewData["destinationUsdPrice"];
+          appState.viewData![SwapSuccessViewPageConfig.key]['fee'] =
+              viewData["fee"];
+          appState.viewData![SwapSuccessViewPageConfig.key]['feeAmount'] =
+              viewData["feeAmount"];
           appState.currentAction = PageAction(
             state: PageState.replaceAll,
             page: SwapSuccessViewPageConfig,
@@ -439,49 +513,9 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
             title: LanguageEn.error, message: responseData['data']['error']);
       }
     } catch (e) {
-      print(e);
+      // print(e);
       hideLoader(context);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
-  }
-
-  Future<void> updateUserInfo() async {
-    Map responseData = await makeGetRequest(
-      uri:
-          '/v1/users/${appState.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: activeWallet!.signer!,
-      secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: activeWallet!.publicKey!,
-    );
-
-    print('secretkey: ${appState.secretKeys[0]}');
-
-    print('response: ${responseData}');
-
-    if (responseData['statusCode'] == 200) {
-      await storeUserInfo(responseData['data']);
-    }
-  }
-
-  Future<void> storeUserInfo(userInfoMap) async {
-    print('userInfoMap: ${userInfoMap['userData']}');
-    var userInfo = userInfoMap['userData'] ?? {};
-    var assetBalances = userInfoMap['assetBalances'] ?? {};
-    var nfts = userInfoMap['nfts'] ?? {};
-    var thirdPartyWalletAccess = userInfoMap['thirdPartyWalletAccess'] ?? [];
-    var defaultAssets = userInfoMap['defaultAssets'] ?? [];
-
-    await StoreData().storeInsertData('userInfo', userInfo);
-    await StoreData().storeInsertData('assetBalances', assetBalances);
-    await StoreData().storeInsertData('nftBalances', nfts);
-    await StoreData()
-        .storeInsertData('thirdPartyWalletAccess', thirdPartyWalletAccess);
-    await StoreData().storeInsertData('defaultAssets', defaultAssets);
-
-    // save useInfo to appstate
-    appState.setUser = UserInfo().deserializeJson(userInfo);
-    appState.setNFTs = nfts;
-    appState.setassetBalances = assetBalances;
-    print('stored new user data.................');
   }
 }
