@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:trovo_wallet/Models/announcement.dart';
 import 'package:trovo_wallet/network/requests.dart';
@@ -103,4 +105,15 @@ Future<void> fetchNotifications(DataProvider appState) async {
       Announcement().toJSONEncodableList(announcements),
     );
   }
+}
+
+Future<void> fetchVersionInfo(DataProvider appState) async {
+  var versionInfo = await makeUnSecuredGetRequest('/v1/app-version');
+
+  print('this is response $versionInfo');
+
+  StoreData().storeInsertData(
+    'appVersion',
+    versionInfo['data'],
+  );
 }

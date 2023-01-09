@@ -55,7 +55,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
     sourceAmount = double.parse(viewData['sourceAmount']).toStringAsFixed(4);
     swappedEstimate =
         double.parse(viewData['swappedEstimate']).toStringAsFixed(4);
-    print('viewData $viewData');
+    // print('viewData $viewData');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -116,8 +116,40 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                       Divider(
                         height: 5,
                       ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Service Fee',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 16.sp,
+                                fontFamily: fontsemibold,
+                              ),
+                            ),
+                            SizedBox(
+                              height: 20,
+                            ),
+                            Text(
+                              '${viewData['feeAmount']} ${viewData['destinationAssetCode'].toString().isEmpty ? 'XBN' : viewData['destinationAssetCode']} (${viewData['fee']}%)',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 19.sp,
+                                fontFamily: fontbody,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       SizedBox(
                         height: height / 90,
+                      ),
+                      Divider(
+                        height: 5,
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(

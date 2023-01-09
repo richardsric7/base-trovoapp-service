@@ -62,7 +62,6 @@ class _PaymentDetails extends State<PaymentDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![PaymentDetailsViewPageConfig.key];
-    print('viewData: $viewData');
     name = '${extractUsername(viewData.from!)}';
     publicKey = viewData.fromPublicKey;
     memo = viewData.memo!;
@@ -78,6 +77,10 @@ class _PaymentDetails extends State<PaymentDetails>
         viewData.memo!.contains('>')) {
       var splitResult = viewData.memo!.split('>');
       memo = "Swapped ${splitResult[0]} to ${splitResult[1]}";
+    } else if (viewData.transactionDirection == TransactionDirection.Send &&
+        viewData.memo!.contains('>')) {
+      var splitResult = viewData.memo!.split('>');
+      memo = "${splitResult[0]} to ${splitResult[1]} swap fee";
     }
 
     amount = viewData.amount;
@@ -143,73 +146,6 @@ class _PaymentDetails extends State<PaymentDetails>
                         children: [
                           if (TransactionDirection.Swap !=
                               viewData.transactionDirection!) ...[
-                            // SizedBox(
-                            //   height: height / 90,
-                            // ),
-                            // Padding(
-                            //   padding: const EdgeInsets.symmetric(
-                            //     horizontal: 20.0,
-                            //   ),
-                            //   child: Text(
-                            //     'From Public Key',
-                            //     style: TextStyle(
-                            //       fontWeight: FontWeight.w500,
-                            //       color: notifier.getbluewhitecolor,
-                            //       fontSize: 16.sp,
-                            //       fontFamily: fontsemibold,
-                            //     ),
-                            //   ),
-                            // ),
-                            // SizedBox(
-                            //   width: width / 1.7,
-                            //   child: Row(
-                            //     children: [
-                            //       Expanded(
-                            //         flex: 3,
-                            //         child: Padding(
-                            //           padding: const EdgeInsets.symmetric(
-                            //               horizontal: 20.0),
-                            //           child: Text(
-                            //             truncate(viewData.fromPublicKey!,
-                            //                     length: 5) +
-                            //                 viewData.fromPublicKey!.substring(
-                            //                     viewData.fromPublicKey!.length -
-                            //                         5),
-                            //             style: TextStyle(
-                            //               fontWeight: FontWeight.w500,
-                            //               color: notifier.getbluewhitecolor,
-                            //               fontSize: 15.sp,
-                            //               fontFamily: fontbody,
-                            //             ),
-                            //           ),
-                            //         ),
-                            //       ),
-                            //       Expanded(
-                            //         flex: 1,
-                            //         child: IconButton(
-                            //           padding: EdgeInsets.zero,
-                            //           onPressed: () => {
-                            //             Clipboard.setData(
-                            //               ClipboardData(
-                            //                 text: viewData.fromPublicKey!,
-                            //               ),
-                            //             ),
-                            //             showSnackBar(
-                            //                 'From public key', context),
-                            //           },
-                            //           icon: Icon(
-                            //             Icons.copy,
-                            //             size: 20,
-                            //           ),
-                            //           color: notifier.getbluewhitecolor,
-                            //         ),
-                            //       ),
-                            //     ],
-                            //   ),
-                            // ),
-                            // Divider(
-                            //   height: 5,
-                            // ),
                             SizedBox(
                               height: height / 90,
                             ),
@@ -652,13 +588,11 @@ class _PaymentDetails extends State<PaymentDetails>
   }
 
   String extractUsername(String data) {
-    print('data $data');
     if (data.isNotEmpty) {
       const start = '[';
       const end = ']';
       final startIndex = data.indexOf(start);
       final endIndex = data.indexOf(end);
-      print('data $data');
       return data.substring(startIndex + start.length, endIndex);
     }
 

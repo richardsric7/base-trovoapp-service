@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:syncfusion_flutter_core/theme.dart';
-import 'package:syncfusion_flutter_sliders/sliders.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
@@ -36,6 +35,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   var assetBalances;
   List<Wallet>? wallets;
   Wallet? activeWallet;
+  late RefreshController _refreshController;
   var activeAsset;
   var claimedAssets;
   bool amountError = false;
@@ -52,7 +52,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   final GlobalKey<FormFieldState> key2 = GlobalKey<FormFieldState>();
   final GlobalKey<FormFieldState> key3 = GlobalKey<FormFieldState>();
   final textController = TextEditingController();
-  double? sliderValue = 0;
 
   List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
     var walletsList = <DropdownMenuItem<String>>[];
@@ -107,6 +106,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     selectedWallet =
         appState.activeWallet!.signer; // the public key of the primary wallet
     assetBalances = appState.assetBalances;
+    _refreshController = RefreshController(initialRefresh: false);
     claimedAssets = assetBalances[selectedWallet]['claimed'];
   }
 
@@ -124,191 +124,158 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: height / 50,
-                ),
-                Container(
-                  width: width,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Swap",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold,
+        body: SmartRefresher(
+          enablePullDown: true,
+          controller: _refreshController,
+          onRefresh: refreshData,
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Container(
+                    width: width,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Swap",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold,
+                          ),
                         ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 30,
+                  ),
+                  Row(
+                    children: [
+                      SizedBox(
+                        width: width / 15,
+                      ),
+                      Text(
+                        'Select wallet',
+                        style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                            fontWeight: FontWeight.w500),
+                      ),
+                      SizedBox(
+                        width: width / 15,
+                      ),
+                      Expanded(
+                          child: dropdown(
+                        (newValue) {
+                          selectedWallet = newValue!;
+                          key1.currentState!.reset();
+                          key2.currentState!.reset();
+                          key3.currentState!.reset();
+                          amount = 0;
+                          textController.text = amount.toString();
+                          sourceAsset = destinationAsset =
+                              sourceAssetRawDropdownValue =
+                                  destinationAssetRawDropdownValue = null;
+
+                          claimedAssets =
+                              appState.transactionableWallets[selectedWallet]
+                                  ['claimedAssets'];
+                          setState(() {});
+                        },
+                        walletDropdownItems(false),
+                        selectedWallet.toString().isEmpty
+                            ? null
+                            : selectedWallet,
+                        null,
+                        context,
+                        (context) {
+                          return walletDropdownItems(true);
+                        },
+                      )),
+                      SizedBox(
+                        width: width / 15,
                       ),
                     ],
                   ),
-                ),
-                SizedBox(
-                  height: height / 30,
-                ),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: width / 15,
-                    ),
-                    Text(
-                      'Select wallet',
-                      style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontSize: 15,
-                          fontFamily: fontsemibold,
-                          fontWeight: FontWeight.w500),
-                    ),
-                    SizedBox(
-                      width: width / 15,
-                    ),
-                    Expanded(
-                        child: dropdown(
-                      (newValue) {
-                        selectedWallet = newValue!;
-                        key1.currentState!.reset();
-                        key2.currentState!.reset();
-                        key3.currentState!.reset();
-                        amount = 0;
-                        textController.text = amount.toString();
-                        sourceAsset = destinationAsset =
-                            sourceAssetRawDropdownValue =
-                                destinationAssetRawDropdownValue = null;
-                        print(sourceAsset);
-                        print(destinationAsset);
-                        print(appState.transactionableWallets[selectedWallet]);
-                        claimedAssets =
-                            appState.transactionableWallets[selectedWallet]
-                                ['claimedAssets'];
-                        setState(() {});
-                      },
-                      walletDropdownItems(false),
-                      selectedWallet.toString().isEmpty ? null : selectedWallet,
-                      null,
-                      context,
-                      (context) {
-                        return walletDropdownItems(true);
-                      },
-                    )),
-                    SizedBox(
-                      width: width / 15,
-                    ),
-                  ],
-                ),
-                Form(
-                  key: formKey,
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: height / 30,
-                      ),
-                      swap(),
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      CustomTextFormField.textField(
-                        LanguageEn.amount,
-                        notifier.getbluecolor,
-                        Icons.currency_exchange,
-                        notifier.getgrey,
-                        notifier.getprefixicon,
-                        notifier.getblck,
-                        notifier.getgrey,
-                        // dynamically change the size
-                        // of the textbox so it will
-                        // consistent when showing an
-                        // error message
-                        70.sp,
-                        300.sp,
-                        onChanged: (value) {
-                          if (value != null && value.toString().isNotEmpty) {
-                            setState(() {
-                              amount = double.tryParse(value) ?? 0.0;
-                            });
-                          }
-                        },
-                        key: key3,
-                        controller: textController,
-                        // inputFormatters: [
-                        //   doubleTypeFormatter(),
-                        // ],
-                        keyboardtype:
-                            TextInputType.numberWithOptions(decimal: true),
-                        validator: validateAmount,
-                        onSaved: (value) =>
-                            amount = value.trim().replaceAll(' ', ''),
-                      ),
-                      if (sourceAsset != null && !appState.hideBalances) ...[
-                        availableBalance(),
+                  Form(
+                    key: formKey,
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: height / 30,
+                        ),
+                        swap(),
                         SizedBox(
                           height: height / 50,
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: SfSliderTheme(
-                            data: SfSliderThemeData(
-                              activeTickColor: notifier.getdarkgrey,
-                              inactiveTickColor: notifier.getdarkgrey,
-                              activeMinorTickColor: notifier.getdarkgrey,
-                              inactiveMinorTickColor: notifier.getdarkgrey,
-                              inactiveLabelStyle: TextStyle(
-                                  color: notifier.getdarkgrey,
-                                  fontSize: 15,
-                                  fontFamily: fontbody,
-                                  fontWeight: FontWeight.w500),
-                              activeLabelStyle: TextStyle(
-                                  color: notifier.getdarkgrey,
-                                  fontSize: 15,
-                                  fontFamily: fontbody,
-                                  fontWeight: FontWeight.w500),
-                            ),
-                            child: SfSlider(
-                              min: 0,
-                              max: 100,
-                              value: sliderValue,
-                              onChanged: _onSliderChanged,
-                              interval: 25,
-                              stepSize: 1,
-                              inactiveColor: notifier.getdarkgrey,
-                              showTicks: true,
-                              tooltipTextFormatterCallback: _setToolTip,
-                              showLabels: true,
-                              enableTooltip: true,
-                              minorTicksPerInterval: 1,
-                            ),
+                        CustomTextFormField.textField(
+                          LanguageEn.amount,
+                          notifier.getbluecolor,
+                          Icons.currency_exchange,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          // dynamically change the size
+                          // of the textbox so it will
+                          // consistent when showing an
+                          // error message
+                          70.sp,
+                          300.sp,
+                          onChanged: (value) {
+                            if (value != null && value.toString().isNotEmpty) {
+                              setState(() {
+                                amount = double.tryParse(value) ?? 0.0;
+                              });
+                            }
+                          },
+                          key: key3,
+                          controller: textController,
+                          // inputFormatters: [
+                          //   doubleTypeFormatter(),
+                          // ],
+                          keyboardtype:
+                              TextInputType.numberWithOptions(decimal: true),
+                          validator: validateAmount,
+                          onSaved: (value) =>
+                              amount = value.trim().replaceAll(' ', ''),
+                        ),
+                        if (sourceAsset != null && !appState.hideBalances) ...[
+                          availableBalance(),
+                          const SizedBox(
+                            height: 20.0,
                           ),
+                        ],
+                        SizedBox(
+                          height: height / 20,
                         ),
-                        const SizedBox(
-                          height: 20.0,
+                        Button(
+                          LanguageEn.proceed,
+                          notifier.getbluecolor,
+                          wihitecolor,
+                          onTap: () {
+                            handleSubmit();
+                          },
                         ),
+                        SizedBox(
+                          height: height / 20,
+                        ),
+                        Padding(
+                            padding: EdgeInsets.only(
+                                bottom:
+                                    MediaQuery.of(context).viewInsets.bottom)),
                       ],
-                      SizedBox(
-                        height: height / 20,
-                      ),
-                      Button(
-                        LanguageEn.proceed,
-                        notifier.getbluecolor,
-                        wihitecolor,
-                        onTap: () {
-                          handleSubmit();
-                        },
-                      ),
-                      SizedBox(
-                        height: height / 20,
-                      ),
-                      Padding(
-                          padding: EdgeInsets.only(
-                              bottom:
-                                  MediaQuery.of(context).viewInsets.bottom)),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -415,7 +382,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         return null;
                       },
                       onChanged: (newValue) {
-                        print('this is new value: $newValue');
                         sourceAssetRawDropdownValue = newValue;
                         var splitNewValue = newValue!.split('|');
                         if (appState.transactionableWallets[selectedWallet]
@@ -444,7 +410,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         }
                         sourceErr = false;
                         setState(() {});
-                        print('this is source asset: $sourceAsset');
                       },
                       items: dropdownItemBuilder(
                           claimedAssets, destinationAsset, false),
@@ -565,7 +530,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         return null;
                       },
                       onChanged: (newValue) {
-                        print('this is new destination value: $newValue');
                         destinationAssetRawDropdownValue = newValue;
                         var splitNewValue = newValue!.split('|');
                         setState(() {
@@ -582,7 +546,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                           });
                           destErr = false;
                         });
-                        print('this is destination asset: $sourceAsset');
                       },
                       items:
                           dropdownItemBuilder(claimedAssets, sourceAsset, true),
@@ -623,7 +586,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
       };
 
       String requestBody = jsonEncode(map);
-      print('this is request body $requestBody');
 
       Map responseData = await makePostRequest(
         uri: getEndpoint(),
@@ -633,7 +595,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
         publicKey: selectedWallet!,
       );
 
-      print('response: $responseData');
+      // print('response: $responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
@@ -646,7 +608,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
             title: LanguageEn.error, message: responseData['data']['message']);
       }
     } catch (e) {
-      print(e);
+      // print(e);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
   }
@@ -661,7 +623,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
           context,
           data['messages'][messageShown],
           () => {
-                print('postProcessData: $messageShown'),
+                // print('postProcessData: $messageShown'),
                 postProcessData(messageShown, messageLength, data),
               });
 
@@ -694,35 +656,19 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
         PageAction(state: PageState.addPage, page: ConfirmSwapViewPageConfig);
   }
 
-  _onSliderChanged(dynamic newValue) {
-    setState(() {
-      sliderValue = newValue;
-      amount = (newValue / 100) * double.parse(sourceAsset['amount']);
-      textController.text = amount.toStringAsFixed(4);
-      textController.selection = TextSelection.fromPosition(
-          TextPosition(offset: textController.text.length));
-    });
-  }
-
-  String _setToolTip(dynamic actualValue, String formattedText) {
-    actualValue = actualValue.round();
-    return '$actualValue%';
-  }
-
   List<DropdownMenuItem<String>> dropdownItemBuilder(
       assets, assetToSkip, isDestination) {
     var assetsMap = {};
     List<DropdownMenuItem<String>> dropDownItems = [];
 
-    assets.forEach((asset) {
-      assetsMap['${asset['assetIssuer']}|${asset['assetCode']}'] =
-          asset['assetCode'];
-    });
-
     if (isDestination) {
       // add the default assets to the list of destination assets
       userInfo.curatedSwapList!.forEach((asset) {
-        print('for swap: $asset');
+        assetsMap['${asset['assetIssuer']}|${asset['assetCode']}'] =
+            asset['assetCode'];
+      });
+    } else {
+      assets.forEach((asset) {
         assetsMap['${asset['assetIssuer']}|${asset['assetCode']}'] =
             asset['assetCode'];
       });
@@ -834,5 +780,14 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  void refreshData() async {
+    try {
+      await appState.refreshData();
+      _refreshController.refreshCompleted();
+    } catch (e) {
+      _refreshController.refreshFailed();
+    }
   }
 }

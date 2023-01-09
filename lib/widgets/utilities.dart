@@ -9,6 +9,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:share/share.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
@@ -470,11 +471,7 @@ Future<void> share(String message, GlobalKey snapshotAreaKey) async {
   file.writeAsBytesSync(byteData!.buffer.asUint8List());
   print('========================================$fileName');
 
-  await FlutterShare.shareFile(
-    title: 'Trovo Wallet',
-    filePath: fileName,
-    text: message,
-  );
+  Share.shareFiles([fileName], text: message);
 }
 
 Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {
@@ -500,9 +497,5 @@ Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {
   File file = await File(fileName).create();
   file.writeAsBytesSync(await pdf.save());
 
-  await FlutterShare.shareFile(
-    title: 'Trovo Wallet',
-    filePath: fileName,
-    text: message,
-  );
+  Share.shareFiles([fileName], text: message);
 }
