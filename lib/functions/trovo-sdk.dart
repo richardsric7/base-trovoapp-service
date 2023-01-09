@@ -69,7 +69,7 @@ class TrovoWalletSDK {
       var bytes = txn.hash(network);
 
 // sign with the keypair
-      var signedData = keyPair.sign(bytes);
+      var signedData = keyPair.sign(bytes!);
 
       var signedBase64Str = base64.encode(signedData.toList());
 
