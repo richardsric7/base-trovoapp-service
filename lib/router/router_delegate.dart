@@ -38,6 +38,8 @@ import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
 import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/asset_details.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/confirm_transaction.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/select_deposit_address.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/generate_deposit_address.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/recieve_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment_details.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment.dart';
@@ -45,6 +47,7 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/send_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/wrapped_asset.dart';
 import 'package:trovo_wallet/screens/SharedAccess/add_shared_access_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/approval_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/confirm_payment_initiation.dart';
@@ -320,6 +323,17 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.AnnouncementView:
           _addPageData(AnnouncementView(), AnnouncementViewPageConfig);
           break;
+        case Pages.WrappedAssetView:
+          _addPageData(WrappedAsset(), WrappedAssetViewPageConfig);
+          break;
+        case Pages.GenerateDepositAddressView:
+          _addPageData(
+              GenerateDepositAddress(), GenerateDepositAddressViewPageConfig);
+          break;
+        case Pages.SelectDepositAddressView:
+          _addPageData(
+              SelectDepositAddress(), SelectDepositAddressViewPageConfig);
+          break;
         default:
           break;
       }
@@ -520,6 +534,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.AnnouncementView:
         AnnouncementViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.WrappedAssetView:
+        WrappedAssetViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.GenerateDepositAddressView:
+        GenerateDepositAddressViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SelectDepositAddressView:
+        SelectDepositAddressViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

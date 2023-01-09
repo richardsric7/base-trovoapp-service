@@ -9,7 +9,7 @@ import 'package:trovo_wallet/widgets/utilities.dart';
 
 class TopDropdowns extends StatefulWidget {
   void Function(String newValue) onWalletChanged;
-  void Function(String newValue) onAssetChanged;
+  void Function(String newValue)? onAssetChanged;
   var claimedAssets;
   var selectedWallet;
   var selectedAsset;
@@ -17,9 +17,9 @@ class TopDropdowns extends StatefulWidget {
   TopDropdowns({
     Key? key,
     required this.onWalletChanged,
-    required this.onAssetChanged,
-    required this.claimedAssets,
-    required this.selectedAsset,
+    this.onAssetChanged,
+    this.claimedAssets,
+    this.selectedAsset,
     required this.selectedWallet,
   }) : super(key: key);
 
@@ -127,56 +127,58 @@ class _TopDropdownsState extends State<TopDropdowns> {
                   return walletDropdownItems(true);
                 },
               )),
-          SizedBox(
-            width: width / 40,
-          ),
-          Expanded(
-            flex: 3,
-            child: DropdownButtonFormField(
-              dropdownColor: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
-              decoration: InputDecoration(
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                border: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                filled: true,
-                fillColor: notifier.isDark
+          if (widget.claimedAssets != null) ...[
+            SizedBox(
+              width: width / 40,
+            ),
+            Expanded(
+              flex: 3,
+              child: DropdownButtonFormField(
+                dropdownColor: notifier.isDark
                     ? darktilewhitecolor
                     : notifier.getaddsubwalletgrey,
+                decoration: InputDecoration(
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  filled: true,
+                  fillColor: notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
+                ),
+                value: selectedAsset,
+                icon: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: notifier.getbluewhitecolor,
+                ),
+                style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontSize: 15,
+                  fontFamily: fontsemibold,
+                ),
+                onChanged: (newValue) {
+                  widget.onAssetChanged!(newValue.toString());
+                },
+                borderRadius: BorderRadius.all(
+                  Radius.circular(15),
+                ),
+                items: assetDropdownItems(false),
+                selectedItemBuilder: (context) {
+                  return assetDropdownItems(true);
+                },
               ),
-              value: selectedAsset,
-              icon: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: notifier.getbluewhitecolor,
-              ),
-              style: TextStyle(
-                color: notifier.getbluewhitecolor,
-                fontSize: 15,
-                fontFamily: fontsemibold,
-              ),
-              onChanged: (newValue) {
-                widget.onAssetChanged(newValue.toString());
-              },
-              borderRadius: BorderRadius.all(
-                Radius.circular(15),
-              ),
-              items: assetDropdownItems(false),
-              selectedItemBuilder: (context) {
-                return assetDropdownItems(true);
-              },
             ),
-          ),
-          SizedBox(
-            width: width / 20,
-          ),
+            SizedBox(
+              width: width / 20,
+            ),
+          ]
         ],
       ),
     );

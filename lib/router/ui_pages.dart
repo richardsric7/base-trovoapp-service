@@ -69,6 +69,9 @@ const String WelcomeToSharedAccessViewPath = '/WelcomeToSharedAccessView';
 const String GetStartedViewPath = '/GetStartedView';
 const String ShareReceiptViewPath = '/ShareReceiptView';
 const String AnnouncementViewPath = '/AnnouncementView';
+const String WrappedAssetViewPath = '/WrappedAssetView';
+const String GenerateDepositAddressViewPath = '/GenerateDepositAddressView';
+const String SelectDepositAddressViewPath = '/SelectDepositAddressView';
 
 enum Pages {
   Splash,
@@ -136,6 +139,9 @@ enum Pages {
   GetStartedView,
   ShareReceiptView,
   AnnouncementView,
+  WrappedAssetView,
+  GenerateDepositAddressView,
+  SelectDepositAddressView,
 }
 
 class PageConfiguration {
@@ -472,4 +478,19 @@ PageConfiguration AnnouncementViewPageConfig = PageConfiguration(
     key: 'AnnouncementView',
     path: AnnouncementViewPath,
     uiPage: Pages.AnnouncementView,
+    currentPageAction: null);
+PageConfiguration WrappedAssetViewPageConfig = PageConfiguration(
+    key: 'WrappedAssetView',
+    path: WrappedAssetViewPath,
+    uiPage: Pages.WrappedAssetView,
+    currentPageAction: null);
+PageConfiguration GenerateDepositAddressViewPageConfig = PageConfiguration(
+    key: 'GenerateDepositAddressView',
+    path: GenerateDepositAddressViewPath,
+    uiPage: Pages.GenerateDepositAddressView,
+    currentPageAction: null);
+PageConfiguration SelectDepositAddressViewPageConfig = PageConfiguration(
+    key: 'SelectDepositAddressView',
+    path: SelectDepositAddressViewPath,
+    uiPage: Pages.SelectDepositAddressView,
     currentPageAction: null);

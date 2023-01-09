@@ -280,7 +280,10 @@ class _AssetDetailsState extends State<AssetDetails>
                     );
                   },
                 ),
-              ]
+              ],
+              SizedBox(
+                height: height / 20,
+              ),
             ],
           ),
         ),
@@ -314,6 +317,18 @@ class _AssetDetailsState extends State<AssetDetails>
             page: ReceiveAssetViewPageConfig,
           );
         }),
+        actionButton("assets/images/dep-with-button.png", 'Deposit/Withdraw',
+            () {
+          appState.viewData![WrappedAssetViewPageConfig.key] =
+              appState.viewData![AssetDetailsViewPageConfig.key];
+          appState.viewData![WrappedAssetViewPageConfig.key]['walletInfo'] =
+              activeWallet;
+
+          appState.currentAction = PageAction(
+            state: PageState.addPage,
+            page: WrappedAssetViewPageConfig,
+          );
+        }),
       ],
     );
   }
@@ -338,7 +353,7 @@ class _AssetDetailsState extends State<AssetDetails>
               Text(
                 actionText,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold,
                   color: notifier.getbluewhitecolor,
                   fontFamily: fontsemibold,
@@ -380,6 +395,29 @@ class _AssetDetailsState extends State<AssetDetails>
                         color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
+                  if (activeAsset["imageUrl"].toString().isNotEmpty) ...[
+                    SizedBox(
+                      height: height / 50.0,
+                    ),
+                    Container(
+                      width: width / 1.3,
+                      child: Image.network(
+                        activeAsset["imageUrl"],
+                        height: 80,
+                        width: 80,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset(
+                            'assets/images/trovo.png',
+                            height: 80,
+                            width: 80,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                  SizedBox(
+                    height: height / 50.0,
+                  ),
                   Text(
                     curatedAsset['website'],
                     style: TextStyle(
@@ -418,9 +456,13 @@ class _AssetDetailsState extends State<AssetDetails>
                           fontFamily: fontsemibold),
                     ),
                     SizedBox(
-                      width: width / 1.7,
+                      width: width / 1.3,
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
+                          SizedBox(
+                            width: width / 20,
+                          ),
                           Expanded(
                             flex: 3,
                             child: Padding(
@@ -460,6 +502,9 @@ class _AssetDetailsState extends State<AssetDetails>
                               color: notifier.getbluewhitecolor,
                             ),
                           ),
+                          SizedBox(
+                            width: width / 20,
+                          ),
                         ],
                       ),
                     ),
@@ -476,7 +521,7 @@ class _AssetDetailsState extends State<AssetDetails>
                             fontFamily: fontsemibold),
                       ),
                       SizedBox(
-                        width: width / 1.7,
+                        width: width / 1.3,
                         child: Row(
                           children: [
                             Expanded(

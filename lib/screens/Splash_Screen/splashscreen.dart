@@ -33,8 +33,6 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController controller;
   bool timerIsDone = false;
   String? initialDynamicLink;
-  PageAction landingPage =
-      PageAction(state: PageState.replaceAll, page: LoginPageConfig);
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -77,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen>
     });
 
     controller.repeat();
-    Timer(const Duration(seconds: 20), () {
+    Timer(const Duration(seconds: 4), () {
       timerIsDone = true;
     });
   }
@@ -108,9 +106,18 @@ class _SplashScreenState extends State<SplashScreen>
 
       if (appState.isFirstTime) {
         print('first time here indeed: ${appState.isFirstTime}');
-        landingPage =
-            PageAction(state: PageState.replaceAll, page: OnboardingPageConfig);
-        appState.setSplashFinished();
+
+        Timer.periodic(Duration(milliseconds: 200), (timer) {
+          if (timerIsDone) {
+            print('timer done');
+            timer.cancel();
+            appState.setSplashFinished();
+            appState.currentAction = PageAction(
+                state: PageState.replaceAll, page: OnboardingPageConfig);
+          } else {
+            print('timer not done');
+          }
+        });
       } else {
         var data = await StoreData().storeGetData('userInfo');
         appState.setUser = UserInfo().deserializeJson(data);
@@ -157,7 +164,8 @@ class _SplashScreenState extends State<SplashScreen>
             if (initialDynamicLink != null) {
               appState.processDeepLink(context, Uri.parse(initialDynamicLink!));
             } else {
-              appState.currentAction = landingPage;
+              appState.currentAction = PageAction(
+                  state: PageState.replaceAll, page: LoginPageConfig);
             }
           } else {
             print('timer not done');
