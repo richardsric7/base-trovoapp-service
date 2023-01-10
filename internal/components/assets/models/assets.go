@@ -23,12 +23,11 @@ type CuratedAsset struct {
 	AssetClassID                uint64     `gorm:"not null; default:1" json:"assetClassId"`
 	AssetClass                  AssetClass `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"assetClass"`
 	Organization                string     `gorm:"null;size:100" json:"organization"`
-	// UsdPrice                    string     `gorm:"null;size:50" json:"usdPrice"`
-	// NativePrice                 string     `gorm:"null;size:50" json:"nativePrice"`
-	Withdrawable           uint64 `gorm:"type:integer;not null;default:0" json:"withdrawable"`
-	GenerateDepositAddress uint64 `gorm:"type:integer;not null;default:0" json:"generateDepositAddress"`
-	DecimalPlaces          uint64 `gorm:"type:integer;not null;default:7" json:"decimalPlaces"`
-	Inactive               uint64 `gorm:"type:integer;not null;default:1" json:"-"`
+	Withdrawable                uint64     `gorm:"type:integer;not null;default:0" json:"withdrawable"`
+	GenerateDepositAddress      uint64     `gorm:"type:integer;not null;default:0" json:"generateDepositAddress"`
+	DecimalPlaces               uint64     `gorm:"type:integer;not null;default:7" json:"decimalPlaces"`
+	RealAssetImageURL           string     `gorm:"null;" json:"realAssetImageUrl"`
+	Inactive                    uint64     `gorm:"type:integer;not null;default:1" json:"-"`
 }
 
 // CuratedAsset model struct for CuratedAsset.

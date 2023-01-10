@@ -136,6 +136,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error migrating User:", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.UserWallet{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserWallet: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.PendingAuth{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error migrating PendingAuth:", errMigrate)
@@ -146,10 +150,6 @@ func MigrateDB(gormDB *gorm.DB) {
 			log.Fatalln("[OpenDb]Error migrating PendingTransactionSignature:", errMigrate)
 		}
 
-		errMigrate = gormDB.AutoMigrate(&users.UserWallet{})
-		if errMigrate != nil {
-			log.Fatalln("[OpenDb]Error Migrating UserWallet: ", errMigrate)
-		}
 		errMigrate = gormDB.AutoMigrate(&users.CryptoWalletDepositAddress{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating CryptoWalletDepositAddress: ", errMigrate)
@@ -165,6 +165,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&users.CryptoWithdrawal{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating CryptoWithdrawal: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.WithdrawalRequest{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating WithdrawalRequest: ", errMigrate)
 		}
 		errMigrate = gormDB.AutoMigrate(&users.WalletPermission{})
 		if errMigrate != nil {

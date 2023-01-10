@@ -32,6 +32,7 @@ type PaymentInfo struct {
 	CallbackURLS            map[string]string `json:"-"`
 }
 
+
 // PaymentLog holds payment information for logging
 type PaymentLog struct {
 	CreatedAt            time.Time

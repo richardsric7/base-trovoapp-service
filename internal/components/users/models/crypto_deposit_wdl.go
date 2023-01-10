@@ -52,11 +52,35 @@ type CryptoWithdrawalRequestInput struct {
 	Memo      string  `json:"memo"`
 }
 type WithdrawalRequestInput struct {
-	Currency         string  `json:"currency"`
+	Currency             string  `json:"currency"`
+	AmountSubmitted      float64 `json:"amountSubmitted"`
+	AmountToWithdraw     float64 `json:"amountToWithdraw"`
+	ToAddress            string  `json:"toAddress"`
+	Network              string  `json:"network"`
+	Memo                 string  `json:"memo"`
+	Fees                 float64 `json:"fees"`
+	NetworkFee           float64 `json:"networkFee"`
+	Transaction          string  `json:"transaction"`
+	TransactionSignature string  `json:"transactionSignature"`
+	TransactionID        string  `json:"transactionId"`
+	NetworkPassPhrase    string  `json:"networkPassPhrase"`
+	Multiparty           int     `json:"-"`
+	SignatureRequired    int     `json:"signatureRequired"`
+	Commit               int     `json:"commit"`
+}
+type WithdrawalRequest struct {
+	ID               string  `gorm:"primaryKey" json:"id"`
+	WalletPublicKey  string  `gorm:"size:100" json:"walletPublicKey"`
+	WalletAlias      string  `gorm:"size:100" json:"walletAlias"`
+	UserID           string  `gorm:"size:100" json:"userId"`
+	Currency         string  `gorm:"size:100" json:"currency"`
 	AmountSubmitted  float64 `json:"amountSubmitted"`
 	AmountToWithdraw float64 `json:"amountToWithdraw"`
-	ToAddress        string  `json:"toAddress"`
-	Network          string  `json:"network"`
-	Memo             string  `json:"memo"`
+	ToAddress        string  `gorm:"size:100" json:"toAddress"`
+	Network          string  `gorm:"size:100" json:"network"`
+	Memo             string  `gorm:"size:100" json:"memo"`
 	Fees             float64 `json:"fees"`
+	NetworkFee       float64 `json:"networkFee"`
+	TransactionID    string  `gorm:"size:100" json:"transactionId"`
+	WithdrawalStatus string  `gorm:"size:100;default:'PENDING'" json:"withdrawalStatus"`
 }
