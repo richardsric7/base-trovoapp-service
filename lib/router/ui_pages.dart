@@ -72,6 +72,10 @@ const String AnnouncementViewPath = '/AnnouncementView';
 const String WrappedAssetViewPath = '/WrappedAssetView';
 const String GenerateDepositAddressViewPath = '/GenerateDepositAddressView';
 const String SelectDepositAddressViewPath = '/SelectDepositAddressView';
+const String WithdrawAssetViewPath = '/WithdrawAssetView';
+const String ConfirmWithdrawViewPath = '/ConfirmWithdrawView';
+const String TransactionStatusViewPath = '/TransactionStatusView';
+const String DepositWithdrawHistoryViewPath = '/DepositWithdrawHistoryView';
 
 enum Pages {
   Splash,
@@ -142,6 +146,10 @@ enum Pages {
   WrappedAssetView,
   GenerateDepositAddressView,
   SelectDepositAddressView,
+  WithdrawAssetView,
+  ConfirmWithdrawView,
+  TransactionStatusView,
+  DepositWithdrawHistoryView,
 }
 
 class PageConfiguration {
@@ -493,4 +501,24 @@ PageConfiguration SelectDepositAddressViewPageConfig = PageConfiguration(
     key: 'SelectDepositAddressView',
     path: SelectDepositAddressViewPath,
     uiPage: Pages.SelectDepositAddressView,
+    currentPageAction: null);
+PageConfiguration WithdrawAssetViewPageConfig = PageConfiguration(
+    key: 'WithdrawAssetView',
+    path: WithdrawAssetViewPath,
+    uiPage: Pages.WithdrawAssetView,
+    currentPageAction: null);
+PageConfiguration ConfirmWithdrawViewPageConfig = PageConfiguration(
+    key: 'ConfirmWithdrawView',
+    path: ConfirmWithdrawViewPath,
+    uiPage: Pages.ConfirmWithdrawView,
+    currentPageAction: null);
+PageConfiguration TransactionStatusViewPageConfig = PageConfiguration(
+    key: 'TransactionStatusView',
+    path: TransactionStatusViewPath,
+    uiPage: Pages.TransactionStatusView,
+    currentPageAction: null);
+PageConfiguration DepositWithdrawHistoryViewPageConfig = PageConfiguration(
+    key: 'DepositWithdrawHistoryView',
+    path: DepositWithdrawHistoryViewPath,
+    uiPage: Pages.DepositWithdrawHistoryView,
     currentPageAction: null);

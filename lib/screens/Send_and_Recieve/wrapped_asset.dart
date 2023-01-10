@@ -254,23 +254,47 @@ class _WrappedAssetState extends State<WrappedAsset>
   }
 
   Widget actionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        actionButton("assets/images/deposit.png", 'Deposit', () {
-          appState.viewData![GenerateDepositAddressViewPageConfig.key] =
-              appState.viewData![WrappedAssetViewPageConfig.key];
-          appState.viewData![GenerateDepositAddressViewPageConfig.key]
-              ['walletInfo'] = activeWallet;
+    return Container(
+      constraints: BoxConstraints(maxWidth: width / 1.3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          actionButton("assets/images/deposit.png", 'Deposit', () {
+            appState.viewData![GenerateDepositAddressViewPageConfig.key] =
+                appState.viewData![WrappedAssetViewPageConfig.key];
+            appState.viewData![GenerateDepositAddressViewPageConfig.key]
+                ['walletInfo'] = activeWallet;
 
-          appState.currentAction = PageAction(
-            state: PageState.addPage,
-            page: GenerateDepositAddressViewPageConfig,
-          );
-        }),
-        actionButton("assets/images/withdraw.png", 'Withdraw', () {}),
-        actionButton("assets/images/history-btn.png", 'History', () {}),
-      ],
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: GenerateDepositAddressViewPageConfig,
+            );
+          }),
+          actionButton("assets/images/withdraw.png", 'Withdraw', () {
+            appState.viewData![WithdrawAssetViewPageConfig.key] =
+                appState.viewData![WrappedAssetViewPageConfig.key];
+            appState.viewData![WithdrawAssetViewPageConfig.key]['walletInfo'] =
+                activeWallet;
+
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: WithdrawAssetViewPageConfig,
+            );
+          }),
+          actionButton("assets/images/history-btn.png", 'History', () {
+            appState.viewData![DepositWithdrawHistoryViewPageConfig.key] =
+                appState.viewData![WrappedAssetViewPageConfig.key];
+            appState.viewData![DepositWithdrawHistoryViewPageConfig.key]
+                ['walletInfo'] = activeWallet;
+            print('activeWallet: $activeWallet');
+
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: DepositWithdrawHistoryViewPageConfig,
+            );
+          }),
+        ],
+      ),
     );
   }
 

@@ -38,15 +38,19 @@ import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';
 import 'package:trovo_wallet/screens/ImportWallet/importwallet.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/asset_details.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/confirm_transaction.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/confirm_withdraw.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/deposit_withdrawal_history.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/select_deposit_address.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/generate_deposit_address.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/recieve_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment_details.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/request_specific_payment.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/send_asset.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_status.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/transaction_success.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/trust_asset.dart';
 import 'package:trovo_wallet/screens/AccountRecovery/security_questions.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/withdraw_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/wrapped_asset.dart';
 import 'package:trovo_wallet/screens/SharedAccess/add_shared_access_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/approval_details.dart';
@@ -334,6 +338,19 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               SelectDepositAddress(), SelectDepositAddressViewPageConfig);
           break;
+        case Pages.WithdrawAssetView:
+          _addPageData(WithdrawAsset(), WithdrawAssetViewPageConfig);
+          break;
+        case Pages.ConfirmWithdrawView:
+          _addPageData(ConfirmWithdrawal(), ConfirmWithdrawViewPageConfig);
+          break;
+        case Pages.TransactionStatusView:
+          _addPageData(TransactionStatus(), TransactionStatusViewPageConfig);
+          break;
+        case Pages.DepositWithdrawHistoryView:
+          _addPageData(
+              DepositWithdrawHistory(), DepositWithdrawHistoryViewPageConfig);
+          break;
         default:
           break;
       }
@@ -543,6 +560,18 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.SelectDepositAddressView:
         SelectDepositAddressViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.WithdrawAssetView:
+        WithdrawAssetViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ConfirmWithdrawView:
+        ConfirmWithdrawViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.TransactionStatusView:
+        TransactionStatusViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.DepositWithdrawHistoryView:
+        DepositWithdrawHistoryViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
