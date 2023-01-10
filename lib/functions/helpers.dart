@@ -1,30 +1,23 @@
 import 'dart:io';
 
+import 'package:android_id/android_id.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
 
 Future getDeviceDetails() async {
-  String? deviceName;
-  String? deviceVersion;
   String? identifier;
+  const _androidIdPlugin = AndroidId();
   final DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
   try {
     if (Platform.isAndroid) {
-      var build = await deviceInfoPlugin.androidInfo;
-      deviceName = build.model;
-      deviceVersion = build.version.toString();
-      identifier = build.androidId; //UUID for Android
+      identifier = await _androidIdPlugin.getId(); //UUID for Android
     } else if (Platform.isIOS) {
       var data = await deviceInfoPlugin.iosInfo;
-      deviceName = data.name;
-      deviceVersion = data.systemVersion;
       identifier = data.identifierForVendor; //UUID for iOS
     }
   } on PlatformException {
     print('Failed to get platform version');
   }
 
-//if (!mounted) return;
-  //return [deviceName, deviceVersion, identifier];
   return identifier;
 }
