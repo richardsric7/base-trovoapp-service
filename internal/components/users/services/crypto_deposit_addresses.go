@@ -20,8 +20,9 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 
 		//try to get it if it already exists
 		sub, e = GetCryptoSubwallet(wallet, currency, gc)
-		log.Printf("[GenerateDepositAddresses] error fetching deposit addresses for %v %v error: %v\n", wallet.Alias, currency, e)
 		if e != nil {
+			log.Printf("[GenerateDepositAddresses] error fetching deposit addresses for %v %v error: %v\n", wallet.Alias, currency, e)
+
 			err = &tErrors.CustomError{
 				Param:      "walletID",
 				Err:        "error unable to generate deposit address",
