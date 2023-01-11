@@ -3220,6 +3220,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
 				return
 			}
+			wdlInput.Currency = strings.ToUpper(wdlInput.Currency)
 			wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
 			if err != nil {
