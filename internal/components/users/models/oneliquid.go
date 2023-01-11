@@ -151,11 +151,11 @@ type OKResponse struct {
 type CryptoWalletDepositAddress struct {
 	ID                   string    `json:"id"`
 	CreatedAt            time.Time `gorm:"default:now()" json:"createdAt"`
-	UserID               string    `gorm:"not null;" json:"-"`
-	TrovoWalletPublicKey string    `json:"TrovoWalletPublicKey"`
-	Currency             string    `gorm:"not null;size:12" json:"currency"`
+	UserID               string    `gorm:"not null;size:100;" json:"-"`
+	TrovoWalletPublicKey string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"TrovoWalletPublicKey"`
+	Currency             string    `gorm:"not null;size:12;index:idx_unique_address,unique" json:"currency"`
 	DepositAddress       string    `gorm:"not null;size:100" json:"depositAddress"`
-	Network              string    `gorm:"not null;size:100" json:"network"`
+	Network              string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"network"`
 }
 
 type CryptoSubwalletResponse struct {

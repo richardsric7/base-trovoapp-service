@@ -14,11 +14,11 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 	sub, e := CreateCryptoSubwalletRequest(wallet, currency, gc)
 
 	if e != nil {
-		log.Printf("[GenerateDepositAddresses] error generating deposit address for %v error: %v\n[GenerateDepositAddresses] checking if it exits already....\n", currency, e)
+		log.Printf("[GenerateDepositAddresses] error generating deposit address for %v %v error: %v\n[GenerateDepositAddresses] checking if it exits already....\n", wallet.Alias, currency, e)
 
 		//try to get it if it already exists
 		sub, e = GetCryptoSubwallet(wallet, currency, gc)
-		log.Printf("[GenerateDepositAddresses] error fetching deposit addresses for %v error: %v\n", currency, e)
+		log.Printf("[GenerateDepositAddresses] error fetching deposit addresses for %v %v error: %v\n", wallet.Alias, currency, e)
 		err = &tErrors.CustomError{
 			Param:      "walletID",
 			Err:        "error unable to generate deposit address",
@@ -27,7 +27,17 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 		return
 	}
 	// var depositAddresses []userModels.CryptoWalletDepositAddress
+	dbTX := gc.DB.Begin()
+	defer dbTX.Rollback()
 	for _, v := range sub.Addresses {
+
+		eCheck := dbTX.Where("trovo_wallet_public_key = ? AND currency = ? AND network = ?", wallet.ID, currency, v.Network).First(&userModels.CryptoWalletDepositAddress{}).Error
+
+		if eCheck == nil {
+			//address already exists...skip
+			continue
+		}
+
 		da := userModels.CryptoWalletDepositAddress{
 			ID:                   uuid.NewString(),
 			UserID:               wallet.UserID,
@@ -36,16 +46,27 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 			DepositAddress:       v.Address,
 			Network:              v.Network,
 		}
+
 		depositAddresses = append(depositAddresses, da)
 	}
 	if len(depositAddresses) > 0 {
-		e := gc.DB.Create(&depositAddresses).Error
+		e := dbTX.Create(&depositAddresses).Error
 		if e != nil {
+			log.Printf("[GenerateDepositAddresses] error saving deposit addresses for %v %v error: %v\n", wallet.Alias, currency, e)
 			err = &tErrors.ErrorTemporaryServerError{}
+			return
 		}
+		dbTX.Commit()
 		wallet.InvalidateUserCache(gc)
 		return depositAddresses, nil
 	}
+	if len(sub.Addresses) > 0 {
+		log.Printf("[GenerateDepositAddresses] No new deposit addresses for %v %v. Retrieved: [%+v] Fetching existing addresses.\n", wallet.Alias, currency, sub.Addresses)
+		dbTX.Where("trovo_wallet_public_key = ? AND currency = ?", wallet.ID, currency).First(&depositAddresses)
+		wallet.InvalidateUserCache(gc)
+		return depositAddresses, nil
+	}
+	log.Printf("[GenerateDepositAddresses] Unable to get any deposit addresses for %v %v.\n", wallet.Alias, currency)
 
 	err = &tErrors.ErrorTemporaryServerError{}
 	return
