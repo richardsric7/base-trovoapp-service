@@ -52,6 +52,7 @@ type CuratedSwapAsset struct {
 	Withdrawable                uint64     `gorm:"type:integer;not null;default:0" json:"withdrawable"`
 	GenerateDepositAddress      uint64     `gorm:"type:integer;not null;default:0" json:"generateDepositAddress"`
 	DecimalPlaces               uint64     `gorm:"type:integer;not null;default:7" json:"decimalPlaces"`
+	RealAssetImageURL           string     `gorm:"null;" json:"realAssetImageUrl"`
 	Inactive                    uint64     `gorm:"type:integer;not null;default:1" json:"-"`
 }
 
