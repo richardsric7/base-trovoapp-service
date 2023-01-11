@@ -179,6 +179,10 @@ func main() {
 		// clear cache
 		cacheKeyInfo := "curatedAssets_"
 		redisCache.DeleteFromCache(cacheKeyInfo)
+		// clear cache
+		cacheKey := "[GET] /v1/rates"
+		redisCache.InvalidateCachedHttpResponse(cacheKey)
+		redisCache.DeleteFromCache(cacheKey)
 	}
 
 	cas := strings.Split(os.Getenv("FBDL_SERVICE_URLS"), ",")
@@ -273,10 +277,7 @@ func main() {
 			UploadPath: os.Getenv("STORAGE_BUCKET_NAME"),
 		},
 	}
-	// clear cache
-	cacheKey := "[GET] /v1/rates"
-	globalConfig.RedisCache.InvalidateCachedHttpResponse(cacheKey)
-	globalConfig.RedisCache.DeleteFromCache(cacheKey)
+
 	scas := strings.Split(os.Getenv("CHANNEL_ACCOUNTS"), ",")
 	count := decimal.RequireFromString(os.Getenv("CHANNEL_ACCOUNT_MIN_COUNT")).IntPart()
 	if len(scas) > int(count) {
