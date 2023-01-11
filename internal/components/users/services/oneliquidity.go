@@ -8,6 +8,7 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
+	pUrl "net/url"
 	"os"
 	"strings"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -95,6 +96,43 @@ func CreateCryptoSubwalletRequest(wallet *userModels.UserWallet, currency string
 	//Decode the data
 	if err = json.NewDecoder(resp.Body).Decode(&wdlResp); err != nil {
 		log.Println("[CreateCryptoSubwalletRequest] error decoding response:", err)
+		return
+	}
+
+	return wdlResp.Data, nil
+
+}
+
+func GetCryptoSubwalletRequest(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (subwallet userModels.CryptoSubWallet, err error) {
+
+	var wdlResp userModels.CryptoSubwalletResponse
+	uidParam := pUrl.QueryEscape(wallet.Alias + "@" + os.Getenv("WALLET_DOMAIN"))
+	client := http.DefaultClient
+	requestUrl := fmt.Sprintf("%s/%s", os.Getenv("ONELIQUIDITY_BASE_URL"), fmt.Sprintf("wallets/v1/sub?currency=%v&uid=%v", pUrl.QueryEscape(currency), uidParam))
+
+	if err != nil {
+		log.Println("[GetCryptoSubwalletRequest] error sending request:", err)
+
+		return
+	}
+	request, err := http.NewRequest(http.MethodGet, requestUrl, nil)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Println("[GetCryptoSubwalletRequest] error sending request:", err)
+		return
+	}
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
+		log.Println("[GetCryptoSubwalletRequest] error response with code: ", resp.StatusCode, resp.Status)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+
+	defer resp.Body.Close()
+	//Decode the data
+	if err = json.NewDecoder(resp.Body).Decode(&wdlResp); err != nil {
+		log.Println("[GetCryptoSubwalletRequest] error decoding response:", err)
 		return
 	}
 
@@ -318,10 +356,13 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 	}
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
-	dbTX.Raw("delete from withdrawal_networks")
+	eDel := dbTX.Where("currency = ?", currency).Delete(&userModels.WithdrawalNetwork{}).Error
+	if eDel != nil {
+		log.Printf("[GetWithdrawalNetworks] error deleting from wdlNetworks where currency %v, error: %v\n", currency, eDel)
+	}
 	e := dbTX.Create(&wdlNetworks).Error
 	if e != nil {
-		log.Println("[GetWithdrawalNetworks] error creating wdlNetworks e:", e)
+		log.Printf("[GetWithdrawalNetworks] error creating wdlNetworks for %v error:%v\n", currency, e)
 
 	} else {
 		dbTX.Commit()

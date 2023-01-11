@@ -1,6 +1,7 @@
 package users
 
 import (
+	"log"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -11,8 +12,13 @@ import (
 func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (depositAddresses []userModels.CryptoWalletDepositAddress, err error) {
 	depositAddresses = make([]userModels.CryptoWalletDepositAddress, 0)
 	sub, e := CreateCryptoSubwalletRequest(wallet, currency, gc)
-	if e != nil {
 
+	if e != nil {
+		log.Printf("[GenerateDepositAddresses] error generating deposit address for %v error: %v\n[GenerateDepositAddresses] checking if it exits already....\n", currency, e)
+
+		//try to get it if it already exists
+		sub, e = GetCryptoSubwallet(wallet, currency, gc)
+		log.Printf("[GenerateDepositAddresses] error fetching deposit addresses for %v error: %v\n", currency, e)
 		err = &tErrors.CustomError{
 			Param:      "walletID",
 			Err:        "error unable to generate deposit address",

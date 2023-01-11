@@ -3176,7 +3176,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		//get specific  wallet balance, middleware.AuthenticationMiddlewareUsingTimestamp()
 		router.GET("/v1/crypto/withdrawal-networks/:currency", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			// var err error
-			currency := c.Param("currency")
+			currency := strings.ToUpper(c.Param("currency"))
 
 			wdlNetworks, err := userServices.GetWithdrawalNetworks(currency, gc)
 			if err != nil {
@@ -3254,7 +3254,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		router.POST("/v1/crypto/generate-addresses/:currency", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			// var err error
-			currency := c.Param("currency")
+			currency := strings.ToUpper(c.Param("currency"))
 			wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
 
 			if err != nil {
