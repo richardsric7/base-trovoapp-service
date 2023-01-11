@@ -156,6 +156,7 @@ type CryptoWalletDepositAddress struct {
 	Currency             string    `gorm:"not null;size:12;index:idx_unique_address,unique" json:"currency"`
 	DepositAddress       string    `gorm:"not null;size:100" json:"depositAddress"`
 	Network              string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"network"`
+	QRCode               *string   `gorm:"null;" json:"qrCode"`
 }
 
 type CryptoSubwalletResponse struct {

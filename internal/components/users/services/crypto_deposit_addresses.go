@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 	userModels "trovo-wallet-api/internal/components/users/models"
+	dl "trovo-wallet-api/internal/dynamiclinks"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -43,7 +44,11 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 			//address already exists...skip
 			continue
 		}
-
+		qrc, _ := dl.GenerateQRCode(v.Address, gc.RedisCache)
+		var qrCode *string
+		if len(qrc) > 0 {
+			qrCode = &qrc
+		}
 		da := userModels.CryptoWalletDepositAddress{
 			ID:                   uuid.NewString(),
 			UserID:               wallet.UserID,
@@ -51,6 +56,7 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 			Currency:             currency,
 			DepositAddress:       v.Address,
 			Network:              v.Network,
+			QRCode:               qrCode,
 		}
 
 		depositAddresses = append(depositAddresses, da)

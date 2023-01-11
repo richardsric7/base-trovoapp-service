@@ -112,12 +112,13 @@ type UserJSON struct {
 }
 
 type CryptoWalletDepositAddress struct {
-	ID             string    `json:"id"`
-	CreatedAt      time.Time `gorm:"default:now()" json:"createdAt"`
-	UserID         string    `gorm:"not null;" json:"-"`
-	Currency       string    `gorm:"not null;size:12" json:"currency"`
-	DepositAddress string    `gorm:"not null;size:150" json:"depositAddress"`
-	Network        string    `gorm:"not null;size:100" json:"network"`
+	ID                   string    `json:"id"`
+	CreatedAt            time.Time `gorm:"default:now()" json:"createdAt"`
+	UserID               string    `gorm:"not null;size:100;" json:"-"`
+	TrovoWalletPublicKey string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"TrovoWalletPublicKey"`
+	Currency             string    `gorm:"not null;size:12;index:idx_unique_address,unique" json:"currency"`
+	DepositAddress       string    `gorm:"not null;size:100" json:"depositAddress"`
+	Network              string    `gorm:"not null;size:100;index:idx_unique_address,unique" json:"network"`
 }
 
 type CryptoSubwalletResponse struct {
@@ -3370,7 +3371,7 @@ func TestGenerateCryptoDepositAddress(t *testing.T) {
 	// } else {
 	// 	sEnc = ownerUsername
 	// }
-	fullPath := "/v1/crypto/generate-addresses/eth"
+	fullPath := "/v1/crypto/generate-addresses/btc"
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
 	tsString := fmt.Sprintf("%v", ts)
