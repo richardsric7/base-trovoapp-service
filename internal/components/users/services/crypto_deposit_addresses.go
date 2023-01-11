@@ -2,6 +2,7 @@ package users
 
 import (
 	"log"
+	"strings"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -10,6 +11,7 @@ import (
 )
 
 func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (depositAddresses []userModels.CryptoWalletDepositAddress, err error) {
+	currency = strings.ToUpper(currency)
 	depositAddresses = make([]userModels.CryptoWalletDepositAddress, 0)
 	sub, e := CreateCryptoSubwalletRequest(wallet, currency, gc)
 
