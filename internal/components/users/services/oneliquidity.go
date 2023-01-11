@@ -47,7 +47,19 @@ func GetCryptoSubwallet(wallet *userModels.UserWallet, currency string, gc *shar
 		return
 	}
 	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		log.Println("[CreateCryptoSubwalletRequest] error response with code: ", resp.StatusCode, resp.Status)
+
+		type ErrorResponse struct {
+			Message string `json:"message"`
+		}
+		var errorResponse ErrorResponse
+		defer resp.Body.Close()
+		//Decode the data
+		if err = json.NewDecoder(resp.Body).Decode(&errorResponse); err != nil {
+			log.Println("[CreateCryptoSubwalletRequest] error decoding response:", err)
+			return
+		}
+		log.Printf("[CreateCryptoSubwalletRequest] error response with code: %v, status: %v,error %v", resp.StatusCode, resp.Status, errorResponse.Message)
+
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
@@ -86,8 +98,20 @@ func CreateCryptoSubwalletRequest(wallet *userModels.UserWallet, currency string
 		log.Println("[CreateCryptoSubwalletRequest] error sending request:", err)
 		return
 	}
+
 	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		log.Println("[CreateCryptoSubwalletRequest] error response with code: ", resp.StatusCode, resp.Status)
+		type ErrorResponse struct {
+			Message string `json:"message"`
+		}
+		var errorResponse ErrorResponse
+		defer resp.Body.Close()
+		//Decode the data
+		if err = json.NewDecoder(resp.Body).Decode(&errorResponse); err != nil {
+			log.Println("[CreateCryptoSubwalletRequest] error decoding response:", err)
+			return
+		}
+		log.Printf("[CreateCryptoSubwalletRequest] error response with code: %v, status: %v,error %v", resp.StatusCode, resp.Status, errorResponse.Message)
+
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
@@ -124,7 +148,18 @@ func GetCryptoSubwalletRequest(wallet *userModels.UserWallet, currency string, g
 		return
 	}
 	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		log.Println("[GetCryptoSubwalletRequest] error response with code: ", resp.StatusCode, resp.Status)
+		type ErrorResponse struct {
+			Message string `json:"message"`
+		}
+		var errorResponse ErrorResponse
+		defer resp.Body.Close()
+		//Decode the data
+		if err = json.NewDecoder(resp.Body).Decode(&errorResponse); err != nil {
+			log.Println("[GetCryptoSubwalletRequest] error decoding response:", err)
+			return
+		}
+		log.Printf("[GetCryptoSubwalletRequest] error response with code: %v, status: %v,error %v", resp.StatusCode, resp.Status, errorResponse.Message)
+
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
@@ -223,7 +258,19 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 		return
 	}
 	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		log.Println("[SubmitWithdrawalRequest] error response with code: ", resp.StatusCode, resp.Status)
+
+		type ErrorResponse struct {
+			Message string `json:"message"`
+		}
+		var errorResponse ErrorResponse
+		defer resp.Body.Close()
+		//Decode the data
+		if err = json.NewDecoder(resp.Body).Decode(&errorResponse); err != nil {
+			log.Println("[SubmitWithdrawalRequest] error decoding response:", err)
+			return
+		}
+		log.Printf("[SubmitWithdrawalRequest] error response with code: %v, status: %v,error %v", resp.StatusCode, resp.Status, errorResponse.Message)
+
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
@@ -283,6 +330,19 @@ func GetAWithdrawalID(withdrawalID string, gc *sharedconfig.GlobalConfig) (wdlIt
 		return
 	}
 	if resp.StatusCode != 200 {
+
+		type ErrorResponse struct {
+			Message string `json:"message"`
+		}
+		var errorResponse ErrorResponse
+		defer resp.Body.Close()
+		//Decode the data
+		if err = json.NewDecoder(resp.Body).Decode(&errorResponse); err != nil {
+			log.Println("[GetAWithdrawalID] error decoding response:", err)
+			return
+		}
+		log.Printf("[GetAWithdrawalID] error response with code: %v, status: %v,error %v", resp.StatusCode, resp.Status, errorResponse.Message)
+
 		log.Println("[GetAWithdrawalID] error response with code: ", resp.StatusCode, resp.Status)
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
@@ -335,7 +395,18 @@ func GetWithdrawalNetworks(currency string, gc *sharedconfig.GlobalConfig) (wdlN
 		return
 	}
 	if resp.StatusCode != 200 {
-		log.Println("[GetWithdrawalNetworks] error response with code: ", resp.StatusCode, resp.Status)
+		type ErrorResponse struct {
+			Message string `json:"message"`
+		}
+		var errorResponse ErrorResponse
+		defer resp.Body.Close()
+		//Decode the data
+		if err = json.NewDecoder(resp.Body).Decode(&errorResponse); err != nil {
+			log.Println("[GetWithdrawalNetworks] error decoding response:", err)
+			return
+		}
+		log.Printf("[GetWithdrawalNetworks] error response with code: %v, status: %v,error %v", resp.StatusCode, resp.Status, errorResponse.Message)
+
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
