@@ -17,7 +17,7 @@ type CuratedAsset struct {
 	Website                     string     `gorm:"null;size:100" json:"website"`
 	AssetConditions             string     `gorm:"null;size:100" json:"assetConditions"`
 	AssetLimit                  uint64     `gorm:"type:integer;not null;default:0" json:"assetLimit"` //0 = unlimited
-	AssetRedemptionInstructions string     `gorm:"null;size:100" json:"assetRedemptionInstructions"`
+	AssetRedemptionInstructions string     `gorm:"null;" json:"assetRedemptionInstructions"`
 	ContactEmail                string     `gorm:"null;size:100" json:"contactEmail"`
 	Priority                    uint64     `gorm:"null;unique" json:"-"`
 	AssetClassID                uint64     `gorm:"not null; default:1" json:"assetClassId"`

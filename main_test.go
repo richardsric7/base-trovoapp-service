@@ -3372,7 +3372,7 @@ func TestGenerateCryptoDepositAddress(t *testing.T) {
 	// } else {
 	// 	sEnc = ownerUsername
 	// }
-	fullPath := "/v1/crypto/generate-addresses/btc"
+	fullPath := "/v1/crypto/generate-addresses/usdt"
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
 	tsString := fmt.Sprintf("%v", ts)
