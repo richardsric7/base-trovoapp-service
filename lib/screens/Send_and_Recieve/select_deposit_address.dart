@@ -8,6 +8,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/topDropdowns.dart';
@@ -34,7 +35,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
   bool isSharedWallet = false;
   dynamic selectedWallet = '';
   dynamic selectedAsset = '';
-  dynamic selectedNetword = 'Ethereum';
+  dynamic selectedNetwork = 'Ethereum';
 
   List<String> networks = [
     'Ethereum',
@@ -224,7 +225,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                               ? darktilewhitecolor
                               : notifier.getaddsubwalletgrey,
                         ),
-                        value: selectedNetword,
+                        value: selectedNetwork,
                         icon: Icon(
                           Icons.keyboard_arrow_down_rounded,
                           color: notifier.getbluewhitecolor,
@@ -237,7 +238,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                             fontWeight: FontWeight.w500),
                         onChanged: (newValue) {
                           setState(() {
-                            selectedNetword = newValue!;
+                            selectedNetwork = newValue!;
                           });
                         },
                         items: networksDropdownItems,
@@ -288,7 +289,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                               ? darktilewhitecolor
                               : notifier.getaddsubwalletgrey,
                         ),
-                        value: selectedNetword,
+                        value: selectedNetwork,
                         icon: Icon(
                           Icons.keyboard_arrow_down_rounded,
                           color: notifier.getbluewhitecolor,
@@ -301,7 +302,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                             fontWeight: FontWeight.w500),
                         onChanged: (newValue) {
                           setState(() {
-                            selectedNetword = newValue!;
+                            selectedNetwork = newValue!;
                           });
                         },
                         items: networksDropdownItems,
@@ -358,7 +359,12 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                 'I have made Deposit',
                 notifier.getbluecolor,
                 wihitecolor,
-                onTap: () {},
+                onTap: () {
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: TransactionStatusViewPageConfig,
+                  );
+                },
               ),
               SizedBox(
                 height: height / 10,
