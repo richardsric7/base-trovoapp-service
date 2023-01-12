@@ -21,15 +21,9 @@ class _WrappedAssetState extends State<WrappedAsset>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late UserInfo userInfo;
-  var assetBalances;
   Map activeWallet = {};
   Map activeAsset = {};
-  var claimedAssets;
-  bool isInitiator = false;
   bool isSharedWallet = false;
-  dynamic selectedWallet = '';
-  dynamic selectedAsset = '';
 
   @override
   void initState() {
@@ -42,33 +36,15 @@ class _WrappedAssetState extends State<WrappedAsset>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState.userInfo!;
-    assetBalances = appState.assetBalances;
 
     if (activeWallet.isEmpty) {
       activeWallet = appState.allWallets[appState.activeWallet!.publicKey!];
     }
-    selectedWallet = activeWallet['publicKey'];
-    claimedAssets = activeWallet['claimedAssets'];
+
     activeAsset = appState.viewData![WrappedAssetViewPageConfig.key];
 
-    if (appState.viewData![WrappedAssetViewPageConfig.key] != null) {
-      selectedAsset = "${getAssetCode(
-        appState.viewData![WrappedAssetViewPageConfig.key]['assetCode'],
-      )}|${getAssetIssuer(
-        appState.viewData![WrappedAssetViewPageConfig.key]['assetIssuer'],
-      )}";
-    }
-
     isSharedWallet = activeWallet['sharedAccessEnabled'] == 1;
-
-    // if this is a shared wallet
-    if (isSharedWallet) {
-      if (activeWallet['permission'] == 'INITIATOR')
-        isInitiator = true;
-      else
-        isInitiator = false;
-    }
+    print('viewdata: $activeAsset');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -97,9 +73,11 @@ class _WrappedAssetState extends State<WrappedAsset>
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (activeAsset["imageUrl"].toString().isNotEmpty) ...[
+                  if (activeAsset["realAssetImageUrl"]
+                      .toString()
+                      .isNotEmpty) ...[
                     Image.network(
-                      activeAsset["imageUrl"],
+                      activeAsset["realAssetImageUrl"],
                       height: 30,
                       width: 30,
                       errorBuilder: (context, error, stackTrace) {
@@ -176,71 +154,72 @@ class _WrappedAssetState extends State<WrappedAsset>
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
                   children: [
-                    Image.asset("assets/images/one.png", height: 30),
-                    SizedBox(width: width / 90),
-                    Container(
-                      width: width / 1.2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Deposit and Withdraw',
-                            style: TextStyle(
-                                fontSize: 15,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image.asset("assets/images/one.png", height: 30),
+                        SizedBox(width: width / 90),
+                        Container(
+                          width: width / 1.3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Deposit and Withdraw',
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontsemibold),
+                              ),
+                              SizedBox(height: height / 90),
+                              Text(
+                                activeAsset['assetRedemptionInstructions'],
+                                textAlign: TextAlign.justify,
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: height / 90),
-                          Text(
-                            'Deposit USDC on Trovo wallet from anywhere outside the Bantu ecosystem. You can also withdraw USDC to any USDC wallet of your choice outside the Bantu ecosystem at any time. Tap on the deposit/withdraw button below to begin ',
-                            textAlign: TextAlign.justify,
-                            style: TextStyle(
-                                fontSize: 15,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
+                        )
+                      ],
+                    ),
+                    SizedBox(height: height / 50),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image.asset("assets/images/two.png", height: 30),
+                        SizedBox(width: width / 90),
+                        Container(
+                          width: width / 1.3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Deposit/Withdraw History',
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontsemibold),
+                              ),
+                              SizedBox(height: height / 90),
+                              Text(
+                                'View your deposit and withdrawal history by clicking on the transaction history button here.',
+                                textAlign: TextAlign.justify,
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(height: height / 50),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Image.asset("assets/images/two.png", height: 30),
-                    SizedBox(width: width / 90),
-                    Container(
-                      width: width / 1.2,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Deposit/Withdraw History',
-                            style: TextStyle(
-                                fontSize: 15,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold),
-                          ),
-                          SizedBox(height: height / 90),
-                          Text(
-                            'View your deposit and withdrawal history by clicking on the transaction history button here.',
-                            textAlign: TextAlign.justify,
-                            style: TextStyle(
-                                fontSize: 15,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
-                          ),
-                        ],
-                      ),
-                    )
+                        )
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -260,21 +239,44 @@ class _WrappedAssetState extends State<WrappedAsset>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           actionButton("assets/images/deposit.png", 'Deposit', () {
-            appState.viewData![GenerateDepositAddressViewPageConfig.key] =
-                appState.viewData![WrappedAssetViewPageConfig.key];
-            appState.viewData![GenerateDepositAddressViewPageConfig.key]
-                ['walletInfo'] = activeWallet;
+            if (activeAsset['cryptoWalletDepositAddresses'].length > 0) {
+              appState.viewData![SelectDepositAddressViewPageConfig.key] =
+                  appState.viewData![WrappedAssetViewPageConfig.key];
 
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: GenerateDepositAddressViewPageConfig,
-            );
+              appState.viewData![SelectDepositAddressViewPageConfig.key]
+                  ['data'] = activeAsset['cryptoWalletDepositAddresses'];
+
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: SelectDepositAddressViewPageConfig,
+              );
+            } else {
+              appState.viewData![GenerateDepositAddressViewPageConfig.key] =
+                  appState.viewData![WrappedAssetViewPageConfig.key];
+
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: GenerateDepositAddressViewPageConfig,
+              );
+            }
           }),
           actionButton("assets/images/withdraw.png", 'Withdraw', () {
-            appState.viewData![WithdrawAssetViewPageConfig.key] =
-                appState.viewData![WrappedAssetViewPageConfig.key];
-            appState.viewData![WithdrawAssetViewPageConfig.key]['walletInfo'] =
-                activeWallet;
+            appState.viewData![WithdrawAssetViewPageConfig.key] = {
+              'assetCode': activeAsset['assetCode'],
+              'assetIssuer': activeAsset['assetIssuer'],
+              'amount': activeAsset['amount'],
+              'cryptoWalletDepositAddresses':
+                  activeAsset['cryptoWalletDepositAddresses'],
+              'usdPrice': activeAsset['usdPrice'],
+              'walletInfo': {
+                'alias': activeWallet['alias'],
+                'publicKey': activeWallet['publicKey'],
+                'sharedAccessEnabled': activeWallet['sharedAccessEnabled'],
+              }
+            };
+
+            appState.viewData![WithdrawAssetViewPageConfig.key]['data'] =
+                activeAsset['cryptoWalletDepositAddresses'];
 
             appState.currentAction = PageAction(
               state: PageState.addPage,
@@ -284,9 +286,6 @@ class _WrappedAssetState extends State<WrappedAsset>
           actionButton("assets/images/history-btn.png", 'History', () {
             appState.viewData![DepositWithdrawHistoryViewPageConfig.key] =
                 appState.viewData![WrappedAssetViewPageConfig.key];
-            appState.viewData![DepositWithdrawHistoryViewPageConfig.key]
-                ['walletInfo'] = activeWallet;
-            print('activeWallet: $activeWallet');
 
             appState.currentAction = PageAction(
               state: PageState.addPage,

@@ -6,9 +6,13 @@ import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/topDropdowns.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -161,16 +165,7 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  appState.viewData![SelectDepositAddressViewPageConfig.key] =
-                      appState
-                          .viewData![GenerateDepositAddressViewPageConfig.key];
-                  appState.viewData![SelectDepositAddressViewPageConfig.key]
-                      ['walletInfo'] = activeWallet;
-
-                  appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: SelectDepositAddressViewPageConfig,
-                  );
+                  generateDepositAddress();
                 },
               ),
             ],
@@ -225,5 +220,39 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
         ),
       ),
     );
+  }
+
+  void generateDepositAddress() async {
+    try {
+      showLoader(context);
+
+      Map responseData = await makePostRequest(
+        uri: '/v1/crypto/generate-addresses/${activeAsset['assetCode']}',
+        body: "",
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: activeWallet['publicKey'],
+      );
+
+      hideLoader(context);
+
+      if (responseData['statusCode'] == 200) {
+        print(responseData['data']);
+        appState.viewData![SelectDepositAddressViewPageConfig.key] =
+            appState.viewData![GenerateDepositAddressViewPageConfig.key];
+        appState.viewData![SelectDepositAddressViewPageConfig.key]['data'] =
+            responseData['data'];
+
+        appState.currentAction = PageAction(
+          state: PageState.addPage,
+          page: SelectDepositAddressViewPageConfig,
+        );
+      } else {
+        popup(context,
+            title: LanguageEn.error, message: responseData['data']['message']);
+      }
+    } catch (e) {
+      popup(context, title: LanguageEn.error, message: e.toString());
+    }
   }
 }

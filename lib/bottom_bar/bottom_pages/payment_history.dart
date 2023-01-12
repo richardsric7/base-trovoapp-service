@@ -1199,6 +1199,8 @@ enum TransactionDirection {
   Send,
   Receive,
   Swap,
+  Deposit,
+  Withdraw,
 }
 
 enum HistoryFilterType {

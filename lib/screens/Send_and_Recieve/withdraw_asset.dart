@@ -1,22 +1,17 @@
-import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/PageActions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
-import 'package:trovo_wallet/widgets/loader.dart';
-import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -31,41 +26,39 @@ class _WithdrawAsset extends State<WithdrawAsset>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  Map activeWallet = {};
   final formKey = GlobalKey<FormState>();
   String to = ''; // the reciever
   String amount = '';
   bool amountError = false;
   String? memo;
   var viewData;
-  var deeplinkInfo;
-  TextEditingController _utf8TextController = TextEditingController();
   TextEditingController toController = TextEditingController();
   TextEditingController sendingWalletController = TextEditingController();
   final amountController = TextEditingController();
   bool isSharedWallet = false;
-  dynamic selectedNetwork = 'Ethereum';
+  dynamic selectedNetwork = '';
 
-  List<String> networks = [
-    'Ethereum',
-    'Tron',
-    'BTC',
-    'Bantu',
-  ];
+  List<dynamic> networks = [];
 
   List<DropdownMenuItem<String>> get networksDropdownItems {
     return networks
-        .map<DropdownMenuItem<String>>((item) => DropdownMenuItem(
-            child: Text(
-              item,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: item))
+        .mapIndexed<DropdownMenuItem<String>>(
+          (index, item) => DropdownMenuItem(
+              child: Text(
+                item['network'].toString(),
+                overflow: TextOverflow.ellipsis,
+              ),
+              value: '${item['depositAddress']}|$index'),
+        )
         .toList();
   }
 
   @override
   void initState() {
+    appState = Provider.of<DataProvider>(context, listen: false);
+    print(appState.viewData![WithdrawAssetViewPageConfig.key]['data']);
+    networks =
+        appState.viewData![WithdrawAssetViewPageConfig.key]['data'].toList();
     super.initState();
   }
 
@@ -79,24 +72,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
     viewData = appState.viewData![WithdrawAssetViewPageConfig.key];
     isSharedWallet = viewData['walletInfo']['sharedAccessEnabled'] == 1;
 
-    if (activeWallet.isEmpty) {
-      activeWallet = viewData['walletInfo'];
-    }
-
-    isSharedWallet = viewData['walletInfo']['sharedAccessEnabled'] == 1;
-
-    if (viewData['deepLinkInfo'] != null) {
-      deeplinkInfo = viewData['deepLinkInfo'];
-      toController.text = deeplinkInfo['receiver'];
-      amountController.text = deeplinkInfo['amount'];
-      amount = deeplinkInfo['amount'];
-      _utf8TextController.text = deeplinkInfo['memo'];
-      activeWallet =
-          appState.transactionableWallets[deeplinkInfo['sendingWallet']];
-      viewData['deepLinkInfo'] = null;
-    }
-
-    sendingWalletController.text = activeWallet['alias'];
+    print('viewData ${viewData}');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -252,7 +228,14 @@ class _WithdrawAsset extends State<WithdrawAsset>
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
                             ),
-                            value: selectedNetwork,
+                            hint: Text(
+                              'Select network',
+                              style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontFamily: fontbody,
+                              ),
+                              textAlign: TextAlign.end,
+                            ),
                             icon: Icon(
                               Icons.keyboard_arrow_down_rounded,
                               color: notifier.getbluewhitecolor,
@@ -288,7 +271,6 @@ class _WithdrawAsset extends State<WithdrawAsset>
                         70.sp,
                         300.sp,
                         controller: toController,
-                        readOnly: deeplinkInfo != null,
                         validator: validateTo,
                         onSaved: (value) =>
                             to = value.trim().replaceAll(' ', ''),
@@ -311,8 +293,6 @@ class _WithdrawAsset extends State<WithdrawAsset>
                         });
                       },
                       controller: amountController,
-                      readOnly: deeplinkInfo != null &&
-                          deeplinkInfo['amount'].toString().isNotEmpty,
                       keyboardtype:
                           TextInputType.numberWithOptions(decimal: true),
                       validator: validateAmount,
@@ -455,8 +435,6 @@ class _WithdrawAsset extends State<WithdrawAsset>
   void handleSubmit() {
     appState.viewData![ConfirmWithdrawViewPageConfig.key] =
         appState.viewData![WithdrawAssetViewPageConfig.key];
-    appState.viewData![ConfirmWithdrawViewPageConfig.key]['walletInfo'] =
-        activeWallet;
 
     appState.currentAction = PageAction(
       state: PageState.addPage,

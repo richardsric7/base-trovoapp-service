@@ -371,6 +371,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       'usdPrice': claimedAssets[i]['usdPrice'],
                       'qrCode': claimedAssets[i]['qrCode'],
                       'imageUrl': claimedAssets[i]['imageUrl'],
+                      'cryptoWalletDepositAddresses': claimedAssets[i]
+                          ['cryptoWalletDepositAddresses'],
                     }
                   };
                   appState.currentAction = PageAction(

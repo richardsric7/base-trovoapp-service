@@ -1,6 +1,7 @@
 import 'dart:convert';
-
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
@@ -35,28 +36,30 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
   bool isSharedWallet = false;
   dynamic selectedWallet = '';
   dynamic selectedAsset = '';
-  dynamic selectedNetwork = 'Ethereum';
+  dynamic selectedNetwork = '';
 
-  List<String> networks = [
-    'Ethereum',
-    'Tron',
-    'BTC',
-    'Bantu',
-  ];
+  List<dynamic> networks = [];
 
   List<DropdownMenuItem<String>> get networksDropdownItems {
     return networks
-        .map<DropdownMenuItem<String>>((item) => DropdownMenuItem(
-            child: Text(
-              item,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: item))
+        .mapIndexed<DropdownMenuItem<String>>(
+          (index, item) => DropdownMenuItem(
+              child: Text(
+                item['network'].toString(),
+                overflow: TextOverflow.ellipsis,
+              ),
+              value: '${item['depositAddress']}|$index'),
+        )
         .toList();
   }
 
   @override
   void initState() {
+    appState = Provider.of<DataProvider>(context, listen: false);
+    print(appState.viewData![SelectDepositAddressViewPageConfig.key]['data']);
+    networks = appState.viewData![SelectDepositAddressViewPageConfig.key]
+            ['data']
+        .toList();
     super.initState();
   }
 
@@ -176,7 +179,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                 child: Text(
-                  'Please make your deposit to the address displayed below on the selected Network.',
+                  'Please make your deposit to the address displayed below on the selected network.',
                   style: TextStyle(
                       fontSize: 15,
                       color: notifier.getbluewhitecolor,
@@ -225,7 +228,15 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                               ? darktilewhitecolor
                               : notifier.getaddsubwalletgrey,
                         ),
-                        value: selectedNetwork,
+                        // value: selectedNetwork,
+                        hint: Text(
+                          'Select network',
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody,
+                          ),
+                          textAlign: TextAlign.end,
+                        ),
                         icon: Icon(
                           Icons.keyboard_arrow_down_rounded,
                           color: notifier.getbluewhitecolor,
@@ -247,101 +258,26 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                child: Text(
-                  'Deposit Address',
-                  style: TextStyle(
-                      fontSize: 15,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontsemibold),
+              if (selectedNetwork.toString().isNotEmpty) ...[
+                SizedBox(
+                  height: height / 50,
                 ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField(
-                        isExpanded: true,
-                        dropdownColor: notifier.isDark
-                            ? darktilewhitecolor
-                            : notifier.getaddsubwalletgrey,
-                        decoration: InputDecoration(
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          filled: true,
-                          fillColor: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
-                        ),
-                        value: selectedNetwork,
-                        icon: Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                        elevation: 0,
-                        style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15,
-                            fontFamily: fontbody,
-                            fontWeight: FontWeight.w500),
-                        onChanged: (newValue) {
-                          setState(() {
-                            selectedNetwork = newValue!;
-                          });
-                        },
-                        items: networksDropdownItems,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'OR',
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                  child: Text(
+                    'Deposit Address',
                     style: TextStyle(
                         fontSize: 15,
                         color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                child: Text(
-                  'Scan QR Code',
-                  style: TextStyle(
-                      fontSize: 15,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontsemibold),
                 ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                child: Container(
+                SizedBox(
+                  height: height / 50,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
                     decoration: BoxDecoration(
                       borderRadius:
                           const BorderRadius.all(Radius.circular(15.0)),
@@ -349,23 +285,159 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
                     ),
-                    child: Image.memory(
-                        base64.decode(activeAsset['qrCode'].split(',').last))),
-              ),
-              SizedBox(
-                height: height / 10,
-              ),
-              Button(
-                'I have made Deposit',
-                notifier.getbluecolor,
-                wihitecolor,
-                onTap: () {
-                  appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: TransactionStatusViewPageConfig,
-                  );
-                },
-              ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 250,
+                                    child: Text(
+                                      selectedNetwork.toString().split('|')[0],
+                                      overflow: TextOverflow.visible,
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          color: notifier.getbluewhitecolor,
+                                          fontFamily: fontbody),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      Clipboard.setData(
+                                        ClipboardData(
+                                          text: selectedNetwork,
+                                        ),
+                                      );
+                                      showSnackBar('Deposit address', context);
+                                    },
+                                    icon: Icon(Icons.copy,
+                                        size: 20,
+                                        color: notifier.getbluewhitecolor),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'OR',
+                      style: TextStyle(
+                          fontSize: 15,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
+                  child: Text(
+                    'Scan QR Code',
+                    style: TextStyle(
+                        fontSize: 15,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold),
+                  ),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.isDark
+                            ? darktilewhitecolor
+                            : notifier.getaddsubwalletgrey,
+                      ),
+                      child: Image.memory(base64.decode(networks[int.parse(
+                        selectedNetwork.toString().split('|')[1],
+                      )]['qrCode']
+                          .split(',')
+                          .last))),
+                ),
+                SizedBox(
+                  height: height / 10,
+                ),
+                Button(
+                  'Done',
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                      state: PageState.replaceAll,
+                      page: BottomHomePageConfig,
+                    );
+                  },
+                ),
+              ] else ...[
+                SizedBox(
+                  height: height / 50,
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(15.0)),
+                      color: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: width / 1.28,
+                                    child: Text(
+                                      'To get the deposit address, please select the network where you would like to make the deposit.',
+                                      textAlign: TextAlign.justify,
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          color: notifier.getbluewhitecolor,
+                                          fontFamily: fontbody),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               SizedBox(
                 height: height / 10,
               ),

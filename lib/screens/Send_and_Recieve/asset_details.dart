@@ -319,18 +319,28 @@ class _AssetDetailsState extends State<AssetDetails>
               page: ReceiveAssetViewPageConfig,
             );
           }),
-          actionButton("assets/images/dep-with-button.png", 'Deposit/Withdraw',
-              () {
-            appState.viewData![WrappedAssetViewPageConfig.key] =
-                appState.viewData![AssetDetailsViewPageConfig.key];
-            appState.viewData![WrappedAssetViewPageConfig.key]['walletInfo'] =
-                activeWallet;
+          if (curatedAsset.isNotEmpty &&
+              (curatedAsset['withdrawable'] == 1 ||
+                  curatedAsset['generateDepositAddress'] == 1)) ...[
+            actionButton(
+                "assets/images/dep-with-button.png", 'Deposit/Withdraw', () {
+              appState.viewData![WrappedAssetViewPageConfig.key] = curatedAsset;
+              appState.viewData![WrappedAssetViewPageConfig.key]['usdPrice'] =
+                  activeAsset['usdPrice'];
+              appState.viewData![WrappedAssetViewPageConfig.key]['amount'] =
+                  activeAsset['amount'];
+              appState.viewData![WrappedAssetViewPageConfig.key]
+                      ['cryptoWalletDepositAddresses'] =
+                  activeAsset['cryptoWalletDepositAddresses'];
+              appState.viewData![WrappedAssetViewPageConfig.key]['walletInfo'] =
+                  activeWallet;
 
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: WrappedAssetViewPageConfig,
-            );
-          }),
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: WrappedAssetViewPageConfig,
+              );
+            }),
+          ]
         ],
       ),
     );
@@ -341,7 +351,7 @@ class _AssetDetailsState extends State<AssetDetails>
       onTap: action,
       child: Container(
         width: width / 3.9,
-        height: height / 10,
+        height: height / 9,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: 8.0,
@@ -407,13 +417,13 @@ class _AssetDetailsState extends State<AssetDetails>
                       width: width / 1.3,
                       child: Image.network(
                         activeAsset["imageUrl"],
-                        height: 80,
-                        width: 80,
+                        height: 50,
+                        width: 50,
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset(
                             'assets/images/trovo.png',
-                            height: 80,
-                            width: 80,
+                            height: 50,
+                            width: 50,
                           );
                         },
                       ),
@@ -596,13 +606,13 @@ class _AssetDetailsState extends State<AssetDetails>
                     width: width / 1.3,
                     child: Image.network(
                       activeAsset["imageUrl"],
-                      height: 80,
-                      width: 80,
+                      height: 50,
+                      width: 50,
                       errorBuilder: (context, error, stackTrace) {
                         return Image.asset(
                           'assets/images/trovo.png',
-                          height: 80,
-                          width: 80,
+                          height: 50,
+                          width: 50,
                         );
                       },
                     ),

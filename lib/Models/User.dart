@@ -129,6 +129,8 @@ class UserInfo {
         'organization': item['organization'],
         'withdrawable': item['withdrawable'],
         'decimalPlaces': item['decimalPlaces'],
+        'realAssetImageUrl': item['realAssetImageUrl'],
+        'generateDepositAddress': item['generateDepositAddress'],
       });
     });
     return list;
