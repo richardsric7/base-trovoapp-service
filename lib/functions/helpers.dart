@@ -13,7 +13,7 @@ Future getDeviceDetails() async {
       var build = await deviceInfoPlugin.androidInfo;
       deviceName = build.model;
       deviceVersion = build.version.toString();
-      identifier = build.androidId; //UUID for Android
+      identifier = ""; //build.androidId; //UUID for Android
     } else if (Platform.isIOS) {
       var data = await deviceInfoPlugin.iosInfo;
       deviceName = data.name;
