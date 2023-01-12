@@ -292,44 +292,47 @@ class _AssetDetailsState extends State<AssetDetails>
   }
 
   Widget actionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        actionButton("assets/images/send.png", 'Send', () {
-          appState.viewData![SendAssetViewPageConfig.key] =
-              appState.viewData![AssetDetailsViewPageConfig.key];
-          appState.viewData![SendAssetViewPageConfig.key]['walletInfo'] =
-              activeWallet;
+    return Container(
+      constraints: BoxConstraints(maxWidth: width / 1.3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          actionButton("assets/images/send.png", 'Send', () {
+            appState.viewData![SendAssetViewPageConfig.key] =
+                appState.viewData![AssetDetailsViewPageConfig.key];
+            appState.viewData![SendAssetViewPageConfig.key]['walletInfo'] =
+                activeWallet;
 
-          appState.currentAction = PageAction(
-            state: PageState.addPage,
-            page: SendAssetViewPageConfig,
-          );
-        }),
-        actionButton("assets/images/receive.png", 'Receive', () {
-          appState.viewData![ReceiveAssetViewPageConfig.key] =
-              appState.viewData![AssetDetailsViewPageConfig.key];
-          appState.viewData![ReceiveAssetViewPageConfig.key]['walletInfo'] =
-              activeWallet;
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: SendAssetViewPageConfig,
+            );
+          }),
+          actionButton("assets/images/receive.png", 'Receive', () {
+            appState.viewData![ReceiveAssetViewPageConfig.key] =
+                appState.viewData![AssetDetailsViewPageConfig.key];
+            appState.viewData![ReceiveAssetViewPageConfig.key]['walletInfo'] =
+                activeWallet;
 
-          appState.currentAction = PageAction(
-            state: PageState.addPage,
-            page: ReceiveAssetViewPageConfig,
-          );
-        }),
-        actionButton("assets/images/dep-with-button.png", 'Deposit/Withdraw',
-            () {
-          appState.viewData![WrappedAssetViewPageConfig.key] =
-              appState.viewData![AssetDetailsViewPageConfig.key];
-          appState.viewData![WrappedAssetViewPageConfig.key]['walletInfo'] =
-              activeWallet;
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: ReceiveAssetViewPageConfig,
+            );
+          }),
+          actionButton("assets/images/dep-with-button.png", 'Deposit/Withdraw',
+              () {
+            appState.viewData![WrappedAssetViewPageConfig.key] =
+                appState.viewData![AssetDetailsViewPageConfig.key];
+            appState.viewData![WrappedAssetViewPageConfig.key]['walletInfo'] =
+                activeWallet;
 
-          appState.currentAction = PageAction(
-            state: PageState.addPage,
-            page: WrappedAssetViewPageConfig,
-          );
-        }),
-      ],
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: WrappedAssetViewPageConfig,
+            );
+          }),
+        ],
+      ),
     );
   }
 
@@ -352,8 +355,9 @@ class _AssetDetailsState extends State<AssetDetails>
               ),
               Text(
                 actionText,
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: notifier.getbluewhitecolor,
                   fontFamily: fontsemibold,
