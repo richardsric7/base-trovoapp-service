@@ -742,7 +742,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 
 				dataPayload := make(map[string]string)
-				dataPayload["none"] = ""
+				dataPayload["route"] = "pendingApproval"
 
 				u.SendPushMessage(fmt.Sprintf("%v opt-in request from %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("Request: %v", returnedTrustLineInfo.ReturnedDescription), "", dataPayload, gc)
 				notificationList[*u.PushNotificationToken] = v.TargetUsername
@@ -968,7 +968,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 
 				dataPayload := make(map[string]string)
-				dataPayload["none"] = ""
+				dataPayload["route"] = "pendingApproval"
 
 				u.SendPushMessage(fmt.Sprintf("%v opt-out request from %v!", trustLineInfo.AssetCode, wallet.Alias), fmt.Sprintf("Request: %v", returnedTrustLineInfo.ReturnedDescription), "", dataPayload, gc)
 				notificationList[*u.PushNotificationToken] = v.TargetUsername
@@ -1078,7 +1078,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			dataPayload := make(map[string]string)
 			dataPayload["none"] = ""
 			if len(pendingAssetToClaim.TransactionID) > 0 {
-				walletOwner.SendPushMessage(fmt.Sprintf("%v pending balance on wallet %v has been claimed!", pendingAssetToClaim.AssetCode, wallet.Alias), fmt.Sprintf("%v pending balance rejected", pendingAssetToClaim.AssetCode), "", dataPayload, gc)
+				walletOwner.SendPushMessage(fmt.Sprintf("%v pending balance on wallet %v has been claimed!", pendingAssetToClaim.AssetCode, wallet.Alias), fmt.Sprintf("%v pending balance claimed!", pendingAssetToClaim.AssetCode), "", dataPayload, gc)
 			}
 			walletOwner.InvalidateUserCache(gc)
 		} else {
@@ -1322,7 +1322,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					}
 
 					dataPayload := make(map[string]string)
-					dataPayload["none"] = ""
+					dataPayload["route"] = "pendingApproval"
 					if pendingAssetToClaim.TransactionID == "PENDING_AUTH" && u.PushNotificationToken != nil {
 
 						if _, ok := notificationList[*u.PushNotificationToken]; ok {
@@ -3201,12 +3201,43 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
 				return
 			}
-			c.JSON(http.StatusOK, wdlNetworks)
+			c.JSON(http.StatusOK, gin.H{"networks": wdlNetworks, "serviceFee": os.Getenv("CRYPTO_WITHDRAWAL_SERVICE_FEE")})
 
 		})
 
 		router.POST("/v1/crypto/withdrawals", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			var err error
+			accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+			if getUserError != nil {
+				log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+				}
+				return
+			}
+
+			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				}
+				return
+			}
 
 			var wdlInput userModels.WithdrawalRequestInput
 
@@ -3221,7 +3252,11 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 			wdlInput.Currency = strings.ToUpper(wdlInput.Currency)
-			wallet, _, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			wallet, temp, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			if temp {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-wallet-forbidden", "message": "Wallet forbidden."})
+				return
+			}
 
 			if err != nil {
 				var ex tErrors.GenericError
@@ -3236,7 +3271,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			wdlItem, err := userServices.SubmitWithdrawalRequest(&wallet, wdlInput, gc)
+			err = userServices.QueueWithdrawalRequest(&accountSignerUser, &wallet, &wdlInput, gc)
 			if err != nil {
 				var ex tErrors.GenericError
 				var ok bool
@@ -3249,7 +3284,156 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				return
 			}
-			c.JSON(http.StatusOK, wdlItem)
+			if len(wdlInput.TransactionID) == 0 {
+				c.JSON(http.StatusAccepted, wdlInput)
+				return
+			} else {
+				c.JSON(http.StatusOK, wdlInput)
+			}
+
+			if walletOwner.PushNotificationToken != nil && len(wdlInput.TransactionID) > 0 && wdlInput.TransactionID != "PENDING_AUTH" {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "cryptoHistory"
+				walletOwner.SendPushMessage(fmt.Sprintf("%v %v withdrawal on %v has been submitted!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("You have successfully submitted a withdrawal request for %v %v on the wallet with alias [%v].", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), "", dataPayload, gc)
+			}
+			walletOwner.InvalidateUserCache(gc)
+
+		})
+
+		router.POST("/v1/shared-access/crypto/withdrawals", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			var err error
+			accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+			if getUserError != nil {
+				log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+				}
+				return
+			}
+
+			walletOwner, err := usersDB.GetUser(middleware.ExtractPublicKey(c), gc.DB, gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				}
+				return
+			}
+
+			var wdlInput userModels.WithdrawalRequestInput
+
+			data, _ := io.ReadAll(c.Request.Body)
+			log.Println(string(data))
+			err = json.Unmarshal(data, &wdlInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+			wdlInput.Currency = strings.ToUpper(wdlInput.Currency)
+			wallet, temp, err := usersDB.GetWallet(middleware.ExtractPublicKey(c), gc.DB)
+			if temp {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error-wallet-forbidden", "message": "Wallet forbidden."})
+				return
+			}
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			//check if shared wallet, then check if user has access
+			if wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded > 0 {
+				//check if signer has access
+				hasInitiatorAccess := false
+				// check if user has initiator access to wallet.
+				for _, p := range accountSignerUser.WalletsSharedWithUser {
+					if p.WalletPublicKey == middleware.ExtractPublicKey(c) && p.TargetUsername == accountSignerUser.Username && p.Permission == "INITIATOR" {
+						hasInitiatorAccess = true
+					}
+				}
+				if !hasInitiatorAccess {
+					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
+					return
+				}
+			}
+
+			if wallet.HasViewOnlyAccess(gc) {
+				if wallet.UserID != accountSignerUser.ID {
+					c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have permission to access this wallet."})
+					return
+				}
+			}
+
+			err = userServices.QueueWithdrawalRequest(&accountSignerUser, &wallet, &wdlInput, gc)
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+			if wdlInput.TransactionID != "PENDING_AUTH" {
+				c.JSON(http.StatusAccepted, wdlInput)
+				return
+			} else {
+				c.JSON(http.StatusOK, wdlInput)
+			}
+
+			if walletOwner.PushNotificationToken != nil && len(wdlInput.TransactionID) > 0 && wdlInput.TransactionID != "PENDING_AUTH" {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				accountSignerUser.SendPushMessage(fmt.Sprintf("%v %v withdrawal request on %v has been submitted!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("You have successfully submitted a withdrawal request for %v %v on the wallet with alias [%v]. All approvers have been notified.", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), "", dataPayload, gc)
+
+			}
+			{
+				//start push notificationMessage
+
+				permissionList := wallet.Permissions
+				for _, v := range permissionList {
+					u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+					if e != nil {
+						continue
+					}
+
+					dataPayload := make(map[string]string)
+					dataPayload["route"] = "pendingApproval"
+					if wdlInput.TransactionID == "PENDING_AUTH" {
+						u.SendPushMessage(fmt.Sprintf("%v %v withdrawal request submitted on %v!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("Request %v", wdlInput.ReturnedDescription), "", dataPayload, gc)
+					}
+
+				}
+			}
+			walletOwner.InvalidateUserCache(gc)
 
 		})
 

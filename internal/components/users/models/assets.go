@@ -3,11 +3,13 @@ package users
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 	assetsDB "trovo-wallet-api/internal/components/assets/db"
+	assetModels "trovo-wallet-api/internal/components/assets/models"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -226,4 +228,24 @@ func (i BantuAsset) GetBlockchainAccountDataKey(account *horizon.Account, keys .
 	}
 
 	return dataValues
+}
+
+type Currency string
+
+func (c Currency) GetCurratedAsset(gc *sharedconfig.GlobalConfig) (ca assetModels.CuratedAsset, err error) {
+	currency := strings.ToUpper(string(c))
+	cas := assetsDB.GetCuratedAssets(false, gc)
+
+	ca, ok := cas[currency]
+	if ok {
+		if ca.Withdrawable == 0 {
+			err = errors.New("invalid withdrawable currency")
+			return
+		}
+
+	} else {
+		err = errors.New("invalid withdrawable currency")
+		return
+	}
+	return
 }

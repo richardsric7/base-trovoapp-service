@@ -13,11 +13,14 @@ import (
 	"strings"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
+	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/goccy/go-json"
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 )
 
 func GetCryptoDepositAddresses(wallet *userModels.UserWallet, currency string, gc *sharedconfig.GlobalConfig) (cryptoAddresses []userModels.CryptoWalletDepositAddress) {
@@ -175,6 +178,176 @@ func GetCryptoSubwalletRequest(wallet *userModels.UserWallet, currency string, g
 
 }
 
+func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.UserWallet, wdlInput *userModels.WithdrawalRequestInput, gc *sharedconfig.GlobalConfig) (err error) {
+
+	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
+		wdlInput.Multiparty = 1
+	}
+	if wallet.HasViewOnlyAccess(gc) {
+		wdlInput.SignatureRequired = 1
+	}
+
+	ca, err := userModels.Currency(wdlInput.Currency).GetCurratedAsset(gc)
+	if err != nil {
+		return
+	}
+	wdlInput.AmountSubmitted = decimal.NewFromFloat(wdlInput.AmountSubmitted).Truncate(int32(ca.DecimalPlaces)).InexactFloat64()
+
+	//prepare withdrawal figures
+	serviceFee := decimal.RequireFromString(os.Getenv("CRYPTO_WITHDRAWAL_SERVICE_FEE"))
+	serviceFeeAmount := (decimal.NewFromFloat(wdlInput.AmountSubmitted).Mul((serviceFee).Div(decimal.NewFromInt(100)))).Truncate(int32(ca.DecimalPlaces))
+	//validate input
+	wdlAmount := (decimal.NewFromFloat(wdlInput.AmountSubmitted).Sub(serviceFeeAmount)).Truncate(int32(ca.DecimalPlaces))
+	wdlInput.AmountToWithdraw = wdlAmount.InexactFloat64()
+	wdlNetworks, _ := GetWithdrawalNetworks(wdlInput.Currency, gc)
+	validNetwork := false
+	var wdn userModels.WithdrawalNetwork
+	for _, wdn = range wdlNetworks {
+		if strings.EqualFold(wdn.Network, wdlInput.WithdrawalNetwork) {
+			validNetwork = true
+			//check amount if valid
+			if (decimal.NewFromFloat(wdlInput.AmountSubmitted)).LessThan(decimal.RequireFromString(wdn.WithdrawMin)) {
+				err = &tErrors.CustomError{
+					Param:      "amount",
+					Err:        "error amount less than minimum allowed",
+					ErrMessage: fmt.Sprintf("Amount is less than minimum %s allowed", wdn.WithdrawMin),
+				}
+				return
+			}
+
+			//check amount if valid
+			if (decimal.NewFromFloat(wdlInput.AmountSubmitted)).GreaterThan(decimal.RequireFromString(wdn.WithdrawMax)) {
+				err = &tErrors.CustomError{
+					Param:      "amount",
+					Err:        "error amount greater than maximum allowed",
+					ErrMessage: fmt.Sprintf("Amount is greater than maximum %s allowed", wdn.WithdrawMax),
+				}
+				return
+			}
+			//exit loop
+			return
+		}
+	}
+	if !validNetwork {
+		err = &tErrors.CustomError{
+			Param:      "network",
+			Err:        "error invalid network",
+			ErrMessage: "Invalid network",
+		}
+
+	}
+
+	if err != nil {
+		log.Println("[QueueWithdrawalRequest] error validating request:", err)
+
+		return
+	}
+
+	//save the request
+
+	//prepare xdr
+	xdrBase64, err := generateWithdrawalXdr(wallet, wdlInput, gc)
+
+	oldTxn := wdlInput.Transaction
+
+	wdlInput.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
+
+	wdlInput.Transaction = xdrBase64
+
+	if len(wdlInput.TransactionSignature) == 0 && wdlInput.Commit == 0 {
+		//no signature
+		return err
+
+	}
+
+	//there was a signature... let's submit
+
+	if oldTxn != xdrBase64 && wdlInput.Commit == 0 {
+		return &tErrors.CustomError{
+			Param:      "transaction",
+			Err:        "transaction mismatch",
+			ErrMessage: "transaction mismatch, please try again",
+			Code:       404,
+		}
+	}
+
+	if (wdlInput.Commit == 0 && wallet.SharedAccessEnabled == 1 && wallet.NumberOfApprovalsNeeded == 0) || (wallet.SharedAccessEnabled == 0 && wdlInput.Commit == 0) {
+		dbTx := gc.DB.Begin()
+		defer dbTx.Rollback()
+
+		//save the withdrawal request
+		wdlRequest := userModels.WithdrawalRequest{
+			ID:                   uuid.NewString(),
+			WalletPublicKey:      wallet.ID,
+			WalletAlias:          wallet.Alias,
+			UserID:               wallet.UserID,
+			Currency:             wdlInput.Currency,
+			AmountSubmitted:      wdlInput.AmountSubmitted,
+			AmountToWithdraw:     wdlInput.AmountToWithdraw,
+			WithdrawalAddress:    wdlInput.WithdrawalAddress,
+			WithdrawalMemo:       wdlInput.WithdrawalMemo,
+			WithdrawalNetwork:    wdlInput.WithdrawalNetwork,
+			WithdrawalServiceFee: wdlInput.WithdrawalServiceFee,
+			WithdrawalNetworkFee: wdlInput.WithdrawalNetworkFee,
+		}
+		e := dbTx.Create(&wdlRequest).Error
+		if e != nil {
+			log.Printf("[QueueWithdrawalRequest] error creating withdrawal request on db. error: %v\n", e)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+		txnID, err := network.SubmitXdrWithSignature(gc.BantuExpansionClient, wallet.Signer, xdrBase64, wdlInput.TransactionSignature)
+
+		if err != nil {
+			log.Printf("[QueueWithdrawalRequest]error submitting txn: %v\n", err)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+
+		wdlInput.TransactionID = txnID
+		wdlRequest.TransactionID = wdlInput.TransactionID
+		e = dbTx.Save(&wdlRequest).Error
+		if e != nil {
+			log.Printf("[QueueWithdrawalRequest] error saving withdrawal request for transactionID %v on db. error: %v\n", txnID, e)
+
+		}
+		dbTx.Commit()
+		return nil
+	}
+
+	if wdlInput.Multiparty == 1 {
+		wdlInput.TransactionID = "PENDING_AUTH"
+		log.Printf("[QueueWithdrawalRequest]shared access with approver permission enabled for %v \n", wallet.Alias)
+		id := uuid.NewString()
+
+		description := fmt.Sprintf("Withdraw %v (%v),\n Amount: %v,\n Withdrawal Address: %v,\n Service Fee: %v,\n Network Fee: %v", wdlInput.Currency, wdlInput.WithdrawalNetwork, wdlInput.AmountSubmitted, wdlInput.WithdrawalAddress, serviceFee.String()+"%", wdlInput.WithdrawalNetworkFee)
+		transactionByte, _ := json.Marshal(*wdlInput)
+		transactionStr := string(transactionByte)
+		pendingAuth := userModels.PendingAuth{
+			ID:                       id,
+			Initiator:                signerUser.Username,
+			InitiatorSignerPublicKey: signerUser.PrimarySigner,
+			WalletPublicKey:          wallet.ID,
+			TransactionType:          "CRYPTO WITHDRAWAL",
+			Description:              description,
+			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
+			TransactionXdr:           xdrBase64,
+			TransactionInfoStr:       &transactionStr,
+		}
+		//save and commit this to database
+		e := gc.DB.Create(&pendingAuth).Error
+		if e != nil {
+			log.Printf("[QueueWithdrawalRequest] Error saving payment txn [%+v] transaction on pending auth table: %s\n", pendingAuth, e.Error())
+			err = &tErrors.ErrorTemporaryServerError{}
+			return err
+		}
+		wdlInput.ReturnedDescription = description
+		return nil
+
+	}
+
+	return &tErrors.ErrorTemporaryServerError{}
+}
+
 func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.WithdrawalRequestInput, gc *sharedconfig.GlobalConfig) (wdlItem userModels.CryptoWithdrawal, err error) {
 
 	type WDLResp struct {
@@ -192,7 +365,7 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 	validNetwork := false
 	var wdn userModels.WithdrawalNetwork
 	for _, wdn = range wdlNetworks {
-		if strings.EqualFold(wdn.Network, wdlInput.Network) {
+		if strings.EqualFold(wdn.Network, wdlInput.WithdrawalNetwork) {
 			validNetwork = true
 			//check amount if valid
 			if (decimal.NewFromFloat(wdlInput.AmountSubmitted)).LessThan(decimal.RequireFromString(wdn.WithdrawMin)) {
@@ -238,9 +411,9 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 	cryptoWdlInput := userModels.CryptoWithdrawalRequestInput{
 		Currency:  wdlInput.Currency,
 		Amount:    wdlInput.AmountToWithdraw,
-		ToAddress: wdlInput.ToAddress,
-		Network:   wdlInput.Network,
-		Memo:      wdlInput.Memo,
+		ToAddress: wdlInput.WithdrawalAddress,
+		Network:   wdlInput.WithdrawalNetwork,
+		Memo:      wdlInput.WithdrawalMemo,
 	}
 	url := fmt.Sprintf("%s/%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal")
 	jbody, err := json.Marshal(cryptoWdlInput)
@@ -293,7 +466,7 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 		return
 	}
 	wdlItem.TrovoWalletPublicKey = wallet.ID
-	wdlItem.Fees = wdlInput.Fees
+	wdlItem.Fees = wdlInput.WithdrawalServiceFee
 	e = gc.DB.Save(&wdlItem).Error
 	if e != nil {
 		err = &tErrors.CustomError{
@@ -987,5 +1160,117 @@ func StartGovernmentIDCheckForProofOfResidency(user *userModels.User, documentPi
 	}
 	dbTX.Commit()
 	return nil
+
+}
+
+func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.WithdrawalRequestInput, gc *sharedconfig.GlobalConfig) (base64Xdr string, err error) {
+
+	ca, err := userModels.Currency(wdlInput.Currency).GetCurratedAsset(gc)
+	if err != nil {
+		return
+	}
+
+	var asset txnbuild.Asset = nil
+
+	// asset = txnbuild.NativeAsset{}
+
+	asset = txnbuild.CreditAsset{Code: ca.AssetCode, Issuer: ca.AssetIssuer}
+
+	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, currencyBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
+
+	if err != nil {
+		return "", err
+	}
+
+	if !sourceAccountExists {
+		return "", &tErrors.ErrorUnderfundedAccount{}
+	}
+
+	if nativeAccountBalance.Equal(decimal.Zero) {
+		return "", &tErrors.ErrorUnderfundedAccount{}
+	}
+	if currencyBalance.LessThan(decimal.NewFromFloat(wdlInput.AmountSubmitted)) {
+		return "", &tErrors.CustomError{
+			Param:      "submittedAmount",
+			Err:        "error insufficient balance for " + wdlInput.Currency,
+			ErrMessage: "Wallet does not have enough balance to withraw" + wdlInput.Currency,
+		}
+	}
+
+	if !sourceAccountTrustsAsset {
+		return "", &tErrors.CustomError{
+			Param:      "wallet",
+			Err:        "error account does not have currency",
+			ErrMessage: "Wallet does not have " + wdlInput.Currency,
+		}
+	}
+	chanAccount := <-gc.ChannelAccounts
+	defer func(c *keypair.Full) {
+		gc.ChannelAccounts <- c
+	}(chanAccount)
+
+	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
+
+	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
+
+	ops = append(ops, &txnbuild.Payment{
+		Destination:   ca.AssetIssuer,
+		Amount:        fmt.Sprintf("%v", wdlInput.AmountSubmitted),
+		Asset:         asset,
+		SourceAccount: wallet.ID,
+	})
+
+	var tx *txnbuild.Transaction
+	// Construct the transaction that holds the operations to execute on the network
+	if wdlInput.Multiparty == 1 {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        chanSourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              2000,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("withdraw-" + wdlInput.Currency),
+			},
+		)
+	} else {
+		tx, err = txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        sourceAccount,
+				IncrementSequenceNum: true,
+				Operations:           ops,
+				BaseFee:              2000,
+				Preconditions: txnbuild.Preconditions{
+					TimeBounds: txnbuild.NewInfiniteTimeout(),
+				},
+				Memo: txnbuild.MemoText("withdraw-" + wdlInput.Currency),
+			},
+		)
+	}
+
+	if err != nil {
+		log.Println("[generatePendingAssetXdr]error constructing transaction ", err)
+		return "", &tErrors.ErrorTemporaryServerError{}
+	}
+
+	if wdlInput.Multiparty == 1 {
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
+
+		if err != nil {
+			log.Println("[generatePendingAssetXdr] error signing transaction with channelAccount key ", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
+	xdrBase64, err := tx.Base64()
+
+	if err != nil {
+		return "", err
+	}
+
+	return xdrBase64, nil
 
 }
