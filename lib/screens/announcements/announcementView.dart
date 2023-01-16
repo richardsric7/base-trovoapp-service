@@ -25,10 +25,23 @@ class AnnouncementView extends StatelessWidget {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(70.sp),
+          // here the desired height
+          child: AppBar(
+            leading: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Image.asset("assets/images/back.png", scale: 5),
+            ),
+            elevation: 0,
+            backgroundColor: notifier.getwihitecolor,
+          ),
+        ),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 10),
               Container(
                 width: width / 1.2,
                 child: Text(
