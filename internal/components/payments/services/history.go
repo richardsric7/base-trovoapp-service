@@ -189,10 +189,11 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	return records
 }
 
-func GetCryptoDepositHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedCryptoDepositHistory) {
+func GetCryptoDepositHistory(targetPublicKey, currency string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedCryptoDepositHistory) {
 	var err error
 	var depositHistory []userModels.CryptoDeposit
-	records.Records = make([]userModels.CryptoDeposit, 0)
+	records.Records = make([]userModels.CryptoDepositJSON, 0)
+	recs := make([]userModels.CryptoDepositJSON, 0)
 	DB, _ := db.OpenDb()
 	DBC, _ := db.OpenDb()
 
@@ -209,7 +210,7 @@ func GetCryptoDepositHistory(targetPublicKey string, gc *sharedconfig.GlobalConf
 	amountBetween := strings.TrimSpace(c.Query("amount"))
 	dateBetween := strings.TrimSpace(c.Query("dateBetween"))
 
-	orderBy := strings.TrimSpace(c.DefaultQuery("orderby", "created_at"))
+	orderBy := strings.TrimSpace(c.DefaultQuery("orderby", "id"))
 	orderDirection := c.DefaultQuery("order", "DESC")
 
 	query = DB.Preload(clause.Associations)
@@ -231,8 +232,14 @@ func GetCryptoDepositHistory(targetPublicKey string, gc *sharedconfig.GlobalConf
 	}
 
 	if len(s) >= 2 {
-		query = query.Where("(from_address = ? OR to_address = ? OR currency = upper(?) OR upper(network) = upper(?) OR tx_id = ?)", s, s, s, s, s)
-		countQuery = countQuery.Where("(from_address = ? OR to_address = ? OR currency = upper(?) OR upper(network) = upper(?) OR tx_id = ?)", s, s, s, s, s)
+		query = query.Where("(from_address = ? OR to_address = ? OR upper(network) = upper(?) OR tx_id = ?)", s, s, s, s)
+		countQuery = countQuery.Where("(from_address = ? OR to_address = ? OR upper(network) = upper(?) OR tx_id = ?)", s, s, s, s)
+
+	}
+
+	if len(currency) > 0 {
+		query = query.Where("upper(currency) = upper(?)", currency)
+		countQuery = countQuery.Where("upper(currency) = upper(?)", currency)
 
 	}
 
@@ -283,15 +290,19 @@ func GetCryptoDepositHistory(targetPublicKey string, gc *sharedconfig.GlobalConf
 		return
 	}
 
-	records = userModels.PaginatedCryptoDepositHistory{CurrentPage: page, Pages: pages, TotalRecords: count, Limit: limit, Records: depositHistory}
+	for _, deposit := range depositHistory {
+		recs = append(recs, deposit.ToJSON(gc))
+	}
+
+	records = userModels.PaginatedCryptoDepositHistory{CurrentPage: page, Pages: pages, TotalRecords: count, Limit: limit, Records: recs}
 
 	return records
 }
 
-func GetCryptoWithdrawalHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedCryptoWithdrawalHistory) {
+func GetCryptoWithdrawalHistory(targetPublicKey, currency string, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedCryptoWithdrawalHistory) {
 	var err error
-	var wdlHistory []userModels.CryptoWithdrawal
-	records.Records = make([]userModels.CryptoWithdrawal, 0)
+	var wdlHistory []userModels.WithdrawalRequest
+	records.Records = make([]userModels.WithdrawalRequest, 0)
 	DB, _ := db.OpenDb()
 	DBC, _ := db.OpenDb()
 
@@ -312,7 +323,7 @@ func GetCryptoWithdrawalHistory(targetPublicKey string, gc *sharedconfig.GlobalC
 	orderDirection := c.DefaultQuery("order", "DESC")
 
 	query = DB.Preload(clause.Associations)
-	countQuery = DBC.Group("withdrawal_id")
+	countQuery = DBC.Group("id")
 
 	if len(orderDirection) > 0 && strings.ToLower(orderDirection) == "desc" {
 		oD = "DESC"
@@ -330,8 +341,14 @@ func GetCryptoWithdrawalHistory(targetPublicKey string, gc *sharedconfig.GlobalC
 	}
 
 	if len(s) >= 2 {
-		query = query.Where("(to_address = ? OR currency = upper(?) OR upper(network) = upper(?) OR withdrawal_id = ?)", s, s, s, s, s)
-		countQuery = countQuery.Where("(to_address = ? OR currency = upper(?) OR upper(network) = upper(?) OR withdrawal_id = ?)", s, s, s, s, s)
+		query = query.Where("(withdrawal_address = ? OR upper(network) = upper(?) OR withdrawal_id = ?)", s, s, s, s)
+		countQuery = countQuery.Where("(withdrawal_address = ? OR upper(network) = upper(?) OR withdrawal_id = ?)", s, s, s, s)
+
+	}
+
+	if len(currency) > 0 {
+		query = query.Where("upper(currency) = upper(?)", currency)
+		countQuery = countQuery.Where("upper(currency) = upper(?)", currency)
 
 	}
 
@@ -345,8 +362,8 @@ func GetCryptoWithdrawalHistory(targetPublicKey string, gc *sharedconfig.GlobalC
 	if len(amountBetween) > 2 && strings.Contains(amountBetween, "|") {
 		// 0|1
 		amountRange := strings.Split(amountBetween, "|")
-		query = query.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
-		countQuery = countQuery.Where("amount::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
+		query = query.Where("amount_submitted::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
+		countQuery = countQuery.Where("amount_submitted::numeric BETWEEN ?::numeric AND ?::numeric", amountRange[0], amountRange[1])
 
 	}
 

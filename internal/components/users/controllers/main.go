@@ -3173,6 +3173,280 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	}
 	//CRYPTO
 	{
+		router.GET("/v1/crypto/withrawal-history/:currency/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error
+			currency := strings.ToUpper(c.Param("currency"))
+
+			targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
+
+			_, err := keypair.ParseAddress(targetPublicKeyForHistory)
+			if err != nil {
+
+				statusCode := http.StatusBadRequest
+				response := gin.H{"error": "error invalid address", "message": "Only valid addresses are allowed"}
+
+				c.JSON(statusCode, response)
+				return
+			}
+			cacheKey := fmt.Sprintf("[GET] /v1/crypto/withrawal-history/%v/%v", currency, targetPublicKeyForHistory)
+			cacheKeyParameters := c.Request.URL.RequestURI()
+			{
+				// check cache
+				ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
+
+				if ok {
+					log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+					c.JSON(status, response)
+					return
+				}
+
+			}
+			// cacheDurationInSeconds := 1 * 60 //1 minutes
+			cacheDurationInSeconds := 20 //in seconds
+			conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/withrawal-history/%v/%v", currency, targetPublicKeyForHistory), gc.DB)
+
+			signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+				return
+			}
+			wallet, temp, err := usersDB.GetWallet(targetPublicKeyForHistory, gc.DB)
+
+			if err != nil {
+				log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+				return
+			}
+			if temp {
+
+				statusCode := http.StatusBadRequest
+				response := gin.H{"error": "error only main wallets allowed", "message": "Only main wallets are allowed. The address you provided is not a main wallet."}
+
+				c.JSON(statusCode, response)
+				return
+			}
+
+			targetOwnerUser, err := usersDB.GetUser(targetPublicKeyForHistory, gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+				return
+			}
+
+			{
+				// gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
+
+				//check if the owner is the one accessing it or if the one accessing it has access to access it.
+
+				if (signerUser.Username != targetOwnerUser.Username) && !wallet.SignerHasAccess(&signerUser, gc) {
+					te := &tErrors.ErrorInvalidAuthorization{}
+
+					log.Println("[GET HISTORY] Invalid access for user:", signerUser.Username, "error: ", te.Error())
+					c.JSON(te.HTTPCode(), te.JSONError())
+					return
+				}
+
+			}
+			//Get Payment history
+			historyRecords := paymentServices.GetCryptoWithdrawalHistory(targetPublicKeyForHistory, currency, gc, c)
+
+			c.JSON(http.StatusOK, historyRecords)
+			// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
+			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
+
+		})
+
+		router.GET("/v1/crypto/deposit-history/:currency/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error
+			currency := strings.ToUpper(c.Param("currency"))
+
+			targetPublicKeyForHistory := strings.TrimSpace(strings.ToUpper(c.Param("targetPublicKeyForHistory")))
+
+			_, err := keypair.ParseAddress(targetPublicKeyForHistory)
+			if err != nil {
+
+				statusCode := http.StatusBadRequest
+				response := gin.H{"error": "error invalid address", "message": "Only valid addresses are allowed"}
+
+				c.JSON(statusCode, response)
+				return
+			}
+			cacheKey := fmt.Sprintf("[GET] /v1/crypto/deposit-history/%v/%v", currency, targetPublicKeyForHistory)
+			cacheKeyParameters := c.Request.URL.RequestURI()
+			{
+				// check cache
+				ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
+
+				if ok {
+					log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+					c.JSON(status, response)
+					return
+				}
+
+			}
+			// cacheDurationInSeconds := 1 * 60 //1 minutes
+			cacheDurationInSeconds := 20 //in seconds
+			conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/deposit-history/%v/%v", currency, targetPublicKeyForHistory), gc.DB)
+
+			signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USER] error for signer:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+				return
+			}
+			wallet, temp, err := usersDB.GetWallet(targetPublicKeyForHistory, gc.DB)
+
+			if err != nil {
+				log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+				return
+			}
+			if temp {
+
+				statusCode := http.StatusBadRequest
+				response := gin.H{"error": "error only main wallets allowed", "message": "Only main wallets are allowed. The address you provided is not a main wallet."}
+
+				c.JSON(statusCode, response)
+				return
+			}
+
+			targetOwnerUser, err := usersDB.GetUser(targetPublicKeyForHistory, gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET TARGET USER] error for PUBLIC KEY:", targetPublicKeyForHistory, "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				// gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, statusCode, response, cacheDurationInSeconds)
+				return
+			}
+
+			{
+				// gc.RedisCache.InvalidateCachedHttpResponse(cacheKey)
+
+				//check if the owner is the one accessing it or if the one accessing it has access to access it.
+
+				if (signerUser.Username != targetOwnerUser.Username) && !wallet.SignerHasAccess(&signerUser, gc) {
+					te := &tErrors.ErrorInvalidAuthorization{}
+
+					log.Println("[GET HISTORY] Invalid access for user:", signerUser.Username, "error: ", te.Error())
+					c.JSON(te.HTTPCode(), te.JSONError())
+					return
+				}
+
+			}
+			//Get Payment history
+			historyRecords := paymentServices.GetCryptoDepositHistory(targetPublicKeyForHistory, currency, gc, c)
+
+			c.JSON(http.StatusOK, historyRecords)
+			// gc.RedisCache.CacheHttpResponse(cacheKey, http.StatusOK, historyRecords, cacheDurationInSeconds)
+			gc.RedisCache.CacheHttpResponseWithParameters(cacheKey, cacheKeyParameters, http.StatusOK, historyRecords, cacheDurationInSeconds)
+
+		})
+
 		//get specific  wallet balance, middleware.AuthenticationMiddlewareUsingTimestamp()
 		router.GET("/v1/crypto/withdrawal-networks/:currency", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			// var err error
