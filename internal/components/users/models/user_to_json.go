@@ -59,6 +59,22 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 		}
 
 	}
+	{
+		//referral statistics
+		l1, l2, l3 := u.GetDownlines(gc)
+
+		jsonObj.DownlineStats.Level1 = uint64(len(l1))
+		jsonObj.DownlineStats.Level2 = uint64(len(l2))
+		jsonObj.DownlineStats.Level3 = uint64(len(l3))
+	}
+	{
+		//referral statistics
+		l1, l2, l3 := u.GetUplines(gc)
+
+		jsonObj.Uplines.Level1 = l1
+		jsonObj.Uplines.Level2 = l2
+		jsonObj.Uplines.Level3 = l3
+	}
 	if u.UserWallets != nil {
 		// log.Println("[UserToJSON] started user wallets json")
 		if len(u.UserWallets) > 0 {

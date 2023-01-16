@@ -30,6 +30,16 @@ type UserJSON struct {
 	Suspended              int                       `json:"suspended"`
 	HasSecurityQuestions   int                       `json:"hasSecurityQuestions"`
 	CuratedSwapList        []assets.CuratedSwapAsset `json:"curatedSwapList"`
+	DownlineStats          struct {
+		Level1 uint64 `json:"level1"`
+		Level2 uint64 `json:"level2"`
+		Level3 uint64 `json:"level3"`
+	} `json:"downlines"`
+	Uplines struct {
+		Level1 string `json:"level1,omitempty"`
+		Level2 string `json:"level2,omitempty"`
+		Level3 string `json:"level3,omitempty"`
+	} `json:"uplines"`
 }
 
 type UserWalletJSON struct {

@@ -1470,6 +1470,75 @@ func (u *User) GetCuratedSwapList(gc *sharedconfig.GlobalConfig) (list []assets.
 	return list
 }
 
+func (u *User) GetReferralCount(gc *sharedconfig.GlobalConfig) (referralCount int64) {
+	gc.DB.Where("referrer = ?", u.Username).Count(&referralCount)
+	return
+}
+
+func (u *User) GetDownlines(gc *sharedconfig.GlobalConfig) (lv1, lv2, lv3 []Downline) {
+	lv1 = make([]Downline, 0)
+	lv1Referrals := make([]string, 0)
+
+	lv2 = make([]Downline, 0)
+	lv2Referrals := make([]string, 0)
+
+	lv3 = make([]Downline, 0)
+	// lv3Referrals := make([]string, 0)
+
+	gc.DB.Model(User{}).Where("referrer = ?", u.Username).Select("username", "referrer").Find(&lv1)
+
+	//get all the user referrals
+	gc.DB.Model(User{}).Where("referrer = ?", u.Username).Pluck("username", &lv1Referrals)
+
+	if len(lv1) > 0 && len(lv1Referrals) > 0 {
+		//check for lv2
+		gc.DB.Model(User{}).Where("referrer IN ?", lv1Referrals).Select("username", "referrer").Find(&lv2)
+		gc.DB.Model(User{}).Where("referrer IN ?", lv1Referrals).Pluck("username", &lv2Referrals)
+
+		if len(lv2) > 0 && len(lv2Referrals) > 0 {
+			//check for lv2
+			gc.DB.Model(User{}).Where("referrer IN ?", lv2Referrals).Select("username", "referrer").Find(&lv3)
+			// gc.DB.Model(User{}).Where("referrer IN ?", lv2Referrals).Pluck("username",&lv3Referrals)
+
+		}
+	}
+
+	return
+}
+
+func (u *User) GetUplines(gc *sharedconfig.GlobalConfig) (lv1, lv2, lv3 string) {
+
+	if u.Referrer != nil {
+		lv1 = *u.Referrer
+	} else {
+		return
+	}
+
+	//get all the user referrals
+	lv1User, err := Username(lv1).GetFullUser(gc.DB, gc)
+
+	if err != nil {
+		return
+	}
+	if lv1User.Referrer != nil {
+		lv2 = *lv1User.Referrer
+	} else {
+		return
+	}
+
+	//get the user referrals
+	lv2User, err := Username(lv2).GetFullUser(gc.DB, gc)
+
+	if err != nil {
+		return
+	}
+	if lv2User.Referrer != nil {
+		lv3 = *lv2User.Referrer
+	}
+
+	return
+}
+
 func (u *User) GetWalletByPublicKey(publicKey string, db *gorm.DB) (wallet UserWallet, err error) {
 	e := db.Preload(clause.Associations).Where("id = ?", publicKey).First(&wallet).Error
 	if e != nil {
