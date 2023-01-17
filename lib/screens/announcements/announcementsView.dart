@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
+import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/models/announcement.dart';
 import 'package:trovo_wallet/router/page_actions.dart';

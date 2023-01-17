@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 
 class CustomAppBar extends PreferredSize {
   final BuildContext context;

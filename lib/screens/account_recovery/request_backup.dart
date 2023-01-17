@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-import '../../Custom_BlocObserver/button/custtom_button.dart';
-import '../../Custom_BlocObserver/fonts.dart';
-import '../../Custom_BlocObserver/notifire_clor.dart';
+import '../../custom_bloc_observer/button/custtom_button.dart';
+import '../../custom_bloc_observer/fonts.dart';
+import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/state.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/swiper/swiper.dart';
+import 'package:trovo_wallet/custom_bloc_observer/swiper/swiper.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/confirm_swap.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/change_password.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_detail.dart';

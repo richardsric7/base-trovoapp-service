@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/custom_bloc_observer/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/button_tabs/chart.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-import '../../Custom_BlocObserver/custtom_slock_list/custtom_slock_list.dart';
+import '../../custom_bloc_observer/custtom_slock_list/custtom_slock_list.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class Portfolio extends StatefulWidget {

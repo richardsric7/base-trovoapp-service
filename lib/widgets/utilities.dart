@@ -8,10 +8,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share/share.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
+import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
+import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:path_provider/path_provider.dart' as syspaths;
 import 'package:pdf/widgets.dart' as pw;
 

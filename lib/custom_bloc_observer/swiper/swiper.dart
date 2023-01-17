@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/screens/Auth/get_started.dart';
 import 'package:trovo_wallet/screens/page_view/onbonding_two.dart';

@@ -3,8 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/models/Transaction.dart';
 import 'package:trovo_wallet/models/Wallet.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
@@ -17,7 +17,7 @@ import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import '../../Custom_BlocObserver/notifire_clor.dart';
+import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class DepositWithdrawHistory extends StatefulWidget {

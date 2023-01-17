@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import '../../Custom_BlocObserver/notifire_clor.dart';
+import '../../custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/User.dart';
 import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
