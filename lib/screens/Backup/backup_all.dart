@@ -3,8 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/models/User.dart';
-import 'package:trovo_wallet/models/Wallet.dart';
+import 'package:trovo_wallet/models/user.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
@@ -15,7 +15,7 @@ import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../../widgets/Secret.dart';
+import '../../widgets/secret.dart';
 
 class BackupAll extends StatefulWidget {
   const BackupAll({Key? key}) : super(key: key);

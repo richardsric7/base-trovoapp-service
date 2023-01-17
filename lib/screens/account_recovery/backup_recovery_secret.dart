@@ -17,7 +17,7 @@ import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../../widgets/Secret.dart';
+import '../../widgets/secret.dart';
 
 class BackupRecoverySecret extends StatefulWidget {
   const BackupRecoverySecret({Key? key}) : super(key: key);

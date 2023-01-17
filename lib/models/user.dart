@@ -1,4 +1,4 @@
-import 'Wallet.dart';
+import 'wallet.dart';
 
 class UserInfo {
   String? username;

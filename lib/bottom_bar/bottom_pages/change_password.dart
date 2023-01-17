@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import '../../custom_bloc_observer/Custtom_app_bar/custtomappbar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
-import '../../custom_bloc_observer/custtom_textfild/custtompassword.dart';
+import '../../custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import '../../storage/state.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';

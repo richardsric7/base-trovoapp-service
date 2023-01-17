@@ -6,13 +6,13 @@ import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/User.dart';
+import 'package:trovo_wallet/models/user.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/widgets/WalletSlides.dart';
-import 'package:trovo_wallet/widgets/topDropdowns.dart';
+import 'package:trovo_wallet/widgets/wallet_slides.dart';
+import 'package:trovo_wallet/widgets/top_drop_downs.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 

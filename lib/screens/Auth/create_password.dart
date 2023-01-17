@@ -7,7 +7,7 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
-import '../../custom_bloc_observer/custtom_textfild/custtompassword.dart';
+import '../../custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../functions/trovo-sdk.dart';
 import '../../router/page_actions.dart';

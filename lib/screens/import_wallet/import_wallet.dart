@@ -9,11 +9,11 @@ import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/models/User.dart';
+import 'package:trovo_wallet/models/user.dart';
 import '../../custom_bloc_observer/Custtom_app_bar/custtomappbar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
-import '../../custom_bloc_observer/custtom_textfild/custtompassword.dart';
+import '../../custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import '../../network/requests.dart';
 import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
@@ -22,7 +22,7 @@ import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/popups.dart';
-import '../../widgets/termsOfService.dart';
+import '../../widgets/terms_of_service.dart';
 
 class ImportWallet extends StatefulWidget {
   const ImportWallet({Key? key}) : super(key: key);

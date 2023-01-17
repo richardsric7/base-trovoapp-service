@@ -69,7 +69,7 @@ import '../screens/Auth/fingerprint.dart';
 import '../screens/Auth/login.dart';
 import '../screens/Backup/backup.dart';
 import '../screens/SharedAccess/welcome_to_shared_access.dart';
-import '../screens/Splash_Screen/splashscreen.dart';
+import '../screens/Splash_Screen/splash_screen.dart';
 import '../screens/announcements/announcementView.dart';
 import '../screens/qr_scanner_view.dart';
 import 'page_actions.dart';

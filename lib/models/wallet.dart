@@ -1,4 +1,4 @@
-import 'Permission.dart';
+import 'permission.dart';
 
 class Wallet {
   DateTime? createdAt;
