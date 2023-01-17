@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/portfolio.dart';
-import 'package:trovo_wallet/bottom_bar/bottombar.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_bar.dart';
 import 'package:provider/provider.dart';
 
 import '../../../Custom_BlocObserver/graph/graph.dart';

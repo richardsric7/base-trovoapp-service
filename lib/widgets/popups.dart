@@ -14,7 +14,7 @@ import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../Custom_BlocObserver/notifire_clor.dart';
-import '../router/PageActions.dart';
+import '../router/page_actions.dart';
 import '../router/ui_pages.dart';
 import '../storage/state.dart';
 import '../utils/enstring.dart';
@@ -124,7 +124,7 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(LanguageEn.fingerprintrequired),
+          title: Text(LanguageEn.biometricsrequired),
           actions: [
             TextButton(
               child: Text(
@@ -161,7 +161,7 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
               ),
             ),
             child: Text(
-              LanguageEn.fingerprintnotenabled,
+              LanguageEn.biometricsnotenabled,
               style: TextStyle(
                 fontFamily: fontbody,
                 fontSize: 15.0,

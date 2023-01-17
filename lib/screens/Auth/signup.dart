@@ -20,7 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../Models/User.dart';
 import '../../functions/trovo-sdk.dart';
-import '../../router/PageActions.dart';
+import '../../router/page_actions.dart';
 import '../../storage/state.dart';
 import '../../network/requests.dart';
 import '../../storage/store.dart';

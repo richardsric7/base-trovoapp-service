@@ -8,7 +8,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/Models/User.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/WalletSlides.dart';
@@ -308,17 +308,6 @@ class _AssetDetailsState extends State<AssetDetails>
               page: SendAssetViewPageConfig,
             );
           }),
-          actionButton("assets/images/receive.png", 'Receive', () {
-            appState.viewData![ReceiveAssetViewPageConfig.key] =
-                appState.viewData![AssetDetailsViewPageConfig.key];
-            appState.viewData![ReceiveAssetViewPageConfig.key]['walletInfo'] =
-                activeWallet;
-
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: ReceiveAssetViewPageConfig,
-            );
-          }),
           if (curatedAsset.isNotEmpty &&
               (curatedAsset['withdrawable'] == 1 ||
                   curatedAsset['generateDepositAddress'] == 1)) ...[
@@ -340,7 +329,18 @@ class _AssetDetailsState extends State<AssetDetails>
                 page: WrappedAssetViewPageConfig,
               );
             }),
-          ]
+          ],
+          actionButton("assets/images/receive.png", 'Receive', () {
+            appState.viewData![ReceiveAssetViewPageConfig.key] =
+                appState.viewData![AssetDetailsViewPageConfig.key];
+            appState.viewData![ReceiveAssetViewPageConfig.key]['walletInfo'] =
+                activeWallet;
+
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: ReceiveAssetViewPageConfig,
+            );
+          }),
         ],
       ),
     );

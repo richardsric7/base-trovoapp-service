@@ -11,7 +11,7 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../Models/User.dart';
-import '../router/PageActions.dart';
+import '../router/page_actions.dart';
 import 'cache.dart';
 
 class DataProvider with ChangeNotifier {

@@ -9,7 +9,7 @@ import 'package:trovo_wallet/screens/page_view/one_onbonding.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../router/PageActions.dart';
+import '../../router/page_actions.dart';
 import '../../storage/state.dart';
 import '../../utils/enstring.dart';
 import '../button/custtom_button.dart';

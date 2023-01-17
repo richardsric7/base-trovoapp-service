@@ -14,7 +14,7 @@ import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
 import '../../Models/User.dart';
-import '../../router/PageActions.dart';
+import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';

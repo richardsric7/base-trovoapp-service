@@ -6,11 +6,9 @@ import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.d
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
-import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,20 +19,19 @@ import '../../Custom_BlocObserver/fonts.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class DisableAccountRecovery extends StatefulWidget {
-  const DisableAccountRecovery({Key? key}) : super(key: key);
+class AnswerSecurityQuestions extends StatefulWidget {
+  const AnswerSecurityQuestions({Key? key}) : super(key: key);
 
   @override
-  State<DisableAccountRecovery> createState() => _DisableAccountRecovery();
+  State<AnswerSecurityQuestions> createState() => _AnswerSecurityQuestions();
 }
 
-class _DisableAccountRecovery extends State<DisableAccountRecovery> {
+class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
   late ColorNotifier notifier;
   bool isChecked = false;
   final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
   String password = '';
-  late var primaryWallet;
   late Future<Map> securityQuestionsMap;
   var questionsMap = {
     1: {
@@ -69,13 +66,8 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
-    primaryWallet = appState.userInfo!.wallets!
-        .firstWhere((wallet) => wallet.primaryWallet == 1);
-    securityQuestionsMap = fetchQuestions(
-        primaryWallet.signer,
-        appState.secretKeys[0],
-        primaryWallet.publicKey,
-        appState.userInfo!.username);
+    securityQuestionsMap = fetchQuestions(appState.tempPublicKey,
+        appState.tempSecretKey, appState.tempPublicKey, appState.tempUsername);
   }
 
   @override
@@ -97,7 +89,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
               children: [
                 SizedBox(height: height / 50),
                 Text(
-                  LanguageEn.disable,
+                  LanguageEn.answer,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
@@ -105,7 +97,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                       fontFamily: fontsemibold),
                 ),
                 Text(
-                  LanguageEn.accountrecovery,
+                  LanguageEn.securityquestions,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
@@ -134,8 +126,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                               Container(
                                 width: width / 1.3,
                                 child: Text(
-                                  LanguageEn
-                                      .answersecurityquestionstodisableaccountrecovery,
+                                  LanguageEn.answersecurityquestionsdescription,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 16,
@@ -182,10 +173,10 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                                   onPressed: () {
                                     setState(() {
                                       securityQuestionsMap = fetchQuestions(
-                                          primaryWallet.signer,
-                                          appState.secretKeys[0],
-                                          primaryWallet.publicKey,
-                                          appState.userInfo!.username);
+                                          appState.tempPublicKey,
+                                          appState.tempSecretKey,
+                                          appState.tempPublicKey,
+                                          appState.tempUsername);
                                     });
                                   },
                                   style: ButtonStyle(
@@ -240,7 +231,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
                     }),
                 SizedBox(height: height / 20),
                 Button(
-                  '${LanguageEn.disable} ${LanguageEn.accountrecovery}',
+                  LanguageEn.continuee,
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () {
@@ -300,7 +291,7 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
             },
             validator: (value) {
               if (value.toString().isEmpty) {
-                return 'Please enter answer to the question';
+                return LanguageEn.pleaseenteranswer;
               }
               return null;
             },
@@ -321,123 +312,44 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
     sendToServer();
   }
 
-  postProcessData(messageShown, messageLength, data) {
-    print('messageShown: $messageShown messageLength $messageLength');
-    // we would like to display all messages returned from the initial
-    // request to server using a popup. In order to achieve that we
-    // employ the use of a little recursion here. Please recursive
-    // functions can turn into a nightmare fast so be carefull here.
-    if (messageShown <= messageLength - 1) {
-      showResponseMessage(
-          context,
-          data['messages'][messageShown],
-          () => {
-                print('postProcessData: $messageShown'),
-                postProcessData(messageShown, messageLength, data),
-              });
-
-      messageShown++;
-      return;
-    }
-    sendFullDataToServer(data);
-  }
-
   sendToServer() async {
     try {
       showLoader(context);
       // make initial request to the server using the
       // following credentials
       Map map = {
-        "transaction": '',
-        "transactionSignature": '',
-        "transactionId": '',
-        "networkPassPhrase": '',
-        "securityAnswers": {
-          "q1": int.parse(questionsMap[1]!['q'].toString()),
-          "a1": questionsMap[1]!['a'],
-          "q2": int.parse(questionsMap[2]!['q'].toString()),
-          "a2": questionsMap[2]!['a'],
-          "q3": int.parse(questionsMap[3]!['q'].toString()),
-          "a3": questionsMap[3]!['a']
-        },
+        "q1": int.parse(questionsMap[1]!['q'].toString()),
+        "a1": questionsMap[1]!['a'],
+        "q2": int.parse(questionsMap[2]!['q'].toString()),
+        "a2": questionsMap[2]!['a'],
+        "q3": int.parse(questionsMap[3]!['q'].toString()),
+        "a3": questionsMap[3]!['a']
       };
       String requestBody = jsonEncode(map);
       print('this is request body $requestBody');
 
-      Map responseData = await makeDeleteRequest(
-        uri: '/v1/users/account/recovery',
+      Map responseData = await makePostRequest(
+        uri: '/v1/verify-answers/${appState.tempUsername}',
         body: requestBody,
-        signer: primaryWallet!.signer!,
-        secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: primaryWallet!.publicKey!,
+        signer: appState.tempPublicKey,
+        secretKey: appState.tempSecretKey, // the primary wallet secret key
+        publicKey: appState.tempPublicKey,
       );
 
       print('response: $responseData');
       hideLoader(context);
 
-      if (responseData['statusCode'] == 202) {
-        // sendFullDataToServer(responseData['data']);
-        var messageLength = responseData['data']['messages'].length;
-        var messageShown = 0;
-
-        postProcessData(messageShown, messageLength, responseData['data']);
-      } else {
-        hideLoader(context);
-        popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
-      }
-    } catch (e) {
-      print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
-      hideLoader(context);
-    }
-  }
-
-  void sendFullDataToServer(responseBody) async {
-    try {
-      showLoader(context);
-      // get primary signature
-      var signature = TrovoWalletSDK().signBase64Txn(
-        appState.secretKeys[0],
-        responseBody['transaction'],
-        responseBody['networkPassPhrase'],
-      );
-
-      print('this is primary sign: $signature');
-      responseBody['transactionSignature'] = signature;
-      String requestBody = jsonEncode(responseBody);
-
-      print('this is request body: $requestBody');
-
-      Map responseData = await makeDeleteRequest(
-        uri: '/v1/users/account/recovery',
-        body: requestBody,
-        signer: primaryWallet.signer!,
-        secretKey: appState.secretKeys[0],
-        publicKey: primaryWallet.publicKey!,
-      );
-
-      print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(primaryWallet.signer!, appState.secretKeys[0],
-            primaryWallet.publicKey!, appState.userInfo!.username, appState);
-        hideLoader(context);
-        // showSuccessAlert(context, onTap: () {
-        //   appState.currentAction = PageAction(
-        //       state: PageState.replaceAll, page: BottomHomePageConfig);
-        // });
-        appState.viewData = {
-          SuccessViewPageConfig.key: {
-            'title': LanguageEn.success,
-            'message': LanguageEn.disableaccountrecoverysuccess,
-          }
+        appState.setTempSecurityQuestionsAndAnswers = map;
+        appState.viewData![EnsurePrivacyPageConfig.key] = {
+          'rel': 'accountRecovery',
         };
-        appState.currentAction =
-            PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+        appState.currentAction = PageAction(
+            state: PageState.addPage, page: RequestBackupViewPageConfig);
       } else {
-        popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
         hideLoader(context);
+        popup(context,
+            title: LanguageEn.error, message: responseData['data']['error']);
       }
     } catch (e) {
       print(e);

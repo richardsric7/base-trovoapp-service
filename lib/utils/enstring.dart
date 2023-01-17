@@ -309,7 +309,7 @@ class LanguageEn {
 
   static String get confirmPassword => "Confirm Password";
 
-  static String get iagreetothe => "I agree to the Trovo";
+  static String get iagreetothe => "I agree to the Trovotech";
 
   static String get ensurebackedup =>
       "Please ensure that you have backed up your new account then tick the checkbox above!";
@@ -499,8 +499,8 @@ class LanguageEn {
 
   static String get enablebiometrics => "Enable Biometrics";
 
-  static String get fingerprintnotenabled =>
-      'Fingerprint is not set up on your device. Go to \'Settings > Security\' to add your fingerprint';
+  static String get biometricsnotenabled =>
+      'Biometrics is not set up on your device. Go to \'Settings > Security\' to add your biometric data';
 
   static String get gotosettings => 'Go to settings';
 
@@ -508,7 +508,7 @@ class LanguageEn {
 
   static String get back => 'Back';
 
-  static String get fingerprintrequired => 'Fingerprint required';
+  static String get biometricsrequired => 'Biometrics required';
 
   static String get important => 'Important';
   static String get information => 'Information';
