@@ -102,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
         });
       } else {
         PackageInfo packageInfo = await PackageInfo.fromPlatform();
-        appState.phoneVersion = packageInfo.version;
+        appState.appVersion = packageInfo.version;
         var data = await StoreData().storeGetData('userInfo');
         appState.setUser = UserInfo().deserializeJson(data);
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');

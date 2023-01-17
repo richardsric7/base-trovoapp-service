@@ -309,7 +309,7 @@ class _LoginState extends State<Login> {
                 ),
                 SizedBox(height: height / 50),
                 Text(
-                  '${LanguageEn.version} ${appState.phoneVersion}',
+                  '${LanguageEn.version} ${appState.appVersion}',
                   style: TextStyle(
                       color: notifier.getdarkgrey,
                       fontSize: 13.5.sp,
@@ -373,7 +373,7 @@ class _LoginState extends State<Login> {
     print('The app version $appVersionData');
 
     if (appVersionData.isNotEmpty) {
-      var phoneVersion = appState.phoneVersion.replaceAll('.', '');
+      var phoneVersion = appState.appVersion.replaceAll('.', '');
 
       String minVersion =
           await appVersionData['minVersion'].replaceAll('.', '');

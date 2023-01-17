@@ -23,7 +23,7 @@ class DataProvider with ChangeNotifier {
   bool isFirstTime = true;
   String timeout = '5'; // 5 minutes
   String? password;
-  String phoneVersion = '';
+  String appVersion = '';
   var assetBalances;
   var nfts;
   Wallet get primaryWallet =>
