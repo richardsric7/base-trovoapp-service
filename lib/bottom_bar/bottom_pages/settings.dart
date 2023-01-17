@@ -338,7 +338,7 @@ class _SettingsState extends State<Settings> {
               ),
               SizedBox(height: height / 30),
               Text(
-                '${LanguageEn.version} $appVersion',
+                '${LanguageEn.version} ${appState.phoneVersion}',
                 style: TextStyle(
                     color: notifier.getdarkgrey,
                     fontSize: 13.5.sp,

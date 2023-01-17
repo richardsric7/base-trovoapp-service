@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/storage/cache.dart';
@@ -45,20 +46,6 @@ class _SplashScreenState extends State<SplashScreen>
     runAsync();
     super.initState();
     getdarkmodepreviousstate();
-
-    // PackageInfo packageInfo = await PackageInfo.fromPlatform();
-
-    // String version = packageInfo.version;
-    // print('version: $version');
-
-    // String appName = packageInfo.appName;
-    // print('app Name: $appName');
-
-    // String buildNumber = packageInfo.buildNumber;
-    // print('build number: $buildNumber');
-
-    // String packageName = packageInfo.packageName;
-    // print('package name: $packageName');
 
     controller = AnimationController(
       vsync: this,
@@ -114,6 +101,8 @@ class _SplashScreenState extends State<SplashScreen>
           }
         });
       } else {
+        PackageInfo packageInfo = await PackageInfo.fromPlatform();
+        appState.phoneVersion = packageInfo.version;
         var data = await StoreData().storeGetData('userInfo');
         appState.setUser = UserInfo().deserializeJson(data);
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');

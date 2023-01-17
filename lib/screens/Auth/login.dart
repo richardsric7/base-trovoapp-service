@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/user.dart';
@@ -17,7 +15,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import '../../router/page_actions.dart';
@@ -40,7 +37,6 @@ class _LoginState extends State<Login> {
   late UserInfo userInfo;
   String password = '';
   final _formKey = GlobalKey<FormState>();
-
   final Authenticator _authenticator = Authenticator();
 
   getdarkmodepreviousstate() async {
@@ -313,7 +309,7 @@ class _LoginState extends State<Login> {
                 ),
                 SizedBox(height: height / 50),
                 Text(
-                  '${LanguageEn.version} $appVersion',
+                  '${LanguageEn.version} ${appState.phoneVersion}',
                   style: TextStyle(
                       color: notifier.getdarkgrey,
                       fontSize: 13.5.sp,
@@ -377,9 +373,7 @@ class _LoginState extends State<Login> {
     print('The app version $appVersionData');
 
     if (appVersionData.isNotEmpty) {
-      PackageInfo packageInfo = await PackageInfo.fromPlatform();
-
-      String phoneVersion = packageInfo.version.replaceAll('.', '');
+      var phoneVersion = appState.phoneVersion.replaceAll('.', '');
 
       String minVersion =
           await appVersionData['minVersion'].replaceAll('.', '');
