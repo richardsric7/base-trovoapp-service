@@ -11,12 +11,11 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:trovo_wallet/models/User.dart';
 import '../../Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';
 import '../../Custom_BlocObserver/notifire_clor.dart';
-import '../../Models/User.dart';
 import '../../network/requests.dart';
 import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';

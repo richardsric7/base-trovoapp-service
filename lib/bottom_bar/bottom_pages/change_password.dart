@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/route_manager.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/functions/trovo-sdk.dart';
-import 'package:trovo_wallet/router/page_actions.dart';
-import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,11 +11,9 @@ import 'package:trovo_wallet/utils/local_auth.dart';
 import '../../Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
-import '../../Models/User.dart';
 import '../../storage/state.dart';
 import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../../widgets/loader.dart';
 import '../../widgets/popups.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 

@@ -5,7 +5,7 @@ import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
-import 'package:trovo_wallet/Models/Wallet.dart';
+import 'package:trovo_wallet/models/Wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/Models/BottomTabPage.dart';
+import 'package:trovo_wallet/models/BottomTabPage.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';

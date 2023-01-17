@@ -1,7 +1,7 @@
 import 'dart:ffi';
 
-import 'package:trovo_wallet/Models/User.dart';
-import 'package:trovo_wallet/Models/announcement.dart';
+import 'package:trovo_wallet/models/User.dart';
+import 'package:trovo_wallet/models/announcement.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';

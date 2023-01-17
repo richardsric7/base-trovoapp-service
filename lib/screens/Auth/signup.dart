@@ -18,7 +18,7 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-import '../../Models/User.dart';
+import 'package:trovo_wallet/models/User.dart';
 import '../../functions/trovo-sdk.dart';
 import '../../router/page_actions.dart';
 import '../../storage/state.dart';

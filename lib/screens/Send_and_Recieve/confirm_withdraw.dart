@@ -8,7 +8,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/Models/User.dart';
+import 'package:trovo_wallet/models/User.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';

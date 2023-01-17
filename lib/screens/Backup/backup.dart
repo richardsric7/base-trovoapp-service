@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
 import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Models/User.dart';
+import 'package:trovo_wallet/models/User.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import '../../Custom_BlocObserver/button/custtom_button.dart';
 import '../../Custom_BlocObserver/fonts.dart';

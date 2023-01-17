@@ -11,8 +11,7 @@ import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
-
-import '../../Models/Wallet.dart';
+import 'package:trovo_wallet/models/Wallet.dart';
 
 class ViewerAccess extends StatefulWidget {
   const ViewerAccess({Key? key}) : super(key: key);
