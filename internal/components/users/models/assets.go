@@ -236,16 +236,19 @@ func (c Currency) GetCurratedAsset(gc *sharedconfig.GlobalConfig) (ca assetModel
 	currency := strings.ToUpper(string(c))
 	cas := assetsDB.GetCuratedAssets(false, gc)
 
-	ca, ok := cas[currency]
-	if ok {
-		if ca.Withdrawable == 0 {
-			err = errors.New("invalid withdrawable currency")
-			return
-		}
+	for _, k := range cas {
+		if strings.EqualFold(k.AssetCode, currency) {
+			if k.Withdrawable == 0 {
+				log.Println("[GetCurratedAsset] currency not marked as withdrawable.", currency)
+				err = errors.New(currency + " not withdrawable")
+				return
+			}
+			return k, nil
 
-	} else {
-		err = errors.New("invalid withdrawable currency")
-		return
+		}
 	}
+	log.Println("[GetCurratedAsset] currency not available in list of currencies.", currency)
+	err = errors.New(currency + " is an invalid withdrawable currency")
 	return
+
 }
