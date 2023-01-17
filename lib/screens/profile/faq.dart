@@ -3,7 +3,7 @@ import 'package:accordion/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:trovo_wallet/custom_bloc_observer/Custtom_app_bar/custtomappbar.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/pages.dart';
 import 'package:provider/provider.dart';
