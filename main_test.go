@@ -463,6 +463,25 @@ type MarketOfferRequest struct {
 	Memo                 string   `json:"memo"`
 }
 
+type WithdrawalRequestInput struct {
+	Currency             string  `json:"currency"`
+	AmountSubmitted      float64 `json:"amountSubmitted"`
+	AmountToWithdraw     float64 `json:"amountToWithdraw"` //submitted amount less serviceFee
+	WithdrawalAddress    string  `json:"withdrawalAddress"`
+	WithdrawalNetwork    string  `json:"withdrawalNetwork"`
+	WithdrawalMemo       string  `json:"withdrawalMemo"`
+	WithdrawalServiceFee float64 `json:"withdrawalServiceFee"`
+	WithdrawalNetworkFee float64 `json:"withdrawalNetworkFee"`
+	Transaction          string  `json:"transaction"`
+	TransactionSignature string  `json:"transactionSignature"`
+	TransactionID        string  `json:"transactionId"`
+	NetworkPassPhrase    string  `json:"networkPassPhrase"`
+	Multiparty           int     `json:"-"`
+	SignatureRequired    int     `json:"signatureRequired"`
+	Commit               int     `json:"commit"`
+	ReturnedDescription  string  `json:"-"`
+}
+
 func TestCreateAccount(t *testing.T) {
 
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
@@ -3352,6 +3371,7 @@ func TestCreateMarketOffer(t *testing.T) {
 	// time.Sleep(time.Second * 10)
 
 }
+
 func TestGenerateCryptoDepositAddress(t *testing.T) {
 
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
@@ -3404,6 +3424,128 @@ func TestGenerateCryptoDepositAddress(t *testing.T) {
 	log.Printf("Confirmation Response:[%+v]\n", rResponse)
 
 	log.Println("[TestGenerateCryptoDepositAddress] completed")
+	// time.Sleep(time.Second * 10)
+
+}
+
+func TestCreateWithdrawalRequest(t *testing.T) {
+
+	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	pk := "GCZ77KBBPINJRHZEYZMCF7SSR5WZVDCUPFG6OSB6FORQVEJV2UOHBG3B"
+	secretKey := "SA37LXNUXO62HXXL2SUXVLDCUA6SSQAOUSO2B3LNVMAO3WPE3RDK5OPZ"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	baseURL := stagingURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/crypto/withdrawals"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	payload := WithdrawalRequestInput{
+		Currency:          "BTC",
+		AmountSubmitted:   002,
+		WithdrawalAddress: "bc1q7adgaawtg8l66zvmsc07r9qfd7lf05mzy5st3h",
+		WithdrawalNetwork: "BTC",
+	}
+
+	errorResponse := new(ErrorResponse)
+	rResponse := new(WithdrawalRequestInput)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(payload).Receive(rResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestCreateWithdrawalRequest] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
+		return
+
+	}
+
+	if err != nil {
+		log.Println("[TestCreateWithdrawalRequest]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Response:[%+v]\n", rResponse)
+	{
+		//run the payment signing and submission
+		p := *rResponse
+		log.Printf("[TestCreateWithdrawalRequest] response: %+v\n", p)
+		time.Sleep(5 * time.Second)
+		p.Commit = 1
+		//sign transaction
+		if p.SignatureRequired == 1 {
+			p.Commit = 0
+			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
+			if err != nil {
+				log.Println("[TestCreateWithdrawalRequest] confirm transaction error:", err)
+				t.Errorf(err.Error())
+
+				return
+			}
+
+			p.TransactionSignature = signedBase64
+		}
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", kp.Address()).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Post(fullPath).BodyJSON(p).Receive(rResponse, errorResponse)
+
+		if err != nil {
+			log.Println("[TestCreateWithdrawalRequest] server 2nd response error:", err.Error())
+
+			t.Errorf("[TestCreateWithdrawalRequest] server second response error: %v", err)
+			return
+
+		}
+		if len(errorResponse.Error) > 0 {
+			log.Println("[TestCreateWithdrawalRequest] server 2nd response error:", *errorResponse)
+			t.Errorf(errorResponse.Error)
+			return
+
+		}
+
+		log.Printf("TestCreateWithdrawalRequest Response:[%+v]\n", p)
+	}
+
+	log.Println("[TestCreateWithdrawalRequest] completed")
 	// time.Sleep(time.Second * 10)
 
 }

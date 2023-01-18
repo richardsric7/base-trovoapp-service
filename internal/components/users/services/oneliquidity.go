@@ -1171,7 +1171,8 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 
 	ca, err := userModels.Currency(wdlInput.Currency).GetCurratedAsset(gc)
 	if err != nil {
-		return
+		log.Printf("[generateWithdrawalXdr] error getting %v property, error: %v\n", wdlInput.Currency, err)
+		return "", err
 	}
 
 	var asset txnbuild.Asset = nil
@@ -1180,10 +1181,11 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 
 	asset = txnbuild.CreditAsset{Code: ca.AssetCode, Issuer: ca.AssetIssuer}
 
-	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, currencyBalance, sourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
+	sourceAccountExists, sourceAccountTrustsAsset, nativeAccountBalance, currencyBalance, sourceAccount, errorSource := network.BlockchainAccountProperties(gc.BantuExpansionClient, wallet.ID, asset)
 
-	if err != nil {
-		return "", err
+	if errorSource != nil {
+		log.Printf("[generateWithdrawalXdr] error withdrawing %v , error: %v\n", wdlInput.Currency, errorSource)
+		return "", errorSource
 	}
 
 	if !sourceAccountExists {
@@ -1213,8 +1215,11 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 		gc.ChannelAccounts <- c
 	}(chanAccount)
 
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
-
+	_, _, _, _, chanSourceAccount, errorChannel := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), txnbuild.NativeAsset{})
+	if errorChannel != nil {
+		log.Printf("[generateWithdrawalXdr] error withdrawing %v , channel account error: %v\n", wdlInput.Currency, errorChannel)
+		return "", errorChannel
+	}
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
 
 	ops = append(ops, &txnbuild.Payment{
@@ -1255,7 +1260,7 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 	}
 
 	if err != nil {
-		log.Println("[generatePendingAssetXdr]error constructing transaction ", err)
+		log.Println("[generateWithdrawalXdr]error constructing transaction ", err)
 		return "", &tErrors.ErrorTemporaryServerError{}
 	}
 
@@ -1264,7 +1269,7 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), chanAccount)
 
 		if err != nil {
-			log.Println("[generatePendingAssetXdr] error signing transaction with channelAccount key ", err)
+			log.Println("[generateWithdrawalXdr] error signing transaction with channelAccount key ", err)
 			return "", &tErrors.ErrorTemporaryServerError{}
 		}
 	}
@@ -1272,7 +1277,14 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 	base64Xdr, err = tx.Base64()
 
 	if err != nil {
+		log.Printf("[generateWithdrawalXdr] error withdrawing %v , extracting base 64 xdr error: %v\n", wdlInput.Currency, err)
+
 		return "", err
+	}
+	if len(base64Xdr) == 0 {
+		log.Printf("[generateWithdrawalXdr] error withdrawing %v , transaction is empty\n", wdlInput.Currency)
+
+		return "", &tErrors.ErrorTemporaryServerError{}
 	}
 
 	return base64Xdr, nil
