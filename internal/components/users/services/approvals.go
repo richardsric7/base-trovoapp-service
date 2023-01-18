@@ -206,6 +206,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	var revokedList, modifiedList, addedList []userModels.WalletPermission
 	var paymentInfo paymentModels.PaymentInfo
 	var marketOffer userModels.MarketOffer
+	var wdlRequest userModels.WithdrawalRequest
 	sendPushNotificationToApprover := true
 	// var swapInfo swapModels.SwapSendInfo
 	// var pendingAssetClaim userModels.PendingAssetToClaim
@@ -276,6 +277,19 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		e = dbTX.Create(&marketOffer).Error
 		if e != nil {
 			log.Printf("[ApproveTransaction]Error saving market offer: %+v\nError: %v\n", marketOffer, err)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+	} else if p.TransactionType == "CRYPTO WITHDRAWAL" {
+		tbyte := []byte(*p.TransactionInfoStr)
+
+		e = json.Unmarshal(tbyte, &marketOffer)
+		if e != nil {
+			log.Println("[ApproveTransaction] error decoding json for modified shared access")
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+		e = dbTX.Create(&wdlRequest).Error
+		if e != nil {
+			log.Printf("[ApproveTransaction]Error saving crypto withdrawal request: %+v\nError: %v\n", wdlRequest, err)
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 	}
@@ -681,6 +695,8 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 		} else {
 
+			dbTX.Commit()
+
 			accessList := wallet.GetPermissionList(gc.DB)
 			notificationList := make(map[string]string)
 			dataPayload := make(map[string]string)
@@ -709,10 +725,9 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 					signerUser.InvalidateUserCache(gc)
 				}
 			}
-
+			return nil
 		}
 	} //end sub
-
 	dbTX.Commit()
 	return nil
 }

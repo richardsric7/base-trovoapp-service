@@ -1265,12 +1265,12 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 		}
 	}
 
-	xdrBase64, err := tx.Base64()
+	base64Xdr, err = tx.Base64()
 
 	if err != nil {
 		return "", err
 	}
 
-	return xdrBase64, nil
+	return base64Xdr, nil
 
 }
