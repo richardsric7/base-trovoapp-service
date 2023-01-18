@@ -3558,6 +3558,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				return
 			}
+
+			
 			if len(wdlInput.TransactionID) == 0 {
 				c.JSON(http.StatusAccepted, wdlInput)
 				return

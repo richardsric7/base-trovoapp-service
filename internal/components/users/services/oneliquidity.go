@@ -207,6 +207,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 			validNetwork = true
 			//check amount if valid
 			if (decimal.NewFromFloat(wdlInput.AmountSubmitted)).LessThan(decimal.RequireFromString(wdn.WithdrawMin)) {
+
 				err = &tErrors.CustomError{
 					Param:      "amount",
 					Err:        "error amount less than minimum allowed",
@@ -252,6 +253,8 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 		log.Printf("[QueueWithdrawalRequest] %v withdrawal for %v generateWithdrawalXdr error:[%v] \n", wdlInput.Currency, wallet.Alias, err)
 		return err
 	}
+	log.Printf("[QueueWithdrawalRequest] %v withdrawal for %v  transaction:[%v]\n", wdlInput.Currency, wallet.Alias, xdrBase64)
+
 	oldTxn := wdlInput.Transaction
 
 	wdlInput.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
@@ -1286,6 +1289,8 @@ func generateWithdrawalXdr(wallet *userModels.UserWallet, wdlInput *userModels.W
 
 		return "", &tErrors.ErrorTemporaryServerError{}
 	}
+
+	log.Printf("[generateWithdrawalXdr] transaction for withdrawing %v, xdrbase64:[%v]\n", wdlInput.Currency, base64Xdr)
 
 	return base64Xdr, nil
 
