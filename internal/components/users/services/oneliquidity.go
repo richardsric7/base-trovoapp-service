@@ -183,18 +183,19 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 	if wallet.NumberOfApprovalsNeeded > 0 && wallet.SharedAccessEnabled == 1 {
 		wdlInput.Multiparty = 1
 	}
-	if wallet.HasViewOnlyAccess(gc) {
+	if wallet.HasViewOnlyAccess(gc) || wallet.SharedAccessEnabled == 0 {
 		wdlInput.SignatureRequired = 1
 	}
-
+	log.Println("[QueueWithdrawalRequest]:", wdlInput)
 	ca, err := userModels.Currency(wdlInput.Currency).GetCurratedAsset(gc)
 	if err != nil {
-		return
+		return err
 	}
 	wdlInput.AmountSubmitted = decimal.NewFromFloat(wdlInput.AmountSubmitted).Truncate(int32(ca.DecimalPlaces)).InexactFloat64()
 
 	//prepare withdrawal figures
 	serviceFee := decimal.RequireFromString(os.Getenv("CRYPTO_WITHDRAWAL_SERVICE_FEE"))
+	wdlInput.WithdrawalServiceFee = serviceFee.InexactFloat64()
 	serviceFeeAmount := (decimal.NewFromFloat(wdlInput.AmountSubmitted).Mul((serviceFee).Div(decimal.NewFromInt(100)))).Truncate(int32(ca.DecimalPlaces))
 	//validate input
 	wdlAmount := (decimal.NewFromFloat(wdlInput.AmountSubmitted).Sub(serviceFeeAmount)).Truncate(int32(ca.DecimalPlaces))
@@ -205,6 +206,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 	for _, wdn = range wdlNetworks {
 		if strings.EqualFold(wdn.Network, wdlInput.WithdrawalNetwork) {
 			validNetwork = true
+			wdlInput.WithdrawalNetworkFee = decimal.RequireFromString(wdn.WithdrawFee).InexactFloat64()
 			//check amount if valid
 			if (decimal.NewFromFloat(wdlInput.AmountSubmitted)).LessThan(decimal.RequireFromString(wdn.WithdrawMin)) {
 
@@ -229,23 +231,24 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 			return
 		}
 	}
+	if err != nil {
+		log.Println("[QueueWithdrawalRequest] error validating request:", err)
+
+		return err
+	}
+
 	if !validNetwork {
+		log.Println("[QueueWithdrawalRequest] error invalid network")
 		err = &tErrors.CustomError{
 			Param:      "network",
 			Err:        "error invalid network",
 			ErrMessage: "Invalid network",
 		}
-
-	}
-
-	if err != nil {
-		log.Println("[QueueWithdrawalRequest] error validating request:", err)
-
-		return
+		return err
 	}
 
 	//save the request
-
+	log.Println("[QueueWithdrawalRequest]:", wdlInput)
 	//prepare xdr
 	xdrBase64, err := generateWithdrawalXdr(wallet, wdlInput, gc)
 	if err != nil {
@@ -260,7 +263,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 	wdlInput.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 
 	wdlInput.Transaction = xdrBase64
-
+	log.Println("[QueueWithdrawalRequest]:", wdlInput)
 	if len(wdlInput.TransactionSignature) == 0 && wdlInput.Commit == 0 {
 		//no signature
 		return nil

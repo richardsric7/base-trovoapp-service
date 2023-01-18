@@ -3516,7 +3516,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			var wdlInput userModels.WithdrawalRequestInput
 
 			data, _ := io.ReadAll(c.Request.Body)
-			log.Println(string(data))
+			// log.Println(string(data))
 			err = json.Unmarshal(data, &wdlInput)
 
 			var invalidJSON tErrors.ErrorInvalidJSON
@@ -3559,7 +3559,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			
+
 			if len(wdlInput.TransactionID) == 0 {
 				c.JSON(http.StatusAccepted, wdlInput)
 				return
