@@ -247,7 +247,11 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 
 	//prepare xdr
 	xdrBase64, err := generateWithdrawalXdr(wallet, wdlInput, gc)
+	if err != nil {
 
+		log.Printf("[QueueWithdrawalRequest] %v withdrawal for %v generateWithdrawalXdr error:[%v] \n", wdlInput.Currency, wallet.Alias, err)
+		return err
+	}
 	oldTxn := wdlInput.Transaction
 
 	wdlInput.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
@@ -256,7 +260,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 
 	if len(wdlInput.TransactionSignature) == 0 && wdlInput.Commit == 0 {
 		//no signature
-		return err
+		return nil
 
 	}
 
