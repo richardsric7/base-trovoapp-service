@@ -275,11 +275,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			log.Println("[ApproveTransaction] error decoding json for modified shared access")
 			return &tErrors.ErrorTemporaryServerError{}
 		}
-		e = dbTX.Create(&marketOffer).Error
-		if e != nil {
-			log.Printf("[ApproveTransaction]Error saving market offer: %+v\nError: %v\n", marketOffer, e)
-			return &tErrors.ErrorTemporaryServerError{}
-		}
+
 	} else if p.TransactionType == "CRYPTO WITHDRAWAL" {
 		tbyte := []byte(*p.TransactionInfoStr)
 
@@ -288,25 +284,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			log.Println("[ApproveTransaction] error decoding json for modified shared access")
 			return &tErrors.ErrorTemporaryServerError{}
 		}
-		wdlRequest = userModels.WithdrawalRequest{
-			ID:                   uuid.NewString(),
-			WalletPublicKey:      wallet.ID,
-			WalletAlias:          wallet.Alias,
-			UserID:               wallet.UserID,
-			Currency:             wdlInput.Currency,
-			AmountSubmitted:      wdlInput.AmountSubmitted,
-			AmountToWithdraw:     wdlInput.AmountToWithdraw,
-			WithdrawalAddress:    wdlInput.WithdrawalAddress,
-			WithdrawalMemo:       wdlInput.WithdrawalMemo,
-			WithdrawalNetwork:    wdlInput.WithdrawalNetwork,
-			WithdrawalServiceFee: wdlInput.WithdrawalServiceFee,
-			WithdrawalNetworkFee: wdlInput.WithdrawalNetworkFee,
-		}
-		e = dbTX.Create(&wdlRequest).Error
-		if e != nil {
-			log.Printf("[ApproveTransaction]Error saving crypto withdrawal request: %+v\nError: %v\n", wdlRequest, e)
-			return &tErrors.ErrorTemporaryServerError{}
-		}
+
 	}
 
 	if len(approvalInfo.TransactionSignature) == 0 {
@@ -643,7 +621,11 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			}
 
 		} else if p.TransactionType == "MAKE MARKET OFFER" {
-
+			// e = dbTX.Create(&marketOffer).Error
+			// if e != nil {
+			// 	log.Printf("[ApproveTransaction]Error saving market offer: %+v\nError: %v\n", marketOffer, e)
+			// 	return &tErrors.ErrorTemporaryServerError{}
+			// }
 			marketOffer.TransactionID = &txnResult.Hash
 			//get and set the offerID
 			{
@@ -666,9 +648,9 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 					marketOffer.BlockchainOfferID = &offerID
 				}
 			}
-			e = dbTX.Save(&marketOffer).Error
+			e = dbTX.Create(&marketOffer).Error
 			if e != nil {
-				log.Printf("[ApproveTransaction]Error saving transactionID on market offer: %+v\nError: %v\n", marketOffer, err)
+				log.Printf("[ApproveTransaction]Error saving market offer: %+v\nError: %v\n", marketOffer, e)
 				// return &tErrors.ErrorTemporaryServerError{}
 			}
 			dbTX.Commit()
@@ -710,12 +692,32 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 		} else if p.TransactionType == "CRYPTO WITHDRAWAL" {
 			wdlInput.TransactionID = txnResult.Hash
-			wdlRequest.TransactionID = wdlInput.TransactionID
-			e = dbTX.Save(&wdlRequest).Error
-			if e != nil {
-				log.Printf("[ApproveTransaction] error saving withdrawal request for transactionID %v on db. error: %v\n", wdlInput.TransactionID, e)
-
+			// wdlRequest.TransactionID = wdlInput.TransactionID
+			wdlRequest = userModels.WithdrawalRequest{
+				ID:                   uuid.NewString(),
+				WalletPublicKey:      wallet.ID,
+				WalletAlias:          wallet.Alias,
+				UserID:               wallet.UserID,
+				Currency:             wdlInput.Currency,
+				AmountSubmitted:      wdlInput.AmountSubmitted,
+				AmountToWithdraw:     wdlInput.AmountToWithdraw,
+				WithdrawalAddress:    wdlInput.WithdrawalAddress,
+				WithdrawalMemo:       wdlInput.WithdrawalMemo,
+				WithdrawalNetwork:    wdlInput.WithdrawalNetwork,
+				WithdrawalServiceFee: wdlInput.WithdrawalServiceFee,
+				WithdrawalNetworkFee: wdlInput.WithdrawalNetworkFee,
+				TransactionID:        wdlInput.TransactionID,
 			}
+			e = dbTX.Create(&wdlRequest).Error
+			if e != nil {
+				log.Printf("[ApproveTransaction]Error saving crypto withdrawal request: %+v\nError: %v\n", wdlRequest, e)
+				// return &tErrors.ErrorTemporaryServerError{}
+			}
+			// e = dbTX.Save(&wdlRequest).Error
+			// if e != nil {
+			// 	log.Printf("[ApproveTransaction] error saving withdrawal request for transactionID %v on db. error: %v\n", wdlInput.TransactionID, e)
+
+			// }
 
 			dbTX.Commit()
 
