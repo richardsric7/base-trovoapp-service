@@ -206,6 +206,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	var revokedList, modifiedList, addedList []userModels.WalletPermission
 	var paymentInfo paymentModels.PaymentInfo
 	var marketOffer userModels.MarketOffer
+	var wdlInput userModels.WithdrawalRequestInput
 	var wdlRequest userModels.WithdrawalRequest
 	sendPushNotificationToApprover := true
 	// var swapInfo swapModels.SwapSendInfo
@@ -282,10 +283,24 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	} else if p.TransactionType == "CRYPTO WITHDRAWAL" {
 		tbyte := []byte(*p.TransactionInfoStr)
 
-		e = json.Unmarshal(tbyte, &wdlRequest)
+		e = json.Unmarshal(tbyte, &wdlInput)
 		if e != nil {
 			log.Println("[ApproveTransaction] error decoding json for modified shared access")
 			return &tErrors.ErrorTemporaryServerError{}
+		}
+		wdlRequest = userModels.WithdrawalRequest{
+			ID:                   uuid.NewString(),
+			WalletPublicKey:      wallet.ID,
+			WalletAlias:          wallet.Alias,
+			UserID:               wallet.UserID,
+			Currency:             wdlInput.Currency,
+			AmountSubmitted:      wdlInput.AmountSubmitted,
+			AmountToWithdraw:     wdlInput.AmountToWithdraw,
+			WithdrawalAddress:    wdlInput.WithdrawalAddress,
+			WithdrawalMemo:       wdlInput.WithdrawalMemo,
+			WithdrawalNetwork:    wdlInput.WithdrawalNetwork,
+			WithdrawalServiceFee: wdlInput.WithdrawalServiceFee,
+			WithdrawalNetworkFee: wdlInput.WithdrawalNetworkFee,
 		}
 		e = dbTX.Create(&wdlRequest).Error
 		if e != nil {
@@ -691,6 +706,47 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 				signerUser.InvalidateUserCache(gc)
 			}
 
+			return nil
+
+		} else if p.TransactionType == "CRYPTO WITHDRAWAL" {
+			wdlInput.TransactionID = txnResult.Hash
+			wdlRequest.TransactionID = wdlInput.TransactionID
+			e = dbTX.Save(&wdlRequest).Error
+			if e != nil {
+				log.Printf("[ApproveTransaction] error saving withdrawal request for transactionID %v on db. error: %v\n", wdlInput.TransactionID, e)
+
+			}
+
+			dbTX.Commit()
+
+			accessList := wallet.GetPermissionList(gc.DB)
+			notificationList := make(map[string]string)
+			dataPayload := make(map[string]string)
+			dataPayload["route"] = "pendingApproval"
+			for _, v := range accessList {
+				u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+				if e != nil {
+					continue
+				}
+				if v.TargetUsername == signerUser.Username {
+					sendPushNotificationToApprover = false
+				}
+				if u.PushNotificationToken != nil {
+
+					if _, ok := notificationList[*u.PushNotificationToken]; ok {
+						continue
+					}
+
+					u.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					notificationList[*u.PushNotificationToken] = v.TargetUsername
+					u.InvalidateUserCache(gc)
+				}
+				if sendPushNotificationToApprover {
+
+					signerUser.SendPushMessage(fmt.Sprintf("%v completed the %v approval on wallet %v!", signerUser.Username, p.TransactionType, wallet.Alias), fmt.Sprintf("%v completed the %v request:\n%v", signerUser.Username, p.TransactionType, p.Description), "", dataPayload, gc)
+					signerUser.InvalidateUserCache(gc)
+				}
+			}
 			return nil
 
 		} else {
