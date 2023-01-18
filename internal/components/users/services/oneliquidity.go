@@ -210,7 +210,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 	var wdn userModels.WithdrawalNetwork
 	for _, wdn = range wdlNetworks {
 		if validNetwork {
-			continue
+			break
 		}
 		if strings.EqualFold(wdn.Network, wdlInput.WithdrawalNetwork) {
 			validNetwork = true
@@ -223,7 +223,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 					Err:        "error amount less than minimum allowed",
 					ErrMessage: fmt.Sprintf("Amount is less than minimum %s allowed", wdn.WithdrawMin),
 				}
-				continue
+				break
 			}
 
 			//check amount if valid
@@ -233,10 +233,10 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 					Err:        "error amount greater than maximum allowed",
 					ErrMessage: fmt.Sprintf("Amount is greater than maximum %s allowed", wdn.WithdrawMax),
 				}
-				continue
+				break
 			}
 			//exit loop
-
+			break
 		}
 	}
 	if err != nil {
@@ -383,6 +383,9 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 	var wdn userModels.WithdrawalNetwork
 	for _, wdn = range wdlNetworks {
 		if strings.EqualFold(wdn.Network, wdlInput.WithdrawalNetwork) {
+			if validNetwork {
+				break
+			}
 			validNetwork = true
 			//check amount if valid
 			if (decimal.NewFromFloat(wdlInput.AmountSubmitted)).LessThan(decimal.RequireFromString(wdn.WithdrawMin)) {
@@ -391,7 +394,7 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 					Err:        "error amount less than minimum allowed",
 					ErrMessage: fmt.Sprintf("Amount is less than minimum %s allowed", wdn.WithdrawMin),
 				}
-				return
+				break
 			}
 
 			//check amount if valid
@@ -401,10 +404,10 @@ func SubmitWithdrawalRequest(wallet *userModels.UserWallet, wdlInput userModels.
 					Err:        "error amount greater than maximum allowed",
 					ErrMessage: fmt.Sprintf("Amount is greater than maximum %s allowed", wdn.WithdrawMax),
 				}
-				return
+				break
 			}
 			//exit loop
-			return
+			break
 		}
 	}
 	if !validNetwork {
