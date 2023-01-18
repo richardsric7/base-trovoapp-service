@@ -282,7 +282,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 	} else if p.TransactionType == "CRYPTO WITHDRAWAL" {
 		tbyte := []byte(*p.TransactionInfoStr)
 
-		e = json.Unmarshal(tbyte, &marketOffer)
+		e = json.Unmarshal(tbyte, &wdlRequest)
 		if e != nil {
 			log.Println("[ApproveTransaction] error decoding json for modified shared access")
 			return &tErrors.ErrorTemporaryServerError{}
