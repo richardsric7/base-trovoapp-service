@@ -3559,7 +3559,6 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-
 			if len(wdlInput.TransactionID) == 0 {
 				c.JSON(http.StatusAccepted, wdlInput)
 				return
@@ -3704,7 +3703,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 					dataPayload := make(map[string]string)
 					dataPayload["route"] = "pendingApproval"
 					if wdlInput.TransactionID == "PENDING_AUTH" {
-						u.SendPushMessage(fmt.Sprintf("%v %v withdrawal request submitted on %v!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("Request %v", wdlInput.ReturnedDescription), "", dataPayload, gc)
+						u.SendPushMessage(fmt.Sprintf("%v %v withdrawal request submitted on %v!", wdlInput.AmountSubmitted, wdlInput.Currency, wallet.Alias), fmt.Sprintf("Request:\n %v", wdlInput.ReturnedDescription), "", dataPayload, gc)
 					}
 
 				}

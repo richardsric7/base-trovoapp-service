@@ -336,7 +336,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 		log.Printf("[QueueWithdrawalRequest]shared access with approver permission enabled for %v \n", wallet.Alias)
 		id := uuid.NewString()
 
-		description := fmt.Sprintf("Withdraw %v (%v),\n Amount: %v,\n Withdrawal Address: %v,\n Service Fee: %v,\n Network Fee: %v", wdlInput.Currency, wdlInput.WithdrawalNetwork, wdlInput.AmountSubmitted, wdlInput.WithdrawalAddress, serviceFee.String()+"%", wdlInput.WithdrawalNetworkFee)
+		description := fmt.Sprintf("Withdraw %v (%v),\n Amount: %v,\n Withdrawal Address: %v,\n Service Fee: %v,\n Network Fee: %v %v", wdlInput.Currency, wdlInput.WithdrawalNetwork, wdlInput.AmountSubmitted, wdlInput.WithdrawalAddress, serviceFee.String()+"%", wdlInput.WithdrawalNetworkFee, wdlInput.Currency)
 		transactionByte, _ := json.Marshal(*wdlInput)
 		transactionStr := string(transactionByte)
 		pendingAuth := userModels.PendingAuth{

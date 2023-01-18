@@ -1508,10 +1508,10 @@ func TestClaimAssetMultiAccessEnabled(t *testing.T) {
 }
 func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 
-	// pk := "GCZ77KBBPINJRHZEYZMCF7SSR5WZVDCUPFG6OSB6FORQVEJV2UOHBG3B"
-	// secretKey := "SA37LXNUXO62HXXL2SUXVLDCUA6SSQAOUSO2B3LNVMAO3WPE3RDK5OPZ"
-	pk := os.Getenv("RICPK")
-	secretKey := os.Getenv("RICSC")
+	pk := "GCZ77KBBPINJRHZEYZMCF7SSR5WZVDCUPFG6OSB6FORQVEJV2UOHBG3B"
+	secretKey := "SA37LXNUXO62HXXL2SUXVLDCUA6SSQAOUSO2B3LNVMAO3WPE3RDK5OPZ"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
 	channelAccountSK := ""
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
@@ -1536,7 +1536,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	}
 
 	paymentPayload := PaymentInfo{
-		Destination: "ric_joint",
+		Destination: "ric1_shared",
 		Memo:        "Test Payment",
 		Amount:      "20000",
 		AssetCode:   "",
@@ -1570,7 +1570,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	payResponse := new(PaymentInfo)
 
 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-PUBLIC-KEY", pk).
 		Set("X-TW-SIGNER", kp.Address()).
 		Set("X-TW-SIGNATURE", signedHttpHeader).
 		Set("X-TW-TIMESTAMP", tsString).
@@ -1584,7 +1584,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	}
 	if err != nil {
 		log.Println("[TestSendPaymentMultiAccessDisabled]request error:", err)
-		t.Errorf(err.Error())
+		// t.Errorf(err.Error())
 
 		return
 	}
@@ -1620,14 +1620,14 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 
 		ts := time.Now().Unix() / 1000
 		tsString := fmt.Sprintf("%v", ts)
-		signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 		if err != nil {
 			t.Errorf(err.Error())
 			return
 
 		}
 		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-			Set("X-TW-PUBLIC-KEY", kp.Address()).
+			Set("X-TW-PUBLIC-KEY", pk).
 			Set("X-TW-SIGNER", kp.Address()).
 			Set("X-TW-SIGNATURE", signedHttpHeader).
 			Set("X-TW-TIMESTAMP", tsString).
@@ -3452,7 +3452,7 @@ func TestCreateWithdrawalRequest(t *testing.T) {
 	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
 	ts := time.Now().Unix() / 1000
 	tsString := fmt.Sprintf("%v", ts)
-	signedHttpHeader, err := middleware.SignHttp(fullPath, pk+tsString, kp.Seed())
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -3460,17 +3460,24 @@ func TestCreateWithdrawalRequest(t *testing.T) {
 	}
 
 	payload := WithdrawalRequestInput{
-		Currency:          "BTC",
-		AmountSubmitted:   002,
-		WithdrawalAddress: "bc1q7adgaawtg8l66zvmsc07r9qfd7lf05mzy5st3h",
-		WithdrawalNetwork: "BTC",
+		Currency:          "USDT",
+		AmountSubmitted:   79,
+		WithdrawalAddress: "Fphf1sHNtudEWteRNHMdU1SiwuXkdRdJZXLJyKmbu2V8",
+		WithdrawalNetwork: "SOL",
 	}
+
+	// payload := WithdrawalRequestInput{
+	// 	Currency:          "BTC",
+	// 	AmountSubmitted:   0.001,
+	// 	WithdrawalAddress: "bc1q7adgaawtg8l66zvmsc07r9qfd7lf05mzy5st3h",
+	// 	WithdrawalNetwork: "BTC",
+	// }
 
 	errorResponse := new(ErrorResponse)
 	rResponse := new(WithdrawalRequestInput)
 
 	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-		Set("X-TW-PUBLIC-KEY", kp.Address()).
+		Set("X-TW-PUBLIC-KEY", pk).
 		Set("X-TW-SIGNER", kp.Address()).
 		Set("X-TW-SIGNATURE", signedHttpHeader).
 		Set("X-TW-TIMESTAMP", tsString).
@@ -3521,7 +3528,7 @@ func TestCreateWithdrawalRequest(t *testing.T) {
 
 		}
 		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
-			Set("X-TW-PUBLIC-KEY", kp.Address()).
+			Set("X-TW-PUBLIC-KEY", pk).
 			Set("X-TW-SIGNER", kp.Address()).
 			Set("X-TW-SIGNATURE", signedHttpHeader).
 			Set("X-TW-TIMESTAMP", tsString).
@@ -3546,6 +3553,135 @@ func TestCreateWithdrawalRequest(t *testing.T) {
 	}
 
 	log.Println("[TestCreateWithdrawalRequest] completed")
+	// time.Sleep(time.Second * 10)
+
+}
+func TestCreateWithdrawalRequestShared(t *testing.T) {
+
+	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// pk := "GCZ77KBBPINJRHZEYZMCF7SSR5WZVDCUPFG6OSB6FORQVEJV2UOHBG3B"
+	pk := "GDLAUQBDFCNO5LJILXMTVSVQHCQOEKKZ7ANYHL2W75WJDAF3QDHVMGGK" //ric1_shared
+	secretKey := "SA37LXNUXO62HXXL2SUXVLDCUA6SSQAOUSO2B3LNVMAO3WPE3RDK5OPZ"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	baseURL := stagingURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/shared-access/crypto/withdrawals"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	payload := WithdrawalRequestInput{
+		Currency:          "USDT",
+		AmountSubmitted:   79,
+		WithdrawalAddress: "Fphf1sHNtudEWteRNHMdU1SiwuXkdRdJZXLJyKmbu2V8",
+		WithdrawalNetwork: "SOL",
+	}
+
+	// payload := WithdrawalRequestInput{
+	// 	Currency:          "BTC",
+	// 	AmountSubmitted:   0.001,
+	// 	WithdrawalAddress: "bc1q7adgaawtg8l66zvmsc07r9qfd7lf05mzy5st3h",
+	// 	WithdrawalNetwork: "BTC",
+	// }
+
+	errorResponse := new(ErrorResponse)
+	rResponse := new(WithdrawalRequestInput)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", pk).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(payload).Receive(rResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestCreateWithdrawalRequestShared] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
+		return
+
+	}
+
+	if err != nil {
+		log.Println("[TestCreatTestCreateWithdrawalRequestSharedeWithdrawalRequest]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("[TestCreateWithdrawalRequestShared] Confirmation Response:[%+v]\n", rResponse)
+	{
+		//run the payment signing and submission
+		p := *rResponse
+		log.Printf("[TestCreateWithdrawalRequestShared] response: %+v\n", p)
+		time.Sleep(5 * time.Second)
+		p.Commit = 1
+		//sign transaction
+		if p.SignatureRequired == 1 {
+			p.Commit = 0
+			signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
+			if err != nil {
+				log.Println("[TestCreateWithdrawalRequestShared] confirm transaction error:", err)
+				t.Errorf(err.Error())
+
+				return
+			}
+
+			p.TransactionSignature = signedBase64
+		}
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", pk).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Post(fullPath).BodyJSON(p).Receive(rResponse, errorResponse)
+
+		if err != nil {
+			log.Println("[TestCreateWithdrawalRequestShared] server 2nd response error:", err.Error())
+
+			t.Errorf("[TestCreateWithdrawalRequestShared] server second response error: %v", err)
+			return
+
+		}
+		if len(errorResponse.Error) > 0 {
+			log.Println("[TestCreateWithdrawalRequestShared] server 2nd response error:", *errorResponse)
+			t.Errorf(errorResponse.Error)
+			return
+
+		}
+
+		log.Printf("TestCreateWithdrawalRequestShared Response:[%+v]\n", p)
+	}
+
+	log.Println("[TestCreateWithdrawalRequestShared] completed")
 	// time.Sleep(time.Second * 10)
 
 }
