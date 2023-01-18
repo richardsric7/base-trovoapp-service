@@ -209,6 +209,9 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 	validNetwork := false
 	var wdn userModels.WithdrawalNetwork
 	for _, wdn = range wdlNetworks {
+		if validNetwork {
+			continue
+		}
 		if strings.EqualFold(wdn.Network, wdlInput.WithdrawalNetwork) {
 			validNetwork = true
 			wdlInput.WithdrawalNetworkFee = decimal.RequireFromString(wdn.WithdrawFee).InexactFloat64()
@@ -220,7 +223,7 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 					Err:        "error amount less than minimum allowed",
 					ErrMessage: fmt.Sprintf("Amount is less than minimum %s allowed", wdn.WithdrawMin),
 				}
-				return
+				continue
 			}
 
 			//check amount if valid
@@ -230,10 +233,10 @@ func QueueWithdrawalRequest(signerUser *userModels.User, wallet *userModels.User
 					Err:        "error amount greater than maximum allowed",
 					ErrMessage: fmt.Sprintf("Amount is greater than maximum %s allowed", wdn.WithdrawMax),
 				}
-				return
+				continue
 			}
 			//exit loop
-			return
+
 		}
 	}
 	if err != nil {
