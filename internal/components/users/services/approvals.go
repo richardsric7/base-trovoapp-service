@@ -276,7 +276,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		}
 		e = dbTX.Create(&marketOffer).Error
 		if e != nil {
-			log.Printf("[ApproveTransaction]Error saving market offer: %+v\nError: %v\n", marketOffer, err)
+			log.Printf("[ApproveTransaction]Error saving market offer: %+v\nError: %v\n", marketOffer, e)
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 	} else if p.TransactionType == "CRYPTO WITHDRAWAL" {
@@ -289,7 +289,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		}
 		e = dbTX.Create(&wdlRequest).Error
 		if e != nil {
-			log.Printf("[ApproveTransaction]Error saving crypto withdrawal request: %+v\nError: %v\n", wdlRequest, err)
+			log.Printf("[ApproveTransaction]Error saving crypto withdrawal request: %+v\nError: %v\n", wdlRequest, e)
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 	}
