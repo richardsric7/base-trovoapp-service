@@ -356,29 +356,33 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             for (var i = 0; i < claimedAssets.length; i++) ...[
               GestureDetector(
                 onTap: () {
-                  appState.setActiveWallet = wallets!
-                      .firstWhere((wallet) => wallet.publicKey == activeWallet);
+                  // appState.setActiveWallet = wallets!
+                  //     .firstWhere((wallet) => wallet.publicKey == activeWallet);
 
-                  appState.viewData = {
-                    // since the original asset object
-                    // is immutable I create a new assetObj and
-                    // copy all the data into it so that
-                    // I'll be able to change the data
-                    AssetDetailsViewPageConfig.key: {
-                      'assetCode': claimedAssets[i]['assetCode'],
-                      'assetIssuer': claimedAssets[i]['assetIssuer'],
-                      'amount': claimedAssets[i]['amount'],
-                      'usdPrice': claimedAssets[i]['usdPrice'],
-                      'qrCode': claimedAssets[i]['qrCode'],
-                      'imageUrl': claimedAssets[i]['imageUrl'],
-                      'cryptoWalletDepositAddresses': claimedAssets[i]
-                          ['cryptoWalletDepositAddresses'],
-                    }
-                  };
-                  appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: AssetDetailsViewPageConfig,
-                  );
+                  // appState.viewData = {
+                  //   // since the original asset object
+                  //   // is immutable I create a new assetObj and
+                  //   // copy all the data into it so that
+                  //   // I'll be able to change the data
+                  //   AssetDetailsViewPageConfig.key: {
+                  //     'assetCode': claimedAssets[i]['assetCode'],
+                  //     'assetIssuer': claimedAssets[i]['assetIssuer'],
+                  //     'amount': claimedAssets[i]['amount'],
+                  //     'usdPrice': claimedAssets[i]['usdPrice'],
+                  //     'qrCode': claimedAssets[i]['qrCode'],
+                  //     'imageUrl': claimedAssets[i]['imageUrl'],
+                  //     'cryptoWalletDepositAddresses': claimedAssets[i]
+                  //         ['cryptoWalletDepositAddresses'],
+                  //   }
+                  // };
+                  // appState.currentAction = PageAction(
+                  //   state: PageState.addPage,
+                  //   page: AssetDetailsViewPageConfig,
+                  // );
+                  print(
+                      '=========> ${appState.userInfo!.sharedWallets![1].claimedAssets!.length}');
+                  print(
+                      '=========> ${appState.userInfo!.sharedWallets![1].unClaimedAssets!.length}');
                 },
                 child: tiles(claimedAssets[i], activeWalletIndex),
               ),

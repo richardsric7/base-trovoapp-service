@@ -83,28 +83,28 @@ class _SplashScreenState extends State<SplashScreen>
 
       if (!appState.appIsOpen) appState.initFirebaseListener(context);
 
-      print(
-          'first time here: ${await StoreData().storeGetData('isFirstTime')}');
-
       if (appState.isFirstTime) {
-        print('first time here indeed: ${appState.isFirstTime}');
-
         Timer.periodic(Duration(milliseconds: 200), (timer) {
           if (timerIsDone) {
-            print('timer done');
             timer.cancel();
             appState.setSplashFinished();
             appState.currentAction = PageAction(
                 state: PageState.replaceAll, page: OnboardingPageConfig);
-          } else {
-            print('timer not done');
           }
         });
       } else {
         PackageInfo packageInfo = await PackageInfo.fromPlatform();
         appState.appVersion = packageInfo.version;
         var data = await StoreData().storeGetData('userInfo');
-        appState.setUser = UserInfo().deserializeJson(data);
+        var sharedWallets =
+            await StoreData().storeGetData('walletsSharedWithUser');
+        var assetBalances = await StoreData().storeGetData('assetBalances');
+        appState.setUser = UserInfo().deserializeJson(
+          data,
+          sharedWallets,
+          assetBalances,
+        );
+
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');
         appState.setPassword = await StoreData().storeGetData('password');
         appState.biometricEnabled =
@@ -117,8 +117,6 @@ class _SplashScreenState extends State<SplashScreen>
             await StoreData().storeGetData('defaultAssets');
         appState.setNFTs = await StoreData().storeGetData('nfts');
         appState.setFiatRate = await StoreData().storeGetData('fiatRate') ?? {};
-        appState.setSharedWallets =
-            await StoreData().storeGetData('walletsSharedWithUser');
         appState.introducedSharedAccess =
             await StoreData().storeGetData('introducedSharedAccess') ?? false;
         appState.sethideWalletList =
@@ -136,8 +134,6 @@ class _SplashScreenState extends State<SplashScreen>
         // check if app was not already open
         // if app was not already open then move to the next view
         // else wait for the dynamiclink handler to take over
-        print(
-            '----------------------------------------appIsOpen = $initialDynamicLink');
         Timer.periodic(Duration(milliseconds: 200), (timer) {
           if (timerIsDone) {
             print('timer done');
@@ -151,8 +147,6 @@ class _SplashScreenState extends State<SplashScreen>
               appState.currentAction = PageAction(
                   state: PageState.replaceAll, page: LoginPageConfig);
             }
-          } else {
-            print('timer not done');
           }
         });
       }

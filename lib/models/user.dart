@@ -24,6 +24,7 @@ class UserInfo {
   int? verified;
   int? suspended;
   List<Wallet>? wallets;
+  List<Wallet>? sharedWallets;
   List<Map<String, dynamic>>? curatedSwapList;
 
   UserInfo({
@@ -48,6 +49,7 @@ class UserInfo {
     this.verified,
     this.suspended,
     this.wallets,
+    this.sharedWallets,
     this.hasSecurityQuestions,
     this.accountRecoveryEnabled,
     this.curatedSwapList,
@@ -81,33 +83,33 @@ class UserInfo {
     };
   }
 
-  deserializeJson(Map<String, dynamic> m) {
+  deserializeJson(Map<String, dynamic> m, sharedWallets, assetBalances) {
     return UserInfo(
-      username: m['username'],
-      firstName: m['firstName'],
-      lastName: m['lastName'],
-      email: m['email'],
-      mobile: m['mobile'],
-      mobileVerified: m['mobileVerified'],
-      hasSecurityQuestions: m['hasSecurityQuestions'],
-      accountRecoveryEnabled: m['accountRecoveryEnabled'],
-      countryCode: m['countryCode'],
-      referrer: m['referrer'],
-      referralLink: m['referralLink'],
-      referralQRCode: m['referralQRCode'],
-      publicKey: m['publicKey'],
-      corporate: m['corporate'],
-      pushNotificationToken: m['pushNotificationToken'],
-      imageThumbnailURL: m['imageThumbnailURL'],
-      membershipType: m['membershipType'],
-      membershipExpiry: DateTime.tryParse(m['membershipExpiry']),
-      kycVerified: m['kycVerified'],
-      walletRecoveryEnabled: m['walletRecoveryEnabled'],
-      verified: m['verified'],
-      suspended: m['suspended'],
-      curatedSwapList: deserializeSwapList(m),
-      wallets: deserializeWallets(m),
-    );
+        username: m['username'],
+        firstName: m['firstName'],
+        lastName: m['lastName'],
+        email: m['email'],
+        mobile: m['mobile'],
+        mobileVerified: m['mobileVerified'],
+        hasSecurityQuestions: m['hasSecurityQuestions'],
+        accountRecoveryEnabled: m['accountRecoveryEnabled'],
+        countryCode: m['countryCode'],
+        referrer: m['referrer'],
+        referralLink: m['referralLink'],
+        referralQRCode: m['referralQRCode'],
+        publicKey: m['publicKey'],
+        corporate: m['corporate'],
+        pushNotificationToken: m['pushNotificationToken'],
+        imageThumbnailURL: m['imageThumbnailURL'],
+        membershipType: m['membershipType'],
+        membershipExpiry: DateTime.tryParse(m['membershipExpiry']),
+        kycVerified: m['kycVerified'],
+        walletRecoveryEnabled: m['walletRecoveryEnabled'],
+        verified: m['verified'],
+        suspended: m['suspended'],
+        curatedSwapList: deserializeSwapList(m),
+        wallets: deserializeWallets(m, assetBalances),
+        sharedWallets: deserializeSharedWallets(sharedWallets));
   }
 
   List<Map<String, dynamic>> deserializeSwapList(Map<String, dynamic> m) {
@@ -136,12 +138,12 @@ class UserInfo {
     return list;
   }
 
-  List<Wallet> deserializeWallets(Map<String, dynamic> m) {
+  List<Wallet> deserializeWallets(Map<String, dynamic> m, assetBalances) {
     var userWallets = m['userWallets'];
     var myWallets = <Wallet>[];
     if (userWallets != null) {
       for (var i = 0; i < userWallets.length; i++) {
-        var wallet = Wallet().deserializeJson(userWallets[i]);
+        var wallet = Wallet().deserializeJson(userWallets[i], assetBalances);
         if (wallet.primaryWallet == 1) {
           // promote the primary wallet to appear first on the list
           myWallets.insert(0, wallet);
@@ -149,6 +151,15 @@ class UserInfo {
         }
         myWallets.add(wallet);
       }
+    }
+    return myWallets;
+  }
+
+  List<Wallet> deserializeSharedWallets(m) {
+    var myWallets = <Wallet>[];
+    for (var i = 0; i < m.length; i++) {
+      var wallet = Wallet().deserializeSharedJson(m[i]);
+      myWallets.add(wallet);
     }
     return myWallets;
   }

@@ -7,11 +7,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
@@ -350,7 +348,15 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       return 'Value must be greater than 0';
     }
 
-    if (double.tryParse(value)! > (double.parse(viewData['amount']) - 6)) {
+    if (double.tryParse(value)! > (double.parse(viewData['amount']))) {
+      setState(() {
+        amountError = true;
+      });
+      return 'You don\'t have sufficient balance';
+    }
+
+    if ((getAssetCode(viewData['assetCode']) == 'XBN') &&
+        double.tryParse(value)! > (double.parse(viewData['amount']) - 7)) {
       setState(() {
         amountError = true;
       });
