@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/Models/User.dart';
+import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
+import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/user.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/widgets/WalletSlides.dart';
-import 'package:trovo_wallet/widgets/topDropdowns.dart';
+import 'package:trovo_wallet/widgets/wallet_slides.dart';
+import 'package:trovo_wallet/widgets/top_drop_downs.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -308,6 +308,28 @@ class _AssetDetailsState extends State<AssetDetails>
               page: SendAssetViewPageConfig,
             );
           }),
+          if (curatedAsset.isNotEmpty &&
+              (curatedAsset['withdrawable'] == 1 ||
+                  curatedAsset['generateDepositAddress'] == 1)) ...[
+            actionButton(
+                "assets/images/dep-with-button.png", 'Deposit/Withdraw', () {
+              appState.viewData![WrappedAssetViewPageConfig.key] = curatedAsset;
+              appState.viewData![WrappedAssetViewPageConfig.key]['usdPrice'] =
+                  activeAsset['usdPrice'];
+              appState.viewData![WrappedAssetViewPageConfig.key]['amount'] =
+                  activeAsset['amount'];
+              appState.viewData![WrappedAssetViewPageConfig.key]
+                      ['cryptoWalletDepositAddresses'] =
+                  activeAsset['cryptoWalletDepositAddresses'];
+              appState.viewData![WrappedAssetViewPageConfig.key]['walletInfo'] =
+                  activeWallet;
+
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: WrappedAssetViewPageConfig,
+              );
+            }),
+          ],
           actionButton("assets/images/receive.png", 'Receive', () {
             appState.viewData![ReceiveAssetViewPageConfig.key] =
                 appState.viewData![AssetDetailsViewPageConfig.key];
@@ -317,18 +339,6 @@ class _AssetDetailsState extends State<AssetDetails>
             appState.currentAction = PageAction(
               state: PageState.addPage,
               page: ReceiveAssetViewPageConfig,
-            );
-          }),
-          actionButton("assets/images/dep-with-button.png", 'Deposit/Withdraw',
-              () {
-            appState.viewData![WrappedAssetViewPageConfig.key] =
-                appState.viewData![AssetDetailsViewPageConfig.key];
-            appState.viewData![WrappedAssetViewPageConfig.key]['walletInfo'] =
-                activeWallet;
-
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: WrappedAssetViewPageConfig,
             );
           }),
         ],
@@ -341,7 +351,7 @@ class _AssetDetailsState extends State<AssetDetails>
       onTap: action,
       child: Container(
         width: width / 3.9,
-        height: height / 10,
+        height: height / 9,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: 8.0,
@@ -407,13 +417,13 @@ class _AssetDetailsState extends State<AssetDetails>
                       width: width / 1.3,
                       child: Image.network(
                         activeAsset["imageUrl"],
-                        height: 80,
-                        width: 80,
+                        height: 50,
+                        width: 50,
                         errorBuilder: (context, error, stackTrace) {
                           return Image.asset(
                             'assets/images/trovo.png',
-                            height: 80,
-                            width: 80,
+                            height: 50,
+                            width: 50,
                           );
                         },
                       ),
@@ -596,13 +606,13 @@ class _AssetDetailsState extends State<AssetDetails>
                     width: width / 1.3,
                     child: Image.network(
                       activeAsset["imageUrl"],
-                      height: 80,
-                      width: 80,
+                      height: 50,
+                      width: 50,
                       errorBuilder: (context, error, stackTrace) {
                         return Image.asset(
                           'assets/images/trovo.png',
-                          height: 80,
-                          width: 80,
+                          height: 50,
+                          width: 50,
                         );
                       },
                     ),

@@ -2,17 +2,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/Custtom_app_bar/custtomappbar.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/Models/User.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
+import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
+import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
+import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/user.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
-import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -20,7 +20,6 @@ import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
@@ -36,13 +35,13 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
   late ColorNotifier notifier;
   late DataProvider appState;
   late UserInfo userInfo;
-  late Map sendingWallet;
   String password = '';
   final formKey = GlobalKey<FormState>();
   final Authenticator _authenticator = Authenticator();
   late Account primaryWalletKeyPair;
   var viewData;
   bool isSharedWallet = false;
+  var transactionInfo = {};
 
   @override
   void initState() {
@@ -56,7 +55,9 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     viewData = appState.viewData![ConfirmWithdrawViewPageConfig.key];
-    print('viewData: $viewData');
+    isSharedWallet = viewData['walletInfo']['sharedAccessEnabled'] == 1;
+    transactionInfo = viewData['data'];
+    print('viewData here ======> $isSharedWallet');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -118,28 +119,12 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                             height: height / 50,
                           ),
                           Text(
-                            '100.3500 USDC',
+                            '${transactionInfo['amountSubmitted']} ${transactionInfo['currency']}',
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
                                 color: notifier.getbluewhitecolor,
                                 fontFamily: fontsemibold),
-                          ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
-                          Container(
-                            width: width / 1.3,
-                            child: Text(
-                              '\$100.35',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w400,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody,
-                              ),
-                            ),
                           ),
                           SizedBox(
                             height: height / 50.0,
@@ -170,15 +155,11 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
               SizedBox(
                 height: height / 50,
               ),
-              showFromAddress(),
+              showNetwork(),
               SizedBox(
                 height: height / 50,
               ),
               showFee(),
-              SizedBox(
-                height: height / 50,
-              ),
-              showTotal(),
               SizedBox(
                 height: height / 20,
               ),
@@ -269,7 +250,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
               Container(
                 width: width / 1.5,
                 child: Text(
-                  'TRC200494RTYU6754FCXV35689012H1LOP654BVCKHR2Y',
+                  '${transactionInfo['withdrawalAddress']}',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     color: notifier.getbluewhitecolor,
@@ -285,75 +266,11 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     );
   }
 
-  Widget showFromAddress() {
-    return Column(
-      children: [
-        Text(
-          'From',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            color: notifier.getbluewhitecolor,
-            fontFamily: fontbody,
-          ),
-        ),
-        SizedBox(
-          height: height / 50,
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-              color: notifier.isDark
-                  ? darktilewhitecolor
-                  : notifier.getaddsubwalletgrey,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (viewData["imageUrl"].toString().isNotEmpty) ...[
-                    Image.network(
-                      viewData["imageUrl"],
-                      height: 25,
-                      width: 25,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Image.asset(
-                          'assets/images/trovo.png',
-                          height: 25,
-                          width: 25,
-                        );
-                      },
-                    ),
-                  ],
-                  SizedBox(
-                    width: width / 50.0,
-                  ),
-                  Text(
-                    getAssetCode(viewData['assetCode']),
-                    style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget showFee() {
     return Column(
       children: [
         Text(
-          'Fee (1%)',
+          'Fees',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
@@ -375,19 +292,26 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                   : notifier.getaddsubwalletgrey,
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
               child: Column(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '0.2000 ${getAssetCode(viewData['assetCode'])}',
+                        'Service fee:',
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold),
+                      ),
+                      Text(
+                        '${transactionInfo['withdrawalServiceFee']} ${transactionInfo['currency']}',
+                        style: TextStyle(
+                            fontSize: 15,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody),
                       ),
                     ],
                   ),
@@ -395,10 +319,17 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                     height: height / 90,
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '\$0.20',
+                        'Network fee:',
+                        style: TextStyle(
+                            fontSize: 15,
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontsemibold),
+                      ),
+                      Text(
+                        '${transactionInfo['withdrawalNetworkFee']} ${transactionInfo['currency']}',
                         style: TextStyle(
                             fontSize: 15,
                             color: notifier.getbluewhitecolor,
@@ -415,11 +346,11 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     );
   }
 
-  Widget showTotal() {
+  Widget showNetwork() {
     return Column(
       children: [
         Text(
-          'Total',
+          'Withdrawal Network',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
@@ -448,27 +379,12 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        '100.5500 ${getAssetCode(viewData['assetCode'])}',
+                        '${transactionInfo['withdrawalNetworkName']} (${transactionInfo['withdrawalNetwork']})',
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: height / 90,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '\$100.55',
-                        style: TextStyle(
-                            fontSize: 15,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody),
                       ),
                     ],
                   ),
@@ -487,11 +403,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     }
 
     if (password == appState.password!) {
-      // sendDataToServer();
-      appState.currentAction = PageAction(
-        state: PageState.addPage,
-        page: TransactionStatusViewPageConfig,
-      );
+      sendDataToServer();
     } else {
       popup(context,
           title: LanguageEn.oops, message: LanguageEn.invalidpassword);
@@ -502,16 +414,11 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     try {
       bool result = await _authenticator.authenticateMe();
       if (result) {
-        // sendDataToServer();
+        sendDataToServer();
         // aparently we need the code below to make the
         // screen updata to show loader
         // after authorizing with biometrics
         setState(() {});
-
-        appState.currentAction = PageAction(
-          state: PageState.addPage,
-          page: TransactionStatusViewPageConfig,
-        );
       }
     } on PlatformException catch (e) {
       if (e.code == auth_error.notEnrolled ||
@@ -534,74 +441,64 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
       showLoader(context);
 
       if (isSharedWallet) {
-        viewData['commit'] = 1;
+        transactionInfo['commit'] = 1;
       } else {
         // sign transaction
         var signature = TrovoWalletSDK().signBase64Txn(
           appState.secretKeys[0], // the primary wallet secret key,
-          viewData['transaction'],
-          viewData['networkPassPhrase'],
+          transactionInfo['transaction'],
+          transactionInfo['networkPassPhrase'],
         );
-        viewData['transactionSignature'] = signature;
+        transactionInfo['transactionSignature'] = signature;
       }
 
-      String requestBody = jsonEncode(viewData);
+      String requestBody = jsonEncode(transactionInfo);
 
-      // print(requestBody);
+      print('requestBody: $requestBody');
 
       Map responseData = await makePostRequest(
-        uri: isSharedWallet ? '/v1/shared-access/payment' : '/v1/users/payment',
+        uri: isSharedWallet
+            ? '/v1/shared-access/crypto/withdrawals'
+            : '/v1/crypto/withdrawals',
         body: requestBody,
         signer: appState.activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: sendingWallet['publicKey']!,
+        publicKey: viewData['walletInfo']['publicKey']!,
       );
 
+      print('responseData: $responseData');
+
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo();
+        await updateUserInfo(
+          appState.activeWallet!.signer!,
+          appState.secretKeys[0], // the primary wallet secret key
+          appState.activeWallet!.publicKey!,
+          'kenmaddy',
+          appState,
+        );
         if (isSharedWallet) {
           appState.viewData![SuccessViewPageConfig.key] = {
-            'title': 'Payment request submitted',
+            'title': 'Withdrawal request submitted',
             'message':
-                'You have successfully requested payment of [${viewData['amount']} ${viewData['assetCode'].toString().isEmpty ? 'XBN' : viewData['assetCode']}] from [${sendingWallet['alias']}] to [${viewData['destination']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+                'You have successfully requested withdrawal of [${transactionInfo['amountSubmitted']} ${transactionInfo['currency']}] on network [${transactionInfo['withdrawalNetworkName']} (${transactionInfo['withdrawalNetwork']})] to address [${transactionInfo['withdrawalAddress']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
             'useOnDone': true,
             'onDone': () {
-              // if we got here through the wallets tab on dashboard
-              if (viewData['rel'] == 'walletsView') {
-                appState.currentAction = PageAction(
-                  state: PageState.addAll,
-                  pages: [
-                    BottomHomePageConfig,
-                    SharedWalletDetailsViewPageConfig
-                  ],
-                );
-              } else if (viewData['rel'] == 'dashboard') {
-                appState.currentAction = PageAction(
-                  state: PageState.addAll,
-                  pages: [BottomHomePageConfig],
-                );
-              } else {
-                // if we got here through the shared access page
-                appState.currentAction =
-                    PageAction(state: PageState.addAll, pages: [
-                  BottomHomePageConfig,
-                  SharedAccessViewPageConfig,
-                  SharedWalletInfoViewPageConfig,
-                  SharedWalletDetailsViewPageConfig
-                ]);
-              }
+              appState.currentAction = PageAction(
+                state: PageState.addAll,
+                pages: [BottomHomePageConfig],
+              );
             },
           };
           appState.currentAction =
               PageAction(state: PageState.replace, page: SuccessViewPageConfig);
         } else {
-          appState.viewData![TransactionSuccessViewPageConfig.key] =
+          appState.viewData![TransactionStatusViewPageConfig.key] =
               responseData['data'];
-          appState.viewData![TransactionSuccessViewPageConfig.key]
-              ['sendingWallet'] = sendingWallet;
+          appState.viewData![TransactionStatusViewPageConfig.key]
+              ['walletInfo'] = viewData['walletInfo'];
           appState.currentAction = PageAction(
-            state: PageState.replaceAll,
-            page: TransactionSuccessViewPageConfig,
+            state: PageState.addPage,
+            page: TransactionStatusViewPageConfig,
           );
         }
         hideLoader(context);
@@ -613,20 +510,6 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     } catch (e) {
       popup(context, title: LanguageEn.error, message: e.toString());
       hideLoader(context);
-    }
-  }
-
-  Future<void> updateUserInfo() async {
-    Map responseData = await makeGetRequest(
-      uri:
-          '/v1/users/${appState.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: appState.activeWallet!.signer!,
-      secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.activeWallet!.publicKey!,
-    );
-
-    if (responseData['statusCode'] == 200) {
-      await storeUserInfo(responseData['data'], appState);
     }
   }
 }

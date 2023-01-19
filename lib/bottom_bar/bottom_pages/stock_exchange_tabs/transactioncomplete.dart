@@ -2,13 +2,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
+import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
+import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/portfolio.dart';
-import 'package:trovo_wallet/bottom_bar/bottombar.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_bar.dart';
 import 'package:provider/provider.dart';
 
-import '../../../Custom_BlocObserver/graph/graph.dart';
+import '../../../custom_bloc_observer/graph/graph.dart';
 import '../../../utils/medeiaqury/medeiaqury.dart';
 
 class TransactionComplete extends StatefulWidget {

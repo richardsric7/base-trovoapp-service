@@ -7,21 +7,21 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/button/custtom_button.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/Models/BottomTabPage.dart';
-import 'package:trovo_wallet/Models/User.dart';
-import 'package:trovo_wallet/Models/Wallet.dart';
+import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
+import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
+import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/bottom_tab_page.dart';
+import 'package:trovo_wallet/models/user.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
-import 'package:trovo_wallet/widgets/WalletSlides.dart';
+import 'package:trovo_wallet/widgets/wallet_slides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -371,6 +371,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       'usdPrice': claimedAssets[i]['usdPrice'],
                       'qrCode': claimedAssets[i]['qrCode'],
                       'imageUrl': claimedAssets[i]['imageUrl'],
+                      'cryptoWalletDepositAddresses': claimedAssets[i]
+                          ['cryptoWalletDepositAddresses'],
                     }
                   };
                   appState.currentAction = PageAction(

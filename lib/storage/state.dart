@@ -1,8 +1,8 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
-import 'package:trovo_wallet/Models/Transaction.dart';
-import 'package:trovo_wallet/Models/Wallet.dart';
-import 'package:trovo_wallet/Models/WalletsListViewData.dart';
+import 'package:trovo_wallet/models/transaction.dart';
+import 'package:trovo_wallet/models/wallet.dart';
+import 'package:trovo_wallet/models/wallets_list_view_data.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -10,8 +10,8 @@ import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-import '../Models/User.dart';
-import '../router/PageActions.dart';
+import 'package:trovo_wallet/models/user.dart';
+import '../router/page_actions.dart';
 import 'cache.dart';
 
 class DataProvider with ChangeNotifier {
@@ -23,6 +23,7 @@ class DataProvider with ChangeNotifier {
   bool isFirstTime = true;
   String timeout = '5'; // 5 minutes
   String? password;
+  String appVersion = '';
   var assetBalances;
   var nfts;
   Wallet get primaryWallet =>

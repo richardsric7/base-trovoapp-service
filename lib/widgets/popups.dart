@@ -5,16 +5,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/consttom_textfild.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/custtom_textfild/custtompassword.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
+import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
-import '../Custom_BlocObserver/notifire_clor.dart';
-import '../router/PageActions.dart';
+import '../custom_bloc_observer/notifire_clor.dart';
+import '../router/page_actions.dart';
 import '../router/ui_pages.dart';
 import '../storage/state.dart';
 import '../utils/enstring.dart';
@@ -124,7 +124,7 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(LanguageEn.fingerprintrequired),
+          title: Text(LanguageEn.biometricsrequired),
           actions: [
             TextButton(
               child: Text(
@@ -161,7 +161,7 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
               ),
             ),
             child: Text(
-              LanguageEn.fingerprintnotenabled,
+              LanguageEn.biometricsnotenabled,
               style: TextStyle(
                 fontFamily: fontbody,
                 fontSize: 15.0,

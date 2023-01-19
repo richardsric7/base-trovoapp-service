@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/router/PageActions.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../Custom_BlocObserver/button/custtom_button.dart';
-import '../../Custom_BlocObserver/fonts.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
+import '../../custom_bloc_observer/button/custtom_button.dart';
+import '../../custom_bloc_observer/fonts.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -24,6 +25,7 @@ class _TransactionStatus extends State<TransactionStatus> {
   bool isChecked = false;
   final _formKey = GlobalKey<FormState>();
   late DataProvider appState;
+  var viewData;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -39,7 +41,6 @@ class _TransactionStatus extends State<TransactionStatus> {
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
-    appState = Provider.of<DataProvider>(context, listen: false);
   }
 
   @override
@@ -48,6 +49,9 @@ class _TransactionStatus extends State<TransactionStatus> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    viewData = appState.viewData![TransactionStatusViewPageConfig.key];
+    print('viewData =====> $viewData');
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -69,14 +73,14 @@ class _TransactionStatus extends State<TransactionStatus> {
                 SizedBox(
                   height: height / 20,
                 ),
-                Image.asset('assets/images/trovo.png', height: height / 7.5),
+                Image.asset('assets/images/trovo.png', height: height / 8.5),
                 SizedBox(
                   height: height / 30,
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 50),
                   child: Text(
-                    'Your USDC Withdrawal is being processed',
+                    'Your [${viewData['currency']}] withdrawal request is being processed',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 20,
@@ -90,7 +94,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: Text(
-                    'Your wallet will be debited once your Withdrawal transaction has been confirmed',
+                    'Your wallet will be debited  once your Withdrawal transaction has been confirmed',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 16,
@@ -115,25 +119,18 @@ class _TransactionStatus extends State<TransactionStatus> {
                       padding: const EdgeInsets.all(20.0),
                       child: Column(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Amount',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
-                              ),
-                              Text(
-                                '0.0000 USDC',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontsemibold),
-                              ),
-                            ],
+                          keyValuePair(
+                              'Wallet', viewData['walletInfo']['alias']),
+                          SizedBox(
+                            height: height / 90,
                           ),
+                          keyValuePair(
+                              'Withdraw Address',
+                              truncate(viewData['withdrawalAddress'],
+                                      length: 5) +
+                                  viewData['withdrawalAddress'].substring(
+                                      viewData['withdrawalAddress'].length -
+                                          5)),
                           SizedBox(
                             height: height / 90,
                           ),
@@ -141,29 +138,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'To',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
-                              ),
-                              Text(
-                                'GAVEB........KHR2Y',
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    color: notifier.getbluewhitecolor,
-                                    fontFamily: fontbody),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: height / 90,
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'From',
+                                'Asset',
                                 style: TextStyle(
                                     fontSize: 15,
                                     color: notifier.getbluewhitecolor,
@@ -172,23 +147,8 @@ class _TransactionStatus extends State<TransactionStatus> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Image.asset(
-                                    'assets/images/trovo.png',
-                                    height: 25,
-                                    width: 25,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Image.asset(
-                                        'assets/images/trovo.png',
-                                        height: 25,
-                                        width: 25,
-                                      );
-                                    },
-                                  ),
-                                  SizedBox(
-                                    width: width / 50.0,
-                                  ),
                                   Text(
-                                    'TROV',
+                                    viewData['currency'],
                                     style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -265,6 +225,20 @@ class _TransactionStatus extends State<TransactionStatus> {
                     );
                   },
                 ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                ButtonOutlined(
+                  LanguageEn.dashboard,
+                  notifier.getwihitecolor,
+                  notifier.getbluewhitecolor,
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                      state: PageState.replaceAll,
+                      page: BottomHomePageConfig,
+                    );
+                  },
+                ),
                 SizedBox(height: height / 10),
                 Padding(
                     padding: EdgeInsets.only(
@@ -274,6 +248,28 @@ class _TransactionStatus extends State<TransactionStatus> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget keyValuePair(String key, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          key,
+          style: TextStyle(
+              fontSize: 15,
+              color: notifier.getbluewhitecolor,
+              fontFamily: fontbody),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+              fontSize: 15,
+              color: notifier.getbluewhitecolor,
+              fontFamily: fontsemibold),
+        ),
+      ],
     );
   }
 }

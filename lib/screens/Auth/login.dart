@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/colors.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/constants.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/fonts.dart';
-import 'package:trovo_wallet/Custom_BlocObserver/notifire_clor.dart';
-import 'package:trovo_wallet/Models/User.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
+import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
@@ -17,10 +15,9 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
-import '../../Custom_BlocObserver/button/custtom_button.dart';
-import '../../Custom_BlocObserver/custtom_textfild/custtompassword.dart';
-import '../../router/PageActions.dart';
+import '../../custom_bloc_observer/button/custtom_button.dart';
+import '../../custom_bloc_observer/custtom_textfild/custtom_password.dart';
+import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../utils/local_auth.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -40,7 +37,6 @@ class _LoginState extends State<Login> {
   late UserInfo userInfo;
   String password = '';
   final _formKey = GlobalKey<FormState>();
-
   final Authenticator _authenticator = Authenticator();
 
   getdarkmodepreviousstate() async {
@@ -313,7 +309,7 @@ class _LoginState extends State<Login> {
                 ),
                 SizedBox(height: height / 50),
                 Text(
-                  '${LanguageEn.version} $appVersion',
+                  '${LanguageEn.version} ${appState.appVersion}',
                   style: TextStyle(
                       color: notifier.getdarkgrey,
                       fontSize: 13.5.sp,
@@ -377,9 +373,7 @@ class _LoginState extends State<Login> {
     print('The app version $appVersionData');
 
     if (appVersionData.isNotEmpty) {
-      PackageInfo packageInfo = await PackageInfo.fromPlatform();
-
-      String phoneVersion = packageInfo.version.replaceAll('.', '');
+      var phoneVersion = appState.appVersion.replaceAll('.', '');
 
       String minVersion =
           await appVersionData['minVersion'].replaceAll('.', '');

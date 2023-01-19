@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:provider/provider.dart';
-import '../Custom_BlocObserver/notifire_clor.dart';
+import '../custom_bloc_observer/notifire_clor.dart';
 
 showLoader(context) {
   ColorNotifier notifier = Provider.of<ColorNotifier>(context, listen: false);
