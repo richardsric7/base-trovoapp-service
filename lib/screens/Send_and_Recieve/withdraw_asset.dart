@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
@@ -37,7 +36,6 @@ class _WithdrawAsset extends State<WithdrawAsset>
   bool amountError = false;
   String? memo;
   var viewData;
-  TextEditingController _utf8TextController = TextEditingController();
   TextEditingController toController = TextEditingController();
   TextEditingController sendingWalletController = TextEditingController();
   final amountController = TextEditingController();
@@ -236,7 +234,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
       children: [
         Flexible(
           child: Text(
-            amount.isNotEmpty
+            double.tryParse(amount) != null
                 ? "≈ ${formatNumber(double.parse(amount))} ${getAssetCode(viewData['assetCode'])}"
                 : "≈ 0.0000 ${getAssetCode(viewData['assetCode'])}",
             textScaleFactor: 1.0,
@@ -432,53 +430,6 @@ class _WithdrawAsset extends State<WithdrawAsset>
                       ],
                     ),
                     if (!appState.hideBalances) ...[availableBalance()],
-                    // SizedBox(
-                    //   height: height / 50,
-                    // ),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(
-                    //     horizontal: 5,
-                    //   ),
-                    //   child: Container(
-                    //     decoration: BoxDecoration(
-                    //       borderRadius:
-                    //           const BorderRadius.all(Radius.circular(15.0)),
-                    //       color: notifier.isDark
-                    //           ? darktilewhitecolor
-                    //           : notifier.getaddsubwalletgrey,
-                    //     ),
-                    //     child: Padding(
-                    //       padding: const EdgeInsets.all(20.0),
-                    //       child: Column(
-                    //         children: [
-                    //           Row(
-                    //             mainAxisAlignment:
-                    //                 MainAxisAlignment.spaceBetween,
-                    //             children: [
-                    //               Text(
-                    //                 'Total',
-                    //                 style: TextStyle(
-                    //                     fontSize: 13,
-                    //                     color: notifier.getbluewhitecolor,
-                    //                     fontFamily: fontsemibold),
-                    //               ),
-                    //               Text(
-                    //                 '0.0000 ${viewData['assetCode']}',
-                    //                 style: TextStyle(
-                    //                     fontSize: 13,
-                    //                     color: notifier.getbluewhitecolor,
-                    //                     fontFamily: fontbody),
-                    //               ),
-                    //             ],
-                    //           ),
-                    //           SizedBox(
-                    //             height: height / 90,
-                    //           ),
-                    //         ],
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
                     SizedBox(height: height / 20),
                   ],
                 ),
@@ -519,7 +470,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
         publicKey: viewData['walletInfo']['publicKey'],
       );
 
-      print(responseData['data']);
+      // print(responseData['data']);
 
       if (responseData['statusCode'] == 200) {
         return responseData['data'];
@@ -529,13 +480,6 @@ class _WithdrawAsset extends State<WithdrawAsset>
     } catch (e) {
       return Future.error('Error! ${e}');
     }
-  }
-
-  String? validateMemo(String? value) {
-    if (value!.isEmpty) return null;
-
-    RegExp regex = new RegExp(networks[index]['memoRegex']);
-    if (!regex.hasMatch(value)) return 'Text is too long or has invalid chars';
   }
 
   String? validateDropdown(String? _) {
@@ -620,13 +564,12 @@ class _WithdrawAsset extends State<WithdrawAsset>
         "amountSubmitted": double.parse(amount),
         "withdrawalAddress": to,
         "withdrawalNetwork": selectedNetwork.toString().split('|')[0],
-        // "withdrawalMemo": memo,
         "withdrawalServiceFee": serviceFee,
         "withdrawalNetworkFee": double.parse(networks[index]['withdrawFee']),
       };
 
       String requestBody = jsonEncode(map);
-      print('===============> map: $map');
+      // print('===============> map: $map');
 
       Map responseData = await makePostRequest(
         uri: isSharedWallet
@@ -639,12 +582,20 @@ class _WithdrawAsset extends State<WithdrawAsset>
       );
 
       hideLoader(context);
+      // print('responseData: $responseData');
 
       if (responseData['statusCode'] == 202) {
-        var messageLength = responseData['data']['messages'].length;
-        var messageShown = 0;
+        appState.viewData![ConfirmWithdrawViewPageConfig.key] =
+            appState.viewData![WithdrawAssetViewPageConfig.key];
+        appState.viewData![ConfirmWithdrawViewPageConfig.key]['data'] =
+            responseData['data'];
+        appState.viewData![ConfirmWithdrawViewPageConfig.key]['data']
+            ['withdrawalNetworkName'] = networks[index]['name'];
 
-        postProcessData(messageShown, messageLength, responseData['data']);
+        appState.currentAction = PageAction(
+          state: PageState.addPage,
+          page: ConfirmWithdrawViewPageConfig,
+        );
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
@@ -654,89 +605,9 @@ class _WithdrawAsset extends State<WithdrawAsset>
     }
   }
 
-  postProcessData(messageShown, messageLength, data) {
-    // we would like to display all messages returned from the initial
-    // request to server using a popup. In order to achieve that we
-    // employ the use of a little recursion here. Please recursive
-    // functions can turn into a nightmare fast so be carefull here.
-    if (messageShown <= messageLength - 1) {
-      showResponseMessage(
-          context,
-          data['messages'][messageShown],
-          () => {
-                postProcessData(messageShown, messageLength, data),
-              });
-
-      messageShown++;
-      return;
-    }
-
-    appState.viewData![ConfirmWithdrawViewPageConfig.key] =
-        appState.viewData![WithdrawAssetViewPageConfig.key];
-    appState.viewData![ConfirmWithdrawViewPageConfig.key]['data'] = data;
-
-    appState.currentAction = PageAction(
-      state: PageState.addPage,
-      page: ConfirmWithdrawViewPageConfig,
-    );
-  }
-
   @override
   void dispose() {
     super.dispose();
     viewData?['deepLinkInfo'] = null;
-  }
-}
-
-class _Utf8LengthLimitingTextInputFormatter extends TextInputFormatter {
-  _Utf8LengthLimitingTextInputFormatter(this.maxLength)
-      : assert(maxLength == null || maxLength == -1 || maxLength > 0);
-
-  final int maxLength;
-
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    if (maxLength != null &&
-        maxLength > 0 &&
-        bytesLength(newValue.text) > maxLength) {
-      // If already at the maximum and tried to enter even more, keep the old value.
-      if (bytesLength(oldValue.text) == maxLength) {
-        return oldValue;
-      }
-      return truncate(newValue, maxLength);
-    }
-    return newValue;
-  }
-
-  static TextEditingValue truncate(TextEditingValue value, int maxLength) {
-    var newValue = '';
-    if (bytesLength(value.text) > maxLength) {
-      var length = 0;
-
-      value.text.characters.takeWhile((char) {
-        var nbBytes = bytesLength(char);
-        if (length + nbBytes <= maxLength) {
-          newValue += char;
-          length += nbBytes;
-          return true;
-        }
-        return false;
-      });
-    }
-    return TextEditingValue(
-      text: newValue,
-      selection: value.selection.copyWith(
-        baseOffset: min(value.selection.start, newValue.length),
-        extentOffset: min(value.selection.end, newValue.length),
-      ),
-      composing: TextRange.empty,
-    );
-  }
-
-  static int bytesLength(String value) {
-    return utf8.encode(value).length;
   }
 }

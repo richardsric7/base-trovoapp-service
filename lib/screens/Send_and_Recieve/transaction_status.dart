@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
@@ -50,6 +50,8 @@ class _TransactionStatus extends State<TransactionStatus> {
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     viewData = appState.viewData![TransactionStatusViewPageConfig.key];
+    print('viewData =====> $viewData');
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -71,17 +73,14 @@ class _TransactionStatus extends State<TransactionStatus> {
                 SizedBox(
                   height: height / 20,
                 ),
-                Image.asset('assets/images/trovo.png', height: height / 7.5),
+                Image.asset('assets/images/trovo.png', height: height / 8.5),
                 SizedBox(
                   height: height / 30,
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 50),
                   child: Text(
-                    viewData['transactionDirection'] as TransactionDirection ==
-                            TransactionDirection.Deposit
-                        ? 'Your ${viewData['assetCode']} deposit is being processed'
-                        : 'Your ${viewData['assetCode']} withdrawal is being processed',
+                    'Your [${viewData['currency']}] withdrawal request is being processed',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 20,
@@ -95,10 +94,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: Text(
-                    viewData['transactionDirection'] as TransactionDirection ==
-                            TransactionDirection.Deposit
-                        ? 'You will receive funds in your wallet once your deposit transaction has been confirmed'
-                        : 'Your wallet will be debited  once your Withdrawal transaction has been confirmed',
+                    'Your wallet will be debited  once your Withdrawal transaction has been confirmed',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 16,
@@ -129,10 +125,12 @@ class _TransactionStatus extends State<TransactionStatus> {
                             height: height / 90,
                           ),
                           keyValuePair(
-                              'Deposit Address',
-                              truncate(viewData['depositAddress'], length: 5) +
-                                  viewData['depositAddress'].substring(
-                                      viewData['depositAddress'].length - 5)),
+                              'Withdraw Address',
+                              truncate(viewData['withdrawalAddress'],
+                                      length: 5) +
+                                  viewData['withdrawalAddress'].substring(
+                                      viewData['withdrawalAddress'].length -
+                                          5)),
                           SizedBox(
                             height: height / 90,
                           ),
@@ -149,23 +147,8 @@ class _TransactionStatus extends State<TransactionStatus> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Image.asset(
-                                    viewData['assetImage'],
-                                    height: 25,
-                                    width: 25,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Image.asset(
-                                        'assets/images/trovo.png',
-                                        height: 25,
-                                        width: 25,
-                                      );
-                                    },
-                                  ),
-                                  SizedBox(
-                                    width: width / 50.0,
-                                  ),
                                   Text(
-                                    viewData['assetCode'],
+                                    viewData['currency'],
                                     style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
@@ -194,11 +177,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                       state: StepState.complete,
                       isActive: true,
                       title: Text(
-                        viewData['transactionDirection']
-                                    as TransactionDirection ==
-                                TransactionDirection.Deposit
-                            ? "Make deposit"
-                            : "Authorize withdrawal",
+                        "Authorize withdrawal",
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold,
@@ -210,11 +189,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                       state: StepState.complete,
                       isActive: true,
                       title: Text(
-                        viewData['transactionDirection']
-                                    as TransactionDirection ==
-                                TransactionDirection.Deposit
-                            ? "Processing deposit "
-                            : "Processing withdrawal",
+                        "Processing withdrawal",
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold,
@@ -247,6 +222,20 @@ class _TransactionStatus extends State<TransactionStatus> {
                     appState.currentAction = PageAction(
                       state: PageState.addPage,
                       page: DepositWithdrawHistoryViewPageConfig,
+                    );
+                  },
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                ButtonOutlined(
+                  LanguageEn.dashboard,
+                  notifier.getwihitecolor,
+                  notifier.getbluewhitecolor,
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                      state: PageState.replaceAll,
+                      page: BottomHomePageConfig,
                     );
                   },
                 ),

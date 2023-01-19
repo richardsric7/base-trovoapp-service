@@ -20,9 +20,7 @@ class _WrappedAssetState extends State<WrappedAsset>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  Map activeWallet = {};
   Map activeAsset = {};
-  bool isSharedWallet = false;
 
   @override
   void initState() {
@@ -36,13 +34,7 @@ class _WrappedAssetState extends State<WrappedAsset>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
 
-    if (activeWallet.isEmpty) {
-      activeWallet = appState.allWallets[appState.activeWallet!.publicKey!];
-    }
-
     activeAsset = appState.viewData![WrappedAssetViewPageConfig.key];
-
-    isSharedWallet = activeWallet['sharedAccessEnabled'] == 1;
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -263,13 +255,15 @@ class _WrappedAssetState extends State<WrappedAsset>
               'assetCode': activeAsset['assetCode'],
               'assetIssuer': activeAsset['assetIssuer'],
               'amount': activeAsset['amount'],
+              'imageUrl': activeAsset["realAssetImageUrl"],
               'cryptoWalletDepositAddresses':
                   activeAsset['cryptoWalletDepositAddresses'],
               'usdPrice': activeAsset['usdPrice'],
               'walletInfo': {
-                'alias': activeWallet['alias'],
-                'publicKey': activeWallet['publicKey'],
-                'sharedAccessEnabled': activeWallet['sharedAccessEnabled'],
+                'alias': activeAsset['walletInfo']['alias'],
+                'publicKey': activeAsset['walletInfo']['publicKey'],
+                'sharedAccessEnabled': activeAsset['walletInfo']
+                    ['sharedAccessEnabled'],
               }
             };
 
