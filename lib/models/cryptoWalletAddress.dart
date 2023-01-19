@@ -1,14 +1,12 @@
-import 'package:charts_flutter/flutter.dart';
-
-class CryptoWalletDepositAddresses {
+class CryptoWalletDepositAddress {
   String? id;
   DateTime? createdAt;
   String? trovoWalletPublicKey;
   String? currency;
-  double? depositAddress;
+  String? depositAddress;
   String? network;
   String? qrCode;
-  CryptoWalletDepositAddresses({
+  CryptoWalletDepositAddress({
     this.id,
     this.createdAt,
     this.trovoWalletPublicKey,
@@ -18,10 +16,10 @@ class CryptoWalletDepositAddresses {
     this.qrCode,
   });
 
-  CryptoWalletDepositAddresses deserializeJson(m) {
-    return CryptoWalletDepositAddresses(
+  CryptoWalletDepositAddress deserializeJson(m) {
+    return CryptoWalletDepositAddress(
       id: m["id"],
-      createdAt: m["createdAt"],
+      createdAt: DateTime.tryParse(m["createdAt"]),
       trovoWalletPublicKey: m["trovoWalletPublicKey"],
       qrCode: m["qrCode"],
       currency: m["currency"],

@@ -9,7 +9,8 @@ class Asset {
   double? usdPrice;
   double? nativePrice;
   Map? inTrade;
-  // List<CryptoWalletDepositAddresses>? cryptoWalletDepositAddresses;
+  List<CryptoWalletDepositAddress>? cryptoWalletDepositAddresses;
+
   Asset({
     this.assetCode,
     this.assetIssuer,
@@ -19,11 +20,10 @@ class Asset {
     this.usdPrice,
     this.inTrade,
     this.nativePrice,
-    // this.cryptoWalletDepositAddresses,
+    this.cryptoWalletDepositAddresses,
   });
 
   Asset deserializeJson(Map<String, dynamic> m) {
-    print('deserializing asset ====> $m');
     return Asset(
       assetCode: m["assetCode"],
       assetIssuer: m["assetIssuer"],
@@ -33,8 +33,20 @@ class Asset {
       usdPrice: double.parse(m["usdPrice"]),
       inTrade: m["inTrade"],
       nativePrice: double.parse(m["nativePrice"]),
-      // cryptoWalletDepositAddresses: CryptoWalletDepositAddresses()
-      //     .deserializeJson(m['cryptoWalletDepositAddresses']),
+      cryptoWalletDepositAddresses:
+          deserializeDepositAddresses(m['cryptoWalletDepositAddresses']),
     );
+  }
+
+  List<CryptoWalletDepositAddress> deserializeDepositAddresses(m) {
+    var addresses = <CryptoWalletDepositAddress>[];
+    if (m != null) {
+      for (var i = 0; i < m.length; i++) {
+        print('cryptoWalletDepositAddresses ==========> ${m[i]}');
+        addresses.add(CryptoWalletDepositAddress().deserializeJson(m[i]));
+      }
+    }
+    print('addresses dot length =============> ${addresses.length}');
+    return addresses;
   }
 }
