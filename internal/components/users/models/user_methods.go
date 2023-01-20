@@ -1479,6 +1479,7 @@ func (d CryptoDepositAddress) GetDetail(currency string, gc *sharedconfig.Global
 	address := string(d)
 	e := gc.DB.Where("upper(currency) = upper(?) AND to_address = ?", currency, address).First(&depositAddress).Error
 	if e != nil {
+		log.Printf("Error fetching deposit address, error: %v\n", e)
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
@@ -1503,7 +1504,7 @@ func (callback *CallbackDepositItem) Save(gc *sharedconfig.GlobalConfig) (err er
 
 func (callbackObj *CallbackDeposit) SaveDepositCallback(gc *sharedconfig.GlobalConfig) (err error) {
 	if !strings.EqualFold(callbackObj.Event, "WALLET_DEPOSIT_COMPLETED") {
-		log.Println("[SAVE CALLBACK]error NOT a completed deposit.")
+		log.Println("[SAVE CALLBACK]error NOT a completed deposit.", callbackObj.Event)
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
