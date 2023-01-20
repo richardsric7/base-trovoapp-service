@@ -52,6 +52,8 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
+		} else {
+			log.Printf("[SAVE CALLBACK]Uncompleted deposit: %+v\n", callbackObj)
 		}
 
 	})
