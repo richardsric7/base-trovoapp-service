@@ -1475,9 +1475,9 @@ func (u *User) GetReferralCount(gc *sharedconfig.GlobalConfig) (referralCount in
 	return
 }
 
-func (d CryptoDepositAddress) GetDetail(currency, network string, gc *sharedconfig.GlobalConfig) (depositAddress CryptoWalletDepositAddress, err error) {
+func (d CryptoDepositAddress) GetDetail(currency string, gc *sharedconfig.GlobalConfig) (depositAddress CryptoWalletDepositAddress, err error) {
 	address := string(d)
-	e := gc.DB.Where("upper(currency) = upper(?) AND network = ? AND to_address = ?", currency, network, address).First(&depositAddress).Error
+	e := gc.DB.Where("upper(currency) = upper(?) AND to_address = ?", currency, address).First(&depositAddress).Error
 	if e != nil {
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
@@ -1507,7 +1507,7 @@ func (callbackObj *CallbackDeposit) SaveDepositCallback(gc *sharedconfig.GlobalC
 		err = &tErrors.ErrorTemporaryServerError{}
 		return
 	}
-	_, err = CryptoDepositAddress(callbackObj.Data.ToAddress).GetDetail(callbackObj.Data.Currency, callbackObj.Data.Network, gc)
+	_, err = CryptoDepositAddress(callbackObj.Data.ToAddress).GetDetail(callbackObj.Data.Currency, gc)
 	if err != nil {
 		log.Printf("[DEPOSIT CALLBACK FAILED RETRIEVAL] ERROR GETTING DEPOSIT ADDRESS OBJECT FROM DB for [%v, %v, %v], error: [%v]\n", callbackObj.Data.Currency, callbackObj.Data.Network, callbackObj.Data.ToAddress, err)
 		//notify failure

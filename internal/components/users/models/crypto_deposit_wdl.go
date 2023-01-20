@@ -21,9 +21,9 @@ type PaginatedCryptoWithdrawalHistory struct {
 }
 
 type CryptoDeposit struct {
-	ID                   uint
+	ID                   uint64
 	TrovoWalletPublicKey string `gorm:"size:100" json:"trovoWalletPublicKey"`
-	DepositID            string `gorm:"primaryKey" json:"depositId"`
+	DepositID            string `gorm:"index:unique_depositid,unique" json:"depositId"`
 	TxID                 string `gorm:"index:unique_txid,unique" json:"txId"`
 	Amount               string `json:"amount"`
 	CreatedAt            string `json:"createdAt"`
@@ -104,9 +104,9 @@ type WithdrawalRequestInput struct {
 	NetworkPassPhrase    string  `json:"networkPassPhrase"`
 	Multiparty           int     `json:"-"`
 	TransactionSource    string  `json:"-"`
-	SignatureRequired   int    `json:"signatureRequired"`
-	Commit              int    `json:"commit"`
-	ReturnedDescription string `json:"-"`
+	SignatureRequired    int     `json:"signatureRequired"`
+	Commit               int     `json:"commit"`
+	ReturnedDescription  string  `json:"-"`
 }
 
 type WithdrawalRequest struct {
@@ -139,7 +139,7 @@ type CallbackDepositItem struct {
 	DepositID       string `gorm:"primaryKey" json:"depositId"`
 	Currency        string `json:"currency"`
 	Network         string `json:"network"`
-	Txid            string `json:"txid"`
+	Txid            string `gorm:"size:100;index:idx_callbacltxid,unique" json:"txid"`
 	Amount          string `json:"amount"`
 	Fees            string `json:"fees"`
 	FromAddress     string `json:"from_address"`
