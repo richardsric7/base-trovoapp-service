@@ -236,6 +236,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 			WalletPublicKey:          sourceWallet.ID,
 			TransactionType:          "MAKE MARKET OFFER",
 			Description:              description,
+			TransactionSource:        offerRequest.TransactionSource,
 			ApprovalsNeeded:          sourceWallet.NumberOfApprovalsNeeded,
 			TransactionXdr:           xdrBase64,
 			TransactionInfoStr:       &transactionStr,
@@ -304,13 +305,14 @@ func CancelOffer(signerUser, walletOwner *userModels.User, sourceWallet *userMod
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	xdrBase64, err := generateDeleteMarketXdr(sourceWallet, &mmWallet, &marketOffer, mmSignerKeyPair, bOffer, gc)
+	xdrBase64, transactionSource, err := generateDeleteMarketXdr(sourceWallet, &mmWallet, &marketOffer, mmSignerKeyPair, bOffer, gc)
 	if err != nil {
 		return err
 	}
 	if sourceWallet.HasViewOnlyAccess(gc) {
 		deleteOfferRequest.SignatureRequired = 1
 	}
+	deleteOfferRequest.TransactionSource = transactionSource
 	deleteOfferRequest.Transaction = xdrBase64
 	deleteOfferRequest.NetworkPassPhrase = gc.BantuNetworkPassphrase
 
@@ -403,6 +405,7 @@ func CancelOffer(signerUser, walletOwner *userModels.User, sourceWallet *userMod
 			WalletPublicKey:          sourceWallet.ID,
 			TransactionType:          "DELETE MARKET OFFER",
 			Description:              description,
+			TransactionSource:        deleteOfferRequest.TransactionSource,
 			ApprovalsNeeded:          sourceWallet.NumberOfApprovalsNeeded,
 			TransactionXdr:           xdrBase64,
 			TransactionInfoStr:       &transactionStr,
@@ -656,6 +659,9 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if offerRequest.Multiparty == 1 {
+
+		offerRequest.TransactionSource = chanSourceAccount.AccountID
+
 		tx, err = txnbuild.NewTransaction(
 			txnbuild.TransactionParams{
 				SourceAccount:        chanSourceAccount,
@@ -713,7 +719,7 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 	return xdrBase64, nil
 
 }
-func generateDeleteMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerRequest *userModels.MarketOffer, mmSignerKeyPair *keypair.Full, bOffer horizon.Offer, gc *sharedconfig.GlobalConfig) (txnBase64 string, err error) {
+func generateDeleteMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerRequest *userModels.MarketOffer, mmSignerKeyPair *keypair.Full, bOffer horizon.Offer, gc *sharedconfig.GlobalConfig) (txnBase64, transactionSource string, err error) {
 	// offerFeePercentage := offerRequest.FeeChargedOnAsset + "%"
 	minBalance := decimal.RequireFromString(os.Getenv("STANDARD_WALLET_MINIMUM_BALANCE"))
 	// offerRequest.Messages = make([]string, 0)
@@ -749,17 +755,17 @@ func generateDeleteMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offe
 		sourceMAccountExists, sourceMAccountTrustsAsset, nativeMAccountBalance, _, sourceAccount, _ = network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, currencyAsset)
 
 		if !sourceMAccountExists {
-			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
+			return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
 
 		}
 		if nativeMAccountBalance.LessThan(minBalance) {
-			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
+			return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
 
 		}
 
 		if !mainAsset.IsNative() && !sourceMAccountTrustsAsset {
 
-			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", offerRequest.Quantity, currencyAsset.GetCode()), Code: http.StatusBadRequest}
+			return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", offerRequest.Quantity, currencyAsset.GetCode()), Code: http.StatusBadRequest}
 
 		}
 	}
@@ -767,17 +773,17 @@ func generateDeleteMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offe
 		sourceMAccountExists, sourceMAccountTrustsAsset, nativeMAccountBalance, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, sourceWallet.ID, mainAsset)
 
 		if !sourceMAccountExists {
-			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
+			return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-account-not-activated-on-blockchain", ErrMessage: "The Wallet public key is currently underfunded. Please send about 3XBN to it to activate it before you can perform this task", Code: http.StatusBadRequest}
 
 		}
 		if nativeMAccountBalance.LessThan(minBalance) {
-			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
+			return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", minBalance.String(), os.Getenv("NATIVE_ASSET_CODE")), Code: http.StatusBadRequest}
 
 		}
 
 		if !mainAsset.IsNative() && !sourceMAccountTrustsAsset {
 
-			return "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", offerRequest.Quantity, mainAsset.GetCode()), Code: http.StatusBadRequest}
+			return "", "", &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-underfunded", ErrMessage: fmt.Sprintf("The Wallet is currently underfunded. Please maintain min %v %v balance before you can perform this task", offerRequest.Quantity, mainAsset.GetCode()), Code: http.StatusBadRequest}
 
 		}
 	}
@@ -847,6 +853,7 @@ func generateDeleteMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offe
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if sourceWallet.NumberOfApprovalsNeeded > 0 {
+		transactionSource = chanSourceAccount.AccountID
 		tx, err = txnbuild.NewTransaction(
 			txnbuild.TransactionParams{
 				SourceAccount:        chanSourceAccount,
@@ -875,14 +882,14 @@ func generateDeleteMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offe
 	}
 	if err != nil {
 		log.Println("[generateDeleteMarketXdr]error constructing transaction", err)
-		return "", &tErrors.ErrorTemporaryServerError{}
+		return "", "", &tErrors.ErrorTemporaryServerError{}
 	}
 
 	tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), mmSignerKeyPair)
 
 	if err != nil {
 		log.Println("[generateDeleteMarketXdr] error signing transaction with custodial signer key ", err)
-		return "", &tErrors.ErrorTemporaryServerError{}
+		return "", "", &tErrors.ErrorTemporaryServerError{}
 	}
 
 	if sourceWallet.NumberOfApprovalsNeeded > 0 {
@@ -891,15 +898,15 @@ func generateDeleteMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offe
 
 		if err != nil {
 			log.Println("[generateDeleteMarketXdr] error signing transaction with channelAccount key ", err)
-			return "", &tErrors.ErrorTemporaryServerError{}
+			return "", "", &tErrors.ErrorTemporaryServerError{}
 		}
 	}
 
 	xdrBase64, err := tx.Base64()
 
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return xdrBase64, nil
+	return xdrBase64, transactionSource, nil
 
 }

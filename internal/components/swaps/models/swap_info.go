@@ -82,12 +82,13 @@ type SwapSendInfo struct {
 	Messages               []string `json:"messages"`
 	Memo                   string   `json:"-"`
 	Multiparty             int      `json:"-"`
+	TransactionSource      string   `json:"-"`
 	SignatureRequired      int      `json:"signatureRequired"`
 	Commit                 int      `json:"commit"`
 	SHash                  string   `json:"sHash"`
 	Fee                    string   `json:"fee"`
 	FeeAmount              string   `json:"feeAmount"`
-	SwapAmount              string   `json:"swapAmount"`
+	SwapAmount             string   `json:"swapAmount"`
 	ReturnedDescription    string   `json:"-"`
 }
 
@@ -101,6 +102,7 @@ type SwapReceivePathInput struct {
 	SourceAccount          string   `json:"sourceAccount"`
 	SourceAssets           string   `json:"sourceAssets"`
 	Transaction            string   `json:"transaction"`
+	TransactionSource      string   `json:"-"`
 	TransactionSignature   string   `json:"transactionSignature"`
 	TransactionID          string   `json:"transactionId"`
 	NetworkPassPhrase      string   `json:"networkPassPhrase"`

@@ -200,6 +200,7 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 		WalletPublicKey:          sourceWallet.ID,
 		TransactionType:          "PAYMENT",
 		Description:              description,
+		TransactionSource:        paymentInfo.TransactionSource,
 		ApprovalsNeeded:          sourceWallet.NumberOfApprovalsNeeded,
 		TransactionXdr:           paymentInfo.Transaction,
 		TransactionInfoStr:       &transactionStr,
@@ -509,6 +510,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if paymentInfo.Multiparty == 1 {
+		paymentInfo.TransactionSource = chanSourceAccount.AccountID
 		tx, err = txnbuild.NewTransaction(
 			txnbuild.TransactionParams{
 				SourceAccount:        chanSourceAccount,

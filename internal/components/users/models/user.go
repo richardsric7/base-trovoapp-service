@@ -102,6 +102,7 @@ type DisableSharedAccessInfo struct {
 	Messages             []string               `json:"messages"`
 	SignatureRequired    int                    `json:"signatureRequired"`
 	MultiParty           int                    `json:"multiParty"`
+	TransactionSource    string                 `json:"-"`
 	Permissions          []WalletPermissionInfo `json:"-"`
 	Commit               int                    `json:"commit"`
 	SHash                string                 `json:"sHash"`
@@ -117,6 +118,7 @@ type ModifySharedAccessInfo struct {
 	Messages                []string               `json:"messages"`
 	SignatureRequired       int                    `json:"signatureRequired"`
 	MultiParty              int                    `json:"multiParty"`
+	TransactionSource       string                 `json:"-"`
 	Commit                  int                    `json:"commit"`
 	SHash                   string                 `json:"sHash"`
 	ModifiedPermissions     []WalletPermissionInfo `json:"modifiedPermissions"`
@@ -293,6 +295,7 @@ type PendingAuth struct {
 	WalletPublicKey              string                        `gorm:"size:56;not null;index:idx_pending_auth_wallet_public_key" json:"walletPublicKey"`
 	TransactionType              string                        `gorm:"size:28;not null;index:idx_pending_auth_transaction_type" json:"transactionType"`
 	Description                  string                        `gorm:"not null;" json:"description"`
+	TransactionSource            string                        `gorm:"size:56;not null;" json:"-"`
 	ApprovalsNeeded              int                           `gorm:"not null;" json:"approvalsNeeded"`
 	ApprovalsGotten              int                           `gorm:"not null;default:0" json:"approvalsGotten"`
 	TransactionStatus            string                        `gorm:"size:20;not null;default:'PENDING';index:idx_pending_auth_transaction_status" json:"transactionStatus"`

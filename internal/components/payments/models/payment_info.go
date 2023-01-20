@@ -20,6 +20,7 @@ type PaymentInfo struct {
 	DestinationThumbnail    string            `json:"destinationThumbnail"`
 	DestinationVerified     int               `json:"destinationVerified"`
 	Multiparty              int               `json:"-"`
+	TransactionSource       string            `json:"-"`
 	SignatureRequired       int               `json:"signatureRequired"`
 	Commit                  int               `json:"commit"`
 	Fee                     string            `json:"fee"`
@@ -31,7 +32,6 @@ type PaymentInfo struct {
 	Messages                []string          `json:"messages"`
 	CallbackURLS            map[string]string `json:"-"`
 }
-
 
 // PaymentLog holds payment information for logging
 type PaymentLog struct {

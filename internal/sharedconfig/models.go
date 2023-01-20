@@ -7,6 +7,7 @@ import (
 	"log"
 	"mime/multipart"
 	"strings"
+	"sync"
 	"time"
 	"trovo-wallet-api/internal/cache"
 
@@ -30,6 +31,8 @@ type GlobalConfig struct {
 	BantuExpansionClient      *horizonclient.Client
 	BantuNetworkPassphrase    string
 	ChannelAccounts           chan *keypair.Full
+	InUseChannelAccounts      map[string]*keypair.Full
+	Mutex                     sync.Mutex
 }
 
 type ClientUploader struct {
@@ -92,4 +95,17 @@ func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName, imageThu
 	}
 
 	return newImageThumbnailName, nil
+}
+
+func (gc *GlobalConfig) ReleaseInUseChannelAccount(pk string) {
+	if len(pk) == 0 {
+		return
+	}
+	gc.Mutex.Lock()
+	defer gc.Mutex.Unlock()
+	ca, ok := gc.InUseChannelAccounts[pk]
+	if ok {
+		gc.ChannelAccounts <- ca
+	}
+	delete(gc.InUseChannelAccounts, pk)
 }

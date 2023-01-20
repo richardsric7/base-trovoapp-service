@@ -126,6 +126,7 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 			WalletPublicKey:          wallet.ID,
 			TransactionType:          "ACCEPT PENDING ASSET",
 			Description:              description,
+			TransactionSource:        pendingAssetToClaim.TransactionSource,
 			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
 			TransactionXdr:           xdrBase64,
 			TransactionInfoStr:       &transactionStr,
@@ -232,6 +233,7 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 			WalletPublicKey:          wallet.ID,
 			TransactionType:          "REJECT PENDING ASSET",
 			Description:              description,
+			TransactionSource:        pendingAssetToClaim.TransactionSource,
 			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
 			TransactionXdr:           xdrBase64,
 			TransactionInfoStr:       &transactionStr,
@@ -378,6 +380,7 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if pendingAssetToClaim.Multiparty == 1 {
+		pendingAssetToClaim.TransactionSource = chanSourceAccount.AccountID
 		tx, err = txnbuild.NewTransaction(
 			txnbuild.TransactionParams{
 				SourceAccount:        chanSourceAccount,
@@ -516,6 +519,7 @@ func generateRejectPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetTo
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if pendingAssetToClaim.Multiparty == 1 {
+		pendingAssetToClaim.TransactionSource = chanSourceAccount.AccountID
 		tx, err = txnbuild.NewTransaction(
 			txnbuild.TransactionParams{
 				SourceAccount:        chanSourceAccount,
@@ -652,6 +656,7 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if trustLineInfo.Multiparty == 1 {
+		trustLineInfo.TransactionSource = chanSourceAccount.AccountID
 		tx, err = txnbuild.NewTransaction(
 			txnbuild.TransactionParams{
 				SourceAccount:        chanSourceAccount,
@@ -791,6 +796,7 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	if trustLineInfo.Multiparty == 1 {
+		trustLineInfo.TransactionSource = chanSourceAccount.AccountID
 		tx, err = txnbuild.NewTransaction(
 			txnbuild.TransactionParams{
 				SourceAccount:        chanSourceAccount,
@@ -903,6 +909,7 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 			WalletPublicKey:          wallet.ID,
 			TransactionType:          "OPT IN ASSET",
 			Description:              description,
+			TransactionSource:        trustLineInfo.TransactionSource,
 			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
 			TransactionXdr:           xdrBase64,
 			TransactionInfoStr:       &transactionStr,
@@ -983,6 +990,7 @@ func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet
 			WalletPublicKey:          wallet.ID,
 			TransactionType:          "OPT OUT ASSET",
 			Description:              description,
+			TransactionSource:        trustLineInfo.TransactionSource,
 			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
 			TransactionXdr:           xdrBase64,
 			TransactionInfoStr:       &transactionStr,

@@ -880,12 +880,12 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return
 	}
 
-	xdrBase64, messages, errGenXdr := generateModifySharedAccessXdr(wallet, walletOwner, numberOfSubmittedApprovers, accessInfo.NumberOfApprovalsNeeded, oldNumberOfApprovers, ops, gc)
+	xdrBase64, transactionSource, messages, errGenXdr := generateModifySharedAccessXdr(wallet, walletOwner, numberOfSubmittedApprovers, accessInfo.NumberOfApprovalsNeeded, oldNumberOfApprovers, ops, gc)
 	if errGenXdr != nil {
 		err = errGenXdr
 		return
 	}
-
+	accessInfo.TransactionSource = transactionSource
 	accessInfo.Messages = append(accessInfo.Messages, messages...)
 
 	accessInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
@@ -973,6 +973,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			WalletPublicKey:          wallet.ID,
 			TransactionType:          "MODIFY SHARED ACCESS",
 			Description:              description,
+			TransactionSource:        accessInfo.TransactionSource,
 			ApprovalsNeeded:          accessInfo.NumberOfApprovalsNeeded,
 			TransactionXdr:           xdrBase64,
 			TransactionInfoStr:       &transactionStr,
@@ -1070,7 +1071,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 
 	// }
 
-	xdrBase64, messages, walletMustSign, _, errGenXdr := generateRemoveSharedAccessXdr(wallet, &walletOwner, approverUsers, numberOfApprovers, gc)
+	xdrBase64, transactionSource, messages, walletMustSign, _, errGenXdr := generateRemoveSharedAccessXdr(wallet, &walletOwner, approverUsers, numberOfApprovers, gc)
 	if errGenXdr != nil {
 		return errGenXdr
 	}
@@ -1079,6 +1080,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		accessInfo.SignatureRequired = 1
 
 	}
+	accessInfo.TransactionSource = transactionSource
 	accessInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 
 	accessInfo.Transaction = xdrBase64
@@ -1114,6 +1116,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 				WalletPublicKey:          wallet.ID,
 				TransactionType:          "DISABLE SHARED ACCESS",
 				Description:              description,
+				TransactionSource:        accessInfo.TransactionSource,
 				ApprovalsNeeded:          approvalsNeeded,
 				TransactionXdr:           xdrBase64,
 				TransactionInfoStr:       &transactionStr,
@@ -1380,7 +1383,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 }
 
-func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, numberOfSubmittedApprovers, numberOfApprovalsNeeded, oldNumberOfApprovers int, ops []txnbuild.Operation, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, err error) {
+func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, numberOfSubmittedApprovers, numberOfApprovalsNeeded, oldNumberOfApprovers int, ops []txnbuild.Operation, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, err error) {
 	client := gc.BantuExpansionClient
 	messages = make([]string, 0)
 	// totalNativeBalanceNeeded := decimal.Zero
@@ -1400,7 +1403,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			ErrMessage: "No approvers specifieds",
 			Code:       404,
 		}
-		return "", messages, err
+		return "", "", messages, err
 	}
 	chanAccount := <-gc.ChannelAccounts
 	defer func(c *keypair.Full) {
@@ -1415,7 +1418,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	if errWalletAct != nil {
 		log.Printf("[generateModifySharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
 
-		return "", messages, errWalletAct
+		return "", "", messages, errWalletAct
 	}
 	if !walletAccountExists || (walletAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance.Mul(decimal.NewFromInt(int64(numberOfSubmittedApprovers)))) {
 		log.Printf("[generateModifySharedAccessXdr] by [%v] shared WalletAccount underfunded. Needs at least %v %v\n", wallet.Alias, (minBalance.Mul(decimal.NewFromInt(int64(numberOfSubmittedApprovers)))).Truncate(7).String(), os.Getenv("NATIVE_ASSET_CODE"))
@@ -1426,7 +1429,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			ErrMessage: fmt.Sprintf("Wallet %v needs minimum of %v %v balance to perform this operation.", wallet.Alias, (minBalance.Mul(decimal.NewFromInt(int64(numberOfSubmittedApprovers)))).Truncate(7).String(), os.Getenv("NATIVE_ASSET_CODE")),
 			Code:       http.StatusBadRequest,
 		}
-		return "", messages, err
+		return "", "", messages, err
 	}
 	{
 		//check if account recovery is enabled, then disable it on the wallet.
@@ -1507,6 +1510,7 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	var tx *txnbuild.Transaction
 	if oldNumberOfApprovers > 0 {
 		//multiparty
+		transactionSource = chanSourceAccount.AccountID
 		tx, err = txnbuild.NewTransaction(
 			txnbuild.TransactionParams{
 				SourceAccount:        chanSourceAccount,
@@ -1537,13 +1541,13 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	if err != nil {
 		log.Println("[generateModifySharedAccessXdr] error constructing transaction ", err)
-		return "", messages, err
+		return "", "", messages, err
 	}
 	if oldNumberOfApprovers > 0 {
 		tx, err = tx.Sign(gc.BantuNetworkPassphrase, chanAccount)
 		if err != nil {
 			log.Println("[generateModifySharedAccessXdr] error signing transaction with chan account", err)
-			return "", messages, err
+			return "", "", messages, err
 		}
 	}
 
@@ -1552,10 +1556,10 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	xdrBase64, err = tx.Base64()
 	if err != nil {
 		log.Println("[generateModifySharedAccessXdr] error getting txn base64", err)
-		return "", messages, err
+		return "", "", messages, err
 	}
 
-	return xdrBase64, messages, nil
+	return xdrBase64, transactionSource, messages, nil
 
 }
 func generateAddSharedAccessOps(wallet *userModels.UserWallet, walletOwner *userModels.User, approver *userModels.User, gc *sharedconfig.GlobalConfig) (ops []txnbuild.Operation, messages []string, err error) {
@@ -1625,7 +1629,7 @@ func generateAddSharedAccessOps(wallet *userModels.UserWallet, walletOwner *user
 
 }
 
-func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, approvers []*userModels.User, numberOfApprovers int, gc *sharedconfig.GlobalConfig) (xdrbase64 string, messages []string, walletMustSign, multipartySign bool, err error) {
+func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *userModels.User, approvers []*userModels.User, numberOfApprovers int, gc *sharedconfig.GlobalConfig) (xdrbase64, transactionSource string, messages []string, walletMustSign, multipartySign bool, err error) {
 	client := gc.BantuExpansionClient
 	ops := make([]txnbuild.Operation, 0)
 	messages = make([]string, 0)
@@ -1651,7 +1655,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	if errWalletAct != nil {
 		log.Printf("[generateRemoveSharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
 
-		return "", messages, walletMustSign, multipartySign, errWalletAct
+		return "", "", messages, walletMustSign, multipartySign, errWalletAct
 	}
 	if !walletAccountExists || (walletAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
 		log.Printf("[generateRemoveSharedAccessXdr] by [%v] shared WalletAccount underfunded \n", wallet.Alias)
@@ -1662,7 +1666,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			ErrMessage: fmt.Sprintf("Wallet %v does not have enough XBN balance to perform this operation", wallet.Alias),
 			Code:       404,
 		}
-		return "", messages, walletMustSign, multipartySign, err
+		return "", "", messages, walletMustSign, multipartySign, err
 	}
 	{
 		//check if it is multiparty signature that is required.
@@ -1746,7 +1750,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 					ErrMessage: fmt.Sprintf("Wallet %v needs more than %v XBN balance to perform this operation", wallet.Alias, totalNativeBalanceNeeded.String()),
 					Code:       404,
 				}
-				return "", messages, walletMustSign, multipartySign, err
+				return "", "", messages, walletMustSign, multipartySign, err
 			}
 		}
 	}
@@ -1795,11 +1799,12 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	if len(ops) == 0 {
 		// no operations to sign
-		return "no-ops", messages, walletMustSign, multipartySign, nil
+		return "no-ops", "", messages, walletMustSign, multipartySign, nil
 	}
 	var tx *txnbuild.Transaction
 	if numberOfApprovers > 0 {
 		//multiparty
+		transactionSource = chanSourceAccount.AccountID
 		tx, err = txnbuild.NewTransaction(
 			txnbuild.TransactionParams{
 				SourceAccount:        chanSourceAccount,
@@ -1830,14 +1835,14 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	if err != nil {
 		log.Println("[generateRemoveSharedAccessXdr] error constructing transaction ", err)
-		return "", messages, walletMustSign, multipartySign, err
+		return "", "", messages, walletMustSign, multipartySign, err
 	}
 
 	if numberOfApprovers > 0 {
 		tx, err = tx.Sign(gc.BantuNetworkPassphrase, chanAccount)
 		if err != nil {
 			log.Println("[generateModifySharedAccessXdr] error signing transaction with chan account", err)
-			return "", messages, walletMustSign, multipartySign, err
+			return "", "", messages, walletMustSign, multipartySign, err
 		}
 	}
 	var xdrBase64 string
@@ -1845,10 +1850,10 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 	xdrBase64, err = tx.Base64()
 	if err != nil {
 		log.Println("[generateRemoveSharedAccessXdr] error getting txn base64", err)
-		return "", messages, walletMustSign, multipartySign, err
+		return "", "", messages, walletMustSign, multipartySign, err
 	}
 
-	return xdrBase64, messages, walletMustSign, multipartySign, nil
+	return xdrBase64, transactionSource, messages, walletMustSign, multipartySign, nil
 
 }
 

@@ -137,6 +137,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 			WalletPublicKey:          wallet.ID,
 			TransactionType:          "SWAP",
 			Description:              description,
+			TransactionSource:        swapInfo.TransactionSource,
 			ApprovalsNeeded:          wallet.NumberOfApprovalsNeeded,
 			TransactionXdr:           swapInfo.Transaction,
 			TransactionInfoStr:       &transactionStr,
@@ -329,6 +330,7 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
 	// if swapInfo.Multiparty == 1 {
+	swapInfo.TransactionSource = chanSourceAccount.AccountID
 	tx, err = txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount:        chanSourceAccount,

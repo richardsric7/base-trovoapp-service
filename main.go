@@ -278,7 +278,7 @@ func main() {
 			UploadPath: os.Getenv("STORAGE_BUCKET_NAME"),
 		},
 	}
-
+	globalConfig.InUseChannelAccounts = make(map[string]*keypair.Full)
 	scas := strings.Split(os.Getenv("CHANNEL_ACCOUNTS"), ",")
 	count := decimal.RequireFromString(os.Getenv("CHANNEL_ACCOUNT_MIN_COUNT")).IntPart()
 	if len(scas) > int(count) {
@@ -297,6 +297,21 @@ func main() {
 				if e != nil {
 					log.Printf("[PARSE CHANNEL ACCOUNT]error parsing account %v:%v\n", v, e)
 					continue
+				}
+				{
+					//check if channel account is currently in use in pending shared access transaction
+					var pendingTransaction userModels.PendingAuth
+					errFetch := database.Where("transaction_status = 'PENDING' AND transaction_source = ?", k.Address()).First(&pendingTransaction).Error
+
+					if errFetch == nil {
+						//record was retrieved. save this in the map
+						log.Printf("[ADDING KEY TO IN-USE CHANNEL ACCOUNT LIST] %v\n", k.Address())
+						globalConfig.InUseChannelAccounts[k.Address()] = k
+						//skip adding it to available channel accounts
+						continue
+
+					}
+
 				}
 				log.Printf("Channel Account to be used:%v\n", k.Address())
 				//check minimum balance

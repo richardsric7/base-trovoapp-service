@@ -20,6 +20,7 @@ type MarketOfferRequest struct {
 	Messages             []string `json:"messages"`
 	Commit               int      `json:"commit"`
 	Multiparty           int      `json:"-"`
+	TransactionSource    string   `json:"-"`
 	SignatureRequired    int      `json:"signatureRequired"`
 	Memo                 string   `json:"memo"`
 	ReturnedDescription  string   `json:"-"`
@@ -34,6 +35,7 @@ type DeleteOfferRequest struct {
 	Messages             []string `json:"messages"`
 	Commit               int      `json:"commit"`
 	Multiparty           int      `json:"-"`
+	TransactionSource    string   `json:"-"`
 	SignatureRequired    int      `json:"signatureRequired"`
 	Memo                 string   `json:"memo"`
 	ReturnedDescription  string   `json:"-"`

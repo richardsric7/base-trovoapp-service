@@ -349,6 +349,10 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		// return &tErrors.ErrorTemporaryServerError{}
 	}
 	{ //sub
+
+		//release channel account
+		gc.ReleaseInUseChannelAccount(p.TransactionSource)
+
 		//process post blockchcain transaction
 		if p.TransactionType == "DISABLE SHARED ACCESS" {
 

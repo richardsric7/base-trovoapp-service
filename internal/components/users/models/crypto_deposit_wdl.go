@@ -103,9 +103,10 @@ type WithdrawalRequestInput struct {
 	TransactionID        string  `json:"transactionId"`
 	NetworkPassPhrase    string  `json:"networkPassPhrase"`
 	Multiparty           int     `json:"-"`
-	SignatureRequired    int     `json:"signatureRequired"`
-	Commit               int     `json:"commit"`
-	ReturnedDescription  string  `json:"-"`
+	TransactionSource    string  `json:"-"`
+	SignatureRequired   int    `json:"signatureRequired"`
+	Commit              int    `json:"commit"`
+	ReturnedDescription string `json:"-"`
 }
 
 type WithdrawalRequest struct {
