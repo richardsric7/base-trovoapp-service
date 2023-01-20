@@ -158,6 +158,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating CryptoDeposit: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.CallbackDepositItem{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating CallbackDepositItem: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.WithdrawalNetwork{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating WithdrawalNetwork: ", errMigrate)

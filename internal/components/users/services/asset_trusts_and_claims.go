@@ -87,7 +87,7 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 
 	//there was a signature... let's submit
 
-	if oldTxn != xdrBase64 && pendingAssetToClaim.Commit == 0 {
+	if oldTxn != xdrBase64 && pendingAssetToClaim.Commit == 0 && pendingAssetToClaim.Multiparty == 0 {
 		return pendingAssetToClaim, false, &tErrors.CustomError{
 			Param:      "transaction",
 			Err:        "transaction mismatch",
@@ -345,35 +345,35 @@ func generateClaimPendingAssetXdr(wallet *userModels.UserWallet, pendingAssetToC
 	}
 
 	//service fee
-	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	if e != nil {
-		serviceFee = decimal.Zero
-	}
-	if serviceFee.IsPositive() {
-		if pendingAssetToClaim.Multiparty == 1 {
-			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: wallet.ID,
-					Asset:         txnbuild.NativeAsset{},
-				})
-				pendingAssetToClaim.Messages = append(pendingAssetToClaim.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
+	// serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	// if e != nil {
+	// 	serviceFee = decimal.Zero
+	// }
+	// if serviceFee.IsPositive() {
+	// 	if pendingAssetToClaim.Multiparty == 1 {
+	// 		//process service fee
+	// 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
+	// 			ops = append(ops, &txnbuild.Payment{
+	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+	// 				SourceAccount: wallet.ID,
+	// 				Asset:         txnbuild.NativeAsset{},
+	// 			})
+	// 			pendingAssetToClaim.Messages = append(pendingAssetToClaim.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
 
-			} else {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: wallet.ID,
-					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
-				})
-				pendingAssetToClaim.Messages = append(pendingAssetToClaim.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+	// 		} else {
+	// 			ops = append(ops, &txnbuild.Payment{
+	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+	// 				SourceAccount: wallet.ID,
+	// 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+	// 			})
+	// 			pendingAssetToClaim.Messages = append(pendingAssetToClaim.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
 
-			}
+	// 		}
 
-		}
-	}
+	// 	}
+	// }
 
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network
@@ -616,36 +616,36 @@ func generateTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *userMod
 		Limit:         "900000000000",
 		SourceAccount: wallet.ID,
 	})
-	//service fee
-	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	if e != nil {
-		serviceFee = decimal.Zero
-	}
-	if serviceFee.IsPositive() {
-		if trustLineInfo.Multiparty == 1 {
-			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: wallet.ID,
-					Asset:         txnbuild.NativeAsset{},
-				})
-				trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
+	// //service fee
+	// serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	// if e != nil {
+	// 	serviceFee = decimal.Zero
+	// }
+	// if serviceFee.IsPositive() {
+	// 	if trustLineInfo.Multiparty == 1 {
+	// 		//process service fee
+	// 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
+	// 			ops = append(ops, &txnbuild.Payment{
+	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+	// 				SourceAccount: wallet.ID,
+	// 				Asset:         txnbuild.NativeAsset{},
+	// 			})
+	// 			trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
 
-			} else {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: wallet.ID,
-					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
-				})
-				trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+	// 		} else {
+	// 			ops = append(ops, &txnbuild.Payment{
+	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+	// 				SourceAccount: wallet.ID,
+	// 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+	// 			})
+	// 			trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
 
-			}
+	// 		}
 
-		}
-	}
+	// 	}
+	// }
 
 	// Construct the transaction that holds the operations to execute on the network
 
@@ -757,36 +757,36 @@ func generateRemoveTrustAssetXdr(wallet *userModels.UserWallet, trustLineInfo *u
 		SourceAccount: wallet.ID,
 	})
 
-	//service fee
-	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	if e != nil {
-		serviceFee = decimal.Zero
-	}
-	if serviceFee.IsPositive() {
-		if trustLineInfo.Multiparty == 1 {
-			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: wallet.ID,
-					Asset:         txnbuild.NativeAsset{},
-				})
-				trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
+	// //service fee
+	// serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	// if e != nil {
+	// 	serviceFee = decimal.Zero
+	// }
+	// if serviceFee.IsPositive() {
+	// 	if trustLineInfo.Multiparty == 1 {
+	// 		//process service fee
+	// 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
+	// 			ops = append(ops, &txnbuild.Payment{
+	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+	// 				SourceAccount: wallet.ID,
+	// 				Asset:         txnbuild.NativeAsset{},
+	// 			})
+	// 			trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
 
-			} else {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: wallet.ID,
-					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
-				})
-				trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+	// 		} else {
+	// 			ops = append(ops, &txnbuild.Payment{
+	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+	// 				SourceAccount: wallet.ID,
+	// 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+	// 			})
+	// 			trustLineInfo.Messages = append(trustLineInfo.Messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
 
-			}
+	// 		}
 
-		}
-	}
+	// 	}
+	// }
 
 	var tx *txnbuild.Transaction
 	// Construct the transaction that holds the operations to execute on the network

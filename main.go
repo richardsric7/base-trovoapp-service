@@ -15,6 +15,7 @@ import (
 	"time"
 
 	msc "trovo-wallet-api/internal/components/announcements/controllers"
+	callbacks "trovo-wallet-api/internal/components/callbacks/controllers"
 	payments "trovo-wallet-api/internal/components/payments/controllers"
 	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	rates "trovo-wallet-api/internal/components/rates/controllers"
@@ -537,6 +538,8 @@ func main() {
 	log.Println("##rates services initialized##")
 	msc.Init(router, &globalConfig)
 	log.Println("##announcements/version services initialized##")
+	callbacks.Init(router, callBackRetryChan, &globalConfig)
+	log.Println("##callbacks services initialized##")
 	//run app
 	log.Println("##service started##")
 	if len(os.Getenv("PORT")) > 0 {

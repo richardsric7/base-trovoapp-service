@@ -3590,7 +3590,7 @@ func TestCreateWithdrawalRequestShared(t *testing.T) {
 
 	payload := WithdrawalRequestInput{
 		Currency:          "USDT",
-		AmountSubmitted:   79,
+		AmountSubmitted:   78,
 		WithdrawalAddress: "Fphf1sHNtudEWteRNHMdU1SiwuXkdRdJZXLJyKmbu2V8",
 		WithdrawalNetwork: "SOL",
 	}

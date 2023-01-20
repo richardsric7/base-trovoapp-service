@@ -198,6 +198,8 @@ type MarketOfferID string
 
 type Issuer string
 
+type CryptoDepositAddress string
+
 type Downline struct {
 	Username string  `json:"username"`
 	Referrer *string `json:"referrer,omitempty"`

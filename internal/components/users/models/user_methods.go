@@ -1475,6 +1475,62 @@ func (u *User) GetReferralCount(gc *sharedconfig.GlobalConfig) (referralCount in
 	return
 }
 
+func (d CryptoDepositAddress) GetDetail(currency, network string, gc *sharedconfig.GlobalConfig) (depositAddress CryptoWalletDepositAddress, err error) {
+	address := string(d)
+	e := gc.DB.Where("upper(currency) = upper(?) AND network = ? AND to_address = ?", currency, network, address).First(&depositAddress).Error
+	if e != nil {
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+	return depositAddress, nil
+
+}
+func (callback *CallbackDepositItem) Save(gc *sharedconfig.GlobalConfig) (err error) {
+
+	e := gc.DB.Create(callback).Error
+	if e != nil {
+		log.Println("[SAVE CALLBACK]error creating callback: ", e)
+		//notify failure
+		{
+			// procedure to notify
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+	return nil
+
+}
+
+func (callbackObj *CallbackDeposit) SaveDepositCallback(gc *sharedconfig.GlobalConfig) (err error) {
+	if !strings.EqualFold(callbackObj.Event, "WALLET_DEPOSIT_COMPLETED") {
+		log.Println("[SAVE CALLBACK]error NOT a completed deposit.")
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+	_, err = CryptoDepositAddress(callbackObj.Data.ToAddress).GetDetail(callbackObj.Data.Currency, callbackObj.Data.Network, gc)
+	if err != nil {
+		log.Printf("[DEPOSIT CALLBACK FAILED RETRIEVAL] ERROR GETTING DEPOSIT ADDRESS OBJECT FROM DB for [%v, %v, %v], error: [%v]\n", callbackObj.Data.Currency, callbackObj.Data.Network, callbackObj.Data.ToAddress, err)
+		//notify failure
+		{
+			// procedure to notify
+		}
+
+		return err
+	}
+	e := gc.DB.Create(callbackObj.Data).Error
+	if e != nil {
+		log.Println("[SAVE CALLBACK]error creating callback: ", e)
+		//notify failure
+		{
+			// procedure to notify
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+	return nil
+
+}
+
 func (u *User) GetDownlines(gc *sharedconfig.GlobalConfig) (lv1, lv2, lv3 []Downline) {
 	lv1 = make([]Downline, 0)
 	lv1Referrals := make([]string, 0)

@@ -512,7 +512,7 @@ func GetAWithdrawalID(withdrawalID string, gc *sharedconfig.GlobalConfig) (wdlIt
 	var wdlResp WDLResp
 	client := http.DefaultClient
 
-	url := fmt.Sprintf("%s/%s?withdrawalId=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "/wallets/v1/withdrawal", withdrawalID)
+	url := fmt.Sprintf("%s/%s?withdrawalId=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal", withdrawalID)
 
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	request.Header.Set("Content-Type", "application/json")
@@ -550,6 +550,108 @@ func GetAWithdrawalID(withdrawalID string, gc *sharedconfig.GlobalConfig) (wdlIt
 	wdlItem = wdlResp.Data
 
 	return wdlItem, nil
+
+}
+
+func GetADepositByID(depositID string, gc *sharedconfig.GlobalConfig) (depItem userModels.DepositResponseItem, err error) {
+
+	type DEPResp struct {
+		Message string                         `json:"message"`
+		Data    userModels.DepositResponseItem `json:"data"`
+	}
+
+	var depResp DEPResp
+	client := http.DefaultClient
+
+	url := fmt.Sprintf("%s/%s?depositId=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/deposit", depositID)
+
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Println("[GetADepositByID] error sending request:", err)
+		return
+	}
+	if resp.StatusCode != 200 {
+
+		type ErrorResponse struct {
+			Message string `json:"message"`
+		}
+		var errorResponse ErrorResponse
+		defer resp.Body.Close()
+		//Decode the data
+		if err = json.NewDecoder(resp.Body).Decode(&errorResponse); err != nil {
+			log.Println("[GetADepositByID] error decoding response:", err)
+			return
+		}
+		log.Printf("[GetADepositByID] error response with code: %v, status: %v,error %v", resp.StatusCode, resp.Status, errorResponse.Message)
+
+		log.Println("[GetADepositByID] error response with code: ", resp.StatusCode, resp.Status)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+
+	defer resp.Body.Close()
+	//Decode the data
+	if err = json.NewDecoder(resp.Body).Decode(&depResp); err != nil {
+		log.Println("[GetADepositByID] error decoding response for deposit:", err)
+		return
+	}
+	depItem = depResp.Data
+
+	return depItem, nil
+
+}
+
+func GetAllDeposits(lek, limit string, gc *sharedconfig.GlobalConfig) (depItems []userModels.DepositResponseItem, err error) {
+	depItems = make([]userModels.DepositResponseItem, 0)
+	type DEPResp struct {
+		Message string                           `json:"message"`
+		Data    []userModels.DepositResponseItem `json:"data"`
+	}
+
+	var depResp DEPResp
+	client := http.DefaultClient
+
+	url := fmt.Sprintf("%s/%s?lek=%v&limit=%v", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/deposit", lek, limit)
+
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", os.Getenv("ONELIQUIDITY_TOKEN")))
+	resp, err := client.Do(request)
+	if err != nil {
+		log.Println("[GetAllDeposits] error sending request:", err)
+		return
+	}
+	if resp.StatusCode != 200 {
+
+		type ErrorResponse struct {
+			Message string `json:"message"`
+		}
+		var errorResponse ErrorResponse
+		defer resp.Body.Close()
+		//Decode the data
+		if err = json.NewDecoder(resp.Body).Decode(&errorResponse); err != nil {
+			log.Println("[GetAllDeposits] error decoding response:", err)
+			return
+		}
+		log.Printf("[GetAllDeposits] error response with code: %v, status: %v,error %v", resp.StatusCode, resp.Status, errorResponse.Message)
+
+		log.Println("[GetAllDeposits] error response with code: ", resp.StatusCode, resp.Status)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+
+	defer resp.Body.Close()
+	//Decode the data
+	if err = json.NewDecoder(resp.Body).Decode(&depResp); err != nil {
+		log.Println("[GetAllDeposits] error decoding response for deposits:", err)
+		return
+	}
+	depItems = depResp.Data
+
+	return depItems, nil
 
 }
 

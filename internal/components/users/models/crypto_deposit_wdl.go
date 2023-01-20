@@ -126,3 +126,24 @@ type WithdrawalRequest struct {
 	TransactionID        string    `gorm:"size:100" json:"transactionId"`
 	WithdrawalStatus     string    `gorm:"size:100;default:'PENDING'" json:"withdrawalStatus"`
 }
+
+type CallbackDeposit struct {
+	Event   string              `json:"event"`
+	Message string              `json:"message"`
+	Data    CallbackDepositItem `json:"data"`
+}
+
+type CallbackDepositItem struct {
+	CreatedAt       time.Time
+	DepositID       string `gorm:"primaryKey" json:"depositId"`
+	Currency        string `json:"currency"`
+	Network         string `json:"network"`
+	Txid            string `json:"txid"`
+	Amount          string `json:"amount"`
+	Fees            string `json:"fees"`
+	FromAddress     string `json:"from_address"`
+	ToAddress       string `json:"to_address"`
+	Decimal         int    `json:"decimal"`
+	ProcessingState int    `json:"processing_state"`
+	Minted          int    `gorm:"default:0" json:"minted"`
+}
