@@ -360,20 +360,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       .firstWhere((wallet) => wallet.publicKey == activeWallet);
 
                   appState.viewData = {
-                    // since the original asset object
-                    // is immutable I create a new assetObj and
-                    // copy all the data into it so that
-                    // I'll be able to change the data
-                    AssetDetailsViewPageConfig.key: {
-                      'assetCode': claimedAssets[i]['assetCode'],
-                      'assetIssuer': claimedAssets[i]['assetIssuer'],
-                      'amount': claimedAssets[i]['amount'],
-                      'usdPrice': claimedAssets[i]['usdPrice'],
-                      'qrCode': claimedAssets[i]['qrCode'],
-                      'imageUrl': claimedAssets[i]['imageUrl'],
-                      'cryptoWalletDepositAddresses': claimedAssets[i]
-                          ['cryptoWalletDepositAddresses'],
-                    }
+                    'assetCode': claimedAssets[i]['assetCode'],
+                    'assetIssuer': claimedAssets[i]['assetIssuer'],
+                    'walletPublicKey': activeWallet,
                   };
                   appState.currentAction = PageAction(
                     state: PageState.addPage,

@@ -100,32 +100,32 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
                   width: width / 1.2,
                   child: Row(
                     children: [
-                      TopDropdowns(
-                        onWalletChanged: (newValue) {
-                          selectedWallet = newValue;
-                          activeWallet = appState.allWallets[newValue];
-                          claimedAssets = activeWallet['claimedAssets'];
+                      // TopDropdowns(
+                      //   onWalletChanged: (newValue) {
+                      //     selectedWallet = newValue;
+                      //     activeWallet = appState.allWallets[newValue];
+                      //     claimedAssets = activeWallet['claimedAssets'];
 
-                          for (var asset in claimedAssets) {
-                            // we need to somehow take care of the selected asset
-                            // when switching wallets because of scenarios
-                            // where one wallet has an asset that is not listed
-                            // on the other. Here we are checking whether the
-                            // newly selected wallet contains the currently
-                            // selected asset and if it doesn't we switch
-                            // back to the default asset which is XBN
-                            if (asset['assetIssuer'] == selectedAsset ||
-                                asset['assetIssuer'] == '') {
-                              appState.viewData![
-                                  GenerateDepositAddressViewPageConfig
-                                      .key] = asset;
-                              break;
-                            }
-                          }
-                          setState(() {});
-                        },
-                        selectedWallet: selectedWallet,
-                      ),
+                      //     for (var asset in claimedAssets) {
+                      //       // we need to somehow take care of the selected asset
+                      //       // when switching wallets because of scenarios
+                      //       // where one wallet has an asset that is not listed
+                      //       // on the other. Here we are checking whether the
+                      //       // newly selected wallet contains the currently
+                      //       // selected asset and if it doesn't we switch
+                      //       // back to the default asset which is XBN
+                      //       if (asset['assetIssuer'] == selectedAsset ||
+                      //           asset['assetIssuer'] == '') {
+                      //         appState.viewData![
+                      //             GenerateDepositAddressViewPageConfig
+                      //                 .key] = asset;
+                      //         break;
+                      //       }
+                      //     }
+                      //     setState(() {});
+                      //   },
+                      //   selectedWallet: selectedWallet,
+                      // ),
                     ],
                   ),
                 ),

@@ -1,3 +1,5 @@
+import 'package:trovo_wallet/models/curated_asset.dart';
+
 import 'wallet.dart';
 
 class UserInfo {
@@ -25,7 +27,7 @@ class UserInfo {
   int? suspended;
   List<Wallet>? wallets;
   List<Wallet>? sharedWallets;
-  List<Map<String, dynamic>>? curatedSwapList;
+  List<CuratedAsset>? curatedSwapList;
 
   UserInfo({
     this.username,
@@ -112,28 +114,10 @@ class UserInfo {
         sharedWallets: deserializeSharedWallets(sharedWallets));
   }
 
-  List<Map<String, dynamic>> deserializeSwapList(Map<String, dynamic> m) {
-    List<Map<String, dynamic>> list = [];
+  List<CuratedAsset> deserializeSwapList(Map<String, dynamic> m) {
+    List<CuratedAsset> list = [];
     m['curatedSwapList'].forEach((item) {
-      list.add({
-        'assetIssuer': item['assetIssuer'],
-        'assetCode': item['assetCode'],
-        'assetName': item['assetName'],
-        'description': item['description'],
-        'imageUrl': item['imageUrl'],
-        'website': item['website'],
-        'assetConditions': item['assetConditions'],
-        'assetLimit': item['assetLimit'],
-        'assetRedemptionInstructions': item['assetRedemptionInstructions'],
-        'contactEmail': item['contactEmail'],
-        'assetClassId': item['assetClassId'],
-        'assetClass': item['assetClass'],
-        'organization': item['organization'],
-        'withdrawable': item['withdrawable'],
-        'decimalPlaces': item['decimalPlaces'],
-        'realAssetImageUrl': item['realAssetImageUrl'],
-        'generateDepositAddress': item['generateDepositAddress'],
-      });
+      list.add(CuratedAsset().deserializeJson(item));
     });
     return list;
   }
@@ -162,5 +146,10 @@ class UserInfo {
       myWallets.add(wallet);
     }
     return myWallets;
+  }
+
+  Wallet getWallet(String publicKey) {
+    var combinedList = [...wallets!, ...sharedWallets!];
+    return combinedList.firstWhere((wallet) => wallet.publicKey == publicKey);
   }
 }

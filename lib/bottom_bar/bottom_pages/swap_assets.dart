@@ -663,10 +663,10 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
     if (isDestination) {
       // add the default assets to the list of destination assets
-      userInfo.curatedSwapList!.forEach((asset) {
-        assetsMap['${asset['assetIssuer']}|${asset['assetCode']}'] =
-            asset['assetCode'];
-      });
+      // userInfo.curatedSwapList!.forEach((asset) {
+      //   assetsMap['${asset['assetIssuer']}|${asset['assetCode']}'] =
+      //       asset['assetCode'];
+      // });
     } else {
       assets.forEach((asset) {
         assetsMap['${asset['assetIssuer']}|${asset['assetCode']}'] =

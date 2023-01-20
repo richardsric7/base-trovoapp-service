@@ -1,4 +1,4 @@
-import 'assets.dart';
+import 'asset.dart';
 import 'permission.dart';
 
 class Wallet {
@@ -10,6 +10,7 @@ class Wallet {
   String? alias;
   String? signer;
   String? userId;
+  bool? _isInitiator;
   int? sharedAccessEnabled;
   int? walletType;
   int? walletThreshold;
@@ -92,6 +93,14 @@ class Wallet {
       unClaimedAssets:
           deserializeAssetList(assetBalances[m["publicKey"]]['unclaimed']),
     );
+  }
+
+  bool get isInitiator {
+    return permission == "INITIATOR";
+  }
+
+  bool get isSharedWallet {
+    return sharedAccessEnabled == 1;
   }
 
   Wallet deserializeSharedJson(m) {

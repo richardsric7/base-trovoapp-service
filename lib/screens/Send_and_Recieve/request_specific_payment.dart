@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,6 +8,8 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/network/requests.dart';
@@ -32,23 +33,36 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  Wallet? activeWallet;
   final formKey = GlobalKey<FormState>();
   String to = ''; // the reciever
   String amount = '';
   bool amountError = false;
   String? memo;
-  var asset;
-  var deeplinkInfo;
   TextEditingController _utf8TextController = TextEditingController();
   TextEditingController toController = TextEditingController();
   TextEditingController sendingWalletController = TextEditingController();
-
   final amountController = TextEditingController();
+  late UserInfo userInfo;
+  late Wallet wallet;
+  late Asset? asset;
 
   @override
   void initState() {
     super.initState();
+
+    appState = Provider.of<DataProvider>(context, listen: false);
+    userInfo = appState.userInfo!;
+    wallet = userInfo.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+    asset = wallet.claimedAssets!.firstWhere(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
+
+    // free the memory..... lol
+    appState.viewData = null;
   }
 
   @override
@@ -57,12 +71,8 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    activeWallet = appState.activeWallet;
 
-    asset = appState.viewData![RequestSpecificPaymentViewPageConfig.key];
-    print(asset['publicKey']);
-    print(asset['walletAlias']);
-    sendingWalletController.text = asset['walletAlias'];
+    sendingWalletController.text = wallet.alias!;
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -94,7 +104,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${LanguageEn.request} ${getAssetCode(asset['assetCode'])}',
+                      '${LanguageEn.request} ${getAssetCode(asset!.assetCode)}',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -260,10 +270,10 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
       showLoader(context);
       Map responseData = await makeGetRequest(
         uri:
-            '/v1/users/payment/generate/${asset['walletAlias']}?paymentDestination=${asset['publicKey']}&assetCode=${asset['assetCode']}&assetIssuer=${asset['assetIssuer']}&amount=${amount.toString()}&memo=${memo != null ? Uri.encodeComponent(memo!) : ''}',
-        signer: activeWallet!.signer!,
+            '/v1/users/payment/generate/${wallet.alias}?paymentDestination=${wallet.publicKey}&assetCode=${asset!.assetCode}&assetIssuer=${asset!.assetIssuer}&amount=${amount.toString()}&memo=${memo != null ? Uri.encodeComponent(memo!) : ''}',
+        signer: wallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: asset['publicKey'],
+        publicKey: wallet.publicKey!,
       );
 
       print('response: $responseData');
@@ -271,15 +281,13 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
 
       if (responseData['statusCode'] == 200) {
         print('this is responseData ${responseData['data']}');
-        appState.viewData![RequestSpecificPaymentDetailsViewPageConfig.key] = {
+        appState.viewData = {
           'qrCode': responseData['data']['qrCode'],
           'dynamicLink': responseData['data']['dynamicLink'],
           'amount': amount,
-          'assetIssuer': asset['assetIssuer'],
-          'assetCode': asset['assetCode'],
+          'assetCode': asset!.assetCode,
           'memo': memo,
-          'publicKey': asset['publicKey'],
-          'walletAlias': asset['walletAlias'],
+          'walletAlias': wallet.alias,
         };
         appState.currentAction = PageAction(
             state: PageState.addPage,

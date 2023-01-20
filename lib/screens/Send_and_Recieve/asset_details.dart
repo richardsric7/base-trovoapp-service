@@ -6,8 +6,11 @@ import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/curated_asset.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -28,85 +31,34 @@ class _AssetDetailsState extends State<AssetDetails>
   late ColorNotifier notifier;
   late DataProvider appState;
   late UserInfo userInfo;
-  var assetBalances;
-  Map activeWallet = {};
-  Map activeAsset = {};
-  var claimedAssets;
-  late Map curatedAsset;
-  bool isInitiator = false;
-  bool isSharedWallet = false;
-  dynamic selectedWallet = '';
-  dynamic selectedAsset = '';
-
-  List<DropdownMenuItem<String>> assetDropdownItems(bool isSelected) {
-    List<DropdownMenuItem<String>> menuItems = [];
-    for (var asset in claimedAssets) {
-      menuItems.add(DropdownMenuItem(
-          child: Text(
-            isSelected
-                ? truncate(
-                    getAssetCode(asset['assetCode']),
-                    length: 3,
-                  )
-                : getAssetCode(asset['assetCode']),
-            overflow: TextOverflow.visible,
-          ),
-          value:
-              '${getAssetCode(asset['assetCode'])}|${getAssetIssuer(asset['assetIssuer'])}'));
-    }
-    return menuItems;
-  }
-
-  List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
-    var walletsList = <DropdownMenuItem<String>>[];
-    appState.allWallets.forEach((key, value) {
-      walletsList.add(
-        DropdownMenuItem(
-          child: Row(
-            children: [
-              Container(
-                constraints: isSelected
-                    ? BoxConstraints(maxWidth: width / 4)
-                    : BoxConstraints(maxWidth: width / 2.5),
-                child: Text(
-                  value['alias'],
-                  overflow:
-                      isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
-                ),
-              ),
-              if (value['sharedAccessEnabled'] == 1) ...[
-                SizedBox(
-                  width: 2,
-                ),
-                Icon(
-                  Icons.people_outline,
-                  size: 17,
-                  color: notifier.getbluecolor,
-                )
-              ],
-              if (!isSelected && key == selectedWallet) ...[
-                SizedBox(
-                  width: 2,
-                ),
-                Icon(
-                  Icons.check,
-                  size: 18,
-                  color: notifier.getbluecolor,
-                )
-              ],
-            ],
-          ),
-          value: key,
-        ),
-      );
-    });
-
-    return walletsList;
-  }
+  late Wallet wallet;
+  late Asset? asset;
+  late CuratedAsset? curatedAsset;
+  String selectedWallet = '';
+  String selectedAsset = '';
 
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    userInfo = appState.userInfo!;
+    wallet = userInfo.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+    asset = wallet.claimedAssets!.firstWhere(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
+
+    curatedAsset = userInfo.curatedSwapList!.firstWhereOrNull(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
+
+    // free the memory..... lol
+    appState.viewData = null;
   }
 
   @override
@@ -115,42 +67,27 @@ class _AssetDetailsState extends State<AssetDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState.userInfo!;
-    assetBalances = appState.assetBalances;
 
-    curatedAsset = userInfo.curatedSwapList!.firstWhere(
-        (asset) =>
-            asset['assetCode'] ==
-                appState.viewData![AssetDetailsViewPageConfig.key]
-                    ['assetCode'] &&
-            asset['assetIssuer'] ==
-                appState.viewData![AssetDetailsViewPageConfig.key]
-                    ['assetIssuer'],
-        orElse: () => {});
-
-    if (activeWallet.isEmpty) {
-      activeWallet = appState.allWallets[appState.activeWallet!.publicKey!];
-    }
-    selectedWallet = activeWallet['publicKey'];
-    claimedAssets = activeWallet['claimedAssets'];
-    activeAsset = appState.viewData![AssetDetailsViewPageConfig.key];
-
-    if (appState.viewData![AssetDetailsViewPageConfig.key] != null) {
-      selectedAsset = "${getAssetCode(
-        appState.viewData![AssetDetailsViewPageConfig.key]['assetCode'],
-      )}|${getAssetIssuer(
-        appState.viewData![AssetDetailsViewPageConfig.key]['assetIssuer'],
-      )}";
+    if (selectedWallet.isEmpty) {
+      selectedWallet = wallet.publicKey!;
     }
 
-    isSharedWallet = activeWallet['sharedAccessEnabled'] == 1;
+    if (asset == null) {
+      asset = wallet.claimedAssets!.firstWhere(
+        (asset) => asset.assetCode == '' && asset.assetIssuer == '',
+      );
+      selectedAsset = '';
+    }
 
-    // if this is a shared wallet
-    if (isSharedWallet) {
-      if (activeWallet['permission'] == 'INITIATOR')
-        isInitiator = true;
-      else
-        isInitiator = false;
+    this.curatedAsset = userInfo.curatedSwapList!.firstWhereOrNull(
+      (curatedAsset) =>
+          curatedAsset.assetCode == asset!.assetCode &&
+          curatedAsset.assetIssuer == asset!.assetIssuer,
+    );
+
+    if (selectedAsset.isEmpty) {
+      selectedAsset =
+          "${getAssetCode(asset!.assetCode)}|${getAssetIssuer(asset!.assetIssuer)}";
     }
 
     return ScreenUtilInit(
@@ -177,43 +114,31 @@ class _AssetDetailsState extends State<AssetDetails>
                       TopDropdowns(
                         onWalletChanged: (newValue) {
                           selectedWallet = newValue;
-                          activeWallet = appState.allWallets[newValue];
-                          claimedAssets = activeWallet['claimedAssets'];
+                          this.wallet = userInfo.getWallet(selectedWallet);
 
-                          for (var asset in claimedAssets) {
-                            // we need to somehow take care of the selected asset
-                            // when switching wallets because of scenarios
-                            // where one wallet has an asset that is not listed
-                            // on the other. Here we are checking whether the
-                            // newly selected wallet contains the currently
-                            // selected asset and if it doesn't we switch
-                            // back to the default asset which is XBN
-                            if (asset['assetIssuer'] == selectedAsset ||
-                                asset['assetIssuer'] == '') {
-                              appState.viewData![
-                                  AssetDetailsViewPageConfig.key] = asset;
-                              break;
-                            }
-                          }
+                          this.asset = wallet.claimedAssets!.firstWhereOrNull((x) =>
+                              "${getAssetCode(x.assetCode)}|${getAssetIssuer(x.assetIssuer)}" ==
+                              selectedAsset);
+
                           setState(() {});
                         },
                         onAssetChanged: (newValue) {
                           setState(() {
+                            selectedAsset = newValue;
                             newValue = newValue.toString().contains('XBN')
                                 ? '|'
                                 : newValue;
-                            for (var asset in claimedAssets) {
+                            for (var asset in wallet.claimedAssets!) {
                               var splitNewValue =
                                   newValue.toString().split('|');
-                              if (asset['assetCode'] == splitNewValue[0] &&
-                                  asset['assetIssuer'] == splitNewValue[1]) {
-                                appState.viewData![
-                                    AssetDetailsViewPageConfig.key] = asset;
+                              if (asset.assetCode == splitNewValue[0] &&
+                                  asset.assetIssuer == splitNewValue[1]) {
+                                this.asset = asset;
                               }
                             }
                           });
                         },
-                        claimedAssets: claimedAssets,
+                        claimedAssets: wallet.claimedAssets!,
                         selectedAsset: selectedAsset,
                         selectedWallet: selectedWallet,
                       ),
@@ -234,7 +159,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     width: 20,
                   ),
                   Text(
-                    getAssetCode(activeAsset['assetCode']),
+                    getAssetCode(asset!.assetCode),
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -246,22 +171,22 @@ class _AssetDetailsState extends State<AssetDetails>
               WalletSlide(
                 backColor: notifier.getbluecolor,
                 foreColor: wihitecolor,
-                alias: activeWallet['alias'].toString().capitalizeFirst!,
+                alias: wallet.alias.toString().capitalizeFirst!,
                 totalBalance:
-                    '${formatNumber(double.parse(activeAsset['amount']))} ${getAssetCode(activeAsset['assetCode'])}',
+                    '${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}',
                 fiatBalance:
-                    '${calculateFiatValue(activeAsset['amount'], activeAsset['usdPrice'], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                    '${calculateFiatValue(asset!.amount!.toString(), asset!.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                 initialHiddenState: appState.hideBalances,
               ),
               SizedBox(
                 height: height / 30,
               ),
-              if (curatedAsset.isNotEmpty) curatedAssetInfo() else assetInfo(),
+              if (curatedAsset != null) curatedAssetInfo() else assetInfo(),
               SizedBox(
                 height: height / 20,
               ),
-              if ((!isSharedWallet || isInitiator) &&
-                  activeWallet['walletType'] == 0) ...[
+              if ((!wallet.isSharedWallet || wallet.isInitiator) &&
+                  wallet.walletType == 0) ...[
                 actionButtons(),
               ] else ...[
                 Button(
@@ -269,10 +194,11 @@ class _AssetDetailsState extends State<AssetDetails>
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () {
-                    appState.viewData![ReceiveAssetViewPageConfig.key] =
-                        appState.viewData![AssetDetailsViewPageConfig.key];
-                    appState.viewData![ReceiveAssetViewPageConfig.key]
-                        ['walletInfo'] = activeWallet;
+                    appState.viewData = {
+                      'walletPublicKey': wallet.publicKey,
+                      'assetCode': asset!.assetCode,
+                      'assetIssuer': asset!.assetIssuer,
+                    };
 
                     appState.currentAction = PageAction(
                       state: PageState.addPage,
@@ -298,43 +224,44 @@ class _AssetDetailsState extends State<AssetDetails>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           actionButton("assets/images/send.png", 'Send', () {
-            appState.viewData![SendAssetViewPageConfig.key] =
-                appState.viewData![AssetDetailsViewPageConfig.key];
-            appState.viewData![SendAssetViewPageConfig.key]['walletInfo'] =
-                activeWallet;
+            // appState.viewData![SendAssetViewPageConfig.key] =
+            //     appState.viewData![AssetDetailsViewPageConfig.key];
+            // appState.viewData![SendAssetViewPageConfig.key]['walletInfo'] =
+            //     activeWallet;
 
-            appState.currentAction = PageAction(
-              state: PageState.addPage,
-              page: SendAssetViewPageConfig,
-            );
+            // appState.currentAction = PageAction(
+            //   state: PageState.addPage,
+            //   page: SendAssetViewPageConfig,
+            // );
           }),
-          if (curatedAsset.isNotEmpty &&
-              (curatedAsset['withdrawable'] == 1 ||
-                  curatedAsset['generateDepositAddress'] == 1)) ...[
+          if (curatedAsset != null &&
+              (curatedAsset!.isWithdrawable ||
+                  curatedAsset!.canGenerateDepositAddresses == 1)) ...[
             actionButton(
                 "assets/images/dep-with-button.png", 'Deposit/Withdraw', () {
-              appState.viewData![WrappedAssetViewPageConfig.key] = curatedAsset;
-              appState.viewData![WrappedAssetViewPageConfig.key]['usdPrice'] =
-                  activeAsset['usdPrice'];
-              appState.viewData![WrappedAssetViewPageConfig.key]['amount'] =
-                  activeAsset['amount'];
-              appState.viewData![WrappedAssetViewPageConfig.key]
-                      ['cryptoWalletDepositAddresses'] =
-                  activeAsset['cryptoWalletDepositAddresses'];
-              appState.viewData![WrappedAssetViewPageConfig.key]['walletInfo'] =
-                  activeWallet;
+              // appState.viewData![WrappedAssetViewPageConfig.key] = curatedAsset;
+              // appState.viewData![WrappedAssetViewPageConfig.key]['usdPrice'] =
+              //     activeAsset['usdPrice'];
+              // appState.viewData![WrappedAssetViewPageConfig.key]['amount'] =
+              //     activeAsset['amount'];
+              // appState.viewData![WrappedAssetViewPageConfig.key]
+              //         ['cryptoWalletDepositAddresses'] =
+              //     activeAsset['cryptoWalletDepositAddresses'];
+              // appState.viewData![WrappedAssetViewPageConfig.key]['walletInfo'] =
+              //     activeWallet;
 
-              appState.currentAction = PageAction(
-                state: PageState.addPage,
-                page: WrappedAssetViewPageConfig,
-              );
+              // appState.currentAction = PageAction(
+              //   state: PageState.addPage,
+              //   page: WrappedAssetViewPageConfig,
+              // );
             }),
           ],
           actionButton("assets/images/receive.png", 'Receive', () {
-            appState.viewData![ReceiveAssetViewPageConfig.key] =
-                appState.viewData![AssetDetailsViewPageConfig.key];
-            appState.viewData![ReceiveAssetViewPageConfig.key]['walletInfo'] =
-                activeWallet;
+            appState.viewData = {
+              'walletPublicKey': wallet.publicKey,
+              'assetCode': asset!.assetCode,
+              'assetIssuer': asset!.assetIssuer,
+            };
 
             appState.currentAction = PageAction(
               state: PageState.addPage,
@@ -402,21 +329,21 @@ class _AssetDetailsState extends State<AssetDetails>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '${getAssetCode(curatedAsset['assetCode'])} Token',
+                    '${getAssetCode(curatedAsset!.assetCode)} Token',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
                   ),
-                  if (activeAsset["imageUrl"].toString().isNotEmpty) ...[
+                  if (asset!.imageUrl != null) ...[
                     SizedBox(
                       height: height / 50.0,
                     ),
                     Container(
                       width: width / 1.3,
                       child: Image.network(
-                        activeAsset["imageUrl"],
+                        asset!.imageUrl!,
                         height: 50,
                         width: 50,
                         errorBuilder: (context, error, stackTrace) {
@@ -433,7 +360,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     height: height / 50.0,
                   ),
                   Text(
-                    curatedAsset['website'],
+                    curatedAsset!.website!,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
@@ -447,7 +374,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      curatedAsset['description'],
+                      curatedAsset!.description!,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
@@ -460,7 +387,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   SizedBox(
                     height: height / 50.0,
                   ),
-                  if (activeAsset['assetIssuer'].toString().isNotEmpty) ...[
+                  if (asset!.assetIssuer.toString().isNotEmpty) ...[
                     Text(
                       'Issuer Public Key',
                       style: TextStyle(
@@ -483,13 +410,9 @@ class _AssetDetailsState extends State<AssetDetails>
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 20.0),
                               child: Text(
-                                truncate(activeAsset['assetIssuer'],
-                                        length: 5) +
-                                    activeAsset['assetIssuer']
-                                        .toString()
-                                        .substring(activeAsset['assetIssuer']
-                                                .toString()
-                                                .length -
+                                truncate(asset!.assetIssuer!, length: 5) +
+                                    asset!.assetIssuer!.toString().substring(
+                                        asset!.assetIssuer!.toString().length -
                                             5),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
@@ -507,7 +430,7 @@ class _AssetDetailsState extends State<AssetDetails>
                               onPressed: () => {
                                 Clipboard.setData(
                                   ClipboardData(
-                                    text: activeAsset['assetIssuer'],
+                                    text: asset!.assetIssuer!,
                                   ),
                                 ),
                                 showSnackBar('Issuer public key', context),
@@ -525,7 +448,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     SizedBox(
                       height: height / 50,
                     ),
-                    if (curatedAsset['contactEmail'].toString().isNotEmpty) ...[
+                    if (curatedAsset!.contactEmail!.toString().isNotEmpty) ...[
                       Text(
                         'Contact Email',
                         style: TextStyle(
@@ -544,7 +467,7 @@ class _AssetDetailsState extends State<AssetDetails>
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 20.0),
                                 child: Text(
-                                  curatedAsset['contactEmail'],
+                                  curatedAsset!.contactEmail!,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
@@ -592,7 +515,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '${getAssetCode(activeAsset['assetCode'])} Token',
+                    '${getAssetCode(asset!.assetCode!)} Token',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -605,7 +528,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   Container(
                     width: width / 1.3,
                     child: Image.network(
-                      activeAsset["imageUrl"],
+                      asset!.imageUrl!,
                       height: 50,
                       width: 50,
                       errorBuilder: (context, error, stackTrace) {
@@ -620,7 +543,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   SizedBox(
                     height: height / 50.0,
                   ),
-                  if (activeAsset['assetIssuer'].toString().isNotEmpty) ...[
+                  if (asset!.assetIssuer!.toString().isNotEmpty) ...[
                     Text(
                       'Issuer Public Key',
                       style: TextStyle(
@@ -639,13 +562,9 @@ class _AssetDetailsState extends State<AssetDetails>
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 20.0),
                               child: Text(
-                                truncate(activeAsset['assetIssuer'],
-                                        length: 5) +
-                                    activeAsset['assetIssuer']
-                                        .toString()
-                                        .substring(activeAsset['assetIssuer']
-                                                .toString()
-                                                .length -
+                                truncate(asset!.assetIssuer!, length: 5) +
+                                    asset!.assetIssuer!.toString().substring(
+                                        asset!.assetIssuer!.toString().length -
                                             5),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
@@ -663,7 +582,7 @@ class _AssetDetailsState extends State<AssetDetails>
                               onPressed: () => {
                                 Clipboard.setData(
                                   ClipboardData(
-                                    text: activeAsset['assetIssuer'],
+                                    text: asset!.assetIssuer!,
                                   ),
                                 ),
                                 showSnackBar('Issuer public key', context),

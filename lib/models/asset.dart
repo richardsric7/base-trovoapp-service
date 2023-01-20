@@ -1,4 +1,4 @@
-import 'package:trovo_wallet/models/cryptoWalletAddress.dart';
+import 'package:trovo_wallet/models/crypto_wallet_address.dart';
 
 class Asset {
   String? assetIssuer;
@@ -42,11 +42,9 @@ class Asset {
     var addresses = <CryptoWalletDepositAddress>[];
     if (m != null) {
       for (var i = 0; i < m.length; i++) {
-        print('cryptoWalletDepositAddresses ==========> ${m[i]}');
         addresses.add(CryptoWalletDepositAddress().deserializeJson(m[i]));
       }
     }
-    print('addresses dot length =============> ${addresses.length}');
     return addresses;
   }
 }
