@@ -142,7 +142,26 @@ class UserInfo {
   List<Wallet> deserializeSharedWallets(m) {
     var myWallets = <Wallet>[];
     for (var i = 0; i < m.length; i++) {
-      var wallet = Wallet().deserializeSharedJson(m[i]);
+      // get the permission in this current wallet object
+      // and make a new list with it
+      var accesses = <String>[m[i]['permission']];
+      // loop through each of the deserialized wallet object
+      myWallets = myWallets.where((item) {
+        // if an already deserialized wallet has the same alias as the current
+        // wallet object and the accesses list of the deserialized wallet is not
+        // empty
+        if (item.alias == m[i]['walletAlias'] && item.accesses!.isNotEmpty) {
+          // merge the access list on the already deserialized wallet to new
+          // we created for the current wallet object
+          accesses.addAll(item.accesses!);
+          // remove this deserialized wallet from the myWallets list
+          return false;
+        }
+        // return true if no deserialized wallet has the same alias as the current wallet object
+        return true;
+      }).toList();
+
+      var wallet = Wallet().deserializeSharedJson(m[i], accesses);
       myWallets.add(wallet);
     }
     return myWallets;

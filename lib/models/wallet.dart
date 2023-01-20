@@ -10,7 +10,6 @@ class Wallet {
   String? alias;
   String? signer;
   String? userId;
-  bool? _isInitiator;
   int? sharedAccessEnabled;
   int? walletType;
   int? walletThreshold;
@@ -19,6 +18,10 @@ class Wallet {
   DateTime? sharedAccessCreatedAt;
   DateTime? sharedAccessUpdatedAt;
   List<Permission>? permissions;
+  // not part of the user data but needed for
+  // when a user has more than one access on
+  // a shared wallet i.e. [APPROVER, INITITOR]
+  List<String>? accesses; // singular, for shared wallet
   String? permission; // singular, for shared wallet
   String? owner; // for shared wallet
   List<Asset>? claimedAssets;
@@ -39,9 +42,10 @@ class Wallet {
     this.numberOfApprovalsNeeded,
     this.primaryWallet,
     this.permissions,
+    this.permission,
+    this.accesses,
     this.sharedAccessCreatedAt,
     this.sharedAccessUpdatedAt,
-    this.permission,
     this.owner,
     this.claimedAssets,
     this.unClaimedAssets,
@@ -95,19 +99,16 @@ class Wallet {
     );
   }
 
-  bool get isInitiator {
-    return permission == "INITIATOR";
-  }
+  bool get isInitiator => accesses!.contains('INITIATOR');
 
-  bool get isSharedWallet {
-    return sharedAccessEnabled == 1;
-  }
+  bool get isSharedWallet => sharedAccessEnabled == 1;
 
-  Wallet deserializeSharedJson(m) {
+  Wallet deserializeSharedJson(m, List<String> accesses) {
     return Wallet(
         publicKey: m["walletPublicKey"],
         alias: m["walletAlias"],
         permission: m["permission"],
+        accesses: accesses,
         description: m["walletDescription"],
         owner: m["owner"],
         sharedAccessEnabled: 1,
