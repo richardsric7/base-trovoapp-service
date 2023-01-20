@@ -1518,7 +1518,7 @@ func (callbackObj *CallbackDeposit) SaveDepositCallback(gc *sharedconfig.GlobalC
 
 		return err
 	}
-	e := gc.DB.Create(callbackObj.Data).Error
+	e := gc.DB.Create(&callbackObj.Data).Error
 	if e != nil {
 		log.Println("[SAVE CALLBACK]error creating callback: ", e)
 		//notify failure
