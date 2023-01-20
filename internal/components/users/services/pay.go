@@ -109,26 +109,26 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 			destinationUser = &dUser
 		}
 	}
-	if len(paymentInfo.SHash) == 0 {
-		if len(paymentInfo.ChannelAccount) == 56 {
-			//payment is with channel account
-			xdrBase64, destinationUser, err = generatePaymentXdrWithChannelAccountPK(signerUser, sourceWallet, paymentInfo, gc)
+	// if len(paymentInfo.SHash) == 0 {
+	if len(paymentInfo.ChannelAccount) == 56 {
+		//payment is with channel account
+		xdrBase64, destinationUser, err = generatePaymentXdrWithChannelAccountPK(signerUser, sourceWallet, paymentInfo, gc)
 
-			if err != nil {
-				log.Printf("[Pay] from [%v] to [%v] generatePaymentXdrWithChannelAccountPK error:[%v]\n", sourceWallet.Alias, paymentInfo.Destination, err)
-			}
-		} else {
-			xdrBase64, destinationUser, err = generatePaymentXdr(client, signerUser, sourceWallet, paymentInfo, db, gc)
-			if err != nil {
-				log.Printf("[Pay] from [%v] to [%v] generatePaymentXdr error:[%v] \n", sourceWallet.ID, paymentInfo.Destination, err)
-			}
+		if err != nil {
+			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdrWithChannelAccountPK error:[%v]\n", sourceWallet.Alias, paymentInfo.Destination, err)
 		}
-
-		paymentInfo.Transaction = xdrBase64
-		if len(paymentInfo.Transaction) > 0 {
-			paymentInfo.SHash = algofuncs.SHash(paymentInfo.Transaction)
+	} else {
+		xdrBase64, destinationUser, err = generatePaymentXdr(client, signerUser, sourceWallet, paymentInfo, db, gc)
+		if err != nil {
+			log.Printf("[Pay] from [%v] to [%v] generatePaymentXdr error:[%v] \n", sourceWallet.ID, paymentInfo.Destination, err)
 		}
 	}
+
+	paymentInfo.Transaction = xdrBase64
+	// if len(paymentInfo.Transaction) > 0 {
+	// 	paymentInfo.SHash = algofuncs.SHash(paymentInfo.Transaction)
+	// }
+	// }
 
 	paymentInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 
@@ -136,9 +136,9 @@ func Pay(signerUser *userModels.User, sourceWallet *userModels.UserWallet, payme
 		return paymentInfo, nil, err
 	}
 
-	if paymentInfo.SHash != algofuncs.SHash(paymentInfo.Transaction) && paymentInfo.Commit == 0 {
-		return paymentInfo, nil, &tPayErrors.ErrorTransactionMismatch{}
-	}
+	// if paymentInfo.SHash != algofuncs.SHash(paymentInfo.Transaction) && paymentInfo.Commit == 0 {
+	// 	return paymentInfo, nil, &tPayErrors.ErrorTransactionMismatch{}
+	// }
 	if len(paymentInfo.ChannelAccountSignature) == 0 && len(paymentInfo.ChannelAccount) == 56 {
 		return paymentInfo, nil, &tPayErrors.ErrorTransactionMismatch{Detail: "signature for channel account does not validate"}
 	}

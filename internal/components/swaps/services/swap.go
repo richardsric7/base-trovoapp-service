@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	algofuncs "trovo-wallet-api/internal/blockchainalgofuncs"
+
+	// algofuncs "trovo-wallet-api/internal/blockchainalgofuncs"
 	swapErrors "trovo-wallet-api/internal/components/swaps/errors"
 	swapModels "trovo-wallet-api/internal/components/swaps/models"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -53,15 +54,15 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		return e
 	}
 
-	if (len(swapInfo.TransactionSignature) == 0 || len(swapInfo.Transaction) == 0) && swapInfo.Commit == 0 {
-		xdrBase64, err := generateSwapXdr(signerUser.PrimarySigner, walletOwner, wallet, swapInfo, gc)
-		if err != nil {
-			return err
-		}
-
-		swapInfo.Transaction = xdrBase64
-		swapInfo.SHash = algofuncs.SHash(swapInfo.Transaction)
+	// if (len(swapInfo.TransactionSignature) == 0) && swapInfo.Commit == 0 {
+	xdrBase64, err := generateSwapXdr(signerUser.PrimarySigner, walletOwner, wallet, swapInfo, gc)
+	if err != nil {
+		return err
 	}
+
+	swapInfo.Transaction = xdrBase64
+	// swapInfo.SHash = algofuncs.SHash(swapInfo.Transaction)
+	// }
 
 	swapInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 
@@ -69,9 +70,9 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		return nil
 	}
 	//no need to check this since offer can change, therefore changing the transaction
-	if swapInfo.SHash != algofuncs.SHash(swapInfo.Transaction) {
-		return &swapErrors.ErrorTransactionMismatch{}
-	}
+	// if swapInfo.SHash != algofuncs.SHash(swapInfo.Transaction) {
+	// 	return &swapErrors.ErrorTransactionMismatch{}
+	// }
 
 	if len(swapInfo.TransactionSignature) > 0 && swapInfo.Commit == 0 {
 		txnHash, err := network.SubmitXdrWithSignature(client, signerUser.PrimarySigner, swapInfo.Transaction, swapInfo.TransactionSignature)
@@ -152,7 +153,7 @@ func SwapSend(signerUser, walletOwner *userModels.User, wallet *userModels.UserW
 		return nil
 	}
 	log.Println("[SwapSend]UNKNOWN OPTION FOR ACTION")
-	err := &tErrors.ErrorTemporaryServerError{}
+	err = &tErrors.ErrorTemporaryServerError{}
 	return err
 }
 
