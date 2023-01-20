@@ -306,7 +306,8 @@ func main() {
 					if errFetch == nil {
 						//record was retrieved. save this in the map
 						log.Printf("[ADDING KEY TO IN-USE CHANNEL ACCOUNT LIST] %v\n", k.Address())
-						globalConfig.InUseChannelAccounts[k.Address()] = k
+
+						globalConfig.StoreInUseChannelAccount(k)
 						//skip adding it to available channel accounts
 						continue
 

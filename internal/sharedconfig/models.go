@@ -109,3 +109,12 @@ func (gc *GlobalConfig) ReleaseInUseChannelAccount(pk string) {
 	}
 	delete(gc.InUseChannelAccounts, pk)
 }
+
+func (gc *GlobalConfig) StoreInUseChannelAccount(kp *keypair.Full) {
+	if kp == nil {
+		return
+	}
+	gc.Mutex.Lock()
+	defer gc.Mutex.Unlock()
+	gc.InUseChannelAccounts[kp.Address()] = kp
+}
