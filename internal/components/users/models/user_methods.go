@@ -1477,7 +1477,7 @@ func (u *User) GetReferralCount(gc *sharedconfig.GlobalConfig) (referralCount in
 
 func (d CryptoDepositAddress) GetDetail(currency string, gc *sharedconfig.GlobalConfig) (depositAddress CryptoWalletDepositAddress, err error) {
 	address := string(d)
-	e := gc.DB.Where("upper(currency) = upper(?) AND to_address = ?", currency, address).First(&depositAddress).Error
+	e := gc.DB.Where("upper(currency) = upper(?) AND deposit_address = ?", currency, address).First(&depositAddress).Error
 	if e != nil {
 		log.Printf("Error fetching deposit address, error: %v\n", e)
 		err = &tErrors.ErrorTemporaryServerError{}
