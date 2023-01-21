@@ -47,6 +47,30 @@ type Trustline struct {
 	Messages             []string `json:"messages"`
 }
 
+//MintingInfo represents model for minting asset
+type MintingInfo struct {
+	Destination             string            `json:"destination"`
+	Memo                    string            `json:"memo"`
+	AssetIssuer             string            `json:"assetIssuer"`
+	AssetCode               string            `json:"assetCode"`
+	Amount                  string            `json:"amount"`
+	Transaction             string            `json:"transaction"`
+	TransactionSignature    string            `json:"transactionSignature"`
+	TransactionID           string            `json:"transactionId"`
+	NetworkPassPhrase       string            `json:"networkPassPhrase"`
+	DestinationFirstName    string            `json:"destinationFirstName"`
+	DestinationLastName     string            `json:"destinationLastName"`
+	DestinationThumbnail    string            `json:"destinationThumbnail"`
+	DestinationVerified     int               `json:"destinationVerified"`
+	Multiparty              int               `json:"-"`
+	TransactionSource       string            `json:"-"`
+	SignatureRequired       int               `json:"signatureRequired"`
+	Commit                  int               `json:"commit"`
+	ChannelAccount          string            `json:"channelAccount"`
+	ChannelAccountSignature string            `json:"channelAccountSignature"`
+	Messages                []string          `json:"messages"`
+	CallbackURLS            map[string]string `json:"-"`
+}
 type BantuAsset struct {
 	AssetCode   string
 	AssetIssuer string

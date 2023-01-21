@@ -102,6 +102,11 @@ func main() {
 
 			exit = true
 		}
+		if os.Getenv("ENABLE_CRYPTO_DEPOSIT_MINTING") == "1" && (len(os.Getenv("CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY")) != 56 || len(os.Getenv("CRYPTO_DEPOSIT_MINTING_INITIATOR_SIGNER")) != 56) {
+			log.Println("CRYPTO_DEPOSIT_MINTING_INITIATOR_SIGNER & CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY environment variable are required when ENABLE_CRYPTO_DEPOSIT_MINTING is set to 1")
+
+			exit = true
+		}
 
 		if exit {
 			return
@@ -507,7 +512,7 @@ func main() {
 	}()
 
 	go func() {
-		//LOAD WITHDAWAL NETWORKS FROM 1L
+		//LOAD WITHDRAWAL NETWORKS FROM 1L
 		cl := strings.Split(os.Getenv("ONELIQUIDITY_WITHDRAWAL_CURRENCY_LIST"), ",")
 		if len(cl) == 0 {
 			//exit routine
@@ -527,6 +532,37 @@ func main() {
 		}
 
 	}()
+
+	{
+		if os.Getenv("ENABLE_CRYPTO_DEPOSIT_MINTING") == "1" {
+			go func() {
+				for {
+					var di userModels.DepositResponseItem
+					dbtx := database.Begin()
+					e := dbtx.Order("created_at ASC").Where("minted = 0").First(&di).Error
+					if e != nil {
+						dbtx.Rollback()
+						log.Println("[MINTING INITIATOR] Unable to locate waiting deposits.")
+						time.Sleep(60 * time.Second)
+						continue
+					}
+					//preparing minting
+					log.Printf("[MINTING INITIATOR] Preparing to mint %v for address %v\n", di.Currency, di.ToAddress)
+					da, err := userModels.CryptoDepositAddress(di.ToAddress).GetDetail(di.Currency, &globalConfig)
+					if err != nil {
+						dbtx.Rollback()
+						log.Printf("[MINTING INITIATOR] error getting address owner to mint %v %v, error: %v\n", di.Currency, di.ToAddress, err)
+
+						continue
+					}
+					//initiate minting
+					userServices.MintAsset()
+
+				}
+			}()
+
+		}
+	}
 
 	//setup router
 
