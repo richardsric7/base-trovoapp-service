@@ -268,24 +268,11 @@ class _WrappedAssetState extends State<WrappedAsset>
             }
           }),
           actionButton("assets/images/withdraw.png", 'Withdraw', () {
-            // appState.viewData![WithdrawAssetViewPageConfig.key] = {
-            //   'assetCode': asset!.assetCode,
-            //   'assetIssuer': asset!.assetIssuer,
-            //   'amount': asset!.amount,
-            //   'imageUrl': curatedAsset.realAssetImageUrl,
-            //   'cryptoWalletDepositAddresses':
-            //       activeAsset['cryptoWalletDepositAddresses'],
-            //   'usdPrice': activeAsset['usdPrice'],
-            //   'walletInfo': {
-            //     'alias': activeAsset['walletInfo']['alias'],
-            //     'publicKey': activeAsset['walletInfo']['publicKey'],
-            //     'sharedAccessEnabled': activeAsset['walletInfo']
-            //         ['sharedAccessEnabled'],
-            //   }
-            // };
-
-            // appState.viewData![WithdrawAssetViewPageConfig.key]['data'] =
-            //     activeAsset['cryptoWalletDepositAddresses'];
+            appState.viewData = {
+              'walletPublicKey': wallet.publicKey,
+              'assetCode': asset!.assetCode,
+              'assetIssuer': asset!.assetIssuer,
+            };
 
             appState.currentAction = PageAction(
               state: PageState.addPage,

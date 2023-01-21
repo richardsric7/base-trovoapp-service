@@ -8,9 +8,10 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/user.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -34,18 +35,31 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late UserInfo userInfo;
   String password = '';
   final formKey = GlobalKey<FormState>();
   final Authenticator _authenticator = Authenticator();
-  late Account primaryWalletKeyPair;
-  var viewData;
-  bool isSharedWallet = false;
   var transactionInfo = {};
+  late Wallet wallet;
+  late Asset? asset;
+  late String networkName;
 
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+
+    asset = wallet.claimedAssets!.firstWhere(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
+
+    transactionInfo = appState.viewData!['transactionData'];
+    networkName = appState.viewData!['withdrawalNetworkName'];
   }
 
   @override
@@ -53,11 +67,6 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
-    viewData = appState.viewData![ConfirmWithdrawViewPageConfig.key];
-    isSharedWallet = viewData['walletInfo']['sharedAccessEnabled'] == 1;
-    transactionInfo = viewData['data'];
-    print('viewData here ======> $isSharedWallet');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -379,7 +388,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        '${transactionInfo['withdrawalNetworkName']} (${transactionInfo['withdrawalNetwork']})',
+                        '${networkName} (${transactionInfo['withdrawalNetwork']})',
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -440,7 +449,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     try {
       showLoader(context);
 
-      if (isSharedWallet) {
+      if (wallet.isSharedWallet) {
         transactionInfo['commit'] = 1;
       } else {
         // sign transaction
@@ -457,30 +466,30 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
       print('requestBody: $requestBody');
 
       Map responseData = await makePostRequest(
-        uri: isSharedWallet
+        uri: wallet.isSharedWallet
             ? '/v1/shared-access/crypto/withdrawals'
             : '/v1/crypto/withdrawals',
         body: requestBody,
-        signer: appState.activeWallet!.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: viewData['walletInfo']['publicKey']!,
+        publicKey: wallet.publicKey!,
       );
 
       print('responseData: $responseData');
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(
-          appState.activeWallet!.signer!,
+          appState.primaryWallet.signer!,
           appState.secretKeys[0], // the primary wallet secret key
-          appState.activeWallet!.publicKey!,
+          appState.primaryWallet.publicKey!,
           'kenmaddy',
           appState,
         );
-        if (isSharedWallet) {
+        if (wallet.isSharedWallet) {
           appState.viewData![SuccessViewPageConfig.key] = {
             'title': 'Withdrawal request submitted',
             'message':
-                'You have successfully requested withdrawal of [${transactionInfo['amountSubmitted']} ${transactionInfo['currency']}] on network [${transactionInfo['withdrawalNetworkName']} (${transactionInfo['withdrawalNetwork']})] to address [${transactionInfo['withdrawalAddress']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+                'You have successfully requested withdrawal of [${transactionInfo['amountSubmitted']} ${transactionInfo['currency']}] on network [${networkName} (${transactionInfo['withdrawalNetwork']})] to address [${transactionInfo['withdrawalAddress']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
             'useOnDone': true,
             'onDone': () {
               appState.currentAction = PageAction(
@@ -492,10 +501,12 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
           appState.currentAction =
               PageAction(state: PageState.replace, page: SuccessViewPageConfig);
         } else {
-          appState.viewData![TransactionStatusViewPageConfig.key] =
-              responseData['data'];
-          appState.viewData![TransactionStatusViewPageConfig.key]
-              ['walletInfo'] = viewData['walletInfo'];
+          appState.viewData = {
+            'transactionData': responseData['data'],
+            'walletPublicKey': wallet.publicKey,
+            'assetCode': asset!.assetCode,
+            'assetIssuer': asset!.assetIssuer,
+          };
           appState.currentAction = PageAction(
             state: PageState.addPage,
             page: TransactionStatusViewPageConfig,
