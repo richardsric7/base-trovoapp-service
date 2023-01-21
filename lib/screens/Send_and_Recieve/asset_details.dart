@@ -224,15 +224,16 @@ class _AssetDetailsState extends State<AssetDetails>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           actionButton("assets/images/send.png", 'Send', () {
-            // appState.viewData![SendAssetViewPageConfig.key] =
-            //     appState.viewData![AssetDetailsViewPageConfig.key];
-            // appState.viewData![SendAssetViewPageConfig.key]['walletInfo'] =
-            //     activeWallet;
+            appState.viewData = {
+              'walletPublicKey': wallet.publicKey,
+              'assetCode': asset!.assetCode,
+              'assetIssuer': asset!.assetIssuer,
+            };
 
-            // appState.currentAction = PageAction(
-            //   state: PageState.addPage,
-            //   page: SendAssetViewPageConfig,
-            // );
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: SendAssetViewPageConfig,
+            );
           }),
           if (curatedAsset != null &&
               (curatedAsset!.isWithdrawable ||

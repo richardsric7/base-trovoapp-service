@@ -587,7 +587,10 @@ class DataProvider with ChangeNotifier {
             initialDynamicLink.queryParameters['assetIssuer'],
             onDone: (walletPublicKey, isSharedWallet) {
           var deeplinkInfo = {
-            "assetCode": initialDynamicLink.queryParameters['assetCode'],
+            "assetCode":
+                initialDynamicLink.queryParameters['assetCode'] == 'XBN'
+                    ? ''
+                    : initialDynamicLink.queryParameters['assetCode'],
             "assetIssuer": initialDynamicLink.queryParameters['assetIssuer'],
             "source": "qr2",
             "receiver":
