@@ -6,6 +6,7 @@ import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
@@ -33,16 +34,24 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
   late ColorNotifier notifier;
   late DataProvider appState;
   late UserInfo userInfo;
-  var assetBalances;
-  Wallet? activeWallet;
-  var viewData;
-  var walletDetails; // will contain information if we are viewing this page from shared wallet
-  late bool isSharedWallet;
-  bool isInitiator = false;
+  late Wallet wallet;
+  late Asset? asset;
 
   @override
   void initState() {
     super.initState();
+
+    appState = Provider.of<DataProvider>(context, listen: false);
+    userInfo = appState.userInfo!;
+    wallet = userInfo.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+
+    asset = wallet.unClaimedAssets!.firstWhere(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
   }
 
   @override
@@ -50,24 +59,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState.userInfo!;
-    assetBalances = appState.assetBalances;
-    activeWallet = appState.activeWallet;
-    viewData = appState.viewData![PendingAssetDetailsViewPageConfig.key];
-
-    isSharedWallet = appState.viewData![PendingAssetDetailsViewPageConfig.key]
-            ['rel'] ==
-        SharedWalletDetailsViewPageConfig.key;
-    walletDetails = viewData['walletInfo'];
-
-    if (isSharedWallet) {
-      for (var i = 0; i < walletDetails['permissions'].length; i++) {
-        if (walletDetails['permissions'][i] == 'INITIATOR') isInitiator = true;
-      }
-    }
-
-    print('viewData: $viewData');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -109,7 +100,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
               // SizedBox(
               //   height: height / 20,
               // ),
-              if (!isSharedWallet || isInitiator) ...[
+              if (!wallet.isSharedWallet || wallet.isInitiator) ...[
                 Button(
                   LanguageEn.claimasset,
                   notifier.getbluecolor,
@@ -167,12 +158,8 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                     width: width / 1.3,
                     child: Text(
                       LanguageEn.pendingassetwarning
-                          .replaceAll('assetCode', viewData['assetCode'])
-                          .replaceAll(
-                              'walletAlias',
-                              isSharedWallet
-                                  ? walletDetails['walletAlias']
-                                  : activeWallet!.alias!),
+                          .replaceAll('assetCode', asset!.assetCode!)
+                          .replaceAll('walletAlias', wallet.alias!),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
@@ -185,7 +172,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   SizedBox(
                     height: height / 50.0,
                   ),
-                  if (!isSharedWallet || isInitiator) ...[
+                  if (!wallet.isSharedWallet || wallet.isInitiator) ...[
                     Container(
                       width: width / 1.3,
                       child: Text(
@@ -204,11 +191,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                       width: width / 1.3,
                       child: Text(
                         'You do not have enough permission to claim this asset on [walletAlias].'
-                            .replaceAll(
-                                'walletAlias',
-                                isSharedWallet
-                                    ? walletDetails['walletAlias']
-                                    : activeWallet!.alias!),
+                            .replaceAll('walletAlias', wallet.alias!),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15,
@@ -250,7 +233,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '${getAssetCode(viewData['assetCode'])} Token',
+                    '${getAssetCode(asset!.assetCode)} Token',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -303,12 +286,9 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 20.0),
                             child: Text(
-                              truncate(viewData['assetIssuer'], length: 5) +
-                                  viewData['assetIssuer'].toString().substring(
-                                      viewData['assetIssuer']
-                                              .toString()
-                                              .length -
-                                          5),
+                              truncate(asset!.assetIssuer!, length: 5) +
+                                  asset!.assetIssuer.toString().substring(
+                                      asset!.assetIssuer.toString().length - 5),
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: notifier.getbluewhitecolor,
@@ -325,7 +305,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                             onPressed: () => {
                               Clipboard.setData(
                                 ClipboardData(
-                                  text: viewData['assetIssuer'],
+                                  text: asset!.assetIssuer!,
                                 ),
                               ),
                               showSnackBar('Issuer public key', context),
@@ -354,23 +334,21 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       // make initial request to the server using the
       // following credentials
       Map map = {
-        "assetCode": viewData['assetCode'],
-        "assetIssuer": viewData['assetIssuer'],
+        "assetCode": asset!.assetCode!,
+        "assetIssuer": asset!.assetIssuer!,
       };
       String requestBody = jsonEncode(map);
 
       print(requestBody);
 
       Map responseData = await makePutRequest(
-        uri: isSharedWallet
+        uri: wallet.isSharedWallet
             ? '/v1/shared-access/users/actions/claim-asset'
             : '/v1/users/actions/claim-asset',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: isSharedWallet
-            ? walletDetails['walletPublicKey']
-            : activeWallet!.publicKey!,
+        publicKey: wallet.publicKey!,
       );
 
       print('response: $responseData');
@@ -403,7 +381,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       print('this is primary sign: $signature');
       responseBody['transactionSignature'] = signature;
 
-      if (isSharedWallet) {
+      if (wallet.isSharedWallet) {
         responseBody['commit'] = 1;
       }
 
@@ -412,25 +390,27 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       print('this is request body: $requestBody');
 
       Map responseData = await makePutRequest(
-        uri: isSharedWallet
+        uri: wallet.isSharedWallet
             ? '/v1/shared-access/users/actions/claim-asset'
             : '/v1/users/actions/claim-asset',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: isSharedWallet
-            ? walletDetails['walletPublicKey']
-            : activeWallet!.publicKey!,
+        publicKey: wallet.publicKey!,
       );
 
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(activeWallet!.signer!, appState.secretKeys[0],
-            activeWallet!.publicKey!, userInfo.username, appState);
+        await updateUserInfo(
+            appState.primaryWallet.signer!,
+            appState.secretKeys[0],
+            appState.primaryWallet.publicKey!,
+            userInfo.username,
+            appState);
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': LanguageEn.success,
           'message': LanguageEn.trustassetsuccess
-              .replaceAll('asset', viewData['assetCode']),
+              .replaceAll('asset', asset!.assetCode!),
         };
         appState.currentAction = PageAction(
             state: PageState.replaceAll, page: SuccessViewPageConfig);
@@ -453,23 +433,21 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       // make initial request to the server using the
       // following credentials
       Map map = {
-        "assetCode": viewData['assetCode'],
-        "assetIssuer": viewData['assetIssuer'],
+        "assetCode": asset!.assetCode!,
+        "assetIssuer": asset!.assetIssuer!,
       };
       String requestBody = jsonEncode(map);
 
       print(requestBody);
 
       Map responseData = await makeDeleteRequest(
-        uri: isSharedWallet
+        uri: wallet.isSharedWallet
             ? '/v1/shared-access/users/actions/reject-asset'
             : '/v1/users/actions/reject-asset',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: isSharedWallet
-            ? walletDetails['walletPublicKey']
-            : activeWallet!.publicKey!,
+        publicKey: wallet.publicKey!,
       );
 
       print('response: $responseData');
@@ -501,7 +479,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       print('this is primary sign: $signature');
       responseBody['transactionSignature'] = signature;
 
-      if (isSharedWallet) {
+      if (wallet.isSharedWallet) {
         responseBody['commit'] = 1;
       }
 
@@ -510,29 +488,31 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       print('this is request body: $requestBody');
 
       Map responseData = await makeDeleteRequest(
-        uri: isSharedWallet
+        uri: wallet.isSharedWallet
             ? '/v1/shared-access/users/actions/reject-asset'
             : '/v1/users/actions/reject-asset',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: isSharedWallet
-            ? walletDetails['walletPublicKey']
-            : activeWallet!.publicKey!,
+        publicKey: wallet.publicKey!,
       );
 
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(activeWallet!.signer!, appState.secretKeys[0],
-            activeWallet!.publicKey!, userInfo.username, appState);
+        await updateUserInfo(
+            appState.primaryWallet.signer!,
+            appState.secretKeys[0],
+            appState.primaryWallet.publicKey!,
+            userInfo.username,
+            appState);
         appState.viewData![SuccessViewPageConfig.key] = {
-          'title': isSharedWallet
+          'title': wallet.isSharedWallet
               ? 'Request submitted'
               : 'asset successfully rejected'
-                  .replaceAll('asset', viewData['assetCode']),
-          'message': isSharedWallet
+                  .replaceAll('asset', asset!.assetCode!),
+          'message': wallet.isSharedWallet
               ? 'Your request to reject asset has been successfully submitted. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.'
-                  .replaceAll('asset', viewData['assetCode'])
+                  .replaceAll('asset', asset!.assetCode!)
               : 'You have successfully rejected this asset. Your wallet will not hold this asset.',
         };
         appState.currentAction = PageAction(

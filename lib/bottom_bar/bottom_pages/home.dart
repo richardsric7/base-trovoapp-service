@@ -273,19 +273,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           onTap: () {
                             appState.setActiveWallet = wallets!.firstWhere(
                                 (wallet) => wallet.publicKey == activeWallet);
+
                             appState.viewData = {
-                              // since the original asset object
-                              // is immutable I create a new assetObj and
-                              // copy all the data into it so that
-                              // I'll be able to change the data
-                              PendingAssetDetailsViewPageConfig.key: {
-                                'assetCode': unclaimedAssets[i]['assetCode'],
-                                'assetIssuer': unclaimedAssets[i]
-                                    ['assetIssuer'],
-                                'amount': unclaimedAssets[i]['amount'],
-                                'qrCode': unclaimedAssets[i]['qrCode'],
-                                'imageUrl': unclaimedAssets[i]['imageUrl'],
-                              }
+                              'assetCode': unclaimedAssets[i]['assetCode'],
+                              'assetIssuer': unclaimedAssets[i]['assetIssuer'],
+                              'walletPublicKey': activeWallet,
                             };
                             appState.currentAction = PageAction(
                               state: PageState.addPage,
