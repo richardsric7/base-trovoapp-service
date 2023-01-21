@@ -75,47 +75,6 @@ class DataProvider with ChangeNotifier {
     return _transactionableWallets;
   }
 
-  Map _allWallets = {}; // both shared and non-shared
-  Map get allWallets {
-    var wallets = userInfo!.wallets;
-
-    for (var i = 0; i < wallets!.length; i++) {
-      if (wallets[i].walletThreshold == 2 &&
-          wallets[i]
-              .permissions!
-              .where((perm) =>
-                  perm.permission == 'INITIATOR' &&
-                  perm.targetUsername == userInfo!.username)
-              .isEmpty) {
-        continue;
-      }
-      _allWallets[wallets[i].publicKey!] = {
-        'walletType': wallets[i].walletType,
-        'publicKey': wallets[i].publicKey,
-        'alias': wallets[i].alias,
-        'threshold': wallets[i].walletThreshold,
-        'sharedAccessEnabled':
-            wallets[i].primaryWallet == 1 ? 0 : wallets[i].sharedAccessEnabled,
-        'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
-      };
-    }
-
-    for (var i = 0; i < sharedWallets.length; i++) {
-      _allWallets[sharedWallets[i]['walletPublicKey']] = {
-        // since the wallet type is unknown give it a number that can't make transactions
-        'walletType': sharedWallets[i]['walletSettings']?['walletType'] ?? 2,
-        'publicKey': sharedWallets[i]['walletPublicKey'],
-        'alias': '${sharedWallets[i]['walletAlias']}',
-        'permission': sharedWallets[i]['permission'],
-        'threshold':
-            sharedWallets[i]['walletSettings']?['walletThreshold'] ?? 0,
-        'sharedAccessEnabled': 1,
-        'claimedAssets': sharedWallets[i]['assetBalances']['claimed'],
-      };
-    }
-    return _allWallets;
-  }
-
   bool dialogOpen = false;
   WalletsListViewData walletView = WalletsListViewData(
       view: WalletView.listWallets,

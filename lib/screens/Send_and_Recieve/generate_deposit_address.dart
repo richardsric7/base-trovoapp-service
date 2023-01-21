@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/user.dart';
+import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/curated_asset.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-import 'package:trovo_wallet/widgets/top_drop_downs.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -28,19 +31,21 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late UserInfo userInfo;
-  var assetBalances;
-  Map activeWallet = {};
-  Map activeAsset = {};
-  var claimedAssets;
-  bool isInitiator = false;
-  bool isSharedWallet = false;
-  dynamic selectedWallet = '';
-  dynamic selectedAsset = '';
+  late Wallet wallet;
+  late Asset asset;
 
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+    asset = wallet.claimedAssets!.firstWhere(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
   }
 
   @override
@@ -49,35 +54,6 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState.userInfo!;
-    assetBalances = appState.assetBalances;
-
-    if (activeWallet.isEmpty) {
-      activeWallet = appState.allWallets[appState.activeWallet!.publicKey!];
-    }
-    selectedWallet = activeWallet['publicKey'];
-    claimedAssets = activeWallet['claimedAssets'];
-    activeAsset = appState.viewData![GenerateDepositAddressViewPageConfig.key];
-
-    if (appState.viewData![GenerateDepositAddressViewPageConfig.key] != null) {
-      selectedAsset = "${getAssetCode(
-        appState.viewData![GenerateDepositAddressViewPageConfig.key]
-            ['assetCode'],
-      )}|${getAssetIssuer(
-        appState.viewData![GenerateDepositAddressViewPageConfig.key]
-            ['assetIssuer'],
-      )}";
-    }
-
-    isSharedWallet = activeWallet['sharedAccessEnabled'] == 1;
-
-    // if this is a shared wallet
-    if (isSharedWallet) {
-      if (activeWallet['permission'] == 'INITIATOR')
-        isInitiator = true;
-      else
-        isInitiator = false;
-    }
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -86,51 +62,16 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(height / 15),
           child: AppBar(
-              centerTitle: true,
-              elevation: 0,
-              backgroundColor: notifier.getwihitecolor,
-              leading: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                },
-                child: Image.asset("assets/images/back.png", scale: 5),
-              ),
-              actions: [
-                Container(
-                  width: width / 1.2,
-                  child: Row(
-                    children: [
-                      // TopDropdowns(
-                      //   onWalletChanged: (newValue) {
-                      //     selectedWallet = newValue;
-                      //     activeWallet = appState.allWallets[newValue];
-                      //     claimedAssets = activeWallet['claimedAssets'];
-
-                      //     for (var asset in claimedAssets) {
-                      //       // we need to somehow take care of the selected asset
-                      //       // when switching wallets because of scenarios
-                      //       // where one wallet has an asset that is not listed
-                      //       // on the other. Here we are checking whether the
-                      //       // newly selected wallet contains the currently
-                      //       // selected asset and if it doesn't we switch
-                      //       // back to the default asset which is XBN
-                      //       if (asset['assetIssuer'] == selectedAsset ||
-                      //           asset['assetIssuer'] == '') {
-                      //         appState.viewData![
-                      //             GenerateDepositAddressViewPageConfig
-                      //                 .key] = asset;
-                      //         break;
-                      //       }
-                      //     }
-                      //     setState(() {});
-                      //   },
-                      //   selectedWallet: selectedWallet,
-                      // ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: width / 50),
-              ]),
+            centerTitle: true,
+            elevation: 0,
+            backgroundColor: notifier.getwihitecolor,
+            leading: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Image.asset("assets/images/back.png", scale: 5),
+            ),
+          ),
         ),
         body: SingleChildScrollView(
           child: Column(
@@ -144,7 +85,7 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
                     width: 20,
                   ),
                   Text(
-                    'Deposit ${getAssetCode(activeAsset['assetCode'])}',
+                    'Deposit ${getAssetCode(asset.assetCode!)}',
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -227,31 +168,39 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
       showLoader(context);
 
       Map responseData = await makePostRequest(
-        uri: '/v1/crypto/generate-addresses/${activeAsset['assetCode']}',
+        uri: '/v1/crypto/generate-addresses/${asset.assetCode}',
         body: "",
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet['publicKey'],
+        publicKey: wallet.publicKey!,
       );
 
-      hideLoader(context);
-
       if (responseData['statusCode'] == 200) {
-        print(responseData['data']);
-        appState.viewData![SelectDepositAddressViewPageConfig.key] =
-            appState.viewData![GenerateDepositAddressViewPageConfig.key];
-        appState.viewData![SelectDepositAddressViewPageConfig.key]['data'] =
-            responseData['data'];
+        await updateUserInfo(
+          wallet.signer,
+          appState.secretKeys[0],
+          wallet.publicKey,
+          appState.userInfo!.username,
+          appState,
+        );
+        hideLoader(context);
+        appState.viewData = {
+          'walletPublicKey': wallet.publicKey,
+          'assetCode': asset.assetCode,
+          'assetIssuer': asset.assetIssuer,
+        };
 
         appState.currentAction = PageAction(
           state: PageState.addPage,
           page: SelectDepositAddressViewPageConfig,
         );
       } else {
+        hideLoader(context);
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
       }
     } catch (e) {
+      hideLoader(context);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
   }

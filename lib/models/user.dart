@@ -171,4 +171,6 @@ class UserInfo {
     var combinedList = [...wallets!, ...sharedWallets!];
     return combinedList.firstWhere((wallet) => wallet.publicKey == publicKey);
   }
+
+  List<Wallet> get allWallets => [...wallets!, ...sharedWallets!];
 }

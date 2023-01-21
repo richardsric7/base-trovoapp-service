@@ -56,7 +56,7 @@ class _TopDropdownsState extends State<TopDropdowns> {
 
   List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
     var walletsList = <DropdownMenuItem<String>>[];
-    appState.allWallets.forEach((key, value) {
+    appState.userInfo!.allWallets.forEach((wallet) {
       walletsList.add(
         DropdownMenuItem(
           child: Row(
@@ -66,12 +66,12 @@ class _TopDropdownsState extends State<TopDropdowns> {
                     ? BoxConstraints(maxWidth: width / 4)
                     : BoxConstraints(maxWidth: width / 2.5),
                 child: Text(
-                  value['alias'],
+                  wallet.alias!,
                   overflow:
                       isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
                 ),
               ),
-              if (value['sharedAccessEnabled'] == 1) ...[
+              if (wallet.isSharedWallet) ...[
                 SizedBox(
                   width: 2,
                 ),
@@ -81,7 +81,7 @@ class _TopDropdownsState extends State<TopDropdowns> {
                   color: notifier.getbluecolor,
                 )
               ],
-              if (!isSelected && key == selectedWallet) ...[
+              if (!isSelected && wallet.publicKey == selectedWallet) ...[
                 SizedBox(
                   width: 2,
                 ),
@@ -93,7 +93,7 @@ class _TopDropdownsState extends State<TopDropdowns> {
               ],
             ],
           ),
-          value: key,
+          value: wallet.publicKey,
         ),
       );
     });

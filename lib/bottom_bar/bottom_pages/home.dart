@@ -718,10 +718,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   foreColor: getColor(context, indexOfWallet),
                   alias: wallet.alias!.capitalizeFirst!,
                   totalBalance:
-                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
+                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallets[indexOfWallet].claimedAssets!)} ${appState.defaultCurrency}',
                   fiatBalance: appState.defaultCurrency == 'USD'
                       ? null
-                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
+                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallets[indexOfWallet].claimedAssets!)} USD',
                   initialHiddenState: appState.hideWalletList[indexOfWallet],
                   onHiddenStateChanged: (state) => {
                     setState(

@@ -103,6 +103,8 @@ class Wallet {
 
   bool get isSharedWallet => sharedAccessEnabled == 1;
 
+  bool get isPrimaryWallet => primaryWallet == 1;
+
   Wallet deserializeSharedJson(m, List<String> accesses) {
     return Wallet(
         publicKey: m["walletPublicKey"],
