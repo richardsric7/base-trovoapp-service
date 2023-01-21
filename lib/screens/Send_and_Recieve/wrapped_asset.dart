@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/curated_asset.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -20,11 +24,29 @@ class _WrappedAssetState extends State<WrappedAsset>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  Map activeAsset = {};
+  late Wallet wallet;
+  late Asset? asset;
+  late CuratedAsset? curatedAsset;
 
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+
+    asset = wallet.claimedAssets!.firstWhere(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
+
+    curatedAsset = appState.userInfo!.curatedSwapList!.firstWhereOrNull(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
   }
 
   @override
@@ -33,8 +55,6 @@ class _WrappedAssetState extends State<WrappedAsset>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-
-    activeAsset = appState.viewData![WrappedAssetViewPageConfig.key];
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -63,11 +83,11 @@ class _WrappedAssetState extends State<WrappedAsset>
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (activeAsset["realAssetImageUrl"]
+                  if (curatedAsset!.realAssetImageUrl
                       .toString()
                       .isNotEmpty) ...[
                     Image.network(
-                      activeAsset["realAssetImageUrl"],
+                      curatedAsset!.realAssetImageUrl!,
                       height: 30,
                       width: 30,
                       errorBuilder: (context, error, stackTrace) {
@@ -83,7 +103,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                     width: width / 50.0,
                   ),
                   Text(
-                    getAssetCode(activeAsset['assetCode']),
+                    getAssetCode(curatedAsset!.assetCode),
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -166,7 +186,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                               ),
                               SizedBox(height: height / 90),
                               Text(
-                                activeAsset['assetRedemptionInstructions'],
+                                curatedAsset!.assetRedemptionInstructions!,
                                 textAlign: TextAlign.justify,
                                 style: TextStyle(
                                     fontSize: 15,
@@ -229,21 +249,18 @@ class _WrappedAssetState extends State<WrappedAsset>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           actionButton("assets/images/deposit.png", 'Deposit', () {
-            if (activeAsset['cryptoWalletDepositAddresses'].length > 0) {
-              appState.viewData![SelectDepositAddressViewPageConfig.key] =
-                  appState.viewData![WrappedAssetViewPageConfig.key];
+            appState.viewData = {
+              'walletPublicKey': wallet.publicKey,
+              'assetCode': asset!.assetCode,
+              'assetIssuer': asset!.assetIssuer,
+            };
 
-              appState.viewData![SelectDepositAddressViewPageConfig.key]
-                  ['data'] = activeAsset['cryptoWalletDepositAddresses'];
-
+            if (asset!.cryptoWalletDepositAddresses!.length > 0) {
               appState.currentAction = PageAction(
                 state: PageState.addPage,
                 page: SelectDepositAddressViewPageConfig,
               );
             } else {
-              appState.viewData![GenerateDepositAddressViewPageConfig.key] =
-                  appState.viewData![WrappedAssetViewPageConfig.key];
-
               appState.currentAction = PageAction(
                 state: PageState.addPage,
                 page: GenerateDepositAddressViewPageConfig,
@@ -251,24 +268,24 @@ class _WrappedAssetState extends State<WrappedAsset>
             }
           }),
           actionButton("assets/images/withdraw.png", 'Withdraw', () {
-            appState.viewData![WithdrawAssetViewPageConfig.key] = {
-              'assetCode': activeAsset['assetCode'],
-              'assetIssuer': activeAsset['assetIssuer'],
-              'amount': activeAsset['amount'],
-              'imageUrl': activeAsset["realAssetImageUrl"],
-              'cryptoWalletDepositAddresses':
-                  activeAsset['cryptoWalletDepositAddresses'],
-              'usdPrice': activeAsset['usdPrice'],
-              'walletInfo': {
-                'alias': activeAsset['walletInfo']['alias'],
-                'publicKey': activeAsset['walletInfo']['publicKey'],
-                'sharedAccessEnabled': activeAsset['walletInfo']
-                    ['sharedAccessEnabled'],
-              }
-            };
+            // appState.viewData![WithdrawAssetViewPageConfig.key] = {
+            //   'assetCode': asset!.assetCode,
+            //   'assetIssuer': asset!.assetIssuer,
+            //   'amount': asset!.amount,
+            //   'imageUrl': curatedAsset.realAssetImageUrl,
+            //   'cryptoWalletDepositAddresses':
+            //       activeAsset['cryptoWalletDepositAddresses'],
+            //   'usdPrice': activeAsset['usdPrice'],
+            //   'walletInfo': {
+            //     'alias': activeAsset['walletInfo']['alias'],
+            //     'publicKey': activeAsset['walletInfo']['publicKey'],
+            //     'sharedAccessEnabled': activeAsset['walletInfo']
+            //         ['sharedAccessEnabled'],
+            //   }
+            // };
 
-            appState.viewData![WithdrawAssetViewPageConfig.key]['data'] =
-                activeAsset['cryptoWalletDepositAddresses'];
+            // appState.viewData![WithdrawAssetViewPageConfig.key]['data'] =
+            //     activeAsset['cryptoWalletDepositAddresses'];
 
             appState.currentAction = PageAction(
               state: PageState.addPage,

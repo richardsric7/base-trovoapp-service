@@ -240,21 +240,16 @@ class _AssetDetailsState extends State<AssetDetails>
                   curatedAsset!.canGenerateDepositAddresses == 1)) ...[
             actionButton(
                 "assets/images/dep-with-button.png", 'Deposit/Withdraw', () {
-              // appState.viewData![WrappedAssetViewPageConfig.key] = curatedAsset;
-              // appState.viewData![WrappedAssetViewPageConfig.key]['usdPrice'] =
-              //     activeAsset['usdPrice'];
-              // appState.viewData![WrappedAssetViewPageConfig.key]['amount'] =
-              //     activeAsset['amount'];
-              // appState.viewData![WrappedAssetViewPageConfig.key]
-              //         ['cryptoWalletDepositAddresses'] =
-              //     activeAsset['cryptoWalletDepositAddresses'];
-              // appState.viewData![WrappedAssetViewPageConfig.key]['walletInfo'] =
-              //     activeWallet;
+              appState.viewData = {
+                'walletPublicKey': wallet.publicKey,
+                'assetCode': asset!.assetCode,
+                'assetIssuer': asset!.assetIssuer,
+              };
 
-              // appState.currentAction = PageAction(
-              //   state: PageState.addPage,
-              //   page: WrappedAssetViewPageConfig,
-              // );
+              appState.currentAction = PageAction(
+                state: PageState.addPage,
+                page: WrappedAssetViewPageConfig,
+              );
             }),
           ],
           actionButton("assets/images/receive.png", 'Receive', () {
