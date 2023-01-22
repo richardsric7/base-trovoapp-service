@@ -26,7 +26,7 @@ type PendingAssetToClaim struct {
 	TransactionID        string   `json:"transactionId"`
 	NetworkPassPhrase    string   `json:"networkPassPhrase"`
 	Multiparty           int      `json:"-"`
-	TransactionSource      string   `json:"-"`
+	TransactionSource    string   `json:"-"`
 	SignatureRequired    int      `json:"signatureRequired"`
 	ReturnedDescription  string   `json:"-"`
 	Commit               int      `json:"commit"`
@@ -40,14 +40,14 @@ type Trustline struct {
 	TransactionID        string   `json:"transactionId"`
 	NetworkPassPhrase    string   `json:"networkPassPhrase"`
 	Multiparty           int      `json:"-"`
-	TransactionSource      string   `json:"-"`
+	TransactionSource    string   `json:"-"`
 	SignatureRequired    int      `json:"signatureRequired"`
 	ReturnedDescription  string   `json:"-"`
 	Commit               int      `json:"commit"`
 	Messages             []string `json:"messages"`
 }
 
-//MintingInfo represents model for minting asset
+// MintingInfo represents model for minting asset
 type MintingInfo struct {
 	Destination             string            `json:"destination"`
 	Memo                    string            `json:"memo"`
@@ -61,6 +61,7 @@ type MintingInfo struct {
 	DestinationFirstName    string            `json:"destinationFirstName"`
 	DestinationLastName     string            `json:"destinationLastName"`
 	DestinationThumbnail    string            `json:"destinationThumbnail"`
+	ReturnedDescription     string            `json:"-"`
 	DestinationVerified     int               `json:"destinationVerified"`
 	Multiparty              int               `json:"-"`
 	TransactionSource       string            `json:"-"`

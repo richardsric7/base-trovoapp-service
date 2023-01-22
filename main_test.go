@@ -486,8 +486,10 @@ func TestCreateAccount(t *testing.T) {
 
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
-	pk := "GCZ77KBBPINJRHZEYZMCF7SSR5WZVDCUPFG6OSB6FORQVEJV2UOHBG3B"
-	secretKey := "SA37LXNUXO62HXXL2SUXVLDCUA6SSQAOUSO2B3LNVMAO3WPE3RDK5OPZ"
+	pk := "GA3IWLP7QYBSUEISKHQZ2B7SOIOT2ITLXQDTWLR623VZEIN4NUOJVKYX"
+	secretKey := "SB5T6I3USO3FRAQTHOFTIYWD6JQ3RZFUBP3PK7LWQ2MBF4ZA47USY6QI"
+	// pk := "GCZ77KBBPINJRHZEYZMCF7SSR5WZVDCUPFG6OSB6FORQVEJV2UOHBG3B" //ric1
+	// secretKey := "SA37LXNUXO62HXXL2SUXVLDCUA6SSQAOUSO2B3LNVMAO3WPE3RDK5OPZ" //ric1
 	// pk := os.Getenv("RICPK")
 	// secretKey := os.Getenv("RICSC")
 	// channelAccountSK := ""
@@ -514,15 +516,15 @@ func TestCreateAccount(t *testing.T) {
 	}
 
 	payload := UserRegistrationInfo{
-		Username:          "ric1",
-		Email:             "chukwunenyeo@gmail.com",
-		FirstName:         "Second",
-		LastName:          "Account",
-		Mobile:            "+234-8050564391",
+		Username:          "crypto",
+		Email:             "richards.ric7@gmail.com",
+		FirstName:         "CryptoMinter",
+		LastName:          "Initator",
+		Mobile:            "+234-8050564392",
 		MobileCountryCode: "NG",
 		PublicKey:         pk,
-		Referrer:          "ric",
-		VerificationCode:  "157490",
+		Referrer:          "ric1",
+		VerificationCode:  "172579",
 	}
 	// payload := UserRegistrationInfo{
 	// 	Username:          "ric",

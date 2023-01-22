@@ -102,8 +102,8 @@ func main() {
 
 			exit = true
 		}
-		if os.Getenv("ENABLE_CRYPTO_DEPOSIT_MINTING") == "1" && (len(os.Getenv("CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY")) != 56 || len(os.Getenv("CRYPTO_DEPOSIT_MINTING_INITIATOR_SIGNER")) != 56) {
-			log.Println("CRYPTO_DEPOSIT_MINTING_INITIATOR_SIGNER & CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY environment variable are required when ENABLE_CRYPTO_DEPOSIT_MINTING is set to 1")
+		if os.Getenv("ENABLE_CRYPTO_DEPOSIT_MINTING") == "1" && len(os.Getenv("CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY")) != 56 {
+			log.Println("CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY environment variable is required when ENABLE_CRYPTO_DEPOSIT_MINTING is set to 1")
 
 			exit = true
 		}
@@ -537,12 +537,11 @@ func main() {
 		if os.Getenv("ENABLE_CRYPTO_DEPOSIT_MINTING") == "1" {
 			go func() {
 				for {
-					var di userModels.DepositResponseItem
-					dbtx := database.Begin()
-					e := dbtx.Order("created_at ASC").Where("minted = 0").First(&di).Error
+					var di userModels.CallbackDepositItem
+
+					e := database.Order("created_at ASC").Where("minted = 0").First(&di).Error
 					if e != nil {
-						dbtx.Rollback()
-						log.Println("[MINTING INITIATOR] Unable to locate waiting deposits.")
+						log.Println("[MINTING INITIATOR] Unable to locate waiting callback deposits.")
 						time.Sleep(60 * time.Second)
 						continue
 					}
@@ -550,13 +549,119 @@ func main() {
 					log.Printf("[MINTING INITIATOR] Preparing to mint %v for address %v\n", di.Currency, di.ToAddress)
 					da, err := userModels.CryptoDepositAddress(di.ToAddress).GetDetail(di.Currency, &globalConfig)
 					if err != nil {
-						dbtx.Rollback()
 						log.Printf("[MINTING INITIATOR] error getting address owner to mint %v %v, error: %v\n", di.Currency, di.ToAddress, err)
 
 						continue
 					}
 					//initiate minting
-					userServices.MintAsset()
+					amountLessFees := ((decimal.RequireFromString(di.Amount).Sub(decimal.RequireFromString(di.Fees))).Div(decimal.NewFromInt(10).Pow(decimal.NewFromInt(int64(di.Decimal))))).Truncate(7)
+					log.Printf("preparing to mint %v %v to %v\n", amountLessFees.String(), di.Currency, da.TrovoWalletPublicKey)
+
+					signerPK := os.Getenv("CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY")
+					signerUser, err := userModels.UserWalletID(signerPK).GetWalletOwner(globalConfig.DB, &globalConfig)
+					if err != nil {
+
+						log.Printf("[MINTING INITIATOR] error getting initiator user to mint %v %v, error: %v\n", di.Currency, di.ToAddress, err)
+
+						continue
+					}
+					ca, err := userModels.Currency(da.Currency).GetCurratedAsset(&globalConfig)
+					if err != nil {
+
+						log.Printf("[MINTING INITIATOR] error getting curated asset to mint %v %v, error: %v\n", di.Currency, di.ToAddress, err)
+
+						continue
+					}
+					sourceWallet, err := userModels.UserWalletID(ca.AssetIssuer).GetWallet(globalConfig.DB, &globalConfig)
+					if err != nil {
+
+						log.Printf("[MINTING INITIATOR] error getting initiator user to mint %v %v, error: %v\n", di.Currency, di.ToAddress, err)
+
+						continue
+					}
+					// fetch deposit
+					pdi, err := userServices.GetADepositByID(di.DepositID, &globalConfig)
+					if err != nil {
+
+						log.Printf("[MINTING INITIATOR] error getting deposit from service %v %v, error: %v\n", di.Currency, di.DepositID, err)
+
+						continue
+					}
+					//build deposit
+					layout := "2006-01-02T15:04:05.000Z"
+					createdAt, _ := time.Parse(layout, pdi.CreatedAt)
+					updatedAt, _ := time.Parse(layout, pdi.UpdatedAt)
+					depositItem := userModels.CryptoDeposit{
+						CreatedAt:            createdAt,
+						UpdatedAt:            updatedAt,
+						TrovoWalletPublicKey: da.TrovoWalletPublicKey,
+						TxID:                 pdi.TxID,
+						Amount:               amountLessFees.String(),
+						Currency:             ca.AssetCode,
+						Decimal:              pdi.Decimal,
+						Fees:                 pdi.Fees,
+						FromAddress:          pdi.FromAddress,
+						ToAddress:            pdi.ToAddress,
+						IsCompleted:          pdi.IsCompleted,
+						IsValid:              pdi.IsValid,
+						IsVerified:           pdi.IsVerified,
+					}
+
+					mintingInfo := userModels.MintingInfo{
+						Destination: da.TrovoWalletPublicKey,
+						Memo:        fmt.Sprintf("%v %v", amountLessFees.String(), da.Currency),
+						AssetIssuer: ca.AssetIssuer,
+						AssetCode:   ca.AssetCode,
+						Amount:      amountLessFees.String(),
+						Commit:      1,
+					}
+
+					dbtx := database.Begin()
+					e = dbtx.Create(&depositItem).Error
+					if e != nil {
+						dbtx.Rollback()
+						log.Printf("[MINTING INITIATOR] error creating deposit item. error: %v\nDepositItem: %+v\n", e, depositItem)
+
+						continue
+					}
+					di.Minted = 1
+					e = dbtx.Save(&di).Error
+					if e != nil {
+						dbtx.Rollback()
+						log.Printf("[MINTING INITIATOR] error saving callback item. error: %v\nCallbackDepositItem: %+v\n", e, di)
+
+						continue
+					}
+
+					_, _, err = userServices.MintAsset(&signerUser, &sourceWallet, &mintingInfo, &globalConfig)
+
+					if err != nil {
+						dbtx.Rollback()
+						log.Printf("[MINTING INITIATOR] error MINTING deposit item. error: %v\nDepositItem: %+v\n", err, depositItem)
+						continue
+					}
+					dbtx.Commit()
+					log.Printf("[MINTING INITIATOR]  Minted %v %v to %v\n", mintingInfo.Amount, mintingInfo.AssetCode, mintingInfo.Destination)
+					{
+						//start push notificationMessage
+
+						permissionList := sourceWallet.Permissions
+						for _, v := range permissionList {
+							if v.Permission != "APPROVER" {
+								continue
+							}
+							u, e := userModels.Username(v.TargetUsername).GetSimpleUser(globalConfig.DB, &globalConfig)
+							if e != nil {
+								continue
+							}
+
+							dataPayload := make(map[string]string)
+							dataPayload["route"] = "pendingApproval"
+
+							u.SendPushMessage(fmt.Sprintf("%v %v minting request submitted on %v!", mintingInfo.Amount, da.Currency, sourceWallet.Alias), fmt.Sprintf("Request:\n %v", mintingInfo), "", dataPayload, &globalConfig)
+
+						}
+					}
 
 				}
 			}()

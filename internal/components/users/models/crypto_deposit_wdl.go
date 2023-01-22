@@ -22,20 +22,20 @@ type PaginatedCryptoWithdrawalHistory struct {
 
 type CryptoDeposit struct {
 	ID                   uint64
-	TrovoWalletPublicKey string `gorm:"size:100" json:"trovoWalletPublicKey"`
-	DepositID            string `gorm:"index:unique_depositid,unique" json:"depositId"`
-	TxID                 string `gorm:"index:unique_txid,unique" json:"txId"`
-	Amount               string `json:"amount"`
-	CreatedAt            string `json:"createdAt"`
-	UpdatedAt            string `json:"updatedAt"`
-	Currency             string `json:"currency"`
-	Decimal              int    `json:"decimal"`
-	Fees                 string `json:"fees"`
-	FromAddress          string `json:"fromAddress"`
-	IsCompleted          bool   `json:"isCompleted"`
-	IsValid              bool   `json:"isValid"`
-	IsVerified           bool   `json:"isVerified"`
-	ToAddress            string `gorm:"index:unique_txid,unique" json:"toAddress"`
+	TrovoWalletPublicKey string    `gorm:"size:100" json:"trovoWalletPublicKey"`
+	DepositID            string    `gorm:"index:unique_depositid,unique" json:"depositId"`
+	TxID                 string    `gorm:"index:unique_txid,unique" json:"txId"`
+	Amount               string    `json:"amount"`
+	CreatedAt            time.Time `json:"createdAt"`
+	UpdatedAt            time.Time `json:"updatedAt"`
+	Currency             string    `json:"currency"`
+	Decimal              int       `json:"decimal"`
+	Fees                 string    `json:"fees"`
+	FromAddress          string    `json:"fromAddress"`
+	IsCompleted          bool      `json:"isCompleted"`
+	IsValid              bool      `json:"isValid"`
+	IsVerified           bool      `json:"isVerified"`
+	ToAddress            string    `gorm:"index:unique_txid,unique" json:"toAddress"`
 }
 
 func (c *CryptoDeposit) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj CryptoDepositJSON) {
@@ -57,17 +57,17 @@ func (c *CryptoDeposit) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj CryptoDep
 }
 
 type CryptoDepositJSON struct {
-	TrovoWalletPublicKey string `json:"trovoWalletPublicKey"`
-	TxID                 string `json:"txId"`
-	Amount               string `json:"amount"`
-	CreatedAt            string `json:"createdAt"`
-	UpdatedAt            string `json:"updatedAt"`
-	Currency             string `json:"currency"`
-	FromAddress          string `json:"fromAddress"`
-	IsCompleted          bool   `json:"isCompleted"`
-	IsValid              bool   `json:"isValid"`
-	IsVerified           bool   `json:"isVerified"`
-	ToAddress            string `json:"toAddress"`
+	TrovoWalletPublicKey string    `json:"trovoWalletPublicKey"`
+	TxID                 string    `json:"txId"`
+	Amount               string    `json:"amount"`
+	CreatedAt            time.Time `json:"createdAt"`
+	UpdatedAt            time.Time `json:"updatedAt"`
+	Currency             string    `json:"currency"`
+	FromAddress          string    `json:"fromAddress"`
+	IsCompleted          bool      `json:"isCompleted"`
+	IsValid              bool      `json:"isValid"`
+	IsVerified           bool      `json:"isVerified"`
+	ToAddress            string    `json:"toAddress"`
 }
 
 type WithdrawalNetwork struct {

@@ -1406,7 +1406,7 @@ func MintAsset(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 
 	xdrBase64, destinationUser, err = generateMintingXdr(client, signerUser, sourceWallet, mintingInfo, db, gc)
 	if err != nil {
-		log.Printf("[Pay] from [%v] to [%v] generatePaymentXdr error:[%v] \n", sourceWallet.ID, mintingInfo.Destination, err)
+		log.Printf("[MintAsset] from [%v] to [%v] generateMintingXdr error:[%v] \n", sourceWallet.ID, mintingInfo.Destination, err)
 	}
 
 	mintingInfo.Transaction = xdrBase64
@@ -1431,14 +1431,14 @@ func MintAsset(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 			// txnHash, err = network.SubmitXdrWithSignatureChannelAccounts(client, sourceWallet.Signer, paymentInfo.ChannelAccount, xdrBase64, paymentInfo.TransactionSignature, paymentInfo.ChannelAccountSignature)
 			txnHash, err = network.SubmitXdrWithSignatureChannelAccounts(client, sourceWallet.Signer, mintingInfo.ChannelAccount, mintingInfo.Transaction, mintingInfo.TransactionSignature, mintingInfo.ChannelAccountSignature)
 			if err != nil {
-				log.Println("#############################submit with channel account throws error:", err)
+				log.Println("MintAsset######################submit with channel account throws error:", err)
 
 			}
 		} else {
 			// txnHash, err = network.SubmitXdrWithSignature(client, sourceWallet.Signer, xdrBase64, paymentInfo.TransactionSignature)
 			txnHash, err = network.SubmitXdrWithSignature(client, sourceWallet.Signer, mintingInfo.Transaction, mintingInfo.TransactionSignature)
 			if err != nil {
-				log.Printf("[Pay] from [%v] to [%v] SubmitXdrWithSignature error:[%v] \n", sourceWallet.Alias, mintingInfo.Destination, err)
+				log.Printf("[MintAsset] from [%v] to [%v] SubmitXdrWithSignature error:[%v] \n", sourceWallet.Alias, mintingInfo.Destination, err)
 			}
 		}
 		mintingInfo.TransactionID = txnHash
@@ -1450,11 +1450,11 @@ func MintAsset(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 	}
 
 	mintingInfo.TransactionID = "PENDING_AUTH"
-	log.Printf("[Pay]shared access with approver permission enabled for %v \n", sourceWallet.Alias)
+	log.Printf("[MintAsset]shared access with approver permission enabled for %v \n", sourceWallet.Alias)
 	id := uuid.NewString()
-	assetOfPayment := os.Getenv("NATIVE_ASSET_CODE")
+	assetOfPayment := mintingInfo.AssetCode
 	if len(mintingInfo.AssetIssuer) == 56 {
-		assetOfPayment = fmt.Sprintf("%v:%v...%v", mintingInfo.AssetCode, mintingInfo.AssetIssuer[0:4], mintingInfo.AssetIssuer[51:55])
+		assetOfPayment = fmt.Sprintf("%v:%v...%v", mintingInfo.AssetCode, mintingInfo.AssetIssuer[0:3], mintingInfo.AssetIssuer[52:55])
 	}
 	var msgs string
 	for i, m := range mintingInfo.Messages {
@@ -1463,7 +1463,7 @@ func MintAsset(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 			msgs = fmt.Sprintf("%s\n", msgs)
 		}
 	}
-	description := fmt.Sprintf("Payment \nFrom: %v, \nTo: %v, \nAmount: %v %v", sourceWallet.Alias, mintingInfo.Destination, mintingInfo.Amount, assetOfPayment)
+	description := fmt.Sprintf("Mint %v, \nTo: %v, \nAmount: %v %v", mintingInfo.AssetCode, mintingInfo.Destination, mintingInfo.Amount, assetOfPayment)
 	if len(mintingInfo.Memo) > 0 {
 		description = fmt.Sprintf("%v \nFor: %v", description, mintingInfo.Memo)
 
@@ -1471,7 +1471,7 @@ func MintAsset(signerUser *userModels.User, sourceWallet *userModels.UserWallet,
 	if len(msgs) > 0 {
 		description = fmt.Sprintf("%v \nMessages: %v", description, msgs)
 	}
-
+	mintingInfo.ReturnedDescription = description
 	transactionByte, _ := json.Marshal(*mintingInfo)
 	transactionStr := string(transactionByte)
 	pendingAuth := userModels.PendingAuth{
