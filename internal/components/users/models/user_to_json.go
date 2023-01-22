@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"trovo-wallet-api/internal/sharedconfig"
-
-	"github.com/golang-module/carbon/v2"
 )
 
 func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
@@ -205,26 +203,30 @@ func (a *PendingAuth) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj AuthJSON) {
 		Description:         a.Description,
 		ApprovalsNeeded:     a.ApprovalsNeeded,
 		ApprovalsGotten:     a.ApprovalsGotten,
-		TransactionStatus:   a.TransactionStatus,
-		Transaction:         a.TransactionXdr,
+
+		TransactionStatus: a.TransactionStatus,
+		Transaction:       a.TransactionXdr,
 	}
 	if a.RejectedBy != nil {
 		jsonObj.RejectedBy = *a.RejectedBy
+	}
+	if a.ApprovedBy != nil {
+		jsonObj.ApprovedBy = *a.ApprovedBy
 	}
 	if a.ReasonForRejection != nil {
 		jsonObj.ReasonForRejection = *a.ReasonForRejection
 	}
 
-	if a.PendingTransactionSignatures != nil {
-		if len(a.PendingTransactionSignatures) > 0 {
-			for i, sig := range a.PendingTransactionSignatures {
-				jsonObj.ApprovedBy = fmt.Sprintf("%s on %s", sig.Approver, carbon.Time2Carbon(sig.CreatedAt).ToDateString())
-				if i+1 < len(a.PendingTransactionSignatures) {
-					jsonObj.ApprovedBy = fmt.Sprintf("%s, ", jsonObj.ApprovedBy)
-				}
-			}
-		}
-	}
+	// if a.PendingTransactionSignatures != nil {
+	// 	if len(a.PendingTransactionSignatures) > 0 {
+	// 		for i, sig := range a.PendingTransactionSignatures {
+	// 			jsonObj.ApprovedBy = fmt.Sprintf("%s on %s", sig.Approver, carbon.Time2Carbon(sig.CreatedAt).ToDateString())
+	// 			if i+1 < len(a.PendingTransactionSignatures) {
+	// 				jsonObj.ApprovedBy = fmt.Sprintf("%s, ", jsonObj.ApprovedBy)
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	return jsonObj
 

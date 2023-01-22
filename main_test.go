@@ -482,6 +482,33 @@ type WithdrawalRequestInput struct {
 	ReturnedDescription  string  `json:"-"`
 }
 
+type AuthJSON struct {
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+	ID                  string    `json:"id"`
+	WalletOwnerUsername string    `json:"walletOwnerUsername"`
+	WalletPublicKey     string    `json:"walletPublicKey"`
+	Alias               string    `json:"alias"`
+	Initiator           string    `json:"initiator"`
+	TransactionType     string    `json:"transactionType"`
+	Description         string    `json:"description"`
+	ApprovalsNeeded     int       `json:"approvalsNeeded"`
+	ApprovalsGotten     int       `gorm:"not null;default:0" json:"approvalsGotten"`
+	TransactionStatus   string    `json:"transactionStatus"`
+	RejectedBy          string    `json:"rejectedBy"`
+	ReasonForRejection  string    `json:"reasonForRejection"`
+	ApprovedBy          string    `json:"approvedBy"`
+	Transaction         string    `json:"transaction,omitempty"`
+}
+
+type PaginatedAuths struct {
+	Pages        int        `json:"pages"`
+	CurrentPage  int        `json:"currentPage"`
+	TotalRecords int        `json:"totalRecords"`
+	Limit        int        `json:"limit"`
+	Records      []AuthJSON `json:"records"`
+}
+
 func TestCreateAccount(t *testing.T) {
 
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
@@ -3051,6 +3078,83 @@ func TestRemoveSharedAccessWithApprover(t *testing.T) {
 
 }
 
+func TestGetApproveTransaction(t *testing.T) {
+	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
+	pk := "GCZ77KBBPINJRHZEYZMCF7SSR5WZVDCUPFG6OSB6FORQVEJV2UOHBG3B"
+	secretKey := "SA37LXNUXO62HXXL2SUXVLDCUA6SSQAOUSO2B3LNVMAO3WPE3RDK5OPZ"
+	// pk := "GCC3HG535RVZ3MPTDBANZH7V2HRDEQH3LZXDPBEKPJKZBI2UYJR3OJGF"
+	// pk := "GDBWYZWLYASCZ6KP4AIRNRY5WQ5OX6H2T6WASG7WFAEEYO6R6AC4GXRM"
+	// secretKey := "SBKXWM6TWUVY6NEVRO3CXTKALILMFG2R4WQAAXYKII665U2RDHQ5EB3B"
+
+	//ric1
+	// secretKey := "SB2KSQNONOLO2RRS44TTHSCQRDO4WDUFSRT64LPA4TNWI4C6A34GDIKS"
+
+	// accessToWallet := "GDIJRIJ7OFKK4IYUCYGP6GQIMNLCIO4U7EDH7JX3626JS4ACY6WZNIH2"
+	// accessToWallet := "GCN2Z2ZV7GKZMJQMUJUFSAKV5BGK5ECZMWLGEBDHC5QOHM66J4FCQXUZ"
+	// accessToWallet := "GBU5IARLMK3DG6E5VJNFWLKYF6FP53CPX6X6XIV7YPMA6XYAC27M55SN"
+	// accessToWallet := "GBQBJFGWYXCKSKTXFCG5WMPKQC3LYJPSPRNADVPQD7W6K5SXSOW744MQ"
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	// pk := kp.Address()
+	baseURL := stagingURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	// approvalID := "1f8a4d47-cd71-44f5-8d7b-9eb9326be91f"
+	// approvalID := "6c8d4dd6-d0dc-4dcb-a67f-6e67f643d9d0"
+
+	fullPath := "/v1/shared-access/approvals"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	// payload := ApprovalPayload{}
+
+	// log.Printf("[DEBUG] Payload: %+v\n", payload)
+	errorResponse := new(ErrorResponse)
+	payResponse := new(PaginatedAuths)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", pk).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Get(fullPath).Receive(payResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestGetApproveTransaction] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
+		return
+
+	}
+	if err != nil {
+		log.Println("[TestGetApproveTransaction]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("Confirmation Response:[%+v]\n", payResponse)
+
+	log.Println("[TestGetApproveTransaction] completed")
+
+}
 func TestApproveTransaction(t *testing.T) {
 	approvalID := "d21601d0-7bd9-41b3-ad8c-f3d6349bf8b7"
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"

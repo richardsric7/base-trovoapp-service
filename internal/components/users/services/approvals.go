@@ -17,6 +17,7 @@ import (
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-module/carbon/v2"
 	"github.com/google/uuid"
 	"github.com/stellar/go/protocols/horizon"
 	"github.com/stellar/go/xdr"
@@ -309,7 +310,21 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 	p.ApprovalsGotten++
+	{
+		//update approved by
+		approvedBy := fmt.Sprintf("%s on %s", signerUser.Username, carbon.Time2Carbon(pts.CreatedAt).ToDateString())
+		if p.ApprovedBy == nil {
+			p.ApprovedBy = &approvedBy
+		} else {
+			if len(*p.ApprovedBy) == 0 {
+				p.ApprovedBy = &approvedBy
+			} else {
+				ab := fmt.Sprintf("%s, %s", *p.ApprovedBy, approvedBy)
+				p.ApprovedBy = &ab
+			}
+		}
 
+	}
 	if p.ApprovalsGotten < p.ApprovalsNeeded {
 		e = dbTX.Save(p).Error
 		if e != nil {
