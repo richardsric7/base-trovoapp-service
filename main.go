@@ -595,6 +595,7 @@ func main() {
 						CreatedAt:            createdAt,
 						UpdatedAt:            updatedAt,
 						TrovoWalletPublicKey: da.TrovoWalletPublicKey,
+						DepositID:            pdi.DepositID,
 						TxID:                 pdi.TxID,
 						Amount:               amountLessFees.String(),
 						Currency:             ca.AssetCode,
@@ -658,7 +659,7 @@ func main() {
 							dataPayload := make(map[string]string)
 							dataPayload["route"] = "pendingApproval"
 
-							u.SendPushMessage(fmt.Sprintf("%v %v minting request submitted on %v!", mintingInfo.Amount, da.Currency, sourceWallet.Alias), fmt.Sprintf("Request:\n %v", mintingInfo), "", dataPayload, &globalConfig)
+							u.SendPushMessage(fmt.Sprintf("%v %v minting request submitted on %v!", mintingInfo.Amount, da.Currency, sourceWallet.Alias), fmt.Sprintf("Request:\n %v", mintingInfo.ReturnedDescription), "", dataPayload, &globalConfig)
 
 						}
 					}
