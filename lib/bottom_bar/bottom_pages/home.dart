@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,6 +11,7 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
@@ -40,13 +40,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   late RefreshController _refreshController;
   late DataProvider appState;
   late UserInfo userInfo;
-  var assetBalances;
-  var nfts;
-  List<Wallet>? wallets;
-  List<Wallet>? carouselWallets;
+  late List<Wallet> carouselWallets;
+  late List<Wallet> wallets;
+  List<Asset>? unclaimedAssets;
+  List<Asset>? claimedAssets;
   String? activeWallet;
-  var claimedAssets;
-  var unclaimedAssets;
   int tabLength = 1;
   int activeTabIndex = 0;
   int activeWalletIndex = 0;
@@ -82,21 +80,20 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     userInfo = appState.userInfo!;
-    assetBalances = appState.assetBalances;
     wallets = userInfo.wallets!;
     carouselWallets =
-        wallets!.length > 7 ? wallets!.getRange(0, 7).toList() : wallets;
-    nfts = appState.nfts;
-    if (activeWallet == null && wallets!.length > 0) {
-      activeWallet = wallets![0].publicKey;
+        wallets.length > 7 ? wallets.getRange(0, 7).toList() : wallets;
+
+    if (activeWallet == null && wallets.length > 0) {
+      activeWallet = wallets[0].publicKey;
+      claimedAssets = wallets[0].claimedAssets;
+      unclaimedAssets = wallets[0].unClaimedAssets;
     }
-    claimedAssets = assetBalances[activeWallet]['claimed'];
-    unclaimedAssets = assetBalances[activeWallet]['unclaimed'];
 
     // in order to make assets tab length dynamic we have to check
     // for when we have pending asset and then change the tablength
     // to 3 or back to 2 when we do not have pending assets.
-    if (unclaimedAssets != null && unclaimedAssets.length > 0) {
+    if (unclaimedAssets != null && unclaimedAssets!.length > 0) {
       // if (activeTabIndex == _tabController.length - 1) activeTabIndex = 1;
       tabLength = 2;
     } else {
@@ -182,18 +179,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     height: height / 70,
                   ),
                 ],
-                walletSlides(wallets!),
+                walletSlides(wallets),
                 SizedBox(
                   height: height / 30,
                 ),
                 // check if the user's xbn balance is 0. This usually is the si-
                 // tuation when a new user signs up and has not funded their wallet
                 // yet
-                if (claimedAssets
+                if (claimedAssets!
                     .where((asset) =>
-                        (asset['assetCode'].toString().isEmpty &&
-                            asset['assetIssuer'].toString().isEmpty) &&
-                        double.parse(asset['amount']) != 0)
+                        (asset.assetCode!.isEmpty &&
+                            asset.assetIssuer.toString().isEmpty) &&
+                        double.parse(asset.amount.toString()) != 0)
                     .isNotEmpty) ...[
                   DefaultTabController(
                     length: tabLength,
@@ -222,7 +219,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                 Tab(
                                   height: 20,
                                   text:
-                                      '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
+                                      '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
                                 ),
                               ],
 
@@ -264,19 +261,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 child: Column(
                   children: [
                     if (unclaimedAssets != null &&
-                        unclaimedAssets.length > 0) ...[
+                        unclaimedAssets!.length > 0) ...[
                       // if assets is greater than 5 then show five assets
                       // and then add a button to view all in the wallet
                       // details view
-                      for (var i = 0; i < unclaimedAssets.length; i++) ...[
+                      for (var i = 0; i < unclaimedAssets!.length; i++) ...[
                         GestureDetector(
                           onTap: () {
-                            appState.setActiveWallet = wallets!.firstWhere(
+                            appState.setActiveWallet = wallets.firstWhere(
                                 (wallet) => wallet.publicKey == activeWallet);
 
                             appState.viewData = {
-                              'assetCode': unclaimedAssets[i]['assetCode'],
-                              'assetIssuer': unclaimedAssets[i]['assetIssuer'],
+                              'assetCode': unclaimedAssets![i].assetCode,
+                              'assetIssuer': unclaimedAssets![i].assetIssuer,
                               'walletPublicKey': activeWallet,
                             };
                             appState.currentAction = PageAction(
@@ -284,7 +281,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               page: PendingAssetDetailsViewPageConfig,
                             );
                           },
-                          child: tiles(unclaimedAssets[i], activeWalletIndex),
+                          child: tiles(unclaimedAssets![i], activeWalletIndex),
                         ),
                       ],
                     ] else ...[
@@ -344,16 +341,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     return SingleChildScrollView(
       child: Column(
         children: [
-          if (claimedAssets.length > 0) ...[
-            for (var i = 0; i < claimedAssets.length; i++) ...[
+          if (claimedAssets!.length > 0) ...[
+            for (var i = 0; i < claimedAssets!.length; i++) ...[
               GestureDetector(
                 onTap: () {
-                  appState.setActiveWallet = wallets!
+                  appState.setActiveWallet = wallets
                       .firstWhere((wallet) => wallet.publicKey == activeWallet);
 
                   appState.viewData = {
-                    'assetCode': claimedAssets[i]['assetCode'],
-                    'assetIssuer': claimedAssets[i]['assetIssuer'],
+                    'assetCode': claimedAssets![i].assetCode,
+                    'assetIssuer': claimedAssets![i].assetIssuer,
                     'walletPublicKey': activeWallet,
                   };
                   appState.currentAction = PageAction(
@@ -361,7 +358,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     page: AssetDetailsViewPageConfig,
                   );
                 },
-                child: tiles(claimedAssets[i], activeWalletIndex),
+                child: tiles(claimedAssets![i], activeWalletIndex),
               ),
             ],
             SizedBox(
@@ -690,8 +687,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 () => {
                   activeWalletIndex = index == 6 ? index - 1 : index,
                   activeWallet = wallets[activeWalletIndex].publicKey,
-                  claimedAssets = assetBalances[activeWallet]['claimed'],
-                  unclaimedAssets = assetBalances[activeWallet]['unclaimed'],
+                  claimedAssets = wallets[activeWalletIndex].claimedAssets,
+                  unclaimedAssets = wallets[activeWalletIndex].unClaimedAssets,
                 },
               )
             }),
@@ -701,14 +698,16 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         clipBehavior: Clip.antiAlias,
         viewportFraction: wallets.length > 1 ? 0.9 : 1,
       ),
-      items: carouselWallets!.map((wallet) {
+      items: carouselWallets.map((wallet) {
         var indexOfWallet = wallets.indexOf(wallet);
         return Builder(
           builder: (BuildContext context) {
             if (indexOfWallet < 6) {
               return GestureDetector(
                 onTap: () {
-                  appState.setActiveWallet = wallets[indexOfWallet];
+                  appState.viewData = {
+                    'walletPublicKey': wallets[indexOfWallet].publicKey
+                  };
                   appState.currentAction = PageAction(
                       state: PageState.addPage,
                       page: WalletDetailsViewPageConfig);
@@ -805,7 +804,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget tiles(asset, indexOfWallet) {
+  Widget tiles(Asset asset, int indexOfWallet) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
@@ -820,7 +819,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             title: Row(
               children: [
                 Image.network(
-                  asset["imageUrl"],
+                  asset.imageUrl!,
                   height: 35,
                   width: 35,
                   errorBuilder: (context, error, stackTrace) {
@@ -836,7 +835,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      getAssetCode(asset["assetCode"]),
+                      getAssetCode(asset.assetCode),
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -846,7 +845,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                       child: Text(
-                        "${getFiatRate(asset["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
+                        "${getFiatRate(asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
                         style: TextStyle(
                           fontSize: 9,
                           fontFamily: fontbody,
@@ -863,9 +862,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  getBalance(
-                      formatHistoryNumber(
-                          double.parse(asset["amount"]), 99000000000),
+                  getBalance(formatHistoryNumber(asset.amount!, 99000000000),
                       indexOfWallet),
                   style: TextStyle(
                     fontSize: 12,
@@ -877,7 +874,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
                     getBalance(
-                        '${calculateFiatValue(asset["amount"], asset["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                        '${calculateFiatValue(asset.amount.toString(), asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                         indexOfWallet),
                     style: TextStyle(
                       fontSize: 9,
