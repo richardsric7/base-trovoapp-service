@@ -626,9 +626,9 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 		mintingInfo.DestinationThumbnail = *destinationInfo.ImageThumbnailURL
 	}
 
-	var destinationPublicKey string
+	// var destinationPublicKey string
 
-	destinationPublicKey = destinationWallet.ID
+	destinationPublicKey := destinationWallet.ID
 
 	//perform ths checks of determining messages to be appended. if destination account property is not checked here, information would be returned without messages set.
 	destinationAccountExists, destinationAccountTrustsAsset, _, _, destinationBlockchainAccount, destinationAccountErr :=
