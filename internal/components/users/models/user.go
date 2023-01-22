@@ -298,7 +298,7 @@ type PendingAuth struct {
 	TransactionSource            string                        `gorm:"size:56;not null;" json:"-"`
 	ApprovalsNeeded              int                           `gorm:"not null;" json:"approvalsNeeded"`
 	ApprovalsGotten              int                           `gorm:"not null;default:0" json:"approvalsGotten"`
-	ApprovedBy                   *string                       `gorm:"size:20;null;" json:"approvedBy"`
+	ApprovedBy                   *string                       `gorm:"null;" json:"approvedBy"`
 	TransactionStatus            string                        `gorm:"size:20;not null;default:'PENDING';index:idx_pending_auth_transaction_status" json:"transactionStatus"`
 	RejectedBy                   *string                       `gorm:"size:20;null;index:idx_pending_auth_rejected_by" json:"rejectedBy"`
 	ReasonForRejection           *string                       `gorm:"size:200;null;" json:"reasonForRejection"`
