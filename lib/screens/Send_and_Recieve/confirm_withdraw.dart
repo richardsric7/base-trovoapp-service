@@ -492,10 +492,11 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                 'You have successfully requested withdrawal of [${transactionInfo['amountSubmitted']} ${transactionInfo['currency']}] on network [${networkName} (${transactionInfo['withdrawalNetwork']})] to address [${transactionInfo['withdrawalAddress']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
             'useOnDone': true,
             'onDone': () {
-              appState.currentAction = PageAction(
-                state: PageState.addAll,
-                pages: [BottomHomePageConfig],
-              );
+              appState.currentAction = appState.returnView ??
+                  PageAction(
+                    state: PageState.addAll,
+                    pages: [BottomHomePageConfig],
+                  );
             },
           };
           appState.currentAction =

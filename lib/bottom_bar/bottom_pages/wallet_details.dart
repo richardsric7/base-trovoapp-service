@@ -35,6 +35,7 @@ class _WalletDetailsState extends State<WalletDetails>
   int tabLength = 1;
   int activeTabIndex = 0;
   late bool localHideBalance;
+  String rel = '';
 
   @override
   void initState() {
@@ -46,6 +47,8 @@ class _WalletDetailsState extends State<WalletDetails>
     wallet = appState.userInfo!.getWallet(
       appState.viewData!['walletPublicKey'],
     );
+
+    rel = appState.viewData!['rel'] != null ? appState.viewData!['rel'] : '';
   }
 
   void tabListener() {
@@ -173,6 +176,25 @@ class _WalletDetailsState extends State<WalletDetails>
                                   for (var asset in wallet.claimedAssets!) ...[
                                     GestureDetector(
                                         onTap: () {
+                                          appState.returnView = PageAction(
+                                            state: PageState.addAll,
+                                            pages: [
+                                              BottomHomePageConfig,
+                                              WalletDetailsViewPageConfig
+                                            ],
+                                          );
+
+                                          if (rel == 'sharedWalletView') {
+                                            appState.returnView = PageAction(
+                                                state: PageState.addAll,
+                                                pages: [
+                                                  BottomHomePageConfig,
+                                                  SharedAccessViewPageConfig,
+                                                  SharedWalletInfoViewPageConfig,
+                                                  WalletDetailsViewPageConfig
+                                                ]);
+                                          }
+
                                           appState.viewData = {
                                             'assetCode': asset.assetCode,
                                             'assetIssuer': asset.assetIssuer,

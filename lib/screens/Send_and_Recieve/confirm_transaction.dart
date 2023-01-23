@@ -552,26 +552,11 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                   'You have successfully requested payment of [${transactionData['amount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}] from [${wallet.alias}] to [${transactionData['destination']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
               'useOnDone': true,
               'onDone': () {
-                // if we got here through the wallets tab on dashboard
-                if (viewData['rel'] == 'walletsView') {
-                  appState.currentAction = PageAction(
-                    state: PageState.addAll,
-                    pages: [BottomHomePageConfig, WalletDetailsViewPageConfig],
-                  );
-                } else if (viewData['rel'] == 'dashboard') {
-                  appState.currentAction = PageAction(
-                    state: PageState.addAll,
-                    pages: [BottomHomePageConfig],
-                  );
-                } else {
-                  // if we got here through the shared access page
-                  appState.currentAction =
-                      PageAction(state: PageState.addAll, pages: [
-                    BottomHomePageConfig,
-                    SharedAccessViewPageConfig,
-                    SharedWalletInfoViewPageConfig,
-                  ]);
-                }
+                appState.currentAction = appState.returnView ??
+                    PageAction(
+                      state: PageState.addAll,
+                      pages: [BottomHomePageConfig],
+                    );
               },
             }
           };
