@@ -411,6 +411,14 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
           'title': LanguageEn.success,
           'message': LanguageEn.trustassetsuccess
               .replaceAll('asset', asset!.assetCode!),
+          'useOnDone': true,
+          'onDone': () {
+            appState.currentAction = appState.returnView ??
+                PageAction(
+                  state: PageState.addAll,
+                  pages: [BottomHomePageConfig],
+                );
+          },
         };
         appState.currentAction = PageAction(
             state: PageState.replaceAll, page: SuccessViewPageConfig);
@@ -514,6 +522,14 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
               ? 'Your request to reject asset has been successfully submitted. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.'
                   .replaceAll('asset', asset!.assetCode!)
               : 'You have successfully rejected this asset. Your wallet will not hold this asset.',
+          'useOnDone': true,
+          'onDone': () {
+            appState.currentAction = appState.returnView ??
+                PageAction(
+                  state: PageState.addAll,
+                  pages: [BottomHomePageConfig],
+                );
+          },
         };
         appState.currentAction = PageAction(
             state: PageState.replaceAll, page: SuccessViewPageConfig);

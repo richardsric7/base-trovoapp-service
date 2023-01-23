@@ -265,6 +265,25 @@ class _WalletDetailsState extends State<WalletDetails>
                                                 _tabController.index;
                                           });
 
+                                          appState.returnView = PageAction(
+                                            state: PageState.addAll,
+                                            pages: [
+                                              BottomHomePageConfig,
+                                              WalletDetailsViewPageConfig
+                                            ],
+                                          );
+
+                                          if (rel == 'sharedWalletView') {
+                                            appState.returnView = PageAction(
+                                                state: PageState.addAll,
+                                                pages: [
+                                                  BottomHomePageConfig,
+                                                  SharedAccessViewPageConfig,
+                                                  SharedWalletInfoViewPageConfig,
+                                                  WalletDetailsViewPageConfig
+                                                ]);
+                                          }
+
                                           appState.viewData = {
                                             'assetCode': asset.assetCode,
                                             'assetIssuer': asset.assetIssuer,
