@@ -27,7 +27,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		var invalidJSON tErrors.ErrorInvalidJSON
 
 		if err != nil {
-			log.Printf("[1L FAILED CALBACK] UNMARSHAL FAIL, error: [%v]\nBody[%v]", err, string(data))
+			log.Printf("[1L FAILED CALBACK] UNMARSHAL FAIL, error: [%v]\nPayload:[%v]\n", err, string(data))
 
 			// log.Print(err)
 			c.JSON(invalidJSON.HTTPCode(), invalidJSON.JSONError())
