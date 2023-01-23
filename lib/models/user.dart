@@ -173,4 +173,30 @@ class UserInfo {
   }
 
   List<Wallet> get allWallets => [...wallets!, ...sharedWallets!];
+
+  List<Wallet> transactionableWallets() {
+    List<Wallet> transWallets = [];
+    for (var wallet in wallets!) {
+      if (wallet.walletType == 0) {
+        if (wallet.walletThreshold == 2 &&
+            wallet.permissions!
+                .where((perm) =>
+                    perm.permission == 'INITIATOR' &&
+                    perm.targetUsername == username)
+                .isEmpty) {
+          continue;
+        }
+
+        transWallets.add(wallet);
+      }
+    }
+
+    sharedWallets!.forEach((wallet) {
+      if (wallet.accesses!.contains('INITIATOR')) {
+        transWallets.add(wallet);
+      }
+    });
+
+    return transWallets;
+  }
 }

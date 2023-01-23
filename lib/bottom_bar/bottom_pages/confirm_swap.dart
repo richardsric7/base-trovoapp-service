@@ -8,7 +8,6 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
@@ -35,13 +34,12 @@ class ConfirmSwap extends StatefulWidget {
 class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late UserInfo userInfo;
-  Wallet? activeWallet;
+  late Wallet wallet;
   String password = '';
   final formKey = GlobalKey<FormState>();
   final Authenticator _authenticator = Authenticator();
-  late Account primaryWalletKeyPair;
-  var viewData;
+  Map transactionData = {};
+  Map viewData = {};
   var sourceAmount;
   var swappedEstimate;
 
@@ -49,7 +47,9 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    activeWallet = appState.activeWallet;
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
   }
 
   @override
@@ -58,11 +58,12 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    activeWallet = appState.activeWallet;
-    viewData = appState.viewData![ConfirmSwapViewPageConfig.key];
-    sourceAmount = double.parse(viewData['sourceAmount']).toStringAsFixed(4);
+    transactionData = appState.viewData!['transactionData'];
+    viewData = appState.viewData!;
+    sourceAmount =
+        double.parse(transactionData['sourceAmount']).toStringAsFixed(4);
     swappedEstimate =
-        double.parse(viewData['swappedEstimate']).toStringAsFixed(4);
+        double.parse(transactionData['swappedEstimate']).toStringAsFixed(4);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -124,7 +125,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                             height: height / 50,
                           ),
                           Text(
-                            '${sourceAmount} ${viewData['sourceAssetCode'].toString().isEmpty ? 'XBN' : viewData['sourceAssetCode']}',
+                            '${sourceAmount} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}',
                             style: TextStyle(
                                 fontSize: 19,
                                 fontWeight: FontWeight.w700,
@@ -137,7 +138,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                           Container(
                             width: width / 1.3,
                             child: Text(
-                              '- ${calculateFiatValue(sourceAmount, viewData["sourceUsdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                              '- ${calculateFiatValue(sourceAmount, viewData["sourceUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 13,
@@ -207,11 +208,9 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                           SizedBox(
                             height: height / 50,
                           ),
-                          myKeyValueRow("Fee: ", viewData['fee'] + '%'),
+                          myKeyValueRow("Fee: ", transactionData['fee'] + '%'),
                           myKeyValueRow("Amount (Calculated): ",
-                              "${viewData['feeAmount']} ${viewData['sourceAssetCode'].toString().isEmpty ? 'XBN' : viewData['sourceAssetCode']}"),
-                          myKeyValueRow("Swap amount: ",
-                              "${viewData['swapAmount']} ${viewData['sourceAssetCode'].toString().isEmpty ? 'XBN' : viewData['sourceAssetCode']}"),
+                              "${transactionData['feeAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}"),
                           SizedBox(
                             height: height / 50,
                           ),
@@ -255,7 +254,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                             height: height / 50,
                           ),
                           Text(
-                            viewData['walletAlias'],
+                            wallet.alias!,
                             style: TextStyle(
                                 fontSize: 19,
                                 fontWeight: FontWeight.w700,
@@ -369,7 +368,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 Column(
                   children: [
                     Text(
-                      '${swappedEstimate} ${viewData['destinationAssetCode'].toString().isEmpty ? 'XBN' : viewData['destinationAssetCode']}',
+                      '${swappedEstimate} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'XBN' : transactionData['destinationAssetCode']}',
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluewhitecolor,
@@ -382,7 +381,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                     ),
                     if (viewData["destinationUsdPrice"] != null) ...[
                       Text(
-                        '+ ${calculateFiatValue(swappedEstimate, viewData["destinationUsdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                        '+ ${calculateFiatValue(swappedEstimate, viewData["destinationUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                         style: TextStyle(
                           color: notifier.getbluewhitecolor,
                           fontSize: 12.sp,
@@ -447,60 +446,72 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
     try {
       showLoader(context);
 
-      if (viewData['isShared'] == 1) {
-        viewData['commit'] = 1;
+      if (wallet.isSharedWallet) {
+        transactionData['commit'] = 1;
       } else {
         // sign transaction
         var signature = TrovoWalletSDK().signBase64Txn(
           appState.secretKeys[0], // the primary wallet secret key,
-          viewData['transaction'],
-          viewData['networkPassPhrase'],
+          transactionData['transaction'],
+          transactionData['networkPassPhrase'],
         );
-        viewData['transactionSignature'] = signature;
+        transactionData['transactionSignature'] = signature;
       }
 
-      String requestBody = jsonEncode(viewData);
+      String requestBody = jsonEncode(transactionData);
 
-      // print(requestBody);
+      print(requestBody);
 
       Map responseData = await makePostRequest(
-        uri: viewData['isShared'] == 1
-            ? '/v1/shared-access/swap'
-            : '/v1/users/swap',
+        uri:
+            wallet.isSharedWallet ? '/v1/shared-access/swap' : '/v1/users/swap',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: viewData['walletPublicKey'],
+        publicKey: wallet.publicKey!,
       );
 
-      // print('response: $responseData');
+      print('response: $responseData');
+
       if (responseData['statusCode'] == 200) {
-        updateUserInfo(
-          activeWallet!.signer,
+        await updateUserInfo(
+          appState.primaryWallet.signer!,
           appState.secretKeys[0],
-          activeWallet!.publicKey,
+          wallet.publicKey,
           appState.userInfo!.username!.trim().replaceAll(' ', ''),
           appState,
         );
-        if (viewData['isShared'] == 1) {
+        if (wallet.isSharedWallet) {
           appState.viewData![SuccessViewPageConfig.key] = {
             'title': 'Swap request submitted',
             'message':
-                'You have successfully requested swap of [${sourceAmount} ${viewData['sourceAssetCode'].toString().isEmpty ? 'XBN' : viewData['sourceAssetCode']}] to [${swappedEstimate} ${viewData['destinationAssetCode'].toString().isEmpty ? 'XBN' : viewData['destinationAssetCode']}] on wallet [${viewData['walletAlias']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+                'You have successfully requested swap of [${sourceAmount} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}] to [${swappedEstimate} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'XBN' : transactionData['destinationAssetCode']}] on wallet [${wallet.alias}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
           };
           appState.currentAction =
               PageAction(state: PageState.replace, page: SuccessViewPageConfig);
         } else {
-          appState.viewData![SwapSuccessViewPageConfig.key] =
-              responseData['data'];
-          appState.viewData![SwapSuccessViewPageConfig.key]['sourceUsdPrice'] =
-              viewData["sourceUsdPrice"];
-          appState.viewData![SwapSuccessViewPageConfig.key]
-              ['destinationUsdPrice'] = viewData["destinationUsdPrice"];
-          appState.viewData![SwapSuccessViewPageConfig.key]['fee'] =
-              viewData["fee"];
-          appState.viewData![SwapSuccessViewPageConfig.key]['feeAmount'] =
-              viewData["feeAmount"];
+          // appState.viewData![SwapSuccessViewPageConfig.key] =
+          //     responseData['data'];
+          // appState.viewData![SwapSuccessViewPageConfig.key]['sourceUsdPrice'] =
+          //     viewData["sourceUsdPrice"];
+          // appState.viewData![SwapSuccessViewPageConfig.key]
+          //     ['destinationUsdPrice'] = viewData["destinationUsdPrice"];
+          // appState.viewData![SwapSuccessViewPageConfig.key]['fee'] =
+          //     viewData["fee"];
+          // appState.viewData![SwapSuccessViewPageConfig.key]['feeAmount'] =
+          //     viewData["feeAmount"];
+          appState.currentAction = PageAction(
+            state: PageState.replaceAll,
+            page: SwapSuccessViewPageConfig,
+          );
+
+          appState.viewData = {
+            'transactionData': responseData['data'],
+            'walletPublicKey': wallet.publicKey,
+            'sourceUsdPrice': viewData['sourceUsdPrice'],
+            'destinationUsdPrice': viewData['destinationUsdPrice'],
+          };
+
           appState.currentAction = PageAction(
             state: PageState.replaceAll,
             page: SwapSuccessViewPageConfig,
