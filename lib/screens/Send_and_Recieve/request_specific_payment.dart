@@ -62,7 +62,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
     );
 
     // free the memory..... lol
-    appState.viewData = null;
+    appState.viewData = {};
   }
 
   @override
@@ -271,7 +271,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
       Map responseData = await makeGetRequest(
         uri:
             '/v1/users/payment/generate/${wallet.alias}?paymentDestination=${wallet.publicKey}&assetCode=${asset!.assetCode}&assetIssuer=${asset!.assetIssuer}&amount=${amount.toString()}&memo=${memo != null ? Uri.encodeComponent(memo!) : ''}',
-        signer: wallet.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: wallet.publicKey!,
       );
@@ -298,6 +298,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
       }
     } catch (e) {
       print(e);
+      hideLoader(context);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
   }

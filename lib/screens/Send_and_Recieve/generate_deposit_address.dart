@@ -177,7 +177,7 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(
-          wallet.signer,
+          appState.primaryWallet.signer!,
           appState.secretKeys[0],
           wallet.publicKey,
           appState.userInfo!.username,

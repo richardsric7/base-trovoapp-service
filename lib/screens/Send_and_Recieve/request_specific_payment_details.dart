@@ -36,7 +36,7 @@ class RequestSpecificPaymentDetailsState
     viewData = appState.viewData!;
 
     // free the memory..... lol
-    appState.viewData = null;
+    appState.viewData = {};
   }
 
   @override

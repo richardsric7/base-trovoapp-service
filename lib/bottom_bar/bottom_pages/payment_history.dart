@@ -199,15 +199,10 @@ class Payment_HistoryState extends State<PaymentHistory>
           backgroundColor: notifier.getwihitecolor,
           appBar: AppBar(
             centerTitle: true,
-            // this part will only appear when we are viewing payment history
-            // from shared wallet in which case appState.viewData![PaymentHistoryViewPageConfig.key]
-            // will not be null;
             leading: isFromSharedWalletsView
                 ? GestureDetector(
                     onTap: () {
                       Navigator.of(context).pop();
-                      appState.viewData![PaymentHistoryViewPageConfig.key] =
-                          null;
                     },
                     child: Image.asset("assets/images/back.png", scale: 5),
                   )
@@ -1172,7 +1167,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   void dispose() {
     super.dispose();
     print('disposing...');
-    appState.viewData![PaymentHistoryViewPageConfig.key] = null;
+    appState.viewData = {};
     resetFilters();
   }
 }

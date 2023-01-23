@@ -58,7 +58,7 @@ class _AssetDetailsState extends State<AssetDetails>
     );
 
     // free the memory..... lol
-    appState.viewData = null;
+    appState.viewData = {};
   }
 
   @override

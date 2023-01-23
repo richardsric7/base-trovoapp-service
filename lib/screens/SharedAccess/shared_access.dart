@@ -1043,8 +1043,10 @@ class _SharedAccessState extends State<SharedAccess>
               onTap: () {
                 // add the shared access data to viewData so we can pass it to
                 // shared access details view when user taps on it
-                appState.viewData![SharedWalletInfoViewPageConfig.key] =
-                    wallets[walletKeys[i]];
+                appState.viewData = {
+                  'walletPublicKey': wallets[walletKeys[i]]['walletPublicKey'],
+                };
+
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
                   page: SharedWalletInfoViewPageConfig,

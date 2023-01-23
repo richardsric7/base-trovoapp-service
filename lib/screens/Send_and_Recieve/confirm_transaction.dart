@@ -556,10 +556,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 if (viewData['rel'] == 'walletsView') {
                   appState.currentAction = PageAction(
                     state: PageState.addAll,
-                    pages: [
-                      BottomHomePageConfig,
-                      SharedWalletDetailsViewPageConfig
-                    ],
+                    pages: [BottomHomePageConfig, WalletDetailsViewPageConfig],
                   );
                 } else if (viewData['rel'] == 'dashboard') {
                   appState.currentAction = PageAction(
@@ -573,7 +570,6 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                     BottomHomePageConfig,
                     SharedAccessViewPageConfig,
                     SharedWalletInfoViewPageConfig,
-                    SharedWalletDetailsViewPageConfig
                   ]);
                 }
               },

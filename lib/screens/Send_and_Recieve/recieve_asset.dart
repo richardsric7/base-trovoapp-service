@@ -52,7 +52,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
     );
 
     // free the memory..... lol
-    appState.viewData = null;
+    appState.viewData = {};
   }
 
   @override
