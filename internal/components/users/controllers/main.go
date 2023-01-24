@@ -3188,7 +3188,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(statusCode, response)
 				return
 			}
-			cacheKey := fmt.Sprintf("[GET] /v1/crypto/withrawal-history/%v/%v", currency, targetPublicKeyForHistory)
+			cacheKey := fmt.Sprintf("[GET] /v1/crypto/withdrawal-history/%v/%v", currency, targetPublicKeyForHistory)
 			cacheKeyParameters := c.Request.URL.RequestURI()
 			{
 				// check cache
