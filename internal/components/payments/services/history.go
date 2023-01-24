@@ -214,7 +214,7 @@ func GetCryptoDepositHistory(targetPublicKey, currency string, gc *sharedconfig.
 	orderDirection := c.DefaultQuery("order", "DESC")
 
 	query = DB.Preload(clause.Associations)
-	countQuery = DBC.Group("tx_id")
+	countQuery = DBC.Group("id")
 
 	if len(orderDirection) > 0 && strings.ToLower(orderDirection) == "desc" {
 		oD = "DESC"
