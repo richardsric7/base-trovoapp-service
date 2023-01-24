@@ -3173,7 +3173,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 	}
 	//CRYPTO
 	{
-		router.GET("/v1/crypto/withrawal-history/:currency/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		router.GET("/v1/crypto/withdrawal-history/:currency/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			// var err error
 			currency := strings.ToUpper(c.Param("currency"))
 
@@ -3203,7 +3203,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			// cacheDurationInSeconds := 1 * 60 //1 minutes
 			cacheDurationInSeconds := 20 //in seconds
-			conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/withrawal-history/%v/%v", currency, targetPublicKeyForHistory), gc.DB)
+			conDB.PrintDBStats(fmt.Sprintf("/v1/crypto/withdrawal-history/%v/%v", currency, targetPublicKeyForHistory), gc.DB)
 
 			signerUser, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
 
