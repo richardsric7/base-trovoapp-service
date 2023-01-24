@@ -51,9 +51,10 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				}
 				return
 			}
-
+			c.JSON(http.StatusOK, "success")
 		} else {
-			log.Printf("[SAVE CALLBACK]Uncompleted deposit: %+v\n", callbackObj)
+			log.Printf("[SAVE CALLBACK]other callback info: %+v\n", callbackObj)
+			c.JSON(http.StatusOK, "success")
 		}
 
 	})
