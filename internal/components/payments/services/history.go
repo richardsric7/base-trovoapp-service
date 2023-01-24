@@ -309,7 +309,9 @@ func GetCryptoWithdrawalHistory(targetPublicKey, currency string, gc *sharedconf
 	var query *gorm.DB
 	var countQuery *gorm.DB
 	oD := "ASC"
-	s := strings.TrimSpace(c.Query("s"))
+	// s := strings.TrimSpace(c.Query("s"))
+	withdrawalAddress := strings.ToUpper(strings.TrimSpace(c.Query("withdrawalAddress")))
+	withdrawalStatus := strings.ToUpper(strings.TrimSpace(c.Query("withdrawalStatus")))
 
 	limitU, _ := strconv.ParseUint(strings.TrimSpace(c.DefaultQuery("limit", "25")), 10, 64)
 	limit := int(limitU)
@@ -335,16 +337,34 @@ func GetCryptoWithdrawalHistory(targetPublicKey, currency string, gc *sharedconf
 	}
 
 	{
-		query = query.Where("(trovo_wallet_public_key = ?)", targetPublicKey)
-		countQuery = countQuery.Where("(trovo_wallet_public_key = ?)", targetPublicKey)
+		query = query.Where("(wallet_public_key = ?)", targetPublicKey)
+		countQuery = countQuery.Where("(wallet_public_key = ?)", targetPublicKey)
 
 	}
 
-	if len(s) >= 2 {
-		query = query.Where("(withdrawal_address = ? OR upper(network) = upper(?) OR withdrawal_id = ?)", s, s, s, s)
-		countQuery = countQuery.Where("(withdrawal_address = ? OR upper(network) = upper(?) OR withdrawal_id = ?)", s, s, s, s)
+	if len(withdrawalAddress) >= 2 {
+		query = query.Where("withdrawal_address = ?", withdrawalAddress)
+		countQuery = countQuery.Where("withdrawal_address = ?", withdrawalAddress)
 
 	}
+
+	if len(withdrawalStatus) >= 2 {
+		query = query.Where("withdrawal_status = ?)", withdrawalStatus)
+		countQuery = countQuery.Where("withdrawal_status = ?)", withdrawalStatus)
+
+	}
+
+	// if len(s) >= 2 {
+	// 	query = query.Where("(upper(withdrawal_network) = upper(?) OR withdrawal_status = ?)", s, s)
+	// 	countQuery = countQuery.Where("(upper(withdrawal_network) = upper(?) OR withdrawal_status = ?)", s, s)
+
+	// }
+
+	// if len(s) >= 2 {
+	// 	query = query.Where("(upper(withdrawal_network) = upper(?) OR withdrawal_status = ?)", s, s)
+	// 	countQuery = countQuery.Where("(upper(withdrawal_network) = upper(?) OR withdrawal_status = ?)", s, s)
+
+	// }
 
 	if len(currency) > 0 {
 		query = query.Where("upper(currency) = upper(?)", currency)
