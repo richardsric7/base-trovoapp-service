@@ -226,8 +226,8 @@ func GetCryptoDepositHistory(targetPublicKey, currency string, gc *sharedconfig.
 	}
 
 	{
-		query = query.Where("(trovo_wallet_public_key = ?)", targetPublicKey)
-		countQuery = countQuery.Where("(trovo_wallet_public_key = ?)", targetPublicKey)
+		query = query.Where("trovo_wallet_public_key = ?", targetPublicKey)
+		countQuery = countQuery.Where("trovo_wallet_public_key = ?", targetPublicKey)
 
 	}
 
@@ -260,7 +260,7 @@ func GetCryptoDepositHistory(targetPublicKey, currency string, gc *sharedconfig.
 
 	var countR int64
 
-	errCount := countQuery.Find(&[]paymentModels.PaymentHistory{}).Count(&countR).Error
+	errCount := countQuery.Find(&[]userModels.CryptoDeposit{}).Count(&countR).Error
 	if errCount != nil {
 		log.Println("[GetCryptoDepositHistory]Count Error:", errCount)
 		return records
@@ -389,7 +389,7 @@ func GetCryptoWithdrawalHistory(targetPublicKey, currency string, gc *sharedconf
 
 	var countR int64
 
-	errCount := countQuery.Find(&[]paymentModels.PaymentHistory{}).Count(&countR).Error
+	errCount := countQuery.Find(&[]userModels.WithdrawalRequest{}).Count(&countR).Error
 	if errCount != nil {
 		log.Println("[GetCryptoWithdrawalHistory]Count Error:", errCount)
 		return records
