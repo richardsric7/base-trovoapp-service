@@ -3,6 +3,8 @@ package users
 import (
 	"time"
 	"trovo-wallet-api/internal/sharedconfig"
+
+	"github.com/shopspring/decimal"
 )
 
 type PaginatedCryptoDepositHistory struct {
@@ -39,10 +41,11 @@ type CryptoDeposit struct {
 }
 
 func (c *CryptoDeposit) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj CryptoDepositJSON) {
+	amount := ((decimal.RequireFromString(c.Amount).Sub(decimal.RequireFromString(c.Fees))).Div(decimal.RequireFromString("10").Pow(decimal.NewFromInt(int64(c.Decimal))))).Truncate(7).String()
 	jsonObj = CryptoDepositJSON{
 		TrovoWalletPublicKey: c.TrovoWalletPublicKey,
 		TxID:                 c.TxID,
-		Amount:               c.Amount,
+		Amount:               amount,
 		CreatedAt:            c.CreatedAt,
 		Currency:             c.Currency,
 		FromAddress:          c.FromAddress,
