@@ -152,6 +152,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserPatronMembership: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.PatronMembershipPrice{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserPatronMembership: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.UserPatronSubscriptionLog{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserPatronSubscriptionLog: ", errMigrate)
