@@ -3787,4 +3787,122 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	}
 
+	//PATRON
+	if os.Getenv("ENABLE_PATRON") == "1" {
+		router.GET("/v1/patron", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error//true-client-ip
+
+			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+
+			userSigner, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				return
+			}
+
+			patronPakcages := userServices.GetPatronPackages(gc)
+			patronTiers := userServices.GetPatronTiers(gc)
+			patronLogs := userSigner.GetPatronSubscriptionLogs(gc)
+			memberships := userServices.GetPatronMembershipPrices(gc)
+
+			c.JSON(http.StatusOK, gin.H{"membershipPrices": memberships, "patronPackages": patronPakcages, "patronTiers": patronTiers, "patronSubscriptionLogs": patronLogs})
+
+		})
+
+		router.POST("/v1/patron", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			var err error
+			accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+			if getUserError != nil {
+				log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+				}
+				return
+			}
+
+			var subInput userModels.PatronSubscriptionInput
+
+			data, _ := io.ReadAll(c.Request.Body)
+			// log.Println(string(data))
+			err = json.Unmarshal(data, &subInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+
+			priceConfig, err := userModels.PatronMembershipPriceID(subInput.PatronMembershipPriceID).GetPatronMemberShipConfig(gc)
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			err = userServices.SubscribeToPatronPackage(&accountSignerUser, &subInput, gc)
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "message": err.Error()})
+				}
+				return
+			}
+
+			if len(subInput.TransactionID) == 0 {
+				c.JSON(http.StatusAccepted, subInput)
+				return
+			} else {
+				c.JSON(http.StatusOK, subInput)
+			}
+
+			if accountSignerUser.PushNotificationToken != nil && len(subInput.TransactionID) > 0 {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = "patrons"
+				accountSignerUser.SendPushMessage("Patron membership subscription updated!", fmt.Sprintf("You have updated your patron subscription to %v %v.", priceConfig.PatronPackage, priceConfig.PatronTierID), "", dataPayload, gc)
+			}
+			accountSignerUser.InvalidateUserCache(gc)
+
+		})
+
+	}
+
 }

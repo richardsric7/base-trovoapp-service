@@ -18,8 +18,19 @@ func GetPatronTiers(gc *sharedconfig.GlobalConfig) (patronTiers []userModels.Pat
 	return
 }
 
+func GetPatronMembershipPrices(gc *sharedconfig.GlobalConfig) (memberships []userModels.PatronMembershipPrice) {
+	memberships = make([]userModels.PatronMembershipPrice, 0)
+	gc.DB.Find(&memberships)
+	return
+}
+
 func GetPatronSubscriptionLogs(username string, gc *sharedconfig.GlobalConfig) (patronSubLogs []userModels.UserPatronSubscriptionLog) {
 	patronSubLogs = make([]userModels.UserPatronSubscriptionLog, 0)
 	gc.DB.Order("createdAt DESC").Where("username = ?", username).Find(&patronSubLogs)
+	return
+}
+
+func SubscribeToPatronPackage(signerUser *userModels.User, patronSubInput *userModels.PatronSubscriptionInput, gc *sharedconfig.GlobalConfig) (err error) {
+
 	return
 }

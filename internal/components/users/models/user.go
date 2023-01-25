@@ -203,6 +203,12 @@ type Issuer string
 
 type CryptoDepositAddress string
 
+type PatronPackageID string
+
+type PatronTierID string
+
+type PatronMembershipPriceID uint64
+
 type Downline struct {
 	Username string  `json:"username"`
 	Referrer *string `json:"referrer,omitempty"`

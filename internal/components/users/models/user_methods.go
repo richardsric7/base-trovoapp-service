@@ -1478,6 +1478,31 @@ func (u *User) GetPatronMembership(gc *sharedconfig.GlobalConfig) *UserPatronMem
 	}
 	return &membership
 }
+func (pid PatronPackageID) GetPatronPackage(gc *sharedconfig.GlobalConfig) (patronPackage PatronPackage, err error) {
+	err = gc.DB.Where("id = ?", strings.ToUpper(string(pid))).First(&patronPackage).Error
+	return
+}
+
+func (pid PatronTierID) GetPatronTier(gc *sharedconfig.GlobalConfig) (patronTier PatronTier, err error) {
+	err = gc.DB.Where("id = ?", strings.ToUpper(string(pid))).First(&patronTier).Error
+	return
+}
+
+func (pid PatronMembershipPriceID) GetPatronMemberShipConfig(gc *sharedconfig.GlobalConfig) (membershipConfig PatronMembershipPrice, err error) {
+	e := gc.DB.Where("id = ?", uint64(pid)).First(&membershipConfig).Error
+	if e != nil {
+		if errors.Is(e, gorm.ErrRecordNotFound) {
+			//no approval request was found
+			err = &tErrors.ErrorInvalidRequest{
+				ID: fmt.Sprintf("%v", uint64(pid)),
+			}
+			return
+		}
+		err = &tErrors.ErrorTemporaryServerError{}
+	}
+	return membershipConfig, nil
+}
+
 func (u *User) GetPatronSubscriptionLogs(gc *sharedconfig.GlobalConfig) (patronSubLogs []UserPatronSubscriptionLog) {
 	patronSubLogs = make([]UserPatronSubscriptionLog, 0)
 	gc.DB.Order("createdAt DESC").Where("username = ?", u.Username).Find(&patronSubLogs)
