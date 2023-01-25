@@ -139,6 +139,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return TransactionStatusViewPageConfig;
       case DepositWithdrawHistoryViewPath:
         return DepositWithdrawHistoryViewPageConfig;
+      case DepositWithdrawDetailsViewPath:
+        return DepositWithdrawDetailsViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -285,6 +287,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: TransactionStatusViewPath);
       case Pages.DepositWithdrawHistoryView:
         return const RouteInformation(location: DepositWithdrawHistoryViewPath);
+      case Pages.DepositWithdrawDetailsView:
+        return const RouteInformation(location: DepositWithdrawDetailsViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

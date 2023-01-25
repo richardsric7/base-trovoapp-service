@@ -14,6 +14,7 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_bar.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/deposit_withdraw_details.dart';
 import 'package:trovo_wallet/screens/account_recovery/account_recovery_success.dart';
 import 'package:trovo_wallet/screens/account_recovery/answer_security_questions.dart';
 import 'package:trovo_wallet/screens/account_recovery/backup_recovery_secret.dart';
@@ -327,6 +328,10 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               DepositWithdrawHistory(), DepositWithdrawHistoryViewPageConfig);
           break;
+        case Pages.DepositWithdrawDetailsView:
+          _addPageData(
+              DepositWithdrawDetails(), DepositWithdrawDetailsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -533,6 +538,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.DepositWithdrawHistoryView:
         DepositWithdrawHistoryViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.DepositWithdrawDetailsView:
+        DepositWithdrawDetailsViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

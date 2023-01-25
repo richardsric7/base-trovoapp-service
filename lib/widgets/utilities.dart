@@ -105,7 +105,7 @@ getAssetIssuer(assetIssuer) {
 }
 
 formatNumber(double number) =>
-    NumberFormat("#,##0.0000", "en_US").format(number);
+    NumberFormat("#,##0.0000000", "en_US").format(number);
 
 formatHistoryNumber(double number, double trimNum) {
   // if number is greater than 1million return 1m or 1.2m
@@ -113,7 +113,14 @@ formatHistoryNumber(double number, double trimNum) {
     return NumberFormat.compact().format(number);
   }
 
-  return NumberFormat("#,##0", "en_US").format(number);
+  return formatNumber(number);
+}
+
+truncatePublicKey(String? publicKey) {
+  if (publicKey == null) return "Enter public key";
+  if (publicKey.length <= 7) return publicKey;
+  return truncate(publicKey, length: 7) +
+      publicKey.substring(publicKey.length - 7);
 }
 
 String truncate(String text, {length: 7, omission: '...'}) {

@@ -1932,6 +1932,79 @@ transactionTypePopup(context,
       });
 }
 
+wrappedAssettransactionTypePopup(
+  context, {
+  required void Function() onWithdrawSelected,
+  required void Function() onDepositSelected,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          'Select transaction type',
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Wrap(
+                              children: [
+                                quickDateRange(context, text: 'Deposit history',
+                                    onPressed: () {
+                                  onDepositSelected();
+                                }),
+                                quickDateRange(context,
+                                    text: 'Withdrawal history', onPressed: () {
+                                  onWithdrawSelected();
+                                }),
+                              ],
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
 String getLabelText(HistoryFilterType rel) {
   switch (rel) {
     case HistoryFilterType.FromPublicKey:

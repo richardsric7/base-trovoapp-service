@@ -280,8 +280,16 @@ class _WrappedAssetState extends State<WrappedAsset>
             );
           }),
           actionButton("assets/images/history-btn.png", 'History', () {
-            appState.viewData![DepositWithdrawHistoryViewPageConfig.key] =
-                appState.viewData![WrappedAssetViewPageConfig.key];
+            appState.fetchDepositHistory(
+              context,
+              publicKey: wallet.publicKey!,
+              currency: asset!.assetCode,
+            );
+            appState.viewData = {
+              'walletPublicKey': wallet.publicKey,
+              'assetCode': asset!.assetCode,
+              'assetIssuer': asset!.assetIssuer,
+            };
 
             appState.currentAction = PageAction(
               state: PageState.addPage,

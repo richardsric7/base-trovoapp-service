@@ -1,9 +1,11 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:trovo_wallet/models/deposit_transaction_model.dart';
 import 'package:trovo_wallet/models/transaction.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/models/wallets_list_view_data.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
+import 'package:trovo_wallet/models/withdrawal_transaction_model.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/store.dart';
@@ -472,6 +474,97 @@ class DataProvider with ChangeNotifier {
 
   getApprovals({void Function()? onDone}) {
     approvals = fetchApprovals(limit: limit.toString(), query: filterQuery);
+  }
+
+  late List<DepositTransactionModel> depositHistoryData =
+      <DepositTransactionModel>[];
+
+  Future<void> fetchDepositHistory(
+    context, {
+    required String publicKey,
+    required String? currency,
+  }) async {
+    try {
+      showLoader(context);
+      var uri = '/v1/crypto/deposit-history/$currency/$publicKey?limit=$limit';
+
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: activeWallet!.signer!,
+        secretKey: secretKeys[0], // the primary wallet secret key
+        publicKey: activeWallet!.signer!,
+      );
+
+      hideLoader(context);
+
+      if (responseData['statusCode'] == 200) {
+        print('================> ${responseData['data']}');
+        totalRecords = responseData['data']['totalRecords'];
+        currentPage = responseData['data']['currentPage'];
+        var list = <DepositTransactionModel>[];
+        for (var i = 0; i < responseData['data']['records'].length; i++) {
+          list.add(
+            DepositTransactionModel.deserializeJson(
+              responseData['data']['records'][i],
+            ),
+          );
+        }
+        depositHistoryData = list;
+        notifyListeners();
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      hideLoader(context);
+      return Future.error('Error! ${e}');
+    }
+  }
+
+  late List<WithdrawalTransactionModel> withdrawalHistoryData =
+      <WithdrawalTransactionModel>[];
+
+  Future<void> fetchWithdrawalHistory(
+    context, {
+    required String publicKey,
+    required String? currency,
+  }) async {
+    try {
+      showLoader(context);
+      var uri =
+          '/v1/crypto/withdrawal-history/$currency/$publicKey?limit=$limit';
+
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: activeWallet!.signer!,
+        secretKey: secretKeys[0], // the primary wallet secret key
+        publicKey: activeWallet!.signer!,
+      );
+
+      hideLoader(context);
+
+      if (responseData['statusCode'] == 200) {
+        print('================> ${responseData['data']}');
+        totalRecords = responseData['data']['totalRecords'];
+        currentPage = responseData['data']['currentPage'];
+        var list = <WithdrawalTransactionModel>[];
+        for (var i = 0; i < responseData['data']['records'].length; i++) {
+          list.add(
+            WithdrawalTransactionModel.deserializeJson(
+              responseData['data']['records'][i],
+            ),
+          );
+        }
+        withdrawalHistoryData = list;
+        print(
+            '================> Deserialization done: ${withdrawalHistoryData.length} ${list.length}');
+        notifyListeners();
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      hideLoader(context);
+      return Future.error('Error! ${e}');
+    }
   }
 
   // view data is where all the data that a particular view needs

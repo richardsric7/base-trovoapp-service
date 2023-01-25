@@ -174,7 +174,6 @@ class Payment_HistoryState extends State<PaymentHistory>
 
     wallets = appState.userInfo!.allWallets;
     wallet = appState.userInfo!.getWallet(selectedWallet);
-    print('all wallets $wallets');
   }
 
   @override
