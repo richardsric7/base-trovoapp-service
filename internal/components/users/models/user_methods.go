@@ -1470,6 +1470,20 @@ func (u *User) GetCuratedSwapList(gc *sharedconfig.GlobalConfig) (list []assets.
 	return list
 }
 
+func (u *User) GetPatronMembership(gc *sharedconfig.GlobalConfig) *UserPatronMembership {
+	var membership UserPatronMembership
+	e := gc.DB.Preload(clause.Associations).Where("username = ?", u.Username).First(&membership).Error
+	if e != nil {
+		return nil
+	}
+	return &membership
+}
+func (u *User) GetPatronSubscriptionLogs(gc *sharedconfig.GlobalConfig) (patronSubLogs []UserPatronSubscriptionLog) {
+	patronSubLogs = make([]UserPatronSubscriptionLog, 0)
+	gc.DB.Order("createdAt DESC").Where("username = ?", u.Username).Find(&patronSubLogs)
+	return
+}
+
 func (u *User) GetReferralCount(gc *sharedconfig.GlobalConfig) (referralCount int64) {
 	gc.DB.Where("referrer = ?", u.Username).Count(&referralCount)
 	return

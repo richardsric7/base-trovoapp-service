@@ -8,45 +8,46 @@ import (
 )
 
 type User struct {
-	CreatedAt                time.Time          `json:"createdAt"`
-	UpdatedAt                time.Time          `json:"updatedAt"`
-	LastUpdatedMobileOn      time.Time          `json:"lastUpdatedMobileOn"`
-	LastRecoveredAccountOn   time.Time          `json:"lastRecoveredAccountOn"`
-	ID                       string             `json:"id"`
-	Username                 string             `gorm:"size:30; index:idx_user_unique_username, unique" json:"username"`
-	Email                    string             `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
-	ImageThumbnailURL        *string            `json:"imageThumbnailURL"`
-	FirstName                string             `gorm:"size:50" json:"firstName"`
-	LastName                 *string            `gorm:"size:50" json:"lastName"`
-	Mobile                   *string            `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
-	PublicKey                string             `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
-	PrimarySigner            string             `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
-	Referrer                 *string            `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
-	ReferralLink             *string            `json:"referralLink"`
-	ReferralQrCode           *string            `json:"referralQrCode"`
-	PushNotificationToken    *string            `json:"pushNotificationToken"`
-	Corporate                int                `gorm:"type:integer;not null; default:0" json:"corporate"`
-	MobileVerified           int                `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
-	MembershipType           int                `gorm:"type:integer;not null; default:0" json:"membershipType"`
-	MembershipExpiry         *time.Time         `json:"membershipExpiry"`
-	KYCVerified              int                `gorm:"type:integer;not null; default:0" json:"kycVerified"`
-	AccountRecoveryEnabled   int                `gorm:"type:integer;not null; default:0" json:"accountRecoveryEnabled"`
-	AccountRecoveryExpiresOn *time.Time         `gorm:"null" json:"accountRecoveryExpiresOn"`
-	UserWallets              []UserWallet       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userWallets"`
-	PublicIP                 string             `gorm:"size:45" json:"publicIP"`
-	CountryCode              *string            `gorm:"size:2;null"`
-	Latitude                 *float64           `gorm:"null"`
-	Longitude                *float64           `gorm:"null"`
-	City                     *string            `gorm:"null;size:100"`
-	Region                   *string            `gorm:"null;size:100"`
-	RegionName               *string            `gorm:"null;size:100"`
-	TimeZone                 *string            `gorm:"null;size:100"`
-	ISP                      *string            `gorm:"null;size:150"`
-	HasSecurityQuestions     int                `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
-	Verified                 int                `gorm:"type:integer;not null;default:0" json:"verified"`
-	Suspended                int                `gorm:"type:integer;not null;default:0" json:"suspended"`
-	SuspensionReason         *string            `gorm:"null" json:"suspensionReason"`
-	WalletsSharedWithUser    []WalletPermission `gorm:"foreignKey:TargetUsername;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	CreatedAt                time.Time             `json:"createdAt"`
+	UpdatedAt                time.Time             `json:"updatedAt"`
+	LastUpdatedMobileOn      time.Time             `json:"lastUpdatedMobileOn"`
+	LastRecoveredAccountOn   time.Time             `json:"lastRecoveredAccountOn"`
+	ID                       string                `json:"id"`
+	Username                 string                `gorm:"size:30; index:idx_user_unique_username, unique" json:"username"`
+	Email                    string                `gorm:"size:45; index:idx_user_unique_email, unique" json:"email"`
+	ImageThumbnailURL        *string               `json:"imageThumbnailURL"`
+	FirstName                string                `gorm:"size:50" json:"firstName"`
+	LastName                 *string               `gorm:"size:50" json:"lastName"`
+	Mobile                   *string               `gorm:"size:16; index:idx_user_unique_phone, unique" json:"mobile"`
+	PublicKey                string                `gorm:"size:56; index:idx_user_unique_public_key, unique" json:"publicKey"`
+	PrimarySigner            string                `gorm:"size:56; index:idx_user_unique_primary_signer, unique" json:"primarySigner"`
+	Referrer                 *string               `gorm:"size:16; index:idx_user_referrer" json:"referrer"`
+	ReferralLink             *string               `json:"referralLink"`
+	ReferralQrCode           *string               `json:"referralQrCode"`
+	PushNotificationToken    *string               `json:"pushNotificationToken"`
+	Corporate                int                   `gorm:"type:integer;not null; default:0" json:"corporate"`
+	MobileVerified           int                   `gorm:"type:integer;not null; default:0" json:"mobileVerified"`
+	MembershipType           int                   `gorm:"type:integer;not null; default:0" json:"membershipType"`
+	MembershipExpiry         *time.Time            `json:"membershipExpiry"`
+	KYCVerified              int                   `gorm:"type:integer;not null; default:0" json:"kycVerified"`
+	AccountRecoveryEnabled   int                   `gorm:"type:integer;not null; default:0" json:"accountRecoveryEnabled"`
+	AccountRecoveryExpiresOn *time.Time            `gorm:"null" json:"accountRecoveryExpiresOn"`
+	UserWallets              []UserWallet          `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userWallets"`
+	PublicIP                 string                `gorm:"size:45" json:"publicIP"`
+	CountryCode              *string               `gorm:"size:2;null"`
+	Latitude                 *float64              `gorm:"null"`
+	Longitude                *float64              `gorm:"null"`
+	City                     *string               `gorm:"null;size:100"`
+	Region                   *string               `gorm:"null;size:100"`
+	RegionName               *string               `gorm:"null;size:100"`
+	TimeZone                 *string               `gorm:"null;size:100"`
+	ISP                      *string               `gorm:"null;size:150"`
+	HasSecurityQuestions     int                   `gorm:"type:integer;not null;default:0" json:"hasSecurityQuestions"`
+	Verified                 int                   `gorm:"type:integer;not null;default:0" json:"verified"`
+	Suspended                int                   `gorm:"type:integer;not null;default:0" json:"suspended"`
+	SuspensionReason         *string               `gorm:"null" json:"suspensionReason"`
+	WalletsSharedWithUser    []WalletPermission    `gorm:"foreignKey:TargetUsername;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	PatronMembership         *UserPatronMembership `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
 }
 
 type UserWallet struct {

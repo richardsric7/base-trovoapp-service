@@ -140,6 +140,22 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserWallet: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.PatronPackage{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating PatronPackage: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.PatronTier{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating PatronTier: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.UserPatronMembership{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserPatronMembership: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.UserPatronSubscriptionLog{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserPatronSubscriptionLog: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.PendingAuth{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error migrating PendingAuth:", errMigrate)

@@ -30,7 +30,9 @@ type UserJSON struct {
 	Suspended              int                       `json:"suspended"`
 	HasSecurityQuestions   int                       `json:"hasSecurityQuestions"`
 	CuratedSwapList        []assets.CuratedSwapAsset `json:"curatedSwapList"`
-	DownlineStats          struct {
+	PatronMembership       *UserPatronMembership     `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
+
+	DownlineStats struct {
 		Level1 uint64 `json:"level1"`
 		Level2 uint64 `json:"level2"`
 		Level3 uint64 `json:"level3"`
