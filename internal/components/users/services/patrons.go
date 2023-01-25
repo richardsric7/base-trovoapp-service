@@ -18,8 +18,8 @@ func GetPatronTiers(gc *sharedconfig.GlobalConfig) (patronTiers []userModels.Pat
 	return
 }
 
-func GetPatronMembershipPrices(gc *sharedconfig.GlobalConfig) (memberships []userModels.PatronMembershipPrice) {
-	memberships = make([]userModels.PatronMembershipPrice, 0)
+func GetPatronMembershipGrades(gc *sharedconfig.GlobalConfig) (memberships []userModels.PatronMembershipGrade) {
+	memberships = make([]userModels.PatronMembershipGrade, 0)
 	gc.DB.Find(&memberships)
 	return
 }

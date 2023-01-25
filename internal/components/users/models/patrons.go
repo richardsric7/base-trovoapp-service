@@ -26,10 +26,11 @@ type UserPatronMembership struct {
 	ValidTill       time.Time     `gorm:"not null" json:"validTill"` //lifetime is represented by 'infinity'
 }
 
-type PatronMembershipPrice struct {
-	ID            uint64 `gorm:"primaryKey" json:"id"`
-	PatronPackage string `json:"patronPackage"`
-	PatronTierID  string `json:"patronTier"`
+type PatronMembershipGrade struct {
+	ID            uint64  `gorm:"primaryKey" json:"id"`
+	PatronPackage string  `json:"patronPackage"`
+	PatronTierID  string  `json:"patronTier"`
+	Price         float64 `json:"price"`
 }
 
 type UserPatronSubscriptionLog struct {
@@ -46,7 +47,7 @@ type UserPatronSubscriptionLog struct {
 }
 
 type PatronSubscriptionInput struct {
-	PatronMembershipPriceID uint64   `json:"patronMembershipPriceId"`
+	PatronMembershipGradeID uint64   `json:"patronMembershipGradeId"`
 	Transaction             string   `json:"transaction"`
 	TransactionSignature    string   `json:"transactionSignature"`
 	TransactionID           string   `json:"transactionId"`

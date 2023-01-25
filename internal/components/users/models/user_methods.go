@@ -1488,7 +1488,7 @@ func (pid PatronTierID) GetPatronTier(gc *sharedconfig.GlobalConfig) (patronTier
 	return
 }
 
-func (pid PatronMembershipPriceID) GetPatronMemberShipConfig(gc *sharedconfig.GlobalConfig) (membershipConfig PatronMembershipPrice, err error) {
+func (pid PatronMembershipGradeID) GetPatronMemberShipConfig(gc *sharedconfig.GlobalConfig) (membershipConfig PatronMembershipGrade, err error) {
 	e := gc.DB.Where("id = ?", uint64(pid)).First(&membershipConfig).Error
 	if e != nil {
 		if errors.Is(e, gorm.ErrRecordNotFound) {

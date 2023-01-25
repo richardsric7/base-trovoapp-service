@@ -207,7 +207,7 @@ type PatronPackageID string
 
 type PatronTierID string
 
-type PatronMembershipPriceID uint64
+type PatronMembershipGradeID uint64
 
 type Downline struct {
 	Username string  `json:"username"`

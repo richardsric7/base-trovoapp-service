@@ -3821,9 +3821,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			patronPakcages := userServices.GetPatronPackages(gc)
 			patronTiers := userServices.GetPatronTiers(gc)
 			patronLogs := userSigner.GetPatronSubscriptionLogs(gc)
-			memberships := userServices.GetPatronMembershipPrices(gc)
+			memberships := userServices.GetPatronMembershipGrades(gc)
 
-			c.JSON(http.StatusOK, gin.H{"membershipPrices": memberships, "patronPackages": patronPakcages, "patronTiers": patronTiers, "patronSubscriptionLogs": patronLogs})
+			c.JSON(http.StatusOK, gin.H{"membershipGrades": memberships, "patronPackages": patronPakcages, "patronTiers": patronTiers, "patronSubscriptionLogs": patronLogs})
 
 		})
 
@@ -3859,7 +3859,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			priceConfig, err := userModels.PatronMembershipPriceID(subInput.PatronMembershipPriceID).GetPatronMemberShipConfig(gc)
+			priceConfig, err := userModels.PatronMembershipGradeID(subInput.PatronMembershipGradeID).GetPatronMemberShipConfig(gc)
 			if err != nil {
 				var ex tErrors.GenericError
 				var ok bool
