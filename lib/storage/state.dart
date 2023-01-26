@@ -486,10 +486,11 @@ class DataProvider with ChangeNotifier {
   }) async {
     try {
       showLoader(context);
-      var uri = '/v1/crypto/deposit-history/$currency/$publicKey?limit=$limit';
+      var uri =
+          '/v1/crypto/deposit-history/$currency/$publicKey?limit=$limit${filterQuery}';
 
       Map responseData = await makeGetRequest(
-        uri: Uri.encodeFull(uri),
+        uri: uri,
         signer: activeWallet!.signer!,
         secretKey: secretKeys[0], // the primary wallet secret key
         publicKey: activeWallet!.signer!,
@@ -523,6 +524,18 @@ class DataProvider with ChangeNotifier {
   late List<WithdrawalTransactionModel> withdrawalHistoryData =
       <WithdrawalTransactionModel>[];
 
+  String filterWithdrawalAddress = "";
+  set setFilterWithdrawalAddress(value) {
+    filterWithdrawalAddress = value;
+    notifyListeners();
+  }
+
+  String filterWithdrawalStatus = "";
+  set setFilterWithdrawalStatus(value) {
+    filterWithdrawalStatus = value;
+    notifyListeners();
+  }
+
   Future<void> fetchWithdrawalHistory(
     context, {
     required String publicKey,
@@ -531,10 +544,10 @@ class DataProvider with ChangeNotifier {
     try {
       showLoader(context);
       var uri =
-          '/v1/crypto/withdrawal-history/$currency/$publicKey?limit=$limit';
+          '/v1/crypto/withdrawal-history/$currency/$publicKey?limit=$limit${filterQuery}';
 
       Map responseData = await makeGetRequest(
-        uri: Uri.encodeFull(uri),
+        uri: uri,
         signer: activeWallet!.signer!,
         secretKey: secretKeys[0], // the primary wallet secret key
         publicKey: activeWallet!.signer!,

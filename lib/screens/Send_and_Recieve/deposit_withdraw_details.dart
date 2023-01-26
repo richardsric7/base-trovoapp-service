@@ -625,6 +625,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 'Address:',
                 truncatePublicKey(withdrawalInfo.withdrawalAddress),
                 copy: true,
+                copyText: withdrawalInfo.withdrawalAddress,
               ),
             ],
           ),
@@ -770,7 +771,8 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         : '+ $am $assetCode';
   }
 
-  Widget keyValuePair(String key, String value, {bool copy = false}) {
+  Widget keyValuePair(String key, String value,
+      {bool copy = false, String copyText = ''}) {
     return Row(
       children: [
         Expanded(
@@ -808,7 +810,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                     onPressed: () => {
                       Clipboard.setData(
                         ClipboardData(
-                          text: value,
+                          text: copyText,
                         ),
                       ),
                       showSnackBar('', context),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -39,10 +40,58 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
   String historyMode = 'Deposit history';
   late List<DepositTransactionModel>? depositHistory;
   late List<WithdrawalTransactionModel>? withdrawalHistory;
+  var filterTypesMap = {
+    FilterType.DateRange: "Date range",
+    FilterType.AmountRange: "Amount range",
+    FilterType.WithdrawalAddress: "Withdrawal address",
+    FilterType.WithdrawalStatus: "Withdrawal status",
+  };
 
   ScrollController scrollController = new ScrollController();
+  FilterType filterType = FilterType.DateRange;
 
-  HistoryFilterType filterType = HistoryFilterType.TransactionDirection;
+  List<DropdownMenuItem<FilterType>> get filterTypeDropdownItems {
+    List<DropdownMenuItem<FilterType>> items = [];
+    filterTypesMap.forEach((key, value) {
+      if (historyMode == 'Deposit history') {
+        // filter out withdrawal related filters
+        if (key != FilterType.WithdrawalAddress &&
+            key != FilterType.WithdrawalStatus) {
+          items.add(
+            DropdownMenuItem(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      value,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+                value: key),
+          );
+        }
+      } else {
+        items.add(
+          DropdownMenuItem(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    value,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+              value: key),
+        );
+      }
+    });
+
+    return items;
+  }
 
   @override
   void initState() {
@@ -93,7 +142,73 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                 children: [
                   Container(
                     width: width / 1.7,
-                    child: getContent(filterType),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(10.0)),
+                          color: notifier.isDark
+                              ? darktilewhitecolor
+                              : notifier.getaddsubwalletgrey,
+                        ),
+                        child: TextButton(
+                          onPressed: () {
+                            wrappedAssetTransactionTypePopup(
+                              context,
+                              onWithdrawSelected: () {
+                                historyMode = 'Withdrawal history';
+                                filterType = FilterType.DateRange;
+                                resetFilters();
+                                appState.limit = 20;
+                                appState.fetchWithdrawalHistory(
+                                  context,
+                                  publicKey: wallet.publicKey!,
+                                  currency: asset.assetCode,
+                                  // onDone: () => adjustScrollPosition(),
+                                );
+                                setState(() {});
+                                Navigator.of(context).pop(); // dismiss dialog,
+                              },
+                              onDepositSelected: () {
+                                appState.limit = 20;
+                                historyMode = 'Deposit history';
+                                resetFilters();
+                                appState.fetchDepositHistory(
+                                  context,
+                                  publicKey: wallet.publicKey!,
+                                  currency: asset.assetCode,
+                                  // onDone: () => adjustScrollPosition(),
+                                );
+                                setState(() {});
+                                Navigator.of(context).pop(); // dismiss dialog,
+                              },
+                            );
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                historyMode,
+                                textAlign: TextAlign.start,
+                                style: TextStyle(
+                                    color: notifier.getbluewhitecolor,
+                                    fontSize:
+                                        appState.filterStartDate != null &&
+                                                appState.filterEndDate != null
+                                            ? 13
+                                            : 15,
+                                    fontFamily: fontsemibold),
+                              ),
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                   TextButton(
                     onPressed: () {
@@ -120,23 +235,40 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
             child: Column(
               children: [
                 if (showFilter) ...[
-                  // Container(
-                  //   width: width,
-                  //   child: Row(
-                  //     children: [
-                  //       SizedBox(
-                  //         width: width / 20,
-                  //       ),
-                  //       Expanded(
-                  //         flex: 2,
-                  //         child: getContent(filterType),
-                  //       ),
-                  //       SizedBox(
-                  //         width: width / 20,
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
+                  SizedBox(height: height / 50),
+                  Container(
+                    width: width,
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: width / 50,
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: dropdown(
+                            (newValue) async {
+                              setState(() {
+                                filterType = newValue as FilterType;
+                                showPopup(filterType);
+                              });
+                            },
+                            filterTypeDropdownItems,
+                            null,
+                            filterTypesMap[filterType],
+                            context,
+                            null,
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: getContent(filterType),
+                        ),
+                        SizedBox(
+                          width: width / 50,
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
                 SizedBox(
                   height: height / 50,
@@ -155,7 +287,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
         (historyMode == 'Withdrawal history' &&
             withdrawalHistory!.length > 0)) {
       return Container(
-        height: (showFilter ? height / 1.22 : height / 1.14),
+        height: (showFilter ? height / 1.24 : height / 1.14),
         child: LoadMore(
           isFinish: (historyMode == 'Deposit history' &&
                   depositHistory!.length == appState.totalRecords) ||
@@ -423,7 +555,6 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                         ),
                       ),
                       Row(
-                        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Text(
                             timeago.format(transaction.createdAt),
@@ -444,7 +575,6 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                           Text(
                             'Network: ${transaction.withdrawalNetwork}',
                             overflow: TextOverflow.visible,
-                            // textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w400,
@@ -513,7 +643,28 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
     }
   }
 
-  Widget getContent(HistoryFilterType type) {
+  Widget getContent(FilterType type) {
+    var text = '';
+    switch (type) {
+      case FilterType.AmountRange:
+        text = getAmountRangeValue();
+        break;
+      case FilterType.DateRange:
+        text = getDateRangeValue();
+        break;
+      case FilterType.WithdrawalStatus:
+        text = appState.filterQuery.contains('withdrawalStatus')
+            ? appState.filterWithdrawalStatus
+            : 'Choose status';
+        break;
+      case FilterType.WithdrawalAddress:
+        text = appState.filterQuery.contains('withdrawalAddress')
+            ? truncatePublicKey(appState.filterWithdrawalAddress)
+            : 'Choose status';
+        break;
+      default:
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),
       child: Container(
@@ -525,39 +676,13 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
         ),
         child: TextButton(
           onPressed: () {
-            wrappedAssettransactionTypePopup(
-              context,
-              onWithdrawSelected: () {
-                historyMode = 'Withdrawal history';
-                appState.limit = 20;
-                appState.fetchWithdrawalHistory(
-                  context,
-                  publicKey: wallet.publicKey!,
-                  currency: asset.assetCode,
-                  // onDone: () => adjustScrollPosition(),
-                );
-                setState(() {});
-                Navigator.of(context).pop(); // dismiss dialog,
-              },
-              onDepositSelected: () {
-                appState.limit = 20;
-                historyMode = 'Deposit history';
-                appState.fetchDepositHistory(
-                  context,
-                  publicKey: wallet.publicKey!,
-                  currency: asset.assetCode,
-                  // onDone: () => adjustScrollPosition(),
-                );
-                setState(() {});
-                Navigator.of(context).pop(); // dismiss dialog,
-              },
-            );
+            showPopup(type);
           },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                historyMode,
+                text,
                 textAlign: TextAlign.start,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -578,22 +703,129 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
     );
   }
 
+  void showPopup(FilterType filterType) async {
+    switch (filterType) {
+      case FilterType.WithdrawalAddress:
+        wrappedAssetsTextFieldPopup(context, rel: FilterType.WithdrawalAddress,
+            onDone: (value) async {
+          appState.setFilterUsername = value;
+          if (value != null && value.isNotEmpty) {
+            appState.limit = 20;
+            appState.setFilterWithdrawalAddress = value;
+            appState.setFilterQuery = "&withdrawalAddress=${value}";
+            await appState.fetchWithdrawalHistory(
+              context,
+              publicKey: wallet.publicKey!,
+              currency: asset.assetCode,
+              // onDone: () => adjustScrollPosition(),
+            );
+          }
+        });
+        break;
+      case FilterType.WithdrawalStatus:
+        wrappedAssetTransactionStatusPopup(
+          context,
+          onPendingSelected: () {
+            appState.limit = 20;
+            appState.setFilterWithdrawalStatus = 'PENDING';
+            appState.setFilterQuery = "&withdrawalStatus=PENDING";
+            appState.fetchWithdrawalHistory(
+              context,
+              publicKey: wallet.publicKey!,
+              currency: asset.assetCode,
+              // onDone: () => adjustScrollPosition(),
+            );
+            setState(() {});
+            Navigator.of(context).pop(); // dismiss dialog,
+          },
+          onCompletedSelected: () {
+            appState.limit = 20;
+            appState.setFilterWithdrawalStatus = 'COMPLETED';
+            appState.setFilterQuery = "&withdrawalStatus=COMPLETED";
+            appState.fetchWithdrawalHistory(
+              context,
+              publicKey: wallet.publicKey!,
+              currency: asset.assetCode,
+              // onDone: () => adjustScrollPosition(),
+            );
+            setState(() {});
+            Navigator.of(context).pop(); // dismiss dialog,
+          },
+        );
+        break;
+      case FilterType.AmountRange:
+        amountRangePopup(context, onDone: () async {
+          if (appState.filterMinAmount != null &&
+              appState.filterMaxAmount != null) {
+            appState.limit = 20;
+            appState.setFilterQuery =
+                "&amount=${appState.filterMinAmount}%7C${appState.filterMaxAmount}";
+            historyMode == 'Deposit history'
+                ? await appState.fetchDepositHistory(
+                    context,
+                    publicKey: wallet.publicKey!,
+                    currency: asset.assetCode!,
+                  )
+                : await appState.fetchWithdrawalHistory(
+                    context,
+                    publicKey: wallet.publicKey!,
+                    currency: asset.assetCode!,
+                  );
+          }
+        });
+        break;
+      case FilterType.DateRange:
+        customDateRangePopup(context, onDone: () async {
+          appState.limit = 20;
+          appState.setFilterQuery =
+              "&dateBetween=${DateFormat('yyyy-MM-dd').format(appState.filterStartDate!)}%7C${DateFormat('yyyy-MM-dd').format(appState.filterEndDate!)}";
+          historyMode == 'Deposit history'
+              ? await appState.fetchDepositHistory(
+                  context,
+                  publicKey: wallet.publicKey!,
+                  currency: asset.assetCode!,
+                )
+              : await appState.fetchWithdrawalHistory(
+                  context,
+                  publicKey: wallet.publicKey!,
+                  currency: asset.assetCode!,
+                );
+        });
+        break;
+      default:
+    }
+  }
+
+  getDateRangeValue() {
+    if (appState.filterStartDate != null && appState.filterEndDate != null) {
+      return "${DateFormat('dd/MM/yy').format(appState.filterStartDate!)} - ${DateFormat('dd/MM/yy').format(appState.filterEndDate!)} ";
+    }
+
+    return 'Enter range';
+  }
+
+  getAmountRangeValue() {
+    if (appState.filterMinAmount != null && appState.filterMaxAmount != null) {
+      return "${appState.filterMinAmount} - ${appState.filterMaxAmount} ";
+    }
+
+    return 'Enter range';
+  }
+
   adjustScrollPosition() {
     if (scrollController.hasClients)
       scrollController.jumpTo(scrollController.position.minScrollExtent);
   }
 
   void resetFilters() {
-    appState.filterAsset = "*|*";
+    filterType = FilterType.DateRange;
     appState.filterEndDate = null;
     appState.filterStartDate = null;
-    appState.filterFromPublicKey = null;
-    appState.filterToPublicKey = null;
-    appState.filterUsername = null;
+    appState.filterWithdrawalAddress = '';
+    appState.filterWithdrawalStatus = '';
     appState.filterQuery = "";
     appState.filterMaxAmount = null;
     appState.filterMinAmount = null;
-    appState.filterMemo = null;
   }
 
   @override
@@ -602,4 +834,12 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
     appState.viewData = {};
     resetFilters();
   }
+}
+
+enum FilterType {
+  WithdrawalStatus,
+  WithdrawalAddress,
+  DateRange,
+  AmountRange,
+  Reset, // just to reset the filter controls
 }
