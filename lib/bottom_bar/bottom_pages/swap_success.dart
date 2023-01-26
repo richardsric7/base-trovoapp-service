@@ -29,19 +29,26 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
   late UserInfo userInfo;
   var assetBalances;
   var nfts;
-  Wallet? activeWallet;
+  late Wallet wallet;
   var claimedAssets;
   var unclaimedAssets;
   int tabLength = 2;
   int touchedIndex = -1;
   String password = '';
-  var viewData;
   var sourceAmount;
   var swappedEstimate;
+  late Map transactionData = {};
+  late Map viewData = {};
 
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+    viewData = appState.viewData!;
+    transactionData = viewData['transactionData'];
   }
 
   @override
@@ -49,13 +56,11 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
-    activeWallet = appState.activeWallet;
-    viewData = appState.viewData![SwapSuccessViewPageConfig.key];
-    sourceAmount = double.parse(viewData['sourceAmount']).toStringAsFixed(4);
+
+    sourceAmount =
+        double.parse(transactionData['sourceAmount']).toStringAsFixed(4);
     swappedEstimate =
-        double.parse(viewData['swappedEstimate']).toStringAsFixed(4);
-    // print('viewData $viewData');
+        double.parse(transactionData['swappedEstimate']).toStringAsFixed(4);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -134,7 +139,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                               height: 20,
                             ),
                             Text(
-                              '${viewData['feeAmount']} ${viewData['destinationAssetCode'].toString().isEmpty ? 'XBN' : viewData['destinationAssetCode']} (${viewData['fee']}%)',
+                              '${transactionData['feeAmount']} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'XBN' : transactionData['destinationAssetCode']} (${transactionData['fee']}%)',
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: notifier.getbluewhitecolor,
@@ -176,9 +181,9 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                               child: GestureDetector(
                                 onTap: () => appState.goToWebView(
                                     bantuBlockchainExplorerBaseUrl +
-                                        viewData['transactionId']),
+                                        transactionData['transactionId']),
                                 child: Text(
-                                  viewData['transactionId'],
+                                  transactionData['transactionId'],
                                   style: TextStyle(
                                     decoration: TextDecoration.underline,
                                     color: notifier.getbluewhitecolor,
@@ -195,7 +200,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                                 onPressed: () => {
                                   Clipboard.setData(
                                     ClipboardData(
-                                      text: viewData['transactionId'],
+                                      text: transactionData['transactionId'],
                                     ),
                                   ),
                                   showSnackBar('Transaction ID', context),
@@ -245,7 +250,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${sourceAmount} ${viewData['sourceAssetCode'].toString().isEmpty ? 'XBN' : viewData['sourceAssetCode']}',
+              '${sourceAmount} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: notifier.getbluewhitecolor,
@@ -257,7 +262,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
               height: 5,
             ),
             Text(
-              '- ${calculateFiatValue(sourceAmount, viewData["sourceUsdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+              '- ${calculateFiatValue(sourceAmount, viewData["sourceUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
               style: TextStyle(
                 color: notifier.getbluewhitecolor,
                 fontSize: 12.sp,
@@ -284,7 +289,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
               height: 20,
             ),
             Text(
-              '${swappedEstimate} ${viewData['destinationAssetCode'].toString().isEmpty ? 'XBN' : viewData['destinationAssetCode']}',
+              '${swappedEstimate} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'XBN' : transactionData['destinationAssetCode']}',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: notifier.getbluewhitecolor,
@@ -297,7 +302,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
             ),
             if (viewData["destinationUsdPrice"] != null) ...[
               Text(
-                '+ ${calculateFiatValue(swappedEstimate, viewData["destinationUsdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                '+ ${calculateFiatValue(swappedEstimate, viewData["destinationUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                 style: TextStyle(
                   color: notifier.getbluewhitecolor,
                   fontSize: 12.sp,

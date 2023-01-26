@@ -14,6 +14,7 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:path_provider/path_provider.dart' as syspaths;
 import 'package:pdf/widgets.dart' as pw;
+import 'package:trovo_wallet/models/asset.dart';
 
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -104,7 +105,7 @@ getAssetIssuer(assetIssuer) {
 }
 
 formatNumber(double number) =>
-    NumberFormat("#,##0.0000", "en_US").format(number);
+    NumberFormat("#,##0.0000000", "en_US").format(number);
 
 formatHistoryNumber(double number, double trimNum) {
   // if number is greater than 1million return 1m or 1.2m
@@ -112,7 +113,14 @@ formatHistoryNumber(double number, double trimNum) {
     return NumberFormat.compact().format(number);
   }
 
-  return NumberFormat("#,##0", "en_US").format(number);
+  return formatNumber(number);
+}
+
+truncatePublicKey(String? publicKey) {
+  if (publicKey == null) return "Enter public key";
+  if (publicKey.length <= 7) return publicKey;
+  return truncate(publicKey, length: 7) +
+      publicKey.substring(publicKey.length - 7);
 }
 
 String truncate(String text, {length: 7, omission: '...'}) {
@@ -172,12 +180,12 @@ String getFiatRate(String usdPrice, String currency, DataProvider appState) {
 }
 
 String getTotalFiatBalanceOfAllAssetsInWallet(
-    String currency, DataProvider appState, dynamic assets) {
+    String currency, DataProvider appState, List<Asset> assets) {
   double balance = 0;
   if (assets.length > 0) {
     for (var asset in assets) {
-      balance += double.parse(calculateFiatValue(asset['amount'].toString(),
-              asset['usdPrice'].toString(), currency, appState)
+      balance += double.parse(calculateFiatValue(asset.amount.toString(),
+              asset.usdPrice.toString(), currency, appState)
           .replaceAll(',', ''));
     }
   }

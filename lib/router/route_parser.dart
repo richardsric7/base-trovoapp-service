@@ -111,16 +111,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return AddSharedAccessDetailsViewPageConfig;
       case SharedWalletInfoViewPath:
         return SharedWalletInfoViewPageConfig;
-      case SharedWalletDetailsViewPath:
-        return SharedWalletDetailsViewPageConfig;
-      case SharedWalletAssetDetailsViewPath:
-        return SharedWalletAssetDetailsViewPageConfig;
-      case SendAssetSharedWalletViewPath:
-        return SendAssetSharedWalletViewPageConfig;
-      case RecieveAssetSharedWalletViewPath:
-        return RecieveAssetSharedWalletViewPageConfig;
-      case ConfirmInitiatePaymentViewPath:
-        return ConfirmInitiatePaymentViewPageConfig;
       case ApprovalDetailsViewPath:
         return ApprovalDetailsViewPageConfig;
       case UpdateSharedAccessViewPath:
@@ -149,6 +139,18 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return TransactionStatusViewPageConfig;
       case DepositWithdrawHistoryViewPath:
         return DepositWithdrawHistoryViewPageConfig;
+      case DepositWithdrawDetailsViewPath:
+        return DepositWithdrawDetailsViewPageConfig;
+      case WelcomeSubscriptionsViewPath:
+        return WelcomeSubscriptionsViewPageConfig;
+      case SubscriptionPlansViewPath:
+        return SubscriptionPlansViewPageConfig;
+      case SubscriptionPlanBenefitsViewPath:
+        return SubscriptionPlanBenefitsViewPageConfig;
+      case SubscriptionPlanOptionsViewPath:
+        return SubscriptionPlanOptionsViewPageConfig;
+      case AuthorizeSubscriptionViewPath:
+        return AuthorizeSubscriptionViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -266,18 +268,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: AddSharedAccessDetailsViewPath);
       case Pages.SharedWalletInfoView:
         return const RouteInformation(location: SharedWalletInfoViewPath);
-      case Pages.SharedWalletDetailsView:
-        return const RouteInformation(location: SharedWalletDetailsViewPath);
-      case Pages.SharedWalletAssetDetailsView:
-        return const RouteInformation(
-            location: SharedWalletAssetDetailsViewPath);
-      case Pages.SendAssetSharedWalletView:
-        return const RouteInformation(location: SendAssetSharedWalletViewPath);
-      case Pages.RecieveAssetSharedWalletView:
-        return const RouteInformation(
-            location: RecieveAssetSharedWalletViewPath);
-      case Pages.ConfirmInitiatePaymentView:
-        return const RouteInformation(location: ConfirmInitiatePaymentViewPath);
       case Pages.ApprovalDetailsView:
         return const RouteInformation(location: ApprovalDetailsViewPath);
       case Pages.UpdateSharedAccessView:
@@ -307,6 +297,20 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: TransactionStatusViewPath);
       case Pages.DepositWithdrawHistoryView:
         return const RouteInformation(location: DepositWithdrawHistoryViewPath);
+      case Pages.DepositWithdrawDetailsView:
+        return const RouteInformation(location: DepositWithdrawDetailsViewPath);
+      case Pages.WelcomeSubscriptionsView:
+        return const RouteInformation(location: WelcomeSubscriptionsViewPath);
+      case Pages.SubscriptionPlansView:
+        return const RouteInformation(location: SubscriptionPlansViewPath);
+      case Pages.SubscriptionPlanBenefitsView:
+        return const RouteInformation(
+            location: SubscriptionPlanBenefitsViewPath);
+      case Pages.SubscriptionPlanOptionsView:
+        return const RouteInformation(
+            location: SubscriptionPlanOptionsViewPath);
+      case Pages.AuthorizeSubscriptionView:
+        return const RouteInformation(location: AuthorizeSubscriptionViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

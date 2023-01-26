@@ -8,6 +8,7 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +18,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -38,17 +38,28 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
   late ColorNotifier notifier;
   late DataProvider appState;
   late UserInfo userInfo;
-  late Map sendingWallet;
+  late Wallet wallet;
+  late Asset? asset;
   String password = '';
   final formKey = GlobalKey<FormState>();
   final Authenticator _authenticator = Authenticator();
-  late Account primaryWalletKeyPair;
   var viewData;
-  bool isSharedWallet = false;
+  var transactionData;
 
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+    asset = wallet.claimedAssets!.firstWhere(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
+    viewData = appState.viewData!;
+    transactionData = appState.viewData!['transactionData'];
   }
 
   @override
@@ -57,11 +68,6 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    viewData = appState.viewData![ConfirmTransactionViewPageConfig.key];
-    sendingWallet = viewData['walletInfo'];
-    isSharedWallet = viewData['isSharedWallet'];
-    print('=====view: $viewData');
-    print('=====sendingWallet: $sendingWallet');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -123,7 +129,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                             height: height / 50,
                           ),
                           Text(
-                            '${viewData['amount']} ${viewData['assetCode'].toString().isEmpty ? 'XBN' : viewData['assetCode']}',
+                            '${transactionData['amount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}',
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -136,7 +142,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                           Container(
                             width: width / 1.3,
                             child: Text(
-                              '- ${calculateFiatValue(viewData['amount'], viewData["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
+                              '- ${calculateFiatValue(transactionData['amount'], asset!.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 13,
@@ -175,10 +181,10 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
               SizedBox(
                 height: height / 50,
               ),
-              if (viewData['memo'].toString().isNotEmpty) ...[
+              if (transactionData['memo'].toString().isNotEmpty) ...[
                 showMemo(),
               ],
-              if (isSharedWallet) ...[
+              if (wallet.isSharedWallet) ...[
                 SizedBox(
                   height: height / 50,
                 ),
@@ -214,9 +220,10 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                             SizedBox(
                               height: height / 50,
                             ),
-                            myKeyValueRow("Fee: ", viewData['fee'] + '%'),
+                            myKeyValueRow(
+                                "Fee: ", transactionData['fee'] + '%'),
                             myKeyValueRow("Amount (Calculated): ",
-                                "${viewData['feeAmount']} ${viewData['assetCode'].toString().isEmpty ? 'XBN' : viewData['assetCode']}"),
+                                "${transactionData['feeAmount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}"),
                             SizedBox(
                               height: height / 50,
                             ),
@@ -300,7 +307,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
   }
 
   Widget showAddressInfo() {
-    if (viewData['destination'].toString().length == 56) {
+    if (transactionData['destination'].toString().length == 56) {
       // destination user is not known so we display only
       // destination public key
       return Padding(
@@ -320,7 +327,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 Container(
                   width: width / 1.5,
                   child: Text(
-                    viewData['destination'].toString(),
+                    transactionData['destination'].toString(),
                     style: TextStyle(
                       fontWeight: FontWeight.w500,
                       color: notifier.getbluewhitecolor,
@@ -353,7 +360,9 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
               children: [
                 Padding(
                   padding: EdgeInsets.fromLTRB(20, 11, 8, 10),
-                  child: viewData['destinationThumbnail'].toString().isEmpty
+                  child: transactionData['destinationThumbnail']
+                          .toString()
+                          .isEmpty
                       ? CircleAvatar(
                           radius: 30,
                           backgroundColor: notifier.getaddsubwalletgrey,
@@ -366,7 +375,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                               ? darktilewhitecolor
                               : notifier.getaddsubwalletgrey,
                           foregroundImage: NetworkImage(
-                            viewData['destinationThumbnail'].toString(),
+                            transactionData['destinationThumbnail'].toString(),
                           ),
                         ),
                 ),
@@ -379,7 +388,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        viewData['destination'].toString(),
+                        transactionData['destination'].toString(),
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: notifier.getbluewhitecolor,
@@ -391,7 +400,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                         height: 5,
                       ),
                       Text(
-                        '${viewData['destinationFirstName']} ${viewData['destinationLastName']}',
+                        '${transactionData['destinationFirstName']} ${transactionData['destinationLastName']}',
                         style: TextStyle(
                           color: notifier.getbluewhitecolor,
                           fontSize: 12.sp,
@@ -444,7 +453,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                   child: Container(
                     width: width / 1.3,
                     child: Text(
-                      viewData['memo'],
+                      transactionData['memo'],
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
@@ -506,72 +515,59 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     try {
       showLoader(context);
 
-      if (isSharedWallet) {
-        viewData['commit'] = 1;
+      if (wallet.isSharedWallet) {
+        transactionData['commit'] = 1;
       } else {
         // sign transaction
         var signature = TrovoWalletSDK().signBase64Txn(
           appState.secretKeys[0], // the primary wallet secret key,
-          viewData['transaction'],
-          viewData['networkPassPhrase'],
+          transactionData['transaction'],
+          transactionData['networkPassPhrase'],
         );
-        viewData['transactionSignature'] = signature;
+        transactionData['transactionSignature'] = signature;
       }
 
-      String requestBody = jsonEncode(viewData);
+      String requestBody = jsonEncode(transactionData);
 
       // print(requestBody);
 
       Map responseData = await makePostRequest(
-        uri: isSharedWallet ? '/v1/shared-access/payment' : '/v1/users/payment',
-        body: requestBody,
-        signer: appState.activeWallet!.signer!,
-        secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: sendingWallet['publicKey']!,
-      );
+          uri: wallet.isSharedWallet
+              ? '/v1/shared-access/payment'
+              : '/v1/users/payment',
+          body: requestBody,
+          signer: appState.primaryWallet.signer!,
+          secretKey: appState.secretKeys[0], // the primary wallet secret key
+          publicKey: wallet.publicKey!);
+
+      print('responseData ========> $responseData');
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo();
-        if (isSharedWallet) {
-          appState.viewData![SuccessViewPageConfig.key] = {
-            'title': 'Payment request submitted',
-            'message':
-                'You have successfully requested payment of [${viewData['amount']} ${viewData['assetCode'].toString().isEmpty ? 'XBN' : viewData['assetCode']}] from [${sendingWallet['alias']}] to [${viewData['destination']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
-            'useOnDone': true,
-            'onDone': () {
-              // if we got here through the wallets tab on dashboard
-              if (viewData['rel'] == 'walletsView') {
-                appState.currentAction = PageAction(
-                  state: PageState.addAll,
-                  pages: [
-                    BottomHomePageConfig,
-                    SharedWalletDetailsViewPageConfig
-                  ],
-                );
-              } else if (viewData['rel'] == 'dashboard') {
-                appState.currentAction = PageAction(
-                  state: PageState.addAll,
-                  pages: [BottomHomePageConfig],
-                );
-              } else {
-                // if we got here through the shared access page
-                appState.currentAction =
-                    PageAction(state: PageState.addAll, pages: [
-                  BottomHomePageConfig,
-                  SharedAccessViewPageConfig,
-                  SharedWalletInfoViewPageConfig,
-                  SharedWalletDetailsViewPageConfig
-                ]);
-              }
-            },
+        if (wallet.isSharedWallet) {
+          appState.viewData = {
+            SuccessViewPageConfig.key: {
+              'title': 'Payment request submitted',
+              'message':
+                  'You have successfully requested payment of [${transactionData['amount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}] from [${wallet.alias}] to [${transactionData['destination']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+              'useOnDone': true,
+              'onDone': () {
+                appState.currentAction = appState.returnView ??
+                    PageAction(
+                      state: PageState.addAll,
+                      pages: [BottomHomePageConfig],
+                    );
+              },
+            }
           };
           appState.currentAction =
               PageAction(state: PageState.replace, page: SuccessViewPageConfig);
         } else {
-          appState.viewData![TransactionSuccessViewPageConfig.key] =
-              responseData['data'];
-          appState.viewData![TransactionSuccessViewPageConfig.key]
-              ['sendingWallet'] = sendingWallet;
+          appState.viewData = {
+            'transactionData': responseData['data'],
+            'walletPublicKey': wallet.publicKey,
+          };
+
           appState.currentAction = PageAction(
             state: PageState.replaceAll,
             page: TransactionSuccessViewPageConfig,
@@ -580,7 +576,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
         hideLoader(context);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: LanguageEn.error, message: responseData['data']['error']);
         hideLoader(context);
       }
     } catch (e) {

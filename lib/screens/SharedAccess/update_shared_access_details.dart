@@ -9,7 +9,6 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_passw
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/permission.dart';
-import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
@@ -37,17 +36,19 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late UserInfo userInfo;
-  Wallet? activeWallet;
+  late Wallet wallet;
   String password = '';
   final formKey = GlobalKey<FormState>();
   final Authenticator _authenticator = Authenticator();
-  late Account primaryWalletKeyPair;
   var viewData;
 
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    wallet =
+        appState.userInfo!.getWallet(appState.viewData!['walletPublicKey']);
+    viewData = appState.viewData;
   }
 
   @override
@@ -55,9 +56,6 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
-    activeWallet = appState.activeWallet;
-    viewData = appState.viewData![UpdateSharedAccessDetailsViewPageConfig.key];
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -140,7 +138,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                                             alignment: WrapAlignment.center,
                                             children: [
                                               Text(
-                                                viewData['walletAlias'],
+                                                wallet.alias!,
                                                 style: TextStyle(
                                                     fontSize: 15,
                                                     color: notifier
@@ -652,7 +650,6 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
       var postData = {
         "numberOfApprovalsNeeded": viewData['noOfApprovalsNeeded'],
         "revokedPermissions": revokedPermissions,
-        // "modifiedPermissions": modifiedPermissions,
         "addedPermissions": addedPermissions,
       };
 
@@ -663,9 +660,9 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
       Map responseData = await makePutRequest(
         uri: '/v1/shared-access/users/account',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: viewData['walletPublicKey'],
+        publicKey: wallet.publicKey!,
       );
       print(responseData);
 
@@ -723,9 +720,9 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
       Map responseData = await makePutRequest(
         uri: '/v1/shared-access/users/account',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: viewData['walletPublicKey'],
+        publicKey: wallet.publicKey!,
       );
 
       if (responseData['statusCode'] == 200) {
@@ -733,7 +730,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Request successfull submitted',
           'message':
-              'Your request to modify shared access on wallet (${viewData['walletAlias']}) has been successfully submitted! This transaction will be completed when it gets the required number of approvals.',
+              'Your request to modify shared access on wallet (${wallet.alias}) has been successfully submitted! This transaction will be completed when it gets the required number of approvals.',
           'useOnDone': true,
           'onDone': () {
             appState.currentAction =

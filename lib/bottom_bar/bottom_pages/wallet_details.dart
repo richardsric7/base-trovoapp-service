@@ -8,7 +8,7 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/user.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
@@ -31,16 +31,11 @@ class _WalletDetailsState extends State<WalletDetails>
   late ColorNotifier notifier;
   late TabController _tabController;
   late DataProvider appState;
-  late UserInfo userInfo;
-  var assetBalances;
-  var nfts;
-  Wallet? activeWallet;
-  List<Wallet>? wallets;
-  var claimedAssets;
-  var unclaimedAssets;
+  late Wallet wallet;
   int tabLength = 1;
   int activeTabIndex = 0;
   late bool localHideBalance;
+  String rel = '';
 
   @override
   void initState() {
@@ -48,14 +43,17 @@ class _WalletDetailsState extends State<WalletDetails>
     _tabController = TabController(length: tabLength, vsync: this);
     appState = Provider.of<DataProvider>(context, listen: false);
     localHideBalance = appState.hideBalances;
+
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+
+    rel = appState.viewData!['rel'] != null ? appState.viewData!['rel'] : '';
   }
 
   void tabListener() {
-    print('adding event listeners...');
-    print("${_tabController.index}");
     // Tab Changed swiping to a new tab
     activeTabIndex = _tabController.index;
-    print('index changed.');
     setState(() {});
   }
 
@@ -65,18 +63,8 @@ class _WalletDetailsState extends State<WalletDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState.userInfo!;
-    assetBalances = appState.assetBalances;
-    activeWallet = appState.activeWallet;
-    nfts = appState.nfts;
-    wallets = userInfo.wallets!;
 
-    claimedAssets = assetBalances[activeWallet!.publicKey]['claimed'];
-    unclaimedAssets = assetBalances[activeWallet!.publicKey]['unclaimed'];
-    // in order to make assets tab length dynamic we have to check
-    // for when we have pending asset and then change the tablength
-    // to 3 or back to 2 when we do not have pending assets.
-    if (unclaimedAssets != null && unclaimedAssets.length > 0) {
+    if (wallet.unClaimedAssets != null && wallet.unClaimedAssets!.length > 0) {
       tabLength = 2;
     } else {
       tabLength = 1;
@@ -133,11 +121,11 @@ class _WalletDetailsState extends State<WalletDetails>
                   height: 20,
                   text: LanguageEn.assets,
                 ),
-                if (unclaimedAssets != null && tabLength == 2) ...[
+                if (wallet.unClaimedAssets != null && tabLength == 2) ...[
                   Tab(
                     height: 20,
                     text:
-                        '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets.length})',
+                        '${LanguageEn.pending} (${wallet.unClaimedAssets == null ? 0 : wallet.unClaimedAssets!.length})',
                   ),
                 ],
                 // Tab(
@@ -166,12 +154,12 @@ class _WalletDetailsState extends State<WalletDetails>
                                 WalletSlide(
                                   backColor: notifier.getbluecolor,
                                   foreColor: wihitecolor,
-                                  alias: activeWallet!.alias!.capitalizeFirst!,
+                                  alias: wallet.alias!.capitalizeFirst!,
                                   totalBalance:
-                                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, claimedAssets)} ${appState.defaultCurrency}',
+                                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
                                   fiatBalance: appState.defaultCurrency == 'USD'
                                       ? null
-                                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, claimedAssets)} USD',
+                                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallet.claimedAssets!)} USD',
                                   initialHiddenState: appState.hideBalances,
                                   onHiddenStateChanged: (state) => {
                                     setState(
@@ -184,23 +172,33 @@ class _WalletDetailsState extends State<WalletDetails>
                                 SizedBox(
                                   height: height / 30,
                                 ),
-                                if (claimedAssets.length > 0) ...[
-                                  for (var asset in claimedAssets) ...[
+                                if (wallet.claimedAssets!.length > 0) ...[
+                                  for (var asset in wallet.claimedAssets!) ...[
                                     GestureDetector(
                                         onTap: () {
-                                          // since the original asset object
-                                          // is immutable I create a new assetObj and
-                                          // copy all the data into it so that
-                                          // I'll be able to change the data
-                                          appState.viewData![
-                                              AssetDetailsViewPageConfig
-                                                  .key] = {
-                                            'assetCode': asset['assetCode'],
-                                            'assetIssuer': asset['assetIssuer'],
-                                            'amount': asset['amount'],
-                                            'usdPrice': asset['usdPrice'],
-                                            'qrCode': asset['qrCode'],
-                                            'imageUrl': asset['imageUrl'],
+                                          appState.returnView = PageAction(
+                                            state: PageState.addAll,
+                                            pages: [
+                                              BottomHomePageConfig,
+                                              WalletDetailsViewPageConfig
+                                            ],
+                                          );
+
+                                          if (rel == 'sharedWalletView') {
+                                            appState.returnView = PageAction(
+                                                state: PageState.addAll,
+                                                pages: [
+                                                  BottomHomePageConfig,
+                                                  SharedAccessViewPageConfig,
+                                                  SharedWalletInfoViewPageConfig,
+                                                  WalletDetailsViewPageConfig
+                                                ]);
+                                          }
+
+                                          appState.viewData = {
+                                            'assetCode': asset.assetCode,
+                                            'assetIssuer': asset.assetIssuer,
+                                            'walletPublicKey': wallet.publicKey,
                                           };
                                           appState.currentAction = PageAction(
                                             state: PageState.addPage,
@@ -256,29 +254,41 @@ class _WalletDetailsState extends State<WalletDetails>
                             child: SingleChildScrollView(
                               child: Column(
                                 children: [
-                                  if (unclaimedAssets != null &&
-                                      unclaimedAssets.length > 0) ...[
-                                    for (var asset in unclaimedAssets) ...[
+                                  if (wallet.unClaimedAssets != null &&
+                                      wallet.unClaimedAssets!.length > 0) ...[
+                                    for (var asset
+                                        in wallet.unClaimedAssets!) ...[
                                       GestureDetector(
                                         onTap: () {
                                           setState(() {
                                             activeTabIndex =
                                                 _tabController.index;
                                           });
-                                          // since the original asset object
-                                          // is immutable I create a new assetObj and
-                                          // copy all the data into it so that
-                                          // I'll be able to change the data
-                                          appState.viewData![
-                                              PendingAssetDetailsViewPageConfig
-                                                  .key] = {
-                                            'assetCode': asset['assetCode'],
-                                            'assetIssuer': asset['assetIssuer'],
-                                            'amount': asset['amount'],
-                                            'qrCode': asset['qrCode'],
-                                            'imageUrl': asset['imageUrl'],
+
+                                          appState.returnView = PageAction(
+                                            state: PageState.addAll,
+                                            pages: [
+                                              BottomHomePageConfig,
+                                              WalletDetailsViewPageConfig
+                                            ],
+                                          );
+
+                                          if (rel == 'sharedWalletView') {
+                                            appState.returnView = PageAction(
+                                                state: PageState.addAll,
+                                                pages: [
+                                                  BottomHomePageConfig,
+                                                  SharedAccessViewPageConfig,
+                                                  SharedWalletInfoViewPageConfig,
+                                                  WalletDetailsViewPageConfig
+                                                ]);
+                                          }
+
+                                          appState.viewData = {
+                                            'assetCode': asset.assetCode,
+                                            'assetIssuer': asset.assetIssuer,
+                                            'walletPublicKey': wallet.publicKey,
                                           };
-                                          print(appState.viewData);
                                           appState.currentAction = PageAction(
                                             state: PageState.addPage,
                                             page:
@@ -489,7 +499,7 @@ class _WalletDetailsState extends State<WalletDetails>
     );
   }
 
-  Widget tiles(asset) {
+  Widget tiles(Asset asset) {
     return Card(
       shadowColor: Colors.black,
       color: notifier.gettilewihitecolor,
@@ -504,7 +514,7 @@ class _WalletDetailsState extends State<WalletDetails>
             title: Row(
               children: [
                 Image.network(
-                  asset["imageUrl"],
+                  asset.imageUrl!,
                   height: 35,
                   width: 35,
                   errorBuilder: (context, error, stackTrace) {
@@ -520,9 +530,9 @@ class _WalletDetailsState extends State<WalletDetails>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      asset["assetCode"].toString().isEmpty
+                      asset.assetCode.toString().isEmpty
                           ? 'XBN'
-                          : asset["assetCode"],
+                          : asset.assetCode!,
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -532,7 +542,7 @@ class _WalletDetailsState extends State<WalletDetails>
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                       child: Text(
-                        "${getFiatRate(asset["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
+                        "${getFiatRate(asset.usdPrice!.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}",
                         style: TextStyle(
                           fontSize: 9,
                           fontFamily: fontbody,
@@ -549,7 +559,7 @@ class _WalletDetailsState extends State<WalletDetails>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  getBalance(formatNumber(double.parse(asset["amount"]))),
+                  getBalance(formatNumber(asset.amount!)),
                   style: TextStyle(
                     fontSize: 12,
                     fontFamily: fontsemibold,
@@ -560,7 +570,7 @@ class _WalletDetailsState extends State<WalletDetails>
                   padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                   child: Text(
                     getBalance(
-                        '${calculateFiatValue(asset["amount"], asset["usdPrice"], appState.defaultCurrency, appState)} ${appState.defaultCurrency}'),
+                        '${calculateFiatValue(asset.amount.toString(), asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}'),
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,

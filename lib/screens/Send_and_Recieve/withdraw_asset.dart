@@ -9,6 +9,9 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_text
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/curated_asset.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -35,14 +38,14 @@ class _WithdrawAsset extends State<WithdrawAsset>
   String amount = '';
   bool amountError = false;
   String? memo;
-  var viewData;
   TextEditingController toController = TextEditingController();
   TextEditingController sendingWalletController = TextEditingController();
   final amountController = TextEditingController();
-  bool isSharedWallet = false;
   dynamic selectedNetwork = '';
   late Future<Map> fetchNetworksFuture;
   int index = 0;
+  late Wallet wallet;
+  late Asset? asset;
 
   List<dynamic> networks = [];
   double serviceFee = 0;
@@ -64,7 +67,17 @@ class _WithdrawAsset extends State<WithdrawAsset>
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    viewData = appState.viewData![WithdrawAssetViewPageConfig.key];
+
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+
+    asset = wallet.claimedAssets!.firstWhere(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
+
     fetchNetworksFuture = fetchNetworks();
   }
 
@@ -75,8 +88,6 @@ class _WithdrawAsset extends State<WithdrawAsset>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
 
-    viewData = appState.viewData![WithdrawAssetViewPageConfig.key];
-    isSharedWallet = viewData['walletInfo']['sharedAccessEnabled'] == 1;
     if (selectedNetwork.toString().isNotEmpty) {
       index = int.parse(selectedNetwork.split('|')[1]);
     }
@@ -110,7 +121,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${LanguageEn.withdraw} ${getAssetCode(viewData['assetCode'])}',
+                      '${LanguageEn.withdraw} ${getAssetCode(asset!.assetCode)}',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -235,8 +246,8 @@ class _WithdrawAsset extends State<WithdrawAsset>
         Flexible(
           child: Text(
             double.tryParse(amount) != null
-                ? "≈ ${formatNumber(double.parse(amount))} ${getAssetCode(viewData['assetCode'])}"
-                : "≈ 0.0000 ${getAssetCode(viewData['assetCode'])}",
+                ? "≈ ${formatNumber(double.parse(amount))} ${getAssetCode(asset!.assetCode)}"
+                : "≈ 0.0000 ${getAssetCode(asset!.assetCode)}",
             textScaleFactor: 1.0,
             style: TextStyle(
                 color: notifier.getdarkgrey,
@@ -249,7 +260,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
           visible: true,
           replacement: Container(),
           child: Text(
-            "${formatNumber(double.parse(viewData['amount']))} ${getAssetCode(viewData['assetCode'])}",
+            "${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}",
             textScaleFactor: 1.0,
             textAlign: TextAlign.right,
             style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
@@ -361,17 +372,17 @@ class _WithdrawAsset extends State<WithdrawAsset>
                             child: Column(
                               children: [
                                 myKeyValueRow('Network fee',
-                                    '${networks[index]['withdrawFee']} ${viewData['assetCode']}'),
+                                    '${networks[index]['withdrawFee']} ${asset!.assetCode}'),
                                 SizedBox(
                                   height: height / 90,
                                 ),
                                 myKeyValueRow('Min',
-                                    '${networks[index]['withdrawMin']} ${viewData['assetCode']}'),
+                                    '${networks[index]['withdrawMin']} ${asset!.assetCode}'),
                                 SizedBox(
                                   height: height / 90,
                                 ),
                                 myKeyValueRow('Max',
-                                    '${networks[index]['withdrawMax']} ${viewData['assetCode']}'),
+                                    '${networks[index]['withdrawMax']} ${asset!.assetCode}'),
                                 SizedBox(
                                   height: height / 90,
                                 ),
@@ -464,10 +475,10 @@ class _WithdrawAsset extends State<WithdrawAsset>
   Future<Map> fetchNetworks() async {
     try {
       Map responseData = await makeGetRequest(
-        uri: '/v1/crypto/withdrawal-networks/${viewData['assetCode']}',
+        uri: '/v1/crypto/withdrawal-networks/${asset!.assetCode}',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: viewData['walletInfo']['publicKey'],
+        publicKey: wallet.publicKey!,
       );
 
       // print(responseData['data']);
@@ -531,7 +542,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
       return 'Value greater than max withdrawable';
     }
 
-    if (double.tryParse(value)! > (double.parse(viewData['amount']))) {
+    if (double.tryParse(value)! > (asset!.amount!)) {
       setState(() {
         amountError = true;
       });
@@ -560,7 +571,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
       // make initial request to the server using the
       // following credentials
       Map map = {
-        "currency": viewData['assetCode'].toString(),
+        "currency": asset!.assetCode.toString(),
         "amountSubmitted": double.parse(amount),
         "withdrawalAddress": to,
         "withdrawalNetwork": selectedNetwork.toString().split('|')[0],
@@ -572,25 +583,26 @@ class _WithdrawAsset extends State<WithdrawAsset>
       // print('===============> map: $map');
 
       Map responseData = await makePostRequest(
-        uri: isSharedWallet
+        uri: wallet.isSharedWallet
             ? '/v1/shared-access/crypto/withdrawals'
             : '/v1/crypto/withdrawals',
         body: requestBody,
         signer: appState.activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: viewData['walletInfo']['publicKey'],
+        publicKey: wallet.publicKey!,
       );
 
       hideLoader(context);
-      // print('responseData: $responseData');
+      print('responseData: $responseData');
 
       if (responseData['statusCode'] == 202) {
-        appState.viewData![ConfirmWithdrawViewPageConfig.key] =
-            appState.viewData![WithdrawAssetViewPageConfig.key];
-        appState.viewData![ConfirmWithdrawViewPageConfig.key]['data'] =
-            responseData['data'];
-        appState.viewData![ConfirmWithdrawViewPageConfig.key]['data']
-            ['withdrawalNetworkName'] = networks[index]['name'];
+        appState.viewData = {
+          'transactionData': responseData['data'],
+          'withdrawalNetworkName': networks[index]['name'],
+          'walletPublicKey': wallet.publicKey,
+          'assetCode': asset!.assetCode,
+          'assetIssuer': asset!.assetIssuer,
+        };
 
         appState.currentAction = PageAction(
           state: PageState.addPage,
@@ -603,11 +615,5 @@ class _WithdrawAsset extends State<WithdrawAsset>
     } catch (e) {
       popup(context, title: LanguageEn.error, message: e.toString());
     }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    viewData?['deepLinkInfo'] = null;
   }
 }

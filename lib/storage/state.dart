@@ -1,9 +1,11 @@
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:trovo_wallet/models/deposit_transaction_model.dart';
 import 'package:trovo_wallet/models/transaction.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/models/wallets_list_view_data.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
+import 'package:trovo_wallet/models/withdrawal_transaction_model.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/store.dart';
@@ -24,6 +26,8 @@ class DataProvider with ChangeNotifier {
   String timeout = '5'; // 5 minutes
   String? password;
   String appVersion = '';
+  // keep track of the view you'd like to return a user to after certain operations
+  PageAction? returnView;
   var assetBalances;
   var nfts;
   Wallet get primaryWallet =>
@@ -73,47 +77,6 @@ class DataProvider with ChangeNotifier {
       }
     }
     return _transactionableWallets;
-  }
-
-  Map _allWallets = {}; // both shared and non-shared
-  Map get allWallets {
-    var wallets = userInfo!.wallets;
-
-    for (var i = 0; i < wallets!.length; i++) {
-      if (wallets[i].walletThreshold == 2 &&
-          wallets[i]
-              .permissions!
-              .where((perm) =>
-                  perm.permission == 'INITIATOR' &&
-                  perm.targetUsername == userInfo!.username)
-              .isEmpty) {
-        continue;
-      }
-      _allWallets[wallets[i].publicKey!] = {
-        'walletType': wallets[i].walletType,
-        'publicKey': wallets[i].publicKey,
-        'alias': wallets[i].alias,
-        'threshold': wallets[i].walletThreshold,
-        'sharedAccessEnabled':
-            wallets[i].primaryWallet == 1 ? 0 : wallets[i].sharedAccessEnabled,
-        'claimedAssets': assetBalances[wallets[i].publicKey!]['claimed'],
-      };
-    }
-
-    for (var i = 0; i < sharedWallets.length; i++) {
-      _allWallets[sharedWallets[i]['walletPublicKey']] = {
-        // since the wallet type is unknown give it a number that can't make transactions
-        'walletType': sharedWallets[i]['walletSettings']?['walletType'] ?? 2,
-        'publicKey': sharedWallets[i]['walletPublicKey'],
-        'alias': '${sharedWallets[i]['walletAlias']}',
-        'permission': sharedWallets[i]['permission'],
-        'threshold':
-            sharedWallets[i]['walletSettings']?['walletThreshold'] ?? 0,
-        'sharedAccessEnabled': 1,
-        'claimedAssets': sharedWallets[i]['assetBalances']['claimed'],
-      };
-    }
-    return _allWallets;
   }
 
   bool dialogOpen = false;
@@ -513,6 +476,110 @@ class DataProvider with ChangeNotifier {
     approvals = fetchApprovals(limit: limit.toString(), query: filterQuery);
   }
 
+  late List<DepositTransactionModel> depositHistoryData =
+      <DepositTransactionModel>[];
+
+  Future<void> fetchDepositHistory(
+    context, {
+    required String publicKey,
+    required String? currency,
+  }) async {
+    try {
+      showLoader(context);
+      var uri =
+          '/v1/crypto/deposit-history/$currency/$publicKey?limit=$limit${filterQuery}';
+
+      Map responseData = await makeGetRequest(
+        uri: uri,
+        signer: activeWallet!.signer!,
+        secretKey: secretKeys[0], // the primary wallet secret key
+        publicKey: activeWallet!.signer!,
+      );
+
+      hideLoader(context);
+
+      if (responseData['statusCode'] == 200) {
+        print('================> ${responseData['data']}');
+        totalRecords = responseData['data']['totalRecords'];
+        currentPage = responseData['data']['currentPage'];
+        var list = <DepositTransactionModel>[];
+        for (var i = 0; i < responseData['data']['records'].length; i++) {
+          list.add(
+            DepositTransactionModel.deserializeJson(
+              responseData['data']['records'][i],
+            ),
+          );
+        }
+        depositHistoryData = list;
+        notifyListeners();
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      hideLoader(context);
+      return Future.error('Error! ${e}');
+    }
+  }
+
+  late List<WithdrawalTransactionModel> withdrawalHistoryData =
+      <WithdrawalTransactionModel>[];
+
+  String filterWithdrawalAddress = "";
+  set setFilterWithdrawalAddress(value) {
+    filterWithdrawalAddress = value;
+    notifyListeners();
+  }
+
+  String filterWithdrawalStatus = "";
+  set setFilterWithdrawalStatus(value) {
+    filterWithdrawalStatus = value;
+    notifyListeners();
+  }
+
+  Future<void> fetchWithdrawalHistory(
+    context, {
+    required String publicKey,
+    required String? currency,
+  }) async {
+    try {
+      showLoader(context);
+      var uri =
+          '/v1/crypto/withdrawal-history/$currency/$publicKey?limit=$limit${filterQuery}';
+
+      Map responseData = await makeGetRequest(
+        uri: uri,
+        signer: activeWallet!.signer!,
+        secretKey: secretKeys[0], // the primary wallet secret key
+        publicKey: activeWallet!.signer!,
+      );
+
+      hideLoader(context);
+
+      if (responseData['statusCode'] == 200) {
+        print('================> ${responseData['data']}');
+        totalRecords = responseData['data']['totalRecords'];
+        currentPage = responseData['data']['currentPage'];
+        var list = <WithdrawalTransactionModel>[];
+        for (var i = 0; i < responseData['data']['records'].length; i++) {
+          list.add(
+            WithdrawalTransactionModel.deserializeJson(
+              responseData['data']['records'][i],
+            ),
+          );
+        }
+        withdrawalHistoryData = list;
+        print(
+            '================> Deserialization done: ${withdrawalHistoryData.length} ${list.length}');
+        notifyListeners();
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      hideLoader(context);
+      return Future.error('Error! ${e}');
+    }
+  }
+
   // view data is where all the data that a particular view needs
   // to do its work is. So when you want to pass any data from one view to
   // another, assign it to viewData and then get it back when you get
@@ -587,7 +654,10 @@ class DataProvider with ChangeNotifier {
             initialDynamicLink.queryParameters['assetIssuer'],
             onDone: (walletPublicKey, isSharedWallet) {
           var deeplinkInfo = {
-            "assetCode": initialDynamicLink.queryParameters['assetCode'],
+            "assetCode":
+                initialDynamicLink.queryParameters['assetCode'] == 'XBN'
+                    ? ''
+                    : initialDynamicLink.queryParameters['assetCode'],
             "assetIssuer": initialDynamicLink.queryParameters['assetIssuer'],
             "source": "qr2",
             "receiver":

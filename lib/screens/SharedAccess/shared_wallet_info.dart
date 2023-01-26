@@ -7,7 +7,7 @@ import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/permission.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -25,8 +25,7 @@ class SharedWalletInfo extends StatefulWidget {
 class _SharedWalletInfoState extends State<SharedWalletInfo> {
   late ColorNotifier notifier;
   late DataProvider appState;
-  var viewData;
-  bool isInitiator = false;
+  late Wallet wallet;
   late Future<Map> responseData;
 
   getdarkmodepreviousstate() async {
@@ -44,17 +43,13 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
-    viewData = appState.viewData![SharedWalletInfoViewPageConfig.key];
-    print(viewData);
-
-    for (var i = 0; i < viewData['permissions'].length; i++) {
-      if (viewData['permissions'][i] == 'INITIATOR') isInitiator = true;
-    }
+    wallet =
+        appState.userInfo!.getWallet(appState.viewData!['walletPublicKey']);
 
     responseData = fetchWalletBalance(
         signer: appState.activeWallet!.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: viewData['walletPublicKey']);
+        publicKey: wallet.publicKey!);
   }
 
   @override
@@ -81,7 +76,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
               height: height / 20,
             ),
             Text(
-              viewData['walletAlias'],
+              wallet.alias!,
               style: TextStyle(
                 fontSize: 20,
                 fontFamily: fontsemibold,
@@ -120,7 +115,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                             height: height / 90,
                           ),
                           Text(
-                            viewData['walletDescription'],
+                            wallet.description!,
                             style: TextStyle(
                               fontSize: 16,
                               fontFamily: fontbody,
@@ -142,7 +137,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                             height: height / 90,
                           ),
                           Text(
-                            viewData['owner'],
+                            wallet.owner!,
                             style: TextStyle(
                               fontSize: 16,
                               fontFamily: fontbody,
@@ -177,7 +172,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                     ),
                                   ),
                                   Text(
-                                    viewData['permissions'][0]
+                                    wallet.accesses![0]
                                         .toString()
                                         .toLowerCase(),
                                     style: TextStyle(
@@ -186,7 +181,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                       color: notifier.getbluewhitecolor,
                                     ),
                                   ),
-                                  if (viewData['permissions'].length > 1) ...[
+                                  if (wallet.accesses!.length > 1) ...[
                                     SizedBox(
                                       width: width / 90,
                                     ),
@@ -202,7 +197,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                       width: width / 90,
                                     ),
                                     Text(
-                                      viewData['permissions'][1]
+                                      wallet.accesses![1]
                                           .toString()
                                           .toLowerCase(),
                                       style: TextStyle(
@@ -273,7 +268,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                 responseData = fetchWalletBalance(
                                     signer: appState.activeWallet!.signer!,
                                     secretKey: appState.secretKeys[0],
-                                    publicKey: viewData['walletPublicKey']);
+                                    publicKey: wallet.publicKey!);
                               });
                             },
                             style: ButtonStyle(
@@ -298,21 +293,14 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                           notifier.getbluecolor,
                           wihitecolor,
                           onTap: () {
-                            appState.viewData![SharedWalletDetailsViewPageConfig
-                                .key] = viewData;
+                            appState.viewData = {
+                              'rel': 'sharedWalletView',
+                              'walletPublicKey': wallet.publicKey,
+                            };
 
-                            appState.viewData![SharedWalletDetailsViewPageConfig
-                                    .key]['claimed'] =
-                                snapshot.data!['assetBalances']['claimed'];
-
-                            appState.viewData![SharedWalletDetailsViewPageConfig
-                                    .key]['unclaimed'] =
-                                snapshot.data!['assetBalances']['unclaimed'];
-
-                            print('================${appState.viewData}');
                             appState.currentAction = PageAction(
                                 state: PageState.addPage,
-                                page: SharedWalletDetailsViewPageConfig);
+                                page: WalletDetailsViewPageConfig);
                           },
                         ),
                         SizedBox(
@@ -323,120 +311,33 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                           notifier.getbluecolor80,
                           wihitecolor,
                           onTap: () {
-                            appState.viewData![
-                                PaymentHistoryViewPageConfig.key] = viewData;
-
-                            appState.viewData![PaymentHistoryViewPageConfig.key]
-                                    ['claimed'] =
-                                snapshot.data!['assetBalances']['claimed'];
-
-                            appState.viewData![PaymentHistoryViewPageConfig.key]
-                                    ['unclaimed'] =
-                                snapshot.data!['assetBalances']['unclaimed'];
+                            appState.viewData = {
+                              'rel': 'sharedWalletView',
+                              'walletPublicKey': wallet.publicKey,
+                            };
 
                             appState.currentAction = PageAction(
                                 state: PageState.addPage,
                                 page: PaymentHistoryViewPageConfig);
+
                             appState.setFilterQuery = "";
-                            appState.getHistory(
-                                context, viewData['walletPublicKey']);
+
+                            appState.getHistory(context, wallet.publicKey!);
                           },
                         ),
-                        if (isInitiator) ...[
+                        if (wallet.isInitiator) ...[
                           SizedBox(height: height / 50),
                           ButtonOutlined(
                             'Modify shared access',
                             notifier.getwihitecolor,
                             notifier.getbluewhitecolor,
                             onTap: () {
-                              var viewers = <Permission>[];
-                              var approvers = <Permission>[];
-                              var initiators = <Permission>[];
-
-                              for (var i = 0;
-                                  i <
-                                      viewData['walletSettings']['permissions']
-                                          .length;
-                                  i++) {
-                                if (viewData['walletSettings']['permissions'][i]
-                                        ['permission'] ==
-                                    'VIEW-ONLY') {
-                                  viewers.add(
-                                    Permission(
-                                      targetUsername: viewData['walletSettings']
-                                          ['permissions'][i]['targetUsername'],
-                                      fullName: viewData['walletSettings']
-                                          ['permissions'][i]['fullName'],
-                                      permission: viewData['walletSettings']
-                                          ['permissions'][i]['permission'],
-                                    ),
-                                  );
-                                }
-
-                                if (viewData['walletSettings']['permissions'][i]
-                                        ['permission'] ==
-                                    'APPROVER') {
-                                  approvers.add(Permission(
-                                      targetUsername: viewData['walletSettings']
-                                          ['permissions'][i]['targetUsername'],
-                                      fullName: viewData['walletSettings']
-                                          ['permissions'][i]['fullName'],
-                                      permission: viewData['walletSettings']
-                                          ['permissions'][i]['permission']));
-                                }
-
-                                if (viewData['walletSettings']['permissions'][i]
-                                        ['permission'] ==
-                                    'INITIATOR') {
-                                  initiators.add(Permission(
-                                      targetUsername: viewData['walletSettings']
-                                          ['permissions'][i]['targetUsername'],
-                                      fullName: viewData['walletSettings']
-                                          ['permissions'][i]['fullName'],
-                                      permission: viewData['walletSettings']
-                                          ['permissions'][i]['permission']));
-                                }
-                              }
-
-                              appState.viewData![
-                                  UpdateSharedAccessViewPageConfig.key] = {};
-
-                              appState.viewData![
-                                      UpdateSharedAccessViewPageConfig.key]
-                                  ['walletAlias'] = viewData['walletAlias'];
-
-                              appState.viewData![
-                                          UpdateSharedAccessViewPageConfig.key]
-                                      ['walletPublicKey'] =
-                                  viewData['walletPublicKey'];
-
-                              appState.viewData![
-                                      UpdateSharedAccessViewPageConfig.key]
-                                  ['viewers'] = viewers;
-
-                              appState.viewData![
-                                      UpdateSharedAccessViewPageConfig.key]
-                                  ['isPrimaryWallet'] = 0;
-
-                              appState.viewData![
-                                      UpdateSharedAccessViewPageConfig.key]
-                                  ['approvers'] = approvers;
-
-                              appState.viewData![
-                                      UpdateSharedAccessViewPageConfig.key]
-                                  ['initiators'] = initiators;
-
-                              appState.viewData![
-                                          UpdateSharedAccessViewPageConfig.key]
-                                      ['numberOfApprovalsNeeded'] =
-                                  viewData!['walletSettings']
-                                      ['numberOfApprovalsNeeded'];
-
+                              appState.viewData = {
+                                'walletPublicKey': wallet.publicKey,
+                              };
                               appState.currentAction = PageAction(
                                   state: PageState.addPage,
                                   page: UpdateSharedAccessViewPageConfig);
-
-                              print('================${appState.viewData}');
                             },
                           ),
                         ]

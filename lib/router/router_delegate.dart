@@ -14,6 +14,7 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_bar.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/deposit_withdraw_details.dart';
 import 'package:trovo_wallet/screens/account_recovery/account_recovery_success.dart';
 import 'package:trovo_wallet/screens/account_recovery/answer_security_questions.dart';
 import 'package:trovo_wallet/screens/account_recovery/backup_recovery_secret.dart';
@@ -51,11 +52,6 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/withdraw_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/wrapped_asset.dart';
 import 'package:trovo_wallet/screens/SharedAccess/add_shared_access_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/approval_details.dart';
-import 'package:trovo_wallet/screens/SharedAccess/confirm_payment_initiation.dart';
-import 'package:trovo_wallet/screens/SharedAccess/recieve_asset_shared_access.dart';
-import 'package:trovo_wallet/screens/SharedAccess/send_asset_shared_wallet.dart';
-import 'package:trovo_wallet/screens/SharedAccess/shared_wallet.dart';
-import 'package:trovo_wallet/screens/SharedAccess/shared_wallet_asset_details.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_wallet_info.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/screens/SharedAccess/update_shared_access.dart';
@@ -64,6 +60,11 @@ import 'package:trovo_wallet/screens/announcements/announcementsView.dart';
 import 'package:trovo_wallet/screens/import_wallet/import_wallet.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
+import 'package:trovo_wallet/screens/subscriptions/authorize_subscription.dart';
+import 'package:trovo_wallet/screens/subscriptions/subscription_benefits.dart';
+import 'package:trovo_wallet/screens/subscriptions/subscription_plan_options.dart';
+import 'package:trovo_wallet/screens/subscriptions/subscription_plans.dart';
+import 'package:trovo_wallet/screens/subscriptions/welcome.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../screens/Auth/fingerprint.dart';
 import '../screens/Auth/login.dart';
@@ -285,25 +286,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.SharedWalletInfoView:
           _addPageData(SharedWalletInfo(), SharedWalletInfoViewPageConfig);
           break;
-        case Pages.SharedWalletDetailsView:
-          _addPageData(SharedWallet(), SharedWalletDetailsViewPageConfig);
-          break;
-        case Pages.SharedWalletAssetDetailsView:
-          _addPageData(SharedWalletAssetDetails(),
-              SharedWalletAssetDetailsViewPageConfig);
-          break;
-        case Pages.SendAssetSharedWalletView:
-          _addPageData(
-              SendAssetSharedWallet(), SendAssetSharedWalletViewPageConfig);
-          break;
-        case Pages.RecieveAssetSharedWalletView:
-          _addPageData(RecieveAssetSharedWallet(),
-              RecieveAssetSharedWalletViewPageConfig);
-          break;
-        case Pages.ConfirmInitiatePaymentView:
-          _addPageData(
-              ConfirmInitiatePayment(), ConfirmInitiatePaymentViewPageConfig);
-          break;
         case Pages.ApprovalDetailsView:
           _addPageData(ApprovalDetails(), ApprovalDetailsViewPageConfig);
           break;
@@ -350,6 +332,29 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.DepositWithdrawHistoryView:
           _addPageData(
               DepositWithdrawHistory(), DepositWithdrawHistoryViewPageConfig);
+          break;
+        case Pages.DepositWithdrawDetailsView:
+          _addPageData(
+              DepositWithdrawDetails(), DepositWithdrawDetailsViewPageConfig);
+          break;
+        case Pages.WelcomeSubscriptionsView:
+          _addPageData(
+              WelcomeSubscriptions(), WelcomeSubscriptionsViewPageConfig);
+          break;
+        case Pages.SubscriptionPlansView:
+          _addPageData(SubscriptionPlans(), SubscriptionPlansViewPageConfig);
+          break;
+        case Pages.SubscriptionPlanBenefitsView:
+          _addPageData(SubscriptionPlanBenefits(),
+              SubscriptionPlanBenefitsViewPageConfig);
+          break;
+        case Pages.SubscriptionPlanOptionsView:
+          _addPageData(
+              SubscriptionPlanOptions(), SubscriptionPlanOptionsViewPageConfig);
+          break;
+        case Pages.AuthorizeSubscriptionView:
+          _addPageData(
+              AuthorizeSubscription(), AuthorizeSubscriptionViewPageConfig);
           break;
         default:
           break;
@@ -516,21 +521,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
       case Pages.SharedWalletInfoView:
         SharedWalletInfoViewPageConfig.currentPageAction = action;
         break;
-      case Pages.SharedWalletDetailsView:
-        SharedWalletDetailsViewPageConfig.currentPageAction = action;
-        break;
-      case Pages.SharedWalletAssetDetailsView:
-        SharedWalletAssetDetailsViewPageConfig.currentPageAction = action;
-        break;
-      case Pages.SendAssetSharedWalletView:
-        SendAssetSharedWalletViewPageConfig.currentPageAction = action;
-        break;
-      case Pages.RecieveAssetSharedWalletView:
-        RecieveAssetSharedWalletViewPageConfig.currentPageAction = action;
-        break;
-      case Pages.ConfirmInitiatePaymentView:
-        ConfirmInitiatePaymentViewPageConfig.currentPageAction = action;
-        break;
       case Pages.ApprovalDetailsView:
         ApprovalDetailsViewPageConfig.currentPageAction = action;
         break;
@@ -572,6 +562,24 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.DepositWithdrawHistoryView:
         DepositWithdrawHistoryViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.DepositWithdrawDetailsView:
+        DepositWithdrawDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.WelcomeSubscriptionsView:
+        WelcomeSubscriptionsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SubscriptionPlansView:
+        SubscriptionPlansViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SubscriptionPlanBenefitsView:
+        SubscriptionPlanBenefitsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SubscriptionPlanOptionsView:
+        SubscriptionPlanOptionsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AuthorizeSubscriptionView:
+        AuthorizeSubscriptionViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

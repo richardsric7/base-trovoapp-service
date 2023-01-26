@@ -156,10 +156,15 @@ class _SettingsState extends State<Settings> {
               //   child: iteamlist("assets/images/referrals-dark.png", "",
               //       LanguageEn.myreferrals),
               // ),
-              // GestureDetector(
-              //   child: iteamlist(
-              //       "assets/images/trovo-blue.png", "", LanguageEn.trovopatron),
-              // ),
+              GestureDetector(
+                onTap: () {
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: WelcomeSubscriptionsViewPageConfig);
+                },
+                child: iteamlist(
+                    "assets/images/trovo-blue.png", "", 'My Subscriptions'),
+              ),
               SizedBox(height: height / 25),
               Row(
                 children: [

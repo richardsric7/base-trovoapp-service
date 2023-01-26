@@ -5,6 +5,7 @@ import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/transaction.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
@@ -31,11 +32,11 @@ class Payment_HistoryState extends State<PaymentHistory>
   late ColorNotifier notifier;
   late RefreshController _refreshController;
   late DataProvider appState;
-  List<Wallet>? wallets;
+  late List<Wallet> wallets;
+  late Wallet wallet;
   String selectedWallet = '';
-  var walletsMap = {};
-  var claimedAssets;
-  late bool isSharedWallet;
+  late List<Asset> claimedAssets;
+  bool isFromSharedWalletsView = false;
   bool showFilter = false;
   late List<TransactionInfo>? historyData;
   var filterTypesMap = {
@@ -54,24 +55,8 @@ class Payment_HistoryState extends State<PaymentHistory>
 
   List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
     var walletsList = <DropdownMenuItem<String>>[];
-    var wallets = appState.userInfo!.wallets;
-    for (var i = 0; i < wallets!.length; i++) {
-      walletsMap[wallets[i].publicKey!] = {
-        'alias': wallets[i].alias,
-        'isShared': 0,
-      };
-    }
 
-    // then get all the shared wallets where I have initiator access on
-    for (var i = 0; i < appState.sharedWallets.length; i++) {
-      walletsMap[appState.sharedWallets[i]['walletPublicKey']] = {
-        'alias': '${appState.sharedWallets[i]['walletAlias']}',
-        'isShared': 1,
-        'claimedAssets': appState.sharedWallets[i]['assetBalances']['claimed'],
-      };
-    }
-
-    walletsMap.forEach((key, value) {
+    wallets.forEach((wallet) {
       walletsList.add(
         DropdownMenuItem(
           child: Row(
@@ -81,12 +66,12 @@ class Payment_HistoryState extends State<PaymentHistory>
                     ? BoxConstraints(maxWidth: width / 4)
                     : BoxConstraints(maxWidth: width / 2.5),
                 child: Text(
-                  value['alias'],
+                  wallet.alias!,
                   overflow:
                       isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
                 ),
               ),
-              if (value['isShared'] == 1) ...[
+              if (wallet.isSharedWallet) ...[
                 SizedBox(
                   width: 2,
                 ),
@@ -96,7 +81,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                   color: notifier.getbluewhitecolor,
                 )
               ],
-              if (!isSelected && key == selectedWallet) ...[
+              if (!isSelected && wallet.publicKey == selectedWallet) ...[
                 SizedBox(
                   width: 2,
                 ),
@@ -108,7 +93,7 @@ class Payment_HistoryState extends State<PaymentHistory>
               ],
             ],
           ),
-          value: key,
+          value: wallet.publicKey,
         ),
       );
     });
@@ -156,15 +141,13 @@ class Payment_HistoryState extends State<PaymentHistory>
 
     items.addAll(claimedAssets.map<DropdownMenuItem<String>>((asset) {
       return DropdownMenuItem<String>(
-        value: '${asset['assetIssuer']}|${asset["assetCode"]}',
+        value: '${asset.assetIssuer}|${asset.assetCode}',
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              asset["assetCode"].toString().isEmpty
-                  ? 'XBN'
-                  : asset["assetCode"],
+              asset.assetCode!.isEmpty ? 'XBN' : asset.assetCode!,
               overflow: TextOverflow.ellipsis,
             ),
           ],
@@ -181,12 +164,16 @@ class Payment_HistoryState extends State<PaymentHistory>
     _refreshController = RefreshController(initialRefresh: false);
     appState = Provider.of<DataProvider>(context, listen: false);
     resetFilters();
-    isSharedWallet =
-        appState.viewData![PaymentHistoryViewPageConfig.key] != null;
-    selectedWallet = isSharedWallet
-        ? appState.viewData![PaymentHistoryViewPageConfig.key]
-            ['walletPublicKey']
-        : appState.activeWallet!.publicKey!;
+
+    // if viewdata is not empty then we are opening this view from shared wallets view
+    isFromSharedWalletsView = appState.viewData?['rel'] == 'sharedWalletView';
+
+    selectedWallet = appState.viewData!['walletPublicKey'].toString().isEmpty
+        ? appState.viewData!['walletPublicKey']
+        : appState.primaryWallet.publicKey!;
+
+    wallets = appState.userInfo!.allWallets;
+    wallet = appState.userInfo!.getWallet(selectedWallet);
   }
 
   @override
@@ -195,15 +182,13 @@ class Payment_HistoryState extends State<PaymentHistory>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    wallets = appState.userInfo!.wallets!;
+    wallets = appState.userInfo!.allWallets;
     historyData = appState.historyData;
     walletDropdownItems(false);
 
     // if this page is viewed from shared wallet then get the claimed assets
     // from viewData
-    claimedAssets = isSharedWallet
-        ? appState.viewData![PaymentHistoryViewPageConfig.key]['claimed']
-        : getAssets(walletsMap[selectedWallet]['isShared'] == 1);
+    claimedAssets = wallet.claimedAssets!;
 
     return ScreenUtilInit(
       builder: (context, child) => DefaultTabController(
@@ -213,15 +198,10 @@ class Payment_HistoryState extends State<PaymentHistory>
           backgroundColor: notifier.getwihitecolor,
           appBar: AppBar(
             centerTitle: true,
-            // this part will only appear when we are viewing payment history
-            // from shared wallet in which case appState.viewData![PaymentHistoryViewPageConfig.key]
-            // will not be null;
-            leading: isSharedWallet
+            leading: isFromSharedWalletsView
                 ? GestureDetector(
                     onTap: () {
                       Navigator.of(context).pop();
-                      appState.viewData![PaymentHistoryViewPageConfig.key] =
-                          null;
                     },
                     child: Image.asset("assets/images/back.png", scale: 5),
                   )
@@ -272,12 +252,14 @@ class Payment_HistoryState extends State<PaymentHistory>
                         ),
                         // hide the dropdown when we view this page from shared
                         // wallet
-                        if (!isSharedWallet) ...[
+                        if (!isFromSharedWalletsView) ...[
                           Expanded(
                             flex: 2,
                             child: dropdown(
                               (newValue) async {
                                 selectedWallet = newValue.toString();
+                                wallet = appState.userInfo!
+                                    .getWallet(selectedWallet);
                                 appState.filterAsset = "*|*";
                                 showLoader(context);
                                 appState.limit = 20;
@@ -382,7 +364,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   Widget listHistory() {
     if (historyData != null && historyData!.length > 0) {
       return Container(
-        height: isSharedWallet
+        height: isFromSharedWalletsView
             ? (showFilter ? height / 1.3950 : height / 1.14)
             : (showFilter ? height / 1.5523 : height / 1.24),
         child: LoadMore(
@@ -1180,17 +1162,11 @@ class Payment_HistoryState extends State<PaymentHistory>
     appState.filterMemo = null;
   }
 
-  List<dynamic> getAssets(bool isShared) {
-    return isShared
-        ? walletsMap[selectedWallet]['claimedAssets']
-        : appState.assetBalances[selectedWallet]['claimed'];
-  }
-
   @override
   void dispose() {
     super.dispose();
     print('disposing...');
-    appState.viewData![PaymentHistoryViewPageConfig.key] = null;
+    appState.viewData = {};
     resetFilters();
   }
 }
