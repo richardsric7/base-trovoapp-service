@@ -141,6 +141,16 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return DepositWithdrawHistoryViewPageConfig;
       case DepositWithdrawDetailsViewPath:
         return DepositWithdrawDetailsViewPageConfig;
+      case WelcomeSubscriptionsViewPath:
+        return WelcomeSubscriptionsViewPageConfig;
+      case SubscriptionPlansViewPath:
+        return SubscriptionPlansViewPageConfig;
+      case SubscriptionPlanBenefitsViewPath:
+        return SubscriptionPlanBenefitsViewPageConfig;
+      case SubscriptionPlanOptionsViewPath:
+        return SubscriptionPlanOptionsViewPageConfig;
+      case AuthorizeSubscriptionViewPath:
+        return AuthorizeSubscriptionViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -289,6 +299,18 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: DepositWithdrawHistoryViewPath);
       case Pages.DepositWithdrawDetailsView:
         return const RouteInformation(location: DepositWithdrawDetailsViewPath);
+      case Pages.WelcomeSubscriptionsView:
+        return const RouteInformation(location: WelcomeSubscriptionsViewPath);
+      case Pages.SubscriptionPlansView:
+        return const RouteInformation(location: SubscriptionPlansViewPath);
+      case Pages.SubscriptionPlanBenefitsView:
+        return const RouteInformation(
+            location: SubscriptionPlanBenefitsViewPath);
+      case Pages.SubscriptionPlanOptionsView:
+        return const RouteInformation(
+            location: SubscriptionPlanOptionsViewPath);
+      case Pages.AuthorizeSubscriptionView:
+        return const RouteInformation(location: AuthorizeSubscriptionViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

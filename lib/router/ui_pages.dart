@@ -72,6 +72,11 @@ const String ConfirmWithdrawViewPath = '/ConfirmWithdrawView';
 const String TransactionStatusViewPath = '/TransactionStatusView';
 const String DepositWithdrawHistoryViewPath = '/DepositWithdrawHistoryView';
 const String DepositWithdrawDetailsViewPath = '/DepositWithdrawDetailsView';
+const String WelcomeSubscriptionsViewPath = '/WelcomeSubscriptionsView';
+const String SubscriptionPlansViewPath = '/SubscriptionPlansView';
+const String SubscriptionPlanBenefitsViewPath = '/SubscriptionPlanBenefitsView';
+const String SubscriptionPlanOptionsViewPath = '/SubscriptionPlanOptionsView';
+const String AuthorizeSubscriptionViewPath = '/AuthorizeSubscriptionView';
 
 enum Pages {
   Splash,
@@ -147,6 +152,11 @@ enum Pages {
   TransactionStatusView,
   DepositWithdrawHistoryView,
   DepositWithdrawDetailsView,
+  WelcomeSubscriptionsView,
+  SubscriptionPlansView,
+  SubscriptionPlanBenefitsView,
+  SubscriptionPlanOptionsView,
+  AuthorizeSubscriptionView,
 }
 
 class PageConfiguration {
@@ -498,4 +508,29 @@ PageConfiguration DepositWithdrawDetailsViewPageConfig = PageConfiguration(
     key: 'DepositWithdrawDetailsView',
     path: DepositWithdrawDetailsViewPath,
     uiPage: Pages.DepositWithdrawDetailsView,
+    currentPageAction: null);
+PageConfiguration WelcomeSubscriptionsViewPageConfig = PageConfiguration(
+    key: 'WelcomeSubscriptionsView',
+    path: WelcomeSubscriptionsViewPath,
+    uiPage: Pages.WelcomeSubscriptionsView,
+    currentPageAction: null);
+PageConfiguration SubscriptionPlansViewPageConfig = PageConfiguration(
+    key: 'SubscriptionPlansView',
+    path: SubscriptionPlansViewPath,
+    uiPage: Pages.SubscriptionPlansView,
+    currentPageAction: null);
+PageConfiguration SubscriptionPlanBenefitsViewPageConfig = PageConfiguration(
+    key: 'SubscriptionPlanBenefitsView',
+    path: SubscriptionPlanBenefitsViewPath,
+    uiPage: Pages.SubscriptionPlanBenefitsView,
+    currentPageAction: null);
+PageConfiguration SubscriptionPlanOptionsViewPageConfig = PageConfiguration(
+    key: 'SubscriptionPlanOptionsView',
+    path: SubscriptionPlanOptionsViewPath,
+    uiPage: Pages.SubscriptionPlanOptionsView,
+    currentPageAction: null);
+PageConfiguration AuthorizeSubscriptionViewPageConfig = PageConfiguration(
+    key: 'AuthorizeSubscriptionView',
+    path: AuthorizeSubscriptionViewPath,
+    uiPage: Pages.AuthorizeSubscriptionView,
     currentPageAction: null);

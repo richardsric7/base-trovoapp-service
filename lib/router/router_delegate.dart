@@ -60,6 +60,11 @@ import 'package:trovo_wallet/screens/announcements/announcementsView.dart';
 import 'package:trovo_wallet/screens/import_wallet/import_wallet.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
+import 'package:trovo_wallet/screens/subscriptions/authorize_subscription.dart';
+import 'package:trovo_wallet/screens/subscriptions/subscription_benefits.dart';
+import 'package:trovo_wallet/screens/subscriptions/subscription_plan_options.dart';
+import 'package:trovo_wallet/screens/subscriptions/subscription_plans.dart';
+import 'package:trovo_wallet/screens/subscriptions/welcome.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import '../screens/Auth/fingerprint.dart';
 import '../screens/Auth/login.dart';
@@ -332,6 +337,25 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               DepositWithdrawDetails(), DepositWithdrawDetailsViewPageConfig);
           break;
+        case Pages.WelcomeSubscriptionsView:
+          _addPageData(
+              WelcomeSubscriptions(), WelcomeSubscriptionsViewPageConfig);
+          break;
+        case Pages.SubscriptionPlansView:
+          _addPageData(SubscriptionPlans(), SubscriptionPlansViewPageConfig);
+          break;
+        case Pages.SubscriptionPlanBenefitsView:
+          _addPageData(SubscriptionPlanBenefits(),
+              SubscriptionPlanBenefitsViewPageConfig);
+          break;
+        case Pages.SubscriptionPlanOptionsView:
+          _addPageData(
+              SubscriptionPlanOptions(), SubscriptionPlanOptionsViewPageConfig);
+          break;
+        case Pages.AuthorizeSubscriptionView:
+          _addPageData(
+              AuthorizeSubscription(), AuthorizeSubscriptionViewPageConfig);
+          break;
         default:
           break;
       }
@@ -541,6 +565,21 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.DepositWithdrawDetailsView:
         DepositWithdrawDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.WelcomeSubscriptionsView:
+        WelcomeSubscriptionsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SubscriptionPlansView:
+        SubscriptionPlansViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SubscriptionPlanBenefitsView:
+        SubscriptionPlanBenefitsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SubscriptionPlanOptionsView:
+        SubscriptionPlanOptionsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AuthorizeSubscriptionView:
+        AuthorizeSubscriptionViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
