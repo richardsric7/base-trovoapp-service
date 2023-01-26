@@ -62,18 +62,14 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![ShareReceiptViewPageConfig.key];
     print('viewData: $viewData');
-    name = viewData.from.toString().contains('[')
-        ? '${extractUsername(viewData.from!)}'
-        : viewData.from;
+    name = viewData.from;
     publicKey = viewData.fromPublicKey;
     memo = viewData.memo!;
 
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
     if (viewData.transactionDirection == TransactionDirection.Send) {
-      name = viewData.to.toString().contains('[')
-          ? '${extractUsername(viewData.to!)}'
-          : viewData.to;
+      name = viewData.to;
       publicKey = viewData.toPublicKey;
     }
 
@@ -197,8 +193,8 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                                     viewData.transactionDirection! ==
                                                             TransactionDirection
                                                                 .Send
-                                                        ? '${extractUsername(viewData.from!)}'
-                                                        : '${extractUsername(viewData.to!)}',
+                                                        ? '${viewData.from!}'
+                                                        : '${viewData.to!}',
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.w500,
@@ -514,19 +510,19 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
         : '+ $am $assetCode';
   }
 
-  String extractUsername(String data) {
-    print('data $data');
-    if (data.isNotEmpty) {
-      const start = '[';
-      const end = ']';
-      final startIndex = data.indexOf(start);
-      final endIndex = data.indexOf(end);
-      print('data $data');
-      return data.substring(startIndex + start.length, endIndex);
-    }
+  // String extractUsername(String data) {
+  //   print('data $data');
+  //   if (data.isNotEmpty) {
+  //     const start = '[';
+  //     const end = ']';
+  //     final startIndex = data.indexOf(start);
+  //     final endIndex = data.indexOf(end);
+  //     print('data $data');
+  //     return data.substring(startIndex + start.length, endIndex);
+  //   }
 
-    return '';
-  }
+  //   return '';
+  // }
 
   void shareText() {
     String? shareString;

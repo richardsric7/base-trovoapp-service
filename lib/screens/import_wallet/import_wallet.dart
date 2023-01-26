@@ -468,7 +468,8 @@ class _ImportWalletState extends State<ImportWallet> {
         .storeInsertData('secretKey', <String>[appState.tempSecretKey]);
 
     // save useInfo to appstate
-    appState.setUser = UserInfo().deserializeJson(userInfo);
+    appState.setUser = UserInfo()
+        .deserializeJson(userInfo, walletsSharedWithUser, assetBalances);
     appState.setNFTs = nfts;
     appState.setSharedWallets = walletsSharedWithUser;
     appState.assetBalances = assetBalances;

@@ -56,11 +56,6 @@ const String SecurityQuestionsForInactiveAccountsViewPath =
 const String SharedAccessViewPath = '/SharedAccessView';
 const String AddSharedAccessDetailsViewPath = '/AddSharedAccessDetailsView';
 const String SharedWalletInfoViewPath = '/SharedWalletInfoView';
-const String SharedWalletDetailsViewPath = '/SharedWalletDetailsView';
-const String SharedWalletAssetDetailsViewPath = '/SharedWalletAssetDetailsView';
-const String SendAssetSharedWalletViewPath = '/SendAssetSharedWalletView';
-const String RecieveAssetSharedWalletViewPath = '/RecieveAssetSharedWalletView';
-const String ConfirmInitiatePaymentViewPath = '/ConfirmInitiatePaymentView';
 const String ApprovalDetailsViewPath = '/ApprovalDetailsView';
 const String UpdateSharedAccessViewPath = '/UpdateSharedAccessView';
 const String UpdateSharedAccessDetailsViewPath =
@@ -76,6 +71,12 @@ const String WithdrawAssetViewPath = '/WithdrawAssetView';
 const String ConfirmWithdrawViewPath = '/ConfirmWithdrawView';
 const String TransactionStatusViewPath = '/TransactionStatusView';
 const String DepositWithdrawHistoryViewPath = '/DepositWithdrawHistoryView';
+const String DepositWithdrawDetailsViewPath = '/DepositWithdrawDetailsView';
+const String WelcomeSubscriptionsViewPath = '/WelcomeSubscriptionsView';
+const String SubscriptionPlansViewPath = '/SubscriptionPlansView';
+const String SubscriptionPlanBenefitsViewPath = '/SubscriptionPlanBenefitsView';
+const String SubscriptionPlanOptionsViewPath = '/SubscriptionPlanOptionsView';
+const String AuthorizeSubscriptionViewPath = '/AuthorizeSubscriptionView';
 
 enum Pages {
   Splash,
@@ -150,6 +151,12 @@ enum Pages {
   ConfirmWithdrawView,
   TransactionStatusView,
   DepositWithdrawHistoryView,
+  DepositWithdrawDetailsView,
+  WelcomeSubscriptionsView,
+  SubscriptionPlansView,
+  SubscriptionPlanBenefitsView,
+  SubscriptionPlanOptionsView,
+  AuthorizeSubscriptionView,
 }
 
 class PageConfiguration {
@@ -427,31 +434,6 @@ PageConfiguration SharedWalletInfoViewPageConfig = PageConfiguration(
     path: SharedWalletInfoViewPath,
     uiPage: Pages.SharedWalletInfoView,
     currentPageAction: null);
-PageConfiguration SharedWalletDetailsViewPageConfig = PageConfiguration(
-    key: 'SharedWalletDetailsView',
-    path: SharedWalletDetailsViewPath,
-    uiPage: Pages.SharedWalletDetailsView,
-    currentPageAction: null);
-PageConfiguration SharedWalletAssetDetailsViewPageConfig = PageConfiguration(
-    key: 'SharedWalletAssetDetailsView',
-    path: SharedWalletAssetDetailsViewPath,
-    uiPage: Pages.SharedWalletAssetDetailsView,
-    currentPageAction: null);
-PageConfiguration SendAssetSharedWalletViewPageConfig = PageConfiguration(
-    key: 'SendAssetSharedWalletView',
-    path: SendAssetSharedWalletViewPath,
-    uiPage: Pages.SendAssetSharedWalletView,
-    currentPageAction: null);
-PageConfiguration RecieveAssetSharedWalletViewPageConfig = PageConfiguration(
-    key: 'RecieveAssetSharedWalletView',
-    path: RecieveAssetSharedWalletViewPath,
-    uiPage: Pages.RecieveAssetSharedWalletView,
-    currentPageAction: null);
-PageConfiguration ConfirmInitiatePaymentViewPageConfig = PageConfiguration(
-    key: 'ConfirmInitiatePaymentView',
-    path: ConfirmInitiatePaymentViewPath,
-    uiPage: Pages.ConfirmInitiatePaymentView,
-    currentPageAction: null);
 PageConfiguration ApprovalDetailsViewPageConfig = PageConfiguration(
     key: 'ApprovalDetailsView',
     path: ApprovalDetailsViewPath,
@@ -521,4 +503,34 @@ PageConfiguration DepositWithdrawHistoryViewPageConfig = PageConfiguration(
     key: 'DepositWithdrawHistoryView',
     path: DepositWithdrawHistoryViewPath,
     uiPage: Pages.DepositWithdrawHistoryView,
+    currentPageAction: null);
+PageConfiguration DepositWithdrawDetailsViewPageConfig = PageConfiguration(
+    key: 'DepositWithdrawDetailsView',
+    path: DepositWithdrawDetailsViewPath,
+    uiPage: Pages.DepositWithdrawDetailsView,
+    currentPageAction: null);
+PageConfiguration WelcomeSubscriptionsViewPageConfig = PageConfiguration(
+    key: 'WelcomeSubscriptionsView',
+    path: WelcomeSubscriptionsViewPath,
+    uiPage: Pages.WelcomeSubscriptionsView,
+    currentPageAction: null);
+PageConfiguration SubscriptionPlansViewPageConfig = PageConfiguration(
+    key: 'SubscriptionPlansView',
+    path: SubscriptionPlansViewPath,
+    uiPage: Pages.SubscriptionPlansView,
+    currentPageAction: null);
+PageConfiguration SubscriptionPlanBenefitsViewPageConfig = PageConfiguration(
+    key: 'SubscriptionPlanBenefitsView',
+    path: SubscriptionPlanBenefitsViewPath,
+    uiPage: Pages.SubscriptionPlanBenefitsView,
+    currentPageAction: null);
+PageConfiguration SubscriptionPlanOptionsViewPageConfig = PageConfiguration(
+    key: 'SubscriptionPlanOptionsView',
+    path: SubscriptionPlanOptionsViewPath,
+    uiPage: Pages.SubscriptionPlanOptionsView,
+    currentPageAction: null);
+PageConfiguration AuthorizeSubscriptionViewPageConfig = PageConfiguration(
+    key: 'AuthorizeSubscriptionView',
+    path: AuthorizeSubscriptionViewPath,
+    uiPage: Pages.AuthorizeSubscriptionView,
     currentPageAction: null);

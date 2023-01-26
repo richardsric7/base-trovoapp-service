@@ -284,7 +284,8 @@ class _VeryficationState extends State<Veryfication> {
         .storeInsertData('secretKey', <String>[state.tempSecretKey]);
 
     // save useInfo to appstate
-    state.setUser = UserInfo().deserializeJson(userInfo);
+    state.setUser = UserInfo()
+        .deserializeJson(userInfo, walletsSharedWithUser, assetBalances);
     state.setNFTs = nfts;
     state.setSharedWallets = walletsSharedWithUser;
     state.setassetBalances = assetBalances;

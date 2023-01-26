@@ -7,12 +7,14 @@ import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/user.dart';
+import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/crypto_wallet_address.dart';
+import 'package:trovo_wallet/models/curated_asset.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/widgets/top_drop_downs.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -27,28 +29,22 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late UserInfo userInfo;
-  var assetBalances;
-  Map activeWallet = {};
-  Map activeAsset = {};
-  var claimedAssets;
-  bool isInitiator = false;
-  bool isSharedWallet = false;
-  dynamic selectedWallet = '';
-  dynamic selectedAsset = '';
   dynamic selectedNetwork = '';
+  late Wallet wallet;
+  late Asset? asset;
+  late CuratedAsset? curatedAsset;
 
-  List<dynamic> networks = [];
+  List<CryptoWalletDepositAddress> networks = [];
 
   List<DropdownMenuItem<String>> get networksDropdownItems {
     return networks
         .mapIndexed<DropdownMenuItem<String>>(
           (index, item) => DropdownMenuItem(
               child: Text(
-                item['network'].toString(),
+                item.network.toString(),
                 overflow: TextOverflow.ellipsis,
               ),
-              value: '${item['depositAddress']}|$index'),
+              value: '${item.depositAddress}|$index'),
         )
         .toList();
   }
@@ -56,10 +52,24 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
   @override
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
-    print(appState.viewData![SelectDepositAddressViewPageConfig.key]['data']);
-    networks = appState.viewData![SelectDepositAddressViewPageConfig.key]
-            ['data']
-        .toList();
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+
+    asset = wallet.claimedAssets!.firstWhere(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
+
+    curatedAsset = appState.userInfo!.curatedSwapList!.firstWhereOrNull(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
+
+    networks = asset!.cryptoWalletDepositAddresses!;
+
     super.initState();
   }
 
@@ -68,35 +78,6 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState.userInfo!;
-    assetBalances = appState.assetBalances;
-
-    if (activeWallet.isEmpty) {
-      activeWallet = appState.allWallets[appState.activeWallet!.publicKey!];
-    }
-    selectedWallet = activeWallet['publicKey'];
-    claimedAssets = activeWallet['claimedAssets'];
-    activeAsset = appState.viewData![SelectDepositAddressViewPageConfig.key];
-
-    if (appState.viewData![SelectDepositAddressViewPageConfig.key] != null) {
-      selectedAsset = "${getAssetCode(
-        appState.viewData![SelectDepositAddressViewPageConfig.key]['assetCode'],
-      )}|${getAssetIssuer(
-        appState.viewData![SelectDepositAddressViewPageConfig.key]
-            ['assetIssuer'],
-      )}";
-    }
-
-    isSharedWallet = activeWallet['sharedAccessEnabled'] == 1;
-
-    // if this is a shared wallet
-    if (isSharedWallet) {
-      if (activeWallet['permission'] == 'INITIATOR')
-        isInitiator = true;
-      else
-        isInitiator = false;
-    }
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -105,51 +86,16 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(height / 15),
           child: AppBar(
-              centerTitle: true,
-              elevation: 0,
-              backgroundColor: notifier.getwihitecolor,
-              leading: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop();
-                },
-                child: Image.asset("assets/images/back.png", scale: 5),
-              ),
-              actions: [
-                Container(
-                  width: width / 1.2,
-                  child: Row(
-                    children: [
-                      TopDropdowns(
-                        onWalletChanged: (newValue) {
-                          selectedWallet = newValue;
-                          activeWallet = appState.allWallets[newValue];
-                          claimedAssets = activeWallet['claimedAssets'];
-
-                          for (var asset in claimedAssets) {
-                            // we need to somehow take care of the selected asset
-                            // when switching wallets because of scenarios
-                            // where one wallet has an asset that is not listed
-                            // on the other. Here we are checking whether the
-                            // newly selected wallet contains the currently
-                            // selected asset and if it doesn't we switch
-                            // back to the default asset which is XBN
-                            if (asset['assetIssuer'] == selectedAsset ||
-                                asset['assetIssuer'] == '') {
-                              appState.viewData![
-                                      SelectDepositAddressViewPageConfig.key] =
-                                  asset;
-                              break;
-                            }
-                          }
-                          setState(() {});
-                        },
-                        selectedWallet: selectedWallet,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: width / 50),
-              ]),
+            centerTitle: true,
+            elevation: 0,
+            backgroundColor: notifier.getwihitecolor,
+            leading: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Image.asset("assets/images/back.png", scale: 5),
+            ),
+          ),
         ),
         body: SingleChildScrollView(
           child: Column(
@@ -164,7 +110,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                     width: 20,
                   ),
                   Text(
-                    'Deposit ${getAssetCode(activeAsset['assetCode'])}',
+                    'Deposit ${getAssetCode(asset!.assetCode)}',
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -373,7 +319,8 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                       ),
                       child: Image.memory(base64.decode(networks[int.parse(
                         selectedNetwork.toString().split('|')[1],
-                      )]['qrCode']
+                      )]
+                          .qrCode!
                           .split(',')
                           .last))),
                 ),

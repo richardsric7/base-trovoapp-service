@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -10,15 +11,15 @@ import 'package:trovo_wallet/widgets/utilities.dart';
 class TopDropdowns extends StatefulWidget {
   void Function(String newValue) onWalletChanged;
   void Function(String newValue)? onAssetChanged;
-  var claimedAssets;
-  var selectedWallet;
-  var selectedAsset;
+  List<Asset> claimedAssets;
+  String? selectedWallet;
+  String? selectedAsset;
 
   TopDropdowns({
     Key? key,
     required this.onWalletChanged,
     this.onAssetChanged,
-    this.claimedAssets,
+    required this.claimedAssets,
     this.selectedAsset,
     required this.selectedWallet,
   }) : super(key: key);
@@ -31,8 +32,8 @@ class _TopDropdownsState extends State<TopDropdowns> {
   late ColorNotifier notifier;
   late DataProvider appState;
   var assetBalances;
-  dynamic selectedWallet = '';
-  dynamic selectedAsset = '';
+  late String? selectedWallet;
+  late String? selectedAsset;
 
   List<DropdownMenuItem<String>> assetDropdownItems(bool isSelected) {
     List<DropdownMenuItem<String>> menuItems = [];
@@ -41,21 +42,21 @@ class _TopDropdownsState extends State<TopDropdowns> {
           child: Text(
             isSelected
                 ? truncate(
-                    getAssetCode(asset['assetCode']),
+                    getAssetCode(asset.assetCode),
                     length: 3,
                   )
-                : getAssetCode(asset['assetCode']),
+                : getAssetCode(asset.assetCode),
             overflow: TextOverflow.visible,
           ),
           value:
-              '${getAssetCode(asset['assetCode'])}|${getAssetIssuer(asset['assetIssuer'])}'));
+              '${getAssetCode(asset.assetCode)}|${getAssetIssuer(asset.assetIssuer)}'));
     }
     return menuItems;
   }
 
   List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
     var walletsList = <DropdownMenuItem<String>>[];
-    appState.allWallets.forEach((key, value) {
+    appState.userInfo!.allWallets.forEach((wallet) {
       walletsList.add(
         DropdownMenuItem(
           child: Row(
@@ -65,12 +66,12 @@ class _TopDropdownsState extends State<TopDropdowns> {
                     ? BoxConstraints(maxWidth: width / 4)
                     : BoxConstraints(maxWidth: width / 2.5),
                 child: Text(
-                  value['alias'],
+                  wallet.alias!,
                   overflow:
                       isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
                 ),
               ),
-              if (value['sharedAccessEnabled'] == 1) ...[
+              if (wallet.isSharedWallet) ...[
                 SizedBox(
                   width: 2,
                 ),
@@ -80,7 +81,7 @@ class _TopDropdownsState extends State<TopDropdowns> {
                   color: notifier.getbluecolor,
                 )
               ],
-              if (!isSelected && key == selectedWallet) ...[
+              if (!isSelected && wallet.publicKey == selectedWallet) ...[
                 SizedBox(
                   width: 2,
                 ),
@@ -92,7 +93,7 @@ class _TopDropdownsState extends State<TopDropdowns> {
               ],
             ],
           ),
-          value: key,
+          value: wallet.publicKey,
         ),
       );
     });

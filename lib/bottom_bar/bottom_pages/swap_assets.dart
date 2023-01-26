@@ -8,7 +8,7 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/user.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/network/requests.dart';
@@ -31,20 +31,18 @@ class SwapAssets extends StatefulWidget {
 class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late UserInfo userInfo;
-  var assetBalances;
-  List<Wallet>? wallets;
-  Wallet? activeWallet;
+  late List<Wallet> transactionableWallets;
+  late Wallet wallet;
+  late Asset asset;
+  late List<Asset> claimedAssets;
   late RefreshController _refreshController;
-  var activeAsset;
-  var claimedAssets;
   bool amountError = false;
   double amount = 0;
-  var sourceAsset;
-  var destinationAsset;
-  var sourceAssetRawDropdownValue;
-  var destinationAssetRawDropdownValue;
-  dynamic selectedWallet = '';
+  Asset? sourceAsset = null;
+  Asset? destinationAsset = null;
+  String? sourceAssetRawDropdownValue;
+  String? destinationAssetRawDropdownValue;
+  String selectedWallet = '';
   final formKey = GlobalKey<FormState>();
   bool sourceErr = false;
   bool destErr = false;
@@ -55,7 +53,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
   List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
     var walletsList = <DropdownMenuItem<String>>[];
-    appState.transactionableWallets.forEach((key, value) {
+    transactionableWallets.forEach((wallet) {
       walletsList.add(
         DropdownMenuItem(
           child: Row(
@@ -64,11 +62,11 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                 constraints:
                     isSelected ? BoxConstraints(maxWidth: width / 3) : null,
                 child: Text(
-                  value['alias'],
+                  wallet.alias!,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              if (value['sharedAccessEnabled'] == 1) ...[
+              if (wallet.isSharedWallet) ...[
                 SizedBox(
                   width: 2,
                 ),
@@ -78,7 +76,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                   color: notifier.getbluecolor,
                 )
               ],
-              if (!isSelected && key == selectedWallet) ...[
+              if (!isSelected && wallet.publicKey == selectedWallet) ...[
                 SizedBox(
                   width: 2,
                 ),
@@ -90,7 +88,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
               ],
             ],
           ),
-          value: key,
+          value: wallet.publicKey,
         ),
       );
     });
@@ -102,12 +100,10 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    activeWallet = appState.activeWallet;
-    selectedWallet =
-        appState.activeWallet!.signer; // the public key of the primary wallet
-    assetBalances = appState.assetBalances;
+    wallet = appState.primaryWallet;
+    selectedWallet = appState.primaryWallet.publicKey!;
+    claimedAssets = wallet.claimedAssets!;
     _refreshController = RefreshController(initialRefresh: false);
-    claimedAssets = assetBalances[selectedWallet]['claimed'];
   }
 
   @override
@@ -116,9 +112,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState.userInfo!;
-    wallets = userInfo.wallets!;
-    activeWallet = appState.activeWallet;
+    transactionableWallets = appState.userInfo!.transactionableWallets();
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -174,7 +168,8 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       Expanded(
                           child: dropdown(
                         (newValue) {
-                          selectedWallet = newValue!;
+                          selectedWallet = newValue.toString();
+                          wallet = appState.userInfo!.getWallet(selectedWallet);
                           key1.currentState!.reset();
                           key2.currentState!.reset();
                           key3.currentState!.reset();
@@ -184,9 +179,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                               sourceAssetRawDropdownValue =
                                   destinationAssetRawDropdownValue = null;
 
-                          claimedAssets =
-                              appState.transactionableWallets[selectedWallet]
-                                  ['claimedAssets'];
+                          claimedAssets = wallet.claimedAssets!;
                           setState(() {});
                         },
                         walletDropdownItems(false),
@@ -384,30 +377,11 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       onChanged: (newValue) {
                         sourceAssetRawDropdownValue = newValue;
                         var splitNewValue = newValue!.split('|');
-                        if (appState.transactionableWallets[selectedWallet]
-                                    ['sharedAccessEnabled'] ==
-                                1 &&
-                            appState.transactionableWallets[selectedWallet]
-                                    ['threshold'] ==
-                                2) {
-                          var claimedAssets =
-                              appState.transactionableWallets[selectedWallet]
-                                  ['claimedAssets'];
-                          for (var i = 0; i < claimedAssets.length; i++) {
-                            if (claimedAssets[i]['assetIssuer'] ==
-                                    splitNewValue[0] &&
-                                claimedAssets[i]['assetCode'] ==
-                                    splitNewValue[1]) {
-                              sourceAsset = claimedAssets[i];
-                            }
-                          }
-                        } else {
-                          sourceAsset = claimedAssets.firstWhere(
-                            (asset) =>
-                                asset['assetIssuer'] == splitNewValue[0] &&
-                                asset['assetCode'] == splitNewValue[1],
-                          );
-                        }
+                        sourceAsset = wallet.claimedAssets!.firstWhere(
+                          (asset) =>
+                              asset.assetIssuer == splitNewValue[0] &&
+                              asset.assetCode == splitNewValue[1],
+                        );
                         sourceErr = false;
                         setState(() {});
                       },
@@ -421,11 +395,11 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       setState(() {
                         if (destinationAssetRawDropdownValue != null) {
                           var splitNewValue =
-                              destinationAssetRawDropdownValue.split('|');
+                              destinationAssetRawDropdownValue!.split('|');
                           if (claimedAssets
                               .where((asset) =>
-                                  asset['assetIssuer'] == splitNewValue[0] &&
-                                  asset['assetCode'] == splitNewValue[1])
+                                  asset.assetIssuer == splitNewValue[0] &&
+                                  asset.assetCode == splitNewValue[1])
                               .isNotEmpty) {
                             var assetHolder = sourceAsset;
                             var rawValueHolder = sourceAssetRawDropdownValue;
@@ -535,14 +509,13 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         setState(() {
                           destinationAsset = claimedAssets.firstWhere(
                               (asset) =>
-                                  asset['assetIssuer'] == splitNewValue[0] &&
-                                  asset['assetCode'] == splitNewValue[1],
+                                  asset.assetCode == splitNewValue[1] &&
+                                  asset.assetIssuer == splitNewValue[0],
                               orElse: () {
                             // must be a curated swap item
-                            return {
-                              "assetCode": splitNewValue[1],
-                              "assetIssuer": splitNewValue[0],
-                            };
+                            return Asset(
+                                assetCode: splitNewValue[1],
+                                assetIssuer: splitNewValue[0]);
                           });
                           destErr = false;
                         });
@@ -575,24 +548,23 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
       // make initial request to the server using the
       // following credentials
       Map map = {
-        "destinationAssetCode": destinationAsset['assetCode'] == 'XBN'
-            ? ''
-            : destinationAsset['assetCode'],
-        "destinationAssetIssuer": destinationAsset['assetIssuer'],
-        "sourceAssetCode":
-            sourceAsset['assetCode'] == 'XBN' ? '' : sourceAsset['assetCode'],
-        "sourceAssetIssuer": sourceAsset['assetIssuer'],
+        "destinationAssetCode": destinationAsset!.assetCode,
+        "destinationAssetIssuer": destinationAsset!.assetIssuer,
+        "sourceAssetCode": sourceAsset!.assetCode,
+        "sourceAssetIssuer": sourceAsset!.assetIssuer,
         "sourceAmount": amount.toStringAsFixed(4),
       };
 
       String requestBody = jsonEncode(map);
 
+      print('requestBody ====> $requestBody');
+
       Map responseData = await makePostRequest(
         uri: getEndpoint(),
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: selectedWallet!,
+        publicKey: wallet.publicKey!,
       );
 
       // print('response: $responseData');
@@ -633,51 +605,36 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
     // go to the definition of appState.viewData
     // to learn more about viewData
-    appState.viewData![ConfirmSwapViewPageConfig.key] = data;
-    appState.viewData![ConfirmSwapViewPageConfig.key]['walletPublicKey'] =
-        selectedWallet;
-    appState.viewData![ConfirmSwapViewPageConfig.key]['walletAlias'] =
-        appState.transactionableWallets[selectedWallet]['alias'];
-    appState.viewData![ConfirmSwapViewPageConfig.key]['sourceUsdPrice'] =
-        sourceAsset['usdPrice'];
-    appState.viewData![ConfirmSwapViewPageConfig.key]['destinationUsdPrice'] =
-        destinationAsset['usdPrice'];
-    appState.viewData![ConfirmSwapViewPageConfig.key]['isShared'] =
-        // if the wallet is share enabled and the user has initiator access
-        (appState.transactionableWallets[selectedWallet]
-                        ['sharedAccessEnabled'] ==
-                    1 &&
-                appState.transactionableWallets[selectedWallet]['threshold'] ==
-                    2)
-            ? 1
-            : 0;
+    appState.viewData = {
+      'transactionData': data,
+      'walletPublicKey': wallet.publicKey,
+      'sourceUsdPrice': sourceAsset!.usdPrice,
+      'destinationUsdPrice': destinationAsset!.usdPrice
+    };
 
     appState.currentAction =
         PageAction(state: PageState.addPage, page: ConfirmSwapViewPageConfig);
   }
 
   List<DropdownMenuItem<String>> dropdownItemBuilder(
-      assets, assetToSkip, isDestination) {
+      List<Asset> assets, Asset? assetToSkip, bool isDestination) {
     var assetsMap = {};
     List<DropdownMenuItem<String>> dropDownItems = [];
 
     if (isDestination) {
       // add the default assets to the list of destination assets
-      userInfo.curatedSwapList!.forEach((asset) {
-        assetsMap['${asset['assetIssuer']}|${asset['assetCode']}'] =
-            asset['assetCode'];
+      appState.userInfo!.curatedSwapList!.forEach((asset) {
+        assetsMap['${asset.assetIssuer}|${asset.assetCode}'] = asset.assetCode;
       });
     } else {
       assets.forEach((asset) {
-        assetsMap['${asset['assetIssuer']}|${asset['assetCode']}'] =
-            asset['assetCode'];
+        assetsMap['${asset.assetIssuer}|${asset.assetCode}'] = asset.assetCode;
       });
     }
 
     // remove the ones already selected as source or destination asset
     if (assetToSkip != null) {
-      assetsMap
-          .remove('${assetToSkip['assetIssuer']}|${assetToSkip['assetCode']}');
+      assetsMap.remove('${assetToSkip.assetIssuer}|${assetToSkip.assetCode}');
     }
 
     assetsMap.forEach((key, value) {
@@ -718,14 +675,14 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   }
 
   String getEndpoint() {
-    // if the wallet is share enabled and the user has initiator access
-    if (appState.transactionableWallets[selectedWallet]
-                ['sharedAccessEnabled'] ==
-            1 &&
-        appState.transactionableWallets[selectedWallet]['threshold'] == 2) {
-      return '/v1/shared-access/swap';
-    }
-    return '/v1/users/swap';
+    // // if the wallet is share enabled and the user has initiator access
+    // if (appState.transactionableWallets[selectedWallet]
+    //             ['sharedAccessEnabled'] ==
+    //         1 &&
+    //     appState.transactionableWallets[selectedWallet]['threshold'] == 2) {
+    //   return '/v1/shared-access/swap';
+    // }
+    return wallet.isSharedWallet ? '/v1/shared-access/swap' : '/v1/users/swap';
   }
 
   String? validateAmount(String? value) {
@@ -741,9 +698,15 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
       return 'Please choose assets to swap';
     }
 
-    if (double.tryParse(value)! > (double.parse(sourceAsset['amount']) - 6)) {
+    if (double.tryParse(value)! > (sourceAsset!.amount!)) {
       return 'You don\'t have sufficient balance';
     }
+
+    if (getAssetCode(sourceAsset!.assetCode) == 'XBN' &&
+        double.tryParse(value)! > (sourceAsset!.amount! - 6)) {
+      return 'You don\'t have sufficient balance';
+    }
+
     return null;
   }
 
@@ -757,8 +720,8 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
           Flexible(
             child: Text(
               amount.toString().isNotEmpty
-                  ? "≈ ${formatNumber(amount)} ${getAssetCode(sourceAsset['assetCode'])}"
-                  : "≈ 0.0000 ${getAssetCode(sourceAsset['assetCode'])}",
+                  ? "≈ ${formatNumber(amount)} ${getAssetCode(sourceAsset!.assetCode)}"
+                  : "≈ 0.0000 ${getAssetCode(sourceAsset!.assetCode)}",
               textScaleFactor: 1.0,
               style: TextStyle(
                   color: notifier.getdarkgrey,
@@ -771,7 +734,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
             visible: true,
             replacement: Container(),
             child: Text(
-              "${formatNumber(double.parse(sourceAsset['amount']))} ${getAssetCode(sourceAsset['assetCode'])}",
+              "${formatNumber(sourceAsset!.amount!)} ${getAssetCode(sourceAsset!.assetCode)}",
               textScaleFactor: 1.0,
               textAlign: TextAlign.right,
               style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),

@@ -1,18 +1,17 @@
 import 'dart:convert';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -33,23 +32,33 @@ class SendAsset extends StatefulWidget {
 class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  Map activeWallet = {};
+  late Wallet wallet;
+  late Asset? asset;
   final formKey = GlobalKey<FormState>();
   String to = ''; // the reciever
   String amount = '';
   bool amountError = false;
   String? memo;
-  var viewData;
   var deeplinkInfo;
   TextEditingController _utf8TextController = TextEditingController();
   TextEditingController toController = TextEditingController();
   TextEditingController sendingWalletController = TextEditingController();
   final amountController = TextEditingController();
-  bool isSharedWallet = false;
 
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    if (appState.viewData!['walletPublicKey'] != null) {
+      wallet = appState.userInfo!.getWallet(
+        appState.viewData!['walletPublicKey'],
+      );
+      asset = wallet.claimedAssets!.firstWhere(
+        (asset) =>
+            asset.assetCode == appState.viewData!['assetCode'] &&
+            asset.assetIssuer == appState.viewData!['assetIssuer'],
+      );
+    }
   }
 
   @override
@@ -59,27 +68,24 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
 
-    viewData = appState.viewData![SendAssetViewPageConfig.key];
-    isSharedWallet = viewData['walletInfo']['sharedAccessEnabled'] == 1;
-
-    if (activeWallet.isEmpty) {
-      activeWallet = viewData['walletInfo'];
-    }
-
-    isSharedWallet = viewData['walletInfo']['sharedAccessEnabled'] == 1;
-
-    if (viewData['deepLinkInfo'] != null) {
-      deeplinkInfo = viewData['deepLinkInfo'];
+    if (appState.viewData![SendAssetViewPageConfig.key] != null &&
+        appState.viewData![SendAssetViewPageConfig.key]['deepLinkInfo'] !=
+            null) {
+      deeplinkInfo =
+          appState.viewData![SendAssetViewPageConfig.key]['deepLinkInfo'];
       toController.text = deeplinkInfo['receiver'];
       amountController.text = deeplinkInfo['amount'];
-      amount = deeplinkInfo['amount'];
       _utf8TextController.text = deeplinkInfo['memo'];
-      activeWallet =
-          appState.transactionableWallets[deeplinkInfo['sendingWallet']];
-      viewData['deepLinkInfo'] = null;
+      wallet = appState.userInfo!.getWallet(deeplinkInfo['sendingWallet']);
+      asset = wallet.claimedAssets!.firstWhere(
+        (asset) =>
+            asset.assetCode == deeplinkInfo['assetCode'] &&
+            asset.assetIssuer == deeplinkInfo['assetIssuer'],
+      );
+      appState.viewData!['deepLinkInfo'] = null;
     }
 
-    sendingWalletController.text = activeWallet['alias'];
+    sendingWalletController.text = wallet.alias!;
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -113,7 +119,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${LanguageEn.send} ${getAssetCode(viewData['assetCode'])}',
+                      '${LanguageEn.send} ${getAssetCode(asset!.assetCode)}',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -171,8 +177,8 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         Flexible(
           child: Text(
             amount.isNotEmpty
-                ? "≈ ${formatNumber(double.parse(amount))} ${getAssetCode(viewData['assetCode'])}"
-                : "≈ 0.0000 ${getAssetCode(viewData['assetCode'])}",
+                ? "≈ ${formatNumber(double.parse(amount))} ${getAssetCode(asset!.assetCode)}"
+                : "≈ 0.0000 ${getAssetCode(asset!.assetCode)}",
             textScaleFactor: 1.0,
             style: TextStyle(
                 color: notifier.getdarkgrey,
@@ -185,7 +191,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
           visible: true,
           replacement: Container(),
           child: Text(
-            "${formatNumber(double.parse(viewData['amount']))} ${getAssetCode(viewData['assetCode'])}",
+            "${formatNumber(asset!.amount!)} ${getAssetCode(asset!.assetCode)}",
             textScaleFactor: 1.0,
             textAlign: TextAlign.right,
             style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
@@ -350,7 +356,15 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       return 'Value must be greater than 0';
     }
 
-    if (double.tryParse(value)! > (double.parse(viewData['amount']) - 6)) {
+    if (double.tryParse(value)! > asset!.amount!) {
+      setState(() {
+        amountError = true;
+      });
+      return 'You don\'t have sufficient balance';
+    }
+
+    if ((getAssetCode(asset!.assetCode) == 'XBN') &&
+        double.tryParse(value)! > (asset!.amount! - 7)) {
       setState(() {
         amountError = true;
       });
@@ -378,26 +392,29 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
     try {
       showLoader(context);
       // make initial request to the server using the
-      // following credentials
+      // following credential
       Map map = {
         "destination": to,
         "memo": memo,
         "amount": amount.toString(),
-        "assetCode":
-            viewData['assetCode'] == 'XBN' ? '' : viewData['assetCode'],
-        "assetIssuer": viewData['assetIssuer'],
+        "assetCode": asset!.assetCode == 'XBN' ? '' : asset!.assetCode,
+        "assetIssuer": asset!.assetIssuer,
       };
       String requestBody = jsonEncode(map);
-
+      print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
-        uri: isSharedWallet ? '/v1/shared-access/payment' : '/v1/users/payment',
+        uri: wallet.isSharedWallet
+            ? '/v1/shared-access/payment'
+            : '/v1/users/payment',
         body: requestBody,
-        signer: appState.activeWallet!.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet['publicKey'],
+        publicKey: wallet.publicKey!,
       );
 
       hideLoader(context);
+
+      // print('responseData $responseData');
 
       if (responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
@@ -409,6 +426,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
             title: LanguageEn.error, message: responseData['data']['message']);
       }
     } catch (e) {
+      hideLoader(context);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
   }
@@ -432,29 +450,31 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
 
     // go to the definition of appState.viewData
     // to learn more about viewData
-    appState.viewData![ConfirmTransactionViewPageConfig.key] = data;
-    appState.viewData![ConfirmTransactionViewPageConfig.key]["walletInfo"] = {
-      'alias': activeWallet['alias'],
-      'publicKey': activeWallet['publicKey'],
+    // appState.viewData![ConfirmTransactionViewPageConfig.key] = data;
+    // appState.viewData![ConfirmTransactionViewPageConfig.key]["walletInfo"] = {
+    //   'alias': activeWallet['alias'],
+    //   'publicKey': activeWallet['publicKey'],
+    // };
+    // appState.viewData![ConfirmTransactionViewPageConfig.key]["usdPrice"] =
+    //     viewData['usdPrice'];
+    // appState.viewData![ConfirmTransactionViewPageConfig.key]["isSharedWallet"] =
+    //     isSharedWallet;
+    // if (isSharedWallet) {
+    //   appState.viewData![ConfirmTransactionViewPageConfig.key]["rel"] =
+    //       'dashboard';
+    // }
+
+    appState.viewData = {
+      'walletPublicKey': wallet.publicKey,
+      'assetCode': asset!.assetCode,
+      'assetIssuer': asset!.assetIssuer,
+      'rel': 'dashboard',
+      'transactionData': data,
     };
-    appState.viewData![ConfirmTransactionViewPageConfig.key]["usdPrice"] =
-        viewData['usdPrice'];
-    appState.viewData![ConfirmTransactionViewPageConfig.key]["isSharedWallet"] =
-        isSharedWallet;
-    if (isSharedWallet) {
-      appState.viewData![ConfirmTransactionViewPageConfig.key]["rel"] =
-          'dashboard';
-    }
     appState.currentAction = PageAction(
       state: PageState.addPage,
       page: ConfirmTransactionViewPageConfig,
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    viewData?['deepLinkInfo'] = null;
   }
 }
 

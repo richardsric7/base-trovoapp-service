@@ -9,6 +9,7 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_text
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/permission.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
@@ -30,11 +31,11 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  late Wallet wallet;
   var viewers = <Permission>[];
   var initiators = <Permission>[]; // holds usernames of initiators
   var approvers = <Permission>[]; // holds usernames of approvers
-  int noOfApprovalsNeeded = 2;
-  int noOfApprovers = 3;
+  int noOfApprovers = 2;
   TextEditingController viewersController = TextEditingController();
   TextEditingController approversController = TextEditingController();
   TextEditingController initiatorsController = TextEditingController();
@@ -42,7 +43,6 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
   String viewerUsernameErrorMessage = "";
   String approverUsernameErrorMessage = "";
   String initiatorUsernameErrorMessage = "";
-  var viewData;
   bool addApprovers = false;
 
   late TabController _tabController;
@@ -89,34 +89,31 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
     _tabController = TabController(length: 3, vsync: this);
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
-    viewData = appState.viewData![UpdateSharedAccessViewPageConfig.key];
-    for (var i = 0; i < viewData['viewers'].length; i++) {
-      viewers.add(Permission(
-        targetUsername: viewData['viewers'][i].targetUsername,
-        fullName: viewData['viewers'][i].fullName,
-        permission: viewData['viewers'][i].permission,
-      ));
+    wallet =
+        appState.userInfo!.getWallet(appState.viewData!['walletPublicKey']);
+
+    // since you can only pass around objects by reference in dart
+    // and since we need to modify permissions without necessarily
+    // modifying the original user object until it is sent to the
+    // server and committed, we have to clone the permissions object
+    // and use it for the necessary modifications without touching
+    // the main data
+    for (var permission in wallet.permissions!) {
+      if (permission.permission == 'VIEW-ONLY') {
+        viewers.add(Permission.clone(permission));
+      }
+
+      if (permission.permission == 'APPROVER') {
+        approvers.add(Permission.clone(permission));
+      }
+
+      if (permission.permission == 'INITIATOR') {
+        initiators.add(Permission.clone(permission));
+      }
     }
 
-    for (var i = 0; i < viewData['approvers'].length; i++) {
-      approvers.add(Permission(
-        targetUsername: viewData['approvers'][i].targetUsername,
-        fullName: viewData['approvers'][i].fullName,
-        permission: viewData['approvers'][i].permission,
-      ));
-    }
-
-    for (var i = 0; i < viewData['initiators'].length; i++) {
-      initiators.add(Permission(
-        targetUsername: viewData['initiators'][i].targetUsername,
-        fullName: viewData['initiators'][i].fullName,
-        permission: viewData['initiators'][i].permission,
-      ));
-    }
-
-    if (approvers.length > 0 && viewData['numberOfApprovalsNeeded'] > 0) {
+    if (approvers.length > 0 && wallet.numberOfApprovalsNeeded! > 0) {
       noOfApprovers = approvers.length;
-      noOfApprovalsNeeded = viewData['numberOfApprovalsNeeded'];
       addApprovers = true;
     }
   }
@@ -144,7 +141,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             width: width,
             child: Column(
               children: [
-                if (viewData['isPrimaryWallet'] == 1 || !addApprovers) ...[
+                if (wallet.isPrimaryWallet || !addApprovers) ...[
                   SingleChildScrollView(
                     child: Column(
                       children: [
@@ -440,7 +437,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
         // if wallet is not primary wallet
         // primary wallets can only have view-only shared access
         // the cannot have approver and initiator shared access
-        if (viewData['isPrimaryWallet'] == 0) ...[
+        if (!wallet.isInitiator) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -568,7 +565,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
                             ),
-                            value: noOfApprovalsNeeded,
+                            value: wallet.numberOfApprovalsNeeded,
                             icon: Icon(
                               Icons.keyboard_arrow_down_rounded,
                               color: notifier.getbluewhitecolor,
@@ -581,7 +578,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                                 fontWeight: FontWeight.w500),
                             onChanged: (newValue) {
                               setState(() {
-                                noOfApprovalsNeeded =
+                                wallet.numberOfApprovalsNeeded =
                                     int.parse(newValue.toString());
                               });
                             },
@@ -660,16 +657,19 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                             ),
                             elevation: 0,
                             style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 15.sp,
-                                fontFamily: fontsemibold,
-                                fontWeight: FontWeight.w500),
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15.sp,
+                              fontFamily: fontsemibold,
+                              fontWeight: FontWeight.w500,
+                            ),
                             onChanged: (newValue) {
                               setState(() {
                                 var newValueInt =
                                     int.parse(newValue.toString());
-                                if (noOfApprovalsNeeded > newValueInt) {
-                                  noOfApprovalsNeeded = newValueInt - 1;
+                                if (wallet.numberOfApprovalsNeeded! >
+                                    newValueInt) {
+                                  wallet.numberOfApprovalsNeeded =
+                                      newValueInt - 1;
                                 }
                                 noOfApprovers = newValueInt;
                               });
@@ -687,7 +687,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Text(
-              '${noOfApprovalsNeeded} approvals required out of ${noOfApprovers} approvers',
+              '${wallet.numberOfApprovalsNeeded} approvals required out of ${noOfApprovers} approvers',
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: notifier.getbluewhitecolor,
@@ -1109,14 +1109,14 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
   }
 
   void updateSharedAccess() {
-    appState.viewData![UpdateSharedAccessDetailsViewPageConfig.key] = {
-      'walletPublicKey': viewData['walletPublicKey'],
-      'walletAlias': viewData['walletAlias'],
+    appState.viewData = {
+      'walletPublicKey': wallet.publicKey,
+      'walletAlias': wallet.alias,
       'viewers': viewers,
       'addApprovers': addApprovers,
       'approvers': approvers,
       'noOfApprovers': addApprovers ? noOfApprovers : 0,
-      'noOfApprovalsNeeded': addApprovers ? noOfApprovalsNeeded : 0,
+      'noOfApprovalsNeeded': addApprovers ? wallet.numberOfApprovalsNeeded : 0,
       'initiators': initiators,
     };
 

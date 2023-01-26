@@ -10,6 +10,7 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_text
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/deposit_withdrawal_history.dart';
 import 'package:trovo_wallet/screens/SharedAccess/shared_access.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -1932,6 +1933,152 @@ transactionTypePopup(context,
       });
 }
 
+wrappedAssetTransactionTypePopup(
+  context, {
+  required void Function() onWithdrawSelected,
+  required void Function() onDepositSelected,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          'Select transaction type',
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Wrap(
+                              children: [
+                                quickDateRange(context, text: 'Deposit history',
+                                    onPressed: () {
+                                  onDepositSelected();
+                                }),
+                                quickDateRange(context,
+                                    text: 'Withdrawal history', onPressed: () {
+                                  onWithdrawSelected();
+                                }),
+                              ],
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
+wrappedAssetTransactionStatusPopup(
+  context, {
+  required void Function() onPendingSelected,
+  required void Function() onCompletedSelected,
+}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          'Choose status',
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Wrap(
+                              children: [
+                                quickDateRange(context, text: 'Pending',
+                                    onPressed: () {
+                                  onPendingSelected();
+                                }),
+                                quickDateRange(context, text: 'Completed',
+                                    onPressed: () {
+                                  onCompletedSelected();
+                                }),
+                              ],
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
 String getLabelText(HistoryFilterType rel) {
   switch (rel) {
     case HistoryFilterType.FromPublicKey:
@@ -2839,5 +2986,116 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
                 ],
               ),
             ));
+      });
+}
+
+wrappedAssetsTextFieldPopup(context,
+    {required FilterType rel, required void Function(String?) onDone}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  String? textValue;
+  var textController = TextEditingController();
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          var appState = Provider.of<DataProvider>(context, listen: false);
+          textController.text = appState.filterWithdrawalAddress;
+          textValue = appState.filterWithdrawalAddress;
+
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          'Enter withdrawal address below',
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      constraints: BoxConstraints(
+                          maxHeight: height / 1.7, minWidth: width / 1.1),
+                      // height: height / 5,
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                          child: CustomTextFormField.textFieldWithoutIcon(
+                            'withdrawal address',
+                            notifier.getbluecolor,
+                            notifier.getgrey,
+                            notifier.getprefixicon,
+                            notifier.getblck,
+                            notifier.getgrey,
+                            55.sp,
+                            300.sp,
+                            onChanged: (value) {
+                              if (value != null &&
+                                  value.toString().isNotEmpty) {
+                                textValue = value;
+                              }
+                            },
+                            controller: textController,
+                            keyboardtype: TextInputType.text,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 30,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          onDone(textValue);
+                          Navigator.of(context).pop(); // dismiss dialog,
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          LanguageEn.done,
+                          style: TextStyle(
+                              color: wihitecolor, fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: height / 50),
+                  ],
+                ),
+              ));
+        });
       });
 }

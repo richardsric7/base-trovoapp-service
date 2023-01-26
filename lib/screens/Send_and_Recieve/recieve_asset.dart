@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
@@ -30,78 +32,27 @@ class _ReceiveAssetState extends State<ReceiveAsset>
   late ColorNotifier notifier;
   late DataProvider appState;
   late UserInfo userInfo;
-  var assetBalances;
-  List<Wallet>? wallets;
-  Map activeWallet = {};
-  var activeAsset;
-  var claimedAssets;
-
-  dynamic selectedWallet = '';
-  dynamic selectedAsset = '';
-
-  List<DropdownMenuItem<String>> get assetDropdownItems {
-    List<DropdownMenuItem<String>> menuItems = [];
-    for (var asset in claimedAssets) {
-      menuItems.add(DropdownMenuItem(
-          child: Text(
-            getAssetCode(asset['assetCode']),
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: getAssetIssuer(asset['assetIssuer'])));
-    }
-    return menuItems;
-  }
-
-  List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
-    var walletsList = <DropdownMenuItem<String>>[];
-    appState.allWallets.forEach((key, value) {
-      walletsList.add(
-        DropdownMenuItem(
-          child: Row(
-            children: [
-              Container(
-                constraints: isSelected
-                    ? BoxConstraints(maxWidth: width / 4)
-                    : BoxConstraints(maxWidth: width / 2.5),
-                child: Text(
-                  value['alias'],
-                  overflow:
-                      isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
-                ),
-              ),
-              if (value['sharedAccessEnabled'] == 1) ...[
-                SizedBox(
-                  width: 2,
-                ),
-                Icon(
-                  Icons.people_outline,
-                  size: 17,
-                  color: notifier.getbluecolor,
-                )
-              ],
-              if (!isSelected && key == selectedWallet) ...[
-                SizedBox(
-                  width: 2,
-                ),
-                Icon(
-                  Icons.check,
-                  size: 18,
-                  color: notifier.getbluecolor,
-                )
-              ],
-            ],
-          ),
-          value: key,
-        ),
-      );
-    });
-
-    return walletsList;
-  }
+  late Wallet wallet;
+  late Asset? asset;
+  String selectedWallet = '';
+  String selectedAsset = '';
 
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    userInfo = appState.userInfo!;
+    wallet = userInfo.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
+    asset = wallet.claimedAssets!.firstWhere(
+      (asset) =>
+          asset.assetCode == appState.viewData!['assetCode'] &&
+          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    );
+
+    // free the memory..... lol
+    appState.viewData = {};
   }
 
   @override
@@ -110,22 +61,21 @@ class _ReceiveAssetState extends State<ReceiveAsset>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    userInfo = appState.userInfo!;
-    assetBalances = appState.assetBalances;
-    wallets = userInfo.wallets!;
-    if (activeWallet.isEmpty) {
-      activeWallet =
-          appState.viewData![ReceiveAssetViewPageConfig.key]['walletInfo'];
+
+    if (selectedWallet.isEmpty) {
+      selectedWallet = wallet.publicKey!;
     }
-    selectedWallet = activeWallet['publicKey'];
-    claimedAssets = activeWallet['claimedAssets'];
-    activeAsset = appState.viewData![ReceiveAssetViewPageConfig.key];
-    if (appState.viewData![ReceiveAssetViewPageConfig.key] != null) {
-      selectedAsset = "${getAssetCode(
-        appState.viewData![ReceiveAssetViewPageConfig.key]['assetCode'],
-      )}|${getAssetIssuer(
-        appState.viewData![ReceiveAssetViewPageConfig.key]['assetIssuer'],
-      )}";
+
+    if (asset == null) {
+      asset = wallet.claimedAssets!.firstWhere(
+        (asset) => asset.assetCode == '' && asset.assetIssuer == '',
+      );
+      selectedAsset = '';
+    }
+
+    if (selectedAsset.isEmpty) {
+      selectedAsset =
+          "${getAssetCode(asset!.assetCode)}|${getAssetIssuer(asset!.assetIssuer)}";
     }
 
     return ScreenUtilInit(
@@ -147,45 +97,33 @@ class _ReceiveAssetState extends State<ReceiveAsset>
             actions: [
               TopDropdowns(
                 onWalletChanged: (newValue) {
-                  setState(() {
-                    selectedWallet = newValue;
-                    activeWallet = appState.allWallets[newValue];
-                    claimedAssets = activeWallet['claimedAssets'];
-                    for (var asset in claimedAssets) {
-                      // we need to somehow take care of the selected asset
-                      // when switching wallets because of scenarios
-                      // where one wallet has an asset that is not listed
-                      // on the other. Here we are checking whether the
-                      // newly selected wallet contains the currently
-                      // selected asset and if it doesn't we switch
-                      // back to the default asset which is XBN
-                      if (asset['assetIssuer'] == selectedAsset ||
-                          asset['assetIssuer'] == '') {
-                        appState.viewData![ReceiveAssetViewPageConfig.key] =
-                            asset;
-                        break;
-                      }
-                    }
-                  });
+                  selectedWallet = newValue;
+                  this.wallet = userInfo.getWallet(selectedWallet);
+
+                  this.asset = wallet.claimedAssets!.firstWhereOrNull((x) =>
+                      "${getAssetCode(x.assetCode)}|${getAssetIssuer(x.assetIssuer)}" ==
+                      selectedAsset);
+
+                  setState(() {});
                 },
                 onAssetChanged: (newValue) {
                   setState(() {
+                    selectedAsset = newValue;
                     newValue =
                         newValue.toString().contains('XBN') ? '|' : newValue;
-                    for (var asset in claimedAssets) {
+                    for (var asset in wallet.claimedAssets!) {
                       var splitNewValue = newValue.toString().split('|');
-                      if (asset['assetCode'] == splitNewValue[0] &&
-                          asset['assetIssuer'] == splitNewValue[1]) {
-                        appState.viewData![ReceiveAssetViewPageConfig.key] =
-                            asset;
+                      if (asset.assetCode == splitNewValue[0] &&
+                          asset.assetIssuer == splitNewValue[1]) {
+                        this.asset = asset;
                       }
                     }
                   });
                 },
-                claimedAssets: claimedAssets,
+                claimedAssets: wallet.claimedAssets!,
                 selectedAsset: selectedAsset,
                 selectedWallet: selectedWallet,
-              )
+              ),
             ],
           ),
         ),
@@ -201,7 +139,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                     width: 20,
                   ),
                   Text(
-                    "Receive " + getAssetCode(activeAsset['assetCode']),
+                    "Receive " + getAssetCode(asset!.assetCode),
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -230,18 +168,11 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  appState.viewData![RequestSpecificPaymentViewPageConfig.key] =
-                      appState.viewData![ReceiveAssetViewPageConfig.key];
-                  // add the public key that the payment will be made into
-                  appState.viewData![RequestSpecificPaymentViewPageConfig.key]
-                      ['publicKey'] = activeWallet['publicKey'];
-                  // add the name of the alias of the wallet
-                  appState.viewData![RequestSpecificPaymentViewPageConfig.key]
-                      ['walletAlias'] = activeWallet['alias'];
-                  // if its a shared wallet
-                  appState.viewData![RequestSpecificPaymentViewPageConfig.key]
-                          ['isSharedAccess'] =
-                      activeWallet['sharedAccessEnabled'] == 1;
+                  appState.viewData = {
+                    'walletPublicKey': wallet.publicKey,
+                    'assetCode': asset!.assetCode,
+                    'assetIssuer': asset!.assetIssuer,
+                  };
 
                   appState.currentAction = PageAction(
                       state: PageState.addPage,
@@ -303,7 +234,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                       Container(
                         width: 250,
                         child: Text(
-                          activeWallet['alias'],
+                          wallet.alias!,
                           overflow: TextOverflow.visible,
                           style: TextStyle(
                               fontSize: 20,
@@ -316,7 +247,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                         onPressed: () {
                           Clipboard.setData(
                             ClipboardData(
-                              text: activeWallet['alias'],
+                              text: wallet.alias!,
                             ),
                           );
                           showSnackBar('Wallet alias', context);
@@ -369,7 +300,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                       Container(
                         width: 250,
                         child: Text(
-                          activeWallet['publicKey'],
+                          wallet.publicKey!,
                           style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -381,7 +312,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                         onPressed: () {
                           Clipboard.setData(
                             ClipboardData(
-                              text: activeWallet['publicKey'],
+                              text: wallet.publicKey!,
                             ),
                           );
                           showSnackBar('Public key', context);
@@ -410,8 +341,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                 ? darktilewhitecolor
                 : notifier.getaddsubwalletgrey,
           ),
-          child: Image.memory(
-              base64.decode(activeAsset['qrCode'].split(',').last))),
+          child: Image.memory(base64.decode(asset!.qrCode!.split(',').last))),
     );
   }
 }

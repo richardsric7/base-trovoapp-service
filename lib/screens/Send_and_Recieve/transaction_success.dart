@@ -7,9 +7,9 @@ import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/transaction.dart';
-import 'package:trovo_wallet/models/user.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -28,19 +28,16 @@ class _TransactionSuccess extends State<TransactionSuccess>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late UserInfo userInfo;
-  var assetBalances;
-  var nfts;
-  var claimedAssets;
-  var unclaimedAssets;
-  int tabLength = 2;
-  int touchedIndex = -1;
-  String password = '';
+  late Wallet wallet;
   var viewData;
 
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    wallet = appState.userInfo!.getWallet(
+      appState.viewData!['walletPublicKey'],
+    );
   }
 
   @override
@@ -49,8 +46,8 @@ class _TransactionSuccess extends State<TransactionSuccess>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    viewData = appState.viewData![TransactionSuccessViewPageConfig.key];
-    print('this is viewData ===== $viewData');
+    viewData = appState.viewData!['transactionData'];
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -233,8 +230,8 @@ class _TransactionSuccess extends State<TransactionSuccess>
                   TransactionInfo transaction = TransactionInfo(
                     transactionDate: DateTime.now(),
                     transactionType: 'Send',
-                    from: viewData['sendingWallet']['alias'],
-                    fromPublicKey: viewData['sendingWallet']['publicKey'],
+                    from: wallet.alias,
+                    fromPublicKey: wallet.publicKey,
                     to: viewData['destination'],
                     toPublicKey: '',
                     transactionDirection: TransactionDirection.Send,

@@ -32,6 +32,11 @@ class RequestSpecificPaymentDetailsState
   @override
   void initState() {
     super.initState();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    viewData = appState.viewData!;
+
+    // free the memory..... lol
+    appState.viewData = {};
   }
 
   @override
@@ -39,9 +44,6 @@ class RequestSpecificPaymentDetailsState
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
-    viewData =
-        appState.viewData![RequestSpecificPaymentDetailsViewPageConfig.key];
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
