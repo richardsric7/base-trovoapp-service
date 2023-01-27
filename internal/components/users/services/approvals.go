@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -239,6 +240,20 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 		log.Println("[ApproveTransaction] error getting wallet object for modify shared access")
 		return &tErrors.ErrorTemporaryServerError{}
 	}
+
+	{
+		//check if the signer has valid signature right to the wallet.
+		if !wallet.SignerIsValid(signerUser.PrimarySigner, false) {
+			log.Printf("[ApproveTransaction] error %v account may have been recovered without permission re-instated. Please contact wallet approvers to re-instate your access.\n", signerUser.Username)
+			return &tErrors.CustomError{
+				Param:      "id",
+				Err:        "error-signer-is-invalid",
+				ErrMessage: fmt.Sprintf("%v account may have been recovered without wallet permission being re-instated. Please contact wallet approver to re-instate your access.", signerUser.Username),
+				Code:       http.StatusForbidden,
+			}
+		}
+	}
+
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
 
