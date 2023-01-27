@@ -110,7 +110,7 @@ func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels
 			}
 		}
 	} else {
-		txnHash, err := SubmitSubWalletXdrWithSignature(client, accountOwner.PublicKey, subWalletInfo.PublicKey, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.SubWalletMustSign)
+		txnHash, err := SubmitSubWalletXdrWithSignature(client, accountOwner.PublicKey, accountOwner.PrimarySigner, subWalletInfo.PublicKey, xdrBase64, subWalletInfo.PrimarySignature, subWalletInfo.SubWalletSignature, subWalletInfo.SubWalletMustSign)
 		if err != nil {
 			log.Printf("[CreateNewSubWallet] by [%v] for [%v] SubmitSubwalletXdrWithSignature error:[%v] \n", accountOwner.Username, subWalletInfo.PublicKey, err)
 			return subWalletInfo, err
@@ -796,7 +796,7 @@ func generateSubWalletXdrWithChannelAccount(user *userModels.User, subWalletInfo
 
 }
 
-func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, ownerPublicKey, subWalletPublicKey string, xdrBase64 string, primarySignature, subWalletSignature string, subWalletMustSign int) (string, error) {
+func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, accountPublicKey, signerPublicKey, subWalletPublicKey string, xdrBase64 string, primarySignature, subWalletSignature string, subWalletMustSign int) (string, error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/OXSX51RHd9DyLFbFipjdW3yXmyYC8SWwqd6HiXl6UtDzu75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")
@@ -815,9 +815,9 @@ func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, ownerPublicKe
 
 	{
 		//add signature of the primaryWallet to the new transaction Instance
-		txn, err = txn.AddSignatureBase64(network.GetBlockchainNetworkPassPhrase(), ownerPublicKey, primarySignature)
+		txn, err = txn.AddSignatureBase64(network.GetBlockchainNetworkPassPhrase(), signerPublicKey, primarySignature)
 		if err != nil {
-			log.Println("[SubmitSubwalletXdrWithSignature] Failed to verify primary signature of primaryWallet on [", network.GetBlockchainNetworkPassPhrase(), "] and [", primarySignature, "] for [", xdrBase64, "] and public key ", ownerPublicKey, ", error [", err, "]")
+			log.Println("[SubmitSubwalletXdrWithSignature] Failed to verify primary signature of primaryWallet on [", network.GetBlockchainNetworkPassPhrase(), "] and [", primarySignature, "] for [", xdrBase64, "] and signer public key ", signerPublicKey, ", error [", err, "]")
 
 			return "", err
 		}
@@ -856,14 +856,14 @@ func SubmitSubWalletXdrWithSignature(client *horizonclient.Client, ownerPublicKe
 			extraErrors := horizonException.Problem.Extras
 
 			for key, val := range extraErrors {
-				log.Printf("[SubmitSubwalletXdrWithSignature] Extras: %v is %v\nOwner publicKey: %v, subwallet: %v\n", key, val, ownerPublicKey, subWalletPublicKey)
+				log.Printf("[SubmitSubwalletXdrWithSignature] Extras: %v is %v\nOwner signer publicKey: %v, subwallet: %v\n", key, val, signerPublicKey, subWalletPublicKey)
 
 			}
 
 			resultCodes, errRes := horizonException.ResultCodes()
 			if errRes == nil {
 				for key, val := range resultCodes.OperationCodes {
-					log.Printf("[SubmitSubwalletXdrWithSignature] Result code: %v is %v\nOwner publicKey: %v\nSubWalletPublicKey: %v\n", key, val, ownerPublicKey, subWalletPublicKey)
+					log.Printf("[SubmitSubwalletXdrWithSignature] Result code: %v is %v\nOwner signer publicKey: %v\nSubWalletPublicKey: %v\n", key, val, signerPublicKey, subWalletPublicKey)
 					// logDiscordFailedPayment(fmt.Sprintf("[SubmitSubwalletXdrWithSignature]Result code: %v is %v\nOwner publicKey: %v\nSubWalletPublicKey: %v\n", key, val, ownerPublicKey, subWalletPublicKey))
 
 				}

@@ -815,6 +815,13 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			ops = append(ops, o...)
 			accessInfo.Messages = append(accessInfo.Messages, m...)
 
+			{
+				oRecoveredAccount := generateRemoveRecoveredAccountAccessOps(wallet, u.Username, gc)
+				if len(oRecoveredAccount) > 0 {
+					ops = append(ops, oRecoveredAccount...)
+				}
+			}
+
 		}
 		checkAccess[v.TargetUsername+v.Permission] = userModels.WalletPermissionInfo{
 			TargetUsername:        v.TargetUsername,
@@ -1989,41 +1996,93 @@ func generateRemoveSharedAccessOps(wallet *userModels.UserWallet, walletOwner *u
 	return op, &tErrors.ErrorTemporaryServerError{}
 }
 
-func GenerateRemoveOldRecoveredSharedAccessOps(wallet *userModels.UserWallet, walletOwner *userModels.User, approverOldSigner string, gc *sharedconfig.GlobalConfig) (op txnbuild.Operation, err error) {
+func generateRemoveRecoveredAccountAccessOps(wallet *userModels.UserWallet, approverUsernameAdded string, gc *sharedconfig.GlobalConfig) (ops []txnbuild.Operation) {
 	client := gc.BantuExpansionClient
-
+	listOfRecovery := make([]userModels.UserAccountRecoveryLog, 0)
+	gc.DB.Where("username = ?", approverUsernameAdded).Find(&listOfRecovery)
+	ops = make([]txnbuild.Operation, 0)
+	if len(listOfRecovery) == 0 || listOfRecovery == nil {
+		//no account recovery done so far
+		return
+	}
 	//check if primary account has native enough native balance
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	_, _, _, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, wallet.ID, nativeAsset)
 	if errWalletAct != nil {
-		log.Printf("[generateRemoveSharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
+		log.Printf("[generateRemoveRecoveredAccountAccessOps] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
 
-		return op, errWalletAct
 	}
 
-	//ensure u r using the account signer, since the account may have been recovered, or may be recovered in the future, changing the signer, but retaining the primary key
-	approverAccountExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, approverOldSigner, nativeAsset)
+	for _, aRec := range listOfRecovery {
+		//ensure u r using the account signer, since the account may have been recovered, or may be recovered in the future, changing the signer, but retaining the primary key
+		approverAccountExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, aRec.OldSignerPublicKey, nativeAsset)
 
-	if approverAccountExists {
-		//account exists, check if it already it a signer in the wallet
+		if approverAccountExists {
+			//account exists, check if it already it a signer in the wallet
 
-		//remove signer if already a signer
-		if wallet.SignerIsValidWA(approverOldSigner, walletSourceAccount) && walletOwner.PrimarySigner != wallet.Signer {
+			//remove signer if already a signer
+			if wallet.SignerIsValidWA(aRec.OldSignerPublicKey, walletSourceAccount) {
+				if aRec.MasterWallet == 1 {
+					//primary signer and master signer
+					ops = append(ops, &txnbuild.SetOptions{
+						MasterWeight:  txnbuild.NewThreshold(0),
+						SourceAccount: wallet.ID,
+					})
 
-			op = &txnbuild.SetOptions{
-				Signer: &txnbuild.Signer{
-					Address: approverOldSigner,
-					Weight:  0,
-				},
-				SourceAccount: wallet.ID,
+				} else {
+
+					ops = append(ops, &txnbuild.SetOptions{
+						Signer: &txnbuild.Signer{
+							Address: aRec.OldSignerPublicKey,
+							Weight:  0,
+						},
+						SourceAccount: wallet.ID,
+					})
+
+				}
 			}
 
-			return op, nil
 		}
-
 	}
-	return op, &tErrors.ErrorTemporaryServerError{}
+
+	return ops
 }
+
+// func GenerateRemoveOldRecoveredSharedAccessOps(wallet *userModels.UserWallet, walletOwner *userModels.User, approverOldSigner string, gc *sharedconfig.GlobalConfig) (op txnbuild.Operation, err error) {
+// 	client := gc.BantuExpansionClient
+
+// 	//check if primary account has native enough native balance
+// 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
+// 	_, _, _, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, wallet.ID, nativeAsset)
+// 	if errWalletAct != nil {
+// 		log.Printf("[generateRemoveSharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
+
+// 		return op, errWalletAct
+// 	}
+
+// 	//ensure u r using the account signer, since the account may have been recovered, or may be recovered in the future, changing the signer, but retaining the primary key
+// 	approverAccountExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, approverOldSigner, nativeAsset)
+
+// 	if approverAccountExists {
+// 		//account exists, check if it already it a signer in the wallet
+
+// 		//remove signer if already a signer
+// 		if wallet.SignerIsValidWA(approverOldSigner, walletSourceAccount) && walletOwner.PrimarySigner != wallet.Signer {
+
+// 			op = &txnbuild.SetOptions{
+// 				Signer: &txnbuild.Signer{
+// 					Address: approverOldSigner,
+// 					Weight:  0,
+// 				},
+// 				SourceAccount: wallet.ID,
+// 			}
+
+// 			return op, nil
+// 		}
+
+// 	}
+// 	return op, &tErrors.ErrorTemporaryServerError{}
+// }
 
 func HasAccessToPublicKey(signerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
 	signerUser, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB, gc)

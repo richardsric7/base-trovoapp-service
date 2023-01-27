@@ -504,7 +504,7 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 
 }
 
-func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecoveryRequest, gc *sharedconfig.GlobalConfig) (multiAccessWallets []userModels.UserWallet, err error) {
+func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecoveryRequest, gc *sharedconfig.GlobalConfig) (multiAccessWallets []userModels.UserWallet, sharedApproverWallets []userModels.WalletPermission, err error) {
 	var e error
 	client := gc.BantuExpansionClient
 	multiAccessWallets = make([]userModels.UserWallet, 0)
@@ -513,43 +513,59 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	payload.Messages = make([]string, 0)
 
 	if len(payload.NewSignerPublicKey) != 56 {
-		return multiAccessWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
+		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
 	}
 	{
 		// PARSE SIGNER KEY
 		_, e := keypair.ParseAddress(payload.NewSignerPublicKey)
 		if e != nil {
-			return multiAccessWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
+			return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error invalid new signer public key.", ErrMessage: "Invalid new signer public key."}
 		}
 	}
 	if _, e := usersDB.GetUser(payload.NewSignerPublicKey, gc.DB, gc); e == nil {
-		return multiAccessWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
+		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "newSignerPublicKey", Err: "error new signer public key already in use.", ErrMessage: "The new signer public key is already in use on another account."}
 	}
 	if user.AccountRecoveryEnabled == 0 {
-		return multiAccessWallets, &tErrors.CustomError{Param: "username", Err: "error account recovery not enabled.", ErrMessage: "Account recovery not enabled."}
+		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error account recovery not enabled.", ErrMessage: "Account recovery not enabled."}
 	}
 	dbtx := gc.DB.Begin()
 	defer dbtx.Rollback()
+	// save to recovery log.
+	masterRecover := 0
+	if user.PrimarySigner == user.PublicKey {
+		masterRecover = 1
+	}
+	arl := userModels.UserAccountRecoveryLog{
+		Username:           user.Username,
+		OldSignerPublicKey: user.PrimarySigner,
+		NewSignerPublicKey: payload.NewSignerPublicKey,
+		MasterWallet:       masterRecover,
+	}
+	e = dbtx.Create(&arl).Error
+	if e != nil {
+		log.Printf("[DoAccountRecovery] Error creating log for account recovery for [%v]: %v\n", arl, e)
+		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error unable to log recovery attempt", ErrMessage: "Unable to log recovery attempt. Please try again."}
 
+	}
 	if !ValidateSecurityAnswers(user, payload.SecurityAnswers, gc) {
-		return multiAccessWallets, &tErrors.CustomError{Param: "username", Err: "error invalid security answers", ErrMessage: "Answers to the security questions are invalid."}
+		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error invalid security answers", ErrMessage: "Answers to the security questions are invalid."}
 	}
 	if CheckAccountRecoveryEmailOTP(user, payload.EmailOTP, gc.DB) != nil {
-		return multiAccessWallets, &tErrors.CustomError{Param: "username", Err: "error invalid email otp", ErrMessage: "Email OTP is invalid."}
+		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error invalid email otp", ErrMessage: "Email OTP is invalid."}
 	}
 
 	var userAccount horizon.Account
 	if userAccount, e = userBc.GetBlockchainAccountDetail(user.PublicKey); e != nil {
 		if e.Error() == "error-blockchain-account-not-activated" {
-			return multiAccessWallets, &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
+			return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error primary account not yet activated", ErrMessage: fmt.Sprintf("Primary account is not yet activated. Please send upto 50 %v to the primary wallet to continue.", os.Getenv("NATIVE_ASSET_CODE"))}
 		}
 		log.Printf("[DisableAccountRecovery] Error on blockchain validating primary account %v\n", e)
-		return multiAccessWallets, &tErrors.ErrorTemporaryServerError{}
+		return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
 
 	}
 	for _, v := range userAccount.Balances {
 		if v.Code == "" && decimal.RequireFromString(v.Balance).LessThan(decimal.RequireFromString(os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"))) {
-			return multiAccessWallets, &tErrors.CustomError{Param: "username", Err: "error primary wallet needs funding", ErrMessage: fmt.Sprintf("Primary wallet needs minimum of %v %v to proceed.", os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"), os.Getenv("NATIVE_ASSET_CODE"))}
+			return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error primary wallet needs funding", ErrMessage: fmt.Sprintf("Primary wallet needs minimum of %v %v to proceed.", os.Getenv("ACCOUNT_RECOVERY_MINIMUM_BALANCE"), os.Getenv("NATIVE_ASSET_CODE"))}
 
 		}
 	}
@@ -558,7 +574,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	recoveryKeyPair, _ := bc.RecoveryAccountKeypair(user.Username, user.PublicKey)
 	recoveryAddress := recoveryKeyPair.Address()
 	if len(recoveryAddress) == 0 {
-		return multiAccessWallets, &tErrors.CustomError{Param: "username", Err: "error generating recovery address", ErrMessage: "Could not generate valid recovery address for account."}
+		return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error generating recovery address", ErrMessage: "Could not generate valid recovery address for account."}
 
 	}
 	//activate new signer Address and add signer to primary key
@@ -574,7 +590,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 			messages = append(messages, fmt.Sprintf("%v %v will be deducted from your wallet [%v] to activate your new signer key on the blockchain.", os.Getenv("RECOVERY_SIGNER_ACTIVATION_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), user.Username))
 
 		} else {
-			return multiAccessWallets, &tErrors.ErrorTemporaryServerError{}
+			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
 		}
 
 	}
@@ -665,8 +681,8 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 
 	}
 
-	{ //add fee for transaction
-
+	if len(user.WalletsSharedWithUser) > 0 { //warn about permission removals
+		messages = append(messages, "As a strict security protocol, continuing with account recovery will purge all your approver permissions from any wallets that you have such permissions on. The approvers on those wallets will be notified to re-instate your permission once this the recovery process completed.")
 	}
 	//last operation
 	if payload.DisableOldSignerFromPrimaryWallet == 1 {
@@ -697,7 +713,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 	if payload.Commit == 0 {
 		//initial request
 		payload.Messages = messages
-		return multiAccessWallets, nil
+		return multiAccessWallets, sharedApproverWallets, nil
 	}
 	//commit request
 	if payload.Commit == 1 {
@@ -707,7 +723,7 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		dbErr := dbtx.Save(user).Error
 		if dbErr != nil {
 			log.Println("[DoAccountRecovery]error saving user database status ", err)
-			return multiAccessWallets, &tErrors.ErrorTemporaryServerError{}
+			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
 		}
 		for i, v := range wallets {
 			v.Signer = payload.NewSignerPublicKey
@@ -716,14 +732,34 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		dbErr = dbtx.Save(&wallets).Error
 		if dbErr != nil {
 			log.Println("[DoAccountRecovery]error saving wallet signers database status ", err)
-			return multiAccessWallets, &tErrors.ErrorTemporaryServerError{}
+			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
+		}
+		//do database operation
+		{
+			//remove from existing shared access list
+			deletingPermissions := make([]string, 0) //
+			for _, permission := range user.WalletsSharedWithUser {
+				if permission.Permission != "APPROVER" {
+					continue
+				}
+				sharedApproverWallets = append(sharedApproverWallets, permission)
+				deletingPermissions = append(deletingPermissions, permission.ID)
+
+			}
+			//remove from wallets
+			if len(deletingPermissions) > 0 {
+				e := dbtx.Where("id IN (?)", deletingPermissions).Delete(&userModels.WalletPermission{}).Error
+				log.Println("[DoAccountRecovery]error deleting permissions from shared wallets database status ", e)
+				return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
+			}
+
 		}
 		RemoveAccountRecoveryEmailOTP(user, payload.EmailOTP, dbtx)
 		memo := "Recovering Account"
 		log.Println("[DoAccountRecovery] Memo:", memo)
 
 		if len(ops) == 0 {
-			return multiAccessWallets, &tErrors.CustomError{Param: "username", Err: "error no operations to perform", ErrMessage: "Could not find any operations to perform for this action."}
+			return multiAccessWallets, sharedApproverWallets, &tErrors.CustomError{Param: "username", Err: "error no operations to perform", ErrMessage: "Could not find any operations to perform for this action."}
 
 		}
 		tx, err := txnbuild.NewTransaction(
@@ -739,26 +775,27 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 
 		if err != nil {
 			log.Println("[DoAccountRecovery]error constructing transaction ", err)
-			return multiAccessWallets, &tErrors.ErrorTemporaryServerError{}
+			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
 		}
 
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), recoveryKeyPair)
 		if err != nil {
 			log.Println("[DoAccountRecovery]error signing transaction ", err)
-			return multiAccessWallets, &tErrors.ErrorTemporaryServerError{}
+			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
 		}
 		resp, err := client.SubmitTransaction(tx)
 		if err != nil {
 			log.Println("[DoAccountRecovery]error submitting transaction ", err)
-			return multiAccessWallets, &tErrors.ErrorTemporaryServerError{}
+			return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
 		}
 		log.Println("[DoAccountRecovery]successfully submitted transaction", resp)
-		//do database operation
+
 		dbtx.Commit()
 		payload.TransactionID = resp.Hash
-		return multiAccessWallets, nil
+		user.InvalidateUserCache(gc)
+		return multiAccessWallets, sharedApproverWallets, nil
 	}
-	return multiAccessWallets, &tErrors.ErrorTemporaryServerError{}
+	return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
 }
 
 func DoInactiveAccountRecover(subjectUser *userModels.User, payload *userModels.InactiveAccountRecoveryRequest, gc *sharedconfig.GlobalConfig) (userInfo userModels.UserInfo, err error) {

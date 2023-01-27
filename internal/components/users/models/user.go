@@ -276,6 +276,14 @@ type UserAccountRecoveryPayload struct {
 	SecurityAnswers      UserSecurityAnswer `json:"securityAnswers"`
 }
 
+type UserAccountRecoveryLog struct {
+	CreatedAt          time.Time `json:"createdAt"`
+	Username           string    `gorm:"size:100;primaryKey" json:"username"`
+	OldSignerPublicKey string    `gorm:"size:100;primaryKey" json:"oldSignerPublicKey"`
+	NewSignerPublicKey string    `gorm:"size:100" json:"newSignerPublicKey"`
+	MasterWallet       int       `gorm:"default:0" json:"masterWallet"`
+}
+
 type AccountRecoveryRequest struct {
 	NewSignerPublicKey                string             `json:"newSignerPublicKey"`
 	DisableOldSignerFromPrimaryWallet uint64             `json:"disableOldSignerFromPrimaryWallet"`
@@ -286,6 +294,7 @@ type AccountRecoveryRequest struct {
 	Username                          string             `json:"username"`
 	TransactionID                     string             `json:"transactionId"`
 }
+
 type InactiveAccountRecoveryRequest struct {
 	NewSignerPublicKey string             `json:"newSignerPublicKey"`
 	SecurityAnswers    UserSecurityAnswer `json:"securityAnswers"`

@@ -140,6 +140,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserWallet: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.UserAccountRecoveryLog{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserAccountRecoveryLog: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.PatronPackage{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating PatronPackage: ", errMigrate)

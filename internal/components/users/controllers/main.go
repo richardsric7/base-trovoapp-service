@@ -2007,7 +2007,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 
 		conDB.PrintDBStats(fmt.Sprintf("POST /v1/users/account/recover  %v", user.Username), gc.DB)
-		_, err = userServices.DoAccountRecovery(&user, &payload, gc)
+		_, sharedApproverWallets, err := userServices.DoAccountRecovery(&user, &payload, gc)
 		if err != nil {
 			var ex tErrors.GenericError
 			var ok bool
@@ -2022,14 +2022,51 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		}
 
 		//At this point, there was no error.
-		if payload.Commit == 1 {
+		if payload.Commit == 1 && len(payload.TransactionID) > 0 {
 			c.JSON(http.StatusOK, payload)
-
+			userMessage := fmt.Sprintf("Congratulations! You have successfully recovered your account [%v]. Please import the new secret key using the same username specified.", user.Username)
+			if len(sharedApproverWallets) > 0 {
+				userMessage = "\n Your approver permissions on any shared wallets has been revoked. All approvers/initiators on the wallets has been notified to re-instate your permissions."
+			}
 			if user.PushNotificationToken != nil {
 				dataPayload := make(map[string]string)
-				dataPayload["none"] = ""
-				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Successful!", fmt.Sprintf("Congratulations! You have successfully recovered your account [%v]. Please import the new secret key using the same username specified.", user.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+				dataPayload["route"] = "none"
+				pns.SendFirebaseMessage(*user.PushNotificationToken, "Account Recovery Successful!", userMessage, "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
 			}
+			if len(sharedApproverWallets) > 0 {
+				for _, walletPermission := range sharedApproverWallets {
+					{
+						notificationList := make(map[string]string)
+						//start push notificationMessage
+						wallet, e := userModels.UserWalletID(walletPermission.WalletPublicKey).GetWallet(gc.DB, gc)
+						if e != nil {
+							return
+						}
+						permissionList := wallet.Permissions
+						for _, v := range permissionList {
+
+							u, e := userModels.Username(v.TargetUsername).GetSimpleUser(gc.DB, gc)
+							if e != nil {
+								continue
+							}
+
+							if u.PushNotificationToken != nil && v.Permission != "VIEW-ONLY" {
+								if _, ok := notificationList[*u.PushNotificationToken]; ok {
+									continue
+								}
+								dataPayload := make(map[string]string)
+								dataPayload["route"] = "pendingApproval"
+
+								pns.SendFirebaseMessage(*u.PushNotificationToken, fmt.Sprintf("%v's %v permission on %v has been revoked!", user.Username, walletPermission.Permission, wallet.Alias), fmt.Sprintf("As part of strict security protocol, %v's %v permission on the wallet %v has been revoked due to account recovery!\n Please follow procedure to initiate re-instating this user immediately so that they can perform the functions as you assign to them. This is a security procedure, so first confirm from %v that the account recovery was intentional.", user.Username, walletPermission.Permission, wallet.Alias, user.Username), "", dataPayload, gc.PushNotificationClient, gc.PNSContext)
+								notificationList[*u.PushNotificationToken] = v.TargetUsername
+
+							}
+						}
+					}
+				}
+
+			}
+
 		} else {
 			c.JSON(http.StatusAccepted, payload)
 		}
