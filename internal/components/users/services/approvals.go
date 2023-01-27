@@ -248,7 +248,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 			return &tErrors.CustomError{
 				Param:      "id",
 				Err:        "error-signer-is-invalid",
-				ErrMessage: fmt.Sprintf("%v account may have been recovered without wallet permission being re-instated. Please contact wallet approver to re-instate your access.", signerUser.Username),
+				ErrMessage: fmt.Sprintf("%v account may have been recovered without wallet permission being re-instated. Please contact the wallet permission holders to re-instate your access.", signerUser.Username),
 				Code:       http.StatusForbidden,
 			}
 		}
