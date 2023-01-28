@@ -645,13 +645,28 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 
 	//service login refresh token url
 	router.POST("/v1/servicelinks/token/refresh", func(c *gin.Context) {
-		mapToken := map[string]string{}
-		if err := c.ShouldBindJSON(&mapToken); err != nil {
-			log.Printf("[HandleRefreshToken] error could not bind json body: %v\n", err)
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "unable to retrieve refresh token"})
+
+		type MapToken struct {
+			RefreshToken string `json:"refreshToken"`
+		}
+		var mapToken MapToken
+		reqBody, _ := io.ReadAll(c.Request.Body)
+
+		err := json.Unmarshal(reqBody, &mapToken)
+
+		// var invalidJSON tErrors.ErrorInvalidJSON
+
+		if err != nil {
+			log.Printf("[HandleRefreshToken] Login Request Input JSON Error:%v\nBody:%v\n", err, string(reqBody))
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "error-unable-to-retrieve-refresh-token", "message": "Unable to retrieve refresh token."})
 			return
 		}
-		refreshToken := mapToken["refreshToken"]
+		if len(mapToken.RefreshToken) == 0 {
+			log.Println("[HandleRefreshToken] refresh token is empty...")
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "error-empty-refresh-token", "message": "Refresh token is empty"})
+			return
+		}
+		refreshToken := mapToken.RefreshToken
 
 		//verify the token
 		refreshReponse, err := userServices.RefreshToken(refreshToken, gc)
