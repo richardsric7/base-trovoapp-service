@@ -62,6 +62,16 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	})
 
+	//websocket stream
+	router.GET("/v1/stream/orderbook", func(c *gin.Context) {
+
+		conDB.PrintDBStats("/v1/stream/orderbook", gc.DB)
+		log.Println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<orderbook Websocket connection detected>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+		userServices.OrderBookSocketAPI(c, gc)
+
+	})
+
 	router.GET("/v1/users/payments/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
 

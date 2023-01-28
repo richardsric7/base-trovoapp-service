@@ -73,8 +73,15 @@ type MintingInfo struct {
 	CallbackURLS            map[string]string `json:"-"`
 }
 type BantuAsset struct {
-	AssetCode   string
-	AssetIssuer string
+	AssetCode   string `json:"assetCode"`
+	AssetIssuer string `json:"assetIssuer"`
+}
+
+type OrderBook struct {
+	Bids     []string   `json:"bids"`
+	Asks     []string   `json:"asks"`
+	Asset    BantuAsset `json:"asset"`
+	Currency BantuAsset `json:"currency"`
 }
 
 func (i BantuAsset) GetDataKey(key string, gc *sharedconfig.GlobalConfig) string {

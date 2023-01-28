@@ -10,7 +10,6 @@ import (
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
 
-	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/protocols/horizon"
 	"gorm.io/gorm"
@@ -25,6 +24,21 @@ type OrderBookRequestInput struct {
 	BuyingAssetCode    string `json:"buying_asset_code" form:"buying_asset_code"`
 	BuyingAssetIssuer  string `json:"buying_asset_issuer" form:"buying_asset_issuer"`
 	Limit              string `json:"limit" form:"limit"`
+}
+type Asset struct {
+	AssetCode   string `json:"assetCode"`
+	AssetIssuer string `json:"assetIssuer"`
+}
+
+type OfferVolume struct {
+	Price    string `json:"price"`
+	Quantity string `json:"quantity"`
+}
+type OrderBook struct {
+	Bids     []OfferVolume `json:"bids"`
+	Asks     []OfferVolume `json:"asks"`
+	Asset    Asset         `json:"asset"`
+	Currency Asset         `json:"currency"`
 }
 
 // getBantuOrderBookSummary gets orderbook on bantu network
@@ -53,7 +67,7 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 	}
 
 	if input.Limit == "" {
-		limit = 50
+		limit = 200
 	} else {
 		plimit, _ := strconv.ParseInt(input.Limit, 10, 64)
 		limit = uint(plimit)
@@ -166,14 +180,8 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 			log.Printf("[Error GetDollarAskPrice]: error fetching dollar ASK price for asset %v, err: %v\n", errAssetCode, err)
 			return "0", priceType, &bantupayerrors.ErrorTemporaryServerError{}
 		}
-		n := orderBook.Bids[0].PriceR.N
-		d := orderBook.Bids[0].PriceR.D
-		//for currency quote, invert it
-		if n == 1 {
-			usdPrice = fmt.Sprintf("%v", d)
-		} else {
-			usdPrice = (decimal.NewFromInt32(d).Div(decimal.NewFromInt32(n))).Truncate(7).String()
-		}
+		usdPrice = orderBook.Bids[0].Price
+
 		gc.RedisCache.StoreResultToCacheRaw(cacheKey, []byte(fmt.Sprintf("%v:%v", usdPrice, priceType)), 10000)
 		return usdPrice, priceType, nil
 	}
@@ -191,7 +199,6 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string) (nativePrice
 		nativeIssuer = nv[1]
 	}
 	var input OrderBookRequestInput
-
 
 	input.SellingAssetCode = sellingAssetCode
 	input.SellingAssetIssuer = sellingAssetIssuer
@@ -213,4 +220,107 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string) (nativePrice
 
 	// fmt.Printf("OrderBookSummary: %+v\n", orderBook)
 	return nativePrice, nil
+}
+
+// GetOrderBook
+func GetOrderBook(assetCode, assetIssuer, currencyCode, currencyIssuer string) (trovoOrderBook OrderBook, err error) {
+	trovoOrderBook.Asks = make([]OfferVolume, 0)
+	trovoOrderBook.Bids = make([]OfferVolume, 0)
+	trovoOrderBook.Currency = Asset{
+		AssetCode:   currencyCode,
+		AssetIssuer: currencyIssuer,
+	}
+	trovoOrderBook.Asset = Asset{
+		AssetCode:   assetCode,
+		AssetIssuer: assetIssuer,
+	}
+	if strings.EqualFold(assetCode, os.Getenv("NATIVE_ASSET_CODE")) {
+		assetCode = ""
+		assetIssuer = ""
+	}
+	if strings.EqualFold(currencyCode, os.Getenv("NATIVE_ASSET_CODE")) {
+		currencyCode = ""
+		currencyIssuer = ""
+	}
+
+	var input OrderBookRequestInput
+
+	input.SellingAssetCode = assetCode
+	input.SellingAssetIssuer = assetIssuer
+	input.BuyingAssetCode = currencyCode
+	input.BuyingAssetIssuer = currencyIssuer
+
+	orderBook, err := getBantuOrderBookSummary(input)
+	if err != nil {
+		log.Printf("[GetOrderBook]Error getting order book summary: %v\n", err)
+		return
+	}
+
+	//process bids
+
+	for _, bid := range orderBook.Bids {
+		trovoOrderBook.Bids = append(trovoOrderBook.Bids, OfferVolume{
+			Price:    bid.Price,
+			Quantity: bid.Amount,
+		})
+	}
+
+	//process asks
+
+	for _, ask := range orderBook.Asks {
+		trovoOrderBook.Asks = append(trovoOrderBook.Asks, OfferVolume{
+			Price:    ask.Price,
+			Quantity: ask.Amount,
+		})
+	}
+
+	return trovoOrderBook, nil
+
+}
+
+// ProcessOrderBookEvent
+func ProcessOrderBookEvent(orderBook horizon.OrderBookSummary) (trovoOrderBook OrderBook, err error) {
+	trovoOrderBook.Asks = make([]OfferVolume, 0)
+	trovoOrderBook.Bids = make([]OfferVolume, 0)
+	if len(orderBook.Selling.Code) == 0 {
+		trovoOrderBook.Asset = Asset{
+			AssetCode: os.Getenv("NATIVE_ASSET_CODE"),
+		}
+	} else {
+		trovoOrderBook.Asset = Asset{
+			AssetCode:   orderBook.Selling.Code,
+			AssetIssuer: orderBook.Selling.Issuer,
+		}
+	}
+	if len(orderBook.Buying.Code) == 0 {
+		trovoOrderBook.Currency = Asset{
+			AssetCode: os.Getenv("NATIVE_ASSET_CODE"),
+		}
+	} else {
+		trovoOrderBook.Currency = Asset{
+			AssetCode:   orderBook.Buying.Code,
+			AssetIssuer: orderBook.Buying.Issuer,
+		}
+	}
+
+	//process bids
+
+	for _, bid := range orderBook.Bids {
+		trovoOrderBook.Bids = append(trovoOrderBook.Bids, OfferVolume{
+			Price:    bid.Price,
+			Quantity: bid.Amount,
+		})
+	}
+
+	//process asks
+
+	for _, ask := range orderBook.Asks {
+		trovoOrderBook.Asks = append(trovoOrderBook.Asks, OfferVolume{
+			Price:    ask.Price,
+			Quantity: ask.Amount,
+		})
+	}
+
+	return trovoOrderBook, nil
+
 }

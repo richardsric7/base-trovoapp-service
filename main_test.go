@@ -3387,13 +3387,13 @@ func TestCreateMarketOffer(t *testing.T) {
 	}
 
 	payload := MarketOfferRequest{
-		OfferType:      "SELL",
-		AssetCode:      "NETFLIXSUBSC",
-		AssetIssuer:    "GAWLRSFF6Y72AYJ5OWV4HVLP56TJAIWKGPFC7N3K22BUBY245ZTKJNHW",
-		CurrencyCode:   "TROV",
-		CurrencyIssuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
-		PricePerUnit:   "0.00018",
-		Quantity:       "2000000",
+		OfferType:      "BUY",
+		AssetCode:      "TROV",
+		AssetIssuer:    "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
+		CurrencyCode:   "USDT",
+		CurrencyIssuer: "GDZU5X5QPC73ZNZKW7KX5PCIKJCE3ENJ52KAOHOSAFWGG33J34ZNPJ7J",
+		PricePerUnit:   "0.48",
+		Quantity:       "20000",
 	}
 
 	errorResponse := new(ErrorResponse)
