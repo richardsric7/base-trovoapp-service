@@ -3387,7 +3387,7 @@ func TestCreateMarketOffer(t *testing.T) {
 	}
 
 	payload := MarketOfferRequest{
-		OfferType:      "BUY",
+		OfferType:      "SELL",
 		AssetCode:      "NETFLIXSUBSC",
 		AssetIssuer:    "GAWLRSFF6Y72AYJ5OWV4HVLP56TJAIWKGPFC7N3K22BUBY245ZTKJNHW",
 		CurrencyCode:   "TROV",

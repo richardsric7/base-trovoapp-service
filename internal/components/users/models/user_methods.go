@@ -131,6 +131,13 @@ func (u *User) SignerIsValid(signerKey string, temp bool) bool {
 func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances map[string]Balance, err error) {
 	balances = make(map[string]Balance)
 	depositAddresses := make([]CryptoWalletDepositAddress, 0)
+	var nativeCode, nativeIssuer, nativeUsdPrice string
+	nv := strings.Split(os.Getenv("USE_ASSET_FOR_NATIVE_PRICE"), ":")
+	if len(nv) == 2 {
+		nativeCode = nv[0]
+		nativeIssuer = nv[1]
+	}
+
 	xbnUsdPrice, _ := blockchain.GetXBNDollarAskPrice(gc.DB)
 	xbnNativePrice := "1"
 	// log.Println("xbnUsdPrice", xbnUsdPrice)
@@ -191,6 +198,11 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 		}
 		return balances, err
 	}
+	if len(nv) == 2 {
+		nativeUsdPrice, _, _ = blockchain.GetDollarPrice(nativeCode, nativeIssuer, gc)
+	} else {
+		nativeUsdPrice = xbnUsdPrice
+	}
 
 	var wg sync.WaitGroup
 	var m sync.Mutex
@@ -220,16 +232,44 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 			// availableBalance := amount.Sub(sellingLiabilities.Add(buyingLiabilities))
 			// availableBalance := amount
 			// availableBalance := availableBal.Truncate(7).String()
-			if bal.Issuer != "" && bal.Code != "" {
-				assetNativePrice, _ := blockchain.GetNativeAskPrice(bal.Code, bal.Issuer)
 
-				xbnUsdPriceDec := decimal.RequireFromString(xbnUsdPrice)
-				nativePriceDec := decimal.RequireFromString(assetNativePrice)
-				assetUsdPrice = nativePriceDec.Mul(xbnUsdPriceDec).Truncate(7).String()
+			if bal.Issuer != nativeIssuer && bal.Code != nativeCode {
+				if len(bal.Code) == 0 {
+					assetUsdPrice = xbnUsdPrice
+					assetNativePrice = xbnNativePrice
+				} else {
+					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer)
+					dollarAsset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
+					if len(dollarAsset) == 2 {
+						if strings.EqualFold(bal.Code, dollarAsset[0]) && strings.EqualFold(bal.Issuer, dollarAsset[1]) {
+							//it is dollar asset
+							assetUsdPrice = "1"
+
+						} else if strings.HasPrefix(bal.Code, "USD") || strings.HasSuffix(bal.Code, "USD") {
+							assetUsdPrice = "1"
+						} else {
+							nativeUsdPriceDec := decimal.RequireFromString(nativeUsdPrice)
+							nativePriceDec := decimal.RequireFromString(assetNativePrice)
+							assetUsdPrice = nativePriceDec.Mul(nativeUsdPriceDec).Truncate(7).String()
+						}
+					} else {
+						nativeUsdPriceDec := decimal.RequireFromString(nativeUsdPrice)
+						nativePriceDec := decimal.RequireFromString(assetNativePrice)
+						assetUsdPrice = nativePriceDec.Mul(nativeUsdPriceDec).Truncate(7).String()
+					}
+
+				}
+
 			}
-			if bal.Issuer == "" && bal.Code == "" {
-				assetUsdPrice = xbnUsdPrice
-				assetNativePrice = xbnNativePrice
+			if bal.Issuer == nativeIssuer && bal.Code == nativeCode {
+				if len(nativeCode) == 0 {
+					assetUsdPrice = xbnUsdPrice
+					assetNativePrice = xbnNativePrice
+				} else {
+					assetUsdPrice = nativeUsdPrice
+					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer)
+				}
+
 			}
 
 			qrCode := ""

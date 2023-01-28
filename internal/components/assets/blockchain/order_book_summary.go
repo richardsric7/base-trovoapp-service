@@ -1,13 +1,16 @@
 package assets
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 	bantupayerrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
+	"trovo-wallet-api/internal/sharedconfig"
 
+	"github.com/shopspring/decimal"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/protocols/horizon"
 	"gorm.io/gorm"
@@ -108,52 +111,96 @@ func GetXBNDollarAskPrice(db *gorm.DB) (usdPrice string, err error) {
 
 }
 
-// GetDollarAskPrice dollar ask price using USDB
-func GetDollarAskPrice(sellingAssetCode, sellingAssetIssuer string) (usdPrice string, err error) {
+// GetDollarPrice dollar ask price using USDB
+func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig) (usdPrice, priceType string, err error) {
 	var input OrderBookRequestInput
+	priceType = "ask"
+	usdPrice = "0"
+	sellingAssetCode = strings.ToUpper(sellingAssetCode)
+	//sell main asset, buying currency (dollar)
 	var errAssetCode string
 	if sellingAssetCode == "" {
 		errAssetCode = "native"
 	} else {
 		errAssetCode = sellingAssetCode
 	}
+	cacheKey := fmt.Sprintf("%v.%v_dollar", sellingAssetCode, sellingAssetIssuer)
 	input.SellingAssetCode = sellingAssetCode
 	input.SellingAssetIssuer = sellingAssetIssuer
-	if os.Getenv("DOLLAR_ASSET") != "" {
-		//USDB:GBTNUZDIUMWZEGTNQCL5F73PIABCBJ4YQA2VJS7HXTBRDDSTWCE6UNXE
-		asset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
-		input.BuyingAssetCode = asset[0]
-		input.BuyingAssetIssuer = asset[1]
-	} else {
-		input.BuyingAssetCode = "USDB"
-		input.BuyingAssetIssuer = "GBTNUZDIUMWZEGTNQCL5F73PIABCBJ4YQA2VJS7HXTBRDDSTWCE6UNXE"
+	dollarAsset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
+	if len(dollarAsset) != 2 {
+		return "0", priceType, &bantupayerrors.ErrorTemporaryServerError{}
 	}
+
+	if strings.EqualFold(sellingAssetCode, dollarAsset[0]) && strings.EqualFold(sellingAssetIssuer, dollarAsset[1]) {
+		//it is dollar asset
+		return "1", priceType, nil
+	}
+
+	if strings.HasPrefix(sellingAssetCode, "USD") || strings.HasSuffix(sellingAssetCode, "USD") {
+		return "1", priceType, nil
+	}
+
+	input.BuyingAssetCode = dollarAsset[0]
+	input.BuyingAssetIssuer = dollarAsset[1]
+
 	orderBook, err := getBantuOrderBookSummary(input)
+	if err != nil {
+		log.Printf("[GetDollarPrice] error getting order book summary: %v\n", err)
+		//fetch from last stored in cache
+		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
+		if ok {
+			cp := string(concatPriceByte)
+			s := strings.Split(cp, ":")
+			return s[0], s[1], nil
+		}
+
+		return
+
+	}
 
 	if len(orderBook.Asks) == 0 {
-		log.Printf("[Error GetDollarAskPrice]: error fetching dollar ASK price for asset %v, err: %v\n", errAssetCode, err)
-		return "0", &bantupayerrors.ErrorTemporaryServerError{}
+		priceType = "bid"
+		if len(orderBook.Bids) == 0 {
+
+			log.Printf("[Error GetDollarAskPrice]: error fetching dollar ASK price for asset %v, err: %v\n", errAssetCode, err)
+			return "0", priceType, &bantupayerrors.ErrorTemporaryServerError{}
+		}
+		n := orderBook.Bids[0].PriceR.N
+		d := orderBook.Bids[0].PriceR.D
+		//for currency quote, invert it
+		if n == 1 {
+			usdPrice = fmt.Sprintf("%v", d)
+		} else {
+			usdPrice = (decimal.NewFromInt32(d).Div(decimal.NewFromInt32(n))).Truncate(7).String()
+		}
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, []byte(fmt.Sprintf("%v:%v", usdPrice, priceType)), 10000)
+		return usdPrice, priceType, nil
 	}
 	usdPrice = orderBook.Asks[0].Price
-	// else if len(orderBook.Bids) > 0 {
-	// 	price = orderBook.Bids[0].Price
-	// }
-
-	// fmt.Printf("OrderBookSummary: %+v\n", orderBook)
-	return usdPrice, nil
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, []byte(fmt.Sprintf("%v:%v", usdPrice, priceType)), 10000)
+	return usdPrice, priceType, nil
 }
 
 // GetNativeAskPrice native (XBN) ask price
 func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string) (nativePrice string, err error) {
-
-	var input OrderBookRequestInput
-	if sellingAssetCode == "" {
-
-		return "0", &bantupayerrors.ErrorTemporaryServerError{}
+	var nativeCode, nativeIssuer string
+	nv := strings.Split(os.Getenv("USE_ASSET_FOR_NATIVE_PRICE"), ":")
+	if len(nv) == 2 {
+		nativeCode = nv[0]
+		nativeIssuer = nv[1]
 	}
+	var input OrderBookRequestInput
+
+
 	input.SellingAssetCode = sellingAssetCode
 	input.SellingAssetIssuer = sellingAssetIssuer
+	input.BuyingAssetCode = nativeCode
+	input.BuyingAssetIssuer = nativeIssuer
 
+	if sellingAssetCode == nativeCode && sellingAssetIssuer == nativeIssuer {
+		return "1", nil
+	}
 	orderBook, err := getBantuOrderBookSummary(input)
 
 	if len(orderBook.Asks) == 0 || err != nil {
