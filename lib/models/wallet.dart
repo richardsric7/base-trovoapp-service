@@ -21,7 +21,7 @@ class Wallet {
   // not part of the user data but needed for
   // when a user has more than one access on
   // a shared wallet i.e. [APPROVER, INITITOR]
-  List<String>? accesses; // singular, for shared wallet
+  List<String>? accesses; // plural, for shared wallet
   String? permission; // singular, for shared wallet
   String? owner; // for shared wallet
   List<Asset>? claimedAssets;
@@ -74,14 +74,20 @@ class Wallet {
     };
   }
 
-  Wallet deserializeJson(Map<String, dynamic> m, assetBalances) {
+  Wallet deserializeJson(
+    Map<String, dynamic> m,
+    assetBalances,
+    String username,
+  ) {
     return Wallet(
       createdAt: DateTime.parse(m["createdAt"]),
       publicKey: m["publicKey"],
       secretKey: m["secretKey"],
       tag: m["tag"],
       description: m["description"],
+      owner: username,
       alias: m["alias"],
+      accesses: getAccesses(m["permissions"], username),
       signer: m["signer"],
       userId: m["userId"],
       sharedAccessEnabled: m["sharedAccessEnabled"],
@@ -128,6 +134,18 @@ class Wallet {
             : null,
         claimedAssets: deserializeAssetList(m["assetBalances"]["claimed"]),
         unClaimedAssets: deserializeAssetList(m["assetBalances"]["unclaimed"]));
+  }
+
+  List<String> getAccesses(permissions, String username) {
+    var accesses = <String>[];
+
+    for (var i = 0; i < permissions.length; i++) {
+      if (permissions[i]['targetUsername'] == username &&
+          !accesses.contains(permissions[i]['permission'])) {
+        accesses.add(permissions[i]['permission']);
+      }
+    }
+    return accesses;
   }
 
   List<Permission> getPermissionList(permissionArrayString) {

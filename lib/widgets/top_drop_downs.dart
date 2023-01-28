@@ -56,7 +56,7 @@ class _TopDropdownsState extends State<TopDropdowns> {
 
   List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
     var walletsList = <DropdownMenuItem<String>>[];
-    appState.userInfo!.allWallets.forEach((wallet) {
+    appState.userInfo!.getAllWallets().forEach((wallet) {
       walletsList.add(
         DropdownMenuItem(
           child: Row(
