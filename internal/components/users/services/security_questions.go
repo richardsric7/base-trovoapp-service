@@ -66,6 +66,7 @@ func SaveUserSecurityQuestions(user *userModels.User, answer userModels.UserSecu
 		user.HasSecurityQuestions = 1
 		db.Save(user)
 	}
+	
 	return nil
 
 }

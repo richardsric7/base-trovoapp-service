@@ -274,6 +274,10 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	if err == nil && len(multiAccessWallets) > 0 {
 		log.Printf("Skipped wallets %+v\n", multiAccessWallets)
 	}
+	user.InvalidateUserCache(gc)
+	owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
+	user = &owner
+
 	return nil
 
 }
@@ -500,6 +504,9 @@ func DisableAccountRecovery(user *userModels.User, payload *userModels.UserAccou
 	if err == nil && len(multiAccessWallets) > 0 {
 		log.Printf("Skipped wallets %+v\n", multiAccessWallets)
 	}
+	user.InvalidateUserCache(gc)
+	owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
+	user = &owner
 	return nil
 
 }
@@ -793,6 +800,8 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 		dbtx.Commit()
 		payload.TransactionID = resp.Hash
 		user.InvalidateUserCache(gc)
+		owner, _ := userModels.Username(user.Username).GetFullUser(gc.DB, gc)
+		user = &owner
 		return multiAccessWallets, sharedApproverWallets, nil
 	}
 	return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
