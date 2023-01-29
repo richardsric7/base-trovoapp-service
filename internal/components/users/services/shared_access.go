@@ -1279,7 +1279,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 		return "", messages, walletMustSign, errWalletAct
 	}
-	if !walletAccountExists || (walletAccountNativeBalance.Sub(activationAmount)).LessThan(minBalance) {
+	if !walletAccountExists || (walletAccountNativeBalance).LessThan(minBalance) {
 		log.Printf("[generateCreateSharedAccessXdr] by [%v] shared WalletAccount underfunded \n", wallet.Alias)
 
 		err = &tErrors.CustomError{
@@ -1381,35 +1381,35 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 
 	//activating shared access is free. No fee, except for view only access.
 	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
-	serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	if e != nil {
-		serviceFee = decimal.Zero
-	}
-	if serviceFee.IsPositive() {
-		if len(approvers) == 0 {
-			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: wallet.ID,
-					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
-				})
-				messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee for creating view only access.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
+	// serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+	// if e != nil {
+	// 	serviceFee = decimal.Zero
+	// }
+	// if serviceFee.IsPositive() {
+	// 	if len(approvers) == 0 {
+	// 		//process service fee
+	// 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {
+	// 			ops = append(ops, &txnbuild.Payment{
+	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+	// 				SourceAccount: wallet.ID,
+	// 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
+	// 			})
+	// 			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee for creating view only access.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
 
-			} else {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: wallet.ID,
-					Asset:         txnbuild.NativeAsset{},
-				})
-				messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee for creating view only access.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
+	// 		} else {
+	// 			ops = append(ops, &txnbuild.Payment{
+	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
+	// 				SourceAccount: wallet.ID,
+	// 				Asset:         txnbuild.NativeAsset{},
+	// 			})
+	// 			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee for creating view only access.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
 
-			}
+	// 		}
 
-		}
-	}
+	// 	}
+	// }
 
 	// Construct the transaction that holds the operations to execute on the network
 	{
