@@ -95,7 +95,7 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 		offerRequest.CurrencyIssuer = ""
 	}
 	serviceFee, e := decimal.NewFromString(os.Getenv("MARKET_MAKING_FEE_AMOUNT"))
-	if e != nil {
+	if e != nil || os.Getenv("MARKET_MAKING_FEE_ENABLED") == "0" {
 		serviceFee = decimal.Zero
 	}
 	totalQty := decimal.RequireFromString(offerRequest.Quantity).Truncate(7)
@@ -624,7 +624,7 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 
 	//service fee
 	var signForFeeTrustLine bool
-	if decimal.RequireFromString(offerRequest.FeeValue).IsPositive() {
+	if decimal.RequireFromString(offerRequest.FeeValue).IsPositive() && os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" {
 
 		//process service fee
 
