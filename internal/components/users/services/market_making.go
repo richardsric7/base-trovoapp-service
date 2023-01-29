@@ -623,29 +623,37 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 	}
 
 	//service fee
+	var signForFeeTrustLine bool
 	if decimal.RequireFromString(offerRequest.FeeValue).IsPositive() {
 
 		//process service fee
 
 		//no need deducting it as we deduct it as market executes
-		feeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
+		feeAssetCode := mainAsset.GetCode()
+		if mainAsset.IsNative() {
+			feeAssetCode = os.Getenv("NATIVE_ASSET_CODE")
+		}
+
 		if !mainAsset.IsNative() {
 			//ensure that the fee address is can accept the asset.
 			// but bcos  fee address needs to sign, it cannot be done here
-			mmFeeAddress := os.Getenv("MARKET_MAKING_FEE_ADDRESS")
+			mmfeeKeypair := keypair.MustParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
+			mmFeeAddress := mmfeeKeypair.Address()
+			signForFeeTrustLine = true
 			{
 				_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmFeeAddress, mainAsset)
 				if !feeAccountTrustsAsset {
-					//throw error
-
-					return "", &tErrors.CustomError{Param: "publicKey", Err: "error-asset-not-configured-for-fee-address", ErrMessage: fmt.Sprintf("Please contact support to configure %v fee for before you can perform this task.", mainAsset.GetCode()), Code: http.StatusBadRequest}
 
 					//establish trustline automatically
-					// ops = append(ops, &txnbuild.ChangeTrust{
-					// 	Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
-					// 	Limit:         "900000000000",
-					// 	SourceAccount: mmFeeAddress,
-					// })
+					ops = append(ops, &txnbuild.ChangeTrust{
+						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
+						Limit:         "900000000000",
+						SourceAccount: mmFeeAddress,
+					})
+
+					//throw error
+					// return "", &tErrors.CustomError{Param: "publicKey", Err: "error-asset-not-configured-for-fee-address", ErrMessage: fmt.Sprintf("Please contact support to configure %v fee for before you can perform this task.", mainAsset.GetCode()), Code: http.StatusBadRequest}
+
 				}
 			}
 			feeAssetCode = mainAsset.GetCode()
@@ -706,6 +714,16 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 
 		if err != nil {
 			log.Println("[generateMakeMarketXdr] error signing transaction with channelAccount key ", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
+	if signForFeeTrustLine {
+		mmfeeKeypair := keypair.MustParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), mmfeeKeypair)
+
+		if err != nil {
+			log.Println("[generateMakeMarketXdr] error signing transaction with market making fee key ", err)
 			return "", &tErrors.ErrorTemporaryServerError{}
 		}
 	}

@@ -294,21 +294,37 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	}
 	// totalFees = totalFees.Add(serviceFee)
 	// feeLabel := swapInfo.Fee + "%"
-	if serviceFee.IsPositive() {
+	var signForFeeTrustLine bool
+	if serviceFee.IsPositive() && os.Getenv("SWAP_FEE_ENABLED") == "1" {
 		//process service fee
 
+		//ensure that the fee address is can accept the asset.
+		// but bcos  fee address needs to sign, it cannot be done here
+		feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		feeAddress := feeKeypair.Address()
+
+		if !sourceAsset.IsNative() {
+			signForFeeTrustLine = true
+			_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, sourceAsset)
+			if !feeAccountTrustsAsset {
+
+				//establish trustline automatically
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: sourceAsset},
+					Limit:         "900000000000",
+					SourceAccount: feeAddress,
+				})
+
+			}
+		}
+
 		ops = append(ops, &txnbuild.Payment{
-			Destination:   os.Getenv("SWAP_FEE_ADDRESS"),
+			Destination:   feeAddress,
 			Amount:        serviceFee.String(),
 			SourceAccount: wallet.ID,
 			Asset:         sourceAsset,
 		})
-		// swapAssetCode := os.Getenv("NATIVE_ASSET_CODE")
-		// if !sourceAsset.IsNative() {
-		// 	swapAssetCode = sourceAsset.GetCode()
-		// }
 
-		// messages = append(messages, fmt.Sprintf("%v will be deducted as service fee.", feeLabel))
 		messages = append(messages, "Service fee will apply.")
 
 	}
@@ -359,6 +375,16 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 		return "", &tErrors.ErrorTemporaryServerError{}
 	}
 	// }
+
+	if signForFeeTrustLine {
+		feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
+
+		if err != nil {
+			log.Println("[generateSwapXdr] error signing transaction with swap fee key", err)
+			return "", &tErrors.ErrorTemporaryServerError{}
+		}
+	}
 
 	if err != nil {
 		log.Println("[generateSwapXdr]error constructing transaction ", err)

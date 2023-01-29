@@ -88,7 +88,7 @@ func main() {
 			"MNEMONIC_MARKET_MAKING", "MAX_ISSUED_ASSETS_PER_WALLET", "CHECK_CHANNEL_ACCOUNT_BALANCE",
 			"JWT_ACCESS_SECRET", "JWT_TOKEN_EXPIRY", "JWT_REFRESH_TOKEN_EXPIRY",
 			"SUBWALLET_FEE_AMOUNT_USD", "SUBWALLET_FEE_ASSET_ISSUER", "SUBWALLET_FEE_ASSET_CODE",
-			"SUBWALLET_FEE_ADDRESS", "DOLLAR_ASSET",
+			"SUBWALLET_FEE_ADDRESS", "DOLLAR_ASSET", "MARKET_MAKING_FEE_ENABLED", "SWAP_FEE_ENABLED",
 		}
 
 		for _, requiredEnvironmentVariable := range requiredEnvironmentVariables {
@@ -106,6 +106,32 @@ func main() {
 			log.Println("CRYPTO_DEPOSIT_MINTING_INITIATOR_PUBLIC_KEY environment variable is required when ENABLE_CRYPTO_DEPOSIT_MINTING is set to 1")
 
 			exit = true
+		}
+		if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" && len(os.Getenv("MARKET_MAKING_FEE_WALLET")) != 56 {
+			log.Println("MARKET_MAKING_FEE_WALLET environment variable is required when MARKET_MAKING_FEE_ENABLED is set to 1")
+
+			exit = true
+		}
+		if os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" {
+			_, err := keypair.ParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
+			if err != nil {
+				log.Println("MARKET_MAKING_FEE_WALLET  is invalid wallet secret key")
+
+				exit = true
+			}
+		}
+		if os.Getenv("SWAP_FEE_ENABLED") == "1" && len(os.Getenv("SWAP_FEE_WALLET")) != 56 {
+			log.Println("SWAP_FEE_WALLET environment variable is required when SWAP_FEE_ENABLED is set to 1")
+
+			exit = true
+		}
+		if os.Getenv("SWAP_FEE_ENABLED") == "1" {
+			_, err := keypair.ParseFull(os.Getenv("SWAP_FEE_WALLET"))
+			if err != nil {
+				log.Println("SWAP_FEE_WALLET is invalid wallet secret key")
+
+				exit = true
+			}
 		}
 
 		if exit {

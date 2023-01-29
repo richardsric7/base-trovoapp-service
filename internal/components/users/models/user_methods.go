@@ -1318,11 +1318,16 @@ func (u *UserWallet) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig) 
 }
 
 func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (swapFee string) {
-	fee := decimal.RequireFromString(os.Getenv("SWAP_FEE_AMOUNT"))
+	if os.Getenv("SWAP_FEE_ENABLED") == "1" {
+		fee := decimal.RequireFromString(os.Getenv("SWAP_FEE_AMOUNT"))
 
-	//TODO: check if user has zero swap fees
+		//TODO: check if user has zero swap fees
 
-	swapFee = fee.String()
+		swapFee = fee.String()
+	} else {
+		swapFee = "0"
+	}
+
 	return
 }
 
