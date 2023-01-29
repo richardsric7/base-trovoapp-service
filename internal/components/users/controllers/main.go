@@ -71,6 +71,15 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		userServices.OrderBookSocketAPI(c, gc)
 
 	})
+	//websocket stream
+	router.GET("/v1/stream/tradechart", func(c *gin.Context) {
+
+		conDB.PrintDBStats("/v1/stream/tradechart", gc.DB)
+		log.Println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<tradechart Websocket connection detected>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+		userServices.TradeChartSocketAPI(c, gc)
+
+	})
 
 	router.GET("/v1/users/payments/:targetPublicKeyForHistory", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		// var err error
