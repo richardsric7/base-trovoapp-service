@@ -588,9 +588,137 @@ func OrderBookSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 		buyingAssetType = horizonclient.AssetTypeNative
 		input.BuyingAssetIssuer = ""
 		input.BuyingAssetCode = ""
-	} else if input.BuyingAssetType == "credit_alphanum4" || len(input.BuyingAssetType) < 5 {
+	} else if input.BuyingAssetType == "credit_alphanum4" || len(input.BuyingAssetCode) < 5 {
 		buyingAssetType = horizonclient.AssetType4
-	} else if input.BuyingAssetType == "credit_alphanum12" || len(input.BuyingAssetType) > 4 {
+	} else if input.BuyingAssetType == "credit_alphanum12" || len(input.BuyingAssetCode) > 4 {
+		buyingAssetType = horizonclient.AssetType12
+	}
+
+	oRequest := horizonclient.OrderBookRequest{
+		SellingAssetCode:   input.SellingAssetCode,
+		SellingAssetIssuer: input.SellingAssetIssuer,
+		SellingAssetType:   sellingAssetType,
+		BuyingAssetCode:    input.BuyingAssetCode,
+		BuyingAssetIssuer:  input.BuyingAssetIssuer,
+		BuyingAssetType:    buyingAssetType,
+		Limit:              200,
+	}
+
+	orderbookStreamHandler := func(o horizon.OrderBookSummary) {
+		trovoOrderBook, err := blockchain.ProcessOrderBookEvent(o)
+		if err == nil {
+			message := gin.H{"stream": trovoOrderBook, "streamType": "orderBook"}
+			messageChan <- message
+		}
+
+	}
+
+	streamOrderBook := func() {
+
+		fmt.Println("Started Streaming ORDERBOOK EVENTS")
+		message := gin.H{"stream": "Started Orderbook Stream", "streamType": "notice"}
+		messageChan <- message
+
+		err = client.StreamOrderBooks(ctx, oRequest, orderbookStreamHandler)
+		if err != nil {
+			fmt.Println("stream effects error:", err)
+			cancel()
+		}
+
+	}
+
+	//try to read from ws and exit if cannot read.
+	go func() {
+		log.Println("@@@@@@started ws connection keepalive......")
+		for {
+			time.Sleep(30 * time.Second)
+			auth.Auth = true
+			auth.Message = "keep-alive"
+			message := gin.H{"stream": "keep-alive", "streamType": "keep-alive"}
+			messageChan <- message
+
+		}
+
+	}()
+
+	go streamOrderBook()
+
+	for {
+		v := <-messageChan
+		err = ws.WriteJSON(v)
+		if err != nil {
+			log.Printf("Error Sending stream: %v\nError %v\n", v, err)
+			ws.Close()
+			cancel()
+			break
+		}
+	}
+
+}
+
+// ChartHistorySocketAPI handles websocket connections
+func ChartHistorySocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
+	ws, err := upGrader.Upgrade(c.Writer, c.Request, nil)
+
+	var input horizonclient.OrderBookRequest
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	messageChan := make(chan map[string]interface{}, 200)
+	if err != nil {
+		log.Println("error get WS connection")
+	}
+	defer ws.Close()
+
+	var data userModels.OrderBookStream
+	var auth userModels.Handshake
+	err = ws.ReadJSON(&data)
+	defer ws.Close()
+	if err != nil {
+		log.Println("error read json")
+		ws.Close()
+		return
+	}
+	log.Printf("received subscriptionMessage: %+v\n", data)
+	input.SellingAssetCode = data.AssetCode
+	input.SellingAssetIssuer = data.AssetIssuer
+	input.BuyingAssetCode = data.CurrencyCode
+	input.BuyingAssetIssuer = data.CurrencyIssuer
+
+	if strings.EqualFold(data.AssetCode, os.Getenv("NATIVE_ASSET_CODE")) {
+		input.SellingAssetCode = ""
+		input.SellingAssetIssuer = ""
+	}
+
+	if strings.EqualFold(data.CurrencyCode, os.Getenv("NATIVE_ASSET_CODE")) {
+		input.BuyingAssetCode = ""
+		input.BuyingAssetIssuer = ""
+	}
+
+	auth.Auth = true
+	auth.Message = "success"
+	message := gin.H{"stream": auth, "streamType": "auth"}
+	ws.WriteJSON(message)
+
+	client := network.GetBlockchainClient()
+
+	var sellingAssetType, buyingAssetType horizonclient.AssetType
+	if (len(input.SellingAssetCode) == 0 && len(input.SellingAssetIssuer) == 0) || (input.SellingAssetCode == "native") {
+		sellingAssetType = horizonclient.AssetTypeNative
+		input.SellingAssetIssuer = ""
+		input.SellingAssetCode = ""
+	} else if input.SellingAssetType == "credit_alphanum4" || len(input.SellingAssetCode) < 5 {
+		sellingAssetType = horizonclient.AssetType4
+	} else if input.SellingAssetType == "credit_alphanum12" || len(input.SellingAssetCode) > 4 {
+		sellingAssetType = horizonclient.AssetType12
+	}
+
+	if (len(input.BuyingAssetCode) == 0 && len(input.BuyingAssetIssuer) == 0) || (input.BuyingAssetCode == "native") {
+		buyingAssetType = horizonclient.AssetTypeNative
+		input.BuyingAssetIssuer = ""
+		input.BuyingAssetCode = ""
+	} else if input.BuyingAssetType == "credit_alphanum4" || len(input.BuyingAssetCode) < 5 {
+		buyingAssetType = horizonclient.AssetType4
+	} else if input.BuyingAssetType == "credit_alphanum12" || len(input.BuyingAssetCode) > 4 {
 		buyingAssetType = horizonclient.AssetType12
 	}
 

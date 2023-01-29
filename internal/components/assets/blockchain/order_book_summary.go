@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 	bantupayerrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -40,6 +41,111 @@ type OrderBook struct {
 	Asset    Asset         `json:"asset"`
 	Currency Asset         `json:"currency"`
 }
+type ChartRecord struct {
+	Timestamp      int64  `json:"timestamp"`
+	TradeCount     int64  `json:"tradeCount"`
+	AssetVolume    string `json:"assetVolume"`
+	CurrencyVolume string `json:"currencyVolume"`
+	Average        string `json:"average"`
+	High           string `json:"high"`
+	Low            string `json:"low"`
+	Open           string `json:"open"`
+	Close          string `json:"close"`
+}
+type TradeChart struct {
+	Asset        Asset         `json:"asset"`
+	Currency     Asset         `json:"currency"`
+	ChartRecords []ChartRecord `json:"chartRecords"`
+}
+
+type TradeAggregateInput struct {
+	StartTime          time.Time
+	EndTime            time.Time
+	Resolution         time.Duration
+	Offset             time.Duration
+	BaseAssetCode      string
+	BaseAssetIssuer    string
+	BaseAssetType      string
+	CounterAssetCode   string
+	CounterAssetIssuer string
+	CounterAssetType   string
+	Order              string
+	Limit              string
+}
+
+// getTradeAggregate gets trade chart data
+func getTradeAggregate(input TradeAggregateInput) (tds horizon.TradeAggregationsPage, err error) {
+	client := network.GetBlockchainClient()
+	var limit uint
+	var order horizonclient.Order
+	var baseAssetType, counterAssetType horizonclient.AssetType
+	if (len(input.BaseAssetCode) == 0 && len(input.BaseAssetIssuer) == 0) || (input.BaseAssetCode == "native") {
+		baseAssetType = horizonclient.AssetTypeNative
+		input.BaseAssetIssuer = ""
+		input.BaseAssetCode = ""
+	} else if input.BaseAssetType == "credit_alphanum4" || len(input.BaseAssetCode) < 5 {
+		baseAssetType = horizonclient.AssetType4
+	} else if input.BaseAssetType == "credit_alphanum12" || len(input.BaseAssetCode) > 4 {
+		baseAssetType = horizonclient.AssetType12
+	}
+
+	if (len(input.CounterAssetCode) == 0 && len(input.CounterAssetIssuer) == 0) || (input.CounterAssetCode == "native") {
+		counterAssetType = horizonclient.AssetTypeNative
+		input.CounterAssetIssuer = ""
+		input.CounterAssetCode = ""
+	} else if input.CounterAssetType == "credit_alphanum4" || len(input.CounterAssetCode) < 5 {
+		counterAssetType = horizonclient.AssetType4
+	} else if input.CounterAssetType == "credit_alphanum12" || len(input.CounterAssetCode) > 4 {
+		counterAssetType = horizonclient.AssetType12
+	}
+
+	if input.Limit == "" {
+		limit = 200
+	} else {
+		plimit, _ := strconv.ParseInt(input.Limit, 10, 64)
+		limit = uint(plimit)
+	}
+	order = horizonclient.OrderDesc
+	if input.Order == "asc" {
+		order = horizonclient.OrderAsc
+	}
+	oRequest := horizonclient.TradeAggregationRequest{
+		StartTime:          input.StartTime,
+		EndTime:            input.EndTime,
+		Resolution:         input.Resolution,
+		Offset:             input.Offset,
+		BaseAssetType:      baseAssetType,
+		BaseAssetCode:      input.BaseAssetCode,
+		BaseAssetIssuer:    input.BaseAssetIssuer,
+		CounterAssetType:   counterAssetType,
+		CounterAssetCode:   input.CounterAssetCode,
+		CounterAssetIssuer: input.CounterAssetIssuer,
+		Order:              order,
+		Limit:              limit,
+	}
+	// fmt.Printf("Offer Request: %+v\n", oRequest)
+	oSummary, err := client.TradeAggregations(oRequest)
+	if err != nil {
+		if strings.Contains(err.Error(), "tls") || strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
+			log.Println("[getTradeAggregate]", err)
+			return tds, &bantupayerrors.ErrorTemporaryServerError{}
+		}
+		hError := err.(*horizonclient.Error)
+		//something went wrong, verify stage and check approprate action
+		rCode, _ := hError.ResultCodes()
+		rS, _ := hError.ResultString()
+		log.Println("\n[getTradeAggregate] Problem in Request:", hError.Problem)
+		log.Println("\n[getTradeAggregate] Result Codes in Request:", rCode)
+		log.Println("\n[getTradeAggregate] Result String in Request:", rS)
+		log.Printf("\n[getTradeAggregate] Problem in Request - RESPONSE: %+v\n", hError.Response)
+		log.Println("[getTradeAggregate] Error submitting:", err)
+		return tds, &bantupayerrors.ErrorTemporaryServerError{}
+
+	}
+
+	return oSummary, nil
+
+}
 
 // getBantuOrderBookSummary gets orderbook on bantu network
 func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary horizon.OrderBookSummary, err error) {
@@ -60,9 +166,9 @@ func getBantuOrderBookSummary(input OrderBookRequestInput) (orderBookSummary hor
 		buyingAssetType = horizonclient.AssetTypeNative
 		input.BuyingAssetIssuer = ""
 		input.BuyingAssetCode = ""
-	} else if input.BuyingAssetType == "credit_alphanum4" || len(input.BuyingAssetType) < 5 {
+	} else if input.BuyingAssetType == "credit_alphanum4" || len(input.BuyingAssetCode) < 5 {
 		buyingAssetType = horizonclient.AssetType4
-	} else if input.BuyingAssetType == "credit_alphanum12" || len(input.BuyingAssetType) > 4 {
+	} else if input.BuyingAssetType == "credit_alphanum12" || len(input.BuyingAssetCode) > 4 {
 		buyingAssetType = horizonclient.AssetType12
 	}
 
@@ -275,6 +381,128 @@ func GetOrderBook(assetCode, assetIssuer, currencyCode, currencyIssuer string) (
 	}
 
 	return trovoOrderBook, nil
+
+}
+
+// GetChartRecords
+func GetChartRecords(assetCode, assetIssuer, currencyCode, currencyIssuer, startTime, endTime, order, limit, chartPeriod, offset string) (tradeChart TradeChart, err error) {
+	tradeChart.ChartRecords = make([]ChartRecord, 0)
+	// tradeChart.Currency = Asset{
+	// 	AssetCode:   currencyCode,
+	// 	AssetIssuer: currencyIssuer,
+	// }
+	// tradeChart.Asset = Asset{
+	// 	AssetCode:   assetCode,
+	// 	AssetIssuer: assetIssuer,
+	// }
+	if strings.EqualFold(assetCode, os.Getenv("NATIVE_ASSET_CODE")) {
+		assetCode = ""
+		assetIssuer = ""
+	}
+	if strings.EqualFold(currencyCode, os.Getenv("NATIVE_ASSET_CODE")) {
+		currencyCode = ""
+		currencyIssuer = ""
+	}
+
+	var input TradeAggregateInput
+
+	input.BaseAssetCode = assetCode
+	input.BaseAssetIssuer = assetIssuer
+	input.CounterAssetCode = currencyCode
+	input.CounterAssetIssuer = currencyIssuer
+	input.Order = order
+	input.Limit = limit
+
+	if len(startTime) > 0 {
+		layout := "2006-01-02 15:04:05 -0700 UTC"
+		t, err := time.Parse(layout, startTime)
+		if err != nil {
+			fmt.Printf("[GetChartRecords] error parsing start time %v, error: %v", startTime, err)
+		} else {
+			input.StartTime = t
+		}
+
+	}
+	if len(endTime) > 0 {
+		layout := "2006-01-02 15:04:05 -0700 UTC"
+		t, err := time.Parse(layout, endTime)
+		if err != nil {
+			fmt.Printf("[GetChartRecords] error parsing end time %v, error: %v", endTime, err)
+		} else {
+			input.EndTime = t
+		}
+
+	}
+
+	if len(chartPeriod) > 0 {
+		i, err := strconv.ParseInt(chartPeriod, 10, 64)
+		if err != nil {
+			input.Resolution = time.Duration(5)
+		} else {
+			input.Resolution = time.Duration(i)
+		}
+
+	} else {
+		input.Resolution = time.Duration(5)
+	}
+
+	if len(offset) > 0 {
+		i, err := strconv.ParseInt(offset, 10, 64)
+		if err != nil {
+			input.Offset = time.Duration(0)
+		} else {
+			input.Offset = time.Duration(i)
+		}
+
+	}
+
+	tds, err := getTradeAggregate(input)
+	if err != nil {
+		log.Printf("[GetChartRecords]Error getting order book summary: %v\n", err)
+		return
+	}
+
+	tradeChart, err = TransformTradeAggregationInstance(assetCode, assetIssuer, currencyCode, currencyIssuer, &tds)
+
+	return tradeChart, err
+
+}
+
+// TransformTradeAggregationInstance
+func TransformTradeAggregationInstance(assetCode, assetIssuer, currencyCode, currencyIssuer string, tds *horizon.TradeAggregationsPage) (tradeChart TradeChart, err error) {
+	tradeChart.ChartRecords = make([]ChartRecord, 0)
+	if assetCode == "" {
+		assetCode = os.Getenv("NATIVE_ASSET_CODE")
+		assetIssuer = ""
+	}
+	if currencyCode == "" {
+		currencyCode = os.Getenv("NATIVE_ASSET_CODE")
+		currencyIssuer = ""
+	}
+	tradeChart.Currency = Asset{
+		AssetCode:   currencyCode,
+		AssetIssuer: currencyIssuer,
+	}
+	tradeChart.Asset = Asset{
+		AssetCode:   assetCode,
+		AssetIssuer: assetIssuer,
+	}
+
+	for _, r := range tds.Embedded.Records {
+		tradeChart.ChartRecords = append(tradeChart.ChartRecords, ChartRecord{
+			Timestamp:      r.Timestamp,
+			TradeCount:     r.TradeCount,
+			AssetVolume:    r.BaseVolume,
+			CurrencyVolume: r.CounterVolume,
+			Average:        r.Average,
+			High:           r.High,
+			Low:            r.Low,
+			Open:           r.Open,
+			Close:          r.Close,
+		})
+	}
+
+	return tradeChart, nil
 
 }
 
