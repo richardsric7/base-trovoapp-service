@@ -487,7 +487,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 appState.currentAction = PageAction(
                     state: PageState.addPage, page: SharedAccessViewPageConfig);
 
-                if (noOfTransactionsToSign > 0) {
+                if (noOfTransactionsToSign != null &&
+                    noOfTransactionsToSign > 0) {
                   // take the user to the pending approvals tab on the shared access view
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     appState.sharedAccesstabController.animateTo(1,

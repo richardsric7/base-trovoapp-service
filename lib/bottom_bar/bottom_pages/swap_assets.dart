@@ -31,7 +31,7 @@ class SwapAssets extends StatefulWidget {
 class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late List<Wallet> transactionableWallets;
+  // late List<Wallet> transactionableWallets;
   late Wallet wallet;
   late Asset asset;
   late List<Asset> claimedAssets;
@@ -53,7 +53,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
   List<DropdownMenuItem<String>> walletDropdownItems(bool isSelected) {
     var walletsList = <DropdownMenuItem<String>>[];
-    transactionableWallets.forEach((wallet) {
+    appState.userInfo!.transactionableWallets().forEach((wallet) {
       walletsList.add(
         DropdownMenuItem(
           child: Row(
@@ -112,7 +112,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    transactionableWallets = appState.userInfo!.transactionableWallets();
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -682,7 +681,9 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     //     appState.transactionableWallets[selectedWallet]['threshold'] == 2) {
     //   return '/v1/shared-access/swap';
     // }
-    return wallet.isSharedWallet ? '/v1/shared-access/swap' : '/v1/users/swap';
+    return wallet.isSharedWalletAndCanInitiate
+        ? '/v1/shared-access/swap'
+        : '/v1/users/swap';
   }
 
   String? validateAmount(String? value) {

@@ -403,7 +403,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       String requestBody = jsonEncode(map);
       print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
-        uri: wallet.isSharedWallet
+        uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/payment'
             : '/v1/users/payment',
         body: requestBody,
