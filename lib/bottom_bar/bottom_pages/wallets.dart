@@ -1376,7 +1376,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         resetForm();
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: LanguageEn.error, message: responseData['data']['error']);
       }
     } catch (e) {
       print(e);

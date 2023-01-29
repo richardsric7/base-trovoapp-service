@@ -173,53 +173,53 @@ class _TransactionStatus extends State<TransactionStatus> {
                   ),
                 ),
               ),
-              SizedBox(height: height / 30),
-              Stepper(
-                currentStep: 2,
-                controlsBuilder: (context, _) {
-                  return Column(
-                    children: [],
-                  );
-                },
-                steps: <Step>[
-                  Step(
-                    state: StepState.complete,
-                    isActive: true,
-                    title: Text(
-                      "Authorize withdrawal",
-                      style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold,
-                          fontSize: 15.sp),
-                    ),
-                    content: Text(""),
-                  ),
-                  Step(
-                    state: StepState.complete,
-                    isActive: true,
-                    title: Text(
-                      "Processing withdrawal",
-                      style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold,
-                          fontSize: 15.sp),
-                    ),
-                    content: Text(""),
-                  ),
-                  Step(
-                    state: StepState.complete,
-                    isActive: false,
-                    title: Text(
-                      "Transaction completed",
-                      style: TextStyle(
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold,
-                          fontSize: 15.sp),
-                    ),
-                    content: Text(""),
-                  ),
-                ],
-              ),
+              // SizedBox(height: height / 30),
+              // Stepper(
+              //   currentStep: 2,
+              //   controlsBuilder: (context, _) {
+              //     return Column(
+              //       children: [],
+              //     );
+              //   },
+              //   steps: <Step>[
+              //     Step(
+              //       state: StepState.complete,
+              //       isActive: true,
+              //       title: Text(
+              //         "Authorize withdrawal",
+              //         style: TextStyle(
+              //             color: notifier.getbluewhitecolor,
+              //             fontFamily: fontsemibold,
+              //             fontSize: 15.sp),
+              //       ),
+              //       content: Text(""),
+              //     ),
+              //     Step(
+              //       state: StepState.complete,
+              //       isActive: true,
+              //       title: Text(
+              //         "Processing withdrawal",
+              //         style: TextStyle(
+              //             color: notifier.getbluewhitecolor,
+              //             fontFamily: fontsemibold,
+              //             fontSize: 15.sp),
+              //       ),
+              //       content: Text(""),
+              //     ),
+              //     Step(
+              //       state: StepState.complete,
+              //       isActive: false,
+              //       title: Text(
+              //         "Transaction completed",
+              //         style: TextStyle(
+              //             color: notifier.getbluewhitecolor,
+              //             fontFamily: fontsemibold,
+              //             fontSize: 15.sp),
+              //       ),
+              //       content: Text(""),
+              //     ),
+              //   ],
+              // ),
               SizedBox(
                 height: height / 20,
               ),
@@ -228,6 +228,16 @@ class _TransactionStatus extends State<TransactionStatus> {
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
+                  appState.fetchDepositHistory(
+                    context,
+                    publicKey: wallet.publicKey!,
+                    currency: asset!.assetCode,
+                  );
+                  appState.viewData = {
+                    'walletPublicKey': wallet.publicKey,
+                    'assetCode': asset!.assetCode,
+                    'assetIssuer': asset!.assetIssuer,
+                  };
                   appState.currentAction = PageAction(
                     state: PageState.addPage,
                     page: DepositWithdrawHistoryViewPageConfig,

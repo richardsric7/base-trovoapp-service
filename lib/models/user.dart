@@ -22,7 +22,6 @@ class UserInfo {
   int? membershipType;
   DateTime? membershipExpiry;
   int? kycVerified;
-  int? walletRecoveryEnabled;
   int? verified;
   int? suspended;
   List<Wallet>? wallets;
@@ -47,7 +46,6 @@ class UserInfo {
     this.membershipType,
     this.membershipExpiry,
     this.kycVerified,
-    this.walletRecoveryEnabled,
     this.verified,
     this.suspended,
     this.wallets,
@@ -78,7 +76,6 @@ class UserInfo {
       "membershipType": membershipType,
       "membershipExpiry": membershipExpiry!.toIso8601String(),
       "kycVerified": kycVerified,
-      "walletRecoveryEnabled": walletRecoveryEnabled,
       "verified": verified,
       "suspended": suspended,
       "curatedSwapList": curatedSwapList,
@@ -106,7 +103,6 @@ class UserInfo {
         membershipType: m['membershipType'],
         membershipExpiry: DateTime.tryParse(m['membershipExpiry']),
         kycVerified: m['kycVerified'],
-        walletRecoveryEnabled: m['walletRecoveryEnabled'],
         verified: m['verified'],
         suspended: m['suspended'],
         curatedSwapList: deserializeSwapList(m),
@@ -127,7 +123,8 @@ class UserInfo {
     var myWallets = <Wallet>[];
     if (userWallets != null) {
       for (var i = 0; i < userWallets.length; i++) {
-        var wallet = Wallet().deserializeJson(userWallets[i], assetBalances);
+        var wallet = Wallet()
+            .deserializeJson(userWallets[i], assetBalances, m['username']);
         if (wallet.primaryWallet == 1) {
           // promote the primary wallet to appear first on the list
           myWallets.insert(0, wallet);
@@ -172,7 +169,11 @@ class UserInfo {
     return combinedList.firstWhere((wallet) => wallet.publicKey == publicKey);
   }
 
-  List<Wallet> get allWallets => [...wallets!, ...sharedWallets!];
+  List<Wallet> getAllWallets() {
+    var aliases = Set<String>();
+    var list = [...wallets!, ...sharedWallets!];
+    return list.where((wallet) => aliases.add(wallet.alias!)).toList();
+  }
 
   List<Wallet> transactionableWallets() {
     List<Wallet> transWallets = [];
