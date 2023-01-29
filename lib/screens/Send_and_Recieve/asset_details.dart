@@ -185,7 +185,9 @@ class _AssetDetailsState extends State<AssetDetails>
               SizedBox(
                 height: height / 20,
               ),
-              if ((!wallet.isSharedWallet || wallet.isInitiator) &&
+              if ((!wallet.isSharedWallet ||
+                      wallet.isInitiator ||
+                      wallet.isPrimaryWallet) &&
                   wallet.walletType == 0) ...[
                 actionButtons(),
               ] else ...[

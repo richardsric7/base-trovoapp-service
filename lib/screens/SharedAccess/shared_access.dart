@@ -1227,16 +1227,9 @@ class _SharedAccessState extends State<SharedAccess>
       children: [
         GestureDetector(
           onTap: () {
-            appState.viewData![UpdateSharedAccessViewPageConfig.key] = {
+            appState.viewData = {
               'walletPublicKey': walletPublicKey,
-              'walletAlias': walletAlias,
-              'isPrimaryWallet': isPrimaryWallet,
-              'viewers': viewersList,
-              'approvers': approversList,
-              'initiators': initiatorsList,
-              'numberOfApprovalsNeeded': numberOfApprovalsNeeded,
             };
-            print('=======viewData: ${appState.viewData}');
             appState.currentAction = PageAction(
                 state: PageState.addPage,
                 page: UpdateSharedAccessViewPageConfig);

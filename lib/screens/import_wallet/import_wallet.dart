@@ -82,12 +82,11 @@ class _ImportWalletState extends State<ImportWallet> {
             children: [
               SizedBox(height: height / 20),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(width: width / 15),
                   Form(
                     key: _formKey,
                     child: Column(
-                      // crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [

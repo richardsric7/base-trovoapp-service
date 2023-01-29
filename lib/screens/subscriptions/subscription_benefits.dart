@@ -70,7 +70,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
                     child: Column(
                       children: [
                         Text(
-                          'Subscriptions',
+                          'Platinum Patron',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getblck,
