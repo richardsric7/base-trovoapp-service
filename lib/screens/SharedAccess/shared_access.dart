@@ -1001,35 +1001,39 @@ class _SharedAccessState extends State<SharedAccess>
     // store the wallet aliases as keys here so that we can use it to easily get the values back
     // from the wallets map since we cannot create widgets by looping through the map using map.forEach((k,v))
     var walletKeys = [];
-    for (var i = 0; i < appState.sharedWallets.length; i++) {
-      // filter shared access by permission
-      if (appState.sharedWallets[i]['permission'] == filter ||
-          selectedFilter == 'All') {
-        // if the wallet is not already added to the map then add it
-        if (wallets[appState.sharedWallets[i]['walletAlias']] == null) {
-          walletKeys.add(appState.sharedWallets[i]['walletAlias']);
-          wallets[appState.sharedWallets[i]['walletAlias']] = {
-            'walletAlias': appState.sharedWallets[i]['walletAlias'],
-            'permissions': <String>[appState.sharedWallets[i]['permission']],
-            'owner': appState.sharedWallets[i]['owner'],
-            'walletPublicKey': appState.sharedWallets[i]['walletPublicKey'],
-            'walletDescription': appState.sharedWallets[i]['walletDescription'],
-          };
-        } else {
-          // if we got here then the wallet is already on the map so we add
-          // this permission to the list of permissions granted to the user on the
-          // wallet
-          wallets[appState.sharedWallets[i]['walletAlias']]['permissions']
-              .add(appState.sharedWallets[i]['permission']);
-        }
+    if (appState.sharedWallets != null) {
+      for (var i = 0; i < appState.sharedWallets.length; i++) {
+        // filter shared access by permission
+        if (appState.sharedWallets[i]['permission'] == filter ||
+            selectedFilter == 'All') {
+          // if the wallet is not already added to the map then add it
+          if (wallets[appState.sharedWallets[i]['walletAlias']] == null) {
+            walletKeys.add(appState.sharedWallets[i]['walletAlias']);
+            wallets[appState.sharedWallets[i]['walletAlias']] = {
+              'walletAlias': appState.sharedWallets[i]['walletAlias'],
+              'permissions': <String>[appState.sharedWallets[i]['permission']],
+              'owner': appState.sharedWallets[i]['owner'],
+              'walletPublicKey': appState.sharedWallets[i]['walletPublicKey'],
+              'walletDescription': appState.sharedWallets[i]
+                  ['walletDescription'],
+            };
+          } else {
+            // if we got here then the wallet is already on the map so we add
+            // this permission to the list of permissions granted to the user on the
+            // wallet
+            wallets[appState.sharedWallets[i]['walletAlias']]['permissions']
+                .add(appState.sharedWallets[i]['permission']);
+          }
 
-        if (appState.sharedWallets[i]['walletSettings'] != null) {
-          wallets[appState.sharedWallets[i]['walletAlias']]['walletSettings'] =
-              appState.sharedWallets[i]['walletSettings'];
-        }
+          if (appState.sharedWallets[i]['walletSettings'] != null) {
+            wallets[appState.sharedWallets[i]['walletAlias']]
+                    ['walletSettings'] =
+                appState.sharedWallets[i]['walletSettings'];
+          }
 
-        print(
-            '=========== ${wallets[appState.sharedWallets[i]['walletAlias']]}');
+          print(
+              '=========== ${wallets[appState.sharedWallets[i]['walletAlias']]}');
+        }
       }
     }
 

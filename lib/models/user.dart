@@ -177,7 +177,7 @@ class UserInfo {
 
   List<Wallet> transactionableWallets() {
     List<Wallet> transWallets = [];
-    for (var wallet in wallets!) {
+    for (var wallet in this.getAllWallets()) {
       if (wallet.walletType == 0) {
         if (wallet.walletThreshold == 2 &&
             wallet.permissions!
@@ -191,12 +191,6 @@ class UserInfo {
         transWallets.add(wallet);
       }
     }
-
-    sharedWallets!.forEach((wallet) {
-      if (wallet.accesses!.contains('INITIATOR')) {
-        transWallets.add(wallet);
-      }
-    });
 
     return transWallets;
   }

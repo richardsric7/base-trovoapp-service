@@ -583,7 +583,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
       // print('===============> map: $map');
 
       Map responseData = await makePostRequest(
-        uri: wallet.isSharedWallet
+        uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/crypto/withdrawals'
             : '/v1/crypto/withdrawals',
         body: requestBody,

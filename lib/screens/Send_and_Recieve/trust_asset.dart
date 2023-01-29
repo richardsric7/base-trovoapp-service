@@ -342,7 +342,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       print(requestBody);
 
       Map responseData = await makePutRequest(
-        uri: wallet.isSharedWallet
+        uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/users/actions/claim-asset'
             : '/v1/users/actions/claim-asset',
         body: requestBody,
@@ -381,7 +381,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       print('this is primary sign: $signature');
       responseBody['transactionSignature'] = signature;
 
-      if (wallet.isSharedWallet) {
+      if (wallet.isSharedWalletAndCanInitiate) {
         responseBody['commit'] = 1;
       }
 
@@ -390,7 +390,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       print('this is request body: $requestBody');
 
       Map responseData = await makePutRequest(
-        uri: wallet.isSharedWallet
+        uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/users/actions/claim-asset'
             : '/v1/users/actions/claim-asset',
         body: requestBody,
@@ -449,7 +449,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       print(requestBody);
 
       Map responseData = await makeDeleteRequest(
-        uri: wallet.isSharedWallet
+        uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/users/actions/reject-asset'
             : '/v1/users/actions/reject-asset',
         body: requestBody,
@@ -487,7 +487,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       print('this is primary sign: $signature');
       responseBody['transactionSignature'] = signature;
 
-      if (wallet.isSharedWallet) {
+      if (wallet.isSharedWalletAndCanInitiate) {
         responseBody['commit'] = 1;
       }
 
@@ -496,7 +496,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       print('this is request body: $requestBody');
 
       Map responseData = await makeDeleteRequest(
-        uri: wallet.isSharedWallet
+        uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/users/actions/reject-asset'
             : '/v1/users/actions/reject-asset',
         body: requestBody,
@@ -514,11 +514,11 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
             userInfo.username,
             appState);
         appState.viewData![SuccessViewPageConfig.key] = {
-          'title': wallet.isSharedWallet
+          'title': wallet.isSharedWalletAndCanInitiate
               ? 'Request submitted'
               : 'asset successfully rejected'
                   .replaceAll('asset', asset!.assetCode!),
-          'message': wallet.isSharedWallet
+          'message': wallet.isSharedWalletAndCanInitiate
               ? 'Your request to reject asset has been successfully submitted. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.'
                   .replaceAll('asset', asset!.assetCode!)
               : 'You have successfully rejected this asset. Your wallet will not hold this asset.',

@@ -8,6 +8,7 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
@@ -446,7 +447,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
     try {
       showLoader(context);
 
-      if (wallet.isSharedWallet) {
+      if (wallet.isSharedWalletAndCanInitiate) {
         transactionData['commit'] = 1;
       } else {
         // sign transaction
@@ -463,8 +464,9 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
       print(requestBody);
 
       Map responseData = await makePostRequest(
-        uri:
-            wallet.isSharedWallet ? '/v1/shared-access/swap' : '/v1/users/swap',
+        uri: wallet.isSharedWalletAndCanInitiate
+            ? '/v1/shared-access/swap'
+            : '/v1/users/swap',
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
@@ -481,28 +483,26 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
           appState.userInfo!.username!.trim().replaceAll(' ', ''),
           appState,
         );
-        if (wallet.isSharedWallet) {
+        if (wallet.isSharedWalletAndCanInitiate) {
           appState.viewData![SuccessViewPageConfig.key] = {
             'title': 'Swap request submitted',
             'message':
                 'You have successfully requested swap of [${sourceAmount} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}] to [${swappedEstimate} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'XBN' : transactionData['destinationAssetCode']}] on wallet [${wallet.alias}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
+            'useOnDone': true,
+            'onDone': () {
+              appState.currentAction = PageAction(
+                state: PageState.replaceAll,
+                page: BottomHomePageConfig,
+              );
+              changeTabPage(appState, ButtomTabPage.Dashboard.index);
+            },
           };
           appState.currentAction =
               PageAction(state: PageState.replace, page: SuccessViewPageConfig);
         } else {
-          // appState.viewData![SwapSuccessViewPageConfig.key] =
-          //     responseData['data'];
-          // appState.viewData![SwapSuccessViewPageConfig.key]['sourceUsdPrice'] =
-          //     viewData["sourceUsdPrice"];
-          // appState.viewData![SwapSuccessViewPageConfig.key]
-          //     ['destinationUsdPrice'] = viewData["destinationUsdPrice"];
-          // appState.viewData![SwapSuccessViewPageConfig.key]['fee'] =
-          //     viewData["fee"];
-          // appState.viewData![SwapSuccessViewPageConfig.key]['feeAmount'] =
-          //     viewData["feeAmount"];
           appState.currentAction = PageAction(
             state: PageState.replaceAll,
-            page: SwapSuccessViewPageConfig,
+            page: BottomHomePageConfig,
           );
 
           appState.viewData = {

@@ -449,7 +449,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     try {
       showLoader(context);
 
-      if (wallet.isSharedWallet) {
+      if (wallet.isSharedWalletAndCanInitiate) {
         transactionInfo['commit'] = 1;
       } else {
         // sign transaction
@@ -466,7 +466,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
       print('requestBody: $requestBody');
 
       Map responseData = await makePostRequest(
-        uri: wallet.isSharedWallet
+        uri: wallet.isSharedWalletAndCanInitiate
             ? '/v1/shared-access/crypto/withdrawals'
             : '/v1/crypto/withdrawals',
         body: requestBody,
@@ -485,7 +485,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
           'kenmaddy',
           appState,
         );
-        if (wallet.isSharedWallet) {
+        if (wallet.isSharedWalletAndCanInitiate) {
           appState.viewData![SuccessViewPageConfig.key] = {
             'title': 'Withdrawal request submitted',
             'message':
