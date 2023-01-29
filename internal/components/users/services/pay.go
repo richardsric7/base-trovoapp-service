@@ -483,11 +483,12 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 	}
 	//service fee
+	var signForFeeTrustLine bool
 	serviceFee, e := decimal.NewFromString(paymentInfo.FeeAmount)
 	if e != nil {
 		serviceFee = decimal.Zero
 	}
-	if serviceFee.IsPositive() {
+	if serviceFee.IsPositive() && os.Getenv("SHARED_ACCESS_FEE_ENABLED") == "1" {
 		if paymentInfo.Multiparty == 1 {
 			//process service fee
 			feeLabel := paymentInfo.Fee + "%"
@@ -495,8 +496,25 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			// if !asset.IsNative() {
 			// 	assetCode = asset.GetCode()
 			// }
+			feeKeypair := keypair.MustParseFull(os.Getenv("SHARED_ACCESS_FEE_WALLET"))
+			feeAddress := feeKeypair.Address()
+
+			if !asset.IsNative() {
+				signForFeeTrustLine = true
+				_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, asset)
+				if !feeAccountTrustsAsset {
+
+					//establish trustline automatically
+					ops = append(ops, &txnbuild.ChangeTrust{
+						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},
+						Limit:         "900000000000",
+						SourceAccount: feeAddress,
+					})
+
+				}
+			}
 			ops = append(ops, &txnbuild.Payment{
-				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
+				Destination:   feeAddress,
 				Amount:        serviceFee.String(),
 				SourceAccount: sourceWallet.ID,
 				Asset:         asset,
@@ -549,6 +567,16 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 		if err != nil {
 			log.Println("[generatePaymentXdr] error signing transaction with channelAccount key ", err)
+			return "", nil, &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
+	if signForFeeTrustLine {
+		feeKeypair := keypair.MustParseFull(os.Getenv("SHARED_ACCESS_FEE_WALLET"))
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
+
+		if err != nil {
+			log.Println("[generatePaymentXdr] error signing transaction with shared access fee key", err)
 			return "", nil, &tErrors.ErrorTemporaryServerError{}
 		}
 	}

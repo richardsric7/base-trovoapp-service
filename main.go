@@ -134,6 +134,20 @@ func main() {
 			}
 		}
 
+		if os.Getenv("SHARED_ACCESS_FEE_ENABLED") == "1" && len(os.Getenv("SHARED_ACCESS_FEE_WALLET")) != 56 {
+			log.Println("SHARED_ACCESS_FEE_WALLET environment variable is required when SHARED_ACCESS_FEE_ENABLED is set to 1")
+
+			exit = true
+		}
+		if os.Getenv("SHARED_ACCESS_FEE_ENABLED") == "1" {
+			_, err := keypair.ParseFull(os.Getenv("SHARED_ACCESS_FEE_WALLET"))
+			if err != nil {
+				log.Println("SHARED_ACCESS_FEE_WALLET is invalid wallet secret key")
+
+				exit = true
+			}
+		}
+
 		if exit {
 			return
 		}
