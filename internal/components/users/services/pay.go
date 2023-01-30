@@ -500,10 +500,10 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			feeAddress := feeKeypair.Address()
 
 			if !asset.IsNative() {
-				signForFeeTrustLine = 1
+
 				_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, asset)
 				if !feeAccountTrustsAsset {
-
+					signForFeeTrustLine = 1
 					//establish trustline automatically
 					ops = append(ops, &txnbuild.ChangeTrust{
 						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: asset},

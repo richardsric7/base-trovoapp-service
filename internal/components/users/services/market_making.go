@@ -623,7 +623,7 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 	}
 
 	//service fee
-	var signForFeeTrustLine bool
+	signForFeeTrustLine := 0
 	if decimal.RequireFromString(offerRequest.FeeValue).IsPositive() && os.Getenv("MARKET_MAKING_FEE_ENABLED") == "1" {
 
 		//process service fee
@@ -639,11 +639,11 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 			// but bcos  fee address needs to sign, it cannot be done here
 			mmfeeKeypair := keypair.MustParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
 			mmFeeAddress := mmfeeKeypair.Address()
-			signForFeeTrustLine = true
+
 			{
 				_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, mmFeeAddress, mainAsset)
 				if !feeAccountTrustsAsset {
-
+					signForFeeTrustLine = 1
 					//establish trustline automatically
 					ops = append(ops, &txnbuild.ChangeTrust{
 						Line:          txnbuild.ChangeTrustAssetWrapper{Asset: mainAsset},
@@ -718,7 +718,7 @@ func generateMakeMarketXdr(sourceWallet, mmWallet *userModels.UserWallet, offerR
 		}
 	}
 
-	if signForFeeTrustLine {
+	if signForFeeTrustLine == 1 {
 		mmfeeKeypair := keypair.MustParseFull(os.Getenv("MARKET_MAKING_FEE_WALLET"))
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), mmfeeKeypair)
 

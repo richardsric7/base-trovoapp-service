@@ -306,10 +306,9 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 
 		if !sourceAsset.IsNative() {
 
-			signForFeeTrustLine = 1
 			_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, sourceAsset)
 			if !feeAccountTrustsAsset {
-
+				signForFeeTrustLine = 1
 				//establish trustline automatically
 				ops = append(ops, &txnbuild.ChangeTrust{
 					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: sourceAsset},
