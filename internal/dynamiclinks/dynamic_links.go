@@ -399,7 +399,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 	params.Add("amount", amount)
 	params.Add("memo", memo)
 	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
-	log.Println("[GeneratePaymentData]link=", link)
+	// log.Println("[GeneratePaymentData]link=", link)
 
 	dynamicLink, err = GenerateDynamicLink(link, gc)
 

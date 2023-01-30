@@ -102,7 +102,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
 
 			if ok {
-				log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+				// log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
 				c.JSON(status, response)
 				return
 			}
@@ -1544,7 +1544,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
 
 			if ok {
-				log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+				// log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
 				c.JSON(status, response)
 				return
 			}
@@ -3251,7 +3251,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
 
 				if ok {
-					log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+					// log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
 					c.JSON(status, response)
 					return
 				}
@@ -3388,7 +3388,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
 
 				if ok {
-					log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+					// log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
 					c.JSON(status, response)
 					return
 				}

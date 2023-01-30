@@ -1,9 +1,7 @@
 package assets
 
 import (
-	"log"
 	assets "trovo-wallet-api/internal/components/assets/services"
-	dbCon "trovo-wallet-api/internal/db"
 	"trovo-wallet-api/internal/middleware"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -21,12 +19,12 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		ok, status, response := gc.RedisCache.CachedHttpResponse(cacheKey)
 
 		if ok {
-			log.Printf("[%v], served from cache\n", cacheKey)
+			// log.Printf("[%v], served from cache\n", cacheKey)
 			c.JSON(status, response)
 			return
 		}
 
-		dbCon.PrintDBStats("[GET] /v1/curated-assets", gc.DB)
+		// dbCon.PrintDBStats("[GET] /v1/curated-assets", gc.DB)
 
 		curatedAssets := assets.GetCuratedAssets(gc)
 

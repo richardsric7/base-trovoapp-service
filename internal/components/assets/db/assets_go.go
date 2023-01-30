@@ -26,7 +26,7 @@ func GetCuratedAssets(includeInactive bool, gc *sharedconfig.GlobalConfig) (asse
 
 		if ok {
 
-			log.Printf("[GetCuratedAssets] %v, served from cache\n", cacheKeyInfo)
+			// log.Printf("[GetCuratedAssets] %v, served from cache\n", cacheKeyInfo)
 			json.Unmarshal(rawdata, &assets)
 			return
 		}

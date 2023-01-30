@@ -490,7 +490,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			ok, status, response := gc.RedisCache.CachedHttpResponse(cacheKey)
 
 			if ok {
-				log.Printf("[%v], served from cache\n", cacheKey)
+				// log.Printf("[%v], served from cache\n", cacheKey)
 				c.JSON(status, response)
 				return
 			}
@@ -1432,7 +1432,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 			ok, status, response := gc.RedisCache.CachedHttpResponseWithParameters(cacheKey, cacheKeyParameters)
 
 			if ok {
-				log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
+				// log.Printf("[%v]/[%v], served from cache\n", cacheKey, cacheKeyParameters)
 				c.JSON(status, response)
 				return
 			}

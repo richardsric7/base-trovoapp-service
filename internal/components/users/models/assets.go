@@ -168,7 +168,7 @@ func (i BantuAsset) GetDepositAddresses(walletID string, gc *sharedconfig.Global
 
 		if ok {
 
-			log.Printf("GetDepositAddresses[%v], served from cache\n", cacheKey)
+			// log.Printf("GetDepositAddresses[%v], served from cache\n", cacheKey)
 			json.Unmarshal(rawdata, &depositAddresses)
 			return
 		}

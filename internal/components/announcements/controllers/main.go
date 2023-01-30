@@ -1,7 +1,6 @@
 package announcements
 
 import (
-	"log"
 	announcementServices "trovo-wallet-api/internal/components/announcements/services"
 	dbCon "trovo-wallet-api/internal/db"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -21,7 +20,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		ok, status, response := gc.RedisCache.CachedHttpResponse(cacheKey)
 
 		if ok {
-			log.Printf("[%v], served from cache\n", cacheKey)
+			// log.Printf("[%v], served from cache\n", cacheKey)
 			c.JSON(status, response)
 			return
 		}
@@ -43,7 +42,7 @@ func Init(router *gin.Engine, gc *sharedconfig.GlobalConfig) {
 		ok, status, response := gc.RedisCache.CachedHttpResponse(cacheKey)
 
 		if ok {
-			log.Printf("[%v], served from cache\n", cacheKey)
+			// log.Printf("[%v], served from cache\n", cacheKey)
 			c.JSON(status, response)
 			return
 		}
