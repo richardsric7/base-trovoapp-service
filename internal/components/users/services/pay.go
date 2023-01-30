@@ -571,7 +571,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		}
 	}
 
-	if signForFeeTrustLine && !asset.IsNative() {
+	if signForFeeTrustLine && !asset.IsNative() && paymentInfo.Multiparty == 1 {
 		feeKeypair := keypair.MustParseFull(os.Getenv("SHARED_ACCESS_FEE_WALLET"))
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 
