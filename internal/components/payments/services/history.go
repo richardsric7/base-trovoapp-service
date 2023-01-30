@@ -42,12 +42,7 @@ func GetPaymentHistory(targetPublicKey string, gc *sharedconfig.GlobalConfig, c 
 	assetIssuer := strings.TrimSpace(strings.ToUpper(c.Query("assetIssuer")))
 	// var assetIssuerVal *string
 	assetCode := strings.TrimSpace(strings.ToUpper(c.Query("assetCode")))
-	// if strings.EqualFold(assetCode, "XBN") {
-	// 	assetIssuerVal = nil
-	// }
-	// if len(assetCode) > 1 && len(assetIssuer) == 56 {
-	// 	assetIssuerVal = &assetIssuer
-	// }
+
 	transactionID := strings.ToLower(strings.TrimSpace(c.Query("transactionID")))
 	amountBetween := strings.TrimSpace(c.Query("amount"))
 	dateBetween := strings.TrimSpace(c.Query("dateBetween"))

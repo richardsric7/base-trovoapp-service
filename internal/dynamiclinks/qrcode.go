@@ -27,7 +27,7 @@ func GenerateQRCode(dynamicLink string, redisCache *cache.RedisCache) (png strin
 		ok, response := redisCache.GetCachedResult(cacheKey)
 
 		if ok {
-			log.Printf("[GenerateQRCode][%v], served from cache\n", cacheKey)
+			// log.Printf("[GenerateQRCode][%v], served from cache\n", cacheKey)
 			png = response.(string)
 			return
 		}

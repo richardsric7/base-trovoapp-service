@@ -99,7 +99,7 @@ func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl str
 		ok, _, response := redisCache.CachedHttpResponse(cacheKey)
 
 		if ok {
-			log.Printf("[GenerateDynamicLinkWithStaticService][%v], served from cache\n", cacheKey)
+			// log.Printf("[GenerateDynamicLinkWithStaticService][%v], served from cache\n", cacheKey)
 			dynamicLink = response.(string)
 			return
 		}
@@ -170,7 +170,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 
 		if ok {
-			log.Printf("[%v], served from cache\n", cacheKey)
+			// log.Printf("[%v], served from cache\n", cacheKey)
 			dynamicLink = response.(string)
 			return
 		}
@@ -373,8 +373,8 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 		return
 	}
 
-	if assetCode == "" || assetCode == "XBN" {
-		assetCode = "XBN"
+	if assetCode == "" || assetCode == os.Getenv("NATIVE_ASSET_CODE") {
+		assetCode = os.Getenv("NATIVE_ASSET_CODE")
 		assetIssuer = ""
 	}
 
