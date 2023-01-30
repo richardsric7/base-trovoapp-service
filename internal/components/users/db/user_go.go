@@ -28,7 +28,7 @@ func GetUser(userInfo string, db *gorm.DB, gc *sharedconfig.GlobalConfig) (user 
 
 		if ok {
 
-			log.Printf("GetUserFromPrimarySigner[%v], served from cache\n", cacheKeyInfo)
+			// log.Printf("GetUserFromPrimarySigner[%v], served from cache\n", cacheKeyInfo)
 			json.Unmarshal(rawdata, &user)
 			return
 		}
@@ -146,7 +146,7 @@ func GetUserFromPrimarySigner(publicKey string, db *gorm.DB, gc *sharedconfig.Gl
 
 		if ok {
 
-			log.Printf("GetUserFromPrimarySigner[%v], served from cache\n", cacheKeySigner)
+			// log.Printf("GetUserFromPrimarySigner[%v], served from cache\n", cacheKeySigner)
 			json.Unmarshal(rawdata, &user)
 			return
 		}
