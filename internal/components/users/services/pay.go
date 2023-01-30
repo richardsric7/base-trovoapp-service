@@ -483,7 +483,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 	}
 	//service fee
-	var signForFeeTrustLine bool
+	signForFeeTrustLine := false
 	serviceFee, e := decimal.NewFromString(paymentInfo.FeeAmount)
 	if e != nil {
 		serviceFee = decimal.Zero
@@ -571,7 +571,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		}
 	}
 
-	if signForFeeTrustLine {
+	if signForFeeTrustLine && !asset.IsNative() {
 		feeKeypair := keypair.MustParseFull(os.Getenv("SHARED_ACCESS_FEE_WALLET"))
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 

@@ -294,7 +294,7 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	}
 	// totalFees = totalFees.Add(serviceFee)
 	// feeLabel := swapInfo.Fee + "%"
-	var signForFeeTrustLine bool
+	signForFeeTrustLine := false
 	if serviceFee.IsPositive() && os.Getenv("SWAP_FEE_ENABLED") == "1" {
 		//process service fee
 
@@ -377,7 +377,7 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	}
 	// }
 
-	if signForFeeTrustLine {
+	if signForFeeTrustLine && !sourceAsset.IsNative() {
 		feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 
