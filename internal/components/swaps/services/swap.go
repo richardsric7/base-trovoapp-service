@@ -175,11 +175,11 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 
 	var sourceAsset, destinationAsset txnbuild.Asset = txnbuild.NativeAsset{}, txnbuild.NativeAsset{}
 
-	if len(swapInfo.DestinationAssetCode) != 0 {
+	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
 
 		destinationAsset = txnbuild.CreditAsset{Code: swapInfo.DestinationAssetCode, Issuer: swapInfo.DestinationAssetIssuer}
 	}
-	if len(swapInfo.SourceAssetCode) != 0 {
+	if len(swapInfo.SourceAssetCode) != 0 && !strings.EqualFold(swapInfo.SourceAssetCode, nativeAssetCode) {
 
 		sourceAsset = txnbuild.CreditAsset{Code: swapInfo.SourceAssetCode, Issuer: swapInfo.SourceAssetIssuer}
 	}
@@ -304,6 +304,7 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 		feeAddress := feeKeypair.Address()
 
 		if !sourceAsset.IsNative() {
+
 			signForFeeTrustLine = true
 			_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, sourceAsset)
 			if !feeAccountTrustsAsset {
