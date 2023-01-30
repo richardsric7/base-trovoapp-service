@@ -153,7 +153,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 		if ok {
 
-			log.Printf("GetBalance[%v], served from cache\n", cacheKey)
+			// log.Printf("GetBalance[%v], served from cache\n", cacheKey)
 			json.Unmarshal(rawdata, &balances)
 			return
 		}
@@ -362,7 +362,7 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 
 		if ok {
 
-			log.Printf("GetNFTs[%v], served from cache\n", cacheKey)
+			// log.Printf("GetNFTs[%v], served from cache\n", cacheKey)
 			json.Unmarshal(rawdata, &nfts)
 			return
 		}
@@ -1017,7 +1017,7 @@ func (publicKey UserSigner) GetOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig)
 
 		if ok {
 
-			log.Printf("GetOwner[%v], served from cache\n", cacheKeyInfo)
+			// log.Printf("GetOwner[%v], served from cache\n", cacheKeyInfo)
 			json.Unmarshal(rawdata, &signerOwner)
 			return
 		}
@@ -1284,7 +1284,7 @@ func (u *UserWallet) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig) 
 
 		if ok {
 
-			log.Printf("GetWalletOwner[%v], served from cache\n", cacheKeyInfo)
+			// log.Printf("GetWalletOwner[%v], served from cache\n", cacheKeyInfo)
 			json.Unmarshal(rawdata, &walletOwner)
 			return
 		}
@@ -1392,7 +1392,7 @@ func (id UserWalletID) GetWallet(db *gorm.DB, gc *sharedconfig.GlobalConfig) (wa
 
 		if ok {
 
-			log.Printf("GetWallet[%v], served from cache\n", cacheKeyInfo)
+			// log.Printf("GetWallet[%v], served from cache\n", cacheKeyInfo)
 			json.Unmarshal(rawdata, &wallet)
 			return
 		}
@@ -1431,7 +1431,7 @@ func (a WalletAlias) GetWallet(db *gorm.DB, gc *sharedconfig.GlobalConfig) (wall
 
 		if ok {
 
-			log.Printf("GetWallet[%v], served from cache\n", cacheKeyInfo)
+			// log.Printf("GetWallet[%v], served from cache\n", cacheKeyInfo)
 			json.Unmarshal(rawdata, &wallet)
 			return
 		}
@@ -1715,7 +1715,7 @@ func (id UserWalletID) GetWalletOwner(db *gorm.DB, gc *sharedconfig.GlobalConfig
 
 		if ok {
 
-			log.Printf("GetWalletOwner[%v], served from cache\n", cacheKeyInfo)
+			// log.Printf("GetWalletOwner[%v], served from cache\n", cacheKeyInfo)
 			json.Unmarshal(rawdata, &walletOwner)
 			return
 		}
@@ -1775,7 +1775,7 @@ func (u Username) GetFullUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (owner
 
 		if ok {
 
-			log.Printf("GetFullUser[%v], served from cache\n", cacheKeyInfo)
+			// log.Printf("GetFullUser[%v], served from cache\n", cacheKeyInfo)
 			json.Unmarshal(rawdata, &owner)
 			return
 		}
@@ -1819,7 +1819,7 @@ func (u Username) GetSimpleUser(db *gorm.DB, gc *sharedconfig.GlobalConfig) (own
 
 		if ok {
 
-			log.Printf("GetSimpleUser[%v], served from cache\n", cacheKeyInfo)
+			// log.Printf("GetSimpleUser[%v], served from cache\n", cacheKeyInfo)
 			json.Unmarshal(rawdata, &owner)
 			return
 		}
@@ -2104,7 +2104,7 @@ func (u *User) GetDefaultAssets(gc *sharedconfig.GlobalConfig) (defaultAssets []
 		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 
 		if ok {
-			log.Printf("GetDefaultAssets [%v], served from cache\n", cacheKey)
+			// log.Printf("GetDefaultAssets [%v], served from cache\n", cacheKey)
 			da := response.([]interface{})
 			for _, v := range da {
 				vals := v.(map[string]interface{})
