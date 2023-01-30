@@ -483,7 +483,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 
 	}
 	//service fee
-	signForFeeTrustLine := false
+	signForFeeTrustLine := 0
 	serviceFee, e := decimal.NewFromString(paymentInfo.FeeAmount)
 	if e != nil {
 		serviceFee = decimal.Zero
@@ -500,7 +500,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 			feeAddress := feeKeypair.Address()
 
 			if !asset.IsNative() {
-				signForFeeTrustLine = true
+				signForFeeTrustLine = 1
 				_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, asset)
 				if !feeAccountTrustsAsset {
 
@@ -571,7 +571,7 @@ func generatePaymentXdr(client *horizonclient.Client, owner *userModels.User, so
 		}
 	}
 
-	if signForFeeTrustLine && !asset.IsNative() && paymentInfo.Multiparty == 1 {
+	if signForFeeTrustLine == 1 && !asset.IsNative() && paymentInfo.Multiparty == 1 {
 		feeKeypair := keypair.MustParseFull(os.Getenv("SHARED_ACCESS_FEE_WALLET"))
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 

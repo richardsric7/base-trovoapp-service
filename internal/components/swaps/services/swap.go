@@ -173,7 +173,8 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 
 	newAmountToSwap := amountToSwap.Truncate(7).String()
 
-	var sourceAsset, destinationAsset txnbuild.Asset = txnbuild.NativeAsset{}, txnbuild.NativeAsset{}
+	var sourceAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	var destinationAsset txnbuild.Asset = txnbuild.NativeAsset{}
 
 	if len(swapInfo.DestinationAssetCode) != 0 && !strings.EqualFold(swapInfo.DestinationAssetCode, nativeAssetCode) {
 
@@ -294,7 +295,7 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	}
 	// totalFees = totalFees.Add(serviceFee)
 	// feeLabel := swapInfo.Fee + "%"
-	signForFeeTrustLine := false
+	signForFeeTrustLine := 0
 	if serviceFee.IsPositive() && os.Getenv("SWAP_FEE_ENABLED") == "1" {
 		//process service fee
 
@@ -305,7 +306,7 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 
 		if !sourceAsset.IsNative() {
 
-			signForFeeTrustLine = true
+			signForFeeTrustLine = 1
 			_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, sourceAsset)
 			if !feeAccountTrustsAsset {
 
@@ -377,10 +378,12 @@ func generateSwapXdr(signerPublicKey string, owner *userModels.User, wallet *use
 	}
 	// }
 
-	if signForFeeTrustLine && !sourceAsset.IsNative() {
-		feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
-		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
+	if signForFeeTrustLine == 1 && !sourceAsset.IsNative() {
+		log.Printf("[generateSwapXdr] <<<<<<<<<<<<<<<<<<<<<<<<<<<< signing transaction with swap fee key>>>>>>>>>>>>>>>>>>>>>>>>:[%v]\n\n", sourceAsset)
 
+		feeKeypair := keypair.MustParseFull(os.Getenv("SWAP_FEE_WALLET"))
+
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 		if err != nil {
 			log.Println("[generateSwapXdr] error signing transaction with swap fee key", err)
 			return "", &tErrors.ErrorTemporaryServerError{}
