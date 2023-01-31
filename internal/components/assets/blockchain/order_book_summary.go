@@ -320,7 +320,7 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
 			cp := string(concatPriceByte)
-			log.Printf("[GetDollarPrice] cache result: %v\n", cp)
+			log.Printf("[GetNativeAskPrice] cache result: %v\n", cp)
 			return cp, nil
 		}
 	}
@@ -341,7 +341,7 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 	}
 	nativePrice = orderBook.Asks[0].Price
 
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, fmt.Sprintf("%v", nativePrice), 60)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, nativePrice, 60)
 
 	return nativePrice, nil
 }
