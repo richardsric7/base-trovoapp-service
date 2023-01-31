@@ -1,6 +1,7 @@
 package assets
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -248,8 +249,9 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	if checkCacheFirst {
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
-			cp := string(concatPriceByte)
-			log.Printf("[GetDollarPrice] cache result: %v", cp)
+			var cp string
+			json.Unmarshal(concatPriceByte, &cp)
+			log.Printf("[GetDollarPrice] cache result: %v\n", cp)
 			s := strings.Split(cp, ":")
 			return s[0], s[1], nil
 		}
@@ -280,7 +282,9 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 		//fetch from last stored in cache
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
-			cp := string(concatPriceByte)
+			var cp string
+			json.Unmarshal(concatPriceByte, &cp)
+			log.Printf("[GetDollarPrice] cache result: %v\n", cp)
 			s := strings.Split(cp, ":")
 			return s[0], s[1], nil
 		}
@@ -318,8 +322,9 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 	if checkCacheFirst {
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
-			cp := string(concatPriceByte)
-			log.Printf("[GetDollarPrice] cache result: %v", cp)
+			var cp string
+			json.Unmarshal(concatPriceByte, &cp)
+			log.Printf("[GetDollarPrice] cache result: %v\n", cp)
 			return cp, nil
 		}
 	}
