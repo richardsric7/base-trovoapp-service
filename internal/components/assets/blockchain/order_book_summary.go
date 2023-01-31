@@ -299,11 +299,11 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 		}
 		usdPrice = orderBook.Bids[0].Price
 
-		gc.RedisCache.StoreResultToCacheRaw(cacheKey, fmt.Sprintf("%v:%v", usdPrice, priceType), 60)
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, usdPrice+":"+priceType, 60)
 		return usdPrice, priceType, nil
 	}
 	usdPrice = orderBook.Asks[0].Price
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, fmt.Sprintf("%v:%v", usdPrice, priceType), 60)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, usdPrice+":"+priceType, 60)
 	return usdPrice, priceType, nil
 }
 

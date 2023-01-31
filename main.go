@@ -359,7 +359,7 @@ func main() {
 					}
 
 				}
-				log.Printf("Channel Account to be used:%v\n", k.Address())
+				// log.Printf("Channel Account to be used:%v\n", k.Address())
 				//check minimum balance
 				if len(channelAccountsCSV) == 0 {
 					channelAccountsCSV = fmt.Sprintf("%s,", k.Seed())
