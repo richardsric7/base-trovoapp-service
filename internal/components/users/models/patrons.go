@@ -4,7 +4,7 @@ import "time"
 
 type PatronPackage struct {
 	ID            string `json:"id"`
-	Decscription  string `json:"decscription"`
+	Description   string `json:"description"`
 	Inactive      int    `gorm:"default:0" json:"inactive"`
 	PriorityOrder int    `gorm:"default:1" json:"-"`
 }
