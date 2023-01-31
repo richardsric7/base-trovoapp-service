@@ -1,7 +1,6 @@
 package assets
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -249,8 +248,7 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	if checkCacheFirst {
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
-			var cp string
-			json.Unmarshal(concatPriceByte, &cp)
+			cp := string(concatPriceByte)
 			log.Printf("[GetDollarPrice] cache result: %v\n", cp)
 			s := strings.Split(cp, ":")
 			return s[0], s[1], nil
@@ -282,8 +280,7 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 		//fetch from last stored in cache
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
-			var cp string
-			json.Unmarshal(concatPriceByte, &cp)
+			cp := string(concatPriceByte)
 			log.Printf("[GetDollarPrice] cache result: %v\n", cp)
 			s := strings.Split(cp, ":")
 			return s[0], s[1], nil
@@ -302,11 +299,11 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 		}
 		usdPrice = orderBook.Bids[0].Price
 
-		gc.RedisCache.StoreResultToCacheRaw(cacheKey, []byte(fmt.Sprintf("%v:%v", usdPrice, priceType)), 60)
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, fmt.Sprintf("%v:%v", usdPrice, priceType), 60)
 		return usdPrice, priceType, nil
 	}
 	usdPrice = orderBook.Asks[0].Price
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, []byte(fmt.Sprintf("%v:%v", usdPrice, priceType)), 60)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, fmt.Sprintf("%v:%v", usdPrice, priceType), 60)
 	return usdPrice, priceType, nil
 }
 
@@ -322,8 +319,7 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 	if checkCacheFirst {
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
-			var cp string
-			json.Unmarshal(concatPriceByte, &cp)
+			cp := string(concatPriceByte)
 			log.Printf("[GetDollarPrice] cache result: %v\n", cp)
 			return cp, nil
 		}
@@ -345,7 +341,7 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 	}
 	nativePrice = orderBook.Asks[0].Price
 
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, []byte(fmt.Sprintf("%v", nativePrice)), 60)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, fmt.Sprintf("%v", nativePrice), 60)
 
 	return nativePrice, nil
 }
