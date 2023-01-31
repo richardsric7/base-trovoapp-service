@@ -306,13 +306,13 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 		usdPrice = orderBook.Bids[0].Price
 		priceCache.Price = usdPrice
 		priceCache.PriceType = priceType
-		gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 60)
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 120)
 		return usdPrice, priceType, nil
 	}
 	usdPrice = orderBook.Asks[0].Price
 	priceCache.Price = usdPrice
 	priceCache.PriceType = priceType
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 60)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 120)
 	return usdPrice, priceType, nil
 }
 
@@ -352,9 +352,9 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 	}
 	nativePrice = orderBook.Asks[0].Price
 
-	priceCache.Price = nativeCode
+	priceCache.Price = nativePrice
 
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 60)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 120)
 
 	return nativePrice, nil
 }
