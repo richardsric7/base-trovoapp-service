@@ -1,6 +1,7 @@
 package assets
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -71,6 +72,10 @@ type TradeAggregateInput struct {
 	CounterAssetType   string
 	Order              string
 	Limit              string
+}
+type PriceCache struct {
+	Price     string `json:"price"`
+	PriceType string `json:"priceType,omitempty"`
 }
 
 // getTradeAggregate gets trade chart data
@@ -233,6 +238,7 @@ func GetXBNDollarAskPrice(db *gorm.DB) (usdPrice string, err error) {
 
 // GetDollarPrice dollar ask price using USDB
 func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst bool) (usdPrice, priceType string, err error) {
+	var priceCache PriceCache
 	var input OrderBookRequestInput
 	priceType = "ask"
 	usdPrice = "0"
@@ -248,10 +254,10 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 	if checkCacheFirst {
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
-			cp := string(concatPriceByte)
-			log.Printf("[GetDollarPrice] cache result: %v\n", cp)
-			s := strings.Split(cp, ":")
-			return s[0], s[1], nil
+			json.Unmarshal(concatPriceByte, &priceCache)
+			// log.Printf("[GetDollarPrice] cache result: %+v\n", priceCache)
+
+			return priceCache.Price, priceCache.PriceType, nil
 		}
 	}
 
@@ -280,10 +286,10 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 		//fetch from last stored in cache
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
-			cp := string(concatPriceByte)
-			log.Printf("[GetDollarPrice] cache result: %v\n", cp)
-			s := strings.Split(cp, ":")
-			return s[0], s[1], nil
+			json.Unmarshal(concatPriceByte, &priceCache)
+			// log.Printf("[GetDollarPrice] cache result: %+v\n", priceCache)
+
+			return priceCache.Price, priceCache.PriceType, nil
 		}
 
 		return
@@ -298,17 +304,21 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 			return "0", priceType, &bantupayerrors.ErrorTemporaryServerError{}
 		}
 		usdPrice = orderBook.Bids[0].Price
-
-		gc.RedisCache.StoreResultToCacheRaw(cacheKey, usdPrice+":"+priceType, 60)
+		priceCache.Price = usdPrice
+		priceCache.PriceType = priceType
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 60)
 		return usdPrice, priceType, nil
 	}
 	usdPrice = orderBook.Asks[0].Price
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, usdPrice+":"+priceType, 60)
+	priceCache.Price = usdPrice
+	priceCache.PriceType = priceType
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 60)
 	return usdPrice, priceType, nil
 }
 
 // GetNativeAskPrice native (XBN) ask price
 func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst bool) (nativePrice string, err error) {
+	var priceCache PriceCache
 	var nativeCode, nativeIssuer string
 	nv := strings.Split(os.Getenv("USE_ASSET_FOR_NATIVE_PRICE"), ":")
 	if len(nv) == 2 {
@@ -319,9 +329,10 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 	if checkCacheFirst {
 		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
 		if ok {
-			cp := string(concatPriceByte)
-			log.Printf("[GetNativeAskPrice] cache result: %v\n", cp)
-			return cp, nil
+			json.Unmarshal(concatPriceByte, &priceCache)
+			// log.Printf("[GetNativeAskPrice] cache result: %+v\n", priceCache)
+
+			return priceCache.Price, nil
 		}
 	}
 	var input OrderBookRequestInput
@@ -341,7 +352,9 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedco
 	}
 	nativePrice = orderBook.Asks[0].Price
 
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, nativePrice, 60)
+	priceCache.Price = nativeCode
+
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, priceCache, 60)
 
 	return nativePrice, nil
 }
