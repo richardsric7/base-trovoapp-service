@@ -35,8 +35,8 @@ import (
 /////User Model convenience Methods
 
 // GetSigners returns user signers
-func (u *UserWallet) GetSigners(temp bool) (signers map[string]Signer) {
-	account, _, err := u.GetBlockchainAccountDetail(temp)
+func (u *UserWallet) GetSigners(temp bool, gc *sharedconfig.GlobalConfig) (signers map[string]Signer) {
+	account, _, err := u.GetBlockchainAccountDetail(temp, gc)
 	if err != nil {
 		return signers
 	}
@@ -103,8 +103,8 @@ func (u *UserWallet) SignerIsValidWA(signerKey string, account *horizon.Account)
 }
 
 // SignerIsValid checks if the signerKey is valid for this user public key
-func (u *UserWallet) SignerIsValid(signerKey string, temp bool) bool {
-	signer, ok := u.GetSigners(temp)[signerKey]
+func (u *UserWallet) SignerIsValid(signerKey string, temp bool, gc *sharedconfig.GlobalConfig) bool {
+	signer, ok := u.GetSigners(temp, gc)[signerKey]
 	if !ok || signer.Weight < 1 {
 		return false
 	}
@@ -113,10 +113,10 @@ func (u *UserWallet) SignerIsValid(signerKey string, temp bool) bool {
 }
 
 // SignerIsValid checks if the signerKey is valid for this user public key
-func (u *User) SignerIsValid(signerKey string, temp bool) bool {
+func (u *User) SignerIsValid(signerKey string, temp bool, gc *sharedconfig.GlobalConfig) bool {
 	for _, w := range u.UserWallets {
 		if w.ID == w.Signer {
-			signer, ok := w.GetSigners(temp)[signerKey]
+			signer, ok := w.GetSigners(temp, gc)[signerKey]
 			if !ok || signer.Weight < 1 {
 				return false
 			}
@@ -160,7 +160,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 
 	}
 
-	account, _, err := u.GetBlockchainAccountDetail(temp)
+	account, _, err := u.GetBlockchainAccountDetail(temp, gc)
 	if err != nil {
 		qrCode := ""
 		if !temp {
@@ -199,7 +199,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 		return balances, err
 	}
 	if len(nv) == 2 {
-		nativeUsdPrice, _, _ = blockchain.GetDollarPrice(nativeCode, nativeIssuer, gc)
+		nativeUsdPrice, _, _ = blockchain.GetDollarPrice(nativeCode, nativeIssuer, gc, true)
 	} else {
 		nativeUsdPrice = xbnUsdPrice
 	}
@@ -238,7 +238,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					assetUsdPrice = xbnUsdPrice
 					assetNativePrice = xbnNativePrice
 				} else {
-					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer)
+					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, true)
 					dollarAsset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
 					if len(dollarAsset) == 2 {
 						if strings.EqualFold(bal.Code, dollarAsset[0]) && strings.EqualFold(bal.Issuer, dollarAsset[1]) {
@@ -267,7 +267,7 @@ func (u *UserWallet) GetBalance(temp bool, gc *sharedconfig.GlobalConfig) (balan
 					assetNativePrice = xbnNativePrice
 				} else {
 					assetUsdPrice = nativeUsdPrice
-					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer)
+					assetNativePrice, _ = blockchain.GetNativeAskPrice(bal.Code, bal.Issuer, gc, true)
 				}
 
 			}
@@ -369,7 +369,7 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 
 	}
 
-	account, _, err := u.GetBlockchainAccountDetail(temp)
+	account, _, err := u.GetBlockchainAccountDetail(temp, gc)
 	if err != nil {
 
 		if !temp && err.Error() == "error-blockchain-account-not-activated" {
@@ -593,8 +593,8 @@ func (id UserWalletID) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (as
 }
 
 // GetAccountThresholds returns user signers
-func (u *UserWallet) GetAccountThresholds(temp bool) (thresholds horizon.AccountThresholds) {
-	account, _, err := u.GetBlockchainAccountDetail(temp)
+func (u *UserWallet) GetAccountThresholds(temp bool, gc *sharedconfig.GlobalConfig) (thresholds horizon.AccountThresholds) {
+	account, _, err := u.GetBlockchainAccountDetail(temp, gc)
 	if err != nil {
 		return thresholds
 	}
@@ -603,7 +603,9 @@ func (u *UserWallet) GetAccountThresholds(temp bool) (thresholds horizon.Account
 }
 
 // GetBlockchainAccountDetail fetches the bantu account information using public key
-func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizon.Account, destinationAccountExists bool, err error) {
+func (u *UserWallet) GetBlockchainAccountDetail(temp bool, gc *sharedconfig.GlobalConfig) (clientAccount horizon.Account, destinationAccountExists bool, err error) {
+	cacheKey := fmt.Sprintf("bca_%v", u.ID)
+
 	client := network.GetBlockchainClient()
 	var accountRequest horizonclient.AccountRequest
 	if temp {
@@ -611,6 +613,7 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizo
 		if u.TempPublicKey != nil {
 			//temp account has been generated
 			accountRequest = horizonclient.AccountRequest{AccountID: *u.TempPublicKey}
+			cacheKey = fmt.Sprintf("bca_%v", *u.TempPublicKey)
 
 		} else {
 			//temp account not yet generated
@@ -621,6 +624,21 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizo
 	} else {
 		//real account
 		accountRequest = horizonclient.AccountRequest{AccountID: u.ID}
+	}
+	{
+		// cacheKey := fmt.Sprintf("bca_%v", u.ID)
+		// cacheKey = fmt.Sprintf("bca_%v", *u.TempPublicKey)
+		// gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, 10)
+
+		// search cache
+		ok, rawdata := gc.RedisCache.GetCachedResultRaw(cacheKey)
+
+		if ok {
+
+			json.Unmarshal(rawdata, &clientAccount)
+			return
+		}
+
 	}
 
 	clientAccount, err = client.AccountDetail(accountRequest)
@@ -643,6 +661,7 @@ func (u *UserWallet) GetBlockchainAccountDetail(temp bool) (clientAccount horizo
 		}
 		return clientAccount, destinationAccountExists, &tErrors.ErrorTemporaryServerError{}
 	}
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, clientAccount, 10)
 	return clientAccount, true, nil
 }
 
@@ -822,9 +841,9 @@ func (u *User) VerifyEmailOnMailgun() (validationResult mailgun.EmailVerificatio
 }
 
 // GetBlockchainAccountDataKey fetches the bantu account information using public key
-func (u *UserWallet) GetBlockchainAccountDataKey(temp bool, keys ...string) (dataValues map[string]string) {
+func (u *UserWallet) GetBlockchainAccountDataKey(temp bool, gc *sharedconfig.GlobalConfig, keys ...string) (dataValues map[string]string) {
 	dataValues = make(map[string]string)
-	account, _, err := u.GetBlockchainAccountDetail(temp)
+	account, _, err := u.GetBlockchainAccountDetail(temp, gc)
 	if err != nil {
 		return
 	}
@@ -2210,15 +2229,7 @@ func (u Username) InvalidateUserCache(id string, gc *sharedconfig.GlobalConfig) 
 	if err != nil {
 		return
 	}
-	cacheKey1 := fmt.Sprintf("GetBalance_%s", userAccount.PublicKey)
-	cacheKeyUsername := fmt.Sprintf("userObj %v", userAccount.Username)
-	cacheKeyEmail := fmt.Sprintf("userObj %v", userAccount.Email)
-	cacheKeySigner := fmt.Sprintf("userObj %v", userAccount.PrimarySigner)
-	cacheKeyUserID := fmt.Sprintf("userObj %v", userAccount.ID)
-	gc.RedisCache.DeleteFromCache(cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID)
-
-	gc.RedisCache.DeleteFromCache(cacheKey1)
-	userAccount.InvalidateUserWalletCache(gc)
+	userAccount.InvalidateUserCache(gc)
 }
 func (u *User) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	if u == nil {
@@ -2230,9 +2241,8 @@ func (u *User) InvalidateUserCache(gc *sharedconfig.GlobalConfig) {
 	cacheKeySigner := fmt.Sprintf("userObj %v", u.PrimarySigner)
 	cacheKeyUserID := fmt.Sprintf("userObj %v", u.ID)
 	cacheKeyPShared := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", u.ID)
-	gc.RedisCache.DeleteFromCache(cacheKeyPShared, cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID)
+	gc.RedisCache.DeleteFromCache(cacheKeyPShared, cacheKeyUsername, cacheKeyEmail, cacheKeySigner, cacheKeyUserID, cacheKey1)
 
-	gc.RedisCache.DeleteFromCache(cacheKey1)
 	u.InvalidateUserWalletCache(gc)
 }
 
@@ -2249,8 +2259,6 @@ func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
 	}
 	for _, w := range u.UserWallets {
 		cacheKey1 := fmt.Sprintf("GetBalance_%s", w.ID)
-		cacheKey2 := fmt.Sprintf("GetBalance_%s", *w.TempPublicKey)
-
 		cacheKey3 := fmt.Sprintf("userObj %v", w.Alias)
 		cacheKey4 := fmt.Sprintf("userObj %v", w.ID)
 		cacheKeySigner := fmt.Sprintf("userObj %v", w.Signer)
@@ -2258,7 +2266,15 @@ func (u *User) InvalidateUserWalletCache(gc *sharedconfig.GlobalConfig) {
 		cacheKeyWalletAlias := fmt.Sprintf("walletObj_%v", w.Alias)
 		cacheKeyWalletID := fmt.Sprintf("walletObj_%v", w.ID)
 		cacheKeyPShared := fmt.Sprintf("FetchWalletsPermissionsSharedWithUser_%s", w.UserID)
-		gc.RedisCache.DeleteFromCache(cacheKeyPShared, cacheKeyWalletAlias, cacheKeyWalletID, cacheKey1, cacheKey2, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID)
+		cacheKeybca1 := fmt.Sprintf("bca_%v", u.ID)
+		if w.TempPublicKey != nil {
+			cacheKeytempW := fmt.Sprintf("GetBalance_%s", *w.TempPublicKey)
+			cacheKeybca2 := fmt.Sprintf("bca_%v", *w.TempPublicKey)
+			gc.RedisCache.DeleteFromCache(cacheKeybca2, cacheKeytempW)
+
+		}
+
+		gc.RedisCache.DeleteFromCache(cacheKeyPShared, cacheKeyWalletAlias, cacheKeyWalletID, cacheKey1, cacheKey3, cacheKey4, cacheKeySigner, cacheKeyUserID, cacheKeybca1)
 
 	}
 

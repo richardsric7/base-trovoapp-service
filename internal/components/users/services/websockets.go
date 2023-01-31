@@ -121,7 +121,7 @@ func UserWebSocketAPI(c *gin.Context, gc *sharedconfig.GlobalConfig) {
 
 	}
 
-	if !user.SignerIsValid(data.Signer, false) && authEnable {
+	if !user.SignerIsValid(data.Signer, false,gc) && authEnable {
 		auth.Auth = false
 		auth.Message = "signer mismatch"
 		message := gin.H{"stream": auth, "streamType": "auth"}

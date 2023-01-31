@@ -232,7 +232,7 @@ func GetXBNDollarAskPrice(db *gorm.DB) (usdPrice string, err error) {
 }
 
 // GetDollarPrice dollar ask price using USDB
-func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig) (usdPrice, priceType string, err error) {
+func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst bool) (usdPrice, priceType string, err error) {
 	var input OrderBookRequestInput
 	priceType = "ask"
 	usdPrice = "0"
@@ -245,6 +245,15 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 		errAssetCode = sellingAssetCode
 	}
 	cacheKey := fmt.Sprintf("%v.%v_dollar", sellingAssetCode, sellingAssetIssuer)
+	if checkCacheFirst {
+		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
+		if ok {
+			cp := string(concatPriceByte)
+			s := strings.Split(cp, ":")
+			return s[0], s[1], nil
+		}
+	}
+
 	input.SellingAssetCode = sellingAssetCode
 	input.SellingAssetIssuer = sellingAssetIssuer
 	dollarAsset := strings.Split(os.Getenv("DOLLAR_ASSET"), ":")
@@ -288,21 +297,29 @@ func GetDollarPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfi
 		}
 		usdPrice = orderBook.Bids[0].Price
 
-		gc.RedisCache.StoreResultToCacheRaw(cacheKey, []byte(fmt.Sprintf("%v:%v", usdPrice, priceType)), 10000)
+		gc.RedisCache.StoreResultToCacheRaw(cacheKey, []byte(fmt.Sprintf("%v:%v", usdPrice, priceType)), 60)
 		return usdPrice, priceType, nil
 	}
 	usdPrice = orderBook.Asks[0].Price
-	gc.RedisCache.StoreResultToCacheRaw(cacheKey, []byte(fmt.Sprintf("%v:%v", usdPrice, priceType)), 10000)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, []byte(fmt.Sprintf("%v:%v", usdPrice, priceType)), 60)
 	return usdPrice, priceType, nil
 }
 
 // GetNativeAskPrice native (XBN) ask price
-func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string) (nativePrice string, err error) {
+func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string, gc *sharedconfig.GlobalConfig, checkCacheFirst bool) (nativePrice string, err error) {
 	var nativeCode, nativeIssuer string
 	nv := strings.Split(os.Getenv("USE_ASSET_FOR_NATIVE_PRICE"), ":")
 	if len(nv) == 2 {
 		nativeCode = nv[0]
 		nativeIssuer = nv[1]
+	}
+	cacheKey := fmt.Sprintf("%v.%v_nativePrice", sellingAssetCode, sellingAssetIssuer)
+	if checkCacheFirst {
+		ok, concatPriceByte := gc.RedisCache.GetCachedResultRaw(cacheKey)
+		if ok {
+			cp := string(concatPriceByte)
+			return cp, nil
+		}
 	}
 	var input OrderBookRequestInput
 
@@ -320,11 +337,9 @@ func GetNativeAskPrice(sellingAssetCode, sellingAssetIssuer string) (nativePrice
 		return "0", &bantupayerrors.ErrorTemporaryServerError{}
 	}
 	nativePrice = orderBook.Asks[0].Price
-	// else if len(orderBook.Bids) > 0 {
-	// 	price = orderBook.Bids[0].Price
-	// }
 
-	// fmt.Printf("OrderBookSummary: %+v\n", orderBook)
+	gc.RedisCache.StoreResultToCacheRaw(cacheKey, []byte(fmt.Sprintf("%v", nativePrice)), 60)
+
 	return nativePrice, nil
 }
 
