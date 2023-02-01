@@ -287,6 +287,44 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       height: 5,
                                     ),
                                   ],
+                                  SizedBox(
+                                    height: height / 90,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20.0),
+                                    child: Text(
+                                      LanguageEn.amount,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: notifier.getbluewhitecolor,
+                                        fontSize: 16.sp,
+                                        fontFamily: fontsemibold,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: 5,
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20.0),
+                                    child: Text(
+                                      formatAmount(
+                                          viewData.transactionDirection!,
+                                          viewData.amount,
+                                          viewData.assetCode),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        color: notifier.getbluewhitecolor,
+                                        fontSize: 15.sp,
+                                        fontFamily: fontbody,
+                                      ),
+                                    ),
+                                  ),
+                                  Divider(
+                                    height: 5,
+                                  ),
                                   if (viewData.memo!.isNotEmpty) ...[
                                     SizedBox(
                                       height: height / 90,
@@ -496,6 +534,25 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                   ),
                 ],
               ),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: Text(
+                      name.toString().isNotEmpty
+                          ? truncate(publicKey!, length: 5) +
+                              publicKey!.substring(publicKey!.length - 5)
+                          : '',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 13.sp,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         )
@@ -505,9 +562,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
 
   String formatAmount(TransactionDirection transactionType, amount, assetCode) {
     var am = formatNumber(double.parse(amount.toString()));
-    return transactionType == TransactionDirection.Send
-        ? '- $am $assetCode'
-        : '+ $am $assetCode';
+    return '$am $assetCode';
   }
 
   // String extractUsername(String data) {

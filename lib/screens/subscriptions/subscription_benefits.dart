@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/models/patronInfo.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -23,6 +25,7 @@ class SubscriptionPlanBenefits extends StatefulWidget {
 class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
   late ColorNotifier notifier;
   late DataProvider appState;
+  late PatronInfo patronInfo;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -39,6 +42,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
+    patronInfo = appState.viewData!['patronInfo'] as PatronInfo;
   }
 
   @override
@@ -70,7 +74,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
                     child: Column(
                       children: [
                         Text(
-                          'Platinum Patron',
+                          '${patronInfo.patronPackage.capitalizeFirst!} Patron',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getblck,
@@ -98,7 +102,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Platinum Patron - Tier 1',
+                      '${patronInfo.patronPackage.capitalizeFirst!} Patron',
                       style: TextStyle(
                           fontSize: 20,
                           color: notifier.getbluewhitecolor,
@@ -208,7 +212,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
               ),
               SizedBox(height: height / 20),
               Button(
-                'Subscribe to Platinum',
+                'Subscribe to ${patronInfo.patronPackage.capitalizeFirst!}',
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
