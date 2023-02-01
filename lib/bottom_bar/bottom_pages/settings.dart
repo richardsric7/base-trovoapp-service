@@ -163,7 +163,7 @@ class _SettingsState extends State<Settings> {
                       page: WelcomeSubscriptionsViewPageConfig);
                 },
                 child: iteamlist(
-                    "assets/images/trovo-blue.png", "", 'My Subscriptions'),
+                    "assets/images/trovo-blue.png", "", "Trovo Patron"),
               ),
               SizedBox(height: height / 25),
               Row(

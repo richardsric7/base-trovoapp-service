@@ -9,6 +9,7 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_passw
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
@@ -184,7 +185,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
               if (transactionData['memo'].toString().isNotEmpty) ...[
                 showMemo(),
               ],
-              if (wallet.isSharedWallet) ...[
+              if (wallet.isSharedWalletAndCanInitiate) ...[
                 SizedBox(
                   height: height / 50,
                 ),
@@ -515,7 +516,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     try {
       showLoader(context);
 
-      if (wallet.isSharedWallet) {
+      if (wallet.isSharedWalletAndCanInitiate) {
         transactionData['commit'] = 1;
       } else {
         // sign transaction
@@ -532,7 +533,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
       // print(requestBody);
 
       Map responseData = await makePostRequest(
-          uri: wallet.isSharedWallet
+          uri: wallet.isSharedWalletAndCanInitiate
               ? '/v1/shared-access/payment'
               : '/v1/users/payment',
           body: requestBody,
@@ -544,7 +545,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo();
-        if (wallet.isSharedWallet) {
+        if (wallet.isSharedWalletAndCanInitiate) {
           appState.viewData = {
             SuccessViewPageConfig.key: {
               'title': 'Payment request submitted',
@@ -552,11 +553,11 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                   'You have successfully requested payment of [${transactionData['amount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}] from [${wallet.alias}] to [${transactionData['destination']}]. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.',
               'useOnDone': true,
               'onDone': () {
-                appState.currentAction = appState.returnView ??
-                    PageAction(
-                      state: PageState.addAll,
-                      pages: [BottomHomePageConfig],
-                    );
+                appState.currentAction = PageAction(
+                  state: PageState.replaceAll,
+                  page: BottomHomePageConfig,
+                );
+                changeTabPage(appState, ButtomTabPage.Dashboard.index);
               },
             }
           };

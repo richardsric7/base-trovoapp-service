@@ -73,7 +73,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                     padding: EdgeInsets.all(8),
                     child: Column(children: [
                       Text(
-                        'Subscription',
+                        'Trovo Patron',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: notifier.getblck,
@@ -224,7 +224,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
               Padding(
                 padding: const EdgeInsets.all(30.0),
                 child: Text(
-                  'Once your subscription expires, you will no longer have access to the Patron perks and will need to resubscribe to keep enjoying the benefits.',
+                  'Once your subscription expires, you will no longer have access to the Trovo Patron perks and will need to resubscribe to keep enjoying the benefits.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontSize: 12,

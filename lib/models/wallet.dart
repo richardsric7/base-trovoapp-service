@@ -109,6 +109,11 @@ class Wallet {
 
   bool get isSharedWallet => sharedAccessEnabled == 1;
 
+  bool get isSharedWalletAndCanInitiate =>
+      sharedAccessEnabled == 1 &&
+      walletThreshold == 2 &&
+      accesses!.contains('INITIATOR');
+
   bool get isPrimaryWallet => primaryWallet == 1;
 
   Wallet deserializeSharedJson(m, List<String> accesses) {

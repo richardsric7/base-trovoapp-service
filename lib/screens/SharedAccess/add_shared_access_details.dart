@@ -666,6 +666,11 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
               BottomHomePageConfig,
               SharedAccessViewPageConfig,
             ]);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              appState.sharedAccesstabController.animateTo(0,
+                  duration: Duration(milliseconds: 500),
+                  curve: Curves.easeInOut);
+            });
           },
         };
         appState.currentAction =

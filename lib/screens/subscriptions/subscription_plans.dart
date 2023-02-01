@@ -70,7 +70,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                     child: Column(
                       children: [
                         Text(
-                          'Subscription Plans',
+                          'Trovo Patron Plans',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getblck,

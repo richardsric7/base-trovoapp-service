@@ -68,7 +68,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                     padding: EdgeInsets.all(8),
                     child: Column(children: [
                       Text(
-                        'Subscriptions',
+                        'Trovo Patron',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: notifier.getblck,
@@ -93,7 +93,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                 padding: EdgeInsets.symmetric(horizontal: width / 15),
                 child: Column(children: [
                   Text(
-                    'Unlock the full potential of your wallet with Subscriptions',
+                    'Unlock the full potential of the Trovotech ecosystem with Trovo Patron',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: notifier.getblck,
@@ -107,7 +107,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                 padding: EdgeInsets.symmetric(horizontal: width / 15),
                 child: Column(children: [
                   Text(
-                    'You currently have 0 subscription(s)',
+                    'You currently are not a Trovo Patron',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: notifier.getbluewhitecolor,
@@ -118,7 +118,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
               ),
               SizedBox(height: height / 10),
               Button(
-                'View all subscription plans',
+                'View all Trovo Patron plans',
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
