@@ -1275,7 +1275,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       );
 
       print('response: $responseData');
-      hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
         var messageLength = responseData['data']['messages'].length;
@@ -1294,6 +1293,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       print(e);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
+    hideLoader(context);
   }
 
   postProcessData(messageShown, messageLength, data) {
@@ -1320,8 +1320,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   }
 
   void sendFullDataToServer(responseBody) async {
+    showLoader(context);
+
     try {
-      showLoader(context);
       // get primary signature
       var primarySignature = TrovoWalletSDK().signBase64Txn(
         primaryWalletKeyPair.secretKey,
@@ -1364,7 +1365,12 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         // store back the list of secret keys but this time it
         // contains the secret key of the newly created subwallet
         await StoreData().storeInsertData('secretKey', appState.secretKeys);
-        await updateUserInfo();
+        await updateUserInfo(
+            appState.primaryWallet.publicKey,
+            appState.secretKeys[0],
+            appState.primaryWallet.publicKey,
+            userInfo.username,
+            appState);
         // add the new subwallet to appState and
         // set the newly created subwallet as the activeWallet
         appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
@@ -1393,22 +1399,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
     appState.walletView.actionText = LanguageEn.addsubwallet;
     appState.walletView.view = WalletView.listWallets;
-  }
-
-  Future<void> updateUserInfo() async {
-    var keyPair =
-        TrovoWalletSDK().parseSecretKey(primaryWalletKeyPair.secretKey);
-    Map responseData = await makeGetRequest(
-        uri: '/v1/users/${userInfo.username!.trim().replaceAll(' ', '')}',
-        signer: keyPair.publicKey,
-        publicKey: keyPair.publicKey,
-        secretKey: keyPair.secretKey);
-
-    print('response: ${responseData}');
-
-    if (responseData['statusCode'] == 200) {
-      await storeUserInfo(responseData['data'], appState);
-    }
   }
 
   void refreshData() async {

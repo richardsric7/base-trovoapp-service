@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/models/patronInfo.dart';
+import 'package:trovo_wallet/models/patronTier.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -23,6 +26,7 @@ class SubscriptionPlanOptions extends StatefulWidget {
 class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
   late ColorNotifier notifier;
   late DataProvider appState;
+  late PatronInfo patronInfo;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -39,6 +43,7 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
+    patronInfo = appState.viewData!['patronInfo'] as PatronInfo;
   }
 
   @override
@@ -70,7 +75,7 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
                     child: Column(
                       children: [
                         Text(
-                          'Platinum Options',
+                          '${patronInfo.patronPackage.capitalizeFirst} Options',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getblck,
@@ -98,7 +103,7 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Platinum Patron - Tier 1 options ',
+                      '${patronInfo.patronPackage.capitalizeFirst} Patron options ',
                       style: TextStyle(
                           fontSize: 18,
                           color: notifier.getbluewhitecolor,
@@ -107,42 +112,24 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
-              planOption(
-                'Lifetime subscription (recommended)',
-                '\$600',
-                () {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: AuthorizeSubscriptionViewPageConfig);
-                },
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              planOption(
-                'Annual subscription',
-                '\$60',
-                () {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: AuthorizeSubscriptionViewPageConfig);
-                },
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              planOption(
-                'Monthly subscription',
-                '\$10',
-                () {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: AuthorizeSubscriptionViewPageConfig);
-                },
-              ),
+              for (var tier in patronInfo.patronTiers.reversed) ...[
+                SizedBox(
+                  height: height / 50,
+                ),
+                planOption(
+                  '${tier.tier.capitalizeFirst} subscription ${tier.tier == 'LIFETIME' ? '(recommended)' : ''}',
+                  '\$${tier.price}',
+                  () {
+                    appState.viewData = {
+                      'patronInfo': patronInfo,
+                      'selectedTier': tier,
+                    };
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: AuthorizeSubscriptionViewPageConfig);
+                  },
+                ),
+              ]
             ],
           ),
         ),

@@ -470,10 +470,10 @@ class LanguageEn {
       "This wallet's secret key will only be available while this app in not yet unistalled from this device.";
 
   static String get writeitdown =>
-      "Please write down the following details correctly and store in a safe place.";
+      "Please copy the following details correctly and store in a safe place.";
 
   static String get writeitasfollows =>
-      "You can write down your secret key as follows:";
+      "You can copy your secret key as displayed below:";
 
   static String get taptorevealsecretkeys => "Tap to reveal all Secrets";
 
