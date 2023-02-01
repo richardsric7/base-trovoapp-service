@@ -539,7 +539,8 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                   Expanded(
                     flex: 5,
                     child: Text(
-                      name.toString().isNotEmpty
+                      name.toString().isNotEmpty &&
+                              (publicKey != null && publicKey!.isNotEmpty)
                           ? truncate(publicKey!, length: 5) +
                               publicKey!.substring(publicKey!.length - 5)
                           : '',

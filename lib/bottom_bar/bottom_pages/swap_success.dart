@@ -139,7 +139,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                               height: 20,
                             ),
                             Text(
-                              '${transactionData['feeAmount']} ${transactionData['destinationAssetCode'].toString().isEmpty ? 'XBN' : transactionData['destinationAssetCode']} (${transactionData['fee']}%)',
+                              '${transactionData['feeAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']} (${transactionData['fee']}%)',
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: notifier.getbluewhitecolor,
