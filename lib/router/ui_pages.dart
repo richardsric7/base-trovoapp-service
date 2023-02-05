@@ -77,6 +77,7 @@ const String SubscriptionPlansViewPath = '/SubscriptionPlansView';
 const String SubscriptionPlanBenefitsViewPath = '/SubscriptionPlanBenefitsView';
 const String SubscriptionPlanOptionsViewPath = '/SubscriptionPlanOptionsView';
 const String AuthorizeSubscriptionViewPath = '/AuthorizeSubscriptionView';
+const String OptInAssetViewPath = '/OptInAssetView';
 
 enum Pages {
   Splash,
@@ -157,6 +158,7 @@ enum Pages {
   SubscriptionPlanBenefitsView,
   SubscriptionPlanOptionsView,
   AuthorizeSubscriptionView,
+  OptInAssetView,
 }
 
 class PageConfiguration {
@@ -533,4 +535,9 @@ PageConfiguration AuthorizeSubscriptionViewPageConfig = PageConfiguration(
     key: 'AuthorizeSubscriptionView',
     path: AuthorizeSubscriptionViewPath,
     uiPage: Pages.AuthorizeSubscriptionView,
+    currentPageAction: null);
+PageConfiguration OptInAssetViewPageConfig = PageConfiguration(
+    key: 'OptInAssetView',
+    path: OptInAssetViewPath,
+    uiPage: Pages.OptInAssetView,
     currentPageAction: null);

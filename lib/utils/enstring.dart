@@ -351,6 +351,8 @@ class LanguageEn {
 
   static String get claimasset => 'Claim Asset';
 
+  static String get optinasset => 'Opt In';
+
   static String get sentto => 'Sent to';
 
   static String get sentfrom => 'Sent from';
@@ -581,7 +583,7 @@ class LanguageEn {
 
   static String get noNFTs => "You do not have any NFTs yet.";
 
-  static String get assets => "ASSETS";
+  static String get assets => "Assets";
 
   static String get pendingassets => "Pending Asset ";
 
@@ -591,9 +593,15 @@ class LanguageEn {
   static String get pendingassetwarning2 =>
       'Claiming this asset will enable you to continue to receive it in the future and will add it to the list of assets on your wallet.';
 
+  static String get optininfo =>
+      "[assetCode] is not yet part of the assets on your assets list. Do you wish to opt in on this asset?";
+
+  static String get optininfo2 =>
+      'Opting in on this asset will add it to the list of assets on your wallet and will enable you to start transacting with it.';
+
   static String get version => "Version";
 
-  static String get pending => "PENDING";
+  static String get pending => "Pending";
 
   static String get nfts => "NFTS/TIX";
 
@@ -716,6 +724,12 @@ class LanguageEn {
 
   static String get trustassetsuccess =>
       "You have successfully activated asset on your wallet. You will now be able to send, receive and perform other transactions with asset.";
+
+  static String get optinassetsuccess =>
+      "You have successfully opted in on [asset] on your wallet. You will now be able to send, receive and perform other transactions with [asset].";
+
+  static String get optinassetsuccessshared =>
+      "You have successfully submitted request to opt in on [asset] on this wallet.\n\nYour request will be completed as soon as it gets the required number of approvals by those who have approval access on this wallet.";
 
   static String get securityquestionssuccessmessage =>
       'You have successfully setup your secret questons. \n\nPLEASE DO NOT FORGET THE ANSWERS YOU PROVIDED FOR FUTURE USE.';

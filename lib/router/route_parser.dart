@@ -311,6 +311,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
             location: SubscriptionPlanOptionsViewPath);
       case Pages.AuthorizeSubscriptionView:
         return const RouteInformation(location: AuthorizeSubscriptionViewPath);
+      case Pages.OptInAssetView:
+        return const RouteInformation(location: OptInAssetViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

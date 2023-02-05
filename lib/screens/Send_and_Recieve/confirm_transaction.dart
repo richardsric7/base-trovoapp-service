@@ -576,8 +576,13 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
         }
         hideLoader(context);
       } else {
-        popup(context,
-            title: LanguageEn.error, message: responseData['data']['error']);
+        popup(
+          context,
+          title: LanguageEn.error,
+          message: responseData['data']['message'].toString().isEmpty
+              ? responseData['data']['error']
+              : responseData['data']['message'],
+        );
         hideLoader(context);
       }
     } catch (e) {
