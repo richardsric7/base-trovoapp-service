@@ -6,7 +6,7 @@ import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/curated_asset.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
@@ -22,19 +22,21 @@ import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class OptInAsset extends StatefulWidget {
-  const OptInAsset({Key? key}) : super(key: key);
+class OptOutAsset extends StatefulWidget {
+  const OptOutAsset({Key? key}) : super(key: key);
 
   @override
-  State<OptInAsset> createState() => _OptInAssetState();
+  State<OptOutAsset> createState() => _OptOutAssetState();
 }
 
-class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
+class _OptOutAssetState extends State<OptOutAsset>
+    with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
   late UserInfo userInfo;
   late Wallet wallet;
-  late CuratedAsset asset;
+  late Asset asset;
+  late bool hasAvailableBalance;
 
   @override
   void initState() {
@@ -46,11 +48,13 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
       appState.viewData!['walletPublicKey'],
     );
 
-    asset = userInfo.curatedSwapList!.firstWhere(
-      (asset) =>
-          asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    asset = wallet.claimedAssets!.firstWhere(
+      (claimedAsset) =>
+          claimedAsset.assetCode == appState.viewData!['assetCode'] &&
+          claimedAsset.assetIssuer == appState.viewData!['assetIssuer'],
     );
+
+    hasAvailableBalance = asset.amount! > 0;
   }
 
   @override
@@ -70,9 +74,9 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
             elevation: 0,
             backgroundColor: notifier.getwihitecolor,
             title: Text(
-              '${LanguageEn.add} [${asset.assetCode}]',
+              'Remove [${asset.assetCode}]',
               style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: notifier.getbluewhitecolor,
                   fontFamily: fontsemibold),
@@ -87,24 +91,25 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
         ),
         body: SingleChildScrollView(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(
                 height: height / 50,
               ),
-              showNotice(),
-              SizedBox(
-                height: height / 50,
-              ),
-              assetInfo(),
+              if (wallet.canInitiate && !hasAvailableBalance) ...[
+                showNotice(),
+              ] else ...[
+                showBurnNotice(),
+              ],
               SizedBox(
                 height: height / 20,
               ),
-              if (wallet.canInitiate) ...[
+              if (wallet.canInitiate && !hasAvailableBalance) ...[
                 Button(
-                  LanguageEn.addasset,
+                  LanguageEn.removeasset,
                   notifier.getbluecolor,
                   wihitecolor,
-                  onTap: optInAsset,
+                  onTap: optOutAsset,
                 ),
               ] else ...[
                 Button(
@@ -147,9 +152,8 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      LanguageEn.optininfo
-                          .replaceAll('assetCode', asset.assetCode!)
-                          .replaceAll('walletAlias', wallet.alias!),
+                      LanguageEn.optoutinfo
+                          .replaceAll('assetCode', asset.assetCode!),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
@@ -162,20 +166,38 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                   SizedBox(
                     height: height / 50.0,
                   ),
-                  Container(
-                    width: width / 1.3,
-                    child: Text(
-                      LanguageEn.optininfo2
-                          .replaceAll('walletAlias', wallet.alias!),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontbody,
+                  if (wallet.canInitiate) ...[
+                    Container(
+                      width: width / 1.3,
+                      child: Text(
+                        LanguageEn.optoutinfo2
+                            .replaceAll('assetCode', asset.assetCode!)
+                            .replaceAll('walletAlias', wallet.alias!),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ),
-                  ),
+                  ] else ...[
+                    Container(
+                      width: width / 1.3,
+                      child: Text(
+                        'You do not have enough permission to claim this asset on [walletAlias].'
+                            .replaceAll('walletAlias', wallet.alias!),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ],
                   SizedBox(height: 2),
                 ],
               ),
@@ -186,7 +208,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
     );
   }
 
-  Widget assetInfo() {
+  Widget showBurnNotice() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
       child: Container(
@@ -196,64 +218,23 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
               ? darktilewhitecolor
               : notifier.getaddsubwalletgrey,
         ),
-        constraints: BoxConstraints(minHeight: height / 2.5),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    '${getAssetCode(asset.assetCode)} Token',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
-                  ),
-                  if (asset.imageUrl != null) ...[
-                    SizedBox(
-                      height: height / 50.0,
-                    ),
-                    Container(
-                      width: width / 1.3,
-                      child: Image.network(
-                        asset.imageUrl!,
-                        height: 50,
-                        width: 50,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/images/trovo.png',
-                            height: 50,
-                            width: 50,
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
-                  Text(
-                    asset.website!,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w400,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody,
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      asset.description!,
+                      LanguageEn.burninfo
+                          .replaceAll('assetCode', asset.assetCode!)
+                          .replaceAll('walletAlias', wallet.alias!)
+                          .replaceAll('amount', asset.amount.toString()),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
@@ -264,105 +245,40 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                     ),
                   ),
                   SizedBox(
-                    height: height / 50.0,
-                  ),
-                  if (asset.assetIssuer.toString().isNotEmpty) ...[
-                    Text(
-                      'Issuer Public Key',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
-                    ),
-                    SizedBox(
-                      width: width / 1.3,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          SizedBox(
-                            width: width / 20,
-                          ),
-                          Expanded(
-                            flex: 3,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20.0),
-                              child: Text(
-                                truncate(asset.assetIssuer!, length: 5) +
-                                    asset.assetIssuer!.toString().substring(
-                                        asset.assetIssuer!.toString().length -
-                                            5),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: notifier.getbluewhitecolor,
-                                  fontSize: 15.sp,
-                                  fontFamily: fontbody,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: IconButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () => {
-                                Clipboard.setData(
-                                  ClipboardData(
-                                    text: asset.assetIssuer!,
-                                  ),
-                                ),
-                                showSnackBar('Issuer public key', context),
-                              },
-                              icon: Icon(Icons.copy),
+                    width: width / 1.3,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Text(
+                            truncate(asset.assetIssuer!, length: 5) +
+                                asset.assetIssuer!.toString().substring(
+                                    asset.assetIssuer!.toString().length - 5),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
                               color: notifier.getbluewhitecolor,
+                              fontSize: 15.sp,
+                              fontFamily: fontbody,
                             ),
                           ),
-                          SizedBox(
-                            width: width / 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    if (asset.contactEmail!.toString().isNotEmpty) ...[
-                      Text(
-                        'Contact Email',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold),
-                      ),
-                      SizedBox(
-                        width: width / 1.3,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20.0),
-                                child: Text(
-                                  asset.contactEmail!,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: notifier.getbluewhitecolor,
-                                    fontSize: 15.sp,
-                                    fontFamily: fontbody,
-                                  ),
-                                ),
-                              ),
-                            )
-                          ],
                         ),
-                      ),
-                    ],
-                  ],
-                  SizedBox(height: 2),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () => {
+                            Clipboard.setData(
+                              ClipboardData(
+                                text: asset.assetIssuer!,
+                              ),
+                            ),
+                            showSnackBar('Issuer public key', context),
+                          },
+                          icon: Icon(Icons.copy),
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -372,7 +288,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
     );
   }
 
-  optInAsset() async {
+  optOutAsset() async {
     showLoader(context);
 
     try {
@@ -386,10 +302,10 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
 
       print(requestBody);
 
-      Map responseData = await makePostRequest(
+      Map responseData = await makeDeleteRequest(
         uri: wallet.isSharedWalletAndCanInitiate
-            ? '/v1/shared-access/users/asset/opt-in'
-            : '/v1/users/asset/opt-in',
+            ? '/v1/shared-access/users/asset/opt-out'
+            : '/v1/users/asset/opt-out',
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
@@ -435,10 +351,10 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
 
       print('this is request body: $requestBody');
 
-      Map responseData = await makePostRequest(
+      Map responseData = await makeDeleteRequest(
         uri: wallet.isSharedWalletAndCanInitiate
-            ? '/v1/shared-access/users/asset/opt-in'
-            : '/v1/users/asset/opt-in',
+            ? '/v1/shared-access/users/asset/opt-out'
+            : '/v1/users/asset/opt-out',
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
@@ -456,9 +372,9 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': LanguageEn.success,
           'message': wallet.isSharedWalletAndCanInitiate
-              ? LanguageEn.optinassetsuccessshared
+              ? LanguageEn.optoutassetsuccessshared
                   .replaceAll('asset', asset.assetCode!)
-              : LanguageEn.optinassetsuccess
+              : LanguageEn.optoutassetsuccess
                   .replaceAll('asset', asset.assetCode!),
           'useOnDone': true,
           'onDone': () {
@@ -487,6 +403,6 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
   void dispose() {
     super.dispose();
     print('disposing...');
-    appState.viewData![OptInAssetViewPageConfig.key] = null;
+    appState.viewData![OptOutAssetViewPageConfig.key] = null;
   }
 }

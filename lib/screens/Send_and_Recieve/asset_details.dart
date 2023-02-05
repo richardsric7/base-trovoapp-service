@@ -481,7 +481,6 @@ class _AssetDetailsState extends State<AssetDetails>
                       ),
                     ],
                   ],
-                  SizedBox(height: 2),
                 ],
               ),
             ),

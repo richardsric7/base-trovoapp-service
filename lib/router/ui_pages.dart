@@ -78,6 +78,8 @@ const String SubscriptionPlanBenefitsViewPath = '/SubscriptionPlanBenefitsView';
 const String SubscriptionPlanOptionsViewPath = '/SubscriptionPlanOptionsView';
 const String AuthorizeSubscriptionViewPath = '/AuthorizeSubscriptionView';
 const String OptInAssetViewPath = '/OptInAssetView';
+const String OptOutAssetViewPath = '/OptOutAssetView';
+const String OptInOutAssetViewPath = '/OptInOutAssetView';
 
 enum Pages {
   Splash,
@@ -159,6 +161,8 @@ enum Pages {
   SubscriptionPlanOptionsView,
   AuthorizeSubscriptionView,
   OptInAssetView,
+  OptOutAssetView,
+  OptInOutAssetView,
 }
 
 class PageConfiguration {
@@ -540,4 +544,14 @@ PageConfiguration OptInAssetViewPageConfig = PageConfiguration(
     key: 'OptInAssetView',
     path: OptInAssetViewPath,
     uiPage: Pages.OptInAssetView,
+    currentPageAction: null);
+PageConfiguration OptOutAssetViewPageConfig = PageConfiguration(
+    key: 'OptOutAssetView',
+    path: OptOutAssetViewPath,
+    uiPage: Pages.OptOutAssetView,
+    currentPageAction: null);
+PageConfiguration OptInOutAssetViewPageConfig = PageConfiguration(
+    key: 'OptInOutAssetView',
+    path: OptInOutAssetViewPath,
+    uiPage: Pages.OptInOutAssetView,
     currentPageAction: null);

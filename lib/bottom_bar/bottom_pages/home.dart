@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,7 +13,6 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/bottom_tab_page.dart';
-import 'package:trovo_wallet/models/curated_asset.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
@@ -46,14 +44,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   late List<Wallet> wallets;
   List<Asset>? unclaimedAssets;
   List<Asset>? claimedAssets;
-  List<CuratedAsset>? curatedAssets;
   String? activeWallet;
   int tabLength = 1;
   int activeTabIndex = 0;
   int activeWalletIndex = 0;
   var noOfTransactionsToSign;
-  bool canOptinAsset = false;
-  bool hasUnclaimedAssets = false;
 
   @override
   void initState() {
@@ -86,7 +81,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     appState = Provider.of<DataProvider>(context, listen: true);
     userInfo = appState.userInfo!;
     wallets = userInfo.wallets!;
-
     carouselWallets =
         wallets.length > 7 ? wallets.getRange(0, 7).toList() : wallets;
 
@@ -96,49 +90,26 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       unclaimedAssets = wallets[0].unClaimedAssets;
     }
 
-    if (wallets[activeWalletIndex].canInitiate) {
-      curatedAssets = userInfo.curatedSwapList!
-          .where(
-            (curatedAsset) =>
-                claimedAssets!.firstWhereOrNull((asset) =>
-                    curatedAsset.assetCode == asset.assetCode &&
-                    curatedAsset.assetIssuer == asset.assetIssuer) ==
-                null,
-          )
-          .toList();
-      if (curatedAssets!.isNotEmpty) {
-        canOptinAsset = true;
-      } else {
-        canOptinAsset = false;
-      }
-    } else {
-      canOptinAsset = false;
-    }
-
     // in order to make assets tab length dynamic we have to check
     // for when we have pending asset and then change the tablength
     // to 3 or back to 2 when we do not have pending assets.
     if (unclaimedAssets != null && unclaimedAssets!.length > 0) {
-      tabLength = canOptinAsset ? 3 : 2;
-      hasUnclaimedAssets = true;
+      // if (activeTabIndex == _tabController.length - 1) activeTabIndex = 1;
+      tabLength = 2;
     } else {
-      tabLength = canOptinAsset ? 2 : 1;
-      hasUnclaimedAssets = false;
+      tabLength = 1;
+      // if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
     }
 
     if (tabLength != _tabController.length) {
       // change the length of tabController too or you will have an error
       _tabController = TabController(length: tabLength, vsync: this);
       _tabController.addListener(tabListener);
-      if (hasUnclaimedAssets || canOptinAsset)
-        activeTabIndex = 1;
-      else
-        activeTabIndex = 0;
     }
 
     // keep track of the active tab to avoid having it changed
     // on each page rebuild
-    _tabController.animateTo(activeTabIndex);
+    // _tabController.animateTo(activeTabIndex);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -227,35 +198,26 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       children: [
                         Padding(
                           padding: EdgeInsets.symmetric(
-                            horizontal: 20,
+                            horizontal: tabLength == 2 ? 0 : 100,
                           ),
                           child: TabBar(
                             controller: _tabController,
                             labelColor: notifier.getbluewhitecolor,
                             indicatorColor: notifier.getbluewhitecolor,
-                            isScrollable: true,
                             labelStyle: TextStyle(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w600,
                               fontFamily: fontsemibold,
                             ),
                             tabs: [
-                              if (canOptinAsset) ...[
-                                Container(
-                                  width: 50,
-                                  child: Tab(
-                                    height: 30,
-                                    text: 'Opt in',
-                                  ),
-                                ),
-                              ],
                               Tab(
-                                height: 30,
+                                height: 20,
                                 text: LanguageEn.assets,
                               ),
-                              if (hasUnclaimedAssets) ...[
+                              if (unclaimedAssets != null &&
+                                  tabLength == 2) ...[
                                 Tab(
-                                  height: 30,
+                                  height: 20,
                                   text:
                                       '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
                                 ),
@@ -292,11 +254,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       child: TabBarView(
         controller: _tabController,
         children: [
-          if (canOptinAsset) ...[
-            showCuratedAssets(),
-          ],
           showTokenAssets(),
-          if (hasUnclaimedAssets) ...[
+          if (tabLength == 2) ...[
             Container(
               child: SingleChildScrollView(
                 child: Column(
@@ -400,59 +359,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   );
                 },
                 child: tiles(claimedAssets![i], activeWalletIndex),
-              ),
-            ],
-            SizedBox(
-              height: height / 22,
-            ),
-          ] else ...[
-            Container(
-              height: height / 3,
-              child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
-                  child: Center(
-                    child: Text(
-                      LanguageEn.noassets,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: fontsemibold,
-                        color: notifier.getblck,
-                      ),
-                    ),
-                  )),
-            ),
-          ],
-          SizedBox(
-            height: height / 22,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget showCuratedAssets() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          if (curatedAssets!.length > 0) ...[
-            for (var i = 0; i < curatedAssets!.length; i++) ...[
-              GestureDetector(
-                onTap: () {
-                  appState.setActiveWallet = wallets
-                      .firstWhere((wallet) => wallet.publicKey == activeWallet);
-
-                  appState.viewData = {
-                    'assetCode': curatedAssets![i].assetCode,
-                    'assetIssuer': curatedAssets![i].assetIssuer,
-                    'walletPublicKey': activeWallet,
-                  };
-                  appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: OptInAssetViewPageConfig,
-                  );
-                },
-                child: curatedAssetTiles(curatedAssets![i], activeWalletIndex),
               ),
             ],
             SizedBox(
@@ -971,88 +877,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     getBalance(
                         '${calculateFiatValue(asset.amount.toString(), asset.usdPrice.toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                         indexOfWallet),
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getblck,
-                    ),
-                  ),
-                ),
-              ],
-            )),
-      ),
-    );
-  }
-
-  Widget curatedAssetTiles(CuratedAsset asset, int indexOfWallet) {
-    return Card(
-      elevation: notifier.isDark ? 0 : 5,
-      shadowColor: Colors.black,
-      color: notifier.gettilewihitecolor,
-      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: ListTile(
-            title: Row(
-              children: [
-                Image.network(
-                  asset.imageUrl!,
-                  height: 35,
-                  width: 35,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Image.asset(
-                      'assets/images/trovo.png',
-                      height: 35,
-                      width: 35,
-                    );
-                  },
-                ),
-                SizedBox(width: 20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      asset.assetCode!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getblck,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                      child: Text(
-                        asset.assetName!,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontFamily: fontbody,
-                          color: notifier.getblck,
-                        ),
-                      ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-            trailing: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  asset.assetClass!['assetClass'],
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontFamily: fontsemibold,
-                    color: notifier.getblck,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                  child: Text(
-                    getBalance(asset.organization!, indexOfWallet),
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,
