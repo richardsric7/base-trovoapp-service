@@ -151,6 +151,12 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return SubscriptionPlanOptionsViewPageConfig;
       case AuthorizeSubscriptionViewPath:
         return AuthorizeSubscriptionViewPageConfig;
+      case OptInAssetViewPath:
+        return OptInAssetViewPageConfig;
+      case OptOutAssetViewPath:
+        return OptOutAssetViewPageConfig;
+      case OptInOutAssetViewPath:
+        return OptInOutAssetViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -311,6 +317,12 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
             location: SubscriptionPlanOptionsViewPath);
       case Pages.AuthorizeSubscriptionView:
         return const RouteInformation(location: AuthorizeSubscriptionViewPath);
+      case Pages.OptInAssetView:
+        return const RouteInformation(location: OptInAssetViewPath);
+      case Pages.OptOutAssetView:
+        return const RouteInformation(location: OptOutAssetViewPath);
+      case Pages.OptInOutAssetView:
+        return const RouteInformation(location: OptInOutAssetViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

@@ -255,6 +255,13 @@ class _SettingsState extends State<Settings> {
               SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () => appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: OptInOutAssetViewPageConfig),
+                child: iteamlist(
+                    "assets/images/asset.png", "", LanguageEn.addremoveasset),
+              ),
+              GestureDetector(
+                onTap: () => appState.currentAction = PageAction(
                     state: PageState.addPage, page: ImportWalletPageConfig),
                 child: iteamlist(
                     "assets/images/import.png", "", LanguageEn.importwallet),

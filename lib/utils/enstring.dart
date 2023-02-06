@@ -351,6 +351,10 @@ class LanguageEn {
 
   static String get claimasset => 'Claim Asset';
 
+  static String get addasset => 'Add asset';
+
+  static String get removeasset => 'Remove Asset';
+
   static String get sentto => 'Sent to';
 
   static String get sentfrom => 'Sent from';
@@ -591,9 +595,26 @@ class LanguageEn {
   static String get pendingassetwarning2 =>
       'Claiming this asset will enable you to continue to receive it in the future and will add it to the list of assets on your wallet.';
 
+  static String get optininfo =>
+      "Do you wish to add this asset [assetCode] on your wallet [walletAlias]?";
+
+  static String get optininfo2 =>
+      'This will make this asset appear on the list of assets on your wallet [walletAlias] and will enable you to start transacting with it.';
+
+  static String get optoutinfo =>
+      "Do you wish to remove this asset [assetCode]?";
+
+  static String get optoutinfo2 =>
+      'This means that [assetCode] will no longer appear on the list of assets on your wallet [walletAlias].';
+
+  static String get burninfo =>
+      "Your still have some [assetCode] balance [amount] available on your wallet [walletAlias].\n\nPlease transfer the remaining [assetCode] balance on your wallet to another wallet or burn it by sending it back to the issuer on the address below before you can proceed.";
+
   static String get version => "Version";
 
   static String get pending => "PENDING";
+
+  static String get optin => "OPT IN";
 
   static String get nfts => "NFTS/TIX";
 
@@ -717,6 +738,18 @@ class LanguageEn {
   static String get trustassetsuccess =>
       "You have successfully activated asset on your wallet. You will now be able to send, receive and perform other transactions with asset.";
 
+  static String get optinassetsuccess =>
+      "You have successfully opted in on [asset] on your wallet. You will now be able to send, receive and perform other transactions with [asset].";
+
+  static String get optinassetsuccessshared =>
+      "You have successfully submitted request to opt in on [asset] on this wallet.\n\nYour request will be completed as soon as it gets the required number of approvals by those who have approval access on this wallet.";
+
+  static String get optoutassetsuccess =>
+      "You have successfully opted out of [asset] on your wallet.";
+
+  static String get optoutassetsuccessshared =>
+      "You have successfully submitted request to remove [asset] on this wallet.\n\nYour request will be completed as soon as it gets the required number of approvals by those who have approval access on this wallet.";
+
   static String get securityquestionssuccessmessage =>
       'You have successfully setup your secret questons. \n\nPLEASE DO NOT FORGET THE ANSWERS YOU PROVIDED FOR FUTURE USE.';
 
@@ -775,6 +808,8 @@ class LanguageEn {
   static String get curatedassets => "Curated Assets";
 
   static String get walletmode => "Wallet Mode";
+
+  static String get addremoveasset => "Add/Remove Asset";
 
   static String get accountrecovery => "Account Recovery";
 

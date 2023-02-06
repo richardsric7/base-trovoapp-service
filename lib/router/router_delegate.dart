@@ -15,6 +15,9 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_bar.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/deposit_withdraw_details.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/opt_in_asset.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/opt_in_out_asset.dart';
+import 'package:trovo_wallet/screens/Send_and_Recieve/opt_out_asset.dart';
 import 'package:trovo_wallet/screens/account_recovery/account_recovery_success.dart';
 import 'package:trovo_wallet/screens/account_recovery/answer_security_questions.dart';
 import 'package:trovo_wallet/screens/account_recovery/backup_recovery_secret.dart';
@@ -352,9 +355,14 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               SubscriptionPlanOptions(), SubscriptionPlanOptionsViewPageConfig);
           break;
-        case Pages.AuthorizeSubscriptionView:
-          _addPageData(
-              AuthorizeSubscription(), AuthorizeSubscriptionViewPageConfig);
+        case Pages.OptInAssetView:
+          _addPageData(OptInAsset(), OptInAssetViewPageConfig);
+          break;
+        case Pages.OptOutAssetView:
+          _addPageData(OptOutAsset(), OptOutAssetViewPageConfig);
+          break;
+        case Pages.OptInOutAssetView:
+          _addPageData(OptInOutAsset(), OptInOutAssetViewPageConfig);
           break;
         default:
           break;
@@ -580,6 +588,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.AuthorizeSubscriptionView:
         AuthorizeSubscriptionViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.OptInAssetView:
+        OptInAssetViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.OptOutAssetView:
+        OptOutAssetViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.OptInOutAssetView:
+        OptInOutAssetViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
