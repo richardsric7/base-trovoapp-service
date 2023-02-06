@@ -867,7 +867,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		c.JSON(http.StatusOK, returnedTrustLineInfo)
 	})
 
-	router.POST("/v1/shared-access/users/asset/opt-out", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+	router.DELETE("/v1/shared-access/users/asset/opt-out", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 		var err error
 
 		var trustLineInfo userModels.Trustline
