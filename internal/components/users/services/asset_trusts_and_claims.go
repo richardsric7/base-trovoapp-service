@@ -38,7 +38,10 @@ func ClaimPendingAsset(signerUser *userModels.User, wallet *userModels.UserWalle
 		pendingAssetToClaim.SignatureRequired = 1
 	}
 	var err error
+	if wallet.Signer != signerUser.PrimarySigner && pendingAssetToClaim.Multiparty == 0 {
+		return pendingAssetToClaim, false, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
 
+	}
 	//validators
 	{
 
@@ -155,7 +158,10 @@ func RejectPendingAsset(signerUser *userModels.User, wallet *userModels.UserWall
 		pendingAssetToClaim.SignatureRequired = 1
 	}
 	var err error
+	if wallet.Signer != signerUser.PrimarySigner && pendingAssetToClaim.Multiparty == 0 {
+		return pendingAssetToClaim, false, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
 
+	}
 	//validators
 	{
 
@@ -856,7 +862,7 @@ func TrustAsset(signerUser *userModels.User, wallet *userModels.UserWallet, trus
 	if wallet.HasViewOnlyAccess(gc) {
 		trustLineInfo.SignatureRequired = 1
 	}
-	if wallet.Signer != signerUser.PrimarySigner && trustLineInfo.Multiparty == 1 {
+	if wallet.Signer != signerUser.PrimarySigner && trustLineInfo.Multiparty == 0 {
 		return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
 
 	}
@@ -937,7 +943,7 @@ func RemoveAssetTrust(signerUser *userModels.User, wallet *userModels.UserWallet
 	if wallet.HasViewOnlyAccess(gc) {
 		trustLineInfo.SignatureRequired = 1
 	}
-	if wallet.Signer != signerUser.PrimarySigner && trustLineInfo.Multiparty == 1 {
+	if wallet.Signer != signerUser.PrimarySigner && trustLineInfo.Multiparty == 0 {
 		return trustLineInfo, &tErrors.CustomError{Param: "publicKey", Err: "error-wallet-not-managed-by-user", ErrMessage: "You do not have permission to operate on this wallet", Code: http.StatusBadRequest}
 
 	}
