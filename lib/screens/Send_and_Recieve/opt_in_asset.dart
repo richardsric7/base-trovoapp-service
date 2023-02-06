@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
@@ -35,6 +36,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
   late UserInfo userInfo;
   late Wallet wallet;
   late CuratedAsset asset;
+  bool hasInfo = true;
 
   @override
   void initState() {
@@ -46,11 +48,21 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
       appState.viewData!['walletPublicKey'],
     );
 
-    asset = userInfo.curatedSwapList!.firstWhere(
+    var result = userInfo.curatedSwapList!.firstWhereOrNull(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
           asset.assetIssuer == appState.viewData!['assetIssuer'],
     );
+
+    if (result == null) {
+      asset = CuratedAsset(
+        assetIssuer: appState.viewData!['assetIssuer'],
+        assetCode: appState.viewData!['assetCode'],
+      );
+      hasInfo = false;
+    } else {
+      asset = result;
+    }
   }
 
   @override
@@ -95,7 +107,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
               SizedBox(
                 height: height / 50,
               ),
-              assetInfo(),
+              hasInfo ? assetInfo() : customAssetInfo(),
               SizedBox(
                 height: height / 20,
               ),
@@ -372,6 +384,106 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
     );
   }
 
+  Widget customAssetInfo() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+        constraints: BoxConstraints(minHeight: height / 2.5),
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${getAssetCode(asset.assetCode!)} Token',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Container(
+                    width: width / 1.3,
+                    child: Image.asset(
+                      'assets/images/trovo.png',
+                      height: 50,
+                      width: 50,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50.0,
+                  ),
+                  if (asset.assetIssuer!.toString().isNotEmpty) ...[
+                    Text(
+                      'Issuer Public Key',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold),
+                    ),
+                    SizedBox(
+                      width: width / 1.3,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20.0),
+                            child: Text(
+                              truncatePublicKey(asset.assetIssuer!),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 15.sp,
+                                fontFamily: fontbody,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () => {
+                              Clipboard.setData(
+                                ClipboardData(
+                                  text: asset.assetIssuer!,
+                                ),
+                              ),
+                              showSnackBar('Issuer public key', context),
+                            },
+                            icon: Icon(Icons.copy),
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                  ],
+                  SizedBox(height: 2),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   optInAsset() async {
     showLoader(context);
 
@@ -462,15 +574,14 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                   .replaceAll('asset', asset.assetCode!),
           'useOnDone': true,
           'onDone': () {
-            appState.currentAction = appState.returnView ??
-                PageAction(
-                  state: PageState.addAll,
-                  pages: [BottomHomePageConfig],
-                );
+            appState.currentAction = PageAction(
+              state: PageState.addAll,
+              pages: [BottomHomePageConfig, OptInOutAssetViewPageConfig],
+            );
           },
         };
-        appState.currentAction = PageAction(
-            state: PageState.replaceAll, page: SuccessViewPageConfig);
+        appState.currentAction =
+            PageAction(state: PageState.addPage, page: SuccessViewPageConfig);
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);

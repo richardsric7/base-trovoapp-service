@@ -378,15 +378,14 @@ class _OptOutAssetState extends State<OptOutAsset>
                   .replaceAll('asset', asset.assetCode!),
           'useOnDone': true,
           'onDone': () {
-            appState.currentAction = appState.returnView ??
-                PageAction(
-                  state: PageState.addAll,
-                  pages: [BottomHomePageConfig],
-                );
+            appState.currentAction = PageAction(
+              state: PageState.addAll,
+              pages: [BottomHomePageConfig, OptInOutAssetViewPageConfig],
+            );
           },
         };
-        appState.currentAction = PageAction(
-            state: PageState.replaceAll, page: SuccessViewPageConfig);
+        appState.currentAction =
+            PageAction(state: PageState.addPage, page: SuccessViewPageConfig);
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);

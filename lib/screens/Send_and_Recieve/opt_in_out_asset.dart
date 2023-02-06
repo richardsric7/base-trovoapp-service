@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/utils.dart';
+import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -11,7 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:collection/src/list_extensions.dart';
@@ -31,7 +33,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
   late Wallet? wallet;
   late bool hasAvailableBalance;
   int? selectedWalletIndex = null;
-  List<CuratedAsset>? curatedAssets;
+  Map<String, Map<String, dynamic>> assets = {};
 
   List<DropdownMenuItem<int>> walletDropdownItems(bool isSelected) {
     return appState.userInfo!
@@ -93,10 +95,57 @@ class _OptInOutAssetState extends State<OptInOutAsset>
     if (selectedWalletIndex != null) {
       wallet =
           appState.userInfo!.transactionableWallets()[selectedWalletIndex!];
+
+      // get all assets on the curated swap list minus XBN
+      var filteredList = appState.userInfo!.curatedSwapList!
+          .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
+          .toList();
+
+      // add all the assets to a map object
+      filteredList.forEach((asset) {
+        assets['${asset.assetCode!}|${asset.assetIssuer}'] = {
+          'isRemovable': false,
+          'imageUrl': asset.imageUrl,
+          'assetName': asset.assetName,
+          'assetClass': asset.assetClass!['assetClass'],
+          'assetIssuer': asset.assetIssuer,
+          'assetCode': asset.assetCode,
+        };
+      });
+
+      // get all the claimed assets on the selected wallet
+      var filteredList2 = wallet!.claimedAssets!
+          .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
+          .toList();
+
+      // add all the assets to the map object.
+      // since we are using map there wont be any duplicate assets
+      // rather new records will overwrite existing ones
+      // however we must be careful not to overwrite records that
+      // we wont want overwritten.
+      filteredList2.forEach((asset) {
+        // so we check if the record doesnt already exist on the map and if that
+        // is true (which means we are dealing with an uncurated asset)
+        // enter just the records that we want entered and leave the other ones
+        // null
+        if (assets['${asset.assetCode!}|${asset.assetIssuer}'] == null) {
+          assets['${asset.assetCode!}|${asset.assetIssuer}'] = {
+            'isRemovable': true,
+            'imageUrl': asset.imageUrl,
+            'assetName': truncatePublicKey(asset.assetIssuer),
+            'assetIssuer': asset.assetIssuer,
+            'assetCode': asset.assetCode,
+          };
+          print('fokit:!!!!! ${asset.imageUrl}');
+        } else {
+          // if the record already exists which means its a curated asset that
+          // we have already added to our claimed assets then we set the removable
+          // to true
+          var entry = assets['${asset.assetCode!}|${asset.assetIssuer}'];
+          entry!['isRemovable'] = true;
+        }
+      });
     }
-    curatedAssets = appState.userInfo!.curatedSwapList!
-        .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
-        .toList();
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -200,7 +249,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                                   Container(
                                     width: width / 1.28,
                                     child: Text(
-                                      'Select the wallet on which you want to add or remove an asset.',
+                                      'Select the wallet where you want to add or remove assets from.',
                                       textAlign: TextAlign.justify,
                                       style: TextStyle(
                                           fontSize: 15,
@@ -229,31 +278,30 @@ class _OptInOutAssetState extends State<OptInOutAsset>
     return SingleChildScrollView(
       child: Column(
         children: [
-          if (curatedAssets!.length > 0) ...[
-            for (var i = 0; i < curatedAssets!.length; i++) ...[
-              curatedAssetTiles(curatedAssets![i], wallet!.claimedAssets!),
-            ],
-            SizedBox(
-              height: height / 22,
-            ),
-          ] else ...[
-            Container(
-              height: height / 3,
-              child: Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
-                  child: Center(
-                    child: Text(
-                      LanguageEn.noassets,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: fontsemibold,
-                        color: notifier.getblck,
-                      ),
-                    ),
-                  )),
-            ),
+          for (var entry in assets.entries) ...[
+            curatedAssetTiles(entry),
           ],
+          SizedBox(
+            height: height / 50,
+          ),
+          Button(
+            'Other',
+            notifier.getbluecolor,
+            wihitecolor,
+            onTap: () {
+              addCustomAssetPopup(context, (assetCode, assetIssuer) {
+                appState.viewData = {
+                  'assetCode': assetCode,
+                  'assetIssuer': assetIssuer,
+                  'walletPublicKey': wallet!.publicKey,
+                };
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: OptInAssetViewPageConfig,
+                );
+              });
+            },
+          ),
           SizedBox(
             height: height / 22,
           ),
@@ -262,14 +310,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
     );
   }
 
-  Widget curatedAssetTiles(CuratedAsset asset, List<Asset> claimedAssets) {
-    bool removable = claimedAssets.any(
-      (claimed) =>
-          claimed.assetCode == asset.assetCode &&
-          claimed.assetIssuer == asset.assetIssuer,
-    );
-    print('asset => ${asset.assetCode}');
-    print('${wallet!.alias} removable =======> $removable');
+  Widget curatedAssetTiles(MapEntry entry) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
@@ -284,7 +325,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
             title: Row(
               children: [
                 Image.network(
-                  asset.imageUrl!,
+                  entry.value['imageUrl']!,
                   height: 35,
                   width: 35,
                   errorBuilder: (context, error, stackTrace) {
@@ -300,7 +341,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      asset.assetCode!,
+                      entry.value['assetCode']!,
                       style: TextStyle(
                         fontSize: 12,
                         fontFamily: fontsemibold,
@@ -310,7 +351,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                       child: Text(
-                        asset.assetName!,
+                        entry.value['assetName'],
                         style: TextStyle(
                           fontSize: 9,
                           fontFamily: fontbody,
@@ -318,66 +359,48 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                      child: Text(
-                        asset.assetClass!['assetClass'],
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontFamily: fontbody,
-                          color: notifier.getblck,
+                    if (entry.value['assetClass'] != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                        child: Text(
+                          entry.value['assetClass'],
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontFamily: fontbody,
+                            color: notifier.getblck,
+                          ),
                         ),
                       ),
-                    ),
+                    ]
                   ],
                 ),
-                // Column(
-                //   crossAxisAlignment: CrossAxisAlignment.end,
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   children: [
-                //     Text(
-                //       asset.assetClass!['assetClass'],
-                //       style: TextStyle(
-                //         fontSize: 12,
-                //         fontFamily: fontsemibold,
-                //         color: notifier.getblck,
-                //       ),
-                //     ),
-                //     Padding(
-                //       padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                //       child: Text(
-                //         asset.organization!,
-                //         style: TextStyle(
-                //           fontSize: 9,
-                //           fontFamily: fontbody,
-                //           color: notifier.getblck,
-                //         ),
-                //       ),
-                //     ),
-                //   ],
-                // )
               ],
             ),
             trailing: ElevatedButton(
               onPressed: () async {
                 appState.viewData = {
-                  'assetCode': asset.assetCode,
-                  'assetIssuer': asset.assetIssuer,
+                  'assetCode': entry.value['assetCode']!,
+                  'assetIssuer': entry.value['assetIssuer']!,
                   'walletPublicKey': wallet!.publicKey,
                 };
+
+                print('viewData: ${appState.viewData}');
+
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
-                  page: removable
+                  page: entry.value['isRemovable']
                       ? OptOutAssetViewPageConfig
                       : OptInAssetViewPageConfig,
                 );
               },
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all<Color>(
-                    removable ? Colors.red[400]! : notifier.getbluewhitecolor),
+                    entry.value['isRemovable']
+                        ? Colors.red[400]!
+                        : notifier.getbluewhitecolor),
               ),
               child: Text(
-                removable ? 'Remove' : 'Add',
+                entry.value['isRemovable'] ? 'Remove' : 'Add',
                 style: TextStyle(
                   fontFamily: fontsemibold,
                   fontSize: 9,
