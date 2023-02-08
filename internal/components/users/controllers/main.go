@@ -256,7 +256,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 		pnt := c.Query("pnt")
 
 		cacheDurationInSeconds := 1 * 60 //1 minutes
-		if queryType == "import" {
+		if queryType == "import" || queryType == "refresh" {
 			u, e := usersDB.GetUser(identifier, gc.DB, gc)
 			if e == nil {
 				u.InvalidateUserCache(gc)
