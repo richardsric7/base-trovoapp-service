@@ -216,8 +216,10 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                                   children: [
                                     Text(
                                       DateFormat('MMMM dd, yyyy').format(
-                                          DateTime.now()
-                                              .add(Duration(days: 31))),
+                                          DateTime.now().add(
+                                              patronTier.tier == 'Annual'
+                                                  ? Duration(days: 31)
+                                                  : Duration(days: 365))),
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w400,

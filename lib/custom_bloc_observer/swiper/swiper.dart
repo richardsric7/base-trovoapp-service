@@ -103,7 +103,7 @@ class _SwiperState extends State<Swiper> {
               ),
               SizedBox(height: height / 20.5),
               ButtonOutlined(
-                LanguageEn.skip,
+                currentPage == 2 ? LanguageEn.proceed : LanguageEn.skip,
                 notifier.getwihitecolor,
                 notifier.getbluecolor,
                 onTap: () {

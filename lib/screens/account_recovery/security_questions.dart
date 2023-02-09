@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -413,6 +412,14 @@ class _SecurityQuestions extends State<SecurityQuestions> {
           SuccessViewPageConfig.key: {
             'title': LanguageEn.success,
             'message': LanguageEn.securityquestionssuccessmessage,
+            'useOnDone': true,
+            'onDone': () {
+              appState.currentAction = appState.returnView ??
+                  PageAction(
+                    state: PageState.addAll,
+                    pages: [BottomHomePageConfig],
+                  );
+            },
           }
         };
         appState.currentAction = PageAction(

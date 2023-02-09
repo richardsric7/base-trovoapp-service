@@ -49,6 +49,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   int activeTabIndex = 0;
   int activeWalletIndex = 0;
   var noOfTransactionsToSign;
+  var noXbnBalance = false;
 
   @override
   void initState() {
@@ -84,10 +85,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     carouselWallets =
         wallets.length > 7 ? wallets.getRange(0, 7).toList() : wallets;
 
-    if (activeWallet == null && wallets.length > 0) {
+    if ((activeWallet == null && wallets.length > 0) || noXbnBalance) {
       activeWallet = wallets[0].publicKey;
       claimedAssets = wallets[0].claimedAssets;
       unclaimedAssets = wallets[0].unClaimedAssets;
+      noXbnBalance = claimedAssets!
+              .firstWhere((asset) =>
+                  asset.assetCode!.isEmpty && asset.assetIssuer!.isEmpty)
+              .amount ==
+          0;
     }
 
     // in order to make assets tab length dynamic we have to check
@@ -186,12 +192,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 // check if the user's xbn balance is 0. This usually is the si-
                 // tuation when a new user signs up and has not funded their wallet
                 // yet
-                if (claimedAssets!
-                    .where((asset) =>
-                        (asset.assetCode!.isEmpty &&
-                            asset.assetIssuer.toString().isEmpty) &&
-                        double.parse(asset.amount.toString()) != 0)
-                    .isNotEmpty) ...[
+                if (!noXbnBalance) ...[
                   DefaultTabController(
                     length: tabLength,
                     child: Column(
@@ -906,7 +907,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   void refreshData() async {
     try {
       await appState.refreshData();
+      await appState.getApprovals();
       _refreshController.refreshCompleted();
+      appState.updateListeners();
     } catch (e) {
       _refreshController.refreshFailed();
     }
@@ -978,12 +981,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           notifier.getbluecolor,
           wihitecolor,
           onTap: () {
-            appState.viewData![RequestSpecificPaymentViewPageConfig.key] = {
+            appState.viewData = {
               'assetCode': '',
               'assetIssuer': '',
-              'publicKey': appState.primaryWallet.publicKey,
-              'walletAlias': appState.primaryWallet.alias,
-              'isSharedAccess': 0,
+              'walletPublicKey': activeWallet,
             };
 
             appState.currentAction = PageAction(
@@ -1024,7 +1025,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   Future<void> _launchUrl() async {
-    Uri uri = Uri.https(trovoP2pUrl, '/login');
+    Uri uri = Uri.https(trovoP2pUrl, '/');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       throw 'Could not launch $uri';
     }

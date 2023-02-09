@@ -286,6 +286,15 @@ class _SettingsState extends State<Settings> {
                   if (appState.userInfo!.hasSecurityQuestions == 0) {
                     var primaryWallet = appState.userInfo!.wallets!
                         .firstWhere((wallet) => wallet.primaryWallet == 1);
+
+                    appState.returnView = PageAction(
+                      state: PageState.addAll,
+                      pages: [
+                        BottomHomePageConfig,
+                        SetupAccountRecoveryViewPageConfig,
+                      ],
+                    );
+
                     appState.viewData = {
                       SecurityQuestionsViewPageConfig.key: {
                         'signer': primaryWallet.signer,
@@ -885,6 +894,7 @@ class _SettingsState extends State<Settings> {
           appState.biometricEnabled = !appState.biometricEnabled;
           StoreData()
               .storeInsertData('biometricsEnabled', appState.biometricEnabled);
+          changeTabPage(appState, ButtomTabPage.Dashboard.index);
         });
       }
     } on PlatformException catch (e) {
@@ -909,11 +919,11 @@ class _SettingsState extends State<Settings> {
           biometricsErrorAlert(context);
         }
       }
+    } else {
+      showPasswordDialog(context, () {
+        toggleHideBalances();
+      });
     }
-
-    showPasswordDialog(context, () {
-      toggleHideBalances();
-    });
   }
 
   void toggleHideBalances() {

@@ -120,6 +120,7 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
                   '${tier.tier.capitalizeFirst} subscription ${tier.tier == 'LIFETIME' ? '(recommended)' : ''}',
                   '\$${tier.price}',
                   () {
+                    print('object');
                     appState.viewData = {
                       'patronInfo': patronInfo,
                       'selectedTier': tier,

@@ -482,7 +482,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
           appState.primaryWallet.signer!,
           appState.secretKeys[0], // the primary wallet secret key
           appState.primaryWallet.publicKey!,
-          'kenmaddy',
+          appState.userInfo!.username!,
           appState,
         );
         if (wallet.isSharedWalletAndCanInitiate) {
