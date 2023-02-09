@@ -103,6 +103,10 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
       appState.viewData!['walletPublicKey'],
     );
 
+    if (appState.viewData!['historyMode'] != null) {
+      historyMode = appState.viewData!['historyMode'];
+    }
+
     asset = wallet.claimedAssets!.firstWhere(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&

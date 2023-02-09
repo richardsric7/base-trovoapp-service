@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:trovo_wallet/models/curated_asset.dart';
 
 import 'wallet.dart';
@@ -78,36 +80,37 @@ class UserInfo {
       "kycVerified": kycVerified,
       "verified": verified,
       "suspended": suspended,
-      "curatedSwapList": curatedSwapList,
+      // "curatedSwapList": curatedSwapList,
     };
   }
 
   deserializeJson(Map<String, dynamic> m, sharedWallets, assetBalances) {
     return UserInfo(
-        username: m['username'],
-        firstName: m['firstName'],
-        lastName: m['lastName'],
-        email: m['email'],
-        mobile: m['mobile'],
-        mobileVerified: m['mobileVerified'],
-        hasSecurityQuestions: m['hasSecurityQuestions'],
-        accountRecoveryEnabled: m['accountRecoveryEnabled'],
-        countryCode: m['countryCode'],
-        referrer: m['referrer'],
-        referralLink: m['referralLink'],
-        referralQRCode: m['referralQRCode'],
-        publicKey: m['publicKey'],
-        corporate: m['corporate'],
-        pushNotificationToken: m['pushNotificationToken'],
-        imageThumbnailURL: m['imageThumbnailURL'],
-        membershipType: m['membershipType'],
-        membershipExpiry: DateTime.tryParse(m['membershipExpiry']),
-        kycVerified: m['kycVerified'],
-        verified: m['verified'],
-        suspended: m['suspended'],
-        curatedSwapList: deserializeSwapList(m),
-        wallets: deserializeWallets(m, assetBalances),
-        sharedWallets: deserializeSharedWallets(sharedWallets));
+      username: m['username'],
+      firstName: m['firstName'],
+      lastName: m['lastName'],
+      email: m['email'],
+      mobile: m['mobile'],
+      mobileVerified: m['mobileVerified'],
+      hasSecurityQuestions: m['hasSecurityQuestions'],
+      accountRecoveryEnabled: m['accountRecoveryEnabled'],
+      countryCode: m['countryCode'],
+      referrer: m['referrer'],
+      referralLink: m['referralLink'],
+      referralQRCode: m['referralQRCode'],
+      publicKey: m['publicKey'],
+      corporate: m['corporate'],
+      pushNotificationToken: m['pushNotificationToken'],
+      imageThumbnailURL: m['imageThumbnailURL'],
+      membershipType: m['membershipType'],
+      membershipExpiry: DateTime.tryParse(m['membershipExpiry']),
+      kycVerified: m['kycVerified'],
+      verified: m['verified'],
+      suspended: m['suspended'],
+      curatedSwapList: deserializeSwapList(m),
+      wallets: deserializeWallets(m, assetBalances),
+      sharedWallets: deserializeSharedWallets(sharedWallets),
+    );
   }
 
   List<CuratedAsset> deserializeSwapList(Map<String, dynamic> m) {
@@ -119,6 +122,7 @@ class UserInfo {
   }
 
   List<Wallet> deserializeWallets(Map<String, dynamic> m, assetBalances) {
+    print('====> deserilizing wallets ${m['userWallets']}');
     var userWallets = m['userWallets'];
     var myWallets = <Wallet>[];
     if (userWallets != null) {

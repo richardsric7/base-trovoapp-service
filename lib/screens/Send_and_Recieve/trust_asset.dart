@@ -96,36 +96,21 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
               SizedBox(
                 height: height / 10,
               ),
-              // assetInfo(),
-              // SizedBox(
-              //   height: height / 20,
-              // ),
-              if (!wallet.isSharedWallet || wallet.isInitiator) ...[
-                Button(
-                  LanguageEn.claimasset,
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: claimAsset,
-                ),
-                SizedBox(height: height / 50),
-                ButtonOutlined(
-                  'Reject asset',
-                  notifier.getwihitecolor,
-                  notifier.getbluewhitecolor,
-                  onTap: () {
-                    rejectAsset();
-                  },
-                ),
-              ] else ...[
-                Button(
-                  LanguageEn.back,
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
+              Button(
+                LanguageEn.claimasset,
+                notifier.getbluecolor,
+                wihitecolor,
+                onTap: claimAsset,
+              ),
+              SizedBox(height: height / 50),
+              ButtonOutlined(
+                'Reject asset',
+                notifier.getwihitecolor,
+                notifier.getbluewhitecolor,
+                onTap: () {
+                  rejectAsset();
+                },
+              ),
               SizedBox(height: height / 10),
             ],
           ),
@@ -172,90 +157,10 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   SizedBox(
                     height: height / 50.0,
                   ),
-                  if (!wallet.isSharedWallet || wallet.isInitiator) ...[
-                    Container(
-                      width: width / 1.3,
-                      child: Text(
-                        LanguageEn.pendingassetwarning2,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w400,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontbody,
-                        ),
-                      ),
-                    ),
-                  ] else ...[
-                    Container(
-                      width: width / 1.3,
-                      child: Text(
-                        'You do not have enough permission to claim this asset on [walletAlias].'
-                            .replaceAll('walletAlias', wallet.alias!),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w400,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontbody,
-                        ),
-                      ),
-                    ),
-                  ],
-                  SizedBox(height: 2),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget assetInfo() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-          color: notifier.isDark
-              ? darktilewhitecolor
-              : notifier.getaddsubwalletgrey,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${getAssetCode(asset!.assetCode)} Token',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
-                  ),
-                  Text(
-                    'www.trovotech.io',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w400,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody,
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      'TROV token (TROV) is the utility token that powers the Trovotech ecosystem. TROV token is used to access discounts, voting rights, airdrops, NFTs and other community incentives. ',
+                      LanguageEn.pendingassetwarning2,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
@@ -263,58 +168,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                         color: notifier.getbluewhitecolor,
                         fontFamily: fontbody,
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 50.0,
-                  ),
-                  Text(
-                    'Issuer Public Key',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontsemibold),
-                  ),
-                  SizedBox(
-                    width: width / 1.7,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
-                            child: Text(
-                              truncate(asset!.assetIssuer!, length: 5) +
-                                  asset!.assetIssuer.toString().substring(
-                                      asset!.assetIssuer.toString().length - 5),
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 15.sp,
-                                fontFamily: fontbody,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: () => {
-                              Clipboard.setData(
-                                ClipboardData(
-                                  text: asset!.assetIssuer!,
-                                ),
-                              ),
-                              showSnackBar('Issuer public key', context),
-                            },
-                            icon: Icon(Icons.copy),
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                   SizedBox(height: 2),

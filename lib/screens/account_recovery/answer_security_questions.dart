@@ -199,6 +199,27 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                               snapshot.data!['securityQuestions'];
                           var userSecurityAnswers =
                               snapshot.data!['userSecurityAnswers'];
+
+                          if (userSecurityAnswers['q1'] == 0 &&
+                              userSecurityAnswers['q2'] == 0 &&
+                              userSecurityAnswers['q1'] == 0) {
+                            return Column(
+                              children: [
+                                Text(
+                                    'You have not setup security questions yet.'),
+                                SizedBox(height: height / 20),
+                                Button(
+                                  LanguageEn.back,
+                                  notifier.getbluecolor,
+                                  wihitecolor,
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ],
+                            );
+                          }
+
                           return Column(
                             children: [
                               for (var i = 0;
@@ -219,7 +240,22 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                                   questionView(securityQuestions[i]['Question'],
                                       securityQuestions[i]['ID'], 3),
                                 ]
-                              ]
+                              ],
+                              SizedBox(height: height / 20),
+                              Button(
+                                LanguageEn.continuee,
+                                notifier.getbluecolor,
+                                wihitecolor,
+                                onTap: () {
+                                  trySubmit();
+                                },
+                              ),
+                              SizedBox(height: height / 10),
+                              Padding(
+                                  padding: EdgeInsets.only(
+                                      bottom: MediaQuery.of(context)
+                                          .viewInsets
+                                          .bottom)),
                             ],
                           );
                         } else {
@@ -229,19 +265,6 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                         return Text('State: ${snapshot.connectionState}');
                       }
                     }),
-                SizedBox(height: height / 20),
-                Button(
-                  LanguageEn.continuee,
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () {
-                    trySubmit();
-                  },
-                ),
-                SizedBox(height: height / 10),
-                Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom)),
               ],
             ),
           ),

@@ -355,6 +355,10 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               SubscriptionPlanOptions(), SubscriptionPlanOptionsViewPageConfig);
           break;
+        case Pages.AuthorizeSubscriptionView:
+          _addPageData(
+              AuthorizeSubscription(), AuthorizeSubscriptionViewPageConfig);
+          break;
         case Pages.OptInAssetView:
           _addPageData(OptInAsset(), OptInAssetViewPageConfig);
           break;

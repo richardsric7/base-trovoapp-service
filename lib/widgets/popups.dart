@@ -2822,14 +2822,16 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
   var filteredWallets = {};
   appState.transactionableWallets.forEach((key, value) {
     print('key: $key, value: $value');
-    for (var i = 0; i < value['claimedAssets'].length; i++) {
-      print('assetCode: $assetCode, assetIssuer: $assetIssuer dsds');
-      print(
-          'assetCode: ${value['claimedAssets'][i]['assetCode']}, assetIssuer: ${value['claimedAssets'][i]['assetIssuer']}');
-      if (value['claimedAssets'][i]['assetIssuer'] == assetIssuer &&
-          value['claimedAssets'][i]['assetCode'] == assetCode) {
-        print('got here....');
-        filteredWallets[key] = value;
+    if (value['claimedAssets'] != null) {
+      for (var i = 0; i < value['claimedAssets'].length; i++) {
+        print('assetCode: $assetCode, assetIssuer: $assetIssuer dsds');
+        print(
+            'assetCode: ${value['claimedAssets'][i]['assetCode']}, assetIssuer: ${value['claimedAssets'][i]['assetIssuer']}');
+        if (value['claimedAssets'][i]['assetIssuer'] == assetIssuer &&
+            value['claimedAssets'][i]['assetCode'] == assetCode) {
+          print('got here....');
+          filteredWallets[key] = value;
+        }
       }
     }
   });
