@@ -1307,7 +1307,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				})
 
 				//add message about disabling recovery on that wallet
-				messages = append(messages, "Account Recovery on this wallet has to be disabled so as to enable shared access.")
+				messages = append(messages, fmt.Sprintf("Account Recovery on this wallet %v has to be disabled so as to enable shared access.", wallet.Alias))
 				walletMustSign = true
 			}
 		}

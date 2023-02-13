@@ -456,7 +456,7 @@ func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *ca
 		return &tErrors.CustomError{
 			Param:      "mobile",
 			Err:        "daily request quota exceeded",
-			ErrMessage: "You have already exhausted your request quota for the day. Wait till you recieve the code or you wait for another day",
+			ErrMessage: "You have already exhausted your request quota for the day. Wait till you receive the code or you wait for another day",
 		}
 	}
 
@@ -556,7 +556,7 @@ func SendAccountRecoveryEmailOTP(userInfo *users.User, db *gorm.DB) error {
 		return &tErrors.CustomError{
 			Param:      "email",
 			Err:        "error request quota exceeded",
-			ErrMessage: "You have already exhausted your request quota for the hour. Wait till you recieve the code or you wait for another hour",
+			ErrMessage: "You have already exhausted your request quota for the hour. Wait till you receive the code or you wait for another hour",
 		}
 	}
 

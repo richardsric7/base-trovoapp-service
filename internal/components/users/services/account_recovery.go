@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 	bc "trovo-wallet-api/internal/blockchainalgofuncs"
+	blockchain "trovo-wallet-api/internal/components/assets/blockchain"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	usersDB "trovo-wallet-api/internal/components/users/db"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -196,8 +197,57 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 
 		}
 	}
-
+	signForFeeTrustLine := 0
 	{ //add fee for transaction
+		usdPrice, _, _ := blockchain.GetDollarPrice(os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_ISSUER"), gc, true)
+
+		serviceFee, e := decimal.NewFromString(os.Getenv("ACCOUNT_RECOVERY_FEE_AMOUNT_USD"))
+		if e != nil {
+			serviceFee = decimal.Zero
+		}
+		if serviceFee.IsPositive() {
+			serviceFee = decimal.RequireFromString(usdPrice).Div(serviceFee).Truncate(7)
+		} else {
+			serviceFee = decimal.Zero
+		}
+
+		if serviceFee.IsPositive() {
+
+			//process service fee
+			// feeLabel := os.Getenv("ACCOUNT_RECOVERY_FEE_AMOUNT_USD") + " USDT worth of " + os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE")
+
+			feeKeypair := keypair.MustParseFull(os.Getenv("ACCOUNT_RECOVERY_FEE_WALLET"))
+			feeAddress := feeKeypair.Address()
+
+			feeAsset := txnbuild.CreditAsset{Code: os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), Issuer: os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_ISSUER")}
+			_, _, _, assetBalance, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, user.PublicKey, feeAsset)
+			if !assetBalance.LessThan(serviceFee) {
+				return &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required on wallet %v to pay for fees for this service. Please first fund the wallet with at least %v %v.", serviceFee.String(), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), user.Username, serviceFee.Sub(assetBalance), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"))}
+
+			}
+
+			_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, feeAsset)
+			if !feeAccountTrustsAsset {
+				signForFeeTrustLine = 1
+				//establish trustline automatically
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: feeAsset},
+					Limit:         "900000000000",
+					SourceAccount: feeAddress,
+				})
+
+			}
+
+			ops = append(ops, &txnbuild.Payment{
+				Destination:   feeAddress,
+				Amount:        serviceFee.String(),
+				SourceAccount: user.PublicKey,
+				Asset:         feeAsset,
+			})
+			// paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be added from wallet %v as service fee (%v).", serviceFee.String(), assetCode, sourceWallet.Alias, feeLabel))
+			messages = append(messages, fmt.Sprintf("%v %v (%v USD) will be deducted from wallet %v as service fee.", serviceFee.String(), os.Getenv("ACCOUNT_RECOVERY_FEE_AMOUNT_USD"), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), user.Username))
+
+		}
 
 	}
 
@@ -244,6 +294,17 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 	}
+
+	if signForFeeTrustLine == 1 {
+		feeKeypair := keypair.MustParseFull(os.Getenv("ACCOUNT_RECOVERY_FEE_WALLET"))
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
+
+		if err != nil {
+			log.Println("[EnableAccountRecovery] error signing transaction with fee wallet key ", err)
+			return &tErrors.ErrorTemporaryServerError{}
+		}
+	}
+
 	xdrBase64, err = tx.Base64()
 	if err != nil {
 		log.Println("[EnableAccountRecovery] error getting txn base64", err)
@@ -262,9 +323,9 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	if len(payload.TransactionSignature) == 0 {
 		return &tErrors.CustomError{Param: "TransactionSignature", Err: "error transaction signature is required", ErrMessage: "Transaction signature is required."}
 	}
-	//submit to blockchain
+	//submit to blockchain. sending the transaction that was signed, bcos the new one may differ based on quantity of fee asset
 
-	txnHash, err := network.SubmitXdrWithSignature(client, user.PrimarySigner, xdrBase64, payload.TransactionSignature)
+	txnHash, err := network.SubmitXdrWithSignature(client, user.PrimarySigner, payload.Transaction, payload.TransactionSignature)
 	if err != nil {
 		logDiscordFailedRecovery(fmt.Sprintf("Error submitting account recovery enable [%+v] transaction: %s", payload, err.Error()))
 		return

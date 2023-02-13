@@ -3386,14 +3386,46 @@ func TestCreateMarketOffer(t *testing.T) {
 
 	}
 
+	// payload := MarketOfferRequest{
+	// 	OfferType:      "BUY",
+	// 	AssetCode:      "TROV",
+	// 	AssetIssuer:    "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
+	// 	CurrencyCode:   "USDT",
+	// 	CurrencyIssuer: "GDZU5X5QPC73ZNZKW7KX5PCIKJCE3ENJ52KAOHOSAFWGG33J34ZNPJ7J",
+	// 	PricePerUnit:   "0.48",
+	// 	Quantity:       "20000",
+	// }
+
+	// payload := MarketOfferRequest{
+	// 	OfferType:      "SELL",
+	// 	AssetCode:      "ETH",
+	// 	AssetIssuer:    "GARTWVI3BY3DTPOKBQGJXTQVUISIVND6GTKXNRDYHLFSJJODZYFPEK2U",
+	// 	CurrencyCode:   "USDT",
+	// 	CurrencyIssuer: "GDZU5X5QPC73ZNZKW7KX5PCIKJCE3ENJ52KAOHOSAFWGG33J34ZNPJ7J",
+	// 	PricePerUnit:   "1690",
+	// 	Quantity:       "2",
+	// }
+
+	
+	// payload := MarketOfferRequest{
+	// 	OfferType:      "SELL",
+	// 	AssetCode:      "BTC",
+	// 	AssetIssuer:    "GBDXEA7IUBYYSCS5V3253EXEXMXLSFQG6M3QUZFFIBFIINEMH35BRAVI",
+	// 	CurrencyCode:   "TROV",
+	// 	CurrencyIssuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
+	// 	PricePerUnit:   "48600",
+	// 	Quantity:       "2",
+	// }
+
+	
 	payload := MarketOfferRequest{
 		OfferType:      "BUY",
-		AssetCode:      "TROV",
-		AssetIssuer:    "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
-		CurrencyCode:   "USDT",
-		CurrencyIssuer: "GDZU5X5QPC73ZNZKW7KX5PCIKJCE3ENJ52KAOHOSAFWGG33J34ZNPJ7J",
-		PricePerUnit:   "0.48",
-		Quantity:       "20000",
+		AssetCode:      "ETH",
+		AssetIssuer:    "GARTWVI3BY3DTPOKBQGJXTQVUISIVND6GTKXNRDYHLFSJJODZYFPEK2U",
+		CurrencyCode:   "TROV",
+		CurrencyIssuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
+		PricePerUnit:   "3250",
+		Quantity:       "2",
 	}
 
 	errorResponse := new(ErrorResponse)
