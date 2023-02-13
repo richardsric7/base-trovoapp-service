@@ -418,7 +418,7 @@ func (u *UserWallet) GetNFTs(temp bool, gc *sharedconfig.GlobalConfig) (nfts []N
 
 // GetSortedUserBalance gets user blockchain balance
 func (u *UserWallet) GetSortedUserBalance(temp bool, gc *sharedconfig.GlobalConfig) (balances []Balance, err error) {
-
+	balances = make([]Balance, 0)
 	//GetBalance
 	unsortedBalances, err := u.GetBalance(temp, gc)
 	if err != nil {
@@ -460,9 +460,16 @@ func (u *UserWallet) GetWalletAssetBalances(gc *sharedconfig.GlobalConfig) (asse
 		if errR1 == nil {
 			//Unclaimed Assets
 			ml.Lock()
-			assetBalances.Unclaimed = unclaimedBalance
+			if len(unclaimedBalance) > 0 {
+				assetBalances.Unclaimed = unclaimedBalance
+			} else {
+				assetBalances.Unclaimed = make([]Balance, 0)
+			}
+
 			ml.Unlock()
 
+		} else {
+			assetBalances.Unclaimed = make([]Balance, 0)
 		}
 	}(u, &wg, &m)
 	wg.Add(1)
