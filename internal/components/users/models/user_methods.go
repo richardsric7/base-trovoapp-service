@@ -1509,18 +1509,17 @@ func (id UserWalletID) PublicKeyHasViewOnlyAccess(gc *sharedconfig.GlobalConfig)
 }
 
 func (u *User) GetCuratedSwapList(gc *sharedconfig.GlobalConfig) (list []assets.CuratedSwapAsset) {
-
+	defaultAssetImageURL := os.Getenv("DEFAULT_ASSET_IMAGE_URL")
 	list = make([]assets.CuratedSwapAsset, 0)
 	// var swapAsset assets.CuratedSwapAsset
 	am := assetsDB.GetCuratedAssets(false, gc)
 
 	for _, a := range am {
-		list = append(list, assets.CuratedSwapAsset{
+		item := assets.CuratedSwapAsset{
 			AssetCode:                   a.AssetCode,
 			AssetIssuer:                 a.AssetIssuer,
 			AssetName:                   a.AssetName,
 			Description:                 a.Description,
-			ImageURL:                    a.ImageURL,
 			Website:                     a.Website,
 			AssetConditions:             a.AssetConditions,
 			AssetLimit:                  a.AssetLimit,
@@ -1532,8 +1531,16 @@ func (u *User) GetCuratedSwapList(gc *sharedconfig.GlobalConfig) (list []assets.
 			Withdrawable:                a.Withdrawable,
 			DecimalPlaces:               a.DecimalPlaces,
 			GenerateDepositAddress:      a.GenerateDepositAddress,
-			RealAssetImageURL:           a.RealAssetImageURL,
-		})
+		}
+		if a.RealAssetImageURL != nil {
+			item.RealAssetImageURL = *a.RealAssetImageURL
+		}
+		if a.ImageURL == nil {
+			item.ImageURL = defaultAssetImageURL
+		} else {
+			item.ImageURL = *a.ImageURL
+		}
+		list = append(list, item)
 	}
 
 	//add the tokenized assets to the list

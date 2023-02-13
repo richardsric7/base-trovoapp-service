@@ -134,9 +134,12 @@ func (i BantuAsset) GetAssetImage(gc *sharedconfig.GlobalConfig) string {
 
 	}
 	url := v.ImageURL
+	if url == nil {
+		url = &defaultAssetImageURL
+	}
 
-	gc.RedisCache.StoreResultToCache(cacheKey, url, 0)
-	return url
+	gc.RedisCache.StoreResultToCache(cacheKey, *url, 0)
+	return *url
 }
 
 func (i BantuAsset) CanDeposit(gc *sharedconfig.GlobalConfig) bool {
