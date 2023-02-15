@@ -1075,9 +1075,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     List<Wallet> wallets,
     isTileMode,
   ) {
-    List<Wallet> filteredWallets = wallets
-        .where((wallet) => !wallet.isSharedWallet && !wallet.isPrimaryWallet)
-        .toList();
+    List<Wallet> filteredWallets = appState.userInfo!.getMySolelyOwnedWallets();
     return [
       for (var i = 0; i < filteredWallets.length; i++) ...[
         GestureDetector(

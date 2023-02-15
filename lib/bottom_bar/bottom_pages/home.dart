@@ -704,7 +704,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         var indexOfWallet = wallets.indexOf(wallet);
         return Builder(
           builder: (BuildContext context) {
-            if (indexOfWallet < 6) {
+            if (indexOfWallet < 5) {
               return GestureDetector(
                 onTap: () {
                   appState.viewData = {

@@ -179,6 +179,14 @@ class UserInfo {
     return list.where((wallet) => aliases.add(wallet.alias!)).toList();
   }
 
+  List<Wallet> getMySolelyOwnedWallets() {
+    return wallets!
+        .where((wallet) =>
+            (!wallet.isSharedWallet || wallet.walletThreshold == 1) &&
+            !wallet.isPrimaryWallet)
+        .toList();
+  }
+
   String get fullName => '$firstName $lastName';
 
   List<Wallet> transactionableWallets() {

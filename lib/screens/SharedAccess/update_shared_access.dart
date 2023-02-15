@@ -35,7 +35,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
   var viewers = <Permission>[];
   var initiators = <Permission>[]; // holds usernames of initiators
   var approvers = <Permission>[]; // holds usernames of approvers
-  int noOfApprovers = 2;
+  int noOfApprovalsNeeded = 2;
+  int noOfApprovers = 3;
   TextEditingController viewersController = TextEditingController();
   TextEditingController approversController = TextEditingController();
   TextEditingController initiatorsController = TextEditingController();
@@ -112,7 +113,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
       }
     }
 
-    if (approvers.length > 0 && wallet.numberOfApprovalsNeeded! > 0) {
+    if (approvers.length > 0 && noOfApprovalsNeeded > 0) {
       noOfApprovers = approvers.length;
       addApprovers = true;
     }
@@ -565,7 +566,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                                   ? darktilewhitecolor
                                   : notifier.getaddsubwalletgrey,
                             ),
-                            value: wallet.numberOfApprovalsNeeded,
+                            value: noOfApprovalsNeeded,
                             icon: Icon(
                               Icons.keyboard_arrow_down_rounded,
                               color: notifier.getbluewhitecolor,
@@ -578,7 +579,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                                 fontWeight: FontWeight.w500),
                             onChanged: (newValue) {
                               setState(() {
-                                wallet.numberOfApprovalsNeeded =
+                                noOfApprovalsNeeded =
                                     int.parse(newValue.toString());
                               });
                             },
@@ -666,10 +667,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                               setState(() {
                                 var newValueInt =
                                     int.parse(newValue.toString());
-                                if (wallet.numberOfApprovalsNeeded! >
-                                    newValueInt) {
-                                  wallet.numberOfApprovalsNeeded =
-                                      newValueInt - 1;
+                                if (noOfApprovalsNeeded! > newValueInt) {
+                                  noOfApprovalsNeeded = newValueInt - 1;
                                 }
                                 noOfApprovers = newValueInt;
                               });
@@ -687,7 +686,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Text(
-              '${wallet.numberOfApprovalsNeeded} approvals required out of ${noOfApprovers} approvers',
+              '${noOfApprovalsNeeded} approvals required out of ${noOfApprovers} approvers',
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: notifier.getbluewhitecolor,
@@ -1116,7 +1115,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
       'addApprovers': addApprovers,
       'approvers': approvers,
       'noOfApprovers': addApprovers ? noOfApprovers : 0,
-      'noOfApprovalsNeeded': addApprovers ? wallet.numberOfApprovalsNeeded : 0,
+      'noOfApprovalsNeeded': addApprovers ? noOfApprovalsNeeded : 0,
       'initiators': initiators,
     };
 

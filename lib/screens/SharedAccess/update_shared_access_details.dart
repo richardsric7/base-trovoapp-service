@@ -741,7 +741,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
         );
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Request successfull submitted',
-          'message': wallet.isPrimaryWallet
+          'message': wallet.isPrimaryWallet || wallet.walletThreshold! < 2
               ? sharedAccessModifySuccess.replaceAll('alias', wallet.alias!)
               : sharedAccessModifyRequestSuccess.replaceAll(
                   'alias', wallet.alias!),
