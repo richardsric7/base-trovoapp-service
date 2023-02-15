@@ -437,7 +437,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
         // if wallet is not primary wallet
         // primary wallets can only have view-only shared access
         // the cannot have approver and initiator shared access
-        if (!wallet.isInitiator) ...[
+        if (!wallet.isInitiator && !wallet.isPrimaryWallet) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

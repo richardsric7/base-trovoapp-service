@@ -171,7 +171,7 @@ class Wallet {
   }
 
   List<Asset> deserializeAssetList(assets) {
-    print('=========> deserializing assets $assets');
+    // print('=========> deserializing assets $assets');
 
     var assetsList = <Asset>[];
     if (assets != null) {

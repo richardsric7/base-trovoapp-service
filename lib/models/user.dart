@@ -200,4 +200,16 @@ class UserInfo {
 
     return transWallets;
   }
+
+  List<Wallet> getShareableWallets() {
+    List<Wallet> transWallets = [];
+    for (var wallet in this.getAllWallets()) {
+      if ((wallet.walletType == 0 || wallet.walletType == 1) &&
+          !wallet.isSharedWallet) {
+        transWallets.add(wallet);
+      }
+    }
+
+    return transWallets;
+  }
 }
