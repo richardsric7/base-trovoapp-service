@@ -230,10 +230,10 @@ class _TransactionSuccess extends State<TransactionSuccess>
                 onTap: () {
                   TransactionInfo transaction = TransactionInfo(
                     transactionDate: DateTime.now(),
-                    transactionType: 'Send',
-                    from: wallet.alias,
+                    transactionType: 'Payment',
+                    from: '${appState.userInfo!.fullName}[${wallet.alias}]',
                     fromPublicKey: wallet.publicKey,
-                    to: viewData['destination'],
+                    to: '${viewData['destinationFirstName']} ${viewData['destinationLastName']}[${viewData['destination']}]',
                     toPublicKey: viewData['destinationPublicKey'],
                     transactionDirection: TransactionDirection.Send,
                     assetCode: viewData['assetCode'],

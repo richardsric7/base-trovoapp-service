@@ -49,7 +49,9 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     appState = Provider.of<DataProvider>(context, listen: false);
-    if (appState.viewData!['walletPublicKey'] != null) {
+    if (appState.viewData![SendAssetViewPageConfig.key]?['deepLinkInfo'] ==
+            null &&
+        appState.viewData!['walletPublicKey'] != null) {
       wallet = appState.userInfo!.getWallet(
         appState.viewData!['walletPublicKey'],
       );
@@ -82,7 +84,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
             asset.assetCode == deeplinkInfo['assetCode'] &&
             asset.assetIssuer == deeplinkInfo['assetIssuer'],
       );
-      appState.viewData!['deepLinkInfo'] = null;
+      appState.viewData![SendAssetViewPageConfig.key]['deepLinkInfo'] = null;
     }
 
     sendingWalletController.text = wallet.alias!;

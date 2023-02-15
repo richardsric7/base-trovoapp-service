@@ -179,6 +179,8 @@ class UserInfo {
     return list.where((wallet) => aliases.add(wallet.alias!)).toList();
   }
 
+  String get fullName => '$firstName $lastName';
+
   List<Wallet> transactionableWallets() {
     List<Wallet> transWallets = [];
     for (var wallet in this.getAllWallets()) {

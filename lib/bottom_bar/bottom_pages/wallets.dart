@@ -696,7 +696,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              width: width / 1.7,
+                              width: width / 1.3,
                               decoration: BoxDecoration(
                                 border: Border.all(
                                   color: notifier.getbluecolor,

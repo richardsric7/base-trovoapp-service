@@ -38,7 +38,6 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late UserInfo userInfo;
   late Wallet wallet;
   late Asset? asset;
   String password = '';
@@ -541,10 +540,17 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
           secretKey: appState.secretKeys[0], // the primary wallet secret key
           publicKey: wallet.publicKey!);
 
-      print('responseData ========> $responseData');
+      // print('responseData ========> $responseData');
 
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo();
+        updateUserInfo(
+          appState.primaryWallet.signer!,
+          appState.secretKeys[0],
+          appState.primaryWallet.publicKey,
+          appState.userInfo!.username,
+          appState,
+          forceRefresh: true,
+        );
         if (wallet.isSharedWalletAndCanInitiate) {
           appState.viewData = {
             SuccessViewPageConfig.key: {
@@ -588,20 +594,6 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     } catch (e) {
       popup(context, title: LanguageEn.error, message: e.toString());
       hideLoader(context);
-    }
-  }
-
-  Future<void> updateUserInfo() async {
-    Map responseData = await makeGetRequest(
-      uri:
-          '/v1/users/${appState.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: appState.activeWallet!.signer!,
-      secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: appState.activeWallet!.publicKey!,
-    );
-
-    if (responseData['statusCode'] == 200) {
-      await storeUserInfo(responseData['data'], appState);
     }
   }
 }
