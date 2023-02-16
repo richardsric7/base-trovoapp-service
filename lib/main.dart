@@ -27,7 +27,15 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await StoreData().storeDeleteItem('initialDynamicLink');
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  var dynamicLink = await FirebaseDynamicLinkInitializer().getInitialLink();
+  var dynamicLink = await FirebaseDynamicLinkInitializer()
+      .getInitialLink()
+      .catchError((err) async {
+    print('============> dynamic link errors here $err');
+    await StoreData().storeInsertData('errorTest', err);
+  }, test: (error) {
+    return error is int && error >= 400;
+  });
+  print('============> this is dynamic link $dynamicLink');
   if (dynamicLink != null) {
     await StoreData()
         .storeInsertData('initialDynamicLink', dynamicLink.link.toString());

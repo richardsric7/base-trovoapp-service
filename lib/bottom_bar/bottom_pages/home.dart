@@ -21,6 +21,7 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/wallet_slides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -83,7 +84,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     userInfo = appState.userInfo!;
     wallets = userInfo.wallets!;
     carouselWallets =
-        wallets.length > 7 ? wallets.getRange(0, 7).toList() : wallets;
+        wallets.length > 6 ? wallets.getRange(0, 6).toList() : wallets;
 
     if ((activeWallet == null && wallets.length > 0) || noXbnBalance) {
       activeWallet = wallets[0].publicKey;
@@ -687,7 +688,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         onPageChanged: ((index, reason) => {
               setState(
                 () => {
-                  activeWalletIndex = index == 6 ? index - 1 : index,
+                  activeWalletIndex = index == 5 ? index - 1 : index,
                   activeWallet = wallets[activeWalletIndex].publicKey,
                   claimedAssets = wallets[activeWalletIndex].claimedAssets,
                   unclaimedAssets = wallets[activeWalletIndex].unClaimedAssets,
@@ -1015,7 +1016,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           'Buy XBN on TrovoP2P',
           notifier.getwihitecolor,
           notifier.getbluewhitecolor,
-          onTap: () => _launchUrl(),
+          onTap: () {
+            popup(
+              context,
+              title: 'Coming soon',
+              message: 'TrovoP2P will be launching soon.',
+              bodyColor: notifier.getbluewhitecolor,
+            );
+            // _launchUrl();
+          },
         ),
         SizedBox(
           height: height / 50,

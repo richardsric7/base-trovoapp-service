@@ -107,6 +107,8 @@ class Wallet {
 
   bool get isInitiator => accesses!.contains('INITIATOR');
 
+  bool get isApprover => accesses!.contains('APPROVER');
+
   bool get isSharedWallet => sharedAccessEnabled == 1;
 
   bool get isSharedWalletAndCanInitiate =>

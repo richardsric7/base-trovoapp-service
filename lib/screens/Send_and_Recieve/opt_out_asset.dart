@@ -363,12 +363,14 @@ class _OptOutAssetState extends State<OptOutAsset>
 
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(
-            appState.primaryWallet.signer!,
-            appState.secretKeys[0],
-            appState.primaryWallet.publicKey!,
-            userInfo.username,
-            appState);
+        updateUserInfo(
+          appState.primaryWallet.signer!,
+          appState.secretKeys[0],
+          appState.primaryWallet.publicKey!,
+          userInfo.username,
+          appState,
+          forceRefresh: true,
+        );
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': LanguageEn.success,
           'message': wallet.isSharedWalletAndCanInitiate

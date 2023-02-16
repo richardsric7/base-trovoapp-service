@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/utils.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/asset.dart';
-import 'package:trovo_wallet/models/curated_asset.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
@@ -32,6 +30,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
   late UserInfo userInfo;
   late Wallet? wallet;
   late bool hasAvailableBalance;
+  late RefreshController _refreshController;
   int? selectedWalletIndex = null;
   Map<String, Map<String, dynamic>> assets = {};
 
@@ -83,13 +82,13 @@ class _OptInOutAssetState extends State<OptInOutAsset>
   @override
   void initState() {
     super.initState();
-
-    appState = Provider.of<DataProvider>(context, listen: false);
+    _refreshController = RefreshController(initialRefresh: false);
   }
 
   @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
+    appState = Provider.of<DataProvider>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     if (selectedWalletIndex != null) {
@@ -173,101 +172,106 @@ class _OptInOutAssetState extends State<OptInOutAsset>
             ),
           ),
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: height / 30,
-              ),
-              Row(
-                children: [
-                  SizedBox(
-                    width: width / 15,
-                  ),
-                  Text(
-                    'Select wallet',
-                    style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        fontWeight: FontWeight.w500),
-                  ),
-                  SizedBox(
-                    width: width / 15,
-                  ),
-                  Expanded(
-                      child: dropdown(
-                    (newValue) {
-                      setState(() {
-                        selectedWalletIndex = int.parse(newValue.toString());
-                      });
-                    },
-                    walletDropdownItems(false),
-                    selectedWalletIndex.toString().isEmpty
-                        ? null
-                        : selectedWalletIndex,
-                    null,
-                    context,
-                    (context) {
-                      return walletDropdownItems(true);
-                    },
-                  )),
-                  SizedBox(
-                    width: width / 15,
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              if (selectedWalletIndex != null) ...[
-                showCuratedAssets(),
-              ] else ...[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
-                      color: notifier.isDark
-                          ? darktilewhitecolor
-                          : notifier.getaddsubwalletgrey,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 10.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: width / 1.28,
-                                    child: Text(
-                                      'Select the wallet where you want to add or remove assets from.',
-                                      textAlign: TextAlign.justify,
-                                      style: TextStyle(
-                                          fontSize: 15,
-                                          color: notifier.getbluewhitecolor,
-                                          fontFamily: fontbody),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+        body: SmartRefresher(
+          enablePullDown: true,
+          controller: _refreshController,
+          onRefresh: refreshData,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: height / 30,
                 ),
-              ]
-            ],
+                Row(
+                  children: [
+                    SizedBox(
+                      width: width / 15,
+                    ),
+                    Text(
+                      'Select wallet',
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontsemibold,
+                          fontWeight: FontWeight.w500),
+                    ),
+                    SizedBox(
+                      width: width / 15,
+                    ),
+                    Expanded(
+                        child: dropdown(
+                      (newValue) {
+                        setState(() {
+                          selectedWalletIndex = int.parse(newValue.toString());
+                        });
+                      },
+                      walletDropdownItems(false),
+                      selectedWalletIndex.toString().isEmpty
+                          ? null
+                          : selectedWalletIndex,
+                      null,
+                      context,
+                      (context) {
+                        return walletDropdownItems(true);
+                      },
+                    )),
+                    SizedBox(
+                      width: width / 15,
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                if (selectedWalletIndex != null) ...[
+                  showCuratedAssets(),
+                ] else ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.isDark
+                            ? darktilewhitecolor
+                            : notifier.getaddsubwalletgrey,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: width / 1.28,
+                                      child: Text(
+                                        'Select the wallet where you want to add or remove assets from.',
+                                        textAlign: TextAlign.justify,
+                                        style: TextStyle(
+                                            fontSize: 15,
+                                            color: notifier.getbluewhitecolor,
+                                            fontFamily: fontbody),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ]
+              ],
+            ),
           ),
         ),
       ),
@@ -409,6 +413,16 @@ class _OptInOutAssetState extends State<OptInOutAsset>
             )),
       ),
     );
+  }
+
+  void refreshData() async {
+    try {
+      await appState.refreshData();
+      _refreshController.refreshCompleted();
+      appState.updateListeners();
+    } catch (e) {
+      _refreshController.refreshFailed();
+    }
   }
 
   @override

@@ -38,7 +38,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
   late ColorNotifier notifier;
   late DataProvider appState;
   late UserInfo userInfo;
-  Wallet? activeWallet;
+  late Wallet wallet;
   String password = '';
   final formKey = GlobalKey<FormState>();
   final Authenticator _authenticator = Authenticator();
@@ -57,8 +57,9 @@ class _ApprovalDetails extends State<ApprovalDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    activeWallet = appState.activeWallet;
     viewData = appState.viewData![ApprovalDetailsViewPageConfig.key];
+    wallet = appState.userInfo!.getWalletByAlias(viewData['alias']);
+    print('========> viewData: $viewData');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -201,7 +202,8 @@ class _ApprovalDetails extends State<ApprovalDetails>
                           .contains(appState.userInfo!.username!) ||
                       viewData['rejectedBy']
                           .toString()
-                          .contains(appState.userInfo!.username!))) ...[
+                          .contains(appState.userInfo!.username!)) &&
+                  wallet.isApprover) ...[
                 SizedBox(
                   height: height / 20,
                 ),
@@ -274,6 +276,16 @@ class _ApprovalDetails extends State<ApprovalDetails>
                     },
                   ),
                 ],
+              ] else ...[
+                SizedBox(
+                  height: height / 20,
+                ),
+                Button(
+                  'Done',
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () => Navigator.of(context).pop(),
+                ),
               ],
               SizedBox(
                 height: height / 15,
@@ -404,9 +416,9 @@ class _ApprovalDetails extends State<ApprovalDetails>
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: wallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.signer!,
+        publicKey: wallet.signer!,
       );
       print('responseData: ${responseData}');
 
@@ -444,9 +456,9 @@ class _ApprovalDetails extends State<ApprovalDetails>
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: wallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.signer!,
+        publicKey: wallet.signer!,
       );
 
       print('responseData: ${responseData}');
@@ -491,9 +503,9 @@ class _ApprovalDetails extends State<ApprovalDetails>
       Map responseData = await makeDeleteRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: activeWallet!.signer!,
+        signer: wallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: activeWallet!.signer!,
+        publicKey: wallet.signer!,
       );
       print('responseData: ${responseData}');
 
@@ -526,9 +538,9 @@ class _ApprovalDetails extends State<ApprovalDetails>
     Map responseData = await makeGetRequest(
       uri:
           '/v1/users/${appState.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: activeWallet!.signer!,
+      signer: wallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
-      publicKey: activeWallet!.publicKey!,
+      publicKey: wallet.publicKey!,
     );
 
     print('secretkey: ${appState.secretKeys[0]}');

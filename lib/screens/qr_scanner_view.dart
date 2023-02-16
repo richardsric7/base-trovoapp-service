@@ -176,12 +176,12 @@ class _QrScannerState extends State<QrScanner> {
     print(scanResult);
     if (scanResult != null) {
       runDynamicLinks(Uri.parse(scanResult));
+    } else {
+      Tooltip(
+          message: 'Does that look like a QR Code file to you?',
+          showDuration: Duration(seconds: 10));
+      controller!.resumeCamera();
     }
-
-    Tooltip(
-        message: 'Does that look like a QR Code file to you?',
-        showDuration: Duration(seconds: 10));
-    controller!.resumeCamera();
   }
 
   void runDynamicLinks(uri) async {

@@ -168,7 +168,7 @@ class Payment_HistoryState extends State<PaymentHistory>
     // if viewdata is not empty then we are opening this view from shared wallets view
     isFromSharedWalletsView = appState.viewData?['rel'] == 'sharedWalletView';
 
-    selectedWallet = appState.viewData!['walletPublicKey'].toString().isEmpty
+    selectedWallet = appState.viewData!['walletPublicKey'].toString().isNotEmpty
         ? appState.viewData!['walletPublicKey']
         : appState.primaryWallet.publicKey!;
 

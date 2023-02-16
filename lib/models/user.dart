@@ -173,6 +173,11 @@ class UserInfo {
     return combinedList.firstWhere((wallet) => wallet.publicKey == publicKey);
   }
 
+  Wallet getWalletByAlias(String alias) {
+    var combinedList = [...wallets!, ...sharedWallets!];
+    return combinedList.firstWhere((wallet) => wallet.alias == alias);
+  }
+
   List<Wallet> getAllWallets() {
     var aliases = Set<String>();
     var list = [...wallets!, ...sharedWallets!];
