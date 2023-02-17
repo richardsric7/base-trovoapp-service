@@ -283,14 +283,14 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 	if len(bulkPaymentSignerKeyPairs) > 0 {
 		tx, err = tx.Sign(gc.BantuNetworkPassphrase, bulkPaymentSignerKeyPairs...)
 		if err != nil {
-			log.Println("[EnableAccountRecovery] error signning with bulkPaymentSignerKeyPairs", err)
+			log.Println("[EnableAccountRecovery] error signing with bulkPaymentSignerKeyPairs", err)
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 	}
 	if len(marketMakingSignerKeyPairs) > 0 {
 		tx, err = tx.Sign(gc.BantuNetworkPassphrase, marketMakingSignerKeyPairs...)
 		if err != nil {
-			log.Println("[EnableAccountRecovery] error signning with marketMakingSignerKeyPairs", err)
+			log.Println("[EnableAccountRecovery] error signing with marketMakingSignerKeyPairs", err)
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 	}

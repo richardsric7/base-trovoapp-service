@@ -110,7 +110,13 @@ func MakeOffer(signerUser, walletOwner *userModels.User, sourceWallet *userModel
 	if err != nil {
 		return err
 	}
-	offerRequest.Transaction = xdrBase64
+
+	//do not overwrite transaction
+	if len(offerRequest.Transaction) == 0 {
+
+		offerRequest.Transaction = xdrBase64
+	}
+
 	offerRequest.NetworkPassPhrase = gc.BantuNetworkPassphrase
 
 	oldTxn := offerRequest.Transaction
