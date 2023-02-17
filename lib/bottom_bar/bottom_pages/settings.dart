@@ -178,10 +178,10 @@ class _SettingsState extends State<Settings> {
                 ],
               ),
               SizedBox(height: height / 50),
-              GestureDetector(
-                child: iteamlist(
-                    "assets/images/languages.png", "", LanguageEn.languages),
-              ),
+              // GestureDetector(
+              //   child: iteamlist(
+              //       "assets/images/languages.png", "", LanguageEn.languages),
+              // ),
               GestureDetector(
                 child: currency(
                     "assets/images/currency.png", "", LanguageEn.currency),

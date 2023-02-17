@@ -11,6 +11,7 @@ import 'package:trovo_wallet/models/patronTier.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 
 import '../../custom_bloc_observer/fonts.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -120,14 +121,20 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
                   '${tier.tier.capitalizeFirst} subscription ${tier.tier == 'LIFETIME' ? '(recommended)' : ''}',
                   '\$${tier.price}',
                   () {
-                    print('object');
-                    appState.viewData = {
-                      'patronInfo': patronInfo,
-                      'selectedTier': tier,
-                    };
-                    appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: AuthorizeSubscriptionViewPageConfig);
+                    // appState.viewData = {
+                    //   'patronInfo': patronInfo,
+                    //   'selectedTier': tier,
+                    // };
+                    // appState.currentAction = PageAction(
+                    //     state: PageState.addPage,
+                    //     page: AuthorizeSubscriptionViewPageConfig);
+                    popup(
+                      context,
+                      title: 'Coming soon!',
+                      message:
+                          'Trovo patron will become active on mainnet and then you can subscribe to a patron plan.',
+                      bodyColor: notifier.getbluewhitecolor,
+                    );
                   },
                 ),
               ]

@@ -1019,7 +1019,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           onTap: () {
             popup(
               context,
-              title: 'Coming soon',
+              title: 'Coming soon!',
               message: 'TrovoP2P will be launching soon.',
               bodyColor: notifier.getbluewhitecolor,
             );
