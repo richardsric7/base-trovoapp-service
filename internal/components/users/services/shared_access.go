@@ -585,18 +585,18 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 			if e != nil {
 				log.Printf("[ModifySharedWalletAccess] error generating blockchain operation for %+v: error: %v\n", v, e)
 
-				err = &tErrors.CustomError{
-					Param:      "username",
-					Err:        "error-trovo-wallet-account-invalid",
-					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time.", v.TargetUsername),
-					Code:       http.StatusBadRequest,
-				}
+				// err = &tErrors.CustomError{
+				// 	Param:      "username",
+				// 	Err:        "error-trovo-wallet-account-invalid",
+				// 	ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time.", v.TargetUsername),
+				// 	Code:       http.StatusBadRequest,
+				// }
 
 				return
 
+			} else {
+				ops = append(ops, op)
 			}
-
-			ops = append(ops, op)
 
 		}
 
@@ -690,7 +690,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				err = &tErrors.CustomError{
 					Param:      "username",
 					Err:        "error-trovo-wallet-account-invalid",
-					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time.", v.TargetUsername),
+					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to add this access for this user.", v.TargetUsername),
 					Code:       http.StatusBadRequest,
 				}
 
@@ -711,7 +711,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 				err = &tErrors.CustomError{
 					Param:      "username",
 					Err:        "error-trovo-wallet-account-invalid",
-					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time.", v.TargetUsername),
+					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to remove the approver access from blockchain at this time.", v.TargetUsername),
 					Code:       http.StatusBadRequest,
 				}
 
@@ -804,8 +804,8 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 
 				err = &tErrors.CustomError{
 					Param:      "username",
-					Err:        "error-trovo-wallet-account-invalid",
-					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time.", v.TargetUsername),
+					Err:        "error-trovo-wallet-account-not-validated",
+					ErrMessage: fmt.Sprintf("Trovo wallet account [%v] could not be validated on the blockchain at this time. Unable to add this access at this time.", v.TargetUsername),
 					Code:       http.StatusBadRequest,
 				}
 
@@ -1366,12 +1366,12 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			totalNativeBalanceNeeded := activationAmount.Mul(decimal.NewFromInt(totalUsersToFund))
 			if walletAccountNativeBalance.LessThan(totalNativeBalanceNeeded) {
 				//not enough balance to perform this.
-				log.Printf("[generateCreateSharedAccessXdr] by [%v] MultiAccess WalletAccount underfunded \n", wallet.Alias)
+				log.Printf("[generateCreateSharedAccessXdr] by [%v] Shared Access WalletAccount underfunded \n", wallet.Alias)
 
 				err = &tErrors.CustomError{
 					Param:      "walletPublicKey",
 					Err:        "error-wallet-underfunded",
-					ErrMessage: fmt.Sprintf("Wallet %v needs more than %v XBN balance to perform this operation", wallet.Alias, totalNativeBalanceNeeded.String()),
+					ErrMessage: fmt.Sprintf("Wallet %v needs more than %v %v balance to perform this operation", wallet.Alias, totalNativeBalanceNeeded.String(), os.Getenv("NATIVE_ASSET_CODE")),
 					Code:       404,
 				}
 				return "", messages, walletMustSign, err
@@ -1379,37 +1379,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		}
 	}
 
-	//activating shared access is free. No fee, except for view only access.
-	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
-	// serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	// if e != nil {
-	// 	serviceFee = decimal.Zero
-	// }
-	// if serviceFee.IsPositive() {
-	// 	if len(approvers) == 0 {
-	// 		//process service fee
-	// 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {
-	// 			ops = append(ops, &txnbuild.Payment{
-	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-	// 				SourceAccount: wallet.ID,
-	// 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
-	// 			})
-	// 			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee for creating view only access.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
-
-	// 		} else {
-	// 			ops = append(ops, &txnbuild.Payment{
-	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-	// 				SourceAccount: wallet.ID,
-	// 				Asset:         txnbuild.NativeAsset{},
-	// 			})
-	// 			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee for creating view only access.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
-
-	// 		}
-
-	// 	}
-	// }
+	//activating shared access is free. No fee.
 
 	// Construct the transaction that holds the operations to execute on the network
 	{
@@ -1536,37 +1506,6 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		}
 	}
 
-	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
-
-	// serviceFee, e := decimal.NewFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	// if e != nil {
-	// 	serviceFee = decimal.Zero
-	// }
-	// if serviceFee.IsPositive() {
-	// 	{
-	// 		//process service fee
-	// 		if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) == 56 {
-	// 			ops = append(ops, &txnbuild.Payment{
-	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-	// 				SourceAccount: wallet.ID,
-	// 				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
-	// 			})
-	// 			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
-
-	// 		} else {
-	// 			ops = append(ops, &txnbuild.Payment{
-	// 				Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-	// 				Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-	// 				SourceAccount: wallet.ID,
-	// 				Asset:         txnbuild.NativeAsset{},
-	// 			})
-	// 			messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
-
-	// 		}
-
-	// 	}
-	// }
 	{
 		//adjust account threshold
 		if numberOfApprovalsNeeded > 0 || len(ops) == 0 {
@@ -1579,15 +1518,6 @@ func generateModifySharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 			})
 		}
 	}
-	// if len(ops) == 0 {
-	// 	// no operations to sign. create a dummy ops, will be ignored on next try.
-	// 	ops = append(ops, &txnbuild.SetOptions{
-	// 		LowThreshold:    txnbuild.NewThreshold(txnbuild.Threshold(0)),
-	// 		MediumThreshold: txnbuild.NewThreshold(txnbuild.Threshold(0)),
-	// 		HighThreshold:   txnbuild.NewThreshold(txnbuild.Threshold(0)),
-	// 		SourceAccount:   wallet.ID,
-	// 	})
-	// }
 
 	// Construct the transaction that holds the operations to execute on the network
 	var tx *txnbuild.Transaction
@@ -1786,25 +1716,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				walletMustSign = true
 			}
 		}
-		// if walletOwner.AccountRecoveryEnabled == 1 && PublicKeyHasViewOnlyAccess(wallet.ID, gc){
-		// 	// get the recovery keypair
-		// 	recoveryAddress := bc.GetRecoveryAccountAddress(walletOwner.Username, walletOwner.PublicKey)
 
-		// 	if !userBc.SignerIsValid(wallet.ID, recoveryAddress) {
-		// 		//recovery a signer to the wallet. remove it
-		// 		ops = append(ops, &txnbuild.SetOptions{
-		// 			Signer: &txnbuild.Signer{
-		// 				Address: recoveryAddress,
-		// 				Weight:  1,
-		// 			},
-		// 			SourceAccount: wallet.ID,
-		// 		})
-
-		// 		//add message about disabling recovery on that wallet
-		// 		messages = append(messages, "Account Recovery on this wallet has been enabled.")
-		// 		walletMustSign = true
-		// 	}
-		// }
 	}
 
 	//check access list to know if you would activate the user wallets before proceeding.
@@ -1840,7 +1752,7 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 				err = &tErrors.CustomError{
 					Param:      "walletPublicKey",
 					Err:        "error-wallet-underfunded",
-					ErrMessage: fmt.Sprintf("Wallet %v needs more than %v XBN balance to perform this operation", wallet.Alias, totalNativeBalanceNeeded.String()),
+					ErrMessage: fmt.Sprintf("Wallet %v needs more than %v %v balance to perform this operation", wallet.Alias, totalNativeBalanceNeeded.String(), os.Getenv("NATIVE_ASSET_CODE")),
 					Code:       404,
 				}
 				return "", "", messages, walletMustSign, multipartySign, err
@@ -1848,34 +1760,6 @@ func generateRemoveSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		}
 	}
 
-	//TODO: if account exists and subwallet has enough balance, we add the operation to pay TROVO fee from primary Wallet
-	fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
-	if !fee.IsZero() {
-		{
-			//process service fee
-			if len(os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")) != 56 {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: wallet.ID,
-					Asset:         txnbuild.NativeAsset{},
-				})
-				messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("NATIVE_ASSET_CODE"), wallet.Alias))
-
-			} else {
-				ops = append(ops, &txnbuild.Payment{
-					Destination:   os.Getenv("SHARED_ACCESS_FEE_ADDRESS"),
-					Amount:        os.Getenv("SHARED_ACCESS_FEE_AMOUNT"),
-					SourceAccount: wallet.ID,
-					Asset:         txnbuild.CreditAsset{Code: os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), Issuer: os.Getenv("SHARED_ACCESS_FEE_ASSET_ISSUER")},
-				})
-				messages = append(messages, fmt.Sprintf("%v %v will be deducted from wallet %v as service fee.", os.Getenv("SHARED_ACCESS_FEE_AMOUNT"), os.Getenv("SHARED_ACCESS_FEE_ASSET_CODE"), wallet.Alias))
-
-			}
-
-			walletMustSign = true
-		}
-	}
 	// Construct the transaction that holds the operations to execute on the network
 	{
 		//adjust account threshold
@@ -2047,42 +1931,6 @@ func generateRemoveRecoveredAccountAccessOps(wallet *userModels.UserWallet, appr
 
 	return ops
 }
-
-// func GenerateRemoveOldRecoveredSharedAccessOps(wallet *userModels.UserWallet, walletOwner *userModels.User, approverOldSigner string, gc *sharedconfig.GlobalConfig) (op txnbuild.Operation, err error) {
-// 	client := gc.BantuExpansionClient
-
-// 	//check if primary account has native enough native balance
-// 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
-// 	_, _, _, _, walletSourceAccount, errWalletAct := network.BlockchainAccountProperties(client, wallet.ID, nativeAsset)
-// 	if errWalletAct != nil {
-// 		log.Printf("[generateRemoveSharedAccessXdr] by [%v] for shared Account Properties error:[%v] \n", wallet.Alias, errWalletAct)
-
-// 		return op, errWalletAct
-// 	}
-
-// 	//ensure u r using the account signer, since the account may have been recovered, or may be recovered in the future, changing the signer, but retaining the primary key
-// 	approverAccountExists, _, _, _, _, _ := network.BlockchainAccountProperties(client, approverOldSigner, nativeAsset)
-
-// 	if approverAccountExists {
-// 		//account exists, check if it already it a signer in the wallet
-
-// 		//remove signer if already a signer
-// 		if wallet.SignerIsValidWA(approverOldSigner, walletSourceAccount) && walletOwner.PrimarySigner != wallet.Signer {
-
-// 			op = &txnbuild.SetOptions{
-// 				Signer: &txnbuild.Signer{
-// 					Address: approverOldSigner,
-// 					Weight:  0,
-// 				},
-// 				SourceAccount: wallet.ID,
-// 			}
-
-// 			return op, nil
-// 		}
-
-// 	}
-// 	return op, &tErrors.ErrorTemporaryServerError{}
-// }
 
 func HasAccessToPublicKey(signerPublicKey, targetPublicKey string, gc *sharedconfig.GlobalConfig) (hasAccess bool) {
 	signerUser, err := usersDB.GetUserFromPrimarySigner(signerPublicKey, gc.DB, gc)

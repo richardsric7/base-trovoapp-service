@@ -1545,7 +1545,7 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := prodURL
+	baseURL := stagingURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -1565,9 +1565,9 @@ func TestSendPaymentMultiAccessDisabled(t *testing.T) {
 	}
 
 	paymentPayload := PaymentInfo{
-		Destination: "ric1_shared",
+		Destination: "uchemukolo",
 		Memo:        "Test Payment",
-		Amount:      "20000",
+		Amount:      "100000",
 		AssetCode:   "",
 		AssetIssuer: "",
 	}
@@ -1707,7 +1707,7 @@ func TestSendPaymentFromSubWalletMultiAccessDisabled(t *testing.T) {
 	}
 
 	paymentPayload := PaymentInfo{
-		Destination: "obi",
+		Destination: "uchemukolo",
 		Memo:        "Test XBN Payment",
 		Amount:      "51",
 	}

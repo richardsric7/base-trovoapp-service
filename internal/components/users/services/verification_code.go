@@ -433,7 +433,7 @@ func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *ca
 			return &tErrors.ErrorTemporaryServerError{}
 		}
 		//send SMS
-		message := fmt.Sprintf("Your BantuPay mobile phone confirmation code is %s. One time use only.", verificationCode)
+		message := fmt.Sprintf("Your Trovo Wallet mobile phone confirmation code is %s. One time use only.", verificationCode)
 		errSMS := sms.SendSMS(*userInfo.Mobile, message, db)
 		if errSMS != nil {
 			log.Printf("[SendPhoneVerificationCode] Error sending verification code for user %s. Error: %s\n", userInfo.Username, errSMS.Error())
@@ -473,7 +473,7 @@ func SendPhoneVerificationCode(userInfo *users.User, db *gorm.DB, redisCache *ca
 	}
 	//updated successfully
 	//send SMS
-	message := fmt.Sprintf("Your BantuPay mobile phone confirmation code is %s. One time use only.", verificationCode)
+	message := fmt.Sprintf("Your Trovo Wallet mobile phone confirmation code is %s. One time use only.", verificationCode)
 	errSMS := sms.SendSMS(*userInfo.Mobile, message, db)
 	if errSMS != nil {
 		log.Printf("[SendPhoneVerificationCode] Error sending verification code for user %s. Error: %s\n", userInfo.Username, errSMS.Error())
@@ -556,7 +556,7 @@ func SendAccountRecoveryEmailOTP(userInfo *users.User, db *gorm.DB) error {
 		return &tErrors.CustomError{
 			Param:      "email",
 			Err:        "error request quota exceeded",
-			ErrMessage: "You have already exhausted your request quota for the hour. Wait till you receive the code or you wait for another hour",
+			ErrMessage: fmt.Sprintf("An OTP has already been sent to this email %v. Please check your email (including spam folder) or try again in 1hr.", userInfo.Email),
 		}
 	}
 

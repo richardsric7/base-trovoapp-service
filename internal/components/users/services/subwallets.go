@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	bc "trovo-wallet-api/internal/blockchainalgofuncs"
+	blockchain "trovo-wallet-api/internal/components/assets/blockchain"
 	userBc "trovo-wallet-api/internal/components/users/blockchain"
 	userModels "trovo-wallet-api/internal/components/users/models"
 	tErrors "trovo-wallet-api/internal/errors"
@@ -393,52 +394,73 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 		}
 
 	}
-	serviceFee, e := decimal.NewFromString(os.Getenv("SUBWALLET_FEE_AMOUNT_USD"))
-	if e != nil {
-		serviceFee = decimal.Zero
-	}
-	if serviceFee.IsPositive() {
-		//add fees if enabled.
-		//process service fee
-		subWalletInfo.FeeAmount = serviceFee.String()
-		subWalletInfo.FeeCode = os.Getenv("SUBWALLET_FEE_ASSET_CODE")
 
-		if len(os.Getenv("SUBWALLET_FEE_ASSET_ISSUER")) == 56 {
-			ops = append(ops, &txnbuild.Payment{
-				Destination:   os.Getenv("SUBWALLET_FEE_ADDRESS"),
-				Amount:        os.Getenv("SUBWALLET_FEE_AMOUNT_USD"),
-				SourceAccount: accountOwner.PublicKey,
-				Asset:         txnbuild.CreditAsset{Code: os.Getenv("SUBWALLET_FEE_ASSET_CODE"), Issuer: os.Getenv("SUBWALLET_FEE_ASSET_ISSUER")},
-			})
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee.", os.Getenv("SUBWALLET_FEE_AMOUNT_USD"), os.Getenv("SUBWALLET_FEE_ASSET_CODE")))
+	signForFeeTrustLine := 0
+	{ //add fee for transaction
+		usdPrice, _, _ := blockchain.GetDollarPrice(os.Getenv("SUBWALLET_FEE_ASSET_CODE"), os.Getenv("SUBWALLET_FEE_ASSET_ISSUER"), gc, true)
 
+		serviceFee, e := decimal.NewFromString(os.Getenv("SUBWALLET_FEE_AMOUNT_USD"))
+		if e != nil {
+			serviceFee = decimal.Zero
+		}
+		if serviceFee.IsPositive() {
+			serviceFee = decimal.RequireFromString(usdPrice).Div(serviceFee).Truncate(7)
 		} else {
+			serviceFee = decimal.Zero
+		}
+
+		if serviceFee.IsPositive() {
+
+			feeKeypair := keypair.MustParseFull(os.Getenv("SUBWALLET_FEE_WALLET"))
+			feeAddress := feeKeypair.Address()
+
+			feeAsset := txnbuild.CreditAsset{Code: os.Getenv("SUBWALLET_FEE_ASSET_CODE"), Issuer: os.Getenv("SUBWALLET_FEE_ASSET_ISSUER")}
+			_, _, _, assetBalance, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, accountOwner.PublicKey, feeAsset)
+			if !assetBalance.LessThan(serviceFee) {
+				return "", subWalletObj, &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required on wallet %v to pay for fees for this service. Please first fund the wallet with at least %v %v.", serviceFee.String(), os.Getenv("SUBWALLET_FEE_ASSET_CODE"), accountOwner.Username, assetBalance.Sub(serviceFee), os.Getenv("SUBWALLET_FEE_ASSET_CODE"))}
+
+			}
+
+			_, feeAccountTrustsAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, feeAddress, feeAsset)
+			if !feeAccountTrustsAsset {
+				signForFeeTrustLine = 1
+				//establish trustline automatically
+				ops = append(ops, &txnbuild.ChangeTrust{
+					Line:          txnbuild.ChangeTrustAssetWrapper{Asset: feeAsset},
+					Limit:         "900000000000",
+					SourceAccount: feeAddress,
+				})
+
+			}
+
 			ops = append(ops, &txnbuild.Payment{
-				Destination:   os.Getenv("SUBWALLET_FEE_ADDRESS"),
-				Amount:        os.Getenv("SUBWALLET_FEE_AMOUNT_USD"),
+				Destination:   feeAddress,
+				Amount:        serviceFee.String(),
 				SourceAccount: accountOwner.PublicKey,
-				Asset:         txnbuild.NativeAsset{},
+				Asset:         feeAsset,
 			})
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be deducted as service fee.", os.Getenv("SUBWALLET_FEE_AMOUNT_USD"), os.Getenv("NATIVE_ASSET_CODE")))
+			// paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be added from wallet %v as service fee (%v).", serviceFee.String(), assetCode, sourceWallet.Alias, feeLabel))
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v (%v USD) will be deducted from wallet %v as service fee.", serviceFee.String(), os.Getenv("SUBWALLET_FEE_AMOUNT_USD"), os.Getenv("SUBWALLET_FEE_ASSET_CODE"), accountOwner.Username))
 
 		}
+
 	}
 
 	if subWalletInfo.WalletType == 0 {
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be sent from your primary wallet to this new sub-wallet for wallet activation.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v will be sent from your primary wallet to this new sub-wallet for wallet activation. It will become the new balance of the subwallet.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 	if subWalletInfo.WalletType == 1 {
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be a token minting wallet, %v %v will be deducted from your primary wallet and be used to activate it. Please note that token minting wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be a token minting wallet, %v %v will be deducted from your primary wallet and be used to activate it. It will become the new balance of the subwallet. Please note that token minting wallets cannot be used to send payments.", activationAmount.String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 	if subWalletInfo.WalletType == 2 {
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an market making wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. Please note that MM wallets cannot be used to send normal payments, but only used for market making.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an market making wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. It will become the new balance of the subwallet and custodial signer. Please note that MM wallets cannot be used to send normal payments, but only used for market making.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 
 	if subWalletInfo.WalletType == 3 {
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an bulk-payment wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. Please note that bulk-payment wallets cannot be used to send normal payments, but only be used by internal system to disburse bulk payments on your behalf.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an bulk-payment wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. It will become the new balance of the subwallet and custodial signer. Please note that bulk-payment wallets cannot be used to send normal payments, but only be used by internal system to disburse bulk payments on your behalf.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 	if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
@@ -457,6 +479,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 	// 		SourceAccount:   subWalletInfo.PublicKey,
 	// 	})
 	// }
+
 	// Construct the transaction that holds the operations to execute on the network
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
@@ -473,6 +496,16 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 	if err != nil {
 		log.Println("[generateSubWalletXdr] error constructing transaction ", err)
 		return "", subWalletObj, err
+	}
+
+	if signForFeeTrustLine == 1 {
+		feeKeypair := keypair.MustParseFull(os.Getenv("SUBWALLET_FEE_WALLET"))
+		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
+
+		if err != nil {
+			log.Println("[generateSubWalletXdr] error signing transaction with fee wallet key ", err)
+			return "", subWalletObj, &tErrors.ErrorTemporaryServerError{}
+		}
 	}
 
 	var xdrBase64 string

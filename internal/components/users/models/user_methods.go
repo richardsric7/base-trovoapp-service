@@ -1360,7 +1360,7 @@ func (u *UserWallet) GetSwapFee(gc *sharedconfig.GlobalConfig) (swapFee string) 
 func (u *UserWallet) GetSharedAccessPaymentFee(gc *sharedconfig.GlobalConfig) (sharedAccessFee string) {
 
 	if os.Getenv("SHARED_ACCESS_FEE_ENABLED") == "1" {
-		fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_FEE_AMOUNT"))
+		fee := decimal.RequireFromString(os.Getenv("SHARED_ACCESS_PAYMENT_FEE_AMOUNT"))
 
 		//TODO: get shared access fees
 
