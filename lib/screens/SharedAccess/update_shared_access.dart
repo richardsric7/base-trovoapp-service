@@ -667,7 +667,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                               setState(() {
                                 var newValueInt =
                                     int.parse(newValue.toString());
-                                if (noOfApprovalsNeeded! > newValueInt) {
+                                if (noOfApprovalsNeeded > newValueInt) {
                                   noOfApprovalsNeeded = newValueInt - 1;
                                 }
                                 noOfApprovers = newValueInt;

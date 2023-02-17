@@ -1,12 +1,6 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_share/flutter_share.dart';
 import 'package:image_cropper/image_cropper.dart';
-// import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -156,7 +150,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                     fontFamily: fontsemibold,
                     fontSize: 13.sp),
               ),
-              SizedBox(height: height / 20),
+              // SizedBox(height: height / 20),
               // Padding(
               //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
               //   child: Row(
@@ -172,7 +166,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               //   ),
               // ),
               bioInfo(),
-              SizedBox(height: height / 20),
+              // SizedBox(height: height / 20),
               // Padding(
               //   padding: const EdgeInsets.symmetric(horizontal: 20.0),
               //   child: Row(
@@ -188,12 +182,83 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               //   ),
               // ),
               // socials(),
-              // SizedBox(height: height / 20),
+              SizedBox(height: height / 50),
+              Text(
+                'Referral Info (Downlines)',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontsemibold),
+              ),
+              SizedBox(height: height / 50),
+              Container(
+                color: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 20.0),
+                child: Table(
+                  border: TableBorder.all(
+                      width: 1.5,
+                      color: notifier.getbluewhitecolor,
+                      borderRadius: BorderRadius.circular(15)),
+                  children: getTableRows(),
+                ),
+              )
             ],
           ),
         ),
       ),
     );
+  }
+
+  List<TableRow> getTableRows() {
+    List<TableRow> tableRows = [];
+    var index = 1;
+
+    tableRows.add(TableRow(children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        child: Text(
+          'Referral Level',
+          style: TextStyle(
+              fontFamily: fontsemibold, color: notifier.getbluewhitecolor),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        child: Text(
+          'No. Referred',
+          style: TextStyle(
+              fontFamily: fontsemibold, color: notifier.getbluewhitecolor),
+        ),
+      ),
+    ]));
+
+    for (MapEntry entry in appState.userInfo!.referralInfo!.downlines.entries) {
+      tableRows.add(
+        TableRow(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              child: Text(
+                'Level $index',
+                style: TextStyle(
+                    fontFamily: fontbody, color: notifier.getbluewhitecolor),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              child: Text(
+                entry.value.toString(),
+                style: TextStyle(
+                    fontFamily: fontbody, color: notifier.getbluewhitecolor),
+              ),
+            ),
+          ],
+        ),
+      );
+      index++;
+    }
+    return tableRows;
   }
 
   Future<void> getImage(ImageSource source) async {

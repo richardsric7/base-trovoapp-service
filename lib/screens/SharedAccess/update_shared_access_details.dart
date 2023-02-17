@@ -671,7 +671,8 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
       );
       print(responseData);
 
-      if (responseData['statusCode'] == 202) {
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
         print('messagelenth: $messageLength');
@@ -730,7 +731,8 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
         publicKey: wallet.publicKey!,
       );
 
-      if (responseData['statusCode'] == 200) {
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
         updateUserInfo(
           appState.primaryWallet.signer!,
           appState.secretKeys[0],

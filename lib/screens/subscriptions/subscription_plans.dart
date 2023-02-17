@@ -174,6 +174,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                     } else if (snapshot.hasData) {
                       var membershipGrades = snapshot.data!['membershipGrades'];
                       var tiers = snapshot.data!['patronTiers'];
+                      var patronPackages = snapshot.data!['patronPackages'];
                       var list = <PatronInfo>[];
                       var myset = Set<String>();
 
@@ -194,14 +195,20 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                         }
 
                         if (myset.add(grade['patronPackage'])) {
-                          list.add(
-                            PatronInfo(
-                              id: grade['id'],
-                              patronPackage: grade['patronPackage'],
-                              patronTiers: tierList,
-                              description: '',
-                            ),
+                          var package = PatronInfo(
+                            id: grade['id'],
+                            patronPackage: grade['patronPackage'],
+                            patronTiers: tierList,
+                            description: '',
                           );
+
+                          for (var p in patronPackages) {                            
+                            if (p['id'] == grade['patronPackage']) {
+                              package.description = p['description'];
+                            }
+                          }
+
+                          list.add(package);
                         } else {
                           list
                               .firstWhere((item) =>

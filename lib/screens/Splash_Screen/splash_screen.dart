@@ -104,47 +104,31 @@ class _SplashScreenState extends State<SplashScreen>
           sharedWallets,
           assetBalances,
         );
-        print('==========> 1');
-
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');
-        print('==========> 2');
         appState.setPassword = await StoreData().storeGetData('password');
-        print('==========> 3');
         appState.biometricEnabled =
             await StoreData().storeGetData('biometricsEnabled') ?? false;
-        print('==========> 4');
         appState.hideBalances =
             await StoreData().storeGetData('hideBalances') ?? false;
-        print('==========> 5');
         appState.assetBalances =
             await StoreData().storeGetData('assetBalances');
-        print('==========> 6');
         appState.setDefaultAssets =
             await StoreData().storeGetData('defaultAssets');
-        print('==========> 7');
         appState.setNFTs = await StoreData().storeGetData('nfts');
-        print('==========> 8');
         appState.setFiatRate = await StoreData().storeGetData('fiatRate') ?? {};
-        print('==========> 9');
         appState.introducedSharedAccess =
             await StoreData().storeGetData('introducedSharedAccess') ?? false;
-        print('==========> 10');
         appState.sethideWalletList =
             await StoreData().storeGetData('hideWalletList') ??
                 List.filled(6, appState.hideBalances);
-        print('==========> 11');
         var primaryWallet = appState.userInfo!.wallets!.firstWhere(
             (wallet) => wallet.primaryWallet == 1,
             orElse: () => appState.userInfo!.wallets![0]);
-        print('==========> 12');
         updateUserInfo(primaryWallet.signer, appState.secretKeys[0],
             primaryWallet.publicKey, appState.userInfo!.username!, appState);
-        print('==========> 13');
         getFiatRates(primaryWallet.signer, appState.secretKeys[0],
             primaryWallet.publicKey, appState.userInfo!.username!, appState);
-        print('==========> 14');
         fetchNotifications(appState);
-        print('==========> 15');
         appState.activeWallet = primaryWallet;
         // check if app was not already open
         // if app was not already open then move to the next view

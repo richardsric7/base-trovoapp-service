@@ -2678,7 +2678,7 @@ approvalListTransactionTypePopup(context, List<String> options, String label,
                         Container(
                           width: width / 1.7,
                           child: Text(
-                            'Include pending approvals I have already signed',
+                            'Include transactions I have already signed',
                             overflow: TextOverflow.visible,
                             style: TextStyle(
                               fontSize: 13,

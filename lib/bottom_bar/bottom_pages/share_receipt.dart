@@ -178,31 +178,27 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       ),
                                     ),
                                     SizedBox(
-                                      width: width / 1.7,
+                                      width: width / 1.3,
                                       child: Column(
                                         children: [
                                           Row(
                                             children: [
-                                              Expanded(
-                                                flex: 3,
-                                                child: Padding(
-                                                  padding: const EdgeInsets
-                                                          .symmetric(
-                                                      horizontal: 20.0),
-                                                  child: Text(
-                                                    viewData.transactionDirection! ==
-                                                            TransactionDirection
-                                                                .Send
-                                                        ? '${viewData.from!}'
-                                                        : '${viewData.to!}',
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color: notifier
-                                                          .getbluewhitecolor,
-                                                      fontSize: 18.sp,
-                                                      fontFamily: fontbody,
-                                                    ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 20.0),
+                                                child: Text(
+                                                  viewData.transactionDirection! ==
+                                                          TransactionDirection
+                                                              .Send
+                                                      ? '${viewData.from!}'
+                                                      : '${viewData.to!}',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                    color: notifier
+                                                        .getbluewhitecolor,
+                                                    fontSize: 18.sp,
+                                                    fontFamily: fontbody,
                                                   ),
                                                 ),
                                               ),
@@ -515,11 +511,11 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: Text(
+              Container(
+                width: width / 1.3,
+                child: Row(
+                  children: [
+                    Text(
                       name.toString().isEmpty
                           ? truncate(publicKey!, length: 5) +
                               publicKey!.substring(publicKey!.length - 5)
@@ -531,14 +527,14 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                         fontFamily: fontbody,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: Text(
+              Container(
+                width: width / 1.3,
+                child: Row(
+                  children: [
+                    Text(
                       name.toString().isNotEmpty &&
                               (publicKey != null && publicKey!.isNotEmpty)
                           ? truncate(publicKey!, length: 5) +
@@ -551,8 +547,8 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                         fontFamily: fontbody,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

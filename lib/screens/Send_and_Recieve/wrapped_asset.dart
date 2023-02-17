@@ -119,7 +119,8 @@ class _WrappedAssetState extends State<WrappedAsset>
                     vertical: 15.0, horizontal: 25.0),
                 child: RichText(
                   text: TextSpan(
-                    text: 'Welcome to the USDC ',
+                    text: 'Welcome to the assetCode '
+                        .replaceAll('assetCode', asset!.assetCode!),
                     style: TextStyle(
                       fontSize: 15,
                       fontFamily: fontbody,

@@ -92,12 +92,25 @@ class _SecurityQuestions extends State<SecurityQuestions> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(height / 15),
+          child: AppBar(
+            centerTitle: true,
+            elevation: 0,
+            backgroundColor: notifier.getwihitecolor,
+            leading: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Image.asset("assets/images/back.png", scale: 5),
+            ),
+          ),
+        ),
         body: SingleChildScrollView(
           child: Form(
             key: _formKey,
             child: Column(
               children: [
-                SizedBox(height: height / 10),
                 Text(
                   LanguageEn.setup,
                   textAlign: TextAlign.center,

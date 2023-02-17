@@ -1363,13 +1363,19 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         // store back the list of secret keys but this time it
         // contains the secret key of the newly created subwallet
         await StoreData().storeInsertData('secretKey', appState.secretKeys);
-        updateUserInfo(appState.primaryWallet.publicKey, appState.secretKeys[0],
-            appState.primaryWallet.publicKey, userInfo.username, appState);
-        // // add the new subwallet to appState and
-        // // set the newly created subwallet as the activeWallet
-        // appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
-        //     (wallet) => wallet.publicKey == newSubWalletKeyPair.publicKey);
-        // appState.activeWallet!.secretKey = newSubWalletKeyPair.secretKey;
+        await updateUserInfo(
+          appState.primaryWallet.publicKey,
+          appState.secretKeys[0],
+          appState.primaryWallet.publicKey,
+          userInfo.username,
+          appState,
+          forceRefresh: true,
+        );
+        // add the new subwallet to appState and
+        // set the newly created subwallet as the activeWallet
+        appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
+            (wallet) => wallet.publicKey == newSubWalletKeyPair.publicKey);
+        appState.activeWallet!.secretKey = newSubWalletKeyPair.secretKey;
         // move to next page
         appState.currentAction = PageAction(
             state: PageState.addPage, page: CongratulationsPageConfig);

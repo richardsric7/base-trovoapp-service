@@ -1,6 +1,8 @@
 import 'dart:developer';
 
+import 'package:trovo_wallet/bottom_bar/bottom_pages/referral_info.dart';
 import 'package:trovo_wallet/models/curated_asset.dart';
+import 'package:trovo_wallet/models/referral_info.dart';
 
 import 'wallet.dart';
 
@@ -29,6 +31,7 @@ class UserInfo {
   List<Wallet>? wallets;
   List<Wallet>? sharedWallets;
   List<CuratedAsset>? curatedSwapList;
+  ReferralInfoObject? referralInfo;
 
   UserInfo({
     this.username,
@@ -55,6 +58,7 @@ class UserInfo {
     this.hasSecurityQuestions,
     this.accountRecoveryEnabled,
     this.curatedSwapList,
+    this.referralInfo,
   });
 
   toJSONEncodable() {
@@ -110,6 +114,7 @@ class UserInfo {
       curatedSwapList: deserializeSwapList(m),
       wallets: deserializeWallets(m, assetBalances),
       sharedWallets: deserializeSharedWallets(sharedWallets),
+      referralInfo: deserializeReferralInfo(m),
     );
   }
 
@@ -119,6 +124,12 @@ class UserInfo {
       list.add(CuratedAsset().deserializeJson(item));
     });
     return list;
+  }
+
+  ReferralInfoObject deserializeReferralInfo(Map<String, dynamic> m) {
+    print('===> deserializing uplines ${m['uplines']}');
+    print('===> deserializing downlines ${m['downlines']}');
+    return ReferralInfoObject.deserializeJson(m);
   }
 
   List<Wallet> deserializeWallets(Map<String, dynamic> m, assetBalances) {
@@ -171,6 +182,11 @@ class UserInfo {
   Wallet getWallet(String publicKey) {
     var combinedList = [...wallets!, ...sharedWallets!];
     return combinedList.firstWhere((wallet) => wallet.publicKey == publicKey);
+  }
+
+  Wallet getWalletByAlias(String alias) {
+    var combinedList = [...wallets!, ...sharedWallets!];
+    return combinedList.firstWhere((wallet) => wallet.alias == alias);
   }
 
   List<Wallet> getAllWallets() {
