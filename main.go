@@ -113,7 +113,7 @@ func main() {
 			exit = true
 		}
 
-		if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") == "1" && len(os.Getenv("NAIRA_ASSET")) < 56 {
+		if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") == "1" && len(os.Getenv("NAIRA_ASSET")) < 60 {
 			log.Println("NAIRA_ASSET environment variable is required when ENABLE_NAIRA_ASSET_BY_DEFAULT is set to 1")
 
 			exit = true
