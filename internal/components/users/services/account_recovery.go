@@ -245,7 +245,7 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 				Asset:         feeAsset,
 			})
 			// paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be added from wallet %v as service fee (%v).", serviceFee.String(), assetCode, sourceWallet.Alias, feeLabel))
-			messages = append(messages, fmt.Sprintf("%v %v (%v USD) will be deducted from wallet %v as service fee.", serviceFee.String(), os.Getenv("ACCOUNT_RECOVERY_FEE_AMOUNT_USD"), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), user.Username))
+			messages = append(messages, fmt.Sprintf("%v %v ($%v USD) will be deducted from wallet %v as service fee.", serviceFee.String(), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), os.Getenv("ACCOUNT_RECOVERY_FEE_AMOUNT_USD"), user.Username))
 
 		}
 

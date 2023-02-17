@@ -454,7 +454,7 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 				Asset:         feeAsset,
 			})
 			// paymentInfo.Messages = append(paymentInfo.Messages, fmt.Sprintf("%v %v will be added from wallet %v as service fee (%v).", serviceFee.String(), assetCode, sourceWallet.Alias, feeLabel))
-			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v (%v USD) will be deducted from wallet %v as service fee.", serviceFee.String(), os.Getenv("SUBWALLET_FEE_AMOUNT_USD"), os.Getenv("SUBWALLET_FEE_ASSET_CODE"), accountOwner.Username))
+			subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("%v %v ($%v USD) will be deducted from wallet %v as service fee.", serviceFee.String(), os.Getenv("SUBWALLET_FEE_ASSET_CODE"), os.Getenv("SUBWALLET_FEE_AMOUNT_USD"), accountOwner.Username))
 
 		}
 
