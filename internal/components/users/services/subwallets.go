@@ -300,8 +300,8 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 
 			if os.Getenv("ENABLE_NAIRA_ASSET_BY_DEFAULT") == "1" {
 				//enable NAIRA asset if not minting wallet
-				dab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
-				nairaAsset := txnbuild.CreditAsset{Code: dab[0], Issuer: dab[1]}
+				ndab := strings.Split(os.Getenv("NAIRA_ASSET"), ":")
+				nairaAsset := txnbuild.CreditAsset{Code: ndab[0], Issuer: ndab[1]}
 				_, ntrusted, _, _, _, _ := network.BlockchainAccountProperties(client, subWalletInfo.PublicKey, nairaAsset)
 				if !ntrusted {
 					ops = append(ops, &txnbuild.ChangeTrust{
