@@ -221,8 +221,8 @@ func EnableAccountRecovery(user *userModels.User, payload *userModels.UserAccoun
 
 			feeAsset := txnbuild.CreditAsset{Code: os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), Issuer: os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_ISSUER")}
 			_, _, _, assetBalance, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, user.PublicKey, feeAsset)
-			if !assetBalance.LessThan(serviceFee) {
-				return &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required on wallet %v to pay for fees for this service. Please first fund the wallet with at least %v %v.", serviceFee.String(), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), user.Username, assetBalance.Sub(serviceFee), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"))}
+			if assetBalance.LessThan(serviceFee) {
+				return &tErrors.CustomError{Param: "username", Err: "error-primary-wallet-underfunded", ErrMessage: fmt.Sprintf("%v %v is required on wallet %v to pay for fees for this service. Please first fund the wallet with at least %v %v.", serviceFee.String(), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"), user.Username, serviceFee.Sub(assetBalance), os.Getenv("ACCOUNT_RECOVERY_FEE_ASSET_CODE"))}
 
 			}
 
