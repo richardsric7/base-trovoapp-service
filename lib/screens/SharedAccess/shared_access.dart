@@ -930,7 +930,8 @@ class _SharedAccessState extends State<SharedAccess>
                 // the wallet no longer belongs to me.
                 var filteredWallets = <Wallet>[];
                 appState.userInfo!.getAllWallets().forEach((wallet) {
-                  if (wallet.permissions!.isNotEmpty &&
+                  if (wallet.permissions != null &&
+                      wallet.permissions!.isNotEmpty &&
                       wallet.permissions!
                           .where((permission) =>
                               permission.permission == 'INITIATOR' ||
@@ -1726,7 +1727,10 @@ class _SharedAccessState extends State<SharedAccess>
         // if wallet is not primary wallet
         // primary wallets can only have view-only shared access
         // the cannot have approver and initiator shared access
-        if (activeWallet!.primaryWallet == 0) ...[
+
+        if (activeWallet!.isPrimaryWallet || activeWallet!.walletType == 2) ...[
+          // show nothing...
+        ] else ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

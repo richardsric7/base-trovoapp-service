@@ -68,7 +68,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   late List<String> walletTypes = [
     'Standard',
     'Minting/Asset Tokenization',
-    'Market Making',
+    'Market Making/Trade',
     'Bulk Payment'
   ];
   int selectedWalletType = 0;

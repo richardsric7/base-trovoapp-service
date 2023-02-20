@@ -110,7 +110,7 @@ class _SettingsState extends State<Settings> {
                 height: height / 80,
               ),
               Text(
-                '${appState.userInfo!.firstName} ${appState.userInfo!.lastName}',
+                '${appState.userInfo!.firstName} ${appState.userInfo!.lastName} ${appState.userInfo!.isCorporate ? '(Corporate)' : ''}',
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,

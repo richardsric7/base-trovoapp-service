@@ -205,6 +205,8 @@ class UserInfo {
 
   String get fullName => '$firstName $lastName';
 
+  bool get isCorporate => corporate == 1;
+
   List<Wallet> transactionableWallets() {
     List<Wallet> transWallets = [];
     for (var wallet in this.getAllWallets()) {
@@ -228,7 +230,9 @@ class UserInfo {
   List<Wallet> getShareableWallets() {
     List<Wallet> transWallets = [];
     for (var wallet in this.getAllWallets()) {
-      if ((wallet.walletType == 0 || wallet.walletType == 1) &&
+      if ((wallet.walletType == 0 ||
+              wallet.walletType == 1 ||
+              wallet.walletType == 2) &&
           !wallet.isSharedWallet) {
         transWallets.add(wallet);
       }

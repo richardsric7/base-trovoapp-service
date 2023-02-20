@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
@@ -30,27 +31,16 @@ void main() async {
   var dynamicLink = await FirebaseDynamicLinkInitializer()
       .getInitialLink()
       .catchError((err) async {
-    print('============> dynamic link errors here $err');
     await StoreData().storeInsertData('errorTest', err);
   }, test: (error) {
     return error is int && error >= 400;
   });
-  print('============> this is dynamic link $dynamicLink');
   if (dynamicLink != null) {
     await StoreData()
         .storeInsertData('initialDynamicLink', dynamicLink.link.toString());
   }
 
   BlocOverrides.runZoned(
-    // () => runApp(
-    //   DevicePreview(
-    //     enabled: true,
-    //     tools: [
-    //       ...DevicePreview.defaultTools,
-    //     ],
-    //     builder: (context) => const App(),
-    //   ),
-    // ),
     () => runApp(const App()),
   );
 }
@@ -66,6 +56,7 @@ class _AppState extends State<App> {
   TrovoWalletBackButtonDispatcher? backButtonDispatcher;
   final appState = DataProvider();
   Timer? _timer;
+  var messaging;
   TrovoWalletRouterDelegate? delegate;
   final parser = TrovoWalletRouteParser();
 
@@ -83,6 +74,10 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<ColorNotifier>(create: (_) => ColorNotifier()),
@@ -137,6 +132,29 @@ class _AppState extends State<App> {
             PageAction(state: PageState.replaceAll, page: LoginPageConfig);
         appState.isLoggedIn = false;
       });
+    }
+  }
+
+  void registerNotification() async {
+    // 1. Initialize the Firebase app
+    await Firebase.initializeApp();
+
+    // 2. Instantiate Firebase Messaging
+    messaging = FirebaseMessaging.instance;
+
+    // 3. On iOS, this helps to take the user permissions
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      provisional: false,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print('User granted permission');
+      // TODO: handle the received notifications
+    } else {
+      print('User declined or has not accepted permission');
     }
   }
 }
