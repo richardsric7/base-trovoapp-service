@@ -105,8 +105,8 @@ class _SignUpState extends State<SignUp> {
           child: Column(
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(width: width / 15),
                   Form(
                     key: _formKey,
                     child: Column(

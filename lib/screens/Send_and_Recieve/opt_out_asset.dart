@@ -22,20 +22,21 @@ import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class PendingAssetDetails extends StatefulWidget {
-  const PendingAssetDetails({Key? key}) : super(key: key);
+class OptOutAsset extends StatefulWidget {
+  const OptOutAsset({Key? key}) : super(key: key);
 
   @override
-  State<PendingAssetDetails> createState() => _PendingAssetDetailsState();
+  State<OptOutAsset> createState() => _OptOutAssetState();
 }
 
-class _PendingAssetDetailsState extends State<PendingAssetDetails>
+class _OptOutAssetState extends State<OptOutAsset>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
   late UserInfo userInfo;
   late Wallet wallet;
-  late Asset? asset;
+  late Asset asset;
+  late bool hasAvailableBalance;
 
   @override
   void initState() {
@@ -47,11 +48,13 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       appState.viewData!['walletPublicKey'],
     );
 
-    asset = wallet.unClaimedAssets!.firstWhere(
-      (asset) =>
-          asset.assetCode == appState.viewData!['assetCode'] &&
-          asset.assetIssuer == appState.viewData!['assetIssuer'],
+    asset = wallet.claimedAssets!.firstWhere(
+      (claimedAsset) =>
+          claimedAsset.assetCode == appState.viewData!['assetCode'] &&
+          claimedAsset.assetIssuer == appState.viewData!['assetIssuer'],
     );
+
+    hasAvailableBalance = asset.amount! > 0;
   }
 
   @override
@@ -71,9 +74,9 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
             elevation: 0,
             backgroundColor: notifier.getwihitecolor,
             title: Text(
-              LanguageEn.pendingassets,
+              'Remove [${asset.assetCode}]',
               style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: notifier.getbluewhitecolor,
                   fontFamily: fontsemibold),
@@ -88,30 +91,37 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         ),
         body: SingleChildScrollView(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SizedBox(
+                height: height / 50,
+              ),
+              if (wallet.canInitiate && !hasAvailableBalance) ...[
+                showNotice(),
+              ] else ...[
+                showBurnNotice(),
+              ],
               SizedBox(
                 height: height / 20,
               ),
-              showNotice(),
-              SizedBox(
-                height: height / 10,
-              ),
-              Button(
-                LanguageEn.claimasset,
-                notifier.getbluecolor,
-                wihitecolor,
-                onTap: claimAsset,
-              ),
-              SizedBox(height: height / 50),
-              ButtonOutlined(
-                'Reject asset',
-                notifier.getwihitecolor,
-                notifier.getbluewhitecolor,
-                onTap: () {
-                  rejectAsset();
-                },
-              ),
-              SizedBox(height: height / 10),
+              if (wallet.canInitiate && !hasAvailableBalance) ...[
+                Button(
+                  LanguageEn.removeasset,
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: optOutAsset,
+                ),
+              ] else ...[
+                Button(
+                  LanguageEn.back,
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+              SizedBox(height: height / 20),
             ],
           ),
         ),
@@ -142,9 +152,8 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      LanguageEn.pendingassetwarning
-                          .replaceAll('assetCode', asset!.assetCode!)
-                          .replaceAll('walletAlias', wallet.alias!),
+                      LanguageEn.optoutinfo
+                          .replaceAll('assetCode', asset.assetCode!),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
@@ -157,19 +166,38 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   SizedBox(
                     height: height / 50.0,
                   ),
-                  Container(
-                    width: width / 1.3,
-                    child: Text(
-                      LanguageEn.pendingassetwarning2,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                        color: notifier.getbluewhitecolor,
-                        fontFamily: fontbody,
+                  if (wallet.canInitiate) ...[
+                    Container(
+                      width: width / 1.3,
+                      child: Text(
+                        LanguageEn.optoutinfo2
+                            .replaceAll('assetCode', asset.assetCode!)
+                            .replaceAll('walletAlias', wallet.alias!),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
                       ),
                     ),
-                  ),
+                  ] else ...[
+                    Container(
+                      width: width / 1.3,
+                      child: Text(
+                        'You do not have enough permission to claim this asset on [walletAlias].'
+                            .replaceAll('walletAlias', wallet.alias!),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ],
                   SizedBox(height: 2),
                 ],
               ),
@@ -180,24 +208,104 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
     );
   }
 
-  claimAsset() async {
+  Widget showBurnNotice() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+          color: notifier.isDark
+              ? darktilewhitecolor
+              : notifier.getaddsubwalletgrey,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: width / 1.3,
+                    child: Text(
+                      LanguageEn.burninfo
+                          .replaceAll('assetCode', asset.assetCode!)
+                          .replaceAll('walletAlias', wallet.alias!)
+                          .replaceAll('amount', asset.amount.toString()),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: width / 1.3,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Text(
+                            truncate(asset.assetIssuer!, length: 5) +
+                                asset.assetIssuer!.toString().substring(
+                                    asset.assetIssuer!.toString().length - 5),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15.sp,
+                              fontFamily: fontbody,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          onPressed: () => {
+                            Clipboard.setData(
+                              ClipboardData(
+                                text: asset.assetIssuer!,
+                              ),
+                            ),
+                            showSnackBar('Issuer public key', context),
+                          },
+                          icon: Icon(Icons.copy),
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  optOutAsset() async {
     showLoader(context);
 
     try {
       // make initial request to the server using the
       // following credentials
       Map map = {
-        "assetCode": asset!.assetCode!,
-        "assetIssuer": asset!.assetIssuer!,
+        "assetCode": asset.assetCode!,
+        "assetIssuer": asset.assetIssuer!,
       };
       String requestBody = jsonEncode(map);
 
       print(requestBody);
 
-      Map responseData = await makePutRequest(
+      Map responseData = await makeDeleteRequest(
         uri: wallet.isSharedWalletAndCanInitiate
-            ? '/v1/shared-access/users/actions/claim-asset'
-            : '/v1/users/actions/claim-asset',
+            ? '/v1/shared-access/users/asset/opt-out'
+            : '/v1/users/asset/opt-out',
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
@@ -206,7 +314,8 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
 
       print('response: $responseData');
 
-      if (responseData['statusCode'] == 202) {
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
         completeClaimAsset(responseData['data']);
         // print('sending full data to server.........');
       } else {
@@ -242,10 +351,10 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
 
       print('this is request body: $requestBody');
 
-      Map responseData = await makePutRequest(
+      Map responseData = await makeDeleteRequest(
         uri: wallet.isSharedWalletAndCanInitiate
-            ? '/v1/shared-access/users/actions/claim-asset'
-            : '/v1/users/actions/claim-asset',
+            ? '/v1/shared-access/users/asset/opt-out'
+            : '/v1/users/asset/opt-out',
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
@@ -254,138 +363,31 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
 
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(
-            appState.primaryWallet.signer!,
-            appState.secretKeys[0],
-            appState.primaryWallet.publicKey!,
-            userInfo.username,
-            appState);
+        updateUserInfo(
+          appState.primaryWallet.signer!,
+          appState.secretKeys[0],
+          appState.primaryWallet.publicKey!,
+          userInfo.username,
+          appState,
+          forceRefresh: true,
+        );
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': LanguageEn.success,
-          'message': LanguageEn.trustassetsuccess
-              .replaceAll('asset', asset!.assetCode!),
-          'useOnDone': true,
-          'onDone': () {
-            appState.currentAction = appState.returnView ??
-                PageAction(
-                  state: PageState.addAll,
-                  pages: [BottomHomePageConfig],
-                );
-          },
-        };
-        appState.currentAction = PageAction(
-            state: PageState.replaceAll, page: SuccessViewPageConfig);
-      } else {
-        popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
-      }
-    } catch (e) {
-      print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
-    }
-
-    hideLoader(context);
-  }
-
-  rejectAsset() async {
-    showLoader(context);
-
-    try {
-      // make initial request to the server using the
-      // following credentials
-      Map map = {
-        "assetCode": asset!.assetCode!,
-        "assetIssuer": asset!.assetIssuer!,
-      };
-      String requestBody = jsonEncode(map);
-
-      print(requestBody);
-
-      Map responseData = await makeDeleteRequest(
-        uri: wallet.isSharedWalletAndCanInitiate
-            ? '/v1/shared-access/users/actions/reject-asset'
-            : '/v1/users/actions/reject-asset',
-        body: requestBody,
-        signer: appState.primaryWallet.signer!,
-        secretKey: appState.secretKeys[0],
-        publicKey: wallet.publicKey!,
-      );
-
-      print('response: $responseData');
-
-      if (responseData['statusCode'] == 202) {
-        completeRejectAsset(responseData['data']);
-      } else {
-        popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
-        hideLoader(context);
-      }
-    } catch (e) {
-      print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
-      hideLoader(context);
-    }
-  }
-
-  void completeRejectAsset(responseBody) async {
-    try {
-      showLoader(context);
-
-      var signature = TrovoWalletSDK().signBase64Txn(
-        appState.secretKeys[0],
-        responseBody['transaction'],
-        responseBody['networkPassPhrase'],
-      );
-
-      print('this is primary sign: $signature');
-      responseBody['transactionSignature'] = signature;
-
-      if (wallet.isSharedWalletAndCanInitiate) {
-        responseBody['commit'] = 1;
-      }
-
-      String requestBody = jsonEncode(responseBody);
-
-      print('this is request body: $requestBody');
-
-      Map responseData = await makeDeleteRequest(
-        uri: wallet.isSharedWalletAndCanInitiate
-            ? '/v1/shared-access/users/actions/reject-asset'
-            : '/v1/users/actions/reject-asset',
-        body: requestBody,
-        signer: appState.primaryWallet.signer!,
-        secretKey: appState.secretKeys[0],
-        publicKey: wallet.publicKey!,
-      );
-
-      print('response: $responseData');
-      if (responseData['statusCode'] == 200) {
-        await updateUserInfo(
-            appState.primaryWallet.signer!,
-            appState.secretKeys[0],
-            appState.primaryWallet.publicKey!,
-            userInfo.username,
-            appState);
-        appState.viewData![SuccessViewPageConfig.key] = {
-          'title': wallet.isSharedWalletAndCanInitiate
-              ? 'Request submitted'
-              : 'asset successfully rejected'
-                  .replaceAll('asset', asset!.assetCode!),
           'message': wallet.isSharedWalletAndCanInitiate
-              ? 'Your request to reject asset has been successfully submitted. This transaction will be completed when it gets the required number of approvals by those who have approver access on this wallet.'
-                  .replaceAll('asset', asset!.assetCode!)
-              : 'You have successfully rejected this asset. Your wallet will not hold this asset.',
+              ? LanguageEn.optoutassetsuccessshared
+                  .replaceAll('asset', asset.assetCode!)
+              : LanguageEn.optoutassetsuccess
+                  .replaceAll('asset', asset.assetCode!),
           'useOnDone': true,
           'onDone': () {
-            appState.currentAction = appState.returnView ??
-                PageAction(
-                  state: PageState.addAll,
-                  pages: [BottomHomePageConfig],
-                );
+            appState.currentAction = PageAction(
+              state: PageState.addAll,
+              pages: [BottomHomePageConfig, OptInOutAssetViewPageConfig],
+            );
           },
         };
-        appState.currentAction = PageAction(
-            state: PageState.replaceAll, page: SuccessViewPageConfig);
+        appState.currentAction =
+            PageAction(state: PageState.addPage, page: SuccessViewPageConfig);
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
@@ -402,6 +404,6 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
   void dispose() {
     super.dispose();
     print('disposing...');
-    appState.viewData![PendingAssetDetailsViewPageConfig.key] = null;
+    appState.viewData![OptOutAssetViewPageConfig.key] = null;
   }
 }

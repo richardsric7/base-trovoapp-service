@@ -107,12 +107,17 @@ class Wallet {
 
   bool get isInitiator => accesses!.contains('INITIATOR');
 
+  bool get isApprover => accesses!.contains('APPROVER');
+
   bool get isSharedWallet => sharedAccessEnabled == 1;
 
   bool get isSharedWalletAndCanInitiate =>
       sharedAccessEnabled == 1 &&
       walletThreshold == 2 &&
       accesses!.contains('INITIATOR');
+
+  bool get canInitiate =>
+      (!isSharedWallet || isInitiator || isPrimaryWallet) && walletType == 0;
 
   bool get isPrimaryWallet => primaryWallet == 1;
 
@@ -168,6 +173,8 @@ class Wallet {
   }
 
   List<Asset> deserializeAssetList(assets) {
+    // print('=========> deserializing assets $assets');
+
     var assetsList = <Asset>[];
     if (assets != null) {
       for (var i = 0; i < assets.length; i++) {

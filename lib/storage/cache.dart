@@ -1,15 +1,17 @@
-import 'dart:ffi';
-
+// import 'dart:ffi';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/announcement.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 
-Future<void> updateUserInfo(
-    signer, secretKey, publicKey, username, appState) async {
+Future<void> updateUserInfo(signer, secretKey, publicKey, username, appState,
+    {bool forceRefresh = false}) async {
+  String uri = '/v1/users/$username';
+  if (forceRefresh) uri += '?type=refresh';
+
   Map responseData = await makeGetRequest(
-    uri: '/v1/users/$username',
+    uri: uri,
     signer: signer,
     secretKey: secretKey, // the primary wallet secret key
     publicKey: publicKey!,
@@ -23,7 +25,7 @@ Future<void> updateUserInfo(
 }
 
 storeUserInfo(userInfoMap, state) async {
-  print('userInfoMap: ${userInfoMap['userData']}');
+  // print('userInfoMap: ${userInfoMap['userData']}');
   var userInfo = userInfoMap['userData'] ?? {};
   var assetBalances = userInfoMap['assetBalances'] ?? {};
   var nfts = userInfoMap['nfts'] ?? {};
@@ -55,7 +57,7 @@ Future<void> getFiatRates(
     publicKey: publicKey!,
   );
 
-  print('response: ${responseData}');
+  // print('response: ${responseData}');
 
   if (responseData['statusCode'] == 200) {
     appState.setFiatRate = responseData['data'];
@@ -71,7 +73,7 @@ Future<void> fetchNotifications(DataProvider appState) async {
     Uri.encodeFull(uri),
   );
 
-  print('response: ${responseData}');
+  // print('response: ${responseData}');
 
   if (responseData['statusCode'] == 200) {
     //  get the date when the user viewed announcements last
@@ -111,7 +113,7 @@ Future<void> fetchNotifications(DataProvider appState) async {
 Future<void> fetchVersionInfo(DataProvider appState) async {
   var versionInfo = await makeUnSecuredGetRequest('/v1/app-version');
 
-  print('this is response $versionInfo');
+  // print('this is response $versionInfo');
 
   StoreData().storeInsertData(
     'appVersion',

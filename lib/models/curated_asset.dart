@@ -16,6 +16,9 @@ class CuratedAsset {
   int? generateDepositAddress;
   int? decimalPlaces;
   String? realAssetImageUrl;
+  bool isRemovable = false;
+  bool isCustom =
+      false; // if the asset is added by the user and not curated by the platform
 
   CuratedAsset({
     this.assetIssuer,

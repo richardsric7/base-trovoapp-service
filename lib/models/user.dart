@@ -1,4 +1,8 @@
+import 'dart:developer';
+
+import 'package:trovo_wallet/bottom_bar/bottom_pages/referral_info.dart';
 import 'package:trovo_wallet/models/curated_asset.dart';
+import 'package:trovo_wallet/models/referral_info.dart';
 
 import 'wallet.dart';
 
@@ -27,6 +31,7 @@ class UserInfo {
   List<Wallet>? wallets;
   List<Wallet>? sharedWallets;
   List<CuratedAsset>? curatedSwapList;
+  ReferralInfoObject? referralInfo;
 
   UserInfo({
     this.username,
@@ -53,6 +58,7 @@ class UserInfo {
     this.hasSecurityQuestions,
     this.accountRecoveryEnabled,
     this.curatedSwapList,
+    this.referralInfo,
   });
 
   toJSONEncodable() {
@@ -78,36 +84,38 @@ class UserInfo {
       "kycVerified": kycVerified,
       "verified": verified,
       "suspended": suspended,
-      "curatedSwapList": curatedSwapList,
+      // "curatedSwapList": curatedSwapList,
     };
   }
 
   deserializeJson(Map<String, dynamic> m, sharedWallets, assetBalances) {
     return UserInfo(
-        username: m['username'],
-        firstName: m['firstName'],
-        lastName: m['lastName'],
-        email: m['email'],
-        mobile: m['mobile'],
-        mobileVerified: m['mobileVerified'],
-        hasSecurityQuestions: m['hasSecurityQuestions'],
-        accountRecoveryEnabled: m['accountRecoveryEnabled'],
-        countryCode: m['countryCode'],
-        referrer: m['referrer'],
-        referralLink: m['referralLink'],
-        referralQRCode: m['referralQRCode'],
-        publicKey: m['publicKey'],
-        corporate: m['corporate'],
-        pushNotificationToken: m['pushNotificationToken'],
-        imageThumbnailURL: m['imageThumbnailURL'],
-        membershipType: m['membershipType'],
-        membershipExpiry: DateTime.tryParse(m['membershipExpiry']),
-        kycVerified: m['kycVerified'],
-        verified: m['verified'],
-        suspended: m['suspended'],
-        curatedSwapList: deserializeSwapList(m),
-        wallets: deserializeWallets(m, assetBalances),
-        sharedWallets: deserializeSharedWallets(sharedWallets));
+      username: m['username'],
+      firstName: m['firstName'],
+      lastName: m['lastName'],
+      email: m['email'],
+      mobile: m['mobile'],
+      mobileVerified: m['mobileVerified'],
+      hasSecurityQuestions: m['hasSecurityQuestions'],
+      accountRecoveryEnabled: m['accountRecoveryEnabled'],
+      countryCode: m['countryCode'],
+      referrer: m['referrer'],
+      referralLink: m['referralLink'],
+      referralQRCode: m['referralQRCode'],
+      publicKey: m['publicKey'],
+      corporate: m['corporate'],
+      pushNotificationToken: m['pushNotificationToken'],
+      imageThumbnailURL: m['imageThumbnailURL'],
+      membershipType: m['membershipType'],
+      membershipExpiry: DateTime.tryParse(m['membershipExpiry']),
+      kycVerified: m['kycVerified'],
+      verified: m['verified'],
+      suspended: m['suspended'],
+      curatedSwapList: deserializeSwapList(m),
+      wallets: deserializeWallets(m, assetBalances),
+      sharedWallets: deserializeSharedWallets(sharedWallets),
+      referralInfo: deserializeReferralInfo(m),
+    );
   }
 
   List<CuratedAsset> deserializeSwapList(Map<String, dynamic> m) {
@@ -118,7 +126,14 @@ class UserInfo {
     return list;
   }
 
+  ReferralInfoObject deserializeReferralInfo(Map<String, dynamic> m) {
+    print('===> deserializing uplines ${m['uplines']}');
+    print('===> deserializing downlines ${m['downlines']}');
+    return ReferralInfoObject.deserializeJson(m);
+  }
+
   List<Wallet> deserializeWallets(Map<String, dynamic> m, assetBalances) {
+    print('====> deserilizing wallets ${m['userWallets']}');
     var userWallets = m['userWallets'];
     var myWallets = <Wallet>[];
     if (userWallets != null) {
@@ -169,11 +184,26 @@ class UserInfo {
     return combinedList.firstWhere((wallet) => wallet.publicKey == publicKey);
   }
 
+  Wallet getWalletByAlias(String alias) {
+    var combinedList = [...wallets!, ...sharedWallets!];
+    return combinedList.firstWhere((wallet) => wallet.alias == alias);
+  }
+
   List<Wallet> getAllWallets() {
     var aliases = Set<String>();
     var list = [...wallets!, ...sharedWallets!];
     return list.where((wallet) => aliases.add(wallet.alias!)).toList();
   }
+
+  List<Wallet> getMySolelyOwnedWallets() {
+    return wallets!
+        .where((wallet) =>
+            (!wallet.isSharedWallet || wallet.walletThreshold == 1) &&
+            !wallet.isPrimaryWallet)
+        .toList();
+  }
+
+  String get fullName => '$firstName $lastName';
 
   List<Wallet> transactionableWallets() {
     List<Wallet> transWallets = [];
@@ -188,6 +218,18 @@ class UserInfo {
           continue;
         }
 
+        transWallets.add(wallet);
+      }
+    }
+
+    return transWallets;
+  }
+
+  List<Wallet> getShareableWallets() {
+    List<Wallet> transWallets = [];
+    for (var wallet in this.getAllWallets()) {
+      if ((wallet.walletType == 0 || wallet.walletType == 1) &&
+          !wallet.isSharedWallet) {
         transWallets.add(wallet);
       }
     }

@@ -25,18 +25,28 @@ class WelcomeToSharedAccess extends StatelessWidget {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
+        appBar: PreferredSize(
+          child: AppBar(
+            centerTitle: true,
+            elevation: 0,
+            backgroundColor: notifier.getwihitecolor,
+            leading: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Image.asset("assets/images/back.png", scale: 5),
+            ),
+            title: Text(
+              LanguageEn.sharedaccess,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor, fontFamily: fontsemibold),
+            ),
+          ),
+          preferredSize: Size.fromHeight(height / 15),
+        ),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 10),
-              Text(
-                LanguageEn.sharedaccess,
-                style: TextStyle(
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontsemibold,
-                    fontSize: 27.sp),
-              ),
-              SizedBox(height: height / 50),
               Padding(
                 padding: const EdgeInsets.symmetric(
                     vertical: 15.0, horizontal: 25.0),

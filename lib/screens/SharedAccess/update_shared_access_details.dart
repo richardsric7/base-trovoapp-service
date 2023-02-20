@@ -15,6 +15,7 @@ import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
@@ -41,6 +42,10 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
   final formKey = GlobalKey<FormState>();
   final Authenticator _authenticator = Authenticator();
   var viewData;
+  String sharedAccessModifySuccess =
+      'Shared access modification on wallet [alias] was successful.';
+  String sharedAccessModifyRequestSuccess =
+      'Your request to modify shared access on wallet [alias] has been successfully submitted! This transaction will be completed when it gets the required number of approvals.';
 
   @override
   void initState() {
@@ -666,7 +671,8 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
       );
       print(responseData);
 
-      if (responseData['statusCode'] == 202) {
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
         print('messagelenth: $messageLength');
@@ -725,12 +731,22 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
         publicKey: wallet.publicKey!,
       );
 
-      if (responseData['statusCode'] == 200) {
-        print(responseData);
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
+        updateUserInfo(
+          appState.primaryWallet.signer!,
+          appState.secretKeys[0],
+          appState.primaryWallet.publicKey,
+          appState.userInfo!.username,
+          appState,
+          forceRefresh: true,
+        );
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Request successfull submitted',
-          'message':
-              'Your request to modify shared access on wallet (${wallet.alias}) has been successfully submitted! This transaction will be completed when it gets the required number of approvals.',
+          'message': wallet.isPrimaryWallet || wallet.walletThreshold! < 2
+              ? sharedAccessModifySuccess.replaceAll('alias', wallet.alias!)
+              : sharedAccessModifyRequestSuccess.replaceAll(
+                  'alias', wallet.alias!),
           'useOnDone': true,
           'onDone': () {
             appState.currentAction =

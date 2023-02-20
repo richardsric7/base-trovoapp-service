@@ -104,7 +104,6 @@ class _SplashScreenState extends State<SplashScreen>
           sharedWallets,
           assetBalances,
         );
-
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');
         appState.setPassword = await StoreData().storeGetData('password');
         appState.biometricEnabled =

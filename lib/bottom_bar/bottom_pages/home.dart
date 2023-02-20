@@ -21,6 +21,7 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/wallet_slides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -49,6 +50,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   int activeTabIndex = 0;
   int activeWalletIndex = 0;
   var noOfTransactionsToSign;
+  var noXbnBalance = false;
 
   @override
   void initState() {
@@ -82,12 +84,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     userInfo = appState.userInfo!;
     wallets = userInfo.wallets!;
     carouselWallets =
-        wallets.length > 7 ? wallets.getRange(0, 7).toList() : wallets;
+        wallets.length > 6 ? wallets.getRange(0, 6).toList() : wallets;
 
-    if (activeWallet == null && wallets.length > 0) {
+    if ((activeWallet == null && wallets.length > 0) || noXbnBalance) {
       activeWallet = wallets[0].publicKey;
       claimedAssets = wallets[0].claimedAssets;
       unclaimedAssets = wallets[0].unClaimedAssets;
+      noXbnBalance = claimedAssets!
+              .firstWhere((asset) =>
+                  asset.assetCode!.isEmpty && asset.assetIssuer!.isEmpty)
+              .amount ==
+          0;
     }
 
     // in order to make assets tab length dynamic we have to check
@@ -186,12 +193,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 // check if the user's xbn balance is 0. This usually is the si-
                 // tuation when a new user signs up and has not funded their wallet
                 // yet
-                if (claimedAssets!
-                    .where((asset) =>
-                        (asset.assetCode!.isEmpty &&
-                            asset.assetIssuer.toString().isEmpty) &&
-                        double.parse(asset.amount.toString()) != 0)
-                    .isNotEmpty) ...[
+                if (!noXbnBalance) ...[
                   DefaultTabController(
                     length: tabLength,
                     child: Column(
@@ -686,7 +688,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         onPageChanged: ((index, reason) => {
               setState(
                 () => {
-                  activeWalletIndex = index == 6 ? index - 1 : index,
+                  activeWalletIndex = index == 5 ? index - 1 : index,
                   activeWallet = wallets[activeWalletIndex].publicKey,
                   claimedAssets = wallets[activeWalletIndex].claimedAssets,
                   unclaimedAssets = wallets[activeWalletIndex].unClaimedAssets,
@@ -703,7 +705,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         var indexOfWallet = wallets.indexOf(wallet);
         return Builder(
           builder: (BuildContext context) {
-            if (indexOfWallet < 6) {
+            if (indexOfWallet < 5) {
               return GestureDetector(
                 onTap: () {
                   appState.viewData = {
@@ -906,7 +908,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   void refreshData() async {
     try {
       await appState.refreshData();
+      await appState.getApprovals();
       _refreshController.refreshCompleted();
+      appState.updateListeners();
     } catch (e) {
       _refreshController.refreshFailed();
     }
@@ -978,12 +982,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           notifier.getbluecolor,
           wihitecolor,
           onTap: () {
-            appState.viewData![RequestSpecificPaymentViewPageConfig.key] = {
+            appState.viewData = {
               'assetCode': '',
               'assetIssuer': '',
-              'publicKey': appState.primaryWallet.publicKey,
-              'walletAlias': appState.primaryWallet.alias,
-              'isSharedAccess': 0,
+              'walletPublicKey': activeWallet,
             };
 
             appState.currentAction = PageAction(
@@ -1014,7 +1016,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           'Buy XBN on TrovoP2P',
           notifier.getwihitecolor,
           notifier.getbluewhitecolor,
-          onTap: () => _launchUrl(),
+          onTap: () {
+            popup(
+              context,
+              title: 'Coming soon!',
+              message: 'TrovoP2P will be launching soon.',
+              bodyColor: notifier.getbluewhitecolor,
+            );
+            // _launchUrl();
+          },
         ),
         SizedBox(
           height: height / 50,
@@ -1024,7 +1034,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   Future<void> _launchUrl() async {
-    Uri uri = Uri.https(trovoP2pUrl, '/login');
+    Uri uri = Uri.https(trovoP2pUrl, '/');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       throw 'Could not launch $uri';
     }

@@ -228,7 +228,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
-                  appState.fetchDepositHistory(
+                  appState.fetchWithdrawalHistory(
                     context,
                     publicKey: wallet.publicKey!,
                     currency: asset!.assetCode,
@@ -237,6 +237,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                     'walletPublicKey': wallet.publicKey,
                     'assetCode': asset!.assetCode,
                     'assetIssuer': asset!.assetIssuer,
+                    'historyMode': 'Withdrawal history',
                   };
                   appState.currentAction = PageAction(
                     state: PageState.addPage,

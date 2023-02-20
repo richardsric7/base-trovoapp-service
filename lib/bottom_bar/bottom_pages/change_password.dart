@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -198,9 +200,14 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
     try {
       await StoreData().storeInsertData('password', newPassword);
       appState.setPassword = await StoreData().storeGetData('password');
-      showSuccessAlert(context, onTap: () {
-        Navigator.of(context).pop();
-      });
+      appState.viewData = {
+        SuccessViewPageConfig.key: {
+          'title': LanguageEn.success,
+          'message': "Your password has been successfully changed!",
+        }
+      };
+      appState.currentAction =
+          PageAction(state: PageState.replace, page: SuccessViewPageConfig);
     } catch (e) {
       print(e);
       popup(context,

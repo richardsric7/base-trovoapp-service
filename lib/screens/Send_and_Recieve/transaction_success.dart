@@ -47,6 +47,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
     viewData = appState.viewData!['transactionData'];
+    print('==> viewData: $viewData');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -229,11 +230,11 @@ class _TransactionSuccess extends State<TransactionSuccess>
                 onTap: () {
                   TransactionInfo transaction = TransactionInfo(
                     transactionDate: DateTime.now(),
-                    transactionType: 'Send',
-                    from: wallet.alias,
+                    transactionType: 'Payment',
+                    from: '${appState.userInfo!.fullName}[${wallet.alias}]',
                     fromPublicKey: wallet.publicKey,
-                    to: viewData['destination'],
-                    toPublicKey: '',
+                    to: '${viewData['destinationFirstName']} ${viewData['destinationLastName']}[${viewData['destination']}]',
+                    toPublicKey: viewData['destinationPublicKey'],
                     transactionDirection: TransactionDirection.Send,
                     assetCode: viewData['assetCode'],
                     assetIssuer: viewData['assetIssuer'].toString(),

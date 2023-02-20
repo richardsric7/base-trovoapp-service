@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/models/patronInfo.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -23,6 +25,7 @@ class SubscriptionPlanBenefits extends StatefulWidget {
 class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
   late ColorNotifier notifier;
   late DataProvider appState;
+  late PatronInfo patronInfo;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -39,6 +42,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
+    patronInfo = appState.viewData!['patronInfo'] as PatronInfo;
   }
 
   @override
@@ -70,7 +74,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
                     child: Column(
                       children: [
                         Text(
-                          'Platinum Patron',
+                          '${patronInfo.patronPackage.capitalizeFirst!} Patron',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getblck,
@@ -94,112 +98,8 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Platinum Patron - Tier 1',
-                      style: TextStyle(
-                          fontSize: 20,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
                 child: Text(
-                  'This is the highest level of patronage in the Trovotech ecosystem. It unlocks every single perk available to our ecosytem.',
-                  style: TextStyle(
-                      fontSize: 17,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody),
-                ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Benefits',
-                      style: TextStyle(
-                          fontSize: 20,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Text(
-                  "1. Increased referral bonuses.                       ",
-                  style: TextStyle(
-                      fontSize: 17,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody),
-                ),
-              ),
-              SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Text(
-                  "2. Reduced fees when using any of our products and services.",
-                  style: TextStyle(
-                      fontSize: 17,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody),
-                ),
-              ),
-              SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Text(
-                  "3. Access to TROV token as incentive (70% of membership fee value in TROV is distributed to the member's wallet).",
-                  style: TextStyle(
-                      fontSize: 17,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody),
-                ),
-              ),
-              SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Text(
-                  "4. Increased limits to transactions where applicable.",
-                  style: TextStyle(
-                      fontSize: 17,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody),
-                ),
-              ),
-              SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Text(
-                  "5. Special access to members-only areas of our site.",
-                  style: TextStyle(
-                      fontSize: 17,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody),
-                ),
-              ),
-              SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Text(
-                  "6. Other privileges, as will be added as we progress.",
+                  patronInfo.description,
                   style: TextStyle(
                       fontSize: 17,
                       color: notifier.getbluewhitecolor,
@@ -208,7 +108,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
               ),
               SizedBox(height: height / 20),
               Button(
-                'Subscribe to Platinum',
+                'Subscribe to ${patronInfo.patronPackage.capitalizeFirst!}',
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {

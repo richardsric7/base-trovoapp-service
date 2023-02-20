@@ -168,12 +168,17 @@ void handleDynamicLinkData(Uri parsedUri) {
 
 String calculateFiatValue(String assetBalance, String usdPrice, String currency,
         DataProvider appState) =>
-    formatNumber(double.parse(getFiatRate(usdPrice, currency, appState)) *
+    formatNumber(double.parse(getFiatRate(usdPrice, currency, appState,
+                getUnFormatted: true)) *
             double.parse(assetBalance))
         .toString();
 
-String getFiatRate(String usdPrice, String currency, DataProvider appState) {
+String getFiatRate(String usdPrice, String currency, DataProvider appState,
+    {bool getUnFormatted = false}) {
   usdPrice = usdPrice.isEmpty ? '0' : usdPrice;
+  if (getUnFormatted)
+    return (appState.fiatRate[currency] * double.parse(usdPrice)).toString();
+
   return NumberFormat("#,##0.00000", "en_US")
       .format(appState.fiatRate[currency] * double.parse(usdPrice))
       .toString();

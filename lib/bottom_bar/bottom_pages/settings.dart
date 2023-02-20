@@ -162,8 +162,7 @@ class _SettingsState extends State<Settings> {
                       state: PageState.addPage,
                       page: WelcomeSubscriptionsViewPageConfig);
                 },
-                child: iteamlist(
-                    "assets/images/trovo-blue.png", "", "Trovo Patron"),
+                child: iteamlist("assets/images/trovo.png", "", "Trovo Patron"),
               ),
               SizedBox(height: height / 25),
               Row(
@@ -179,10 +178,10 @@ class _SettingsState extends State<Settings> {
                 ],
               ),
               SizedBox(height: height / 50),
-              GestureDetector(
-                child: iteamlist(
-                    "assets/images/languages.png", "", LanguageEn.languages),
-              ),
+              // GestureDetector(
+              //   child: iteamlist(
+              //       "assets/images/languages.png", "", LanguageEn.languages),
+              // ),
               GestureDetector(
                 child: currency(
                     "assets/images/currency.png", "", LanguageEn.currency),
@@ -255,6 +254,13 @@ class _SettingsState extends State<Settings> {
               SizedBox(height: height / 50),
               GestureDetector(
                 onTap: () => appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: OptInOutAssetViewPageConfig),
+                child: iteamlist(
+                    "assets/images/asset.png", "", LanguageEn.addremoveasset),
+              ),
+              GestureDetector(
+                onTap: () => appState.currentAction = PageAction(
                     state: PageState.addPage, page: ImportWalletPageConfig),
                 child: iteamlist(
                     "assets/images/import.png", "", LanguageEn.importwallet),
@@ -279,6 +285,15 @@ class _SettingsState extends State<Settings> {
                   if (appState.userInfo!.hasSecurityQuestions == 0) {
                     var primaryWallet = appState.userInfo!.wallets!
                         .firstWhere((wallet) => wallet.primaryWallet == 1);
+
+                    appState.returnView = PageAction(
+                      state: PageState.addAll,
+                      pages: [
+                        BottomHomePageConfig,
+                        SetupAccountRecoveryViewPageConfig,
+                      ],
+                    );
+
                     appState.viewData = {
                       SecurityQuestionsViewPageConfig.key: {
                         'signer': primaryWallet.signer,
@@ -300,7 +315,11 @@ class _SettingsState extends State<Settings> {
                         page: DisableAccountRecoveryInfoViewPageConfig);
                   }
                 },
-                child: iteamlist("assets/images/history.png", "",
+                child: iteamlist(
+                    "assets/images/history.png",
+                    appState.userInfo!.accountRecoveryEnabled == 1
+                        ? "Enabled"
+                        : "",
                     LanguageEn.accountrecovery),
               ),
               SizedBox(height: height / 25),
@@ -451,6 +470,15 @@ class _SettingsState extends State<Settings> {
             ),
             const Spacer(),
             SizedBox(width: width / 100),
+            Text(
+              txt,
+              style: TextStyle(
+                color: notifier.getbluewhitecolor,
+                fontSize: 13,
+                fontFamily: fontsemibold,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             Icon(Icons.arrow_forward_ios, color: notifier.getgrey, size: 17.sp),
             SizedBox(width: width / 15),
           ],
@@ -600,6 +628,7 @@ class _SettingsState extends State<Settings> {
                       ),
                       onChanged: (newValue) async {
                         await StoreData().storeInsertData('timeOut', newValue);
+                        appState.timeout = newValue.toString();
                         setState(() {});
                       },
                       items: <DropdownMenuItem<String>>[
@@ -878,6 +907,7 @@ class _SettingsState extends State<Settings> {
           appState.biometricEnabled = !appState.biometricEnabled;
           StoreData()
               .storeInsertData('biometricsEnabled', appState.biometricEnabled);
+          changeTabPage(appState, ButtomTabPage.Dashboard.index);
         });
       }
     } on PlatformException catch (e) {
@@ -902,11 +932,11 @@ class _SettingsState extends State<Settings> {
           biometricsErrorAlert(context);
         }
       }
+    } else {
+      showPasswordDialog(context, () {
+        toggleHideBalances();
+      });
     }
-
-    showPasswordDialog(context, () {
-      toggleHideBalances();
-    });
   }
 
   void toggleHideBalances() {

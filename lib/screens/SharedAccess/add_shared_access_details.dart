@@ -15,6 +15,7 @@ import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
@@ -603,12 +604,12 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: activeWallet!.publicKey!,
       );
-      print(responseData);
+      // print(responseData);
 
       if (responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
-        print('messagelenth: $messageLength');
+        // print('messagelenth: $messageLength');
         postProcessData(
             context, messageShown, messageLength, responseData['data'],
             callback: () {
@@ -616,19 +617,18 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
         });
         hideLoader(context);
       } else {
+        hideLoader(context);
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
-        hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
       hideLoader(context);
+      popup(context, title: LanguageEn.error, message: e.toString());
     }
   }
 
   void signAndSendToServerAgain(responseFromServer) async {
     try {
-      print('signing and sending....');
       showLoader(context);
 
       //sign the transaction and the submit again
@@ -639,11 +639,10 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
       );
       responseFromServer['transactionId'] = "";
       responseFromServer['transactionSignature'] = signature;
-      print('second: ${responseFromServer}');
 
       String requestBody = jsonEncode(responseFromServer);
 
-      print('second: ${requestBody}');
+      // print('second: ${requestBody}');
 
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/users/account',
@@ -654,7 +653,6 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
       );
 
       if (responseData['statusCode'] == 200) {
-        print(responseData);
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Shared access enabled successfully',
           'message':
@@ -673,17 +671,25 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
             });
           },
         };
+        updateUserInfo(
+          appState.primaryWallet.signer!,
+          appState.secretKeys[0],
+          appState.primaryWallet.publicKey,
+          appState.userInfo!.username,
+          appState,
+          forceRefresh: true,
+        );
+        hideLoader(context);
         appState.currentAction =
             PageAction(state: PageState.replace, page: SuccessViewPageConfig);
-        hideLoader(context);
       } else {
+        hideLoader(context);
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
-        hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
       hideLoader(context);
+      popup(context, title: LanguageEn.error, message: e.toString());
     }
   }
 }

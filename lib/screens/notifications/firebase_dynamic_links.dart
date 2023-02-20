@@ -28,7 +28,7 @@ class FirebaseDynamicLinkInitializer {
       final dynamicLink =
           await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
     } catch (e) {
-      print('no network or something...$e');
+      print('===============> no network or something...$e');
     }
   }
 

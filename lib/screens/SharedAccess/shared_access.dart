@@ -10,6 +10,7 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/models/permission.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
@@ -40,7 +41,7 @@ class _SharedAccessState extends State<SharedAccess>
   TextEditingController initiatorsController = TextEditingController();
   final approversFormKey = GlobalKey<FormState>();
   late RefreshController _refreshController;
-  List<Wallet>? wallets;
+  List<Wallet>? shareableWallets;
   Wallet? activeWallet;
   dynamic selectedWallet = '';
   dynamic selectedFilter = 'All';
@@ -135,14 +136,14 @@ class _SharedAccessState extends State<SharedAccess>
   }
 
   List<DropdownMenuItem<String>> get walletDropdownItems {
-    return wallets!
-        .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
-            child: Text(
-              wallet.alias!,
-              overflow: TextOverflow.ellipsis,
-            ),
-            value: wallet.publicKey))
-        .toList();
+    return shareableWallets!.map<DropdownMenuItem<String>>((wallet) {
+      return DropdownMenuItem(
+          child: Text(
+            wallet.alias!,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: wallet.publicKey);
+    }).toList();
   }
 
   List<DropdownMenuItem<String>> get accessTypeDropdownItems {
@@ -236,9 +237,8 @@ class _SharedAccessState extends State<SharedAccess>
     appState = Provider.of<DataProvider>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    wallets = appState.userInfo!.wallets!;
+    shareableWallets = appState.userInfo!.getShareableWallets();
     activeWallet = appState.activeWallet;
-    selectedWallet = activeWallet!.publicKey;
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -929,7 +929,7 @@ class _SharedAccessState extends State<SharedAccess>
                 // access to others. Once I grant others approver and initiator access
                 // the wallet no longer belongs to me.
                 var filteredWallets = <Wallet>[];
-                wallets!.forEach((wallet) {
+                appState.userInfo!.getAllWallets().forEach((wallet) {
                   if (wallet.permissions!.isNotEmpty &&
                       wallet.permissions!
                           .where((permission) =>
@@ -1030,9 +1030,6 @@ class _SharedAccessState extends State<SharedAccess>
                     ['walletSettings'] =
                 appState.sharedWallets[i]['walletSettings'];
           }
-
-          print(
-              '=========== ${wallets[appState.sharedWallets[i]['walletAlias']]}');
         }
       }
     }
@@ -1500,6 +1497,46 @@ class _SharedAccessState extends State<SharedAccess>
   }
 
   Widget showViewers() {
+    if (shareableWallets!.isEmpty) {
+      return Container(
+        height: height / 1.9,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'You do not have any shareable wallet at the moment.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 16,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    Navigator.of(context).pop();
+                    changeTabPage(appState, ButtomTabPage.Wallets.index);
+                  });
+                },
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(notifier.getbluecolor!),
+                ),
+                child: Text(
+                  'Go to wallets',
+                  style: TextStyle(
+                    fontFamily: fontsemibold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Column(
       children: [
         chooseWallet(),
@@ -2484,7 +2521,7 @@ class _SharedAccessState extends State<SharedAccess>
                       ? darktilewhitecolor
                       : notifier.getaddsubwalletgrey,
                 ),
-                value: selectedWallet,
+                value: shareableWallets!.first.publicKey,
                 icon: Icon(
                   Icons.keyboard_arrow_down_rounded,
                   color: notifier.getbluewhitecolor,
@@ -2498,7 +2535,7 @@ class _SharedAccessState extends State<SharedAccess>
                 onChanged: (newValue) {
                   setState(() {
                     selectedWallet = newValue!;
-                    appState.activeWallet = wallets!
+                    appState.activeWallet = shareableWallets!
                         .firstWhere((wallet) => wallet.publicKey == newValue);
                     addApprovers = false;
                     initiators = [];
@@ -2527,7 +2564,7 @@ class _SharedAccessState extends State<SharedAccess>
         publicKey: activeWallet!.publicKey!,
       );
 
-      print('response: ${responseData}');
+      // print('response: ${responseData}');
       hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
@@ -2778,7 +2815,6 @@ class _SharedAccessState extends State<SharedAccess>
               transactionStatus,
               'Select transaction status',
               (status) {
-                print(status);
                 appState.setFilterTransactionStatus = status.capitalizeFirst;
                 appState.setFilterQuery =
                     status == 'ALL' ? '' : "&transactionStatus=$status";

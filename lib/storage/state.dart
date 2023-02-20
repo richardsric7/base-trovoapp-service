@@ -63,17 +63,19 @@ class DataProvider with ChangeNotifier {
       }
     }
 
-    // then get all the shared wallets where I have initiator access on
-    for (var i = 0; i < sharedWallets.length; i++) {
-      if (sharedWallets[i]['permission'] == 'INITIATOR') {
-        _transactionableWallets[sharedWallets[i]['walletPublicKey']] = {
-          'publicKey': sharedWallets[i]['walletPublicKey'],
-          'alias': '${sharedWallets[i]['walletAlias']}',
-          'permission': sharedWallets[i]['permission'],
-          'threshold': sharedWallets[i]['walletSettings']['walletThreshold'],
-          'sharedAccessEnabled': 1,
-          'claimedAssets': sharedWallets[i]['assetBalances']['claimed'],
-        };
+    if (sharedWallets != null) {
+      // then get all the shared wallets where I have initiator access on
+      for (var i = 0; i < sharedWallets.length; i++) {
+        if (sharedWallets[i]['permission'] == 'INITIATOR') {
+          _transactionableWallets[sharedWallets[i]['walletPublicKey']] = {
+            'publicKey': sharedWallets[i]['walletPublicKey'],
+            'alias': '${sharedWallets[i]['walletAlias']}',
+            'permission': sharedWallets[i]['permission'],
+            'threshold': sharedWallets[i]['walletSettings']['walletThreshold'],
+            'sharedAccessEnabled': 1,
+            'claimedAssets': sharedWallets[i]['assetBalances']['claimed'],
+          };
+        }
       }
     }
     return _transactionableWallets;
@@ -390,8 +392,15 @@ class DataProvider with ChangeNotifier {
 
   Future<void> refreshData() async {
     try {
-      await updateUserInfo(userInfo!.wallets![0].signer, secretKeys[0],
-          userInfo!.wallets![0].publicKey, userInfo!.username, this);
+      await updateUserInfo(
+        userInfo!.wallets![0].signer,
+        secretKeys[0],
+        userInfo!.wallets![0].publicKey,
+        userInfo!.username,
+        this,
+        forceRefresh: true,
+      );
+      notifyListeners();
     } catch (e) {
       // print(e);
     }

@@ -132,7 +132,7 @@ Future<Map> makePostRequest({
     Map errorResponse = {
       "data": "$e",
       "error": "UnknownException",
-      "message": "Unknown error. Try again"
+      "message": "Sorry, something went wrong. Please try again"
     };
 
     return {'statusCode': 505, 'data': errorResponse};

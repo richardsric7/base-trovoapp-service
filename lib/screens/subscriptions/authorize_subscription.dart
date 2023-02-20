@@ -1,17 +1,29 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/utils.dart';
+import 'package:intl/intl.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
+import 'package:trovo_wallet/models/patronInfo.dart';
+import 'package:trovo_wallet/models/patronTier.dart';
+import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/utils/local_auth.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-
+import 'package:local_auth/error_codes.dart' as auth_error;
 import '../../custom_bloc_observer/fonts.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -25,6 +37,9 @@ class AuthorizeSubscription extends StatefulWidget {
 class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
   late ColorNotifier notifier;
   late DataProvider appState;
+  final Authenticator _authenticator = Authenticator();
+  late PatronInfo patronInfo;
+  late PatronTier patronTier;
   String password = '';
   final formKey = GlobalKey<FormState>();
 
@@ -43,6 +58,8 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
+    patronInfo = appState.viewData!['patronInfo'];
+    patronTier = appState.viewData!['selectedTier'];
   }
 
   @override
@@ -112,7 +129,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Platinum',
+                    '${patronInfo.patronPackage.capitalizeFirst}',
                     style: TextStyle(
                         fontSize: 22,
                         color: notifier.getbluewhitecolor,
@@ -166,7 +183,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Monthly',
+                                    patronTier.tier.capitalizeFirst!,
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w400,
@@ -193,20 +210,41 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                                   )
                                 ],
                               ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    '14th Feb 2023',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w400,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody,
-                                    ),
-                                  )
-                                ],
-                              ),
+                              if (patronTier.isExpirable) ...[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      DateFormat('MMMM dd, yyyy').format(
+                                          DateTime.now().add(
+                                              patronTier.tier == 'Annual'
+                                                  ? Duration(days: 31)
+                                                  : Duration(days: 365))),
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w400,
+                                        color: notifier.getbluewhitecolor,
+                                        fontFamily: fontbody,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ] else ...[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'This package has no expiry date',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w400,
+                                        color: notifier.getbluewhitecolor,
+                                        fontFamily: fontbody,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ],
                               SizedBox(
                                 height: 20,
                               ),
@@ -218,20 +256,22 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                   ),
                 ),
               ),
-              SizedBox(
-                height: height / 50,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(30.0),
-                child: Text(
-                  'Once your subscription expires, you will no longer have access to the Trovo Patron perks and will need to resubscribe to keep enjoying the benefits.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody),
+              if (patronTier.isExpirable) ...[
+                SizedBox(
+                  height: height / 50,
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(30.0),
+                  child: Text(
+                    'Once your subscription expires, you will no longer have access to the Trovo Patron perks and will need to resubscribe to keep enjoying the benefits.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody),
+                  ),
+                ),
+              ],
               SizedBox(
                 height: height / 20,
               ),
@@ -246,7 +286,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                   notifier.getblck,
                   70.sp,
                   300.sp,
-                  // validator: validatePassword,
+                  validator: validatePassword,
                   onChanged: (value) {
                     setState(() {
                       password = value!.trim().replaceAll(' ', '');
@@ -262,18 +302,14 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                   LanguageEn.authorizewithbiometrics,
                   notifier.getbluecolor,
                   wihitecolor,
-                  onTap: () {
-                    showSuccessAlert(context, onTap: () {});
-                  },
+                  onTap: toggleSwitch,
                 ),
               ] else ...[
                 Button(
                   LanguageEn.authorize,
                   notifier.getbluecolor,
                   wihitecolor,
-                  onTap: () {
-                    showSuccessAlert(context, onTap: () {});
-                  },
+                  onTap: handleAuthorization,
                 ),
               ],
               SizedBox(
@@ -287,5 +323,141 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
         ),
       ),
     );
+  }
+
+  String? validatePassword(String? value) {
+    if (value!.isEmpty) return 'Enter your password';
+
+    if (value.length < 6) return 'Use 6 characters or more for your password';
+
+    return null;
+  }
+
+  void handleAuthorization() {
+    if (!formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (password == appState.password!) {
+      sendDataToServer();
+    } else {
+      popup(context,
+          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+    }
+  }
+
+  void toggleSwitch() async {
+    try {
+      bool result = await _authenticator.authenticateMe();
+      if (result) {
+        sendDataToServer();
+        // aparently we need the code below to make the
+        // screen updata to show loader
+        // after authorizing with biometrics
+        setState(() {});
+      }
+    } on PlatformException catch (e) {
+      if (e.code == auth_error.notEnrolled ||
+          e.code == auth_error.notAvailable) {
+        biometricsErrorAlert(context);
+      }
+    }
+  }
+
+  void sendDataToServer() async {
+    showLoader(context);
+
+    try {
+      // make initial request to the server using the
+      // following credentials
+      Map map = {
+        'patronMembershipGradeId': patronInfo.id,
+      };
+      String requestBody = jsonEncode(map);
+
+      print('requestBody 1 $requestBody');
+
+      Map responseData = await makePostRequest(
+        uri: '/v1/patron',
+        body: requestBody,
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0],
+        publicKey: appState.primaryWallet.publicKey!,
+      );
+
+      print('response 1: $responseData');
+
+      if (responseData['statusCode'] == 202) {
+        completeRequest(responseData['data']);
+        // print('sending full data to server.........');
+      } else {
+        popup(context,
+            title: LanguageEn.error, message: responseData['data']['message']);
+        hideLoader(context);
+      }
+    } catch (e) {
+      print(e);
+      popup(context, title: LanguageEn.error, message: e.toString());
+      hideLoader(context);
+    }
+  }
+
+  void completeRequest(responseBody) async {
+    try {
+      showLoader(context);
+
+      var signature = TrovoWalletSDK().signBase64Txn(
+        appState.secretKeys[0],
+        responseBody['transaction'],
+        responseBody['networkPassPhrase'],
+      );
+
+      responseBody['transactionSignature'] = signature;
+
+      String requestBody = jsonEncode(responseBody);
+
+      print('this is request body: $requestBody');
+
+      Map responseData = await makePostRequest(
+        uri: '/v1/patron',
+        body: requestBody,
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0],
+        publicKey: appState.primaryWallet.publicKey!,
+      );
+
+      print('response 2: $responseData');
+      if (responseData['statusCode'] == 200) {
+        await updateUserInfo(
+          appState.primaryWallet.signer!,
+          appState.secretKeys[0],
+          appState.primaryWallet.publicKey!,
+          appState.userInfo!.username,
+          appState,
+        );
+        appState.viewData![SuccessViewPageConfig.key] = {
+          'title': LanguageEn.success,
+          'message': 'Subscription successful!',
+          'useOnDone': true,
+          'onDone': () {
+            appState.currentAction = appState.returnView ??
+                PageAction(
+                  state: PageState.addAll,
+                  pages: [BottomHomePageConfig],
+                );
+          },
+        };
+        appState.currentAction = PageAction(
+            state: PageState.replaceAll, page: SuccessViewPageConfig);
+      } else {
+        popup(context,
+            title: LanguageEn.error, message: responseData['data']['message']);
+      }
+    } catch (e) {
+      print(e);
+      popup(context, title: LanguageEn.error, message: e.toString());
+    }
+
+    hideLoader(context);
   }
 }
