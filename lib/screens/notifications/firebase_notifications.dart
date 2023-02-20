@@ -41,9 +41,9 @@ Future<void> initAppNotification(context, appState) async {
   /// done later
   final IOSInitializationSettings initializationSettingsIOS =
       IOSInitializationSettings(
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false,
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
           onDidReceiveLocalNotification: onDidReceiveLocalNotification);
   const MacOSInitializationSettings initializationSettingsMacOS =
       MacOSInitializationSettings(
@@ -56,6 +56,7 @@ Future<void> initAppNotification(context, appState) async {
       macOS: initializationSettingsMacOS);
   await flutterLocalNotificationsPlugin.initialize(initializationSettings,
       onSelectNotification: selectNotification);
+  //requestPermissions();
   initMyNotification(context);
 }
 
