@@ -210,11 +210,11 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		}
 	}
 
-	if wallet.WalletType == 2 || wallet.WalletType == 3 {
+	if wallet.WalletType == 2 || wallet.WalletType == 3 && accessInfo.NumberOfApprovalsNeeded > 0 {
 		return returnedWallet, &tErrors.CustomError{
 			Param:      "publicKey",
 			Err:        "error-wallet-type-not-allowed",
-			ErrMessage: "Market Making & Bulk Payment wallets are not allowed for this operation.",
+			ErrMessage: "Market Making & Bulk Payment wallets allows only view access to be enabled.",
 			Code:       http.StatusForbidden,
 		}
 	}
