@@ -603,6 +603,7 @@ class DataProvider with ChangeNotifier {
   PageController? bottomTabPageController;
 
   late TabController sharedAccesstabController;
+  bool clearAccessList = false;
 
   // use this to keep track of individual wallets' hidden state used
   // especially on the dashboard screen to track which wallet is set to hidden
@@ -634,7 +635,7 @@ class DataProvider with ChangeNotifier {
   }
 
   void processDeepLink(BuildContext context, Uri initialDynamicLink,
-      {String? rel}) {
+      {String? rel, void Function()? onCancel}) {
     // action login
     if (initialDynamicLink.queryParameters['action'] == 'login') {
       setSplashFinished();
@@ -712,6 +713,7 @@ class DataProvider with ChangeNotifier {
         }, onCancel: () {
           if (rel == 'qrScanner') {
             Navigator.of(context).pop();
+            if (onCancel != null) onCancel();
           } else {
             currentAction = PageAction(
                 state: PageState.addAll,

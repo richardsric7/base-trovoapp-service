@@ -181,7 +181,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       width: width / 1.3,
                                       child: Column(
                                         children: [
-                                          Row(
+                                          Wrap(
                                             children: [
                                               Padding(
                                                 padding:

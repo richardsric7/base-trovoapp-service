@@ -118,132 +118,128 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     // on each page rebuild
     // _tabController.animateTo(activeTabIndex);
 
-    return ScreenUtilInit(
-      builder: (context, child) => Scaffold(
-        resizeToAvoidBottomInset: false,
-        backgroundColor: notifier.getwihitecolor,
-        body: SmartRefresher(
-          enablePullDown: true,
-          controller: _refreshController,
-          onRefresh: refreshData,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: height / 20,
-                ),
-                firstRow(),
-                SizedBox(
-                  height: height / 70,
-                ),
-                if (userInfo.hasSecurityQuestions == 0) ...[
-                  GestureDetector(
-                    onTap: () {
-                      var primaryWallet = appState.userInfo!.wallets!
-                          .firstWhere((wallet) => wallet.primaryWallet == 1);
-                      appState.viewData = {
-                        SecurityQuestionsViewPageConfig.key: {
-                          'signer': primaryWallet.signer,
-                          'publicKey': primaryWallet.publicKey,
-                          'secretKey': appState.secretKeys[0],
-                          'username': appState.userInfo!.username,
-                        }
-                      };
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: notifier.getwihitecolor,
+      body: SmartRefresher(
+        enablePullDown: true,
+        controller: _refreshController,
+        onRefresh: refreshData,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(
+                height: height / 20,
+              ),
+              firstRow(),
+              SizedBox(
+                height: height / 70,
+              ),
+              if (userInfo.hasSecurityQuestions == 0) ...[
+                GestureDetector(
+                  onTap: () {
+                    var primaryWallet = appState.userInfo!.wallets!
+                        .firstWhere((wallet) => wallet.primaryWallet == 1);
+                    appState.viewData = {
+                      SecurityQuestionsViewPageConfig.key: {
+                        'signer': primaryWallet.signer,
+                        'publicKey': primaryWallet.publicKey,
+                        'secretKey': appState.secretKeys[0],
+                        'username': appState.userInfo!.username,
+                      }
+                    };
 
-                      appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: SecurityQuestionsViewPageConfig);
-                    },
-                    child: Container(
-                      color: Colors.red[400],
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: width / 50,
-                            ),
-                            Expanded(
-                              child: Text(
-                                'You have not setup security questions yet. Tap to setup security questions.',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: fontsemibold,
-                                  color: notifier.getwihitecolor,
-                                ),
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: SecurityQuestionsViewPageConfig);
+                  },
+                  child: Container(
+                    color: Colors.red[400],
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: width / 50,
+                          ),
+                          Expanded(
+                            child: Text(
+                              'You have not setup security questions yet. Tap to setup security questions.',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: fontsemibold,
+                                color: notifier.getwihitecolor,
                               ),
                             ),
-                            SizedBox(
-                              width: width / 50,
-                            ),
-                          ],
-                        ),
+                          ),
+                          SizedBox(
+                            width: width / 50,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                ],
-                walletSlides(wallets),
-                SizedBox(
-                  height: height / 30,
                 ),
-                // check if the user's xbn balance is 0. This usually is the si-
-                // tuation when a new user signs up and has not funded their wallet
-                // yet
-                if (!noXbnBalance) ...[
-                  DefaultTabController(
-                    length: tabLength,
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: tabLength == 2 ? 0 : 100,
+                SizedBox(
+                  height: height / 70,
+                ),
+              ],
+              walletSlides(wallets),
+              SizedBox(
+                height: height / 30,
+              ),
+              // check if the user's xbn balance is 0. This usually is the si-
+              // tuation when a new user signs up and has not funded their wallet
+              // yet
+              if (!noXbnBalance) ...[
+                DefaultTabController(
+                  length: tabLength,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: tabLength == 2 ? 0 : 100,
+                        ),
+                        child: TabBar(
+                          controller: _tabController,
+                          labelColor: notifier.getbluewhitecolor,
+                          indicatorColor: notifier.getbluewhitecolor,
+                          labelStyle: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: fontsemibold,
                           ),
-                          child: TabBar(
-                            controller: _tabController,
-                            labelColor: notifier.getbluewhitecolor,
-                            indicatorColor: notifier.getbluewhitecolor,
-                            labelStyle: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: fontsemibold,
+                          tabs: [
+                            Tab(
+                              height: 20,
+                              text: LanguageEn.assets,
                             ),
-                            tabs: [
+                            if (unclaimedAssets != null && tabLength == 2) ...[
                               Tab(
                                 height: 20,
-                                text: LanguageEn.assets,
+                                text:
+                                    '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
                               ),
-                              if (unclaimedAssets != null &&
-                                  tabLength == 2) ...[
-                                Tab(
-                                  height: 20,
-                                  text:
-                                      '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
-                                ),
-                              ],
-
-                              // Tab(
-                              //   height: 20,
-                              //   text: LanguageEn.nfts,
-                              // ),
                             ],
-                          ),
+                            // Tab(
+                            //   height: 20,
+                            //   text: LanguageEn.nfts,
+                            // ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  SizedBox(
-                    height: height / 70,
-                  ),
-                  assetsTabs(),
-                ] else ...[
-                  showFundWallet(),
-                ]
-              ],
-            ),
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                assetsTabs(),
+              ] else ...[
+                showFundWallet(),
+              ]
+            ],
           ),
         ),
       ),

@@ -566,32 +566,42 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
         );
       }
 
-      for (var i = 0; i < viewData['approvers'].length; i++) {
-        print(viewData['approvers'][i]);
-        permissions.add(
-          {
-            "targetUsername": viewData['approvers'][i],
-            // "name": "",
-            "permission": "APPROVER",
-          },
-        );
+      if (viewData['addApprovers'] == true) {
+        for (var i = 0; i < viewData['approvers'].length; i++) {
+          print(viewData['approvers'][i]);
+          permissions.add(
+            {
+              "targetUsername": viewData['approvers'][i],
+              // "name": "",
+              "permission": "APPROVER",
+            },
+          );
+        }
+
+        for (var i = 0; i < viewData['initiators'].length; i++) {
+          print(viewData['initiators'][i]);
+          permissions.add(
+            {
+              "targetUsername": viewData['initiators'][i],
+              // "name": "",
+              "permission": "INITIATOR",
+            },
+          );
+        }
       }
 
-      for (var i = 0; i < viewData['initiators'].length; i++) {
-        print(viewData['initiators'][i]);
-        permissions.add(
-          {
-            "targetUsername": viewData['initiators'][i],
-            // "name": "",
-            "permission": "INITIATOR",
-          },
-        );
-      }
+      var postData = {};
 
-      var postData = {
-        "numberOfApprovalsNeeded": viewData['noOfApprovalsNeeded'],
-        "permissions": permissions,
-      };
+      if (viewData['addApprovers']) {
+        postData = {
+          "numberOfApprovalsNeeded": viewData['noOfApprovalsNeeded'],
+          "permissions": permissions,
+        };
+      } else {
+        postData = {
+          "permissions": permissions,
+        };
+      }
 
       String requestBody = jsonEncode(postData);
 
@@ -664,6 +674,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
               BottomHomePageConfig,
               SharedAccessViewPageConfig,
             ]);
+            appState.clearAccessList = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               appState.sharedAccesstabController.animateTo(0,
                   duration: Duration(milliseconds: 500),

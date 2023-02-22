@@ -191,172 +191,164 @@ class Payment_HistoryState extends State<PaymentHistory>
     // from viewData
     claimedAssets = wallet.claimedAssets!;
 
-    return ScreenUtilInit(
-      builder: (context, child) => DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          resizeToAvoidBottomInset: false,
-          backgroundColor: notifier.getwihitecolor,
-          appBar: AppBar(
-            centerTitle: true,
-            leading: isFromSharedWalletsView
-                ? GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Image.asset("assets/images/back.png", scale: 5),
-                  )
-                : null,
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                SizedBox(width: width / 15),
-                Text(
-                  LanguageEn.transactionHistory,
-                  style: TextStyle(
-                      color: notifier.getblck, fontFamily: fontsemibold),
-                ),
-                TextButton(
-                    onPressed: () {
-                      setState(() {
-                        showFilter = !showFilter;
-                      });
-                    },
-                    child: Container(
-                      child: Image.asset(
-                        "assets/images/filter-list.png",
-                        height: height / 35,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ))
-              ],
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: notifier.getwihitecolor,
+      appBar: AppBar(
+        centerTitle: true,
+        leading: isFromSharedWalletsView
+            ? GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+                child: Image.asset("assets/images/back.png", scale: 5),
+              )
+            : null,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            SizedBox(width: width / 15),
+            Text(
+              LanguageEn.transactionHistory,
+              style:
+                  TextStyle(color: notifier.getblck, fontFamily: fontsemibold),
             ),
-            backgroundColor: notifier.getfavorites,
-            elevation: 0,
-          ),
-          body: SmartRefresher(
-            enablePullDown: true,
-            controller: _refreshController,
-            onRefresh: refreshData,
-            child: Column(
-              children: [
-                SizedBox(
-                  height: height / 35,
-                ),
-                if (showFilter) ...[
-                  Container(
-                    width: width,
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: width / 50,
-                        ),
-                        // hide the dropdown when we view this page from shared
-                        // wallet
-                        if (!isFromSharedWalletsView) ...[
-                          Expanded(
-                            flex: 2,
-                            child: dropdown(
-                              (newValue) async {
-                                selectedWallet = newValue.toString();
-                                wallet = appState.userInfo!
-                                    .getWallet(selectedWallet);
-                                appState.filterAsset = "*|*";
-                                showLoader(context);
-                                appState.limit = 20;
-                                appState.totalRecords = 0;
-                                appState.currentPage = 1;
-                                await appState.getHistory(
-                                  context,
-                                  selectedWallet,
-                                  onDone: () => adjustScrollPosition(),
-                                );
-                                hideLoader(context);
-
-                                if (mounted) {
-                                  setState(() {});
-                                }
-                              },
-                              walletDropdownItems(false),
-                              selectedWallet,
-                              null,
+            TextButton(
+                onPressed: () {
+                  setState(() {
+                    showFilter = !showFilter;
+                  });
+                },
+                child: Container(
+                  child: Image.asset(
+                    "assets/images/filter-list.png",
+                    height: height / 35,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ))
+          ],
+        ),
+        backgroundColor: notifier.getfavorites,
+        elevation: 0,
+      ),
+      body: SmartRefresher(
+        enablePullDown: true,
+        controller: _refreshController,
+        onRefresh: refreshData,
+        child: Column(
+          children: [
+            if (showFilter) ...[
+              Container(
+                width: width,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: width / 50,
+                    ),
+                    // hide the dropdown when we view this page from shared
+                    // wallet
+                    if (!isFromSharedWalletsView) ...[
+                      Expanded(
+                        flex: 2,
+                        child: dropdown(
+                          (newValue) async {
+                            selectedWallet = newValue.toString();
+                            wallet =
+                                appState.userInfo!.getWallet(selectedWallet);
+                            appState.filterAsset = "*|*";
+                            showLoader(context);
+                            appState.limit = 20;
+                            appState.totalRecords = 0;
+                            appState.currentPage = 1;
+                            await appState.getHistory(
                               context,
-                              (context) {
-                                return walletDropdownItems(true);
-                              },
-                            ),
-                          ),
-                        ],
-                        Expanded(
-                          flex: 2,
-                          child: dropdown(
-                            (newValue) async {
-                              print(newValue);
-                              showLoader(context);
-                              appState.limit = 20;
-                              appState.totalRecords = 0;
-                              appState.currentPage = 1;
-                              appState.setFilterAsset = newValue.toString();
-                              await appState.getHistory(
-                                context,
-                                selectedWallet,
-                                onDone: () => adjustScrollPosition(),
-                              );
-                              hideLoader(context);
-                            },
-                            assetsDropdownItems,
-                            appState.filterAsset,
-                            'Assets',
+                              selectedWallet,
+                              onDone: () => adjustScrollPosition(),
+                            );
+                            hideLoader(context);
+
+                            if (mounted) {
+                              setState(() {});
+                            }
+                          },
+                          walletDropdownItems(false),
+                          selectedWallet,
+                          null,
+                          context,
+                          (context) {
+                            return walletDropdownItems(true);
+                          },
+                        ),
+                      ),
+                    ],
+                    Expanded(
+                      flex: 2,
+                      child: dropdown(
+                        (newValue) async {
+                          print(newValue);
+                          showLoader(context);
+                          appState.limit = 20;
+                          appState.totalRecords = 0;
+                          appState.currentPage = 1;
+                          appState.setFilterAsset = newValue.toString();
+                          await appState.getHistory(
                             context,
-                            null,
-                          ),
-                        ),
-                        SizedBox(
-                          width: width / 50,
-                        ),
-                      ],
+                            selectedWallet,
+                            onDone: () => adjustScrollPosition(),
+                          );
+                          hideLoader(context);
+                        },
+                        assetsDropdownItems,
+                        appState.filterAsset,
+                        'Assets',
+                        context,
+                        null,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: height / 50),
-                  Container(
-                    width: width,
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: width / 50,
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: dropdown(
-                            (newValue) async {
-                              setState(() {
-                                filterType = newValue as HistoryFilterType;
-                                showPopup(newValue);
-                              });
-                            },
-                            filterTypeDropdownItems,
-                            null,
-                            filterTypesMap[filterType],
-                            context,
-                            null,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: getContent(filterType),
-                        ),
-                        SizedBox(
-                          width: width / 50,
-                        ),
-                      ],
+                    SizedBox(
+                      width: width / 50,
                     ),
-                  ),
-                  SizedBox(height: height / 35),
-                ],
-                listHistory(),
-              ],
-            ),
-          ),
+                  ],
+                ),
+              ),
+              SizedBox(height: height / 50),
+              Container(
+                width: width,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: width / 50,
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: dropdown(
+                        (newValue) async {
+                          setState(() {
+                            filterType = newValue as HistoryFilterType;
+                            showPopup(newValue);
+                          });
+                        },
+                        filterTypeDropdownItems,
+                        null,
+                        filterTypesMap[filterType],
+                        context,
+                        null,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: getContent(filterType),
+                    ),
+                    SizedBox(
+                      width: width / 50,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: height / 35),
+            ],
+            listHistory(),
+          ],
         ),
       ),
     );
@@ -367,7 +359,7 @@ class Payment_HistoryState extends State<PaymentHistory>
       return Container(
         height: isFromSharedWalletsView
             ? (showFilter ? height / 1.3950 : height / 1.14)
-            : (showFilter ? height / 1.5523 : height / 1.24),
+            : (showFilter ? height / 1.47 : height / 1.19),
         child: LoadMore(
           isFinish: historyData!.length == appState.totalRecords,
           onLoadMore: () async {

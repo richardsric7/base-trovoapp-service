@@ -166,7 +166,7 @@ class _PaymentDetails extends State<PaymentDetails>
                               ),
                             ),
                             SizedBox(
-                              width: width / 1.7,
+                              width: width / 1.3,
                               child: Column(
                                 children: [
                                   Row(

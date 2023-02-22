@@ -187,19 +187,22 @@ class _QrScannerState extends State<QrScanner> {
   void runDynamicLinks(uri) async {
     try {
       showLoader(context);
+      setState(() {});
       final PendingDynamicLinkData? data =
           await FirebaseDynamicLinks.instance.getDynamicLink(uri);
 
       if (data != null) {
         final Uri deepLink = data.link;
         print(deepLink.queryParameters);
-        appState!.processDeepLink(context, deepLink, rel: 'qrScanner');
+        appState!.processDeepLink(context, deepLink,
+            rel: 'qrScanner', onCancel: () => controller!.resumeCamera());
         hideLoader(context);
       } else {
         popup(context,
             title: 'Error!',
             message:
                 'Something went wrong. Could be caused by bad network or a bad qrcode image.');
+        controller!.resumeCamera();
         hideLoader(context);
       }
     } catch (e) {
