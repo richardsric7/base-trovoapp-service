@@ -82,7 +82,7 @@ dependencies:
   image_picker: ^0.8.4+10
   intl:
   pull_to_refresh: ^2.0.0
-  share: ^2.0.4
+  share_plus: ^6.3.1
   uni_links: ^0.5.1
   firebase_crashlytics: ^2.8.7
   firebase_dynamic_links: ^4.3.4
