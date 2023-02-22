@@ -8,13 +8,13 @@ class FirebaseDynamicLinkInitializer {
         uriPrefix: "https://trovowallet.page.link",
         androidParameters: const AndroidParameters(
           packageName: "com.trovo.wallet",
-          minimumVersion: 30,
+          minimumVersion: 1,
         ),
-        // iosParameters: const IOSParameters(
-        //   bundleId: "com.example.app.ios",
-        //   appStoreId: "123456789",
-        //   minimumVersion: "1.0.1",
-        // ),
+        iosParameters: const IOSParameters(
+          bundleId: "com.trovo.wallet",
+          appStoreId: "6443621693",
+          minimumVersion: "0.0.1",
+        ),
         // googleAnalyticsParameters: const GoogleAnalyticsParameters(
         //   source: "twitter",
         //   medium: "social",

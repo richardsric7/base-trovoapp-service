@@ -470,8 +470,13 @@ Widget dropdown(
 }
 
 Future<void> share(String message, GlobalKey snapshotAreaKey) async {
-  final appDir = await syspaths.getExternalStorageDirectory();
-  String fileName = '${appDir!.path}/receipt.png';
+  final appDir = await syspaths.getTemporaryDirectory();
+  Directory? appDir2 = await Platform.isAndroid
+      ? await syspaths.getExternalStorageDirectory() //FOR ANDROID
+      : await syspaths.getApplicationSupportDirectory(); //FOR iOS
+
+  String fileName = '${appDir.path}/receipt.png';
+
   RenderRepaintBoundary boundary = snapshotAreaKey.currentContext!
       .findRenderObject()! as RenderRepaintBoundary;
 
@@ -485,8 +490,12 @@ Future<void> share(String message, GlobalKey snapshotAreaKey) async {
 }
 
 Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {
-  final appDir = await syspaths.getExternalStorageDirectory();
-  String fileName = '${appDir!.path}/receipt.pdf';
+  final appDir = await syspaths.getTemporaryDirectory();
+
+  Directory? appDir2 = await Platform.isAndroid
+      ? await syspaths.getTemporaryDirectory() //FOR ANDROID
+      : await syspaths.getApplicationSupportDirectory();
+  String fileName = '${appDir.path}/receipt.pdf';
   RenderRepaintBoundary boundary = snapshotAreaKey.currentContext!
       .findRenderObject()! as RenderRepaintBoundary;
   final pdf = pw.Document();

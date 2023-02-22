@@ -56,6 +56,7 @@ Future<void> initAppNotification(context, appState) async {
   requestPermissions();
   await flutterLocalNotificationsPlugin.initialize(initializationSettings,
       onSelectNotification: selectNotification);
+  //requestPermissions();
   initMyNotification(context);
 }
 
