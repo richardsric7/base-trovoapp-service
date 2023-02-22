@@ -422,7 +422,8 @@ class _ApprovalDetails extends State<ApprovalDetails>
       );
       print('responseData: ${responseData}');
 
-      if (responseData['statusCode'] == 202) {
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
         sendDataToServerAgain(responseData['data']);
       } else {
         popup(context,
@@ -462,7 +463,8 @@ class _ApprovalDetails extends State<ApprovalDetails>
       );
 
       print('responseData: ${responseData}');
-      if (responseData['statusCode'] == 200) {
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
         appState.getApprovals();
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Transaction approval submitted',
@@ -509,7 +511,8 @@ class _ApprovalDetails extends State<ApprovalDetails>
       );
       print('responseData: ${responseData}');
 
-      if (responseData['statusCode'] == 200) {
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
         appState.getApprovals();
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Rejection submitted',

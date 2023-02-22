@@ -334,6 +334,7 @@ class _SettingsState extends State<Settings> {
             ),
             SizedBox(height: height / 50),
             GestureDetector(
+              onTap: () => appState.goToWebView(trovoSupportUrl),
               child: iteamlist(
                   "assets/images/help.png", "", LanguageEn.helpandsupport),
             ),

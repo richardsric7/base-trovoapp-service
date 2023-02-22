@@ -380,4 +380,11 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
       return Future.error('Error! ${e}');
     }
   }
+
+  @override
+  void dispose() {
+    appState.viewData!['rel'] = '';
+    appState.returnView = null;
+    super.dispose();
+  }
 }
