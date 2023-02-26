@@ -227,19 +227,6 @@ class _WalletDetailsState extends State<WalletDetails>
                                   ),
                                 ],
                                 SizedBox(
-                                  height: height / 22,
-                                ),
-                                Button(
-                                  LanguageEn.back,
-                                  notifier.getbluecolor,
-                                  wihitecolor,
-                                  onTap: () {
-                                    appState.currentAction = PageAction(
-                                        state: PageState.replaceAll,
-                                        page: BottomHomePageConfig);
-                                  },
-                                ),
-                                SizedBox(
                                   height: height / 10,
                                 ),
                               ],

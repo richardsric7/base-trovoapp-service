@@ -411,14 +411,14 @@ class _ApprovalDetails extends State<ApprovalDetails>
 
       String requestBody = jsonEncode({});
 
-      print(requestBody);
+      print("wallet signer: ${wallet.publicKey}");
 
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: wallet.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.signer!,
+        publicKey: appState.primaryWallet.signer!,
       );
       print('responseData: ${responseData}');
 
@@ -457,9 +457,9 @@ class _ApprovalDetails extends State<ApprovalDetails>
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: wallet.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.signer!,
+        publicKey: appState.primaryWallet.signer!,
       );
 
       print('responseData: ${responseData}');
@@ -505,9 +505,9 @@ class _ApprovalDetails extends State<ApprovalDetails>
       Map responseData = await makeDeleteRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: wallet.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.signer!,
+        publicKey: appState.primaryWallet.signer!,
       );
       print('responseData: ${responseData}');
 
@@ -541,7 +541,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
     Map responseData = await makeGetRequest(
       uri:
           '/v1/users/${appState.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: wallet.signer!,
+      signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: wallet.publicKey!,
     );

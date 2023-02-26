@@ -188,7 +188,6 @@ class _ImportWalletState extends State<ImportWallet> {
                               }
                             },
                             onSaved: (value) {
-                              print('email: $value');
                               secretKey = value!.trim().replaceAll(' ', '');
                             },
                             maxLength: 56,
@@ -381,7 +380,6 @@ class _ImportWalletState extends State<ImportWallet> {
 
   saveForm() async {
     try {
-      print('saving form...');
       final form = _formKey.currentState;
       if (!form!.validate()) {
         checkTerms();
@@ -416,7 +414,7 @@ class _ImportWalletState extends State<ImportWallet> {
             signer: creds.publicKey,
             publicKey: creds.publicKey,
             secretKey: creds.secretKey);
-        print('response: ${responseData}');
+        // print('response: ${responseData}');
 
         if (responseData['statusCode'] == 200) {
           fetchNotifications(appState);
@@ -438,13 +436,11 @@ class _ImportWalletState extends State<ImportWallet> {
       hideLoader(context);
     } catch (e) {
       hideLoader(context);
-      print('object');
       print(e);
     }
   }
 
   storeUserInfo(userInfoMap) async {
-    print('this is userinfo map: ${userInfoMap}');
     var userInfo = userInfoMap['userData'] ?? {};
     var assetBalances = userInfoMap['assetBalances'] ?? {};
     var nfts = userInfoMap['nfts'] ?? {};
@@ -481,7 +477,6 @@ class _ImportWalletState extends State<ImportWallet> {
   }
 
   String? validatePassword(value) {
-    print('password: $value');
     if (value.isEmpty) {
       //return "Enter a password";
       return LanguageEn.passwordemptyerror;
@@ -496,7 +491,6 @@ class _ImportWalletState extends State<ImportWallet> {
   }
 
   String? validateConfirmPassword(value) {
-    print('confirm password: ${value.trim().replaceAll(' ', '')} & $password');
     if (value.isEmpty) {
       // return "Confirm your password";
       return LanguageEn.confirmpasswordemptyerror;
@@ -534,13 +528,10 @@ class _ImportWalletState extends State<ImportWallet> {
   Future<Account?> getCredsFromPassPhrase() async {
     try {
       var trimmedPassprase = passPhrase!.trimLeft().trimRight();
-      print('trimmed pass phrase ${trimmedPassprase}');
       Account account = await TrovoWalletSDK()
           .retrieveCredentialsFromPassPhrase(trimmedPassprase);
-      print(account);
       return account;
     } catch (e) {
-      print('from getSecretKey');
       print(e);
       // must be some sort of server error
       // let's throw it
@@ -554,10 +545,8 @@ class _ImportWalletState extends State<ImportWallet> {
     try {
       Account account =
           TrovoWalletSDK().parseSecretKey(secretKey.toUpperCase());
-      print(account);
       return account;
     } catch (e) {
-      print('from parseKey');
       print(e);
       // must be some sort of server error
       // let's throw it

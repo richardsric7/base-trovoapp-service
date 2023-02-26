@@ -161,12 +161,9 @@ class _SignUpState extends State<SignUp> {
                           totalSwitches: 2,
                           labels: ['Individual', 'Corporate'],
                           onToggle: (index) {
-                            print('switched to: $index');
-
                             setState(() {
                               corporate = index!;
                             });
-                            print('switched to: $corporate');
                           },
                         ),
                         SizedBox(height: height / 50),
@@ -185,7 +182,6 @@ class _SignUpState extends State<SignUp> {
                           300.sp,
                           validator: validateEmail,
                           onSaved: (value) {
-                            print('email: $value');
                             email = value.trim().replaceAll(' ', '');
                           },
                           keyboardtype: TextInputType.emailAddress,
@@ -205,7 +201,6 @@ class _SignUpState extends State<SignUp> {
                           maxLength: 16,
                           validator: validateUsername,
                           onSaved: (value) {
-                            print('username: $value');
                             username = value.trim().replaceAll(' ', '');
                           },
                         ),
@@ -648,7 +643,6 @@ class _SignUpState extends State<SignUp> {
             });
           },
           onCountryChanged: (value) {
-            print('country: ' + value.code);
             setState(() {
               countryCode = value.code;
             });
@@ -700,7 +694,6 @@ class _SignUpState extends State<SignUp> {
   }
 
   String? validateReferrer(String? value) {
-    print('referrer: $value');
     String pattern = r'^(?!.*\.\.)(?!.*\.$)[^\W][\w]{2,16}$';
     RegExp regex = new RegExp(pattern);
 
@@ -723,13 +716,10 @@ class _SignUpState extends State<SignUp> {
   Future<Account?> getCredsFromPassPhrase() async {
     try {
       var trimmedPassprase = passPhrase.trimLeft().trimRight();
-      print('trimmed pass phrase ${trimmedPassprase}');
       Account account = await TrovoWalletSDK()
           .retrieveCredentialsFromPassPhrase(trimmedPassprase);
-      print(account);
       return account;
     } catch (e) {
-      print('from getSecretKey');
       print(e);
       // must be some sort of server error
       // let's throw it
@@ -743,7 +733,6 @@ class _SignUpState extends State<SignUp> {
     String pattern = r'(?:\d+[a-z]|[a-z]+\d)[a-z\d]*';
     RegExp regex = new RegExp(pattern);
 
-    print('fname: $value');
     if (value!.trim().replaceAll(' ', '').isEmpty) {
       return LanguageEn.firstnamevalidateempty;
     }
@@ -764,7 +753,6 @@ class _SignUpState extends State<SignUp> {
     RegExp regex = new RegExp(pattern);
     var trimmedValue = value!.trimLeft().trimRight();
 
-    print('Entityname: $value');
     if (trimmedValue.isEmpty) {
       return LanguageEn.entitynamevalidateempty;
     }
@@ -784,7 +772,6 @@ class _SignUpState extends State<SignUp> {
     String pattern = r'(?:\d+[a-z]|[a-z]+\d)[a-z\d]*';
     RegExp regex = new RegExp(pattern);
 
-    print('lname: $value');
     if (value!.isEmpty) {
       return LanguageEn.lastnamevalidateempty;
     }
@@ -804,10 +791,8 @@ class _SignUpState extends State<SignUp> {
     try {
       Account account =
           TrovoWalletSDK().parseSecretKey(secretKey.toUpperCase());
-      print(account);
       return account;
     } catch (e) {
-      print('from parseKey');
       print(e);
       // must be some sort of server error
       // let's throw it
@@ -869,7 +854,6 @@ class _SignUpState extends State<SignUp> {
       };
 
       String jsonBody = jsonEncode(map);
-      print(jsonBody);
       Account? creds = null;
 
       if (!usePassPhrase && secretKey.isNotEmpty) {
@@ -890,7 +874,7 @@ class _SignUpState extends State<SignUp> {
           publicKey: state.tempPublicKey,
           secretKey: state.tempSecretKey);
 
-      print('$responseData');
+      // print('$responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
@@ -906,7 +890,6 @@ class _SignUpState extends State<SignUp> {
           corporate: corporate,
         );
 
-        print('userInfo: ${state.userInfo}');
         state.currentAction =
             PageAction(state: PageState.addPage, page: VerificationPageConfig);
       } else {
