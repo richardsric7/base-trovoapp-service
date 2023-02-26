@@ -626,8 +626,9 @@ class DataProvider with ChangeNotifier {
             'initialDynamicLink', dynamicLinkData.link.toString());
         processDeepLink(context, dynamicLinkData.link);
       } catch (e) {
-        popup(context,
-            title: 'Error', message: 'error processing dynamic link');
+        // popup(context,
+        //     title: 'Error', message: 'error processing dynamic link');
+        print('there was an error here shaa $e');
       }
     }).onError((error) {
       // Handle errors
