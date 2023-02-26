@@ -38,29 +38,27 @@ class _ThreeonbondingState extends State<Threeonbonding> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    return ScreenUtilInit(
-      builder: (context, child) => Scaffold(
-        backgroundColor: notifier.getwihitecolor,
-        body: SingleChildScrollView(
-          child: Center(
-            child: Column(
-              children: [
-                SizedBox(height: height / 10.5),
-                Image.asset("assets/images/transfer.png", height: height / 2.5),
-                SizedBox(height: height / 20),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: width / 10),
-                  child: Text(
-                    LanguageEn.domorewithblockchain,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: notifier.getblck,
-                        fontSize: 25.sp,
-                        fontFamily: fontsemibold),
-                  ),
+    return Scaffold(
+      backgroundColor: notifier.getwihitecolor,
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            children: [
+              SizedBox(height: height / 10.5),
+              Image.asset("assets/images/transfer.png", height: height / 2.5),
+              SizedBox(height: height / 20),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: width / 10),
+                child: Text(
+                  LanguageEn.domorewithblockchain,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: notifier.getblck,
+                      fontSize: 25.sp,
+                      fontFamily: fontsemibold),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

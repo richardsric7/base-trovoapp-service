@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../fonts.dart';
 import '../notifire_clor.dart';
@@ -53,48 +52,44 @@ class _ButtonState extends State<Button> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    return ScreenUtilInit(
-      builder: (context, child) => Center(
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: borderRadius,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              LayoutBuilder(builder: (context, constraints) {
-                return Container(
-                  height: height / 15,
-                  width: width / 1.1,
-                  child: ElevatedButton(
-                    onPressed: widget.onTap,
-                    style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(widget.colorbutton!),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(15),
-                          ),
-                        ),
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        widget.buttontext!,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontFamily: fontbody,
-                            fontSize: 15,
-                            color: widget.buttontextcolor),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          LayoutBuilder(builder: (context, constraints) {
+            return Container(
+              height: height / 15,
+              width: width / 1.1,
+              child: ElevatedButton(
+                onPressed: widget.onTap,
+                style: ButtonStyle(
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(widget.colorbutton!),
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(15),
                       ),
                     ),
                   ),
-                );
-              }),
-            ],
-          ),
-        ),
+                ),
+                child: Center(
+                  child: Text(
+                    widget.buttontext!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontFamily: fontbody,
+                        fontSize: 15,
+                        color: widget.buttontextcolor),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }
@@ -140,57 +135,53 @@ class _ButtonOutlinedState extends State<ButtonOutlined> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    return ScreenUtilInit(
-      builder: (context, child) => Center(
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: borderRadius,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              LayoutBuilder(builder: (context, constraints) {
-                return Container(
-                  height: height / 15,
-                  width: width / 1.1,
-                  child: ElevatedButton(
-                    onPressed: widget.onTap,
-                    style: ButtonStyle(
-                      overlayColor: MaterialStateProperty.all<Color>(
-                          notifier.getsplashgrey),
-                      elevation: MaterialStateProperty.all<double>(0),
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(widget.colorbutton!),
-                      side: MaterialStateProperty.all(
-                        BorderSide(
-                            color: notifier.getgrey,
-                            width: 1,
-                            style: BorderStyle.solid),
-                      ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        widget.buttontext!,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontFamily: fontbody,
-                            fontSize: 15.sp,
-                            color: widget.buttontextcolor),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          LayoutBuilder(builder: (context, constraints) {
+            return Container(
+              height: height / 15,
+              width: width / 1.1,
+              child: TextButton(
+                onPressed: widget.onTap,
+                style: ButtonStyle(
+                  overlayColor:
+                      MaterialStateProperty.all<Color>(notifier.getsplashgrey),
+                  elevation: MaterialStateProperty.all<double>(0),
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(widget.colorbutton!),
+                  side: MaterialStateProperty.all(
+                    BorderSide(
+                        color: notifier.getgrey,
+                        width: 1,
+                        style: BorderStyle.solid),
+                  ),
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(10),
                       ),
                     ),
                   ),
-                );
-              }),
-            ],
-          ),
-        ),
+                ),
+                child: Center(
+                  child: Text(
+                    widget.buttontext!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontFamily: fontbody,
+                        fontSize: 15.sp,
+                        color: widget.buttontextcolor),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get_utils/get_utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
@@ -19,7 +19,6 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class PendingAssetDetails extends StatefulWidget {
@@ -47,7 +46,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
       appState.viewData!['walletPublicKey'],
     );
 
-    asset = wallet.unClaimedAssets!.firstWhere(
+    asset = wallet.unClaimedAssets!.firstWhereOrNull(
       (asset) =>
           asset.assetCode == appState.viewData!['assetCode'] &&
           asset.assetIssuer == appState.viewData!['assetIssuer'],
@@ -60,38 +59,38 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
 
-    return ScreenUtilInit(
-      builder: (context, child) => Scaffold(
-        resizeToAvoidBottomInset: false,
-        backgroundColor: notifier.getwihitecolor,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(height / 15),
-          child: AppBar(
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: notifier.getwihitecolor,
-            title: Text(
-              LanguageEn.pendingassets,
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontsemibold),
-            ),
-            leading: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset("assets/images/back.png", scale: 5),
-            ),
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: notifier.getwihitecolor,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(height / 15),
+        child: AppBar(
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: notifier.getwihitecolor,
+          title: Text(
+            LanguageEn.pendingassets,
+            style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: notifier.getbluewhitecolor,
+                fontFamily: fontsemibold),
+          ),
+          leading: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+            child: Image.asset("assets/images/back.png", scale: 5),
           ),
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(
-                height: height / 20,
-              ),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            SizedBox(
+              height: height / 20,
+            ),
+            if (asset != null) ...[
               showNotice(),
               SizedBox(
                 height: height / 10,
@@ -112,8 +111,34 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                 },
               ),
               SizedBox(height: height / 10),
+            ] else ...[
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Nothing to show here.\n\nThis asset may have already been claimed or does not exist.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: height / 10,
+              ),
+              Button(
+                LanguageEn.back,
+                notifier.getbluecolor,
+                wihitecolor,
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -254,12 +279,8 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
 
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(
-            appState.primaryWallet.signer!,
-            appState.secretKeys[0],
-            appState.primaryWallet.publicKey!,
-            userInfo.username,
-            appState);
+        updateUserInfo(appState.primaryWallet.signer!, appState.secretKeys[0],
+            appState.primaryWallet.publicKey!, userInfo.username, appState);
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': LanguageEn.success,
           'message': LanguageEn.trustassetsuccess
@@ -360,12 +381,8 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
 
       print('response: $responseData');
       if (responseData['statusCode'] == 200) {
-        await updateUserInfo(
-            appState.primaryWallet.signer!,
-            appState.secretKeys[0],
-            appState.primaryWallet.publicKey!,
-            userInfo.username,
-            appState);
+        updateUserInfo(appState.primaryWallet.signer!, appState.secretKeys[0],
+            appState.primaryWallet.publicKey!, userInfo.username, appState);
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': wallet.isSharedWalletAndCanInitiate
               ? 'Request submitted'

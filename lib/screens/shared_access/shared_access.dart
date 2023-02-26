@@ -58,7 +58,6 @@ class _SharedAccessState extends State<SharedAccess>
   String approverUsernameErrorMessage = "";
   String initiatorUsernameErrorMessage = "";
   var allKey = Key(Random.secure().nextDouble().toString());
-  var password = '';
   var viewers = <String>[];
   var initiators = <String>[]; // holds usernames of initiators
   var approvers = <String>[]; // holds usernames of approvers
@@ -930,7 +929,8 @@ class _SharedAccessState extends State<SharedAccess>
                 // the wallet no longer belongs to me.
                 var filteredWallets = <Wallet>[];
                 appState.userInfo!.getAllWallets().forEach((wallet) {
-                  if (wallet.permissions!.isNotEmpty &&
+                  if (wallet.permissions != null &&
+                      wallet.permissions!.isNotEmpty &&
                       wallet.permissions!
                           .where((permission) =>
                               permission.permission == 'INITIATOR' ||
@@ -1388,7 +1388,7 @@ class _SharedAccessState extends State<SharedAccess>
   }
 
   List<Step> getSteps() {
-    return <Step>[
+    return [
       Step(
         state: currentStep > 0 ? StepState.complete : StepState.indexed,
         isActive: currentStep >= 0,
@@ -1435,6 +1435,16 @@ class _SharedAccessState extends State<SharedAccess>
   }
 
   Widget grantAccess() {
+    if (appState.clearAccessList) {
+      approvers.clear();
+      initiators.clear();
+      viewers.clear();
+      userFullnames = {};
+      noOfApprovalsNeeded = 2;
+      noOfApprovers = 3;
+      addApprovers = false;
+      appState.clearAccessList = false;
+    }
     return Column(
       children: [
         if (addApprovers && activeWallet!.primaryWallet == 0) ...[
@@ -1726,7 +1736,10 @@ class _SharedAccessState extends State<SharedAccess>
         // if wallet is not primary wallet
         // primary wallets can only have view-only shared access
         // the cannot have approver and initiator shared access
-        if (activeWallet!.primaryWallet == 0) ...[
+
+        if (activeWallet!.isPrimaryWallet || activeWallet!.walletType == 2) ...[
+          // show nothing...
+        ] else ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

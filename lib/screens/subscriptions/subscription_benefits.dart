@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -47,6 +48,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
 
   @override
   Widget build(BuildContext context) {
+    print(patronInfo.description);
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
@@ -98,13 +100,17 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Text(
-                  patronInfo.description,
-                  style: TextStyle(
-                      fontSize: 17,
-                      color: notifier.getbluewhitecolor,
-                      fontFamily: fontbody),
-                ),
+                child: Html(data: patronInfo.description, style: {
+                  "*": Style(
+                      fontSize: FontSize.large,
+                      lineHeight: LineHeight.number(1.2),
+                      wordSpacing: 1.2,
+                      textAlign: TextAlign.justify),
+                  "h1, h2, h3, h4": Style(
+                    fontFamily: fontsemibold,
+                    fontSize: FontSize.large,
+                  ),
+                }),
               ),
               SizedBox(height: height / 20),
               Button(

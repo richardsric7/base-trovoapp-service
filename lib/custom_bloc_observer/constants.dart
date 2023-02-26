@@ -1,3 +1,4 @@
+String trovoSupportUrl = 'https://trovotech.io/support.html';
 String termsOfServiceUrl = 'https://trovotech.io/terms.html';
 String trovoServicesUrl = 'https://trovotech.io/services.html';
 String trovoLandingPage = 'https://wallet.trovotech.io';

@@ -53,105 +53,102 @@ class _SuccessView extends State<SuccessView> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    return ScreenUtilInit(
-      builder: (context, child) => Scaffold(
-        resizeToAvoidBottomInset: false,
-        backgroundColor: notifier.getwihitecolor,
-        body: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                SizedBox(height: height / 10),
-                Text(
-                  LanguageEn.success,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: notifier.getbluewhitecolor,
-                      fontSize: 30.sp,
-                      fontFamily: fontsemibold),
-                ),
-                Image.asset("assets/images/startup-launch.png",
-                    height: height / 3.5),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(15.0)),
-                      color: notifier.isDark
-                          ? darktilewhitecolor
-                          : notifier.getaddsubwalletgrey,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 15.0),
-                          child: Container(
-                            width: width / 1.3,
-                            child: Column(
-                              children: [
-                                Text(
-                                  title.isEmpty
-                                      ? LanguageEn.congratulations
-                                      : title,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontsemibold),
-                                ),
-                                SizedBox(height: 2),
-                                Text(
-                                  message,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody),
-                                ),
-                                SizedBox(height: 2),
-                              ],
-                            ),
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: notifier.getwihitecolor,
+      body: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              SizedBox(height: height / 10),
+              Text(
+                LanguageEn.success,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 30.sp,
+                    fontFamily: fontsemibold),
+              ),
+              Image.asset("assets/images/startup-launch.png",
+                  height: height / 3.5),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                    color: notifier.isDark
+                        ? darktilewhitecolor
+                        : notifier.getaddsubwalletgrey,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20.0, vertical: 15.0),
+                        child: Container(
+                          width: width / 1.3,
+                          child: Column(
+                            children: [
+                              Text(
+                                title.isEmpty
+                                    ? LanguageEn.congratulations
+                                    : title,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontsemibold),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                message,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody),
+                              ),
+                              SizedBox(height: 2),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: height / 30),
-                SizedBox(
-                  height: height / 20,
-                ),
-                Button(
-                  LanguageEn.done,
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () {
-                    if (appState.viewData![SuccessViewPageConfig.key]
-                                ['useOnDone'] !=
-                            null &&
-                        appState.viewData![SuccessViewPageConfig.key]
-                                ['useOnDone'] ==
-                            true) {
-                      print('onDone is not null');
-                      appState.viewData![SuccessViewPageConfig.key]['onDone']();
-                    } else {
-                      print('onDone is null');
-                      appState.currentAction = PageAction(
-                          state: PageState.replaceAll,
-                          page: BottomHomePageConfig);
-                    }
-                  },
-                ),
-                SizedBox(height: height / 10),
-                Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom)),
-              ],
-            ),
+              ),
+              SizedBox(height: height / 30),
+              SizedBox(
+                height: height / 20,
+              ),
+              Button(
+                LanguageEn.done,
+                notifier.getbluecolor,
+                wihitecolor,
+                onTap: () {
+                  if (appState.viewData![SuccessViewPageConfig.key]
+                              ['useOnDone'] !=
+                          null &&
+                      appState.viewData![SuccessViewPageConfig.key]
+                              ['useOnDone'] ==
+                          true) {
+                    print('onDone is not null');
+                    appState.viewData![SuccessViewPageConfig.key]['onDone']();
+                  } else {
+                    print('onDone is null');
+                    appState.currentAction = PageAction(
+                        state: PageState.replaceAll,
+                        page: BottomHomePageConfig);
+                  }
+                },
+              ),
+              SizedBox(height: height / 10),
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+            ],
           ),
         ),
       ),

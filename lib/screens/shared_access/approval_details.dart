@@ -411,18 +411,19 @@ class _ApprovalDetails extends State<ApprovalDetails>
 
       String requestBody = jsonEncode({});
 
-      print(requestBody);
+      print("wallet signer: ${wallet.publicKey}");
 
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: wallet.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.signer!,
+        publicKey: appState.primaryWallet.signer!,
       );
       print('responseData: ${responseData}');
 
-      if (responseData['statusCode'] == 202) {
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
         sendDataToServerAgain(responseData['data']);
       } else {
         popup(context,
@@ -456,13 +457,14 @@ class _ApprovalDetails extends State<ApprovalDetails>
       Map responseData = await makePostRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: wallet.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.signer!,
+        publicKey: appState.primaryWallet.signer!,
       );
 
       print('responseData: ${responseData}');
-      if (responseData['statusCode'] == 200) {
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
         appState.getApprovals();
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Transaction approval submitted',
@@ -503,13 +505,14 @@ class _ApprovalDetails extends State<ApprovalDetails>
       Map responseData = await makeDeleteRequest(
         uri: '/v1/shared-access/approval/${viewData['id']}',
         body: requestBody,
-        signer: wallet.signer!,
+        signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.signer!,
+        publicKey: appState.primaryWallet.signer!,
       );
       print('responseData: ${responseData}');
 
-      if (responseData['statusCode'] == 200) {
+      if (responseData['statusCode'] == 200 ||
+          responseData['statusCode'] == 202) {
         appState.getApprovals();
         appState.viewData![SuccessViewPageConfig.key] = {
           'title': 'Rejection submitted',
@@ -538,7 +541,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
     Map responseData = await makeGetRequest(
       uri:
           '/v1/users/${appState.userInfo!.username!.trim().replaceAll(' ', '')}',
-      signer: wallet.signer!,
+      signer: appState.primaryWallet.signer!,
       secretKey: appState.secretKeys[0], // the primary wallet secret key
       publicKey: wallet.publicKey!,
     );

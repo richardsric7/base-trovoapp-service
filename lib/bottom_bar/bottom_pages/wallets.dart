@@ -68,7 +68,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   late List<String> walletTypes = [
     'Standard',
     'Minting/Asset Tokenization',
-    'Market Making',
+    'Market Making/Trade',
     'Bulk Payment'
   ];
   int selectedWalletType = 0;
@@ -117,184 +117,182 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     appState = Provider.of<DataProvider>(context, listen: true);
     userInfo = appState.userInfo!;
 
-    return ScreenUtilInit(
-      builder: (context, child) => Scaffold(
-          resizeToAvoidBottomInset: false,
-          backgroundColor: notifier.getwihitecolor,
-          appBar: AppBar(
-            centerTitle: true,
-            title: Text(
-              LanguageEn.wallets,
-              style: TextStyle(
-                  color: notifier.getblck,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: fontsemibold),
-            ),
-            backgroundColor: notifier.getfavorites,
-            elevation: 0,
+    return Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: notifier.getwihitecolor,
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            LanguageEn.wallets,
+            style: TextStyle(
+                color: notifier.getblck,
+                fontWeight: FontWeight.bold,
+                fontFamily: fontsemibold),
           ),
-          body: SmartRefresher(
-            enablePullDown: true,
-            controller: _refreshController,
-            onRefresh: refreshData,
-            child: ListView(
-              children: [
-                if (appState.walletView.view == WalletView.listWallets) ...[
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Container(
-                        color: notifier.getfavorites,
-                        padding: EdgeInsets.all(8.sp),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Expanded(
-                              child: DropdownButtonFormField(
-                                isExpanded: true,
-                                dropdownColor: notifier.isDark
+          backgroundColor: notifier.getfavorites,
+          elevation: 0,
+        ),
+        body: SmartRefresher(
+          enablePullDown: true,
+          controller: _refreshController,
+          onRefresh: refreshData,
+          child: ListView(
+            children: [
+              if (appState.walletView.view == WalletView.listWallets) ...[
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Container(
+                      color: notifier.getfavorites,
+                      padding: EdgeInsets.all(8.sp),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField(
+                              isExpanded: true,
+                              dropdownColor: notifier.isDark
+                                  ? darktilewhitecolor
+                                  : notifier.getaddsubwalletgrey,
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                    vertical: 0, horizontal: 20),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide.none,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                filled: true,
+                                fillColor: notifier.isDark
                                     ? darktilewhitecolor
                                     : notifier.getaddsubwalletgrey,
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.symmetric(
-                                      vertical: 0, horizontal: 20),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  filled: true,
-                                  fillColor: notifier.isDark
-                                      ? darktilewhitecolor
-                                      : notifier.getaddsubwalletgrey,
-                                ),
-                                value: selectedWalletMode,
-                                icon: Icon(
-                                  Icons.keyboard_arrow_down_rounded,
+                              ),
+                              value: selectedWalletMode,
+                              icon: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                              elevation: 0,
+                              style: TextStyle(
                                   color: notifier.getbluewhitecolor,
-                                ),
-                                elevation: 0,
-                                style: TextStyle(
-                                    color: notifier.getbluewhitecolor,
-                                    fontSize: 15.sp,
-                                    fontFamily: fontsemibold,
-                                    fontWeight: FontWeight.w500),
-                                onChanged: (newValue) {
-                                  setState(() {
-                                    selectedWalletMode = newValue.toString();
-                                  });
-                                },
-                                items: accessModeDropdownItems,
+                                  fontSize: 15.sp,
+                                  fontFamily: fontsemibold,
+                                  fontWeight: FontWeight.w500),
+                              onChanged: (newValue) {
+                                setState(() {
+                                  selectedWalletMode = newValue.toString();
+                                });
+                              },
+                              items: accessModeDropdownItems,
+                            ),
+                          ),
+                          SizedBox(
+                            width: width / 15,
+                          ),
+                          GestureDetector(
+                            onTap: () => setState(() {
+                              isTileView = !isTileView;
+                            }),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SvgPicture.asset(
+                                isTileView
+                                    ? "assets/images/listview.svg"
+                                    : "assets/images/tileview.svg",
+                                color: notifier.getbluewhitecolor,
                               ),
                             ),
-                            SizedBox(
-                              width: width / 15,
-                            ),
-                            GestureDetector(
-                              onTap: () => setState(() {
-                                isTileView = !isTileView;
-                              }),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: SvgPicture.asset(
-                                  isTileView
-                                      ? "assets/images/listview.svg"
-                                      : "assets/images/tileview.svg",
-                                  color: notifier.getbluewhitecolor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        )),
-                  )
-                ] else ...[
-                  SizedBox(
-                    height: height / 40,
-                  )
-                ],
-                GestureDetector(
-                  onTap: () {
-                    appState.viewData = {
-                      'walletPublicKey': appState.primaryWallet.publicKey
-                    };
-                    appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: WalletDetailsViewPageConfig);
-                  },
-                  child: walletListItem(
-                    appState.primaryWallet.alias!.capitalizeFirst,
-                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, appState.primaryWallet.claimedAssets!)} USD',
-                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, appState.primaryWallet.claimedAssets!)} ${appState.defaultCurrency}',
-                    notifier.getstructuredbluecolor,
-                  ),
-                ),
+                          ),
+                        ],
+                      )),
+                )
+              ] else ...[
                 SizedBox(
-                  height: height / 50,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    if (appState.walletView.view == WalletView.listWallets) {
-                      appState.walletView.actionIcon = Icons.cancel_outlined;
-                      appState.walletView.actionText = LanguageEn.cancel;
-                      appState.walletView.view = WalletView.addSubWallet;
-                    } else if (appState.walletView.view ==
-                        WalletView.addSubWallet) {
-                      appState.walletView.actionIcon =
-                          Icons.add_circle_outline_sharp;
-                      appState.walletView.actionText = LanguageEn.addsubwallet;
-                      appState.walletView.view = WalletView.listWallets;
-                      resetForm();
-                    } else if (appState.walletView.view ==
-                        WalletView.confirmAddSubWallet) {
-                      appState.walletView.actionIcon = Icons.cancel_outlined;
-                      appState.walletView.actionText = LanguageEn.cancel;
-                      appState.walletView.view = WalletView.addSubWallet;
-                    }
-
-                    setState(() {});
-                  },
-                  child: Column(
-                    children: [
-                      Icon(
-                        appState.walletView.actionIcon,
-                        color: notifier.getbluewhitecolor,
-                        size: 35,
-                      ),
-                      SizedBox(
-                        height: 5,
-                      ),
-                      Text(
-                        appState.walletView.actionText,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontbody,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: height / 50,
-                ),
-                if (appState.walletView.view == WalletView.addSubWallet) ...[
-                  addSubwallet()
-                ] else if (appState.walletView.view ==
-                    WalletView.confirmAddSubWallet) ...[
-                  confirmAddSubwallet()
-                ] else ...[
-                  isTileView ? gridView() : walletListView(),
-                ],
-                Padding(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).viewInsets.bottom)),
+                  height: height / 40,
+                )
               ],
-            ),
-          )),
-    );
+              GestureDetector(
+                onTap: () {
+                  appState.viewData = {
+                    'walletPublicKey': appState.primaryWallet.publicKey
+                  };
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: WalletDetailsViewPageConfig);
+                },
+                child: walletListItem(
+                  appState.primaryWallet.alias!.capitalizeFirst,
+                  '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, appState.primaryWallet.claimedAssets!)} USD',
+                  '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, appState.primaryWallet.claimedAssets!)} ${appState.defaultCurrency}',
+                  notifier.getstructuredbluecolor,
+                ),
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              GestureDetector(
+                onTap: () {
+                  if (appState.walletView.view == WalletView.listWallets) {
+                    appState.walletView.actionIcon = Icons.cancel_outlined;
+                    appState.walletView.actionText = LanguageEn.cancel;
+                    appState.walletView.view = WalletView.addSubWallet;
+                  } else if (appState.walletView.view ==
+                      WalletView.addSubWallet) {
+                    appState.walletView.actionIcon =
+                        Icons.add_circle_outline_sharp;
+                    appState.walletView.actionText = LanguageEn.addsubwallet;
+                    appState.walletView.view = WalletView.listWallets;
+                    resetForm();
+                  } else if (appState.walletView.view ==
+                      WalletView.confirmAddSubWallet) {
+                    appState.walletView.actionIcon = Icons.cancel_outlined;
+                    appState.walletView.actionText = LanguageEn.cancel;
+                    appState.walletView.view = WalletView.addSubWallet;
+                  }
+
+                  setState(() {});
+                },
+                child: Column(
+                  children: [
+                    Icon(
+                      appState.walletView.actionIcon,
+                      color: notifier.getbluewhitecolor,
+                      size: 35,
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      appState.walletView.actionText,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              if (appState.walletView.view == WalletView.addSubWallet) ...[
+                addSubwallet()
+              ] else if (appState.walletView.view ==
+                  WalletView.confirmAddSubWallet) ...[
+                confirmAddSubwallet()
+              ] else ...[
+                isTileView ? gridView() : walletListView(),
+              ],
+              Padding(
+                  padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom)),
+            ],
+          ),
+        ));
   }
 
   Widget gridView() {

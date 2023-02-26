@@ -352,7 +352,6 @@ class _LoginState extends State<Login> {
   }
 
   void handleSignin() {
-    print('handling signin...');
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -370,8 +369,6 @@ class _LoginState extends State<Login> {
   versionControl() async {
     Map appVersionData = await StoreData().storeGetData('appVersion') ?? {};
 
-    print('The app version $appVersionData');
-
     if (appVersionData.isNotEmpty) {
       var phoneVersion = appState.appVersion.replaceAll('.', '');
 
@@ -385,11 +382,7 @@ class _LoginState extends State<Login> {
 
       var forceUpdate = await appVersionData['forceUpdate'];
 
-      print(
-          'this is app version $appVersionData \nforce update is $forceUpdate \nminVersion $minVersion  \ncurrentVersion $currentVersion \nphone version $phoneVersion');
-
       // the min version is ahead of current phone version. Force update
-
       if (num.tryParse(minVersion)! > num.tryParse(phoneVersion)!) {
         updateAppMessagePopup(context,
             'You must upgrade to Trovo Wallet version $currentVersionRaw to continue to use the wallet.',
@@ -399,7 +392,6 @@ class _LoginState extends State<Login> {
                 ? appVersionData['androidUrl'].toString()
                 : appVersionData['iosUrl'].toString(),
           );
-          print('launching $uri');
           if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
             throw 'Could not launch $uri';
           }
@@ -413,8 +405,6 @@ class _LoginState extends State<Login> {
       if (num.tryParse(currentVersion)! > num.tryParse(phoneVersion)!) {
         // the current version requires force update.
         if (forceUpdate == 1) {
-          // print('Force Update to happen');
-          // goToNextScreenWithOutBack(context, '/ScreenAppUpdate');
           updateAppMessagePopup(context,
               'You must upgrade to Trovo Wallet version: $currentVersionRaw to continue using the wallet.',
               () async {
@@ -423,7 +413,6 @@ class _LoginState extends State<Login> {
                   ? appVersionData['androidUrl'].toString()
                   : appVersionData['iosUrl'].toString(),
             );
-            print('launching $uri');
             if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
               throw 'Could not launch $uri';
             }

@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
@@ -471,10 +471,6 @@ Widget dropdown(
 
 Future<void> share(String message, GlobalKey snapshotAreaKey) async {
   final appDir = await syspaths.getTemporaryDirectory();
-  Directory? appDir2 = await Platform.isAndroid
-      ? await syspaths.getExternalStorageDirectory() //FOR ANDROID
-      : await syspaths.getApplicationSupportDirectory(); //FOR iOS
-
   String fileName = '${appDir.path}/receipt.png';
 
   RenderRepaintBoundary boundary = snapshotAreaKey.currentContext!
@@ -484,17 +480,12 @@ Future<void> share(String message, GlobalKey snapshotAreaKey) async {
   var byteData = await image.toByteData(format: ImageByteFormat.png);
   File file = await File(fileName).create();
   file.writeAsBytesSync(byteData!.buffer.asUint8List());
-  print('========================================$fileName');
-
-  Share.shareFiles([fileName], text: message);
+  await Share.shareXFiles([XFile(fileName)],
+      text: message, sharePositionOrigin: boundary.paintBounds);
 }
 
 Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {
   final appDir = await syspaths.getTemporaryDirectory();
-
-  Directory? appDir2 = await Platform.isAndroid
-      ? await syspaths.getTemporaryDirectory() //FOR ANDROID
-      : await syspaths.getApplicationSupportDirectory();
   String fileName = '${appDir.path}/receipt.pdf';
   RenderRepaintBoundary boundary = snapshotAreaKey.currentContext!
       .findRenderObject()! as RenderRepaintBoundary;
@@ -515,6 +506,6 @@ Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {
 
   File file = await File(fileName).create();
   file.writeAsBytesSync(await pdf.save());
-
-  Share.shareFiles([fileName], text: message);
+  await Share.shareXFiles([XFile(fileName)],
+      text: message, sharePositionOrigin: boundary.paintBounds);
 }

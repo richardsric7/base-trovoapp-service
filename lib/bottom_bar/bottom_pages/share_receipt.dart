@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:intl/intl.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -194,12 +194,14 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                                       ? '${viewData.from!}'
                                                       : '${viewData.to!}',
                                                   style: TextStyle(
-                                                    fontWeight: FontWeight.w500,
-                                                    color: notifier
-                                                        .getbluewhitecolor,
-                                                    fontSize: 18.sp,
-                                                    fontFamily: fontbody,
-                                                  ),
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: notifier
+                                                          .getbluewhitecolor,
+                                                      fontSize: 18.sp,
+                                                      fontFamily: fontbody,
+                                                      overflow:
+                                                          TextOverflow.visible),
                                                 ),
                                               ),
                                             ],
@@ -561,20 +563,6 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     var am = formatNumber(double.parse(amount.toString()));
     return '$am $assetCode';
   }
-
-  // String extractUsername(String data) {
-  //   print('data $data');
-  //   if (data.isNotEmpty) {
-  //     const start = '[';
-  //     const end = ']';
-  //     final startIndex = data.indexOf(start);
-  //     final endIndex = data.indexOf(end);
-  //     print('data $data');
-  //     return data.substring(startIndex + start.length, endIndex);
-  //   }
-
-  //   return '';
-  // }
 
   void shareText() {
     String? shareString;

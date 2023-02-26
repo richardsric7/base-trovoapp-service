@@ -8,7 +8,7 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/permission.dart';
+import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
@@ -25,35 +25,28 @@ import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
-class UpdateSharedAccessDetails extends StatefulWidget {
-  const UpdateSharedAccessDetails({Key? key}) : super(key: key);
+class AddSharedAccessDetails extends StatefulWidget {
+  const AddSharedAccessDetails({Key? key}) : super(key: key);
 
   @override
-  State<UpdateSharedAccessDetails> createState() =>
-      _UpdateSharedAccessDetails();
+  State<AddSharedAccessDetails> createState() => _AddSharedAccessDetails();
 }
 
-class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
+class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late Wallet wallet;
+  late UserInfo userInfo;
+  Wallet? activeWallet;
   String password = '';
   final formKey = GlobalKey<FormState>();
   final Authenticator _authenticator = Authenticator();
+  late Account primaryWalletKeyPair;
   var viewData;
-  String sharedAccessModifySuccess =
-      'Shared access modification on wallet [alias] was successful.';
-  String sharedAccessModifyRequestSuccess =
-      'Your request to modify shared access on wallet [alias] has been successfully submitted! This transaction will be completed when it gets the required number of approvals.';
 
   @override
   void initState() {
     super.initState();
-    appState = Provider.of<DataProvider>(context, listen: false);
-    wallet =
-        appState.userInfo!.getWallet(appState.viewData!['walletPublicKey']);
-    viewData = appState.viewData;
   }
 
   @override
@@ -61,6 +54,11 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    appState = Provider.of<DataProvider>(context, listen: true);
+    activeWallet = appState.activeWallet;
+    viewData = appState.viewData![AddSharedAccessDetailsViewPageConfig.key];
+    print('this is viewData');
+    print(viewData);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -72,6 +70,9 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
         body: SingleChildScrollView(
           child: Column(
             children: [
+              SizedBox(
+                height: height / 50,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -88,17 +89,14 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
               SizedBox(
                 height: height / 20,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text(
-                  'You are about to make the following modifications to your shared access',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
-                    color: notifier.getbluewhitecolor,
-                    fontFamily: fontbody,
-                  ),
+              Text(
+                'You are about to grant access to the following users',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
                 ),
               ),
               SizedBox(
@@ -129,6 +127,9 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                                 color: notifier.getbluewhitecolor,
                                 fontFamily: fontsemibold),
                           ),
+                          SizedBox(
+                            height: height / 50,
+                          ),
                           Padding(
                             padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                             child: Container(
@@ -143,7 +144,8 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                                             alignment: WrapAlignment.center,
                                             children: [
                                               Text(
-                                                wallet.alias!,
+                                                appState.activeWallet!.alias ??
+                                                    "",
                                                 style: TextStyle(
                                                     fontSize: 15,
                                                     color: notifier
@@ -204,15 +206,33 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
-                                width: width / 1.27,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    for (var i = 0;
-                                        i < viewData['viewers'].length;
-                                        i++) ...[
-                                      getPermissionInfo(viewData['viewers'][i]),
-                                    ]
+                                    Column(
+                                      children: [
+                                        Container(
+                                            width: width / 1.3,
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              children: [
+                                                for (var i = 0;
+                                                    i <
+                                                        viewData['viewers']
+                                                            .length;
+                                                    i++) ...[
+                                                  userItem(
+                                                      '${viewData['viewers'][i]} [${viewData['userFullnames'][viewData['viewers'][i]]}]',
+                                                      null,
+                                                      foreColor: wihitecolor,
+                                                      backColor: notifier
+                                                          .getbluebackcolor)
+                                                ],
+                                              ],
+                                            )),
+                                        SizedBox(height: 2),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ),
@@ -263,16 +283,33 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
-                                width: width / 1.27,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    for (var i = 0;
-                                        i < viewData['approvers'].length;
-                                        i++) ...[
-                                      getPermissionInfo(
-                                          viewData['approvers'][i]),
-                                    ]
+                                    Column(
+                                      children: [
+                                        Container(
+                                            width: width / 1.3,
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              children: [
+                                                for (var i = 0;
+                                                    i <
+                                                        viewData['approvers']
+                                                            .length;
+                                                    i++) ...[
+                                                  userItem(
+                                                      '${viewData['approvers'][i]} [${viewData['userFullnames'][viewData['approvers'][i]]}]',
+                                                      null,
+                                                      foreColor: wihitecolor,
+                                                      backColor: notifier
+                                                          .getbluebackcolor),
+                                                ],
+                                              ],
+                                            )),
+                                        SizedBox(height: 2),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ),
@@ -300,7 +337,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                           : notifier.getaddsubwalletgrey,
                     ),
                     child: Row(
-                      // mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Column(
                           children: [
@@ -321,16 +358,34 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
                               child: Container(
-                                width: width / 1.27,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    for (var i = 0;
-                                        i < viewData['initiators'].length;
-                                        i++) ...[
-                                      getPermissionInfo(
-                                          viewData['initiators'][i]),
-                                    ]
+                                    Column(
+                                      children: [
+                                        Container(
+                                            width: width / 1.3,
+                                            child: Wrap(
+                                              alignment: WrapAlignment.center,
+                                              children: [
+                                                for (var i = 0;
+                                                    i <
+                                                        viewData['initiators']
+                                                            .length;
+                                                    i++) ...[
+                                                  userItem(
+                                                    '${viewData['initiators'][i]} [${viewData['userFullnames'][viewData['initiators'][i]]}]',
+                                                    null,
+                                                    foreColor: wihitecolor,
+                                                    backColor: notifier
+                                                        .getbluebackcolor,
+                                                  )
+                                                ],
+                                              ],
+                                            )),
+                                        SizedBox(height: 2),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ),
@@ -491,160 +546,43 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
     return null;
   }
 
-  Widget getPermissionInfo(permission) {
-    var text = '';
-    Color color;
-    switch (permission.permissionState) {
-      case PermissionState.Added:
-        text = 'Added';
-        color = notifier.getgreencolor;
-        break;
-      case PermissionState.Revoked:
-        text = 'Revoked';
-        color = Colors.red;
-        break;
-      case PermissionState.Modified:
-        text = 'Modified';
-        color = Colors.yellow;
-        break;
-      default:
-        text = 'Active';
-        color = notifier.getbluewhitecolor;
-    }
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            width: width / 1.75,
-            child: Text(
-              '${permission.targetUsername} [${permission.fullName}]',
-              style: TextStyle(
-                  fontSize: 13,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontsemibold),
-            ),
-          ),
-          Text(
-            text,
-            style: TextStyle(fontSize: 13, color: color, fontFamily: fontbody),
-          ),
-        ],
-      ),
-    );
-  }
-
   sendDataToServer() async {
     print('sending to server....');
 
     try {
       showLoader(context);
 
-      var addedPermissions = [];
-      var modifiedPermissions = [];
-      var revokedPermissions = [];
+      var permissions = [];
       print(viewData);
 
       for (var i = 0; i < viewData['viewers'].length; i++) {
-        if (viewData['viewers'][i].permissionState == PermissionState.Added) {
-          addedPermissions.add(
-            {
-              "targetUsername": viewData['viewers'][i].targetUsername,
-              // "name": "",
-              "permission": "VIEW-ONLY",
-            },
-          );
-        }
-
-        if (viewData['viewers'][i].permissionState ==
-            PermissionState.Modified) {
-          modifiedPermissions.add(
-            {
-              "targetUsername": viewData['viewers'][i].targetUsername,
-              // "name": "",
-              "permission": "VIEW-ONLY",
-            },
-          );
-        }
-
-        if (viewData['viewers'][i].permissionState == PermissionState.Revoked) {
-          revokedPermissions.add(
-            {
-              "targetUsername": viewData['viewers'][i].targetUsername,
-              // "name": "",
-              "permission": "VIEW-ONLY",
-            },
-          );
-        }
-
-        print('added: $addedPermissions');
-        print('modified: $modifiedPermissions');
-        print('revoked: $revokedPermissions');
+        print(viewData['viewers'][i]);
+        permissions.add(
+          {
+            "targetUsername": viewData['viewers'][i],
+            // "name": "",
+            "permission": "VIEW-ONLY",
+          },
+        );
       }
 
-      for (var i = 0; i < viewData['approvers'].length; i++) {
-        if (viewData['approvers'][i].permissionState == PermissionState.Added) {
-          addedPermissions.add(
+      if (viewData['addApprovers'] == true) {
+        for (var i = 0; i < viewData['approvers'].length; i++) {
+          print(viewData['approvers'][i]);
+          permissions.add(
             {
-              "targetUsername": viewData['approvers'][i].targetUsername,
+              "targetUsername": viewData['approvers'][i],
               // "name": "",
               "permission": "APPROVER",
             },
           );
         }
 
-        if (viewData['approvers'][i].permissionState ==
-            PermissionState.Modified) {
-          modifiedPermissions.add(
+        for (var i = 0; i < viewData['initiators'].length; i++) {
+          print(viewData['initiators'][i]);
+          permissions.add(
             {
-              "targetUsername": viewData['approvers'][i].targetUsername,
-              // "name": "",
-              "permission": "APPROVER",
-            },
-          );
-        }
-
-        if (viewData['approvers'][i].permissionState ==
-            PermissionState.Revoked) {
-          revokedPermissions.add(
-            {
-              "targetUsername": viewData['approvers'][i].targetUsername,
-              // "name": "",
-              "permission": "APPROVER",
-            },
-          );
-        }
-      }
-
-      for (var i = 0; i < viewData['initiators'].length; i++) {
-        if (viewData['initiators'][i].permissionState ==
-            PermissionState.Added) {
-          addedPermissions.add(
-            {
-              "targetUsername": viewData['initiators'][i].targetUsername,
-              // "name": "",
-              "permission": "INITIATOR",
-            },
-          );
-        }
-
-        if (viewData['initiators'][i].permissionState ==
-            PermissionState.Modified) {
-          modifiedPermissions.add(
-            {
-              "targetUsername": viewData['initiators'][i].targetUsername,
-              // "name": "",
-              "permission": "INITIATOR",
-            },
-          );
-        }
-
-        if (viewData['initiators'][i].permissionState ==
-            PermissionState.Revoked) {
-          revokedPermissions.add(
-            {
-              "targetUsername": viewData['initiators'][i].targetUsername,
+              "targetUsername": viewData['initiators'][i],
               // "name": "",
               "permission": "INITIATOR",
             },
@@ -652,87 +590,98 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
         }
       }
 
-      var postData = {
-        "numberOfApprovalsNeeded": viewData['noOfApprovalsNeeded'],
-        "revokedPermissions": revokedPermissions,
-        "addedPermissions": addedPermissions,
-      };
+      var postData = {};
+
+      if (viewData['addApprovers']) {
+        postData = {
+          "numberOfApprovalsNeeded": viewData['noOfApprovalsNeeded'],
+          "permissions": permissions,
+        };
+      } else {
+        postData = {
+          "permissions": permissions,
+        };
+      }
 
       String requestBody = jsonEncode(postData);
 
       print(requestBody);
 
-      Map responseData = await makePutRequest(
+      Map responseData = await makePostRequest(
         uri: '/v1/shared-access/users/account',
         body: requestBody,
-        signer: appState.primaryWallet.signer!,
+        signer: activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.publicKey!,
+        publicKey: activeWallet!.publicKey!,
       );
-      print(responseData);
+      // print(responseData);
 
-      if (responseData['statusCode'] == 200 ||
-          responseData['statusCode'] == 202) {
+      if (responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
-        print('messagelenth: $messageLength');
+        // print('messagelenth: $messageLength');
         postProcessData(
             context, messageShown, messageLength, responseData['data'],
             callback: () {
-          signAndCommitTransaction(responseData['data']);
+          signAndSendToServerAgain(responseData['data']);
         });
         hideLoader(context);
       } else {
+        hideLoader(context);
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
-        hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
       hideLoader(context);
+      popup(context, title: LanguageEn.error, message: e.toString());
     }
   }
 
-  void signAndCommitTransaction(responseFromServer) async {
+  void signAndSendToServerAgain(responseFromServer) async {
     try {
-      print('signing and sending....');
       showLoader(context);
 
-      // wallets with only shared view-only access are still not fully shared-wallets
-      // the owner can still solely initiate and complete transactions. So in
-      // the case that the wallet owner wants to now modify shared access on thier
-      // wallet the can still sign the transaction. If however, the wallet has
-      // shared approver and initiator access, then they cannot sign the transaction
-      // rather they set commit=1
-      if (responseFromServer['signatureRequired'] == 1) {
-        responseFromServer['commit'] = 0;
-        //sign the transaction and the submit again
-        var signature = TrovoWalletSDK().signBase64Txn(
-          appState.secretKeys[0], // the primary wallet secret key,
-          responseFromServer['transaction'],
-          responseFromServer['networkPassPhrase'],
-        );
-        responseFromServer['transactionId'] = "";
-        responseFromServer['transactionSignature'] = signature;
-      } else {
-        responseFromServer['commit'] = 1;
-      }
-      print('second: ${responseFromServer}');
+      //sign the transaction and the submit again
+      var signature = TrovoWalletSDK().signBase64Txn(
+        appState.secretKeys[0], // the primary wallet secret key,
+        responseFromServer['transaction'],
+        responseFromServer['networkPassPhrase'],
+      );
+      responseFromServer['transactionId'] = "";
+      responseFromServer['transactionSignature'] = signature;
 
       String requestBody = jsonEncode(responseFromServer);
 
-      print('second: ${requestBody}');
+      // print('second: ${requestBody}');
 
-      Map responseData = await makePutRequest(
+      Map responseData = await makePostRequest(
         uri: '/v1/shared-access/users/account',
         body: requestBody,
-        signer: appState.primaryWallet.signer!,
+        signer: activeWallet!.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: wallet.publicKey!,
+        publicKey: activeWallet!.publicKey!,
       );
 
-      if (responseData['statusCode'] == 200 ||
-          responseData['statusCode'] == 202) {
+      if (responseData['statusCode'] == 200) {
+        appState.viewData![SuccessViewPageConfig.key] = {
+          'title': 'Shared access enabled successfully',
+          'message':
+              'You have successfully enabled shared access on your wallet [${appState.activeWallet!.alias}]!',
+          'useOnDone': true,
+          'onDone': () {
+            appState.currentAction =
+                PageAction(state: PageState.addAll, pages: [
+              BottomHomePageConfig,
+              SharedAccessViewPageConfig,
+            ]);
+            appState.clearAccessList = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              appState.sharedAccesstabController.animateTo(0,
+                  duration: Duration(milliseconds: 500),
+                  curve: Curves.easeInOut);
+            });
+          },
+        };
         updateUserInfo(
           appState.primaryWallet.signer!,
           appState.secretKeys[0],
@@ -741,32 +690,17 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
           appState,
           forceRefresh: true,
         );
-        appState.viewData![SuccessViewPageConfig.key] = {
-          'title': 'Request successfull submitted',
-          'message': wallet.isPrimaryWallet || wallet.walletThreshold! < 2
-              ? sharedAccessModifySuccess.replaceAll('alias', wallet.alias!)
-              : sharedAccessModifyRequestSuccess.replaceAll(
-                  'alias', wallet.alias!),
-          'useOnDone': true,
-          'onDone': () {
-            appState.currentAction =
-                PageAction(state: PageState.addAll, pages: [
-              BottomHomePageConfig,
-              SharedAccessViewPageConfig,
-            ]);
-          },
-        };
+        hideLoader(context);
         appState.currentAction =
             PageAction(state: PageState.replace, page: SuccessViewPageConfig);
-        hideLoader(context);
       } else {
+        hideLoader(context);
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
-        hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
       hideLoader(context);
+      popup(context, title: LanguageEn.error, message: e.toString());
     }
   }
 }

@@ -37,8 +37,6 @@ Future<void> initAppNotification(context, appState) async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  /// Note: permissions aren't requested here just to demonstrate that can be
-  /// done later
   final IOSInitializationSettings initializationSettingsIOS =
       IOSInitializationSettings(
           requestAlertPermission: true,
@@ -54,6 +52,8 @@ Future<void> initAppNotification(context, appState) async {
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
       macOS: initializationSettingsMacOS);
+
+  requestPermissions();
   await flutterLocalNotificationsPlugin.initialize(initializationSettings,
       onSelectNotification: selectNotification);
   //requestPermissions();
@@ -77,8 +77,6 @@ initMyNotification(BuildContext context) {
   //When the app is in the background, but not terminated.
   FirebaseMessaging.onMessageOpenedApp.listen(
     (message) {
-      print('==============message opened app:${message.notification!.title}');
-      print(message.toMap());
       goToPageRoute(message.data['route'] ?? '');
       return;
     },
@@ -87,9 +85,6 @@ initMyNotification(BuildContext context) {
   );
 
   FirebaseMessaging.onBackgroundMessage((message) {
-    print('Got a message whilst in the background!');
-    print('Message data: ${message.notification!.body}');
-    print('Message data: ${message.notification!.title}');
     // lets just return something that makes the compiler
     // happy.
     return Future.sync(() {});

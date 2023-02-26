@@ -135,7 +135,6 @@ class _SplashScreenState extends State<SplashScreen>
         // else wait for the dynamiclink handler to take over
         Timer.periodic(Duration(milliseconds: 200), (timer) {
           if (timerIsDone) {
-            print('timer done');
             timer.cancel();
             appState.setSplashFinished();
             appState.appIsOpen = true;

@@ -113,161 +113,157 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
 
-    return ScreenUtilInit(
-      builder: (context, child) => Scaffold(
-        resizeToAvoidBottomInset: false,
-        backgroundColor: notifier.getwihitecolor,
-        body: SmartRefresher(
-          enablePullDown: true,
-          controller: _refreshController,
-          onRefresh: refreshData,
-          child: SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Container(
-                    width: width,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Swap",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontsemibold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 30,
-                  ),
-                  Row(
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: notifier.getwihitecolor,
+      body: SmartRefresher(
+        enablePullDown: true,
+        controller: _refreshController,
+        onRefresh: refreshData,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: height / 50,
+                ),
+                Container(
+                  width: width,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: width / 15,
-                      ),
                       Text(
-                        'Select wallet',
+                        "Swap",
                         style: TextStyle(
-                            color: notifier.getbluewhitecolor,
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            fontWeight: FontWeight.w500),
-                      ),
-                      SizedBox(
-                        width: width / 15,
-                      ),
-                      Expanded(
-                          child: dropdown(
-                        (newValue) {
-                          selectedWallet = newValue.toString();
-                          wallet = appState.userInfo!.getWallet(selectedWallet);
-                          key1.currentState!.reset();
-                          key2.currentState!.reset();
-                          key3.currentState!.reset();
-                          amount = 0;
-                          textController.text = amount.toString();
-                          sourceAsset = destinationAsset =
-                              sourceAssetRawDropdownValue =
-                                  destinationAssetRawDropdownValue = null;
-
-                          claimedAssets = wallet.claimedAssets!;
-                          setState(() {});
-                        },
-                        walletDropdownItems(false),
-                        selectedWallet.toString().isEmpty
-                            ? null
-                            : selectedWallet,
-                        null,
-                        context,
-                        (context) {
-                          return walletDropdownItems(true);
-                        },
-                      )),
-                      SizedBox(
-                        width: width / 15,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: notifier.getbluewhitecolor,
+                          fontFamily: fontsemibold,
+                        ),
                       ),
                     ],
                   ),
-                  Form(
-                    key: formKey,
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: height / 30,
-                        ),
-                        swap(),
-                        SizedBox(
-                          height: height / 50,
-                        ),
-                        CustomTextFormField.textField(
-                          LanguageEn.amount,
-                          notifier.getbluecolor,
-                          Icons.currency_exchange,
-                          notifier.getgrey,
-                          notifier.getprefixicon,
-                          notifier.getblck,
-                          notifier.getgrey,
-                          // dynamically change the size
-                          // of the textbox so it will
-                          // consistent when showing an
-                          // error message
-                          70.sp,
-                          300.sp,
-                          onChanged: (value) {
-                            if (value != null && value.toString().isNotEmpty) {
-                              setState(() {
-                                amount = double.tryParse(value) ?? 0.0;
-                              });
-                            }
-                          },
-                          key: key3,
-                          controller: textController,
-                          // inputFormatters: [
-                          //   doubleTypeFormatter(),
-                          // ],
-                          keyboardtype:
-                              TextInputType.numberWithOptions(decimal: true),
-                          validator: validateAmount,
-                          onSaved: (value) =>
-                              amount = value.trim().replaceAll(' ', ''),
-                        ),
-                        if (sourceAsset != null && !appState.hideBalances) ...[
-                          availableBalance(),
-                          const SizedBox(
-                            height: 20.0,
-                          ),
-                        ],
-                        SizedBox(
-                          height: height / 20,
-                        ),
-                        Button(
-                          LanguageEn.proceed,
-                          notifier.getbluecolor,
-                          wihitecolor,
-                          onTap: () {
-                            handleSubmit();
-                          },
-                        ),
-                        SizedBox(
-                          height: height / 20,
-                        ),
-                        Padding(
-                            padding: EdgeInsets.only(
-                                bottom:
-                                    MediaQuery.of(context).viewInsets.bottom)),
-                      ],
+                ),
+                SizedBox(
+                  height: height / 30,
+                ),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: width / 15,
                     ),
+                    Text(
+                      'Select wallet',
+                      style: TextStyle(
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15,
+                          fontFamily: fontsemibold,
+                          fontWeight: FontWeight.w500),
+                    ),
+                    SizedBox(
+                      width: width / 15,
+                    ),
+                    Expanded(
+                        child: dropdown(
+                      (newValue) {
+                        selectedWallet = newValue.toString();
+                        wallet = appState.userInfo!.getWallet(selectedWallet);
+                        key1.currentState!.reset();
+                        key2.currentState!.reset();
+                        key3.currentState!.reset();
+                        amount = 0;
+                        textController.text = amount.toString();
+                        sourceAsset = destinationAsset =
+                            sourceAssetRawDropdownValue =
+                                destinationAssetRawDropdownValue = null;
+
+                        claimedAssets = wallet.claimedAssets!;
+                        setState(() {});
+                      },
+                      walletDropdownItems(false),
+                      selectedWallet.toString().isEmpty ? null : selectedWallet,
+                      null,
+                      context,
+                      (context) {
+                        return walletDropdownItems(true);
+                      },
+                    )),
+                    SizedBox(
+                      width: width / 15,
+                    ),
+                  ],
+                ),
+                Form(
+                  key: formKey,
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: height / 30,
+                      ),
+                      swap(),
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                      CustomTextFormField.textField(
+                        LanguageEn.amount,
+                        notifier.getbluecolor,
+                        Icons.currency_exchange,
+                        notifier.getgrey,
+                        notifier.getprefixicon,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        // dynamically change the size
+                        // of the textbox so it will
+                        // consistent when showing an
+                        // error message
+                        70.sp,
+                        300.sp,
+                        onChanged: (value) {
+                          if (value != null && value.toString().isNotEmpty) {
+                            setState(() {
+                              amount = double.tryParse(value) ?? 0.0;
+                            });
+                          }
+                        },
+                        key: key3,
+                        controller: textController,
+                        // inputFormatters: [
+                        //   doubleTypeFormatter(),
+                        // ],
+                        keyboardtype:
+                            TextInputType.numberWithOptions(decimal: true),
+                        validator: validateAmount,
+                        onSaved: (value) =>
+                            amount = value.trim().replaceAll(' ', ''),
+                      ),
+                      if (sourceAsset != null && !appState.hideBalances) ...[
+                        availableBalance(),
+                        const SizedBox(
+                          height: 20.0,
+                        ),
+                      ],
+                      SizedBox(
+                        height: height / 20,
+                      ),
+                      Button(
+                        LanguageEn.proceed,
+                        notifier.getbluecolor,
+                        wihitecolor,
+                        onTap: () {
+                          handleSubmit();
+                        },
+                      ),
+                      SizedBox(
+                        height: height / 20,
+                      ),
+                      Padding(
+                          padding: EdgeInsets.only(
+                              bottom:
+                                  MediaQuery.of(context).viewInsets.bottom)),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
