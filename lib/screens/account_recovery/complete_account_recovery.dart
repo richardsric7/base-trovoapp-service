@@ -1,26 +1,21 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/user.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
-import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
 
 class CompleteAccountRecovery extends StatefulWidget {
   const CompleteAccountRecovery({Key? key}) : super(key: key);
@@ -56,8 +51,9 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-            context, notifier.getwihitecolor, "", notifier.getblck,
-            height: height / 15),
+                context, notifier.getwihitecolor, "", notifier.getblck,
+                height: height / 15)
+            .getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [

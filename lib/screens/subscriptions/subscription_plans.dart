@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -54,43 +55,13 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
     width = MediaQuery.of(context).size.width;
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(height / 15),
-          child: AppBar(
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: notifier.getwihitecolor,
-            leading: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset("assets/images/back.png", scale: 5),
-            ),
-            title: Container(
-              width: width / 1.5,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Trovo Patron Plans',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              color: notifier.getblck,
-                              fontSize: 22.sp,
-                              fontFamily: fontsemibold),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          'Trovo Patron Plans',
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
           child: Column(
@@ -202,7 +173,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                             description: '',
                           );
 
-                          for (var p in patronPackages) {                            
+                          for (var p in patronPackages) {
                             if (p['id'] == grade['patronPackage']) {
                               package.description = p['description'];
                             }

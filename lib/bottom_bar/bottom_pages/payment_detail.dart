@@ -99,7 +99,7 @@ class _PaymentDetails extends State<PaymentDetails>
           "",
           notifier.getblck,
           height: height / 15,
-        ),
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [

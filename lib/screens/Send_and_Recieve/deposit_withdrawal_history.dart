@@ -230,6 +230,18 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                   )
                 ],
               ),
+              actions: [
+                Visibility(
+                  visible: true,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 5),
+                    child: Banner(
+                      location: BannerLocation.topEnd,
+                      message: "Testnet",
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           body: SmartRefresher(

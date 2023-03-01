@@ -1,18 +1,12 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/wallet.dart';
-import 'package:trovo_wallet/functions/trovo-sdk.dart';
-import 'package:trovo_wallet/network/requests.dart';
-import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/widgets/loader.dart';
-import 'package:trovo_wallet/widgets/popups.dart';
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../router/page_actions.dart';
@@ -65,8 +59,9 @@ class _DisableAccountRecoveryInfoState
         backgroundColor: notifier.getwihitecolor,
         resizeToAvoidBottomInset: false,
         appBar: CustomAppBar(
-            context, notifier.getwihitecolor, "", notifier.getblck,
-            height: height / 15),
+                context, notifier.getwihitecolor, "", notifier.getblck,
+                height: height / 15)
+            .getBar(),
         body: SingleChildScrollView(
           child: Column(
             // crossAxisAlignment: CrossAxisAlignment.start,

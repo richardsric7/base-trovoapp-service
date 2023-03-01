@@ -59,7 +59,7 @@ class _FingerPrintState extends State<FingerPrint> {
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
         resizeToAvoidBottomInset: false,
-        appBar: CustomAppBar(
+        appBar: CustomAppBarWithoutBanner(
             context, notifier.getwihitecolor, "", notifier.getblck,
             height: height / 15),
         body: SingleChildScrollView(

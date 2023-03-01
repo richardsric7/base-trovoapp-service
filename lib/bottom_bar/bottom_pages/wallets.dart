@@ -8,6 +8,7 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
@@ -120,18 +121,13 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     return Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text(
-            LanguageEn.wallets,
-            style: TextStyle(
-                color: notifier.getblck,
-                fontWeight: FontWeight.bold,
-                fontFamily: fontsemibold),
-          ),
-          backgroundColor: notifier.getfavorites,
-          elevation: 0,
-        ),
+        appBar: CustomAppBarWithoutLeading(
+          context,
+          notifier.getwihitecolor,
+          height: height / 15,
+          txt: LanguageEn.wallets,
+          titlecolor: notifier.getbluewhitecolor,
+        ).getBar(),
         body: SmartRefresher(
           enablePullDown: true,
           controller: _refreshController,

@@ -136,7 +136,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
           'Update Shared Access',
           notifier.getbluewhitecolor,
           height: height / 15,
-        ),
+        ).getBar(),
         body: SingleChildScrollView(
           child: Container(
             width: width,

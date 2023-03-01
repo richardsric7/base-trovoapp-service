@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/bottom_tab_page.dart';
@@ -73,299 +74,302 @@ class _SettingsState extends State<Settings> {
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
       body: SingleChildScrollView(
-        child: Column(
+        child: Stack(
           children: [
-            SizedBox(
-              height: height / 10,
-            ),
-            Center(
-              child: CircleAvatar(
-                  radius: width / 10,
-                  backgroundColor: notifier.getbluecolor70,
-                  child: GestureDetector(
-                    onTap: () {
+            Column(
+              children: [
+                CustomAppBarWithoutLeading(
+                  context,
+                  notifier.getwihitecolor,
+                  height: height / 15,
+                ).getBar(),
+                Center(
+                  child: CircleAvatar(
+                      radius: width / 10,
+                      backgroundColor: notifier.getbluecolor70,
+                      child: GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: ProfileDetailsViewPageConfig);
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100.0),
+                          child: Image.network(
+                            appState.userInfo!.imageThumbnailURL!,
+                            width: width / 5.3,
+                            // height: width / 10,
+                            fit: BoxFit.fill,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/trovo.png',
+                                width: width / 9,
+                              );
+                            },
+                          ),
+                        ),
+                      )),
+                ),
+                SizedBox(
+                  height: height / 80,
+                ),
+                Text(
+                  '${appState.userInfo!.firstName} ${appState.userInfo!.lastName} ${appState.userInfo!.isCorporate ? '(Corporate)' : ''}',
+                  style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                      fontSize: 18.sp),
+                ),
+                SizedBox(height: height / 50),
+                GestureDetector(
+                  onTap: () {
+                    share();
+                  },
+                  child: invitefriend(notifier.getbluecolor,
+                      LanguageEn.invitefriends, wihitecolor),
+                ),
+                SizedBox(height: height / 25),
+                Row(
+                  children: [
+                    SizedBox(width: width / 20),
+                    Text(
+                      LanguageEn.personal,
+                      style: TextStyle(
+                          color: notifier.getgrey,
+                          fontSize: 13.sp,
+                          fontFamily: fontsemibold),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height / 50),
+                GestureDetector(
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: ProfileDetailsViewPageConfig);
+                  },
+                  child: iteamlist(
+                      "assets/images/profile.png", "", LanguageEn.myprofile),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: WelcomeSubscriptionsViewPageConfig);
+                  },
+                  child:
+                      iteamlist("assets/images/trovo.png", "", "Trovo Patron"),
+                ),
+                SizedBox(height: height / 25),
+                Row(
+                  children: [
+                    SizedBox(width: width / 20),
+                    Text(
+                      LanguageEn.preferences,
+                      style: TextStyle(
+                          color: notifier.getgrey,
+                          fontSize: 13.sp,
+                          fontFamily: fontsemibold),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height / 50),
+                // GestureDetector(
+                //   child: iteamlist(
+                //       "assets/images/languages.png", "", LanguageEn.languages),
+                // ),
+                GestureDetector(
+                  child: currency(
+                      "assets/images/currency.png", "", LanguageEn.currency),
+                ),
+                GestureDetector(
+                  child:
+                      darkmode("assets/images/theme.png", "", LanguageEn.theme),
+                ),
+                SizedBox(height: height / 25),
+                Row(
+                  children: [
+                    SizedBox(width: width / 20),
+                    Text(
+                      LanguageEn.security,
+                      style: TextStyle(
+                          color: notifier.getgrey,
+                          fontSize: 13.sp,
+                          fontFamily: fontsemibold),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height / 50),
+                GestureDetector(
+                  onTap: () {
+                    // if shared access is enabled on this user's account
+                    if (appState.introducedSharedAccess) {
                       appState.currentAction = PageAction(
                           state: PageState.addPage,
-                          page: ProfileDetailsViewPageConfig);
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(100.0),
-                      child: Image.network(
-                        appState.userInfo!.imageThumbnailURL!,
-                        width: width / 5.3,
-                        // height: width / 10,
-                        fit: BoxFit.fill,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/images/trovo.png',
-                            width: width / 9,
-                          );
-                        },
-                      ),
-                    ),
-                  )),
-            ),
-            SizedBox(
-              height: height / 80,
-            ),
-            Text(
-              '${appState.userInfo!.firstName} ${appState.userInfo!.lastName} ${appState.userInfo!.isCorporate ? '(Corporate)' : ''}',
-              style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontsemibold,
-                  fontSize: 18.sp),
-            ),
-            SizedBox(height: height / 50),
-            GestureDetector(
-              onTap: () {
-                share();
-              },
-              child: invitefriend(
-                  notifier.getbluecolor, LanguageEn.invitefriends, wihitecolor),
-            ),
-            SizedBox(height: height / 25),
-            Row(
-              children: [
-                SizedBox(width: width / 20),
-                Text(
-                  LanguageEn.personal,
-                  style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 13.sp,
-                      fontFamily: fontsemibold),
-                ),
-              ],
-            ),
-            SizedBox(height: height / 50),
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: ProfileDetailsViewPageConfig);
-              },
-              child: iteamlist(
-                  "assets/images/profile.png", "", LanguageEn.myprofile),
-            ),
-            // GestureDetector(
-            //   onTap: () {
-            //     appState.currentAction = PageAction(
-            //         state: PageState.addPage,
-            //         page: ReferralInfoViewPageConfig);
-            //   },
-            //   child: iteamlist("assets/images/referrals-dark.png", "",
-            //       LanguageEn.myreferrals),
-            // ),
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: WelcomeSubscriptionsViewPageConfig);
-              },
-              child: iteamlist("assets/images/trovo.png", "", "Trovo Patron"),
-            ),
-            SizedBox(height: height / 25),
-            Row(
-              children: [
-                SizedBox(width: width / 20),
-                Text(
-                  LanguageEn.preferences,
-                  style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 13.sp,
-                      fontFamily: fontsemibold),
-                ),
-              ],
-            ),
-            SizedBox(height: height / 50),
-            // GestureDetector(
-            //   child: iteamlist(
-            //       "assets/images/languages.png", "", LanguageEn.languages),
-            // ),
-            GestureDetector(
-              child: currency(
-                  "assets/images/currency.png", "", LanguageEn.currency),
-            ),
-            GestureDetector(
-              child: darkmode("assets/images/theme.png", "", LanguageEn.theme),
-            ),
-            SizedBox(height: height / 25),
-            Row(
-              children: [
-                SizedBox(width: width / 20),
-                Text(
-                  LanguageEn.security,
-                  style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 13.sp,
-                      fontFamily: fontsemibold),
-                ),
-              ],
-            ),
-            SizedBox(height: height / 50),
-            GestureDetector(
-              onTap: () {
-                // if shared access is enabled on this user's account
-                if (appState.introducedSharedAccess) {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: SharedAccessViewPageConfig);
-                } else {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: WelcomeToSharedAccessViewPageConfig);
-                }
-              },
-              child: iteamlist(
-                  "assets/images/access.png", "", LanguageEn.sharedaccess),
-            ),
-            GestureDetector(
-              onTap: () => appState.currentAction = PageAction(
-                  state: PageState.addPage, page: PasswordMgtViewPageConfig),
-              child: iteamlist(
-                  "assets/images/lock.png", "", LanguageEn.passwordmanagement),
-            ),
-            GestureDetector(
-              child: hideBalance(
-                  "assets/images/eyeoff.png", "", LanguageEn.hidebalance),
-            ),
-            GestureDetector(
-              child: timeout(
-                  "assets/images/hourglass.png", "", LanguageEn.timeout),
-            ),
-            GestureDetector(
-              child: biometrics(
-                  "assets/images/biometrics.png", "", LanguageEn.biometrics),
-            ),
-            SizedBox(height: height / 25),
-            Row(
-              children: [
-                SizedBox(width: width / 20),
-                Text(
-                  LanguageEn.wallet,
-                  style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 13.sp,
-                      fontFamily: fontsemibold),
-                ),
-              ],
-            ),
-            SizedBox(height: height / 50),
-            GestureDetector(
-              onTap: () => appState.currentAction = PageAction(
-                  state: PageState.addPage, page: OptInOutAssetViewPageConfig),
-              child: iteamlist(
-                  "assets/images/asset.png", "", LanguageEn.addremoveasset),
-            ),
-            GestureDetector(
-              onTap: () => appState.currentAction = PageAction(
-                  state: PageState.addPage, page: ImportWalletPageConfig),
-              child: iteamlist(
-                  "assets/images/import.png", "", LanguageEn.importwallet),
-            ),
-            GestureDetector(
-              onTap: () {
-                // go to the definition of appState.viewData
-                // to learn more about viewData
-                appState.viewData![EnsurePrivacyPageConfig.key] = {
-                  'rel': 'backupAll',
-                };
-                appState.currentAction = PageAction(
-                    state: PageState.addPage, page: EnsurePrivacyPageConfig);
-              },
-              child: iteamlist("assets/images/backup-wallets.png", "",
-                  LanguageEn.backupwallet),
-            ),
-            walletMode(
-                "assets/images/walletmode.png", "", LanguageEn.walletmode),
-            GestureDetector(
-              onTap: () {
-                if (appState.userInfo!.hasSecurityQuestions == 0) {
-                  var primaryWallet = appState.userInfo!.wallets!
-                      .firstWhere((wallet) => wallet.primaryWallet == 1);
-
-                  appState.returnView = PageAction(
-                    state: PageState.addAll,
-                    pages: [
-                      BottomHomePageConfig,
-                      SetupAccountRecoveryViewPageConfig,
-                    ],
-                  );
-
-                  appState.viewData = {
-                    SecurityQuestionsViewPageConfig.key: {
-                      'signer': primaryWallet.signer,
-                      'publicKey': primaryWallet.publicKey,
-                      'secretKey': appState.secretKeys[0],
-                      'username': appState.userInfo!.username,
+                          page: SharedAccessViewPageConfig);
+                    } else {
+                      appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: WelcomeToSharedAccessViewPageConfig);
                     }
-                  };
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: SecurityQuestionsViewPageConfig);
-                } else if (appState.userInfo!.accountRecoveryEnabled == 0) {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: SetupAccountRecoveryViewPageConfig);
-                } else {
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: DisableAccountRecoveryInfoViewPageConfig);
-                }
-              },
-              child: iteamlist(
-                  "assets/images/history.png",
-                  appState.userInfo!.accountRecoveryEnabled == 1
-                      ? "Enabled"
-                      : "",
-                  LanguageEn.accountrecovery),
-            ),
-            SizedBox(height: height / 25),
-            Row(
-              children: [
-                SizedBox(width: width / 20),
-                Text(
-                  LanguageEn.more,
-                  style: TextStyle(
-                      color: notifier.getgrey,
-                      fontSize: 13.sp,
-                      fontFamily: fontsemibold),
+                  },
+                  child: iteamlist(
+                      "assets/images/access.png", "", LanguageEn.sharedaccess),
                 ),
+                GestureDetector(
+                  onTap: () => appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: PasswordMgtViewPageConfig),
+                  child: iteamlist("assets/images/lock.png", "",
+                      LanguageEn.passwordmanagement),
+                ),
+                GestureDetector(
+                  child: hideBalance(
+                      "assets/images/eyeoff.png", "", LanguageEn.hidebalance),
+                ),
+                GestureDetector(
+                  child: timeout(
+                      "assets/images/hourglass.png", "", LanguageEn.timeout),
+                ),
+                GestureDetector(
+                  child: biometrics("assets/images/biometrics.png", "",
+                      LanguageEn.biometrics),
+                ),
+                SizedBox(height: height / 25),
+                Row(
+                  children: [
+                    SizedBox(width: width / 20),
+                    Text(
+                      LanguageEn.wallet,
+                      style: TextStyle(
+                          color: notifier.getgrey,
+                          fontSize: 13.sp,
+                          fontFamily: fontsemibold),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height / 50),
+                GestureDetector(
+                  onTap: () => appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: OptInOutAssetViewPageConfig),
+                  child: iteamlist(
+                      "assets/images/asset.png", "", LanguageEn.addremoveasset),
+                ),
+                GestureDetector(
+                  onTap: () => appState.currentAction = PageAction(
+                      state: PageState.addPage, page: ImportWalletPageConfig),
+                  child: iteamlist(
+                      "assets/images/import.png", "", LanguageEn.importwallet),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    // go to the definition of appState.viewData
+                    // to learn more about viewData
+                    appState.viewData![EnsurePrivacyPageConfig.key] = {
+                      'rel': 'backupAll',
+                    };
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: EnsurePrivacyPageConfig);
+                  },
+                  child: iteamlist("assets/images/backup-wallets.png", "",
+                      LanguageEn.backupwallet),
+                ),
+                walletMode(
+                    "assets/images/walletmode.png", "", LanguageEn.walletmode),
+                GestureDetector(
+                  onTap: () {
+                    if (appState.userInfo!.hasSecurityQuestions == 0) {
+                      var primaryWallet = appState.userInfo!.wallets!
+                          .firstWhere((wallet) => wallet.primaryWallet == 1);
+
+                      appState.returnView = PageAction(
+                        state: PageState.addAll,
+                        pages: [
+                          BottomHomePageConfig,
+                          SetupAccountRecoveryViewPageConfig,
+                        ],
+                      );
+
+                      appState.viewData = {
+                        SecurityQuestionsViewPageConfig.key: {
+                          'signer': primaryWallet.signer,
+                          'publicKey': primaryWallet.publicKey,
+                          'secretKey': appState.secretKeys[0],
+                          'username': appState.userInfo!.username,
+                        }
+                      };
+                      appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: SecurityQuestionsViewPageConfig);
+                    } else if (appState.userInfo!.accountRecoveryEnabled == 0) {
+                      appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: SetupAccountRecoveryViewPageConfig);
+                    } else {
+                      appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: DisableAccountRecoveryInfoViewPageConfig);
+                    }
+                  },
+                  child: iteamlist(
+                      "assets/images/history.png",
+                      appState.userInfo!.accountRecoveryEnabled == 1
+                          ? "Enabled"
+                          : "",
+                      LanguageEn.accountrecovery),
+                ),
+                SizedBox(height: height / 25),
+                Row(
+                  children: [
+                    SizedBox(width: width / 20),
+                    Text(
+                      LanguageEn.more,
+                      style: TextStyle(
+                          color: notifier.getgrey,
+                          fontSize: 13.sp,
+                          fontFamily: fontsemibold),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height / 50),
+                GestureDetector(
+                  onTap: () => appState.goToWebView(trovoSupportUrl),
+                  child: iteamlist(
+                      "assets/images/help.png", "", LanguageEn.helpandsupport),
+                ),
+                GestureDetector(
+                  onTap: () => appState.goToWebView(termsOfServiceUrl),
+                  child: iteamlist(
+                      "assets/images/terms.png", "", LanguageEn.termsofuse),
+                ),
+                GestureDetector(
+                  onTap: () => appState.goToWebView(trovoLandingPage),
+                  child: iteamlist("assets/images/copyright.png", "",
+                      LanguageEn.abouttrovowallet),
+                ),
+                SizedBox(height: height / 20),
+                GestureDetector(
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                        state: PageState.replaceAll, page: LoginPageConfig);
+                    appState.isLoggedIn = false;
+                  },
+                  child:
+                      logout("assets/images/logout.png", "", LanguageEn.logout),
+                ),
+                SizedBox(height: height / 30),
+                Text(
+                  '${LanguageEn.version} ${appState.appVersion}',
+                  style: TextStyle(
+                      color: notifier.getdarkgrey,
+                      fontSize: 13.5.sp,
+                      fontFamily: fontbody),
+                ),
+                SizedBox(height: height / 30),
               ],
             ),
-            SizedBox(height: height / 50),
-            GestureDetector(
-              onTap: () => appState.goToWebView(trovoSupportUrl),
-              child: iteamlist(
-                  "assets/images/help.png", "", LanguageEn.helpandsupport),
-            ),
-            GestureDetector(
-              onTap: () => appState.goToWebView(termsOfServiceUrl),
-              child: iteamlist(
-                  "assets/images/terms.png", "", LanguageEn.termsofuse),
-            ),
-            GestureDetector(
-              onTap: () => appState.goToWebView(trovoLandingPage),
-              child: iteamlist("assets/images/copyright.png", "",
-                  LanguageEn.abouttrovowallet),
-            ),
-            SizedBox(height: height / 20),
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.replaceAll, page: LoginPageConfig);
-                appState.isLoggedIn = false;
-              },
-              child: logout("assets/images/logout.png", "", LanguageEn.logout),
-            ),
-            SizedBox(height: height / 30),
-            Text(
-              '${LanguageEn.version} ${appState.appVersion}',
-              style: TextStyle(
-                  color: notifier.getdarkgrey,
-                  fontSize: 13.5.sp,
-                  fontFamily: fontbody),
-            ),
-            SizedBox(height: height / 30),
           ],
         ),
       ),
@@ -516,7 +520,7 @@ class _SettingsState extends State<Settings> {
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
-                      value: 'Testnet',
+                      value: appState.walletMode,
                       icon: Visibility(
                           visible: false, child: Icon(Icons.arrow_downward)),
                       decoration: InputDecoration(

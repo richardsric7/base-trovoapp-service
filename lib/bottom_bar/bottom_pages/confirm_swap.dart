@@ -71,8 +71,9 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-            context, notifier.getwihitecolor, "", notifier.getblck,
-            height: height / 15),
+                context, notifier.getwihitecolor, "", notifier.getblck,
+                height: height / 15)
+            .getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [

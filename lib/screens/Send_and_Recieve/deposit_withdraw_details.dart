@@ -66,11 +66,11 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
           "",
           notifier.getblck,
           height: height / 15,
-        ),
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 30),
+              SizedBox(height: height / 50),
               Text(
                 '${transactionDirection == TransactionDirection.Deposit ? 'Deposit' : 'Withdrawal'} ${LanguageEn.details}',
                 textAlign: TextAlign.center,

@@ -124,6 +124,16 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                 selectedAsset: selectedAsset,
                 selectedWallet: selectedWallet,
               ),
+              Visibility(
+                visible: true,
+                child: Padding(
+                  padding: EdgeInsets.only(top: 5),
+                  child: Banner(
+                    location: BannerLocation.topEnd,
+                    message: "Testnet",
+                  ),
+                ),
+              ),
             ],
           ),
         ),

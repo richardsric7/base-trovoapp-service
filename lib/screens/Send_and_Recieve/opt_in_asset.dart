@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/curated_asset.dart';
@@ -75,28 +76,13 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(height / 15),
-          child: AppBar(
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: notifier.getwihitecolor,
-            title: Text(
-              '${LanguageEn.add} [${asset.assetCode}]',
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontsemibold),
-            ),
-            leading: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset("assets/images/back.png", scale: 5),
-            ),
-          ),
-        ),
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          '${LanguageEn.add} [${asset.assetCode}]',
+          notifier.getbluewhitecolor,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [

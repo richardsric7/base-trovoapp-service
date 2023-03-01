@@ -60,7 +60,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
           LanguageEn.myprofile,
           notifier.getblck,
           height: height / 15,
-        ),
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [

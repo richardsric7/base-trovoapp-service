@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -116,6 +117,13 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
+      appBar: CustomAppBarWithoutLeading(
+        context,
+        notifier.getwihitecolor,
+        height: height / 15,
+        txt: "Swap",
+        titlecolor: notifier.getbluewhitecolor,
+      ).getBar(),
       body: SmartRefresher(
         enablePullDown: true,
         controller: _refreshController,
@@ -126,26 +134,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
               children: [
                 SizedBox(
                   height: height / 50,
-                ),
-                Container(
-                  width: width,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Swap",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: height / 30,
                 ),
                 Row(
                   children: [

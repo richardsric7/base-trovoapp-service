@@ -37,7 +37,7 @@ class _BackupState extends State<Backup> {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
+        appBar: CustomAppBarWithoutBanner(
           context,
           notifier.getwihitecolor,
           "",

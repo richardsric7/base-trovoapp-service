@@ -55,7 +55,7 @@ class TrovoWebViewState extends State<TrovoWebView> {
       builder: (context, child) => Scaffold(
           resizeToAvoidBottomInset: false,
           backgroundColor: notifier.getwihitecolor,
-          appBar: CustomAppBar(
+          appBar: CustomAppBarWithoutBanner(
               context, notifier.getwihitecolor, "", notifier.getblck,
               height: height / 15),
           body: Stack(

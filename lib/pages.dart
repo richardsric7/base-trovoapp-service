@@ -39,8 +39,9 @@ class _PagesState extends State<Pages> {
     return Scaffold(
       backgroundColor: notifier.getwihitecolor,
       appBar: CustomAppBar(
-          context, notifier.getwihitecolor, widget.title!, notifier.getblck,
-          height: height / 15),
+              context, notifier.getwihitecolor, widget.title!, notifier.getblck,
+              height: height / 15)
+          .getBar(),
       body: const Padding(
         padding: EdgeInsets.all(15.0),
         child: Text(

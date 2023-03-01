@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -228,6 +227,18 @@ class Payment_HistoryState extends State<PaymentHistory>
                 ))
           ],
         ),
+        actions: [
+          Visibility(
+            visible: true,
+            child: Padding(
+              padding: EdgeInsets.only(top: 5),
+              child: Banner(
+                location: BannerLocation.topEnd,
+                message: "Testnet",
+              ),
+            ),
+          ),
+        ],
         backgroundColor: notifier.getfavorites,
         elevation: 0,
       ),

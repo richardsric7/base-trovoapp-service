@@ -55,7 +55,7 @@ class _ReferralInfoState extends State<ReferralInfo>
           LanguageEn.myreferrals,
           notifier.getblck,
           height: height / 15,
-        ),
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [

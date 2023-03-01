@@ -73,8 +73,9 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: CustomAppBar(
-            context, notifier.getwihitecolor, "", notifier.getblck,
-            height: height / 15),
+                context, notifier.getwihitecolor, "", notifier.getblck,
+                height: height / 15)
+            .getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [

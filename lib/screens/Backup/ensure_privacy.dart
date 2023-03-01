@@ -33,7 +33,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
+        appBar: CustomAppBarWithoutBanner(
           context,
           notifier.getwihitecolor,
           "",

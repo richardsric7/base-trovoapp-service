@@ -27,6 +27,9 @@ Color grey = const Color(0xff9EA3AE);
 Color darkgrey = Color(0xFF5B5E61);
 Color splashgrey = Color(0xFFC3C6CC);
 Color addsubwalletgrey = Color(0xFFE8ECF4);
+Color diamond = Color(0xFFE8ECF4);
+Color platinum = Color(0xFFEFF5F9);
+Color gold = Color(0xFFF8E5C1);
 
 Color blck = Colors.white;
 Color darkblck = Colors.black;

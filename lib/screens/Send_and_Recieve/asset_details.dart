@@ -144,7 +144,17 @@ class _AssetDetailsState extends State<AssetDetails>
                       ),
                     ],
                   ),
-                )
+                ),
+                Visibility(
+                  visible: true,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 5),
+                    child: Banner(
+                      location: BannerLocation.topEnd,
+                      message: "Testnet",
+                    ),
+                  ),
+                ),
               ]),
         ),
         body: SingleChildScrollView(

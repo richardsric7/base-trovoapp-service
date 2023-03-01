@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/user.dart';
@@ -150,28 +151,13 @@ class _OptInOutAssetState extends State<OptInOutAsset>
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(height / 15),
-          child: AppBar(
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: notifier.getwihitecolor,
-            title: Text(
-              'Add/Remove Asset',
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontsemibold),
-            ),
-            leading: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset("assets/images/back.png", scale: 5),
-            ),
-          ),
-        ),
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          'Add/Remove Asset',
+          notifier.getbluewhitecolor,
+          height: height / 15,
+        ).getBar(),
         body: SmartRefresher(
           enablePullDown: true,
           controller: _refreshController,

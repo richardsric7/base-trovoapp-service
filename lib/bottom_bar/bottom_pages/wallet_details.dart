@@ -86,7 +86,7 @@ class _WalletDetailsState extends State<WalletDetails>
           "",
           notifier.getblck,
           height: height / 15,
-        ),
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [

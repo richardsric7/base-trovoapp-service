@@ -95,7 +95,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
           "",
           notifier.getblck,
           height: height / 15,
-        ),
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [

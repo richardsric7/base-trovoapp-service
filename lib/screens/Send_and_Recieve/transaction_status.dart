@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/wallet.dart';
@@ -68,10 +69,14 @@ class _TransactionStatus extends State<TransactionStatus> {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
+        appBar: CustomAppBarWithoutLeading(
+          context,
+          notifier.getwihitecolor,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 10),
               Text(
                 'Transaction Status',
                 textAlign: TextAlign.center,

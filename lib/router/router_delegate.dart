@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/searchview.dart';
 import 'package:trovo_wallet/custom_bloc_observer/swiper/swiper.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/confirm_swap.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/change_password.dart';
@@ -9,7 +10,6 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/profile_details.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/referral_info.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/share_receipt.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/subwallet_create_success.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/stock_exchange_tabs/searchview.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_assets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/swap_success.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallet_details.dart';

@@ -126,119 +126,141 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         controller: _refreshController,
         onRefresh: refreshData,
         child: SingleChildScrollView(
-          child: Column(
+          child: Stack(
             children: [
-              SizedBox(
-                height: height / 20,
+              SafeArea(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Visibility(
+                      visible: true,
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 5),
+                        child: Banner(
+                          location: BannerLocation.topEnd,
+                          message: "Testnet",
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              firstRow(),
-              SizedBox(
-                height: height / 70,
-              ),
-              if (userInfo.hasSecurityQuestions == 0) ...[
-                GestureDetector(
-                  onTap: () {
-                    var primaryWallet = appState.userInfo!.wallets!
-                        .firstWhere((wallet) => wallet.primaryWallet == 1);
-                    appState.viewData = {
-                      SecurityQuestionsViewPageConfig.key: {
-                        'signer': primaryWallet.signer,
-                        'publicKey': primaryWallet.publicKey,
-                        'secretKey': appState.secretKeys[0],
-                        'username': appState.userInfo!.username,
-                      }
-                    };
+              Column(
+                children: [
+                  SizedBox(
+                    height: height / 20,
+                  ),
+                  firstRow(),
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                  if (userInfo.hasSecurityQuestions == 0) ...[
+                    GestureDetector(
+                      onTap: () {
+                        var primaryWallet = appState.userInfo!.wallets!
+                            .firstWhere((wallet) => wallet.primaryWallet == 1);
+                        appState.viewData = {
+                          SecurityQuestionsViewPageConfig.key: {
+                            'signer': primaryWallet.signer,
+                            'publicKey': primaryWallet.publicKey,
+                            'secretKey': appState.secretKeys[0],
+                            'username': appState.userInfo!.username,
+                          }
+                        };
 
-                    appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: SecurityQuestionsViewPageConfig);
-                  },
-                  child: Container(
-                    color: Colors.red[400],
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: width / 50,
-                          ),
-                          Expanded(
-                            child: Text(
-                              'You have not setup security questions yet. Tap to setup security questions.',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: fontsemibold,
-                                color: notifier.getwihitecolor,
+                        appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: SecurityQuestionsViewPageConfig);
+                      },
+                      child: Container(
+                        color: Colors.red[400],
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: width / 50,
                               ),
-                            ),
+                              Expanded(
+                                child: Text(
+                                  'You have not setup security questions yet. Tap to setup security questions.',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getwihitecolor,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: width / 50,
+                              ),
+                            ],
                           ),
-                          SizedBox(
-                            width: width / 50,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                  ],
+                  walletSlides(wallets),
+                  SizedBox(
+                    height: height / 30,
+                  ),
+                  // check if the user's xbn balance is 0. This usually is the si-
+                  // tuation when a new user signs up and has not funded their wallet
+                  // yet
+                  if (!noXbnBalance) ...[
+                    DefaultTabController(
+                      length: tabLength,
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: tabLength == 2 ? 0 : 100,
+                            ),
+                            child: TabBar(
+                              controller: _tabController,
+                              labelColor: notifier.getbluewhitecolor,
+                              indicatorColor: notifier.getbluewhitecolor,
+                              labelStyle: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: fontsemibold,
+                              ),
+                              tabs: [
+                                Tab(
+                                  height: 20,
+                                  text: LanguageEn.assets,
+                                ),
+                                if (unclaimedAssets != null &&
+                                    tabLength == 2) ...[
+                                  Tab(
+                                    height: 20,
+                                    text:
+                                        '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
+                                  ),
+                                ],
+                                // Tab(
+                                //   height: 20,
+                                //   text: LanguageEn.nfts,
+                                // ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ),
-                SizedBox(
-                  height: height / 70,
-                ),
-              ],
-              walletSlides(wallets),
-              SizedBox(
-                height: height / 30,
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    assetsTabs(),
+                  ] else ...[
+                    showFundWallet(),
+                  ]
+                ],
               ),
-              // check if the user's xbn balance is 0. This usually is the si-
-              // tuation when a new user signs up and has not funded their wallet
-              // yet
-              if (!noXbnBalance) ...[
-                DefaultTabController(
-                  length: tabLength,
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: tabLength == 2 ? 0 : 100,
-                        ),
-                        child: TabBar(
-                          controller: _tabController,
-                          labelColor: notifier.getbluewhitecolor,
-                          indicatorColor: notifier.getbluewhitecolor,
-                          labelStyle: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: fontsemibold,
-                          ),
-                          tabs: [
-                            Tab(
-                              height: 20,
-                              text: LanguageEn.assets,
-                            ),
-                            if (unclaimedAssets != null && tabLength == 2) ...[
-                              Tab(
-                                height: 20,
-                                text:
-                                    '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
-                              ),
-                            ],
-                            // Tab(
-                            //   height: 20,
-                            //   text: LanguageEn.nfts,
-                            // ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  height: height / 70,
-                ),
-                assetsTabs(),
-              ] else ...[
-                showFundWallet(),
-              ]
             ],
           ),
         ),
@@ -408,181 +430,187 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   }
 
   Widget firstRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(width / 18, 0, 0, 0),
-                  child: CircleAvatar(
-                    radius: 30,
-                    backgroundColor: notifier.getbluecolor70,
-                    child: GestureDetector(
-                      onTap: () {
-                        appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: ProfileDetailsViewPageConfig);
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(100.0),
-                        child: Image.network(
-                          appState.userInfo!.imageThumbnailURL!,
-                          width: width / 6.8,
-                          // height: width / 10,
-                          fit: BoxFit.fill,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Image.asset(
-                              'assets/images/trovo.png',
-                              width: width / 9,
+                Row(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(width / 18, 0, 0, 0),
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundColor: notifier.getbluecolor70,
+                        child: GestureDetector(
+                          onTap: () {
+                            appState.currentAction = PageAction(
+                                state: PageState.addPage,
+                                page: ProfileDetailsViewPageConfig);
+                          },
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(100.0),
+                            child: Image.network(
+                              appState.userInfo!.imageThumbnailURL!,
+                              width: width / 6.8,
+                              // height: width / 10,
+                              fit: BoxFit.fill,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/trovo.png',
+                                  width: width / 9,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: width / 70,
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          LanguageEn.goodday,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 14.sp,
+                            fontFamily: fontbody,
+                          ),
+                        ),
+                        SizedBox(
+                          height: 5,
+                        ),
+                        Text(
+                          userInfo.firstName!.capitalizeFirst!,
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 17.sp,
+                            fontFamily: fontsemibold,
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: SharedAccessViewPageConfig);
+
+                    if (noOfTransactionsToSign != null &&
+                        noOfTransactionsToSign > 0) {
+                      // take the user to the pending approvals tab on the shared access view
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        appState.sharedAccesstabController.animateTo(1,
+                            duration: Duration(milliseconds: 500),
+                            curve: Curves.easeInOut);
+                      });
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 10.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.people_alt_outlined,
+                          size: 25.sp,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                        FutureBuilder<Map>(
+                          future: appState.approvals,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                    ConnectionState.done &&
+                                snapshot.hasData) {
+                              noOfTransactionsToSign =
+                                  appState.filterQuery.contains('PENDING')
+                                      ? snapshot.data!['totalRecords'] ?? 0
+                                      : 0;
+                              if (noOfTransactionsToSign > 0) {
+                                return Text(
+                                  '($noOfTransactionsToSign)',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: fontsemibold,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                );
+                              }
+                            }
+
+                            return Text(
+                              '',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: fontsemibold,
+                              ),
                             );
                           },
                         ),
-                      ),
+                      ],
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage, page: QrScannerPageConfig);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 10.0),
+                    child: SvgPicture.asset(
+                      "assets/images/scan.svg",
+                      color: notifier.getbluewhitecolor,
+                      height: height / 40,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: NotificationsViewPageConfig);
+                    appState.hasNewAnnouncement = false;
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 10.0),
+                    child: SvgPicture.asset(
+                      appState.hasNewAnnouncement
+                          ? "assets/images/notifications-active.svg"
+                          : "assets/images/notifications.svg",
+                      color: notifier.getbluewhitecolor,
+                      height: height / 40,
                     ),
                   ),
                 ),
                 SizedBox(
-                  width: width / 70,
+                  width: height / 50,
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      LanguageEn.goodday,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 14.sp,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Text(
-                      userInfo.firstName!.capitalizeFirst!,
-                      style: TextStyle(
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 17.sp,
-                        fontFamily: fontsemibold,
-                      ),
-                    ),
-                  ],
-                )
               ],
             ),
           ],
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage, page: SharedAccessViewPageConfig);
-
-                if (noOfTransactionsToSign != null &&
-                    noOfTransactionsToSign > 0) {
-                  // take the user to the pending approvals tab on the shared access view
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    appState.sharedAccesstabController.animateTo(1,
-                        duration: Duration(milliseconds: 500),
-                        curve: Curves.easeInOut);
-                  });
-                }
-              },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.people_alt_outlined,
-                      size: 25.sp,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                    FutureBuilder<Map>(
-                      future: appState.approvals,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.hasData) {
-                          noOfTransactionsToSign =
-                              appState.filterQuery.contains('PENDING')
-                                  ? snapshot.data!['totalRecords'] ?? 0
-                                  : 0;
-                          if (noOfTransactionsToSign > 0) {
-                            return Text(
-                              '($noOfTransactionsToSign)',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: fontsemibold,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            );
-                          }
-                        }
-
-                        return Text(
-                          '',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: fontsemibold,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage, page: QrScannerPageConfig);
-              },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-                child: SvgPicture.asset(
-                  "assets/images/scan.svg",
-                  color: notifier.getbluewhitecolor,
-                  height: height / 40,
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: NotificationsViewPageConfig);
-                appState.hasNewAnnouncement = false;
-              },
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-                child: SvgPicture.asset(
-                  appState.hasNewAnnouncement
-                      ? "assets/images/notifications-active.svg"
-                      : "assets/images/notifications.svg",
-                  color: notifier.getbluewhitecolor,
-                  height: height / 40,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: height / 50,
-            ),
-          ],
-        )
       ],
     );
   }

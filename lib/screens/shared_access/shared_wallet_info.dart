@@ -69,7 +69,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
           'Shared Access',
           notifier.getbluewhitecolor,
           height: height / 15,
-        ),
+        ).getBar(),
         body: Column(
           children: [
             SizedBox(

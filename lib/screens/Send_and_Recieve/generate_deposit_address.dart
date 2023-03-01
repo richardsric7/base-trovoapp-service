@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/asset.dart';
-import 'package:trovo_wallet/models/curated_asset.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
@@ -59,20 +58,13 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(height / 15),
-          child: AppBar(
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: notifier.getwihitecolor,
-            leading: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset("assets/images/back.png", scale: 5),
-            ),
-          ),
-        ),
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [

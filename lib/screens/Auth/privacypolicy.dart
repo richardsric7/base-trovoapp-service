@@ -27,7 +27,7 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
+        appBar: CustomAppBarWithoutBanner(
           context,
           notifier.getwihitecolor,
           LanguageEn.privacypolicy,
