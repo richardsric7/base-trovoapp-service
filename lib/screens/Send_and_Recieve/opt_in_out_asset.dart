@@ -401,7 +401,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                 backgroundColor: MaterialStateProperty.all<Color>(
                     entry.value['isRemovable']
                         ? Colors.red[400]!
-                        : notifier.getbluewhitecolor),
+                        : notifier.getstructuredbluecolor50.backColor),
               ),
               child: Text(
                 entry.value['isRemovable'] ? 'Remove' : 'Add',
