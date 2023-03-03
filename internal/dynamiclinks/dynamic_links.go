@@ -177,7 +177,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 	}
 
 	baseUrl := <-gc.DynamicLinkServiceURLChan
-	log.Println("using baseurl:", baseUrl)
+	// log.Println("using baseurl:", baseUrl)
 	defer func() {
 		time.Sleep(200 * time.Millisecond) // wait for 200ms before sending next request. enough time to achieve 5 requests per ip
 		//return the link to waiting list
@@ -217,7 +217,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 		log.Println("[GenerateDynamicLink]Reading Dynamics Links response Body failed with", err)
 		return
 	}
-	log.Printf("[GenerateDynamicLink] Reading Dynamics Links response: %s\n", body)
+	// log.Printf("[GenerateDynamicLink] Reading Dynamics Links response: %s\n", body)
 
 	var sr FBDLResponse
 	err = json.Unmarshal(body, &sr)
