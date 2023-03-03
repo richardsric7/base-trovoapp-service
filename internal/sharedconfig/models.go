@@ -99,7 +99,9 @@ func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName, imageThu
 }
 
 func (c *ClientUploader) SaveQrCodeAsFileToCloud(fileInput *os.File, fileName, imageThumbnailURL string) (string, error) {
-
+	fileName = strings.ReplaceAll(fileName, "/tmp/", "")
+	fileName = strings.ReplaceAll(fileName, "/", "")
+	fileName = strings.ReplaceAll(fileName, "tmp", "")
 	// create an id
 	id := uuid.New()
 	ctx := context.Background()
