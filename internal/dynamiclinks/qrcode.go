@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	qrv2 "github.com/yeqown/go-qrcode/v2"
@@ -17,7 +18,7 @@ func GenerateQRCode(dynamicLink string, gc *sharedconfig.GlobalConfig) (png stri
 		err = errors.New("no dynamic Link submitted for QRCode")
 		return
 	}
-	cacheKey := dynamicLink + "qrcode2Link"
+	cacheKey := dynamicLink + "qrcode2Link2"
 	{
 
 		// search cache for link
@@ -39,7 +40,7 @@ func GenerateQRCode(dynamicLink string, gc *sharedconfig.GlobalConfig) (png stri
 		return
 	}
 	// buf :=new(bytes.Buffer)
-
+	// r := uuid.NewString()
 	f, err := os.CreateTemp("", "*.png")
 	if err != nil {
 		log.Printf("[GenerateQRCode]could not generate QRCode: %v\n", err)
@@ -89,8 +90,8 @@ func GenerateQRCode(dynamicLink string, gc *sharedconfig.GlobalConfig) (png stri
 	// case "image/png":
 	// 	fileNameWithExt = fileName + ".png"
 	// }
-
-	newThumbnail, err := gc.FirebaseStorageUploader.SaveQrCodeAsFileToCloud(f, fileName, "")
+	fne := strings.ReplaceAll(fileName, "/tmp/", "")
+	newThumbnail, err := gc.FirebaseStorageUploader.SaveQrCodeAsFileToCloud(f, fne, "")
 	if err != nil {
 		log.Printf("[GenerateQRCode]could upload QRCode: %v\n", err)
 
