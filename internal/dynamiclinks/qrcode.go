@@ -90,7 +90,7 @@ func GenerateQRCode(dynamicLink string, gc *sharedconfig.GlobalConfig) (png stri
 	// 	fileNameWithExt = fileName + ".png"
 	// }
 
-	newThumbnail, err := gc.FirebaseStorageUploader.UploadQrCode(f, fileName, "")
+	newThumbnail, err := gc.FirebaseStorageUploader.SaveQrCodeAsFileToCloud(f, fileName, "")
 	if err != nil {
 		log.Printf("[GenerateQRCode]could upload QRCode: %v\n", err)
 
