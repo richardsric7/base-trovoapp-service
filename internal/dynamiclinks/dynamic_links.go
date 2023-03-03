@@ -12,7 +12,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	"trovo-wallet-api/internal/cache"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/shopspring/decimal"
@@ -89,14 +88,14 @@ type TrovoWalletEventData struct {
 	EventID     string `json:"eventId"`
 }
 
-func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl string, redisCache *cache.RedisCache) (dynamicLink string, err error) {
+func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl string, gc *sharedconfig.GlobalConfig) (dynamicLink string, err error) {
 
 	cacheKey := link
 	{
 
 		// search cache for link
 
-		ok, _, response := redisCache.CachedHttpResponse(cacheKey)
+		ok, _, response := gc.RedisCache.CachedHttpResponse(cacheKey)
 
 		if ok {
 			// log.Printf("[GenerateDynamicLinkWithStaticService][%v], served from cache\n", cacheKey)
@@ -154,7 +153,7 @@ func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl str
 		return "", errors.New("no short link generated")
 	}
 	// cache the link
-	redisCache.CacheHttpResponse(cacheKey, 200, sr.DynamicLink, (525960 * 3 * 60))
+	gc.RedisCache.CacheHttpResponse(cacheKey, 200, sr.DynamicLink, (525960 * 3 * 60))
 
 	return sr.DynamicLink, nil
 
@@ -270,7 +269,7 @@ func GenerateLoginData(ownerUsername, serviceShortName, targetUser, loginID, dev
 		return
 	}
 
-	pngDataURI, err = GenerateQRCode(dynamicLink, gc.RedisCache)
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc)
 	if err != nil {
 		log.Printf("[GenerateLoginData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -311,7 +310,7 @@ func GenerateAuthorizationData(ownerUsername, serviceShortName, description, tar
 		log.Println("[GenerateAuthorizationData] unable to generate dynamic link=", dynamicLink)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink, gc.RedisCache)
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc)
 	if err != nil {
 		log.Printf("[GenerateAuthorizationData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -350,7 +349,7 @@ func GenerateEventData(ownerUsername, serviceShortName, description, deviceInfo,
 		log.Println("[GenerateEventData] unable to generate dynamic link=", dynamicLink)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink, gc.RedisCache)
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc)
 	if err != nil {
 		log.Printf("[GenerateEventData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -412,7 +411,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 		log.Println("[GeneratePaymentData] unable to generate dynamic link=", dynamicLink)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink, gc.RedisCache)
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc)
 	if err != nil {
 		log.Printf("[GeneratePaymentData] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -424,7 +423,7 @@ func GeneratePaymentData(paymentDestination, assetCode, assetIssuer, amount, mem
 }
 
 // GenerateReferralLinkWithStaticURL generates payment Data
-func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl string, redisCache *cache.RedisCache) (p ReferralLinkData, err error) {
+func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl string, gc *sharedconfig.GlobalConfig) (p ReferralLinkData, err error) {
 	if len(username) == 0 {
 		err = errors.New("no username")
 		return
@@ -437,7 +436,7 @@ func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl st
 
 	link := fmt.Sprintf("%v?%v", os.Getenv("DYNAMIC_LINKS_FALLBACK_BASE_URL"), params.Encode())
 
-	dynamicLink, err = GenerateDynamicLinkWithStaticService(link, dynamicLinkServiceUrl, redisCache)
+	dynamicLink, err = GenerateDynamicLinkWithStaticService(link, dynamicLinkServiceUrl, gc)
 
 	if err != nil {
 		log.Printf("[GenerateReferralLink]could not generate dynamic-link for [%v]. error: %v\n", username, err)
@@ -448,7 +447,7 @@ func GenerateReferralLinkWithStaticURL(username string, dynamicLinkServiceUrl st
 		log.Println("[GenerateReferralLink] unable to generate dynamic link=", dynamicLink, "for username=", username)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink, redisCache)
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc)
 	if err != nil {
 		log.Printf("[GenerateReferralLink] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return
@@ -484,7 +483,7 @@ func GenerateReferralLink(username string, gc *sharedconfig.GlobalConfig) (p Ref
 		log.Println("[GenerateReferralLink] unable to generate dynamic link=", dynamicLink, "for username=", username)
 		return
 	}
-	pngDataURI, err = GenerateQRCode(dynamicLink, gc.RedisCache)
+	pngDataURI, err = GenerateQRCode(dynamicLink, gc)
 	if err != nil {
 		log.Printf("[GenerateReferralLink] could not generate QRCode for [%v]. error: %v\n", dynamicLink, err)
 		return

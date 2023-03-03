@@ -1,30 +1,29 @@
 package dynamiclinks
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"trovo-wallet-api/internal/cache"
+	"trovo-wallet-api/internal/sharedconfig"
 
 	qrv2 "github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/standard"
 )
 
 // GenerateQRCode generates QR Code in base64encoded string
-func GenerateQRCode(dynamicLink string, redisCache *cache.RedisCache) (png string, err error) {
+func GenerateQRCode(dynamicLink string, gc *sharedconfig.GlobalConfig) (png string, err error) {
 	if len(dynamicLink) == 0 {
 		err = errors.New("no dynamic Link submitted for QRCode")
 		return
 	}
-	cacheKey := dynamicLink + "qrcode2"
+	cacheKey := dynamicLink + "qrcode2Link"
 	{
 
 		// search cache for link
 
-		ok, response := redisCache.GetCachedResult(cacheKey)
+		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 
 		if ok {
 			// log.Printf("[GenerateQRCode][%v], served from cache\n", cacheKey)
@@ -76,8 +75,9 @@ func GenerateQRCode(dynamicLink string, redisCache *cache.RedisCache) (png strin
 		log.Printf("[GenerateQRCode]could read QRCode: %v\n", err)
 		return
 	}
+
 	// log.Println(fileContents)
-	var base64Encoding string
+	var fileNameWithExt string
 
 	// Determine the content type of the image file
 	mimeType := http.DetectContentType(fileContents)
@@ -86,15 +86,22 @@ func GenerateQRCode(dynamicLink string, redisCache *cache.RedisCache) (png strin
 	// on the MIME type
 	switch mimeType {
 	case "image/jpeg":
-		base64Encoding += "data:image/jpeg;base64,"
+		fileNameWithExt = fileName + ".jpeg"
 	case "image/png":
-		base64Encoding += "data:image/png;base64,"
+		fileNameWithExt = fileName + ".png"
 	}
 
-	// Append the base64 encoded output
-	base64Encoding += base64.StdEncoding.EncodeToString(fileContents)
+	newThumbnail, err := gc.FirebaseStorageUploader.UploadQrCode(f, fileNameWithExt, "")
+	if err != nil {
+		log.Printf("[GenerateQRCode]could upload QRCode: %v\n", err)
+
+		return
+	}
+
+	url := fmt.Sprintf("https://storage.googleapis.com/%v/%v", gc.FirebaseStorageUploader.BucketName, newThumbnail)
+
 	//store to cache
-	redisCache.StoreResultToCache(cacheKey, base64Encoding, (525960 * 3 * 60))
+	gc.RedisCache.StoreResultToCache(cacheKey, url, (525960 * 3 * 60))
 	f.Close()
-	return base64Encoding, nil
+	return url, nil
 }

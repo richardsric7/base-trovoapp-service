@@ -248,6 +248,34 @@ func main() {
 		}
 	}
 
+	//global config
+	pnsContext := context.Background()
+	pnsClient, _, err := pns.GetFirebaseMessagingClient(pnsContext)
+	if err != nil {
+		log.Fatalln("Unable to initialize Firebase messaging client:", err)
+	}
+	storageContext := context.Background()
+	storageClient, _, err := pns.GetFirebaseStorageClient(storageContext)
+	if err != nil {
+		log.Fatalln("Unable to initialize Firebase storage client:", err)
+	}
+
+	var globalConfig = sharedconfig.GlobalConfig{
+		DynamicLinkServiceURLChan: dynamicLinkServiceUrlChan,
+		PNSContext:                pnsContext,
+		RedisCache:                &redisCache,
+		DB:                        database,
+		PushNotificationClient:    pnsClient,
+		RoachDB:                   roachDB,
+		BantuExpansionClient:      network.GetBlockchainClient(),
+		BantuNetworkPassphrase:    network.GetBlockchainNetworkPassPhrase(),
+		FirebaseStorageUploader: &sharedconfig.ClientUploader{
+			Client:     storageClient,
+			ProjectID:  os.Getenv("GOOGLE_PROJECT_ID"),
+			BucketName: os.Getenv("STORAGE_BUCKET_NAME"),
+			UploadPath: os.Getenv("STORAGE_BUCKET_NAME"),
+		},
+	}
 	{
 
 		//update referral links for people with no referral link
@@ -269,7 +297,7 @@ func main() {
 
 				result := database.Where("referral_qr_code is null AND suspended = ?", 0).FindInBatches(&usersWithNoRefLinks, batchSize, func(tx *gorm.DB, batch int) error {
 					for i, u := range usersWithNoRefLinks {
-						rld, errLink := dl.GenerateReferralLinkWithStaticURL(u.Username, dynamicLinkServiceUrl, &redisCache)
+						rld, errLink := dl.GenerateReferralLinkWithStaticURL(u.Username, dynamicLinkServiceUrl, &globalConfig)
 						if errLink != nil {
 							continue
 						}
@@ -301,34 +329,6 @@ func main() {
 
 	}
 
-	//global config
-	pnsContext := context.Background()
-	pnsClient, _, err := pns.GetFirebaseMessagingClient(pnsContext)
-	if err != nil {
-		log.Fatalln("Unable to initialize Firebase messaging client:", err)
-	}
-	storageContext := context.Background()
-	storageClient, _, err := pns.GetFirebaseStorageClient(storageContext)
-	if err != nil {
-		log.Fatalln("Unable to initialize Firebase storage client:", err)
-	}
-
-	var globalConfig = sharedconfig.GlobalConfig{
-		DynamicLinkServiceURLChan: dynamicLinkServiceUrlChan,
-		PNSContext:                pnsContext,
-		RedisCache:                &redisCache,
-		DB:                        database,
-		PushNotificationClient:    pnsClient,
-		RoachDB:                   roachDB,
-		BantuExpansionClient:      network.GetBlockchainClient(),
-		BantuNetworkPassphrase:    network.GetBlockchainNetworkPassPhrase(),
-		FirebaseStorageUploader: &sharedconfig.ClientUploader{
-			Client:     storageClient,
-			ProjectID:  os.Getenv("GOOGLE_PROJECT_ID"),
-			BucketName: os.Getenv("STORAGE_BUCKET_NAME"),
-			UploadPath: os.Getenv("STORAGE_BUCKET_NAME"),
-		},
-	}
 	globalConfig.InUseChannelAccounts = make(map[string]*keypair.Full)
 	scas := strings.Split(os.Getenv("CHANNEL_ACCOUNTS"), ",")
 	count := decimal.RequireFromString(os.Getenv("CHANNEL_ACCOUNT_MIN_COUNT")).IntPart()

@@ -97,6 +97,9 @@ func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName, imageThu
 	return newImageThumbnailName, nil
 }
 
+
+
+
 func (gc *GlobalConfig) ReleaseInUseChannelAccount(pk string) {
 	if len(pk) == 0 {
 		return
