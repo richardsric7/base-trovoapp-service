@@ -44,7 +44,7 @@ func GenerateDepositAddresses(wallet *userModels.UserWallet, currency string, gc
 			//address already exists...skip
 			continue
 		}
-		qrc, _ := dl.GenerateQRCode(v.Address, gc.RedisCache)
+		qrc, _ := dl.GenerateQRCode(v.Address, gc)
 		var qrCode *string
 		if len(qrc) > 0 {
 			qrCode = &qrc
