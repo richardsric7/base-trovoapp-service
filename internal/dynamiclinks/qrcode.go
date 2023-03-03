@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -70,28 +69,28 @@ func GenerateQRCode(dynamicLink string, gc *sharedconfig.GlobalConfig) (png stri
 		return
 	}
 
-	fileContents, err := os.ReadFile(fileName)
-	if err != nil {
-		log.Printf("[GenerateQRCode]could read QRCode: %v\n", err)
-		return
-	}
+	// fileContents, err := os.ReadFile(fileName)
+	// if err != nil {
+	// 	log.Printf("[GenerateQRCode]could read QRCode: %v\n", err)
+	// 	return
+	// }
 
 	// log.Println(fileContents)
-	var fileNameWithExt string
+	// var fileNameWithExt string
 
 	// Determine the content type of the image file
-	mimeType := http.DetectContentType(fileContents)
+	// mimeType := http.DetectContentType(fileContents)
 
 	// Prepend the appropriate URI scheme header depending
 	// on the MIME type
-	switch mimeType {
-	case "image/jpeg":
-		fileNameWithExt = fileName + ".jpeg"
-	case "image/png":
-		fileNameWithExt = fileName + ".png"
-	}
+	// switch mimeType {
+	// case "image/jpeg":
+	// 	fileNameWithExt = fileName + ".jpeg"
+	// case "image/png":
+	// 	fileNameWithExt = fileName + ".png"
+	// }
 
-	newThumbnail, err := gc.FirebaseStorageUploader.UploadQrCode(f, fileNameWithExt, "")
+	newThumbnail, err := gc.FirebaseStorageUploader.UploadQrCode(f, fileName, "")
 	if err != nil {
 		log.Printf("[GenerateQRCode]could upload QRCode: %v\n", err)
 
