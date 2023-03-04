@@ -399,9 +399,12 @@ class _OptInOutAssetState extends State<OptInOutAsset>
               },
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all<Color>(
-                    entry.value['isRemovable']
-                        ? Colors.red[400]!
-                        : notifier.getstructuredbluecolor50.backColor),
+                  entry.value['isRemovable']
+                      ? Colors.red[400]!
+                      : notifier.isDark
+                          ? notifier.getstructuredbluecolor50.backColor
+                          : notifier.getbluewhitecolor,
+                ),
               ),
               child: Text(
                 entry.value['isRemovable'] ? 'Remove' : 'Add',
