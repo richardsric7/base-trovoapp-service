@@ -598,6 +598,9 @@ class LanguageEn {
   static String get optininfo =>
       "Do you wish to add this asset [assetCode] on your wallet [walletAlias]?";
 
+  static String get notenoughpermission =>
+      "You do not have enough permission to initiate this transaction on this wallet [walletAlias].";
+
   static String get optininfo2 =>
       'This will make this asset appear on the list of assets on your wallet [walletAlias] and will enable you to start transacting with it.';
 
