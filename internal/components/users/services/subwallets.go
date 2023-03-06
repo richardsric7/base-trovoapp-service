@@ -483,12 +483,12 @@ func generateSubWalletXdr(accountOwner *userModels.User, subWalletInfo *userMode
 
 	}
 	if subWalletInfo.WalletType == 2 {
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an market making wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. It will become the new balance of the subwallet and custodial signer. Please note that MM wallets cannot be used to send normal payments, but only used for market making.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be a market making wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. It will become the new balance of the subwallet and custodial signer. Please note that MM wallets cannot be used to send normal payments, but only used for market making.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 
 	if subWalletInfo.WalletType == 3 {
-		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be an bulk-payment wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. It will become the new balance of the subwallet and custodial signer. Please note that bulk-payment wallets cannot be used to send normal payments, but only be used by internal system to disburse bulk payments on your behalf.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
+		subWalletInfo.Messages = append(subWalletInfo.Messages, fmt.Sprintf("Because this subwallet is designated to be a bulk-payment wallet, %v %v will be deducted from your primary wallet and be used to activate it and the custodial signer. It will become the new balance of the subwallet and custodial signer. Please note that bulk-payment wallets cannot be used to send normal payments, but only be used by internal system to disburse bulk payments on your behalf.", (activationAmount.Add(decimal.RequireFromString(os.Getenv("WALLET_SIGNER_ACTIVATION_AMOUNT")))).String(), os.Getenv("NATIVE_ASSET_CODE")))
 
 	}
 	if subWalletInfo.WalletType == 2 || subWalletInfo.WalletType == 3 {
