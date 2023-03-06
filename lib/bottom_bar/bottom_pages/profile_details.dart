@@ -193,7 +193,6 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               ),
               SizedBox(height: height / 50),
               Container(
-                color: Colors.white,
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
                 child: Table(
                   border: TableBorder.all(

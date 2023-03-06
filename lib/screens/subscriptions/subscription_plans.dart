@@ -202,7 +202,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                             description: '',
                           );
 
-                          for (var p in patronPackages) {                            
+                          for (var p in patronPackages) {
                             if (p['id'] == grade['patronPackage']) {
                               package.description = p['description'];
                             }
@@ -380,8 +380,6 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: appState.primaryWallet.publicKey!,
       );
-
-      print(responseData['data']);
 
       if (responseData['statusCode'] == 200) {
         return responseData['data'];

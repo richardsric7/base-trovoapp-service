@@ -471,7 +471,7 @@ class LanguageEn {
       "I understand that if I lose my secret key. Trovotech is not liable to any loss and that my funds are securely held and controlled on this device not by Trovotech.";
 
   static String get maynotbedisplayedagain =>
-      "This wallet's secret key will only be available while this app in not yet unistalled from this device.";
+      "This wallet's secret key will only be available while this app in not yet uninstalled from this device.";
 
   static String get writeitdown =>
       "Please copy the following details correctly and store in a safe place.";
