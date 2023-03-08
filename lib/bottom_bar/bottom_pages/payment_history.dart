@@ -228,16 +228,18 @@ class Payment_HistoryState extends State<PaymentHistory>
           ],
         ),
         actions: [
-          Visibility(
-            visible: true,
-            child: Padding(
-              padding: EdgeInsets.only(top: 5),
-              child: Banner(
-                location: BannerLocation.topEnd,
-                message: "Testnet",
+          if (appState.walletMode == "Testnet") ...[
+            Visibility(
+              visible: true,
+              child: Padding(
+                padding: EdgeInsets.only(top: 5),
+                child: Banner(
+                  location: BannerLocation.topEnd,
+                  message: "Testnet",
+                ),
               ),
             ),
-          ),
+          ]
         ],
         backgroundColor: notifier.getfavorites,
         elevation: 0,

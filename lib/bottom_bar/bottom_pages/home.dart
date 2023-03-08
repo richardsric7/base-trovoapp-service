@@ -132,16 +132,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Visibility(
-                      visible: true,
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 5),
-                        child: Banner(
-                          location: BannerLocation.topEnd,
-                          message: "Testnet",
+                    if (appState.walletMode == "Testnet") ...[
+                      Visibility(
+                        visible: true,
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 5),
+                          child: Banner(
+                            location: BannerLocation.topEnd,
+                            message: "Testnet",
+                          ),
                         ),
                       ),
-                    ),
+                    ]
                   ],
                 ),
               ),

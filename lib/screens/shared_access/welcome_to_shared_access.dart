@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
@@ -25,25 +26,13 @@ class WelcomeToSharedAccess extends StatelessWidget {
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        appBar: PreferredSize(
-          child: AppBar(
-            centerTitle: true,
-            elevation: 0,
-            backgroundColor: notifier.getwihitecolor,
-            leading: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset("assets/images/back.png", scale: 5),
-            ),
-            title: Text(
-              LanguageEn.sharedaccess,
-              style: TextStyle(
-                  color: notifier.getbluewhitecolor, fontFamily: fontsemibold),
-            ),
-          ),
-          preferredSize: Size.fromHeight(height / 15),
-        ),
+        appBar: CustomAppBar(
+          context,
+          notifier.getwihitecolor,
+          LanguageEn.sharedaccess,
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [

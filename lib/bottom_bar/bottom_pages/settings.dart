@@ -541,7 +541,11 @@ class _SettingsState extends State<Settings> {
                         fontWeight: FontWeight.w500,
                       ),
                       onChanged: (newValue) {
-                        setState(() {});
+                        setState(() {
+                          StoreData().storeInsertData(
+                              'walletMode', newValue.toString());
+                        });
+                        appState.setWalletMode = newValue.toString();
                       },
                       items: <DropdownMenuItem<String>>[
                         DropdownMenuItem(
