@@ -757,10 +757,10 @@ class LanguageEn {
       'You have successfully setup your secret questons. \n\nPLEASE DO NOT FORGET THE ANSWERS YOU PROVIDED FOR FUTURE USE.';
 
   static String get enableaccountrecoverysuccess =>
-      "Account recovery has been successfully enabled on your account. Trovowallet will now be able to recover your account if you lose your secret key.";
+      "Account recovery has been successfully enabled on your account. Trovotech will now be able to recover your account if you lose your secret key.";
 
   static String get disableaccountrecoverysuccess =>
-      "Account recovery has been successfully disabled on your account. \n\nTrovowallet will no longer be able to recover your account should you lose your secret key.\n\n You can enable the service at any time in the future should you have a need for it.";
+      "Account recovery has been successfully disabled on your account. \n\nTrovotech will no longer be able to recover your account should you lose your secret key.\n\n You can enable the service at any time in the future should you have a need for it.";
 
   static String get hasbeenexchange => "Has been exchange from ETH to DAI";
 
@@ -829,7 +829,7 @@ class LanguageEn {
   static String get securityquestions => "Security Questions";
 
   static String get pleasesetupsecurityquestions =>
-      "Please setup your security questions.\nSecurity questions add an extra layer of security to your account and is also a requirement for using some of the Trovowallet services.";
+      "Please setup your security questions.\nSecurity questions add an extra layer of security to your account and is also a requirement for using some of the Trovotech services.";
 
   static String get helpandsupport => "Help and Support";
 

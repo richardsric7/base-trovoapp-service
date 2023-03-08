@@ -928,17 +928,11 @@ class _SharedAccessState extends State<SharedAccess>
                 // access to others. Once I grant others approver and initiator access
                 // the wallet no longer belongs to me.
                 var filteredWallets = <Wallet>[];
-                appState.userInfo!.getAllWallets().forEach((wallet) {
-                  if (wallet.permissions != null &&
-                      wallet.permissions!.isNotEmpty &&
-                      wallet.permissions!
-                          .where((permission) =>
-                              permission.permission == 'INITIATOR' ||
-                              permission.permission == 'APPROVER')
-                          .isEmpty) {
+                for (var wallet in appState.userInfo!.wallets!) {
+                  if (wallet.isSharedWallet && wallet.walletThreshold == 1) {
                     filteredWallets.add(wallet);
                   }
-                });
+                }
                 return Column(
                   children: [
                     if (filteredWallets.length > 0) ...[
