@@ -348,8 +348,6 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
       };
       String requestBody = jsonEncode(map);
 
-      print('requestBody 1 $requestBody');
-
       Map responseData = await makePostRequest(
         uri: '/v1/patron',
         body: requestBody,
@@ -358,18 +356,14 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
         publicKey: appState.primaryWallet.publicKey!,
       );
 
-      print('response 1: $responseData');
-
       if (responseData['statusCode'] == 202) {
         completeRequest(responseData['data']);
-        // print('sending full data to server.........');
       } else {
         popup(context,
             title: LanguageEn.error, message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
-      print(e);
       popup(context, title: LanguageEn.error, message: e.toString());
       hideLoader(context);
     }
@@ -389,8 +383,6 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
 
       String requestBody = jsonEncode(responseBody);
 
-      print('this is request body: $requestBody');
-
       Map responseData = await makePostRequest(
         uri: '/v1/patron',
         body: requestBody,
@@ -399,7 +391,6 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
         publicKey: appState.primaryWallet.publicKey!,
       );
 
-      print('response 2: $responseData');
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(
           appState.primaryWallet.signer!,
@@ -427,7 +418,6 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
             title: LanguageEn.error, message: responseData['data']['message']);
       }
     } catch (e) {
-      print(e);
       popup(context, title: LanguageEn.error, message: e.toString());
     }
 

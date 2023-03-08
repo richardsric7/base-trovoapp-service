@@ -172,13 +172,13 @@ class _OptOutAssetState extends State<OptOutAsset>
                     Container(
                       width: width / 1.3,
                       child: Text(
-                        'You do not have enough permission to claim this asset on [walletAlias].'
+                        LanguageEn.notenoughpermission
                             .replaceAll('walletAlias', wallet.alias!),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w400,
-                          color: notifier.getbluewhitecolor,
+                          color: Colors.red,
                           fontFamily: fontbody,
                         ),
                       ),

@@ -311,12 +311,10 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                             ? darktilewhitecolor
                             : notifier.getaddsubwalletgrey,
                       ),
-                      child: Image.memory(base64.decode(networks[int.parse(
+                      child: Image.network(networks[int.parse(
                         selectedNetwork.toString().split('|')[1],
                       )]
-                          .qrCode!
-                          .split(',')
-                          .last))),
+                          .qrCode!)),
                 ),
                 SizedBox(
                   height: height / 10,

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -59,300 +58,288 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
 
-    return ScreenUtilInit(
-      builder: (context, child) => Scaffold(
-        resizeToAvoidBottomInset: false,
-        backgroundColor: notifier.getwihitecolor,
-        appBar: CustomAppBar(
-          context,
-          notifier.getwihitecolor,
-          'Shared Access',
-          notifier.getbluewhitecolor,
-          height: height / 15,
-        ).getBar(),
-        body: Column(
-          children: [
-            SizedBox(
-              height: height / 20,
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: notifier.getwihitecolor,
+      appBar: CustomAppBar(
+        context,
+        notifier.getwihitecolor,
+        'Shared Access',
+        notifier.getbluewhitecolor,
+        height: height / 15,
+      ).getBar(),
+      body: Column(
+        children: [
+          SizedBox(
+            height: height / 20,
+          ),
+          Text(
+            wallet.alias!,
+            style: TextStyle(
+              fontSize: 20,
+              fontFamily: fontsemibold,
+              color: notifier.getbluewhitecolor,
             ),
-            Text(
-              wallet.alias!,
-              style: TextStyle(
-                fontSize: 20,
-                fontFamily: fontsemibold,
-                color: notifier.getbluewhitecolor,
+          ),
+          SizedBox(
+            height: height / 50,
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                color: notifier.isDark
+                    ? darktilewhitecolor
+                    : notifier.getaddsubwalletgrey,
               ),
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                  color: notifier.isDark
-                      ? darktilewhitecolor
-                      : notifier.getaddsubwalletgrey,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0, vertical: 15.0),
+                child: Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0, vertical: 15.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Description',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 90,
-                          ),
-                          Text(
-                            wallet.description!,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
-                          Text(
-                            'Owner',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 90,
-                          ),
-                          Text(
-                            wallet.owner!,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontFamily: fontbody,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
-                          Text(
-                            'Permissions',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 90,
-                          ),
-                          Container(
-                            width: width / 1.3,
-                            child: Wrap(
-                                alignment: WrapAlignment.center,
-                                children: [
-                                  Text(
-                                    'You have ',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  Text(
-                                    wallet.accesses![0]
-                                        .toString()
-                                        .toLowerCase(),
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontFamily: fontsemibold,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                  if (wallet.accesses!.length > 1) ...[
-                                    SizedBox(
-                                      width: width / 90,
-                                    ),
-                                    Text(
-                                      'and',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontFamily: fontbody,
-                                        color: notifier.getbluewhitecolor,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: width / 90,
-                                    ),
-                                    Text(
-                                      wallet.accesses![1]
-                                          .toString()
-                                          .toLowerCase(),
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontFamily: fontsemibold,
-                                        color: notifier.getbluewhitecolor,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: width / 90,
-                                    ),
-                                  ],
-                                  Text(
-                                    'access on this wallet',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontFamily: fontbody,
-                                      color: notifier.getbluewhitecolor,
-                                    ),
-                                  ),
-                                ]),
-                          ),
-                          SizedBox(
-                            height: height / 90,
-                          ),
-                          SizedBox(height: 2),
-                        ],
+                    Text(
+                      'Description',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
+                    SizedBox(
+                      height: height / 90,
+                    ),
+                    Text(
+                      wallet.description!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Text(
+                      'Owner',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 90,
+                    ),
+                    Text(
+                      wallet.owner!,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Text(
+                      'Permissions',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 90,
+                    ),
+                    Container(
+                      width: width / 1.3,
+                      child: Wrap(alignment: WrapAlignment.center, children: [
+                        Text(
+                          'You have ',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        Text(
+                          wallet.accesses![0].toString().toLowerCase(),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        if (wallet.accesses!.length > 1) ...[
+                          SizedBox(
+                            width: width / 90,
+                          ),
+                          Text(
+                            'and',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontFamily: fontbody,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          SizedBox(
+                            width: width / 90,
+                          ),
+                          Text(
+                            wallet.accesses![1].toString().toLowerCase(),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          SizedBox(
+                            width: width / 90,
+                          ),
+                        ],
+                        Text(
+                          'access on this wallet',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ]),
+                    ),
+                    SizedBox(
+                      height: height / 90,
+                    ),
+                    SizedBox(height: 2),
                   ],
                 ),
               ),
             ),
-            SizedBox(
-              height: height / 20,
-            ),
-            FutureBuilder<Map>(
-              future: responseData,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      backgroundColor: notifier.getbluecolor,
-                      valueColor: new AlwaysStoppedAnimation<Color>(
-                        notifier.getgreencolor,
-                      ),
-                      strokeWidth: 3.0,
+          ),
+          SizedBox(
+            height: height / 20,
+          ),
+          FutureBuilder<Map>(
+            future: responseData,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    backgroundColor: notifier.getbluecolor,
+                    valueColor: new AlwaysStoppedAnimation<Color>(
+                      notifier.getgreencolor,
+                    ),
+                    strokeWidth: 3.0,
+                  ),
+                );
+              } else if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          LanguageEn.somethingwentwrong,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              responseData = fetchWalletBalance(
+                                  signer: appState.activeWallet!.signer!,
+                                  secretKey: appState.secretKeys[0],
+                                  publicKey: wallet.publicKey!);
+                            });
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                notifier.getbluecolor!),
+                          ),
+                          child: Text(
+                            LanguageEn.retry,
+                            style: TextStyle(
+                              fontFamily: fontsemibold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   );
-                } else if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            LanguageEn.somethingwentwrong,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                responseData = fetchWalletBalance(
-                                    signer: appState.activeWallet!.signer!,
-                                    secretKey: appState.secretKeys[0],
-                                    publicKey: wallet.publicKey!);
-                              });
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  notifier.getbluecolor!),
-                            ),
-                            child: Text(
-                              LanguageEn.retry,
-                              style: TextStyle(
-                                fontFamily: fontsemibold,
-                              ),
-                            ),
-                          ),
-                        ],
+                } else if (snapshot.hasData) {
+                  return Column(
+                    children: [
+                      Button(
+                        'View wallet',
+                        notifier.getbluecolor,
+                        wihitecolor,
+                        onTap: () {
+                          appState.viewData = {
+                            'rel': 'sharedWalletView',
+                            'walletPublicKey': wallet.publicKey,
+                          };
+
+                          appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: WalletDetailsViewPageConfig);
+                        },
                       ),
-                    );
-                  } else if (snapshot.hasData) {
-                    return Column(
-                      children: [
-                        Button(
-                          'View wallet',
-                          notifier.getbluecolor,
-                          wihitecolor,
-                          onTap: () {
-                            appState.viewData = {
-                              'rel': 'sharedWalletView',
-                              'walletPublicKey': wallet.publicKey,
-                            };
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                      ButtonOutlined(
+                        'View transaction history',
+                        notifier.getbluecolor80,
+                        wihitecolor,
+                        onTap: () {
+                          appState.viewData = {
+                            'rel': 'sharedWalletView',
+                            'walletPublicKey': wallet.publicKey,
+                          };
 
-                            appState.currentAction = PageAction(
-                                state: PageState.addPage,
-                                page: WalletDetailsViewPageConfig);
-                          },
-                        ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
+                          appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: PaymentHistoryViewPageConfig);
+
+                          appState.setFilterQuery = "";
+
+                          appState.getHistory(context, wallet.publicKey!);
+                        },
+                      ),
+                      if (wallet.isInitiator) ...[
+                        SizedBox(height: height / 50),
                         ButtonOutlined(
-                          'View transaction history',
-                          notifier.getbluecolor80,
-                          wihitecolor,
+                          'Modify shared access',
+                          notifier.getwihitecolor,
+                          notifier.getbluewhitecolor,
                           onTap: () {
                             appState.viewData = {
-                              'rel': 'sharedWalletView',
                               'walletPublicKey': wallet.publicKey,
                             };
-
                             appState.currentAction = PageAction(
                                 state: PageState.addPage,
-                                page: PaymentHistoryViewPageConfig);
-
-                            appState.setFilterQuery = "";
-
-                            appState.getHistory(context, wallet.publicKey!);
+                                page: UpdateSharedAccessViewPageConfig);
                           },
                         ),
-                        if (wallet.isInitiator) ...[
-                          SizedBox(height: height / 50),
-                          ButtonOutlined(
-                            'Modify shared access',
-                            notifier.getwihitecolor,
-                            notifier.getbluewhitecolor,
-                            onTap: () {
-                              appState.viewData = {
-                                'walletPublicKey': wallet.publicKey,
-                              };
-                              appState.currentAction = PageAction(
-                                  state: PageState.addPage,
-                                  page: UpdateSharedAccessViewPageConfig);
-                            },
-                          ),
-                        ]
-                      ],
-                    );
-                  } else {
-                    return const Text('Empty data');
-                  }
+                      ]
+                    ],
+                  );
                 } else {
-                  return Text('State: ${snapshot.connectionState}');
+                  return const Text('Empty data');
                 }
-              },
-            )
-          ],
-        ),
+              } else {
+                return Text('State: ${snapshot.connectionState}');
+              }
+            },
+          )
+        ],
       ),
     );
   }

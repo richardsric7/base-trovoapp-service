@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -42,44 +43,20 @@ class AnnouncementView extends StatelessWidget {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              Container(
-                width: width / 1.2,
-                child: Text(
-                  announcement.title!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: notifier.getblck,
-                      fontFamily: fontsemibold,
-                      fontSize: 17.sp),
-                ),
-              ),
-              SizedBox(height: height / 50),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 15.0, horizontal: 25.0),
-                child: Text(
-                  announcement.message!,
-                  textAlign: TextAlign.justify,
-                  style: TextStyle(
-                      color: notifier.getblck,
-                      fontFamily: fontbody,
-                      fontSize: 15.sp),
-                ),
-              ),
-              SizedBox(height: height / 50),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 15.0, horizontal: 25.0),
-                child: Text(
-                  DateFormat('MMMM dd, yyyy hh:mm a').format(
-                    announcement.createdAt!,
+                padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                child: Html(data: announcement.message!, style: {
+                  "*": Style(
+                      color: notifier.getbluewhitecolor,
+                      fontSize: FontSize.large,
+                      lineHeight: LineHeight.number(1.2),
+                      wordSpacing: 1.2,
+                      textAlign: TextAlign.justify),
+                  "h1, h2, h3, h4": Style(
+                    fontFamily: fontsemibold,
+                    fontSize: FontSize.large,
                   ),
-                  // textAlign: TextAlign.justify,
-                  style: TextStyle(
-                      color: notifier.getblck,
-                      fontFamily: fontbody,
-                      fontSize: 15.sp),
-                ),
+                }),
               ),
               SizedBox(height: height / 20),
             ],

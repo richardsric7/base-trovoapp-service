@@ -351,7 +351,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                 ? darktilewhitecolor
                 : notifier.getaddsubwalletgrey,
           ),
-          child: Image.memory(base64.decode(asset!.qrCode!.split(',').last))),
+          child: Image.network(asset!.qrCode!)),
     );
   }
 }

@@ -163,13 +163,18 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      LanguageEn.optininfo2
-                          .replaceAll('walletAlias', wallet.alias!),
+                      wallet.canInitiate
+                          ? LanguageEn.optininfo2
+                              .replaceAll('walletAlias', wallet.alias!)
+                          : LanguageEn.notenoughpermission
+                              .replaceAll('walletAlias', wallet.alias!),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w400,
-                        color: notifier.getbluewhitecolor,
+                        color: wallet.canInitiate
+                            ? notifier.getbluewhitecolor
+                            : Colors.red[400]!,
                         fontFamily: fontbody,
                       ),
                     ),

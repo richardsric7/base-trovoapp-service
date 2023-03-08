@@ -259,8 +259,7 @@ class RequestSpecificPaymentDetailsState
                   ? darktilewhitecolor
                   : notifier.getaddsubwalletgrey,
             ),
-            child: Image.memory(
-                base64.decode(viewData['qrCode'].split(',').last))),
+            child: Image.network(viewData['qrCode'])),
       ),
     );
   }

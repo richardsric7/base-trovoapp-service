@@ -49,7 +49,6 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
 
   @override
   Widget build(BuildContext context) {
-    print(patronInfo.description);
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
@@ -73,6 +72,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
                 padding: const EdgeInsets.symmetric(horizontal: 30.0),
                 child: Html(data: patronInfo.description, style: {
                   "*": Style(
+                      color: notifier.getbluewhitecolor,
                       fontSize: FontSize.large,
                       lineHeight: LineHeight.number(1.2),
                       wordSpacing: 1.2,

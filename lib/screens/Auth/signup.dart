@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -58,6 +59,7 @@ class _SignUpState extends State<SignUp> {
   String passPhrase = '';
   String secretKey = '';
   bool importMode = false;
+  String errorText = 'dasadas';
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -281,6 +283,7 @@ class _SignUpState extends State<SignUp> {
                                     trimmedVal.length < 56) {
                                   return LanguageEn.secretkeyinvalid;
                                 }
+                                return null;
                               },
                               onSaved: (value) {
                                 secretKey = value!.trim().replaceAll(' ', '');
@@ -602,53 +605,53 @@ class _SignUpState extends State<SignUp> {
     h,
     w,
   }) {
-    return ScreenUtilInit(
-      builder: (context, child) => Container(
-        color: Colors.transparent,
-        height: h,
-        width: w,
-        child: IntlPhoneField(
-          autovalidateMode: AutovalidateMode.disabled,
-          style: TextStyle(color: textcolor, fontFamily: fontbody),
-          cursorColor: lablecolor,
-          initialCountryCode: countryCode,
-          dropdownIcon: Icon(
-            Icons.arrow_drop_down,
-            color: textcolor,
-          ),
-          dropdownTextStyle:
-              TextStyle(color: textcolor, fontSize: 16, fontFamily: fontbody),
-          decoration: InputDecoration(
-            label: Text(labletext),
-            counterStyle: TextStyle(color: textcolor),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15.sp),
-            ),
-            prefixIcon: Icon(preicon, color: iconcolor),
-            labelStyle: TextStyle(color: lablecolor),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15.sp),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: bordercolor, width: 1),
-              borderRadius: BorderRadius.circular(15.sp),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: focuscolor, width: 1),
-              borderRadius: BorderRadius.circular(15.sp),
-            ),
-          ),
-          onChanged: (value) {
-            setState(() {
-              phoneNumber = value.completeNumber;
-            });
-          },
-          onCountryChanged: (value) {
-            setState(() {
-              countryCode = value.code;
-            });
-          },
+    return Container(
+      color: Colors.transparent,
+      height: h,
+      width: w,
+      child: IntlPhoneField(
+        autovalidateMode: AutovalidateMode.disabled,
+        disableLengthCheck: countryCode ==
+            'ID', // disable when user selects indonesia and let backend validate
+        style: TextStyle(color: textcolor, fontFamily: fontbody),
+        cursorColor: lablecolor,
+        initialCountryCode: countryCode,
+        dropdownIcon: Icon(
+          Icons.arrow_drop_down,
+          color: textcolor,
         ),
+        dropdownTextStyle:
+            TextStyle(color: textcolor, fontSize: 16, fontFamily: fontbody),
+        decoration: InputDecoration(
+          label: Text(labletext),
+          counterStyle: TextStyle(color: textcolor),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.sp),
+          ),
+          prefixIcon: Icon(preicon, color: iconcolor),
+          labelStyle: TextStyle(color: lablecolor),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.sp),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: bordercolor, width: 1),
+            borderRadius: BorderRadius.circular(15.sp),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: focuscolor, width: 1),
+            borderRadius: BorderRadius.circular(15.sp),
+          ),
+        ),
+        onChanged: (value) {
+          setState(() {
+            phoneNumber = value.completeNumber;
+          });
+        },
+        onCountryChanged: (value) {
+          setState(() {
+            countryCode = value.code;
+          });
+        },
       ),
     );
   }

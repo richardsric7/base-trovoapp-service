@@ -352,8 +352,6 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
         publicKey: appState.primaryWallet.publicKey!,
       );
 
-      print(responseData['data']);
-
       if (responseData['statusCode'] == 200) {
         return responseData['data'];
       } else {

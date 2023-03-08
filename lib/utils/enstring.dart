@@ -471,7 +471,7 @@ class LanguageEn {
       "I understand that if I lose my secret key. Trovotech is not liable to any loss and that my funds are securely held and controlled on this device not by Trovotech.";
 
   static String get maynotbedisplayedagain =>
-      "This wallet's secret key will only be available while this app in not yet unistalled from this device.";
+      "This wallet's secret key will only be available while this app in not yet uninstalled from this device.";
 
   static String get writeitdown =>
       "Please copy the following details correctly and store in a safe place.";
@@ -597,6 +597,9 @@ class LanguageEn {
 
   static String get optininfo =>
       "Do you wish to add this asset [assetCode] on your wallet [walletAlias]?";
+
+  static String get notenoughpermission =>
+      "You do not have enough permission to initiate this transaction on this wallet [walletAlias].";
 
   static String get optininfo2 =>
       'This will make this asset appear on the list of assets on your wallet [walletAlias] and will enable you to start transacting with it.';
@@ -754,10 +757,10 @@ class LanguageEn {
       'You have successfully setup your secret questons. \n\nPLEASE DO NOT FORGET THE ANSWERS YOU PROVIDED FOR FUTURE USE.';
 
   static String get enableaccountrecoverysuccess =>
-      "Account recovery has been successfully enabled on your account. Trovowallet will now be able to recover your account if you lose your secret key.";
+      "Account recovery has been successfully enabled on your account. Trovotech will now be able to recover your account if you lose your secret key.";
 
   static String get disableaccountrecoverysuccess =>
-      "Account recovery has been successfully disabled on your account. \n\nTrovowallet will no longer be able to recover your account should you lose your secret key.\n\n You can enable the service at any time in the future should you have a need for it.";
+      "Account recovery has been successfully disabled on your account. \n\nTrovotech will no longer be able to recover your account should you lose your secret key.\n\n You can enable the service at any time in the future should you have a need for it.";
 
   static String get hasbeenexchange => "Has been exchange from ETH to DAI";
 
@@ -826,7 +829,7 @@ class LanguageEn {
   static String get securityquestions => "Security Questions";
 
   static String get pleasesetupsecurityquestions =>
-      "Please setup your security questions.\nSecurity questions add an extra layer of security to your account and is also a requirement for using some of the Trovowallet services.";
+      "Please setup your security questions.\nSecurity questions add an extra layer of security to your account and is also a requirement for using some of the Trovotech services.";
 
   static String get helpandsupport => "Help and Support";
 
