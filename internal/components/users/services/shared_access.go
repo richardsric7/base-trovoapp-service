@@ -1223,6 +1223,11 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	defer dbTX.Rollback()
 	wallet.SharedAccessEnabled = 0
 	wallet.NumberOfApprovalsNeeded = 0
+	e = dbTX.Save(wallet).Error
+	if e != nil {
+		log.Println("[RemoveSharedWalletAccess] error saving wallet", e)
+		return &tErrors.ErrorTemporaryServerError{}
+	}
 	e = dbTX.Delete(&accessList).Error
 	if e != nil {
 		log.Println("[RemoveSharedWalletAccess] error deleting access list", e)
