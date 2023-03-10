@@ -1148,11 +1148,10 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		}
 	}
 
-	// // if approver exists, then owner must sign transaction to add them as signers
-	// if (numberOfApprovers - selfApprover) > 0 {
-	// 	accessInfo.SignatureRequired = 1
+	if numberOfApprovers > 0 {
+		accessInfo.MultiParty = 1
 
-	// }
+	}
 
 	xdrBase64, transactionSource, messages, walletMustSign, _, errGenXdr := generateRemoveSharedAccessXdr(wallet, &walletOwner, approverUsers, numberOfApprovers, gc)
 	if errGenXdr != nil {
@@ -1167,13 +1166,6 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	accessInfo.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
 
 	accessInfo.Transaction = xdrBase64
-	if numberOfApprovers > 0 && len(accessInfo.TransactionSignature) == 0 {
-		accessInfo.MultiParty = 1
-		if accessInfo.Commit == 0 {
-			return nil
-		}
-
-	}
 
 	if len(accessInfo.TransactionSignature) == 0 {
 		if accessInfo.Commit == 0 {
@@ -1181,7 +1173,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 		}
 	}
 
-	if numberOfApprovers > 0 && len(accessInfo.TransactionSignature) > 0 {
+	if numberOfApprovers > 0 && accessInfo.Commit == 1 {
 		//SET transaction id to pending auth
 		accessInfo.MultiParty = 1
 		if accessInfo.Commit == 1 {
@@ -1217,10 +1209,12 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 
 		return nil
 	}
+	if len(accessInfo.TransactionSignature) == 0 {
 
-	if accessInfo.Commit == 0 {
 		return nil
+
 	}
+
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
 	wallet.SharedAccessEnabled = 0
