@@ -243,7 +243,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 
 	{
 		//check if the signer has valid signature right to the wallet.
-		if !wallet.SignerIsValid(signerUser.PrimarySigner, false,gc) {
+		if !wallet.SignerIsValid(signerUser.PrimarySigner, false, gc) {
 			log.Printf("[ApproveTransaction] error %v account may have been recovered without permission re-instated. Please contact wallet approvers to re-instate your access.\n", signerUser.Username)
 			return &tErrors.CustomError{
 				Param:      "id",
@@ -424,6 +424,7 @@ func ApproveTransaction(signerUser *userModels.User, p *userModels.PendingAuth, 
 					u.InvalidateUserCache(gc)
 				}
 			}
+			wallet.InvalidateUserCache(gc)
 
 			return nil
 		} else if p.TransactionType == "MODIFY SHARED ACCESS" {

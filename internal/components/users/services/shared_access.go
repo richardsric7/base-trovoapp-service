@@ -1189,7 +1189,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 
 			id := uuid.New().String()
 
-			description := fmt.Sprintf("Disabling shared access on wallet %v.\nThis will remove the permissions:\n%v", wallet.Alias, userPermissions)
+			description := fmt.Sprintf("Disabling shared access on wallet %v.\n This will remove the permissions:\n%v", wallet.Alias, userPermissions)
 			transactionByte, _ := json.Marshal(*accessInfo)
 			transactionStr := string(transactionByte)
 			pendingAuth := userModels.PendingAuth{
@@ -1243,6 +1243,7 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 	accessInfo.TransactionID = txnHash
 
 	dbTX.Commit()
+	wallet.InvalidateUserCache(gc)
 	return nil
 
 }
