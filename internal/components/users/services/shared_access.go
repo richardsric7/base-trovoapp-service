@@ -1209,12 +1209,16 @@ func RemoveSharedWalletAccess(signerUser *userModels.User, wallet *userModels.Us
 
 		return nil
 	}
-	if len(accessInfo.TransactionSignature) == 0 {
+	if len(accessInfo.TransactionSignature) == 0 && wallet.HasViewOnlyAccess(gc) {
 
 		return nil
 
 	}
+	if !wallet.HasViewOnlyAccess(gc) {
+		log.Println("[RemoveSharedWalletAccess] wallet is not view only and did not meet condition for multiparty")
+		return &tErrors.ErrorTemporaryServerError{}
 
+	}
 	dbTX := gc.DB.Begin()
 	defer dbTX.Rollback()
 	wallet.SharedAccessEnabled = 0
