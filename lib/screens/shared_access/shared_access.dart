@@ -253,25 +253,6 @@ class _SharedAccessState extends State<SharedAccess>
             )),
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
-        // appBar: PreferredSize(
-        //   child: AppBar(
-        //     centerTitle: true,
-        //     elevation: 0,
-        //     backgroundColor: notifier.getwihitecolor,
-        //     leading: GestureDetector(
-        //       onTap: () {
-        //         Navigator.of(context).pop();
-        //       },
-        //       child: Image.asset("assets/images/back.png", scale: 5),
-        //     ),
-        //     title: Text(
-        //       LanguageEn.sharedaccess,
-        //       style: TextStyle(
-        //           color: notifier.getbluewhitecolor, fontFamily: fontsemibold),
-        //     ),
-        //   ),
-        //   preferredSize: Size.fromHeight(height / 15),
-        // ),
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
@@ -937,7 +918,9 @@ class _SharedAccessState extends State<SharedAccess>
                 // the wallet no longer belongs to me.
                 var filteredWallets = <Wallet>[];
                 for (var wallet in appState.userInfo!.wallets!) {
-                  if (wallet.isSharedWallet && wallet.walletThreshold == 1) {
+                  if (wallet.isSharedWallet &&
+                      wallet.walletThreshold == 1 &&
+                      wallet.permissions!.length > 0) {
                     filteredWallets.add(wallet);
                   }
                 }
@@ -1230,12 +1213,23 @@ class _SharedAccessState extends State<SharedAccess>
       children: [
         GestureDetector(
           onTap: () {
-            appState.viewData = {
-              'walletPublicKey': walletPublicKey,
-            };
-            appState.currentAction = PageAction(
-                state: PageState.addPage,
-                page: UpdateSharedAccessViewPageConfig);
+            viewOnlySharedWalletOptions(context, () {
+              appState.viewData = {
+                'walletPublicKey': walletPublicKey,
+              };
+              appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: UpdateSharedAccessViewPageConfig);
+            }, () {
+              warnDisableSharedAccessDialog(context, () {
+                disableSharedAccess(
+                  context,
+                  appState,
+                  appState.userInfo!.getWallet(walletPublicKey),
+                  viewOnly: true,
+                );
+              });
+            });
           },
           child: Card(
             elevation: notifier.isDark ? 0 : 5,

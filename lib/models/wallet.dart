@@ -149,10 +149,12 @@ class Wallet {
   List<String> getAccesses(permissions, String username) {
     var accesses = <String>[];
 
-    for (var i = 0; i < permissions.length; i++) {
-      if (permissions[i]['targetUsername'] == username &&
-          !accesses.contains(permissions[i]['permission'])) {
-        accesses.add(permissions[i]['permission']);
+    if (permission != null) {
+      for (var i = 0; i < permissions.length; i++) {
+        if (permissions[i]['targetUsername'] == username &&
+            !accesses.contains(permissions[i]['permission'])) {
+          accesses.add(permissions[i]['permission']);
+        }
       }
     }
     return accesses;
@@ -160,14 +162,16 @@ class Wallet {
 
   List<Permission> getPermissionList(permissionArrayString) {
     var permissions = <Permission>[];
-    for (var i = 0; i < permissionArrayString.length; i++) {
-      permissions.add(Permission(
-          createdAt: DateTime.parse(permissionArrayString[i]['createdAt']),
-          updatedAt: DateTime.parse(permissionArrayString[i]['updatedAt']),
-          walletPublicKey: permissionArrayString[i]['walletPublicKey'],
-          targetUsername: permissionArrayString[i]['targetUsername'],
-          fullName: permissionArrayString[i]['fullName'],
-          permission: permissionArrayString[i]['permission']));
+    if (permissionArrayString != null) {
+      for (var i = 0; i < permissionArrayString.length; i++) {
+        permissions.add(Permission(
+            createdAt: DateTime.parse(permissionArrayString[i]['createdAt']),
+            updatedAt: DateTime.parse(permissionArrayString[i]['updatedAt']),
+            walletPublicKey: permissionArrayString[i]['walletPublicKey'],
+            targetUsername: permissionArrayString[i]['targetUsername'],
+            fullName: permissionArrayString[i]['fullName'],
+            permission: permissionArrayString[i]['permission']));
+      }
     }
     return permissions;
   }

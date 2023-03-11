@@ -458,6 +458,9 @@ class LanguageEn {
   static String get warnskipbackup =>
       "We strongly recommend that you backup your wallet secret key. Are you sure you want to skip?";
 
+  static String get warnDisableSharedAccess =>
+      "Are you sure you want to disable shared access on this wallet?";
+
   static String get warncost =>
       "This action will cost you 3450 TROV to complete.";
 

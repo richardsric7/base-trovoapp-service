@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,13 +8,18 @@ import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 
 class SharedWalletInfo extends StatefulWidget {
   const SharedWalletInfo({Key? key}) : super(key: key);
@@ -317,7 +324,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                         SizedBox(height: height / 50),
                         ButtonOutlined(
                           'Modify shared access',
-                          notifier.getwihitecolor,
+                          notifier.getbluecolor60,
                           notifier.getbluewhitecolor,
                           onTap: () {
                             appState.viewData = {
@@ -326,6 +333,17 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                             appState.currentAction = PageAction(
                                 state: PageState.addPage,
                                 page: UpdateSharedAccessViewPageConfig);
+                          },
+                        ),
+                        SizedBox(height: height / 50),
+                        ButtonOutlined(
+                          'Disable shared access',
+                          notifier.getwihitecolor,
+                          notifier.getbluewhitecolor,
+                          onTap: () {
+                            warnDisableSharedAccessDialog(context, () {
+                              disableSharedAccess(context, appState, wallet);
+                            });
                           },
                         ),
                       ]

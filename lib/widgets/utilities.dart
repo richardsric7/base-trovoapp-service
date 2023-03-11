@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:expandable/expandable.dart';
@@ -14,9 +15,17 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:path_provider/path_provider.dart' as syspaths;
 import 'package:pdf/widgets.dart' as pw;
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/wallet.dart';
+import 'package:trovo_wallet/network/requests.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/storage/cache.dart';
 
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 
 import '../utils/medeiaqury/medeiaqury.dart';
@@ -508,4 +517,112 @@ Future<void> sharePDF(String message, GlobalKey snapshotAreaKey) async {
   file.writeAsBytesSync(await pdf.save());
   await Share.shareXFiles([XFile(fileName)],
       text: message, sharePositionOrigin: boundary.paintBounds);
+}
+
+void disableSharedAccess(
+    BuildContext context, DataProvider appState, Wallet wallet,
+    {bool viewOnly = false}) async {
+  try {
+    showLoader(context);
+
+    Map responseData = await makeDeleteRequest(
+      uri: '/v1/shared-access/users/account',
+      body: '{}',
+      signer: appState.primaryWallet.signer!,
+      secretKey: appState.secretKeys[0], // the primary wallet secret key
+      publicKey: wallet.publicKey!,
+    );
+
+    print('response: ${responseData}');
+
+    if (responseData['statusCode'] == 200 ||
+        responseData['statusCode'] == 202) {
+      var messageLength = responseData['data']['messages'].length;
+      var messageShown = 0;
+      print('messagelenth: $messageLength');
+      postProcessData(
+          context, messageShown, messageLength, responseData['data'],
+          callback: () {
+        signAndCommitTransaction(
+            responseData['data'], context, appState, wallet, viewOnly);
+      });
+      hideLoader(context);
+    } else {
+      popup(context,
+          title: LanguageEn.error, message: responseData['data']['message']);
+      hideLoader(context);
+    }
+  } catch (e) {
+    popup(context, title: LanguageEn.error, message: e.toString());
+    hideLoader(context);
+  }
+}
+
+void signAndCommitTransaction(responseFromServer, BuildContext context,
+    DataProvider appState, Wallet wallet, bool viewOnly) async {
+  try {
+    print('signing and sending....');
+    String viewOnlySuccess =
+        'Shared access has successfully been disabled on this wallet [${wallet.alias}]';
+    String sharedAccessSuccess =
+        'Your request to disable shared access on wallet [${wallet.alias!}] has been submitted. This transaction will be completed when it gets the required number of approvals.';
+    showLoader(context);
+
+    //sign the transaction and the submit again
+    var signature = TrovoWalletSDK().signBase64Txn(
+      appState.secretKeys[0], // the primary wallet secret key,
+      responseFromServer['transaction'],
+      responseFromServer['networkPassPhrase'],
+    );
+    responseFromServer['transactionId'] = "";
+    responseFromServer['transactionSignature'] = signature;
+    responseFromServer['commit'] = 1;
+
+    print('second: ${responseFromServer}');
+
+    String requestBody = jsonEncode(responseFromServer);
+
+    print('second: ${requestBody}');
+
+    Map responseData = await makeDeleteRequest(
+      uri: '/v1/shared-access/users/account',
+      body: requestBody,
+      signer: appState.primaryWallet.signer!,
+      secretKey: appState.secretKeys[0], // the primary wallet secret key
+      publicKey: wallet.publicKey!,
+    );
+
+    if (responseData['statusCode'] == 200 ||
+        responseData['statusCode'] == 202) {
+      updateUserInfo(
+        appState.primaryWallet.signer!,
+        appState.secretKeys[0],
+        appState.primaryWallet.publicKey,
+        appState.userInfo!.username,
+        appState,
+        forceRefresh: true,
+      );
+      appState.viewData![SuccessViewPageConfig.key] = {
+        'title': 'Request successfully submitted',
+        'message': viewOnly ? viewOnlySuccess : sharedAccessSuccess,
+        'useOnDone': true,
+        'onDone': () {
+          appState.currentAction = PageAction(state: PageState.addAll, pages: [
+            BottomHomePageConfig,
+            SharedAccessViewPageConfig,
+          ]);
+        },
+      };
+      appState.currentAction =
+          PageAction(state: PageState.replace, page: SuccessViewPageConfig);
+      hideLoader(context);
+    } else {
+      popup(context,
+          title: LanguageEn.error, message: responseData['data']['message']);
+      hideLoader(context);
+    }
+  } catch (e) {
+    popup(context, title: LanguageEn.error, message: e.toString());
+    hideLoader(context);
+  }
 }
