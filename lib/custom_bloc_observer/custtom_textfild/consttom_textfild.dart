@@ -92,7 +92,7 @@ class CustomTextFormField {
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15.sp),
           ),
-          prefixIcon: Icon(preicon, color: iconcolor),
+          prefixIcon: preicon == null ? null : Icon(preicon, color: iconcolor),
           labelStyle: TextStyle(color: lablecolor),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15.sp),

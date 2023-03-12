@@ -86,6 +86,14 @@ class LanguageEn {
   static String get addsubwallet => 'Add Subwallet';
 
   static String get tag => 'Tag';
+  static String get welcometoassettokenization =>
+      'Welcome to Asset Tokenization';
+  static String get fillouttocreatetoken =>
+      'Please fill in the required information in order to create an asset token';
+  static String get welcometoassettokenization2 =>
+      'Unlock liquidity from fixed assets';
+  static String get welcometoassettokenization3 =>
+      'Digitally fragment large assets to unlock liquidity from multiple contributors. Use the power of tokenization to give more people access to investment opportunities previously unavailable to them. Tokenize land, buildings, commodities, natural resources, and other qualifying assets.';
 
   static String get domorewithblockchain =>
       "Do more magic with Blockchain. \nGo beyond limits.";

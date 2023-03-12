@@ -7,6 +7,7 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
@@ -138,7 +139,7 @@ class _BottomHomeState extends State<BottomHome> {
                 duration: Duration(milliseconds: 2000),
                 curve: Curves.fastOutSlowIn,
                 child: Image.asset(
-                  "assets/images/settings.png",
+                  "assets/images/tokenization.png",
                   color: _selectedIndex == ButtomTabPage.Settings.index
                       ? notifire.isDark
                           ? wihitecolor
@@ -149,7 +150,7 @@ class _BottomHomeState extends State<BottomHome> {
                       : height / 43,
                 ),
               ),
-              label: 'Settings',
+              label: 'Tokenization',
             ),
           ],
           // onTap: (index) {
@@ -208,7 +209,7 @@ class _BottomHomeState extends State<BottomHome> {
     Wallets(),
     PaymentHistory(),
     SwapAssets(),
-    Settings(),
+    TokenizationWelcome(),
   ];
 
   // Map<String, WidgetBuilder> _routeBuilders(BuildContext context, int index) {

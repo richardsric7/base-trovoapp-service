@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/searchview.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/custom_bloc_observer/swiper/swiper.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/confirm_swap.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/change_password.dart';
@@ -54,6 +55,9 @@ import 'package:trovo_wallet/screens/account_recovery/security_questions.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/withdraw_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/wrapped_asset.dart';
 import 'package:trovo_wallet/screens/announcements/announcementsView.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/asset_information.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/tokenize_asset_view.dart';
 import 'package:trovo_wallet/screens/import_wallet/import_wallet.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
@@ -368,6 +372,19 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.OptInOutAssetView:
           _addPageData(OptInOutAsset(), OptInOutAssetViewPageConfig);
           break;
+        case Pages.TokenizationWelcomeView:
+          _addPageData(
+              TokenizationWelcome(), TokenizationWelcomeViewPageConfig);
+          break;
+        case Pages.SettingsView:
+          _addPageData(Settings(), SettingsViewPageConfig);
+          break;
+        case Pages.TokenizeAssetView:
+          _addPageData(TokenizeAsset(), TokenizeAssetViewPageConfig);
+          break;
+        case Pages.AssetInformationView:
+          _addPageData(AssetInformation(), AssetInformationViewPageConfig);
+          break;
         default:
           break;
       }
@@ -601,6 +618,18 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.OptInOutAssetView:
         OptInOutAssetViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.TokenizationWelcomeView:
+        TokenizationWelcomeViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SettingsView:
+        SettingsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.TokenizeAssetView:
+        TokenizeAssetViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AssetInformationView:
+        AssetInformationViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

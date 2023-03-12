@@ -157,8 +157,8 @@ class _SettingsState extends State<Settings> {
                         state: PageState.addPage,
                         page: WelcomeSubscriptionsViewPageConfig);
                   },
-                  child:
-                      iteamlist("assets/images/trovo.png", "", "Trovo Patron"),
+                  child: iteamlist(
+                      "assets/images/trovo.png", "", LanguageEn.trovopatron),
                 ),
                 SizedBox(height: height / 25),
                 Row(

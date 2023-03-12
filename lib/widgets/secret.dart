@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
-import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 
 import '../custom_bloc_observer/fonts.dart';

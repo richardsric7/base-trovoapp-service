@@ -51,6 +51,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   int activeWalletIndex = 0;
   var noOfTransactionsToSign;
   var noXbnBalance = false;
+  final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
 
   @override
   void initState() {
@@ -119,8 +120,125 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     // _tabController.animateTo(activeTabIndex);
 
     return Scaffold(
+      key: key,
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
+      drawer: Drawer(
+        child: ListView(
+          // Important: Remove any padding from the ListView.
+          padding: EdgeInsets.zero,
+          children: [
+            UserAccountsDrawerHeader(
+              // <-- SEE HERE
+              decoration: BoxDecoration(
+                color: notifier.getbluewhitecolor,
+              ),
+              margin: const EdgeInsets.only(bottom: 8.0),
+              accountName: Text(
+                appState.userInfo!.fullName,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                ),
+              ),
+              accountEmail: Text(
+                appState.userInfo!.email!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                ),
+              ),
+              currentAccountPicture: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    child: CircleAvatar(
+                      radius: 30,
+                      backgroundColor: notifier.getbluecolor70,
+                      child: GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: ProfileDetailsViewPageConfig);
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100.0),
+                          child: Image.network(
+                            appState.userInfo!.imageThumbnailURL!,
+                            width: width / 6.8,
+                            // height: width / 10,
+                            fit: BoxFit.fill,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/trovo.png',
+                                width: width / 9,
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: Image.asset(
+                "assets/images/settings.png",
+                color: notifier.getgrey.withOpacity(.80),
+                height: height / 40,
+              ),
+              title: Text(
+                'Settings',
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: SettingsViewPageConfig,
+                );
+              },
+            ),
+            ListTile(
+              leading: Image.asset(
+                "assets/images/access.png",
+                color: notifier.getgrey.withOpacity(.80),
+                scale: 5,
+                height: height / 35,
+              ),
+              title: Text(
+                LanguageEn.sharedaccess,
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Image.asset(
+                "assets/images/trovo.png",
+                color: notifier.getgrey.withOpacity(.80),
+                scale: 5,
+                height: height / 40,
+              ),
+              title: Text(
+                LanguageEn.trovopatron,
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
       body: SmartRefresher(
         enablePullDown: true,
         controller: _refreshController,
@@ -442,37 +560,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               children: [
                 Row(
                   children: [
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(width / 18, 0, 0, 0),
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundColor: notifier.getbluecolor70,
-                        child: GestureDetector(
-                          onTap: () {
-                            appState.currentAction = PageAction(
-                                state: PageState.addPage,
-                                page: ProfileDetailsViewPageConfig);
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(100.0),
-                            child: Image.network(
-                              appState.userInfo!.imageThumbnailURL!,
-                              width: width / 6.8,
-                              // height: width / 10,
-                              fit: BoxFit.fill,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Image.asset(
-                                  'assets/images/trovo.png',
-                                  width: width / 9,
-                                );
-                              },
-                            ),
-                          ),
-                        ),
+                    SizedBox(
+                      width: width / 40,
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        key.currentState!.openDrawer();
+                      },
+                      icon: Icon(
+                        Icons.menu,
+                        size: 35,
+                        color: notifier.getbluewhitecolor,
                       ),
                     ),
                     SizedBox(
-                      width: width / 70,
+                      width: width / 20,
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

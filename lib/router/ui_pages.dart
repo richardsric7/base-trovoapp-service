@@ -80,6 +80,10 @@ const String AuthorizeSubscriptionViewPath = '/AuthorizeSubscriptionView';
 const String OptInAssetViewPath = '/OptInAssetView';
 const String OptOutAssetViewPath = '/OptOutAssetView';
 const String OptInOutAssetViewPath = '/OptInOutAssetView';
+const String TokenizationWelcomeViewPath = '/TokenizationWelcomeView';
+const String SettingsViewPath = '/SettingsView';
+const String TokenizeAssetViewPath = '/TokenizeAssetView';
+const String AssetInformationViewPath = '/AssetInformationView';
 
 enum Pages {
   Splash,
@@ -163,6 +167,10 @@ enum Pages {
   OptInAssetView,
   OptOutAssetView,
   OptInOutAssetView,
+  TokenizationWelcomeView,
+  SettingsView,
+  TokenizeAssetView,
+  AssetInformationView,
 }
 
 class PageConfiguration {
@@ -554,4 +562,24 @@ PageConfiguration OptInOutAssetViewPageConfig = PageConfiguration(
     key: 'OptInOutAssetView',
     path: OptInOutAssetViewPath,
     uiPage: Pages.OptInOutAssetView,
+    currentPageAction: null);
+PageConfiguration TokenizationWelcomeViewPageConfig = PageConfiguration(
+    key: 'TokenizationWelcomeView',
+    path: TokenizationWelcomeViewPath,
+    uiPage: Pages.TokenizationWelcomeView,
+    currentPageAction: null);
+PageConfiguration SettingsViewPageConfig = PageConfiguration(
+    key: 'SettingsView',
+    path: SettingsViewPath,
+    uiPage: Pages.SettingsView,
+    currentPageAction: null);
+PageConfiguration TokenizeAssetViewPageConfig = PageConfiguration(
+    key: 'TokenizeAssetView',
+    path: TokenizeAssetViewPath,
+    uiPage: Pages.TokenizeAssetView,
+    currentPageAction: null);
+PageConfiguration AssetInformationViewPageConfig = PageConfiguration(
+    key: 'AssetInformationView',
+    path: AssetInformationViewPath,
+    uiPage: Pages.AssetInformationView,
     currentPageAction: null);

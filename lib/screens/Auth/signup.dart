@@ -381,42 +381,40 @@ class _SignUpState extends State<SignUp> {
     keyboardtype,
     focusNode,
   }) {
-    return ScreenUtilInit(
-      builder: (context, child) => Container(
-        color: Colors.transparent,
-        height: h,
-        width: w,
-        child: TextFormField(
-          focusNode: focusNode,
-          maxLength: maxLength,
-          minLines: minLines,
-          maxLines: maxLines,
-          style: TextStyle(color: textcolor, fontFamily: fontbody),
-          cursorColor: lablecolor,
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            hintText: labletext,
-            hintStyle: TextStyle(color: lablecolor),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15.sp),
-            ),
-            labelStyle: TextStyle(color: lablecolor),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(15.sp),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: bordercolor, width: 1),
-              borderRadius: BorderRadius.circular(15.sp),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: focuscolor, width: 1),
-              borderRadius: BorderRadius.circular(15.sp),
-            ),
+    return Container(
+      color: Colors.transparent,
+      height: h,
+      width: w,
+      child: TextFormField(
+        focusNode: focusNode,
+        maxLength: maxLength,
+        minLines: minLines,
+        maxLines: maxLines,
+        style: TextStyle(color: textcolor, fontFamily: fontbody),
+        cursorColor: lablecolor,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          hintText: labletext,
+          hintStyle: TextStyle(color: lablecolor),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.sp),
           ),
-          keyboardType: keyboardtype,
-          validator: validator,
-          onSaved: onSaved,
+          labelStyle: TextStyle(color: lablecolor),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15.sp),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: bordercolor, width: 1),
+            borderRadius: BorderRadius.circular(15.sp),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: focuscolor, width: 1),
+            borderRadius: BorderRadius.circular(15.sp),
+          ),
         ),
+        keyboardType: keyboardtype,
+        validator: validator,
+        onSaved: onSaved,
       ),
     );
   }

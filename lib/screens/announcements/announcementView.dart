@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/announcement.dart';
@@ -29,16 +29,13 @@ class AnnouncementView extends StatelessWidget {
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(70.sp),
           // here the desired height
-          child: AppBar(
-            leading: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset("assets/images/back.png", scale: 5),
-            ),
-            elevation: 0,
-            backgroundColor: notifier.getwihitecolor,
-          ),
+          child: CustomAppBar(
+            context,
+            notifier.getwihitecolor,
+            "Asset Tokenization",
+            notifier.getbluewhitecolor,
+            height: height / 15,
+          ).getBar(),
         ),
         body: SingleChildScrollView(
           child: Column(

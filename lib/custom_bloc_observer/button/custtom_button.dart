@@ -186,3 +186,141 @@ class _ButtonOutlinedState extends State<ButtonOutlined> {
     );
   }
 }
+
+class SmallButtonOutlined extends StatefulWidget {
+  final String? buttontext;
+  final Color? colorbutton;
+  final Color? buttontextcolor;
+  final void Function()? onTap;
+
+  const SmallButtonOutlined(
+      this.buttontext, this.colorbutton, this.buttontextcolor,
+      {Key? key, this.onTap})
+      : super(key: key);
+
+  @override
+  State<SmallButtonOutlined> createState() => _SmallButtonOutlinedState();
+}
+
+class _SmallButtonOutlinedState extends State<SmallButtonOutlined> {
+  get borderRadius => BorderRadius.circular(15);
+
+  late ColorNotifier notifier;
+
+  getdarkmodepreviousstate() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool? previusstate = prefs.getBool("setIsDark");
+    if (previusstate == null) {
+      notifier.setIsDark = false;
+    } else {
+      notifier.setIsDark = previusstate;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getdarkmodepreviousstate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
+    return ElevatedButton(
+      onPressed: widget.onTap,
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all<Color>(widget.colorbutton!),
+        side: MaterialStateProperty.all(
+          BorderSide(
+              color: notifier.getbluewhitecolor,
+              width: 1,
+              style: BorderStyle.solid),
+        ),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(10),
+            ),
+          ),
+        ),
+      ),
+      child: Text(
+        widget.buttontext!,
+        style: TextStyle(
+          fontFamily: fontsemibold,
+          color: widget.buttontextcolor,
+        ),
+      ),
+    );
+  }
+}
+
+class SmallButton extends StatefulWidget {
+  final String? buttontext;
+  final Color? colorbutton;
+  final Color? buttontextcolor;
+  final void Function()? onTap;
+
+  const SmallButton(
+    this.buttontext,
+    this.colorbutton,
+    this.buttontextcolor, {
+    Key? key,
+    this.onTap,
+  }) : super(key: key);
+
+  @override
+  State<SmallButton> createState() => _SmallButtonState();
+}
+
+class _SmallButtonState extends State<SmallButton> {
+  get borderRadius => BorderRadius.circular(15);
+
+  late ColorNotifier notifier;
+
+  getdarkmodepreviousstate() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool? previusstate = prefs.getBool("setIsDark");
+    if (previusstate == null) {
+      notifier.setIsDark = false;
+    } else {
+      notifier.setIsDark = previusstate;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getdarkmodepreviousstate();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
+    return ElevatedButton(
+      onPressed: widget.onTap,
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all<Color>(widget.colorbutton!),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(10),
+            ),
+          ),
+        ),
+      ),
+      child: Text(
+        widget.buttontext!,
+        style: TextStyle(
+          fontFamily: fontbody,
+          fontSize: 15,
+          color: widget.buttontextcolor,
+        ),
+      ),
+    );
+  }
+}
