@@ -224,11 +224,11 @@ class _TokenizeAssetState extends State<TokenizeAsset>
             ),
             detailItem(
               'Asset Verification Documents',
-              'Provide the basic information about the asset you want to tokenize',
+              'Provide verification documents about the asset you want to tokenize',
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
-                  page: AssetInformationViewPageConfig,
+                  page: AssetVerificationDocumentsViewPageConfig,
                 );
               },
             ),
@@ -252,7 +252,15 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               'Complete Tokenization',
               notifier.getbluecolor,
               wihitecolor,
-              onTap: () {},
+              onTap: () {
+                appState.viewData![SuccessViewPageConfig.key] = {
+                  'title': '',
+                  'message':
+                      'Your Asset Tokenization Request has been submitted and is awaiting approval. You’ll be notified when  it has been approved.',
+                };
+                appState.currentAction = PageAction(
+                    state: PageState.replaceAll, page: SuccessViewPageConfig);
+              },
             ),
             SizedBox(
               height: height / 10,

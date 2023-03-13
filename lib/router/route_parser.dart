@@ -163,6 +163,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return SettingsViewPageConfig;
       case TokenizeAssetViewPath:
         return TokenizeAssetViewPageConfig;
+      case AssetVerificationDocumentsViewPath:
+        return AssetVerificationDocumentsViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -337,6 +339,9 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: TokenizeAssetViewPath);
       case Pages.AssetInformationView:
         return const RouteInformation(location: AssetInformationViewPath);
+      case Pages.AssetVerificationDocumentsView:
+        return const RouteInformation(
+            location: AssetVerificationDocumentsViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }
