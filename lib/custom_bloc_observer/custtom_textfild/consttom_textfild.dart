@@ -194,3 +194,57 @@ class CustomTextFormField {
     );
   }
 }
+
+Widget multilineInput(
+  labletext,
+  focuscolor,
+  lablecolor,
+  textcolor,
+  bordercolor,
+  h,
+  w, {
+  onChanged,
+  maxLength,
+  minLines,
+  maxLines,
+  validator,
+  onSaved,
+  keyboardtype,
+  focusNode,
+}) {
+  return Container(
+    height: h,
+    width: w,
+    child: TextFormField(
+      focusNode: focusNode,
+      maxLength: maxLength,
+      minLines: minLines,
+      maxLines: maxLines,
+      style: TextStyle(color: textcolor, fontFamily: fontbody),
+      cursorColor: lablecolor,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        hintText: labletext,
+        hintStyle: TextStyle(color: lablecolor),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        labelStyle: TextStyle(color: lablecolor),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: bordercolor, width: 1),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: focuscolor, width: 1),
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+      keyboardType: keyboardtype,
+      validator: validator,
+      onSaved: onSaved,
+    ),
+  );
+}

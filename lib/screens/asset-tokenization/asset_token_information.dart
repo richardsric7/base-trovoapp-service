@@ -1,29 +1,35 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class AssetInformation extends StatefulWidget {
-  const AssetInformation({Key? key}) : super(key: key);
+class AssetTokenInformation extends StatefulWidget {
+  const AssetTokenInformation({Key? key}) : super(key: key);
 
   @override
-  State<AssetInformation> createState() => _AssetInformation();
+  State<AssetTokenInformation> createState() => _AssetTokenInformation();
 }
 
-class _AssetInformation extends State<AssetInformation>
+class _AssetTokenInformation extends State<AssetTokenInformation>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  String? imageThumbnail;
+  bool addAdditionalKyc = false;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -69,7 +75,7 @@ class _AssetInformation extends State<AssetInformation>
             CustomAppBar(
               context,
               notifier.getwihitecolor,
-              'Asset Information',
+              'Asset Token Information',
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
@@ -81,55 +87,9 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Asset Description',
+                    'Enter Asset Code',
                     style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: multilineInput(
-                    '',
-                    notifier.getbluecolor,
-                    notifier.getgrey,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    100.sp,
-                    300.sp,
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return LanguageEn.enterpassphraseempty;
-                      }
-                    },
-                    onSaved: (value) {},
-                    minLines: 3,
-                    maxLines: null,
-                    keyboardtype: TextInputType.multiline,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Enter Asset Physical Address',
-                    style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 12,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -145,7 +105,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Asset Physical Address',
+                    'Upload Asset Logo',
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -161,17 +121,14 @@ class _AssetInformation extends State<AssetInformation>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 50,
-            ),
             Row(
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Enter Asset Google Map Coordinates',
+                    'Upload Asset Logo',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 12,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -179,133 +136,75 @@ class _AssetInformation extends State<AssetInformation>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                CustomTextFormField.textField(
-                  'Latitute',
-                  notifier.getbluecolor,
-                  null,
-                  notifier.getgrey,
-                  null,
-                  notifier.getblck,
-                  notifier.getgrey,
-                  50.sp,
-                  width / 2.7,
-                  // controller: referrerController,
-                  // validator: validateReferrer,
-                  onSaved: (value) {},
-                  keyboardtype: TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
-                  ),
-                ),
-                CustomTextFormField.textField(
-                  'Longitude',
-                  notifier.getbluecolor,
-                  null,
-                  notifier.getgrey,
-                  null,
-                  notifier.getblck,
-                  notifier.getgrey,
-                  50.sp,
-                  width / 2.5,
-                  // controller: referrerController,
-                  // validator: validateReferrer,
-                  onSaved: (value) {},
-                  keyboardtype: TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
             Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Ownership',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                CheckItem(
-                  'Direct Ownership',
-                  () {},
-                  borderColor: notifier.getbluewhitecolor,
-                  foreColor: notifier.getwihitecolor,
-                  backColor: notifier.getbluewhitecolor,
-                ),
-                CheckItem(
-                  'Third Party',
-                  () {},
-                  borderColor: notifier.getbluewhitecolor,
-                  foreColor: notifier.getbluewhitecolor,
-                  backColor: notifier.getwihitecolor,
-                )
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Container(
-                    width: width / 1.17,
-                    child: Text(
-                      'Select what best describes the third party owner',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+                GestureDetector(
+                  onTap: () {
+                    getImage();
+                  },
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: height / 50,
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                                color: notifier.getbluewhitecolor, width: 1),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(15.0)),
+                            color: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
+                          ),
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                  width: width / 1.2,
+                                  height: height / 6,
+                                  child: Center(
+                                    child: Wrap(
+                                      alignment: WrapAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Browse file to select image.\nMax image size: 10MB',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: notifier.getbluewhitecolor,
+                                            fontFamily: fontsemibold,
+                                            fontSize: 12.sp,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )),
+                              const SizedBox(height: 2),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                CheckItem(
-                  'Individual',
-                  () {},
-                  borderColor: notifier.getbluewhitecolor,
-                  foreColor: notifier.getwihitecolor,
-                  backColor: notifier.getbluewhitecolor,
+            if (imageThumbnail != null) ...[
+              GestureDetector(
+                onTap: () {
+                  getImage();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Image.memory(
+                    base64Decode(imageThumbnail!),
+                    width: width / 1.3,
+                    height: height / 6,
+                  ),
                 ),
-                CheckItem(
-                  'Organization',
-                  () {},
-                  borderColor: notifier.getbluewhitecolor,
-                  foreColor: notifier.getbluewhitecolor,
-                  backColor: notifier.getwihitecolor,
-                )
-              ],
-            ),
+              ),
+            ],
             SizedBox(
               height: height / 50,
             ),
@@ -314,7 +213,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Name of Organization',
+                    'Number of Token to be Issued',
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -332,7 +231,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Name of Organization',
+                    'Number to be issued',
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -356,7 +255,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Address of Organization',
+                    'Number of Token to be sold',
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -374,7 +273,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Address of Organization',
+                    'Number to be sold',
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -398,43 +297,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Asset Custodian',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Please provide the following information about the asset custodian ',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Who is the Asset Custodian?',
+                    'Total token held by Manager',
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -452,7 +315,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Asset Custodian',
+                    'Total held by Manager',
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -476,346 +339,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'What is their address?',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Address',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Asset Manager',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Please provide the following information about the asset manager ',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Who is the Asset Manager?',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Asset Manager',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'What is their address?',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Address',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Asset Value',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Please provide the following information about the asset value ',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'What is the current value of the Asset?',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Current Value of Asset',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Percentage of Asset to be Tokenized? (1%-100%)',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Percentage to be Tokenized',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Value of tokenized asset',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Value of tokenized asset',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    '(asset value x asset percentage)',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'What is the real asset protection in place?',
+                    'Select Wallet to hold assets not up for sale',
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -827,24 +351,6 @@ class _AssetInformation extends State<AssetInformation>
             ),
             SizedBox(
               height: height / 70,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Select one or more protection options',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -860,23 +366,487 @@ class _AssetInformation extends State<AssetInformation>
             SizedBox(
               height: height / 50,
             ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Or create a new wallet for this',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Asset Sales & and Pricing',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Price Per Token',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: CustomTextFormField.textField(
+                    'Price per token',
+                    notifier.getbluecolor,
+                    null,
+                    notifier.getgrey,
+                    null,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    70.sp,
+                    300.sp,
+                    // controller: referrerController,
+                    // validator: validateReferrer,
+                    onSaved: (value) {},
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    '(Calculated from Asset value)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Select Funding Method',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Row(
-                children: [
-                  userItem(
-                    'Insurance',
-                    () {},
-                    foreColor: notifier.getwihitecolor,
-                    backColor: notifier.getbluewhitecolor,
+              child: dropdown(
+                (value) {},
+                getCurrencies,
+                null,
+                'e-Naira',
+                context,
+                null,
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Sales start from',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    CustomTextFormField.textField(
+                      'start',
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      50.sp,
+                      width / 2.7,
+                      // controller: referrerController,
+                      // validator: validateReferrer,
+                      onSaved: (value) {},
+                      keyboardtype: TextInputType.numberWithOptions(
+                        decimal: true,
+                        signed: true,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Sales end on',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    CustomTextFormField.textField(
+                      'ends',
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      50.sp,
+                      width / 2.5,
+                      // controller: referrerController,
+                      // validator: validateReferrer,
+                      onSaved: (value) {},
+                      keyboardtype: TextInputType.numberWithOptions(
+                        decimal: true,
+                        signed: true,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Asset Wallets',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
                   ),
-                  userItem(
-                    'Alarm System',
-                    () {},
-                    foreColor: notifier.getwihitecolor,
-                    backColor: notifier.getbluewhitecolor,
-                  )
-                ],
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Minting Wallet',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: CustomTextFormField.textField(
+                    'Minting wallet',
+                    notifier.getbluecolor,
+                    null,
+                    notifier.getgrey,
+                    null,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    70.sp,
+                    300.sp,
+                    // controller: referrerController,
+                    // validator: validateReferrer,
+                    onSaved: (value) {},
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Market Making Wallet',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: CustomTextFormField.textField(
+                    'Market Making Wallet',
+                    notifier.getbluecolor,
+                    null,
+                    notifier.getgrey,
+                    null,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    70.sp,
+                    300.sp,
+                    // controller: referrerController,
+                    // validator: validateReferrer,
+                    onSaved: (value) {},
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Cap on Purchase',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+                Spacer(),
+                Transform.scale(
+                  scale: 0.7,
+                  child: CupertinoSwitch(
+                    activeColor: notifier.getgreencolor,
+                    value: notifier.getIsDark,
+                    onChanged: (val) async {
+                      final prefs = await SharedPreferences.getInstance();
+                      setState(() {
+                        notifier.setIsDark = val;
+                        prefs.setBool("setIsDark", val);
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Container(
+                    width: width / 1.2,
+                    child: Text(
+                      'Cap is the maximum amount of token a person is able to buy within the cap period, after which they can buy any amount they want or as allowed by regulation in their jurisdiction',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Cap Quantity (Quantity to be bought)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: CustomTextFormField.textField(
+                    'Quantity',
+                    notifier.getbluecolor,
+                    null,
+                    notifier.getgrey,
+                    null,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    70.sp,
+                    300.sp,
+                    // controller: referrerController,
+                    // validator: validateReferrer,
+                    onSaved: (value) {},
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Cap Duration',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: dropdown(
+                (value) {},
+                getCurrencies,
+                null,
+                'Days',
+                context,
+                null,
+              ),
+            ),
+            SizedBox(
+              height: height / 30,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Proceed Payout',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    'Proceed Payout Cycle',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: dropdown(
+                (value) {},
+                getCurrencies,
+                null,
+                'Monthly',
+                context,
+                null,
               ),
             ),
             SizedBox(
@@ -887,7 +857,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Insurance Company Name',
+                    'Proceed Payout Currency',
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -900,38 +870,28 @@ class _AssetInformation extends State<AssetInformation>
             SizedBox(
               height: height / 50,
             ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Company Name',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: dropdown(
+                (value) {},
+                getCurrencies,
+                null,
+                'Naira',
+                context,
+                null,
+              ),
             ),
             SizedBox(
-              height: height / 50,
+              height: height / 30,
             ),
             Row(
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Insurance Policy Number',
+                    'Primary Buyer Requirement',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 15,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -940,25 +900,22 @@ class _AssetInformation extends State<AssetInformation>
               ],
             ),
             SizedBox(
-              height: height / 50,
+              height: height / 70,
             ),
             Row(
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Insurance Policy Number',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
+                  child: Container(
+                    width: width / 1.2,
+                    child: Text(
+                      'Select Countries that are exempted from participation if any',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -966,12 +923,82 @@ class _AssetInformation extends State<AssetInformation>
             SizedBox(
               height: height / 50,
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: dropdown(
+                (value) {},
+                getCurrencies,
+                null,
+                'Algeria',
+                context,
+                null,
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                  color: notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 15.0),
+                      child: Column(
+                        children: [
+                          Container(
+                              width: width / 1.8,
+                              child: Wrap(
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  if (true) ...[
+                                    userItem('Algeria', () {},
+                                        foreColor: wihitecolor,
+                                        backColor: notifier.getbluebackcolor),
+                                    userItem('China', () {},
+                                        foreColor: wihitecolor,
+                                        backColor: notifier.getbluebackcolor),
+                                    userItem('India', () {},
+                                        foreColor: wihitecolor,
+                                        backColor: notifier.getbluebackcolor),
+                                    userItem('Pakistan', () {},
+                                        foreColor: wihitecolor,
+                                        backColor: notifier.getbluebackcolor)
+                                  ] else ...[
+                                    Text(
+                                      'Name of exempted countries appear here',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          color: notifier.getbluewhitecolor,
+                                          fontFamily: fontbody,
+                                          fontSize: 15.sp),
+                                    ),
+                                  ]
+                                ],
+                              )),
+                          SizedBox(height: 2),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: height / 50),
             Row(
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Insurance Policy Holder',
+                    'Are there additional KYC Requirement?',
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -984,70 +1011,99 @@ class _AssetInformation extends State<AssetInformation>
             SizedBox(
               height: height / 50,
             ),
-            Row(
+            Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Insurance Policy Holder',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Percentage Value of Insurance',
+                ListTile(
+                  title: Text(
+                    'Yes',
                     style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
+                      fontSize: 15,
+                      fontFamily: fontbody,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Percentage Value of Insurance',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
+                  leading: Radio(
+                    value: addAdditionalKyc,
+                    groupValue: true,
+                    activeColor: notifier.getbluewhitecolor,
+                    fillColor:
+                        MaterialStateProperty.all(notifier.getbluewhitecolor),
+                    onChanged: (value) {
+                      setState(() {
+                        addAdditionalKyc = true;
+                        print('addAdditionalKyc: $value');
+                      });
+                    },
                   ),
                 ),
+                ListTile(
+                  title: Text(
+                    'No',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  leading: Radio(
+                    value: addAdditionalKyc,
+                    groupValue: false,
+                    fillColor:
+                        MaterialStateProperty.all(notifier.getbluewhitecolor),
+                    activeColor: notifier.getbluewhitecolor,
+                    onChanged: (value) {
+                      setState(() {
+                        addAdditionalKyc = false;
+                        print('addAdditionalKyc: $value');
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        'List the Requirements',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: multilineInput(
+                        '',
+                        notifier.getbluecolor,
+                        notifier.getgrey,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        100.sp,
+                        300.sp,
+                        validator: (value) {},
+                        onSaved: (value) {},
+                        minLines: 3,
+                        maxLines: null,
+                        keyboardtype: TextInputType.multiline,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
-            confirmLiensAndEncumbrance(),
+            accreditInvestors(),
             SizedBox(
               height: height / 30,
             ),
@@ -1066,7 +1122,7 @@ class _AssetInformation extends State<AssetInformation>
     );
   }
 
-  Widget confirmLiensAndEncumbrance() {
+  Widget accreditInvestors() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
@@ -1095,7 +1151,7 @@ class _AssetInformation extends State<AssetInformation>
         Container(
           width: width / 1.2,
           child: Text(
-            'I confirm that this asset is completely free of all liens and encumbrance',
+            'Investor must be accredited',
             overflow: TextOverflow.visible,
             style: TextStyle(
                 fontSize: 15,
@@ -1106,42 +1162,81 @@ class _AssetInformation extends State<AssetInformation>
       ],
     );
   }
-}
 
-Widget CheckItem(
-  String name,
-  void Function()? onClick, {
-  required Color backColor,
-  required Color foreColor,
-  required Color borderColor,
-  double? fontSize: 15,
-}) {
-  return Padding(
-    padding: const EdgeInsets.all(3.0),
-    child: Container(
-      decoration: BoxDecoration(
-          border: Border.all(color: borderColor, width: 1),
-          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          color: backColor),
-      child: Padding(
-        padding: const EdgeInsets.all(15.0),
-        child: Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(
-              name,
-              textAlign: TextAlign.center,
-              softWrap: true,
-              style: TextStyle(
-                  color: foreColor, fontFamily: fontbody, fontSize: fontSize),
-            ),
-            SizedBox(
-              width: width / 70,
-            ),
-          ],
+  Widget multilineInput(
+    labletext,
+    focuscolor,
+    lablecolor,
+    textcolor,
+    bordercolor,
+    h,
+    w, {
+    onChanged,
+    maxLength,
+    minLines,
+    maxLines,
+    validator,
+    onSaved,
+    keyboardtype,
+    focusNode,
+  }) {
+    return Container(
+      height: h,
+      width: w,
+      child: TextFormField(
+        focusNode: focusNode,
+        maxLength: maxLength,
+        minLines: minLines,
+        maxLines: maxLines,
+        style: TextStyle(color: textcolor, fontFamily: fontbody),
+        cursorColor: lablecolor,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          hintText: labletext,
+          hintStyle: TextStyle(color: lablecolor),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          labelStyle: TextStyle(color: lablecolor),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: bordercolor, width: 1),
+            borderRadius: BorderRadius.circular(15),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: focuscolor, width: 1),
+            borderRadius: BorderRadius.circular(15),
+          ),
         ),
+        keyboardType: keyboardtype,
+        validator: validator,
+        onSaved: onSaved,
       ),
-    ),
-  );
+    );
+  }
+
+  Future<void> getImage() async {
+    var image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      var imageBase64Uncompressed = await getBase64Image(image);
+      await StoreData().storeInsertData('image', imageBase64Uncompressed);
+      setState(() {
+        imageThumbnail = imageBase64Uncompressed;
+      });
+    }
+  }
+
+  Future<dynamic> getBase64Image(XFile image) async {
+    //
+    List<int> imageBytes = await image.readAsBytes();
+    String imageB64 = base64Encode(imageBytes);
+    return imageB64;
+  }
+
+  Uint8List getBase64Decode(String image) {
+    Uint8List imageString = base64Decode(image);
+    return imageString;
+  }
 }

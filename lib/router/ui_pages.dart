@@ -84,6 +84,7 @@ const String TokenizationWelcomeViewPath = '/TokenizationWelcomeView';
 const String SettingsViewPath = '/SettingsView';
 const String TokenizeAssetViewPath = '/TokenizeAssetView';
 const String AssetInformationViewPath = '/AssetInformationView';
+const String AssetTokenInformationViewPath = '/AssetTokenInformationView';
 
 enum Pages {
   Splash,
@@ -171,6 +172,7 @@ enum Pages {
   SettingsView,
   TokenizeAssetView,
   AssetInformationView,
+  AssetTokenInformationView,
 }
 
 class PageConfiguration {
@@ -582,4 +584,9 @@ PageConfiguration AssetInformationViewPageConfig = PageConfiguration(
     key: 'AssetInformationView',
     path: AssetInformationViewPath,
     uiPage: Pages.AssetInformationView,
+    currentPageAction: null);
+PageConfiguration AssetTokenInformationViewPageConfig = PageConfiguration(
+    key: 'AssetTokenInformationView',
+    path: AssetTokenInformationViewPath,
+    uiPage: Pages.AssetTokenInformationView,
     currentPageAction: null);

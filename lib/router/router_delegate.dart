@@ -56,6 +56,7 @@ import 'package:trovo_wallet/screens/Send_and_Recieve/withdraw_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/wrapped_asset.dart';
 import 'package:trovo_wallet/screens/announcements/announcementsView.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_information.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/asset_token_information.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenize_asset_view.dart';
 import 'package:trovo_wallet/screens/import_wallet/import_wallet.dart';
@@ -385,6 +386,10 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.AssetInformationView:
           _addPageData(AssetInformation(), AssetInformationViewPageConfig);
           break;
+        case Pages.AssetTokenInformationView:
+          _addPageData(
+              AssetTokenInformation(), AssetTokenInformationViewPageConfig);
+          break;
         default:
           break;
       }
@@ -630,6 +635,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.AssetInformationView:
         AssetInformationViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AssetTokenInformationView:
+        AssetTokenInformationViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
