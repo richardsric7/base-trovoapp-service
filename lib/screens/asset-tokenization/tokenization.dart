@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
-import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -178,7 +177,16 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   child: Column(
                     children: [
                       for (var i = 10; i >= 0; i--) ...[
-                        assetTiles('', 'ASSET $i', 'Property', i % 2 == 0),
+                        GestureDetector(
+                          onTap: () {
+                            appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: TokenizedAssetDetailViewPageConfig,
+                            );
+                          },
+                          child:
+                              assetTile('', 'ASSET $i', 'Property', i % 2 == 0),
+                        ),
                       ],
                       SizedBox(height: height / 20),
                     ],
@@ -188,7 +196,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   child: Column(
                     children: [
                       for (var i = 0; i <= 10; i++) ...[
-                        assetTiles('', 'ASSET $i', 'Property', i % 2 == 0),
+                        assetTile('', 'ASSET $i', 'Property', i % 2 == 0),
                       ],
                       SizedBox(height: height / 20),
                     ],
@@ -202,7 +210,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     );
   }
 
-  Widget assetTiles(String imageUrl, String name, String type, isSubscribed) {
+  Widget assetTile(String imageUrl, String name, String type, isSubscribed) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,

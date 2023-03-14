@@ -87,6 +87,9 @@ const String AssetInformationViewPath = '/AssetInformationView';
 const String AssetTokenInformationViewPath = '/AssetTokenInformationView';
 const String AssetVerificationDocumentsViewPath =
     '/AssetVerificationDocumentsView';
+const String TokenizedAssetDetailViewPath = '/TokenizedAssetDetailView';
+const String BuyTokensViewPath = '/BuyTokensView';
+const String ConfirmBuyViewPath = '/ConfirmBuyView';
 
 enum Pages {
   Splash,
@@ -176,6 +179,9 @@ enum Pages {
   AssetInformationView,
   AssetTokenInformationView,
   AssetVerificationDocumentsView,
+  TokenizedAssetDetailView,
+  BuyTokensView,
+  ConfirmBuyView,
 }
 
 class PageConfiguration {
@@ -597,4 +603,19 @@ PageConfiguration AssetVerificationDocumentsViewPageConfig = PageConfiguration(
     key: 'AssetVerificationDocumentsView',
     path: AssetVerificationDocumentsViewPath,
     uiPage: Pages.AssetVerificationDocumentsView,
+    currentPageAction: null);
+PageConfiguration TokenizedAssetDetailViewPageConfig = PageConfiguration(
+    key: 'TokenizedAssetDetailView',
+    path: TokenizedAssetDetailViewPath,
+    uiPage: Pages.TokenizedAssetDetailView,
+    currentPageAction: null);
+PageConfiguration BuyTokensViewPageConfig = PageConfiguration(
+    key: 'BuyTokensView',
+    path: BuyTokensViewPath,
+    uiPage: Pages.BuyTokensView,
+    currentPageAction: null);
+PageConfiguration ConfirmBuyViewPageConfig = PageConfiguration(
+    key: 'ConfirmBuyView',
+    path: ConfirmBuyViewPath,
+    uiPage: Pages.ConfirmBuyView,
     currentPageAction: null);

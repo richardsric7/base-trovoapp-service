@@ -58,8 +58,11 @@ import 'package:trovo_wallet/screens/announcements/announcementsView.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_information.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_token_information.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_verification_documents.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/buy_tokens.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/confirm_buy.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenize_asset_view.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/tokenized_asset_details.dart';
 import 'package:trovo_wallet/screens/import_wallet/import_wallet.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
@@ -395,6 +398,16 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(AssetVerificationDocuments(),
               AssetVerificationDocumentsViewPageConfig);
           break;
+        case Pages.TokenizedAssetDetailView:
+          _addPageData(
+              TokenizedAssetDetail(), TokenizedAssetDetailViewPageConfig);
+          break;
+        case Pages.BuyTokensView:
+          _addPageData(BuyTokens(), BuyTokensViewPageConfig);
+          break;
+        case Pages.ConfirmBuyView:
+          _addPageData(ConfirmBuy(), ConfirmBuyViewPageConfig);
+          break;
         default:
           break;
       }
@@ -646,6 +659,15 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.AssetVerificationDocumentsView:
         AssetVerificationDocumentsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.TokenizedAssetDetailView:
+        TokenizedAssetDetailViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.BuyTokensView:
+        BuyTokensViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ConfirmBuyView:
+        ConfirmBuyViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
