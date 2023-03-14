@@ -471,7 +471,7 @@ class LanguageEn {
       "I understand that if I lose my secret key. Trovotech is not liable to any loss and that my funds are securely held and controlled on this device not by Trovotech.";
 
   static String get maynotbedisplayedagain =>
-      "This wallet's secret key will only be available while this app in not yet unistalled from this device.";
+      "This wallet's secret key will only be available while this app in not yet uninstalled from this device.";
 
   static String get writeitdown =>
       "Please copy the following details correctly and store in a safe place.";
@@ -597,6 +597,9 @@ class LanguageEn {
 
   static String get optininfo =>
       "Do you wish to add this asset [assetCode] on your wallet [walletAlias]?";
+
+  static String get notenoughpermission =>
+      "You do not have enough permission to initiate this transaction on this wallet [walletAlias].";
 
   static String get optininfo2 =>
       'This will make this asset appear on the list of assets on your wallet [walletAlias] and will enable you to start transacting with it.';
