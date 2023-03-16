@@ -135,7 +135,12 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 ? notifier.getbluecolor90
                                 : notifier.getaddsubwalletgrey,
                             notifier.getbluewhitecolor,
-                            onTap: () {},
+                            onTap: () {
+                              appState.currentAction = PageAction(
+                                state: PageState.addPage,
+                                page: TokenizedAssetsListViewPageConfig,
+                              );
+                            },
                           ),
                         ],
                       ),

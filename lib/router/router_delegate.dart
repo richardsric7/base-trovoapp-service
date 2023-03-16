@@ -55,7 +55,9 @@ import 'package:trovo_wallet/screens/account_recovery/security_questions.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/withdraw_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/wrapped_asset.dart';
 import 'package:trovo_wallet/screens/announcements/announcementsView.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/asset_dashoard.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_information.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/asset_subscribers.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_token_information.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_verification_documents.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/buy_tokens.dart';
@@ -63,6 +65,8 @@ import 'package:trovo_wallet/screens/asset-tokenization/confirm_buy.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenize_asset_view.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenized_asset_details.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/tokenized_assets_list.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/total_sales.dart';
 import 'package:trovo_wallet/screens/import_wallet/import_wallet.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
@@ -408,6 +412,19 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.ConfirmBuyView:
           _addPageData(ConfirmBuy(), ConfirmBuyViewPageConfig);
           break;
+        case Pages.TokenizedAssetsListView:
+          _addPageData(
+              TokenizedAssetsList(), TokenizedAssetsListViewPageConfig);
+          break;
+        case Pages.AssetDashboardView:
+          _addPageData(AssetDashboard(), AssetDashboardViewPageConfig);
+          break;
+        case Pages.AssetSubscribersView:
+          _addPageData(AssetSubscribers(), AssetSubscribersViewPageConfig);
+          break;
+        case Pages.TotalSalesView:
+          _addPageData(TotalSales(), TotalSalesViewPageConfig);
+          break;
         default:
           break;
       }
@@ -668,6 +685,18 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.ConfirmBuyView:
         ConfirmBuyViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.TokenizedAssetsListView:
+        TokenizedAssetsListViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AssetDashboardView:
+        AssetDashboardViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AssetSubscribersView:
+        AssetSubscribersViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.TotalSalesView:
+        TotalSalesViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

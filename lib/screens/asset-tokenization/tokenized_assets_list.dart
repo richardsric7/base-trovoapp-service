@@ -1,0 +1,202 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
+import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
+import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../storage/state.dart';
+import '../../utils/medeiaqury/medeiaqury.dart';
+
+class TokenizedAssetsList extends StatefulWidget {
+  const TokenizedAssetsList({Key? key}) : super(key: key);
+
+  @override
+  State<TokenizedAssetsList> createState() => _TokenizedAssetsListState();
+}
+
+class _TokenizedAssetsListState extends State<TokenizedAssetsList>
+    with TickerProviderStateMixin {
+  late ColorNotifier notifier;
+  late DataProvider appState;
+  late TabController tabController;
+
+  getdarkmodepreviousstate() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool? previusstate = prefs.getBool("setIsDark");
+    if (previusstate == null) {
+      notifier.setIsDark = false;
+    } else {
+      notifier.setIsDark = previusstate;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getdarkmodepreviousstate();
+    tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    notifier = Provider.of<ColorNotifier>(context, listen: true);
+    height = MediaQuery.of(context).size.height;
+    width = MediaQuery.of(context).size.width;
+    appState = Provider.of<DataProvider>(context, listen: true);
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: notifier.getwihitecolor,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            CustomAppBar(
+              context,
+              notifier.getwihitecolor,
+              'Tokenized Assets',
+              notifier.getbluewhitecolor,
+              height: height / 15,
+            ).getBar(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12.0, 20, 10.0),
+              child: TabBar(
+                controller: tabController,
+                labelColor: notifier.getbluewhitecolor,
+                indicatorColor: notifier.getbluewhitecolor,
+                labelStyle: TextStyle(
+                  fontSize: 13.sp,
+                  fontFamily: fontsemibold,
+                ),
+                tabs: [
+                  Tab(
+                    height: 20,
+                    text: 'Tokenized Assets',
+                  ),
+                  Tab(
+                    height: 20,
+                    text: 'Assets Tokens',
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              height: height / 1.16,
+              child: TabBarView(controller: tabController, children: [
+                SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      for (var i = 10; i >= 0; i--) ...[
+                        GestureDetector(
+                          onTap: () {
+                            appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: AssetDashboardViewPageConfig,
+                            );
+                          },
+                          child:
+                              assetTile('', 'ASSET $i', 'Property', show: true),
+                        ),
+                      ],
+                      SizedBox(height: height / 20),
+                    ],
+                  ),
+                ),
+                SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      for (var i = 0; i <= 10; i++) ...[
+                        assetTile('', 'ASSET $i', 'Property'),
+                      ],
+                      SizedBox(height: height / 20),
+                    ],
+                  ),
+                ),
+              ]),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget assetTile(String imageUrl, String name, String type,
+      {bool show = false}) {
+    return Card(
+      elevation: notifier.isDark ? 0 : 5,
+      shadowColor: Colors.black,
+      color: notifier.gettilewihitecolor,
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: ListTile(
+          title: Row(
+            children: [
+              Image.network(
+                imageUrl,
+                height: 35,
+                width: 35,
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.asset(
+                    'assets/images/trovo.png',
+                    height: 35,
+                    width: 35,
+                  );
+                },
+              ),
+              SizedBox(width: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: fontsemibold,
+                      color: notifier.getblck,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      type,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: notifier.getblck,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          trailing: show
+              ? TextButton(
+                  onPressed: () async {},
+                  child: Container(
+                    width: width / 3.2,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Pending approval',
+                          style: TextStyle(
+                              fontFamily: fontsemibold,
+                              fontSize: 12,
+                              color: notifier.getblck),
+                        )
+                      ],
+                    ),
+                  ),
+                )
+              : null,
+        ),
+      ),
+    );
+  }
+}

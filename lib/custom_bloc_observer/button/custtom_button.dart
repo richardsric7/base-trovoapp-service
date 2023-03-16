@@ -99,10 +99,11 @@ class ButtonOutlined extends StatefulWidget {
   final String? buttontext;
   final Color? colorbutton;
   final Color? buttontextcolor;
+  final Color? borderColor;
   final void Function()? onTap;
 
   const ButtonOutlined(this.buttontext, this.colorbutton, this.buttontextcolor,
-      {Key? key, this.onTap})
+      {Key? key, this.onTap, this.borderColor})
       : super(key: key);
 
   @override
@@ -156,7 +157,7 @@ class _ButtonOutlinedState extends State<ButtonOutlined> {
                       MaterialStateProperty.all<Color>(widget.colorbutton!),
                   side: MaterialStateProperty.all(
                     BorderSide(
-                        color: notifier.getgrey,
+                        color: widget.borderColor ?? notifier.getgrey,
                         width: 1,
                         style: BorderStyle.solid),
                   ),
@@ -231,6 +232,7 @@ class _SmallButtonOutlinedState extends State<SmallButtonOutlined> {
     return ElevatedButton(
       onPressed: widget.onTap,
       style: ButtonStyle(
+        overlayColor: MaterialStateProperty.all<Color>(notifier.getsplashgrey),
         backgroundColor: MaterialStateProperty.all<Color>(widget.colorbutton!),
         side: MaterialStateProperty.all(
           BorderSide(
