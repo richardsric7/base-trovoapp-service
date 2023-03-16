@@ -1111,7 +1111,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               'Save',
               notifier.getbluecolor,
               wihitecolor,
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).pop();
+              },
             ),
             SizedBox(
               height: height / 10,

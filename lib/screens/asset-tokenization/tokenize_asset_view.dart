@@ -259,7 +259,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                       'Your Asset Tokenization Request has been submitted and is awaiting approval. You’ll be notified when  it has been approved.',
                 };
                 appState.currentAction = PageAction(
-                    state: PageState.replaceAll, page: SuccessViewPageConfig);
+                    state: PageState.replace, page: SuccessViewPageConfig);
               },
             ),
             SizedBox(

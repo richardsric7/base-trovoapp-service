@@ -626,3 +626,45 @@ void signAndCommitTransaction(responseFromServer, BuildContext context,
     hideLoader(context);
   }
 }
+
+Widget infoTile(ColorNotifier notifier, String key, String value) {
+  return Card(
+    elevation: notifier.isDark ? 0 : 3,
+    shadowColor: Colors.black,
+    color: notifier.gettilewihitecolor,
+    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ListTile(
+        title: Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  key,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                  child: Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}

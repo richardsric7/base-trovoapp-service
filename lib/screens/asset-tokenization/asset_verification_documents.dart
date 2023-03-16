@@ -557,7 +557,9 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
               'Save',
               notifier.getbluecolor,
               wihitecolor,
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).pop();
+              },
             ),
             SizedBox(
               height: height / 10,

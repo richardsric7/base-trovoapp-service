@@ -212,7 +212,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                       'Your purchase of [Atlantis 1] tokens was successful.',
                 };
                 appState.currentAction = PageAction(
-                    state: PageState.replaceAll, page: SuccessViewPageConfig);
+                    state: PageState.replace, page: SuccessViewPageConfig);
               },
             ),
             SizedBox(

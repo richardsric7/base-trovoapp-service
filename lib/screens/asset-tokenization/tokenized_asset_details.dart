@@ -235,6 +235,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     child: Text(
                       'Tap to fund wallet now',
                       style: TextStyle(
+                        decoration: TextDecoration.underline,
                         fontSize: 15,
                         fontFamily: fontbody,
                         color: notifier.getbluewhitecolor,
@@ -260,59 +261,197 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ),
               ],
             ),
-            for (var i = 10; i >= 0; i--) ...[
-              GestureDetector(
-                onTap: () {},
-                child: infoTile(
-                  'Asset Code',
-                  'KEN',
+            infoTile(
+              notifier,
+              'Asset Code',
+              'ATLANTIS 1',
+            ),
+            infoTile(
+              notifier,
+              'Category',
+              'Real Estate',
+            ),
+            infoTile(
+              notifier,
+              'Country',
+              'Nigeria',
+            ),
+            infoTile(
+              notifier,
+              'Address',
+              'No. 10 Maitama, Abuja',
+            ),
+            infoTile(
+              notifier,
+              'Issuer',
+              'Atlantis Developers',
+            ),
+            infoTile(
+              notifier,
+              'Issuer Website',
+              'www.atlantis.com',
+            ),
+            infoTile(
+              notifier,
+              'Total Supply',
+              '1000',
+            ),
+            infoTile(
+              notifier,
+              'Quantity Purchased',
+              '400',
+            ),
+            infoTile(
+              notifier,
+              'Total Subscribed',
+              '2,000',
+            ),
+            infoTile(
+              notifier,
+              'Price per Asset',
+              '100 TROV',
+            ),
+            infoTile(
+              notifier,
+              'Funding Method',
+              'TROV',
+            ),
+            infoTile(
+              notifier,
+              'Sales Window',
+              '12/01/2023 - 30/03/2023',
+            ),
+            infoTile(
+              notifier,
+              'Cap Quantity',
+              '5 Tokens',
+            ),
+            infoTile(
+              notifier,
+              'Cap Duration',
+              '12/01/2023 - 20/01/2023',
+            ),
+            infoTile(
+              notifier,
+              'Proceed Payout Cycle',
+              'Monthly',
+            ),
+            infoTile(
+              notifier,
+              'Payout Currency',
+              'TROV',
+            ),
+            infoTile(
+              notifier,
+              'Countries Exempted',
+              'See list',
+            ),
+            Card(
+              elevation: notifier.isDark ? 0 : 3,
+              shadowColor: Colors.black,
+              color: notifier.gettilewihitecolor,
+              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ListTile(
+                  title: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Countries Exempted',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Text(
+                              'See list',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
+            ),
+            Card(
+              elevation: notifier.isDark ? 0 : 3,
+              shadowColor: Colors.black,
+              color: notifier.gettilewihitecolor,
+              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ListTile(
+                  title: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Proof of Existence',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Text(
+                              'C of O',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Text(
+                              'Survey Plan',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Text(
+                              'Governor\'s Consent',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             SizedBox(height: height / 20),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget infoTile(String key, String value) {
-    return Card(
-      elevation: notifier.isDark ? 0 : 3,
-      shadowColor: Colors.black,
-      color: notifier.gettilewihitecolor,
-      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: ListTile(
-          title: Row(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    key,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                    child: Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
         ),
       ),
     );

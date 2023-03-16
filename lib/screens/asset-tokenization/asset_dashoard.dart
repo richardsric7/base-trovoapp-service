@@ -12,6 +12,7 @@ import 'package:trovo_wallet/screens/asset-tokenization/total_sales.dart';
 import 'package:trovo_wallet/widgets/bar_chart.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/price_points.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -437,34 +438,34 @@ class _AssetDashboardState extends State<AssetDashboard>
               ),
             ),
             SizedBox(height: height / 50),
-            TextButton(
-              onPressed: () => showAssetDetailsPopup(
-                context,
-                'ATLANTIS 1',
-                items: <String>[],
-              ),
-              child: Container(
-                width: width / 2.5,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'View Asset Details',
-                      style: TextStyle(
-                          decoration: TextDecoration.underline,
-                          fontFamily: fontsemibold,
-                          fontSize: 13,
-                          color: notifier.getbluewhitecolor),
-                    ),
-                    Icon(
-                      Icons.arrow_forward,
-                      color: notifier.getbluewhitecolor,
-                      size: 18,
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // TextButton(
+            //   onPressed: () => showAssetDetailsPopup(
+            //     context,
+            //     'ATLANTIS 1',
+            //     items: <String>[],
+            //   ),
+            //   child: Container(
+            //     width: width / 2.5,
+            //     child: Row(
+            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //       children: [
+            //         Text(
+            //           'View Asset Details',
+            //           style: TextStyle(
+            //               decoration: TextDecoration.underline,
+            //               fontFamily: fontsemibold,
+            //               fontSize: 13,
+            //               color: notifier.getbluewhitecolor),
+            //         ),
+            //         Icon(
+            //           Icons.arrow_forward,
+            //           color: notifier.getbluewhitecolor,
+            //           size: 18,
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
             SizedBox(
               height: height / 30,
             ),
@@ -472,7 +473,12 @@ class _AssetDashboardState extends State<AssetDashboard>
               'Payout Proceeds',
               notifier.getbluecolor,
               wihitecolor,
-              onTap: () {},
+              onTap: () {
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: ProceedsPayOutViewPageConfig,
+                );
+              },
             ),
             SizedBox(height: height / 70),
             ButtonOutlined(
@@ -480,7 +486,225 @@ class _AssetDashboardState extends State<AssetDashboard>
               notifier.getwihitecolor,
               Colors.red,
               borderColor: Colors.red,
-              onTap: () {},
+              onTap: () {
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: LiquidateAssetViewPageConfig,
+                );
+              },
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 10,
+                  ),
+                  child: Text(
+                    'Details of Asset',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 15,
+                        fontFamily: fontsemibold),
+                  ),
+                ),
+              ],
+            ),
+            infoTile(
+              notifier,
+              'Asset Code',
+              'ATLANTIS 1',
+            ),
+            infoTile(
+              notifier,
+              'Category',
+              'Real Estate',
+            ),
+            infoTile(
+              notifier,
+              'Country',
+              'Nigeria',
+            ),
+            infoTile(
+              notifier,
+              'Address',
+              'No. 10 Maitama, Abuja',
+            ),
+            infoTile(
+              notifier,
+              'Issuer',
+              'Atlantis Developers',
+            ),
+            infoTile(
+              notifier,
+              'Issuer Website',
+              'www.atlantis.com',
+            ),
+            infoTile(
+              notifier,
+              'Total Supply',
+              '1000',
+            ),
+            infoTile(
+              notifier,
+              'Quantity Purchased',
+              '400',
+            ),
+            infoTile(
+              notifier,
+              'Total Subscribed',
+              '2,000',
+            ),
+            infoTile(
+              notifier,
+              'Price per Asset',
+              '100 TROV',
+            ),
+            infoTile(
+              notifier,
+              'Funding Method',
+              'TROV',
+            ),
+            infoTile(
+              notifier,
+              'Sales Window',
+              '12/01/2023 - 30/03/2023',
+            ),
+            infoTile(
+              notifier,
+              'Cap Quantity',
+              '5 Tokens',
+            ),
+            infoTile(
+              notifier,
+              'Cap Duration',
+              '12/01/2023 - 20/01/2023',
+            ),
+            infoTile(
+              notifier,
+              'Proceed Payout Cycle',
+              'Monthly',
+            ),
+            infoTile(
+              notifier,
+              'Payout Currency',
+              'TROV',
+            ),
+            infoTile(
+              notifier,
+              'Countries Exempted',
+              'See list',
+            ),
+            Card(
+              elevation: notifier.isDark ? 0 : 3,
+              shadowColor: Colors.black,
+              color: notifier.gettilewihitecolor,
+              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ListTile(
+                  title: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Countries Exempted',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Text(
+                              'See list',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Card(
+              elevation: notifier.isDark ? 0 : 3,
+              shadowColor: Colors.black,
+              color: notifier.gettilewihitecolor,
+              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ListTile(
+                  title: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Proof of Existence',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Text(
+                              'C of O',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Text(
+                              'Survey Plan',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Text(
+                              'Governor\'s Consent',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
             ),
             SizedBox(
               height: height / 10,

@@ -1055,7 +1055,9 @@ class _AssetInformation extends State<AssetInformation>
               'Save',
               notifier.getbluecolor,
               wihitecolor,
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).pop();
+              },
             ),
             SizedBox(
               height: height / 10,

@@ -7,6 +7,7 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -87,18 +88,81 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                 SingleChildScrollView(
                   child: Column(
                     children: [
-                      for (var i = 10; i >= 0; i--) ...[
-                        GestureDetector(
-                          onTap: () {
-                            appState.currentAction = PageAction(
-                              state: PageState.addPage,
-                              page: AssetDashboardViewPageConfig,
-                            );
-                          },
-                          child:
-                              assetTile('', 'ASSET $i', 'Property', show: true),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetDashboardViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'Titan Properties',
+                          'Property',
+                          'Pending approval',
+                          show: true,
                         ),
-                      ],
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetDashboardViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'ATLANTIS 1',
+                          'Property',
+                          'Approved',
+                          show: true,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetDashboardViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'Kings Home',
+                          'Property',
+                          'Pending approval',
+                          show: true,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetDashboardViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'Infinity Productions',
+                          'Property',
+                          'Pending  liquidation',
+                          show: true,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetDashboardViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'Heart Realty',
+                          'Property',
+                          'Rejected',
+                          show: true,
+                        ),
+                      ),
                       SizedBox(height: height / 20),
                     ],
                   ),
@@ -106,9 +170,76 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                 SingleChildScrollView(
                   child: Column(
                     children: [
-                      for (var i = 0; i <= 10; i++) ...[
-                        assetTile('', 'ASSET $i', 'Property'),
-                      ],
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetDashboardViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'Animal Farm',
+                          'Property',
+                          '',
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetDashboardViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'Beacon Homes',
+                          'Property',
+                          '',
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetDashboardViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'C-Vitals',
+                          'Property',
+                          '',
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetDashboardViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'Drinkfly',
+                          'Property',
+                          '',
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetDashboardViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'ZAAD Properties',
+                          'Property',
+                          '',
+                        ),
+                      ),
                       SizedBox(height: height / 20),
                     ],
                   ),
@@ -121,10 +252,10 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
     );
   }
 
-  Widget assetTile(String imageUrl, String name, String type,
+  Widget assetTile(String imageUrl, String name, String type, String status,
       {bool show = false}) {
     return Card(
-      elevation: notifier.isDark ? 0 : 5,
+      elevation: notifier.isDark ? 0 : 3,
       shadowColor: Colors.black,
       color: notifier.gettilewihitecolor,
       margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
@@ -138,8 +269,8 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
             children: [
               Image.network(
                 imageUrl,
-                height: 35,
-                width: 35,
+                height: 30,
+                width: 30,
                 errorBuilder: (context, error, stackTrace) {
                   return Image.asset(
                     'assets/images/trovo.png',
@@ -148,14 +279,14 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                   );
                 },
               ),
-              SizedBox(width: 20),
+              SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
+                    truncate(name, length: 14),
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 13,
                       fontFamily: fontsemibold,
                       color: notifier.getblck,
                     ),
@@ -179,15 +310,15 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
               ? TextButton(
                   onPressed: () async {},
                   child: Container(
-                    width: width / 3.2,
+                    width: width / 3.1,
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          'Pending approval',
+                          status,
                           style: TextStyle(
                               fontFamily: fontsemibold,
-                              fontSize: 12,
+                              fontSize: 11,
                               color: notifier.getblck),
                         )
                       ],

@@ -62,6 +62,8 @@ import 'package:trovo_wallet/screens/asset-tokenization/asset_token_information.
 import 'package:trovo_wallet/screens/asset-tokenization/asset_verification_documents.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/buy_tokens.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/confirm_buy.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/liquidate_asset.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/proceeds_payout.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenize_asset_view.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenized_asset_details.dart';
@@ -425,6 +427,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.TotalSalesView:
           _addPageData(TotalSales(), TotalSalesViewPageConfig);
           break;
+        case Pages.ProceedsPayOutView:
+          _addPageData(ProceedsPayOut(), ProceedsPayOutViewPageConfig);
+          break;
+        case Pages.LiquidateAssetView:
+          _addPageData(LiquidateAsset(), LiquidateAssetViewPageConfig);
+          break;
         default:
           break;
       }
@@ -697,6 +705,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.TotalSalesView:
         TotalSalesViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ProceedsPayOutView:
+        ProceedsPayOutViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.LiquidateAssetView:
+        LiquidateAssetViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
