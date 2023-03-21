@@ -73,11 +73,11 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                 tabs: [
                   Tab(
                     height: 20,
-                    text: 'Tokenized Assets',
+                    text: 'Assets Tokens',
                   ),
                   Tab(
                     height: 20,
-                    text: 'Assets Tokens',
+                    text: 'Tokenized Assets',
                   ),
                 ],
               ),
@@ -85,6 +85,83 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
             Container(
               height: height / 1.16,
               child: TabBarView(controller: tabController, children: [
+                SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: MyAssetTokenDetailsViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'Animal Farm',
+                          'Property',
+                          '',
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: MyAssetTokenDetailsViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'Beacon Homes',
+                          'Property',
+                          '',
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: MyAssetTokenDetailsViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'C-Vitals',
+                          'Property',
+                          '',
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: MyAssetTokenDetailsViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'Drinkfly',
+                          'Property',
+                          '',
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: MyAssetTokenDetailsViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          '',
+                          'ZAAD Properties',
+                          'Property',
+                          '',
+                        ),
+                      ),
+                      SizedBox(height: height / 20),
+                    ],
+                  ),
+                ),
                 SingleChildScrollView(
                   child: Column(
                     children: [
@@ -161,83 +238,6 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                           'Property',
                           'Rejected',
                           show: true,
-                        ),
-                      ),
-                      SizedBox(height: height / 20),
-                    ],
-                  ),
-                ),
-                SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: AssetDashboardViewPageConfig,
-                          );
-                        },
-                        child: assetTile(
-                          '',
-                          'Animal Farm',
-                          'Property',
-                          '',
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: AssetDashboardViewPageConfig,
-                          );
-                        },
-                        child: assetTile(
-                          '',
-                          'Beacon Homes',
-                          'Property',
-                          '',
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: AssetDashboardViewPageConfig,
-                          );
-                        },
-                        child: assetTile(
-                          '',
-                          'C-Vitals',
-                          'Property',
-                          '',
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: AssetDashboardViewPageConfig,
-                          );
-                        },
-                        child: assetTile(
-                          '',
-                          'Drinkfly',
-                          'Property',
-                          '',
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: AssetDashboardViewPageConfig,
-                          );
-                        },
-                        child: assetTile(
-                          '',
-                          'ZAAD Properties',
-                          'Property',
-                          '',
                         ),
                       ),
                       SizedBox(height: height / 20),
