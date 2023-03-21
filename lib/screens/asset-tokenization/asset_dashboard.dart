@@ -437,64 +437,8 @@ class _AssetDashboardState extends State<AssetDashboard>
                 points: pricePoints,
               ),
             ),
-            SizedBox(height: height / 50),
-            // TextButton(
-            //   onPressed: () => showAssetDetailsPopup(
-            //     context,
-            //     'ATLANTIS 1',
-            //     items: <String>[],
-            //   ),
-            //   child: Container(
-            //     width: width / 2.5,
-            //     child: Row(
-            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //       children: [
-            //         Text(
-            //           'View Asset Details',
-            //           style: TextStyle(
-            //               decoration: TextDecoration.underline,
-            //               fontFamily: fontsemibold,
-            //               fontSize: 13,
-            //               color: notifier.getbluewhitecolor),
-            //         ),
-            //         Icon(
-            //           Icons.arrow_forward,
-            //           color: notifier.getbluewhitecolor,
-            //           size: 18,
-            //         ),
-            //       ],
-            //     ),
-            //   ),
-            // ),
             SizedBox(
               height: height / 30,
-            ),
-            Button(
-              'Payout Proceeds',
-              notifier.getbluecolor,
-              wihitecolor,
-              onTap: () {
-                appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: ProceedsPayOutViewPageConfig,
-                );
-              },
-            ),
-            SizedBox(height: height / 70),
-            ButtonOutlined(
-              'Liquidate Asset',
-              notifier.getwihitecolor,
-              Colors.red,
-              borderColor: Colors.red,
-              onTap: () {
-                appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: LiquidateAssetViewPageConfig,
-                );
-              },
-            ),
-            SizedBox(
-              height: height / 50,
             ),
             Row(
               children: [
@@ -704,7 +648,31 @@ class _AssetDashboardState extends State<AssetDashboard>
               ),
             ),
             SizedBox(
-              height: height / 50,
+              height: height / 30,
+            ),
+            Button(
+              'Payout Proceeds',
+              notifier.getbluecolor,
+              wihitecolor,
+              onTap: () {
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: ProceedsPayOutViewPageConfig,
+                );
+              },
+            ),
+            SizedBox(height: height / 70),
+            ButtonOutlined(
+              'Liquidate Asset',
+              notifier.getwihitecolor,
+              Colors.red,
+              borderColor: Colors.red,
+              onTap: () {
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: LiquidateAssetViewPageConfig,
+                );
+              },
             ),
             SizedBox(
               height: height / 10,

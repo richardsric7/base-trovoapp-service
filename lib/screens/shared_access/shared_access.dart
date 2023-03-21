@@ -237,7 +237,7 @@ class _SharedAccessState extends State<SharedAccess>
     appState = Provider.of<DataProvider>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    shareableWallets = appState.userInfo!.getShareableWallets();
+    shareableWallets = appState.userInfo!.getShareableWallets;
     activeWallet = appState.activeWallet;
 
     return ScreenUtilInit(

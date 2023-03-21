@@ -1,3 +1,4 @@
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -25,6 +26,19 @@ class _TokenizeAssetState extends State<TokenizeAsset>
   late ColorNotifier notifier;
   late DataProvider appState;
   late TabController tabController;
+  String selectedCountry = 'Nigeria';
+  List<String> assetCategories = [
+    'Agriculture and Farming',
+    'Art and Collectibles',
+    'Automotive and Transportation',
+    'Commodities',
+    'Eduction and Learning',
+    'Environmental and Renewable Energy',
+    'Financing and Banking',
+    'Gaming and Virtual Reality',
+    'Healthcare and Medical',
+    'Real Estate',
+  ];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -36,17 +50,17 @@ class _TokenizeAssetState extends State<TokenizeAsset>
     }
   }
 
-  List<DropdownMenuItem<String>> get getCurrencies {
-    List<DropdownMenuItem<String>> currencies = [];
-    appState.fiatRate.forEach((key, value) {
-      currencies.add(DropdownMenuItem(
+  List<DropdownMenuItem<String>> get getCategories {
+    List<DropdownMenuItem<String>> categories = [];
+    assetCategories.forEach((item) {
+      categories.add(DropdownMenuItem(
           child: Text(
-            key,
+            item,
             overflow: TextOverflow.ellipsis,
           ),
-          value: key));
+          value: item));
     });
-    return currencies;
+    return categories;
   }
 
   @override
@@ -131,9 +145,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
                 (value) {},
-                getCurrencies,
+                getCategories,
                 null,
-                'hint',
+                'Real Estate',
                 context,
                 null,
               ),
@@ -178,14 +192,47 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               height: height / 70,
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: dropdown(
-                (value) {},
-                getCurrencies,
-                null,
-                'hint',
-                context,
-                null,
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Container(
+                child: Card(
+                  shadowColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  color: notifier.isDark
+                      ? notifier.getbluecolor90
+                      : notifier.getaddsubwalletgrey,
+                  child: TextButton(
+                    onPressed: () {
+                      showCountryPicker(
+                        context: context,
+                        onSelect: (Country country) {
+                          print('Select country: ${country.displayName}');
+                          setState(() {
+                            selectedCountry = country.name;
+                          });
+                        },
+                      );
+                    },
+                    style: ButtonStyle(
+                        elevation: MaterialStateProperty.all<double>(0)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          selectedCountry,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        Icon(Icons.keyboard_arrow_down_rounded),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
             SizedBox(

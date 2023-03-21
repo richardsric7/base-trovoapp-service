@@ -24,6 +24,14 @@ class _AssetInformation extends State<AssetInformation>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  List<String> options = [
+    'Insurance',
+    'Alarm System',
+    'Surveillance System',
+    'Physical Security',
+    'Inspection and Management',
+    'Other',
+  ];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -35,17 +43,17 @@ class _AssetInformation extends State<AssetInformation>
     }
   }
 
-  List<DropdownMenuItem<String>> get getCurrencies {
-    List<DropdownMenuItem<String>> currencies = [];
-    appState.fiatRate.forEach((key, value) {
-      currencies.add(DropdownMenuItem(
+  List<DropdownMenuItem<String>> get getOptions {
+    List<DropdownMenuItem<String>> myOptions = [];
+    options.forEach((value) {
+      myOptions.add(DropdownMenuItem(
           child: Text(
-            key,
+            value,
             overflow: TextOverflow.ellipsis,
           ),
-          value: key));
+          value: value));
     });
-    return currencies;
+    return myOptions;
   }
 
   @override
@@ -850,9 +858,9 @@ class _AssetInformation extends State<AssetInformation>
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
                 (value) {},
-                getCurrencies,
+                getOptions,
                 null,
-                'hint',
+                'Insurance',
                 context,
                 null,
               ),

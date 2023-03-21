@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:country_picker/country_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -30,6 +31,17 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late DataProvider appState;
   String? imageThumbnail;
   bool addAdditionalKyc = false;
+  String selectedCountry = 'Nigeria';
+  List<String> fundingOptions = [
+    'e-Naira',
+    'TROV',
+    'XBN',
+  ];
+  List<String> payoutCycleOptions = [
+    'Monthly',
+    'Quarterly',
+    'Yearly',
+  ];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -39,6 +51,19 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     } else {
       notifier.setIsDark = previusstate;
     }
+  }
+
+  List<DropdownMenuItem<String>> get getFundingOptions {
+    List<DropdownMenuItem<String>> options = [];
+    fundingOptions.forEach((item) {
+      options.add(DropdownMenuItem(
+          child: Text(
+            item,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: item));
+    });
+    return options;
   }
 
   List<DropdownMenuItem<String>> get getCurrencies {
@@ -52,6 +77,32 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
           value: key));
     });
     return currencies;
+  }
+
+  List<DropdownMenuItem<String>> get getStandardWallets {
+    List<DropdownMenuItem<String>> wallets = [];
+    appState.userInfo!.getStandardWallets.forEach((wallet) {
+      wallets.add(DropdownMenuItem(
+          child: Text(
+            wallet.alias!,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: wallet.publicKey));
+    });
+    return wallets;
+  }
+
+  List<DropdownMenuItem<String>> get getPayoutCycles {
+    List<DropdownMenuItem<String>> cycles = [];
+    payoutCycleOptions.forEach((item) {
+      cycles.add(DropdownMenuItem(
+          child: Text(
+            item,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: item));
+    });
+    return cycles;
   }
 
   @override
@@ -356,9 +407,11 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
                 (value) {},
-                getCurrencies,
+                getStandardWallets,
                 null,
-                'hint',
+                appState.userInfo!.getStandardWallets.length > 0
+                    ? appState.userInfo!.getStandardWallets.first.alias
+                    : '',
                 context,
                 null,
               ),
@@ -481,7 +534,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
                 (value) {},
-                getCurrencies,
+                getFundingOptions,
                 null,
                 'e-Naira',
                 context,
@@ -842,7 +895,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
                 (value) {},
-                getCurrencies,
+                getPayoutCycles,
                 null,
                 'Monthly',
                 context,
@@ -874,9 +927,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
                 (value) {},
-                getCurrencies,
+                getFundingOptions,
                 null,
-                'Naira',
+                'e-Naira',
                 context,
                 null,
               ),
@@ -924,14 +977,47 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               height: height / 50,
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: dropdown(
-                (value) {},
-                getCurrencies,
-                null,
-                'Algeria',
-                context,
-                null,
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Container(
+                child: Card(
+                  shadowColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  color: notifier.isDark
+                      ? notifier.getbluecolor90
+                      : notifier.getaddsubwalletgrey,
+                  child: TextButton(
+                    onPressed: () {
+                      showCountryPicker(
+                        context: context,
+                        onSelect: (Country country) {
+                          print('Select country: ${country.displayName}');
+                          setState(() {
+                            selectedCountry = country.name;
+                          });
+                        },
+                      );
+                    },
+                    style: ButtonStyle(
+                        elevation: MaterialStateProperty.all<double>(0)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          selectedCountry,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        Icon(Icons.keyboard_arrow_down_rounded),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
             SizedBox(
