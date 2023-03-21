@@ -96,6 +96,8 @@ const String AssetSubscribersViewPath = '/AssetSubscribersView';
 const String TotalSalesViewPath = '/TotalSalesView';
 const String ProceedsPayOutViewPath = '/ProceedsPayOutView';
 const String LiquidateAssetViewPath = '/LiquidateAssetView';
+const String WalletPreparationViewPath = '/WalletPreparationView';
+const String MyAssetTokenDetailsViewPath = '/MyAssetTokenDetailsView';
 
 enum Pages {
   Splash,
@@ -194,6 +196,8 @@ enum Pages {
   TotalSalesView,
   ProceedsPayOutView,
   LiquidateAssetView,
+  WalletPreparationView,
+  MyAssetTokenDetailsView,
 }
 
 class PageConfiguration {
@@ -660,4 +664,14 @@ PageConfiguration LiquidateAssetViewPageConfig = PageConfiguration(
     key: 'LiquidateAssetView',
     path: LiquidateAssetViewPath,
     uiPage: Pages.LiquidateAssetView,
+    currentPageAction: null);
+PageConfiguration WalletPreparationViewPageConfig = PageConfiguration(
+    key: 'WalletPreparationView',
+    path: WalletPreparationViewPath,
+    uiPage: Pages.WalletPreparationView,
+    currentPageAction: null);
+PageConfiguration MyAssetTokenDetailsViewPageConfig = PageConfiguration(
+    key: 'MyAssetTokenDetailsView',
+    path: MyAssetTokenDetailsViewPath,
+    uiPage: Pages.MyAssetTokenDetailsView,
     currentPageAction: null);

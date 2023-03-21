@@ -189,13 +189,13 @@ class UserInfo {
     return combinedList.firstWhere((wallet) => wallet.alias == alias);
   }
 
-  List<Wallet> getAllWallets() {
+  List<Wallet> get allWallets {
     var aliases = Set<String>();
     var list = [...wallets!, ...sharedWallets!];
     return list.where((wallet) => aliases.add(wallet.alias!)).toList();
   }
 
-  List<Wallet> getMySolelyOwnedWallets() {
+  List<Wallet> get mySolelyOwnedWallets {
     return wallets!
         .where((wallet) =>
             (!wallet.isSharedWallet || wallet.walletThreshold == 1) &&
@@ -209,7 +209,7 @@ class UserInfo {
 
   List<Wallet> transactionableWallets() {
     List<Wallet> transWallets = [];
-    for (var wallet in this.getAllWallets()) {
+    for (var wallet in this.allWallets) {
       if (wallet.walletType == 0) {
         if (wallet.walletThreshold == 2 &&
             wallet.permissions!
@@ -227,9 +227,9 @@ class UserInfo {
     return transWallets;
   }
 
-  List<Wallet> getShareableWallets() {
+  List<Wallet> get getShareableWallets {
     List<Wallet> transWallets = [];
-    for (var wallet in this.getAllWallets()) {
+    for (var wallet in this.allWallets) {
       if ((wallet.walletType == 0 ||
               wallet.walletType == 1 ||
               wallet.walletType == 2) &&
@@ -239,5 +239,38 @@ class UserInfo {
     }
 
     return transWallets;
+  }
+
+  List<Wallet> get getMintingWallets {
+    List<Wallet> mintingWallets = [];
+    for (var wallet in this.allWallets) {
+      if (wallet.walletType == 1) {
+        mintingWallets.add(wallet);
+      }
+    }
+
+    return mintingWallets;
+  }
+
+  List<Wallet> get getMarketMakingWallets {
+    List<Wallet> wallets = [];
+    for (var wallet in this.allWallets) {
+      if (wallet.walletType == 2) {
+        wallets.add(wallet);
+      }
+    }
+
+    return wallets;
+  }
+
+  List<Wallet> get getStandardWallets {
+    List<Wallet> wallets = [];
+    for (var wallet in this.allWallets) {
+      if (wallet.walletType == 0) {
+        wallets.add(wallet);
+      }
+    }
+
+    return wallets;
   }
 }

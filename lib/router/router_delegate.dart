@@ -55,7 +55,7 @@ import 'package:trovo_wallet/screens/account_recovery/security_questions.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/withdraw_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/wrapped_asset.dart';
 import 'package:trovo_wallet/screens/announcements/announcementsView.dart';
-import 'package:trovo_wallet/screens/asset-tokenization/asset_dashoard.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/asset_dashboard.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_information.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_subscribers.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_token_information.dart';
@@ -63,12 +63,14 @@ import 'package:trovo_wallet/screens/asset-tokenization/asset_verification_docum
 import 'package:trovo_wallet/screens/asset-tokenization/buy_tokens.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/confirm_buy.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/liquidate_asset.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/my_asset_token.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/proceeds_payout.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenize_asset_view.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenized_asset_details.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenized_assets_list.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/total_sales.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/wallet_preparation.dart';
 import 'package:trovo_wallet/screens/import_wallet/import_wallet.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
@@ -433,6 +435,13 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.LiquidateAssetView:
           _addPageData(LiquidateAsset(), LiquidateAssetViewPageConfig);
           break;
+        case Pages.WalletPreparationView:
+          _addPageData(WalletPreparation(), WalletPreparationViewPageConfig);
+          break;
+        case Pages.MyAssetTokenDetailsView:
+          _addPageData(
+              MyAssetTokenDetails(), MyAssetTokenDetailsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -711,6 +720,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.LiquidateAssetView:
         LiquidateAssetViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.WalletPreparationView:
+        WalletPreparationViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.MyAssetTokenDetailsView:
+        MyAssetTokenDetailsViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

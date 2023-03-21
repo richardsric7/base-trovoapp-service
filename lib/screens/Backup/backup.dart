@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/models/user.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
@@ -104,7 +103,11 @@ class _BackupState extends State<Backup> {
   }
 
   gotoNext() async {
-    if (state.isFirstTime) {
+    if ((state.returnView != null && state.returnView!.pages != null) &&
+        state.returnView!.pages!.contains(WalletPreparationViewPageConfig)) {
+      state.currentAction = PageAction(
+          state: PageState.addPage, page: SharedAccessViewPageConfig);
+    } else if (state.isFirstTime) {
       state.currentAction =
           PageAction(state: PageState.addPage, page: FingerprintPageConfig);
     } else {

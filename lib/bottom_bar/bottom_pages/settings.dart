@@ -78,9 +78,11 @@ class _SettingsState extends State<Settings> {
           children: [
             Column(
               children: [
-                CustomAppBarWithoutLeading(
+                CustomAppBar(
                   context,
                   notifier.getwihitecolor,
+                  '',
+                  notifier.getbluewhitecolor,
                   height: height / 15,
                 ).getBar(),
                 Center(

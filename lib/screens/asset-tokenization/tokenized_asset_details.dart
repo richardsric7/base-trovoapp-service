@@ -1,16 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
-import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
-import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/asset-tokenization/buy_tokens.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -40,17 +34,17 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     }
   }
 
-  List<DropdownMenuItem<String>> get getCurrencies {
-    List<DropdownMenuItem<String>> currencies = [];
-    appState.fiatRate.forEach((key, value) {
-      currencies.add(DropdownMenuItem(
+  List<DropdownMenuItem<String>> get getStandardWallets {
+    List<DropdownMenuItem<String>> wallets = [];
+    appState.userInfo!.getStandardWallets.forEach((wallet) {
+      wallets.add(DropdownMenuItem(
           child: Text(
-            key,
+            wallet.alias!,
             overflow: TextOverflow.ellipsis,
           ),
-          value: key));
+          value: wallet.publicKey));
     });
-    return currencies;
+    return wallets;
   }
 
   @override
@@ -111,7 +105,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     TextButton(
                       onPressed: () {
                         showSubscribePopup(context,
-                            onDone: () {}, dropdownItems: getCurrencies);
+                            onDone: () {}, dropdownItems: getStandardWallets);
                       },
                       child: Column(
                         children: [
@@ -145,7 +139,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             state: PageState.addPage,
                             page: BuyTokensViewPageConfig,
                           );
-                        }, dropdownItems: getCurrencies);
+                        }, dropdownItems: getStandardWallets);
                       },
                       child: Column(
                         children: [

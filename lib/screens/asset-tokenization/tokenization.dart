@@ -9,6 +9,7 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -33,6 +34,32 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     } else {
       notifier.setIsDark = previusstate;
     }
+  }
+
+  List<DropdownMenuItem<String>> get getCurrencies {
+    List<DropdownMenuItem<String>> currencies = [];
+    appState.fiatRate.forEach((key, value) {
+      currencies.add(DropdownMenuItem(
+          child: Text(
+            key,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: key));
+    });
+    return currencies;
+  }
+
+  List<DropdownMenuItem<String>> get getStandardWallets {
+    List<DropdownMenuItem<String>> wallets = [];
+    appState.userInfo!.getStandardWallets.forEach((wallet) {
+      wallets.add(DropdownMenuItem(
+          child: Text(
+            wallet.alias!,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: wallet.publicKey));
+    });
+    return wallets;
   }
 
   @override
@@ -125,7 +152,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                             onTap: () {
                               appState.currentAction = PageAction(
                                 state: PageState.addPage,
-                                page: TokenizeAssetViewPageConfig,
+                                page: WalletPreparationViewPageConfig,
                               );
                             },
                           ),
@@ -269,7 +296,18 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
             ],
           ),
           trailing: TextButton(
-            onPressed: () async {},
+            onPressed: () async {
+              isSubscribed
+                  ? showUnSubscribePopup(
+                      context,
+                      onDone: () {},
+                    )
+                  : showSubscribePopup(
+                      context,
+                      onDone: () {},
+                      dropdownItems: getStandardWallets,
+                    );
+            },
             child: Container(
               width: width / 4,
               child: Row(

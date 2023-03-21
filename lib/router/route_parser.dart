@@ -183,6 +183,12 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return ProceedsPayOutViewPageConfig;
       case LiquidateAssetViewPath:
         return LiquidateAssetViewPageConfig;
+      case LiquidateAssetViewPath:
+        return LiquidateAssetViewPageConfig;
+      case WalletPreparationViewPath:
+        return WalletPreparationViewPageConfig;
+      case MyAssetTokenDetailsViewPath:
+        return MyAssetTokenDetailsViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -378,6 +384,10 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: ProceedsPayOutViewPath);
       case Pages.LiquidateAssetView:
         return const RouteInformation(location: LiquidateAssetViewPath);
+      case Pages.WalletPreparationView:
+        return const RouteInformation(location: WalletPreparationViewPath);
+      case Pages.MyAssetTokenDetailsView:
+        return const RouteInformation(location: MyAssetTokenDetailsViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

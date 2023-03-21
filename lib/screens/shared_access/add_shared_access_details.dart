@@ -670,17 +670,28 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
               'You have successfully enabled shared access on your wallet [${appState.activeWallet!.alias}]!',
           'useOnDone': true,
           'onDone': () {
-            appState.currentAction =
-                PageAction(state: PageState.addAll, pages: [
-              BottomHomePageConfig,
-              SharedAccessViewPageConfig,
-            ]);
-            appState.clearAccessList = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              appState.sharedAccesstabController.animateTo(0,
-                  duration: Duration(milliseconds: 500),
-                  curve: Curves.easeInOut);
-            });
+            if ((appState.returnView != null &&
+                    appState.returnView!.pages != null) &&
+                appState.returnView!.pages!
+                    .contains(WalletPreparationViewPageConfig)) {
+              appState.currentAction =
+                  PageAction(state: PageState.addAll, pages: [
+                BottomHomePageConfig,
+                WalletPreparationViewPageConfig,
+              ]);
+            } else {
+              appState.currentAction =
+                  PageAction(state: PageState.addAll, pages: [
+                BottomHomePageConfig,
+                SharedAccessViewPageConfig,
+              ]);
+              appState.clearAccessList = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                appState.sharedAccesstabController.animateTo(0,
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.easeInOut);
+              });
+            }
           },
         };
         updateUserInfo(

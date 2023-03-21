@@ -172,7 +172,7 @@ class Payment_HistoryState extends State<PaymentHistory>
         ? appState.viewData!['walletPublicKey']
         : appState.primaryWallet.publicKey!;
 
-    wallets = appState.userInfo!.getAllWallets();
+    wallets = appState.userInfo!.allWallets;
     wallet = appState.userInfo!.getWallet(selectedWallet);
   }
 
@@ -182,7 +182,7 @@ class Payment_HistoryState extends State<PaymentHistory>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
-    wallets = appState.userInfo!.getAllWallets();
+    wallets = appState.userInfo!.allWallets;
     historyData = appState.historyData;
     walletDropdownItems(false);
 

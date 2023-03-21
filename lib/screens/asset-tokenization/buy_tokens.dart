@@ -25,6 +25,11 @@ class BuyTokens extends StatefulWidget {
 class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  List<String> currencies = [
+    'e-Naira',
+    'TROV',
+    'XBN',
+  ];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -36,17 +41,17 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
     }
   }
 
-  List<DropdownMenuItem<String>> get getCurrencies {
-    List<DropdownMenuItem<String>> currencies = [];
-    appState.fiatRate.forEach((key, value) {
-      currencies.add(DropdownMenuItem(
+  List<DropdownMenuItem<String>> get getCurrencyOptions {
+    List<DropdownMenuItem<String>> options = [];
+    currencies.forEach((item) {
+      options.add(DropdownMenuItem(
           child: Text(
-            key,
+            item,
             overflow: TextOverflow.ellipsis,
           ),
-          value: key));
+          value: item));
     });
-    return currencies;
+    return options;
   }
 
   @override
@@ -99,9 +104,9 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
                 (value) {},
-                getCurrencies,
+                getCurrencyOptions,
                 null,
-                'hint',
+                'Select currency',
                 context,
                 null,
               ),
