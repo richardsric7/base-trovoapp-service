@@ -114,10 +114,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                 Column(
                   children: [
                     TextButton(
-                      onPressed: () {
-                        showSubscribePopup(context,
-                            onDone: () {}, dropdownItems: getStandardWallets);
-                      },
+                      onPressed: () {},
                       child: Column(
                         children: [
                           Icon(
@@ -145,12 +142,12 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                   children: [
                     TextButton(
                       onPressed: () {
-                        showBuyTokenPopup(context, onDone: () {
-                          appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: BuyTokensViewPageConfig,
-                          );
-                        }, dropdownItems: getStandardWallets);
+                        // showBuyTokenPopup(context, onDone: () {
+                        //   appState.currentAction = PageAction(
+                        //     state: PageState.addPage,
+                        //     page: BuyTokensViewPageConfig,
+                        //   );
+                        // }, dropdownItems: getStandardWallets);
                       },
                       child: Column(
                         children: [
