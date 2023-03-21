@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
@@ -98,6 +97,11 @@ class Congratulations extends StatelessWidget {
     if (appState.isFirstTime) {
       appState.currentAction =
           PageAction(state: PageState.addPage, page: FingerprintPageConfig);
+    } else if ((appState.returnView != null &&
+            appState.returnView!.pages != null) &&
+        appState.returnView!.pages!.contains(WalletPreparationViewPageConfig)) {
+      appState.currentAction = PageAction(
+          state: PageState.addPage, page: SharedAccessViewPageConfig);
     } else {
       appState.currentAction =
           PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);

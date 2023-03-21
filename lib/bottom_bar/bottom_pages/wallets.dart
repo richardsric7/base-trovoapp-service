@@ -108,6 +108,13 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _refreshController = RefreshController(initialRefresh: false);
+    appState = Provider.of<DataProvider>(context, listen: false);
+    if ((appState.returnView != null && appState.returnView!.pages != null) &&
+        appState.returnView!.pages!.contains(WalletPreparationViewPageConfig)) {
+      appState.walletView.actionIcon = Icons.cancel_outlined;
+      appState.walletView.actionText = LanguageEn.cancel;
+      appState.walletView.view = WalletView.addSubWallet;
+    }
   }
 
   @override
@@ -115,7 +122,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
     userInfo = appState.userInfo!;
 
     return Scaffold(

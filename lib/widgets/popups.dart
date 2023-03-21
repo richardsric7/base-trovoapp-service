@@ -4077,29 +4077,29 @@ showBuyTokenPopup(context,
                         (value) {},
                         dropdownItems,
                         null,
-                        'Purchase Receipt',
+                        'Choose wallet',
                         context,
                         null,
                       ),
                     ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                      child: Row(
-                        children: [
-                          Text(
-                            'Change wallet',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 12,
-                                fontFamily: fontsemibold),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // SizedBox(
+                    //   height: height / 70,
+                    // ),
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                    //   child: Row(
+                    //     children: [
+                    //       Text(
+                    //         'Change wallet',
+                    //         textAlign: TextAlign.center,
+                    //         style: TextStyle(
+                    //             color: notifier.getbluewhitecolor,
+                    //             fontSize: 12,
+                    //             fontFamily: fontsemibold),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                     SizedBox(
                       height: height / 50,
                     ),
@@ -4135,8 +4135,9 @@ showBuyTokenPopup(context,
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10.0),
                       child: OutlinedButton(
-                        onPressed: () {},
-                        // dismiss dialog,
+                        onPressed: () {
+                          Navigator.of(context).pop(); // dismiss dialog,
+                        },
                         style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(
                             Size(width / 1.5, height / 20),

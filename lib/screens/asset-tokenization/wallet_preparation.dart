@@ -5,6 +5,7 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
@@ -156,20 +157,33 @@ class _WalletPreparationState extends State<WalletPreparation>
                 null,
               ),
             ),
-            SizedBox(
-              height: height / 70,
-            ),
             Row(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Or create a new wallet for this',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      fontSize: 12,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: TextButton(
+                    onPressed: () async {
+                      appState.returnView = PageAction(
+                          state: PageState.addAll,
+                          pages: [
+                            BottomHomePageConfig,
+                            WalletPreparationViewPageConfig
+                          ]);
+                      appState.currentAction =
+                          PageAction(state: PageState.addAll, pages: [
+                        BottomHomePageConfig,
+                      ]);
+                      changeTabPage(appState, ButtomTabPage.Wallets.index);
+                      setState(() {});
+                    },
+                    child: Text(
+                      'Or create a new wallet for this',
+                      style: TextStyle(
+                        decoration: TextDecoration.underline,
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ),
@@ -216,20 +230,33 @@ class _WalletPreparationState extends State<WalletPreparation>
                 null,
               ),
             ),
-            SizedBox(
-              height: height / 70,
-            ),
             Row(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Or create a new wallet for this',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      fontSize: 12,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: TextButton(
+                    onPressed: () {
+                      appState.returnView = PageAction(
+                          state: PageState.addAll,
+                          pages: [
+                            BottomHomePageConfig,
+                            WalletPreparationViewPageConfig
+                          ]);
+                      appState.currentAction =
+                          PageAction(state: PageState.addAll, pages: [
+                        BottomHomePageConfig,
+                      ]);
+                      changeTabPage(appState, ButtomTabPage.Wallets.index);
+                      setState(() {});
+                    },
+                    child: Text(
+                      'Or create a new wallet for this',
+                      style: TextStyle(
+                        decoration: TextDecoration.underline,
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ),

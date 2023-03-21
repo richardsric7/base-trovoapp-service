@@ -55,7 +55,7 @@ import 'package:trovo_wallet/screens/account_recovery/security_questions.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/withdraw_asset.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/wrapped_asset.dart';
 import 'package:trovo_wallet/screens/announcements/announcementsView.dart';
-import 'package:trovo_wallet/screens/asset-tokenization/asset_dashoard.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/asset_dashboard.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_information.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_subscribers.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/asset_token_information.dart';

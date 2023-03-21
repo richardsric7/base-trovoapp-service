@@ -229,6 +229,14 @@ class _SharedAccessState extends State<SharedAccess>
       query: appState.filterQuery,
     );
     appState.sharedAccesstabController = TabController(length: 3, vsync: this);
+    if ((appState.returnView != null && appState.returnView!.pages != null) &&
+        appState.returnView!.pages!.contains(WalletPreparationViewPageConfig)) {
+      appState.clearAccessList = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        appState.sharedAccesstabController.animateTo(2,
+            duration: Duration(milliseconds: 500), curve: Curves.easeInOut);
+      });
+    }
   }
 
   @override
@@ -2978,7 +2986,9 @@ class _SharedAccessState extends State<SharedAccess>
     appState.excludeUserApproved = 1;
     appState.totalRecords = 0;
     appState.filterQuery = '';
+    appState.returnView = null;
     super.dispose();
+    print('disposed shared access view');
   }
 }
 

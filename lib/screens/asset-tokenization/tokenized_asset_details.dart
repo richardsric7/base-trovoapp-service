@@ -34,17 +34,17 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     }
   }
 
-  List<DropdownMenuItem<String>> get getCurrencies {
-    List<DropdownMenuItem<String>> currencies = [];
-    appState.fiatRate.forEach((key, value) {
-      currencies.add(DropdownMenuItem(
+  List<DropdownMenuItem<String>> get getStandardWallets {
+    List<DropdownMenuItem<String>> wallets = [];
+    appState.userInfo!.getStandardWallets.forEach((wallet) {
+      wallets.add(DropdownMenuItem(
           child: Text(
-            key,
+            wallet.alias!,
             overflow: TextOverflow.ellipsis,
           ),
-          value: key));
+          value: wallet.publicKey));
     });
-    return currencies;
+    return wallets;
   }
 
   @override
@@ -105,7 +105,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     TextButton(
                       onPressed: () {
                         showSubscribePopup(context,
-                            onDone: () {}, dropdownItems: getCurrencies);
+                            onDone: () {}, dropdownItems: getStandardWallets);
                       },
                       child: Column(
                         children: [
@@ -139,7 +139,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             state: PageState.addPage,
                             page: BuyTokensViewPageConfig,
                           );
-                        }, dropdownItems: getCurrencies);
+                        }, dropdownItems: getStandardWallets);
                       },
                       child: Column(
                         children: [
