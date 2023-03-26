@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -184,6 +185,177 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             ),
             ListTile(
               leading: Image.asset(
+                "assets/images/access.png",
+                color: notifier.getgrey.withOpacity(.80),
+                scale: 5,
+                height: height / 35,
+              ),
+              title: Text(
+                LanguageEn.sharedaccess,
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                appState.currentAction = PageAction(
+                    state: PageState.addPage, page: SharedAccessViewPageConfig);
+              },
+            ),
+            ListTile(
+              leading: Icon(CupertinoIcons.doc_chart),
+              title: Text(
+                LanguageEn.markettrade,
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: MarketTradeViewPageConfig,
+                );
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Image.asset(
+                "assets/images/trovo.png",
+                color: notifier.getgrey.withOpacity(.80),
+                scale: 5,
+                height: height / 40,
+              ),
+              title: Text(
+                LanguageEn.trovopatron,
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: WelcomeSubscriptionsViewPageConfig);
+              },
+            ),
+            ListTile(
+              leading: Image.asset(
+                "assets/images/asset.png",
+                color: notifier.getgrey.withOpacity(.80),
+                scale: 1,
+                height: height / 40,
+              ),
+              title: Text(
+                LanguageEn.addremoveasset,
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: OptInOutAssetViewPageConfig,
+                );
+              },
+            ),
+            ListTile(
+              leading: Image.asset(
+                "assets/images/import.png",
+                color: notifier.getgrey.withOpacity(.80),
+                scale: 1,
+                height: height / 40,
+              ),
+              title: Text(
+                LanguageEn.importwallet,
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                appState.currentAction = PageAction(
+                    state: PageState.addPage, page: ImportWalletPageConfig);
+              },
+            ),
+            ListTile(
+              leading: Image.asset(
+                "assets/images/backup-wallets.png",
+                color: notifier.getgrey.withOpacity(.80),
+                scale: 1,
+                height: height / 40,
+              ),
+              title: Text(
+                LanguageEn.backupwallet,
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                // go to the definition of appState.viewData
+                // to learn more about viewData
+                appState.viewData![EnsurePrivacyPageConfig.key] = {
+                  'rel': 'backupAll',
+                };
+                appState.currentAction = PageAction(
+                    state: PageState.addPage, page: EnsurePrivacyPageConfig);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Image.asset(
+                "assets/images/history.png",
+                color: notifier.getgrey.withOpacity(.80),
+                scale: 5,
+                height: height / 40,
+              ),
+              title: Text(
+                LanguageEn.accountrecovery,
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                // appState.userInfo!.accountRecoveryEnabled == 1
+                //           ? "Enabled"
+                //           : ""
+                if (appState.userInfo!.hasSecurityQuestions == 0) {
+                  var primaryWallet = appState.userInfo!.wallets!
+                      .firstWhere((wallet) => wallet.primaryWallet == 1);
+
+                  appState.returnView = PageAction(
+                    state: PageState.addAll,
+                    pages: [
+                      BottomHomePageConfig,
+                      SetupAccountRecoveryViewPageConfig,
+                    ],
+                  );
+
+                  appState.viewData = {
+                    SecurityQuestionsViewPageConfig.key: {
+                      'signer': primaryWallet.signer,
+                      'publicKey': primaryWallet.publicKey,
+                      'secretKey': appState.secretKeys[0],
+                      'username': appState.userInfo!.username,
+                    }
+                  };
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: SecurityQuestionsViewPageConfig);
+                } else if (appState.userInfo!.accountRecoveryEnabled == 0) {
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: SetupAccountRecoveryViewPageConfig);
+                } else {
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: DisableAccountRecoveryInfoViewPageConfig);
+                }
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Image.asset(
                 "assets/images/settings.png",
                 color: notifier.getgrey.withOpacity(.80),
                 height: height / 40,
@@ -204,38 +376,75 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             ),
             ListTile(
               leading: Image.asset(
-                "assets/images/access.png",
+                "assets/images/help.png",
                 color: notifier.getgrey.withOpacity(.80),
-                scale: 5,
-                height: height / 35,
+                height: height / 40,
               ),
               title: Text(
-                LanguageEn.sharedaccess,
+                LanguageEn.helpandsupport,
                 style: TextStyle(
                   fontFamily: fontbody,
                 ),
               ),
               onTap: () {
                 Navigator.pop(context);
+                appState.goToWebView(trovoSupportUrl);
               },
             ),
             ListTile(
               leading: Image.asset(
-                "assets/images/trovo.png",
+                "assets/images/terms.png",
                 color: notifier.getgrey.withOpacity(.80),
-                scale: 5,
                 height: height / 40,
               ),
               title: Text(
-                LanguageEn.trovopatron,
+                LanguageEn.termsofuse,
                 style: TextStyle(
                   fontFamily: fontbody,
                 ),
               ),
               onTap: () {
                 Navigator.pop(context);
+                appState.goToWebView(termsOfServiceUrl);
               },
             ),
+            ListTile(
+              leading: Image.asset(
+                "assets/images/copyright.png",
+                color: notifier.getgrey.withOpacity(.80),
+                height: height / 40,
+              ),
+              title: Text(
+                LanguageEn.abouttrovowallet,
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                appState.goToWebView(termsOfServiceUrl);
+              },
+            ),
+            ListTile(
+              leading: Image.asset(
+                "assets/images/logout.png",
+                color: notifier.getgrey.withOpacity(.80),
+                height: height / 40,
+              ),
+              title: Text(
+                LanguageEn.logout,
+                style: TextStyle(
+                  fontFamily: fontbody,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                appState.currentAction = PageAction(
+                    state: PageState.replaceAll, page: LoginPageConfig);
+                appState.isLoggedIn = false;
+              },
+            ),
+            SizedBox(height: height / 20),
           ],
         ),
       ),

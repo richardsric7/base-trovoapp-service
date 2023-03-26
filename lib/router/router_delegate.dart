@@ -72,6 +72,8 @@ import 'package:trovo_wallet/screens/asset-tokenization/tokenized_assets_list.da
 import 'package:trovo_wallet/screens/asset-tokenization/total_sales.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/wallet_preparation.dart';
 import 'package:trovo_wallet/screens/import_wallet/import_wallet.dart';
+import 'package:trovo_wallet/screens/market_trade/market_trade.dart';
+import 'package:trovo_wallet/screens/market_trade/market_trade_info.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
 import 'package:trovo_wallet/screens/shared_access/add_shared_access_details.dart';
@@ -442,6 +444,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           _addPageData(
               MyAssetTokenDetails(), MyAssetTokenDetailsViewPageConfig);
           break;
+        case Pages.MarketTradeView:
+          _addPageData(MarketTrade(), MarketTradeViewPageConfig);
+          break;
+        case Pages.MarketTradeInfoView:
+          _addPageData(MarketTradeInfo(), MarketTradeInfoViewPageConfig);
+          break;
         default:
           break;
       }
@@ -726,6 +734,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.MyAssetTokenDetailsView:
         MyAssetTokenDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.MarketTradeView:
+        MarketTradeViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.MarketTradeInfoView:
+        MarketTradeInfoViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

@@ -668,3 +668,55 @@ Widget infoTile(ColorNotifier notifier, String key, String value) {
     ),
   );
 }
+
+Widget pill(
+  String name, {
+  required Color backColor,
+  required Color foreColor,
+  double? fontSize: 12,
+  bool hideDirectionUp = false,
+  bool showDirectionDown = false,
+}) {
+  return Padding(
+    padding: const EdgeInsets.all(3.0),
+    child: Container(
+      decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+          color: backColor),
+      child: Padding(
+        padding: const EdgeInsets.all(5.0),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Row(
+              children: [
+                Text(
+                  name,
+                  textAlign: TextAlign.center,
+                  softWrap: true,
+                  style: TextStyle(
+                      color: foreColor,
+                      fontFamily: fontbody,
+                      fontSize: fontSize),
+                ),
+                if (!hideDirectionUp) ...[
+                  Icon(
+                    showDirectionDown
+                        ? Icons.arrow_downward
+                        : Icons.arrow_upward,
+                    color: foreColor,
+                    size: 18,
+                  ),
+                ],
+              ],
+            ),
+            SizedBox(
+              width: width / 70,
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}

@@ -150,7 +150,7 @@ class _BottomHomeState extends State<BottomHome> {
                       : height / 43,
                 ),
               ),
-              label: 'Tokenization',
+              label: 'Tokenize',
             ),
           ],
           // onTap: (index) {

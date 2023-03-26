@@ -8,9 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/asset-tokenization/total_sales.dart';
 import 'package:trovo_wallet/widgets/bar_chart.dart';
-import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/price_points.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
@@ -759,55 +757,6 @@ class _AssetDashboardState extends State<AssetDashboard>
                 ],
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget pill(
-    String name, {
-    required Color backColor,
-    required Color foreColor,
-    double? fontSize: 12,
-    bool hideDirectionUp = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.all(3.0),
-      child: Container(
-        decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-            color: backColor),
-        child: Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    name,
-                    textAlign: TextAlign.center,
-                    softWrap: true,
-                    style: TextStyle(
-                        color: foreColor,
-                        fontFamily: fontbody,
-                        fontSize: fontSize),
-                  ),
-                  if (!hideDirectionUp) ...[
-                    Icon(
-                      Icons.arrow_upward,
-                      color: foreColor,
-                      size: 18,
-                    ),
-                  ],
-                ],
-              ),
-              SizedBox(
-                width: width / 70,
-              ),
-            ],
           ),
         ),
       ),

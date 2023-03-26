@@ -135,38 +135,6 @@ class _SettingsState extends State<Settings> {
                   children: [
                     SizedBox(width: width / 20),
                     Text(
-                      LanguageEn.personal,
-                      style: TextStyle(
-                          color: notifier.getgrey,
-                          fontSize: 13.sp,
-                          fontFamily: fontsemibold),
-                    ),
-                  ],
-                ),
-                SizedBox(height: height / 50),
-                GestureDetector(
-                  onTap: () {
-                    appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: ProfileDetailsViewPageConfig);
-                  },
-                  child: iteamlist(
-                      "assets/images/profile.png", "", LanguageEn.myprofile),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: WelcomeSubscriptionsViewPageConfig);
-                  },
-                  child: iteamlist(
-                      "assets/images/trovo.png", "", LanguageEn.trovopatron),
-                ),
-                SizedBox(height: height / 25),
-                Row(
-                  children: [
-                    SizedBox(width: width / 20),
-                    Text(
                       LanguageEn.preferences,
                       style: TextStyle(
                           color: notifier.getgrey,
@@ -203,22 +171,6 @@ class _SettingsState extends State<Settings> {
                 ),
                 SizedBox(height: height / 50),
                 GestureDetector(
-                  onTap: () {
-                    // if shared access is enabled on this user's account
-                    if (appState.introducedSharedAccess) {
-                      appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: SharedAccessViewPageConfig);
-                    } else {
-                      appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: WelcomeToSharedAccessViewPageConfig);
-                    }
-                  },
-                  child: iteamlist(
-                      "assets/images/access.png", "", LanguageEn.sharedaccess),
-                ),
-                GestureDetector(
                   onTap: () => appState.currentAction = PageAction(
                       state: PageState.addPage,
                       page: PasswordMgtViewPageConfig),
@@ -251,107 +203,11 @@ class _SettingsState extends State<Settings> {
                   ],
                 ),
                 SizedBox(height: height / 50),
-                GestureDetector(
-                  onTap: () => appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: OptInOutAssetViewPageConfig),
-                  child: iteamlist(
-                      "assets/images/asset.png", "", LanguageEn.addremoveasset),
-                ),
-                GestureDetector(
-                  onTap: () => appState.currentAction = PageAction(
-                      state: PageState.addPage, page: ImportWalletPageConfig),
-                  child: iteamlist(
-                      "assets/images/import.png", "", LanguageEn.importwallet),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    // go to the definition of appState.viewData
-                    // to learn more about viewData
-                    appState.viewData![EnsurePrivacyPageConfig.key] = {
-                      'rel': 'backupAll',
-                    };
-                    appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: EnsurePrivacyPageConfig);
-                  },
-                  child: iteamlist("assets/images/backup-wallets.png", "",
-                      LanguageEn.backupwallet),
-                ),
+
                 walletMode(
                     "assets/images/walletmode.png", "", LanguageEn.walletmode),
-                GestureDetector(
-                  onTap: () {
-                    if (appState.userInfo!.hasSecurityQuestions == 0) {
-                      var primaryWallet = appState.userInfo!.wallets!
-                          .firstWhere((wallet) => wallet.primaryWallet == 1);
 
-                      appState.returnView = PageAction(
-                        state: PageState.addAll,
-                        pages: [
-                          BottomHomePageConfig,
-                          SetupAccountRecoveryViewPageConfig,
-                        ],
-                      );
-
-                      appState.viewData = {
-                        SecurityQuestionsViewPageConfig.key: {
-                          'signer': primaryWallet.signer,
-                          'publicKey': primaryWallet.publicKey,
-                          'secretKey': appState.secretKeys[0],
-                          'username': appState.userInfo!.username,
-                        }
-                      };
-                      appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: SecurityQuestionsViewPageConfig);
-                    } else if (appState.userInfo!.accountRecoveryEnabled == 0) {
-                      appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: SetupAccountRecoveryViewPageConfig);
-                    } else {
-                      appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: DisableAccountRecoveryInfoViewPageConfig);
-                    }
-                  },
-                  child: iteamlist(
-                      "assets/images/history.png",
-                      appState.userInfo!.accountRecoveryEnabled == 1
-                          ? "Enabled"
-                          : "",
-                      LanguageEn.accountrecovery),
-                ),
                 SizedBox(height: height / 25),
-                Row(
-                  children: [
-                    SizedBox(width: width / 20),
-                    Text(
-                      LanguageEn.more,
-                      style: TextStyle(
-                          color: notifier.getgrey,
-                          fontSize: 13.sp,
-                          fontFamily: fontsemibold),
-                    ),
-                  ],
-                ),
-                SizedBox(height: height / 50),
-                GestureDetector(
-                  onTap: () => appState.goToWebView(trovoSupportUrl),
-                  child: iteamlist(
-                      "assets/images/help.png", "", LanguageEn.helpandsupport),
-                ),
-                GestureDetector(
-                  onTap: () => appState.goToWebView(termsOfServiceUrl),
-                  child: iteamlist(
-                      "assets/images/terms.png", "", LanguageEn.termsofuse),
-                ),
-                GestureDetector(
-                  onTap: () => appState.goToWebView(trovoLandingPage),
-                  child: iteamlist("assets/images/copyright.png", "",
-                      LanguageEn.abouttrovowallet),
-                ),
-                SizedBox(height: height / 20),
                 GestureDetector(
                   onTap: () {
                     appState.currentAction = PageAction(

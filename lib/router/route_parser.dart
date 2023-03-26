@@ -189,6 +189,10 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return WalletPreparationViewPageConfig;
       case MyAssetTokenDetailsViewPath:
         return MyAssetTokenDetailsViewPageConfig;
+      case MarketTradeViewPath:
+        return MarketTradeViewPageConfig;
+      case MarketTradeInfoViewPath:
+        return MarketTradeInfoViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -388,6 +392,10 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return const RouteInformation(location: WalletPreparationViewPath);
       case Pages.MyAssetTokenDetailsView:
         return const RouteInformation(location: MyAssetTokenDetailsViewPath);
+      case Pages.MarketTradeView:
+        return const RouteInformation(location: MarketTradeViewPath);
+      case Pages.MarketTradeInfoView:
+        return const RouteInformation(location: MarketTradeInfoViewPath);
       default:
         return const RouteInformation(location: SplashPath);
     }

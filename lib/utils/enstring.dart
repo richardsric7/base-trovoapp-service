@@ -811,6 +811,8 @@ class LanguageEn {
 
   static String get sharedaccess => "Shared Access";
 
+  static String get markettrade => "Market Trade";
+
   static String get myreferrals => "My Referrals";
 
   static String get hidebalance => "Hide My Balance";
