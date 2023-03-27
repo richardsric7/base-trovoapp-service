@@ -3,16 +3,12 @@ import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
-import 'package:trovo_wallet/custom_bloc_observer/graph/graph.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
-import 'package:trovo_wallet/widgets/bar_chart.dart';
-import 'package:trovo_wallet/widgets/price_points.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -59,10 +55,21 @@ class _MarketTradeState extends State<MarketTrade>
             CustomAppBar(
               context,
               notifier.getwihitecolor,
-              LanguageEn.markettrade,
+              'Favorites',
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
+            SmallButton(
+              LanguageEn.marketpairs,
+              notifier.getbluewhitecolor,
+              wihitecolor,
+              onTap: () {
+                appState.currentAction = PageAction(
+                  state: PageState.addPage,
+                  page: MarketPairsViewPageConfig,
+                );
+              },
+            ),
             SizedBox(height: height / 50),
             Wrap(
               spacing: 5,

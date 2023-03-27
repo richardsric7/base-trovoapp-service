@@ -813,6 +813,8 @@ class LanguageEn {
 
   static String get markettrade => "Market Trade";
 
+  static String get marketpairs => "Market Pairs";
+
   static String get myreferrals => "My Referrals";
 
   static String get hidebalance => "Hide My Balance";
