@@ -85,7 +85,7 @@ class _TotalSalesState extends State<TotalSales> with TickerProviderStateMixin {
                         height: height / 70,
                       ),
                       Text(
-                        '467,000 TROV',
+                        '467,000 cNGN',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15,
@@ -97,7 +97,7 @@ class _TotalSalesState extends State<TotalSales> with TickerProviderStateMixin {
                         height: height / 50,
                       ),
                       Text(
-                        '400 Tokens',
+                        '4,670 ATLANTIS 1',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15,
@@ -147,7 +147,7 @@ class _TotalSalesState extends State<TotalSales> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '$amount Tokens',
+                    '$amount ATLANTIS 1',
                     style: TextStyle(
                       fontSize: 15,
                       fontFamily: fontsemibold,
@@ -195,7 +195,7 @@ class _TotalSalesState extends State<TotalSales> with TickerProviderStateMixin {
           trailing: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              '$trovAmount TROV',
+              '$trovAmount cNGN',
               style: TextStyle(
                 fontSize: 15,
                 fontFamily: fontsemibold,

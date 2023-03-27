@@ -119,27 +119,30 @@ class _WalletPreparationState extends State<WalletPreparation>
             SizedBox(
               height: height / 30,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Text(
-                  'Select Minting Wallet',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Minting Wallet',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
                   ),
-                ),
-                Text(
-                  'What does this mean?',
-                  style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    fontSize: 12,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
+                  Text(
+                    'What does this mean?',
+                    style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             SizedBox(
               height: height / 70,
@@ -192,27 +195,30 @@ class _WalletPreparationState extends State<WalletPreparation>
             SizedBox(
               height: height / 30,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Text(
-                  'Select Minting Wallet',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text(
+                    'Select Market Making Wallet',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
                   ),
-                ),
-                Text(
-                  'What does this mean?',
-                  style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    fontSize: 12,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
+                  Text(
+                    'What does this mean?',
+                    style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             SizedBox(
               height: height / 70,

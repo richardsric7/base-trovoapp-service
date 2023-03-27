@@ -97,9 +97,9 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                         },
                         child: assetTile(
                           '',
-                          'Animal Farm',
-                          'Property',
-                          '',
+                          'ANMF',
+                          'Agriculture',
+                          '12.4304324',
                         ),
                       ),
                       GestureDetector(
@@ -111,9 +111,9 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                         },
                         child: assetTile(
                           '',
-                          'Beacon Homes',
+                          'BCNH',
                           'Property',
-                          '',
+                          '9.1204334',
                         ),
                       ),
                       GestureDetector(
@@ -125,9 +125,9 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                         },
                         child: assetTile(
                           '',
-                          'C-Vitals',
-                          'Property',
-                          '',
+                          'CVTL',
+                          'Health',
+                          '2.3292323',
                         ),
                       ),
                       GestureDetector(
@@ -139,9 +139,9 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                         },
                         child: assetTile(
                           '',
-                          'Drinkfly',
-                          'Property',
-                          '',
+                          'DRNFL',
+                          'Beverage',
+                          '5.0302344',
                         ),
                       ),
                       GestureDetector(
@@ -153,9 +153,9 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                         },
                         child: assetTile(
                           '',
-                          'ZAAD Properties',
+                          'ZAAD',
                           'Property',
-                          '',
+                          '3.0023231',
                         ),
                       ),
                       SizedBox(height: height / 20),
@@ -177,7 +177,6 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                           'Titan Properties',
                           'Property',
                           'Pending approval',
-                          show: true,
                         ),
                       ),
                       GestureDetector(
@@ -192,7 +191,6 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                           'ATLANTIS 1',
                           'Property',
                           'Approved',
-                          show: true,
                         ),
                       ),
                       GestureDetector(
@@ -207,7 +205,6 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                           'Kings Home',
                           'Property',
                           'Pending approval',
-                          show: true,
                         ),
                       ),
                       GestureDetector(
@@ -222,14 +219,13 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                           'Infinity Productions',
                           'Property',
                           'Pending  liquidation',
-                          show: true,
                         ),
                       ),
                       GestureDetector(
                         onTap: () {
                           appState.currentAction = PageAction(
                             state: PageState.addPage,
-                            page: AssetDashboardViewPageConfig,
+                            page: TokenizeAssetViewPageConfig,
                           );
                         },
                         child: assetTile(
@@ -237,7 +233,6 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
                           'Heart Realty',
                           'Property',
                           'Rejected',
-                          show: true,
                         ),
                       ),
                       SizedBox(height: height / 20),
@@ -252,8 +247,12 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
     );
   }
 
-  Widget assetTile(String imageUrl, String name, String type, String status,
-      {bool show = false}) {
+  Widget assetTile(
+    String imageUrl,
+    String name,
+    String type,
+    String status,
+  ) {
     return Card(
       elevation: notifier.isDark ? 0 : 3,
       shadowColor: Colors.black,
@@ -306,26 +305,21 @@ class _TokenizedAssetsListState extends State<TokenizedAssetsList>
               ),
             ],
           ),
-          trailing: show
-              ? TextButton(
-                  onPressed: () async {},
-                  child: Container(
-                    width: width / 3.1,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          status,
-                          style: TextStyle(
-                              fontFamily: fontsemibold,
-                              fontSize: 11,
-                              color: notifier.getblck),
-                        )
-                      ],
-                    ),
-                  ),
+          trailing: Container(
+            width: width / 3.1,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  status,
+                  style: TextStyle(
+                      fontFamily: fontsemibold,
+                      fontSize: 11,
+                      color: notifier.getblck),
                 )
-              : null,
+              ],
+            ),
+          ),
         ),
       ),
     );

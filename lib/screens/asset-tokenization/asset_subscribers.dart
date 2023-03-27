@@ -105,9 +105,9 @@ class _AssetSubscribersState extends State<AssetSubscribers>
             SizedBox(height: height / 70),
             Column(
               children: [
-                assetTile('Kenny', '10 minutes ago'),
-                assetTile('Onoja', '10 days ago'),
-                assetTile('Ric 1', '15 days ago'),
+                assetTile('Kenny [Kennis Maduka]', '10 minutes ago'),
+                assetTile('Onoja [Thomas Enechi]', '10 days ago'),
+                assetTile('Ric 1 [Ric Richards]', '15 days ago'),
                 SizedBox(height: height / 20),
               ],
             ),
@@ -118,42 +118,29 @@ class _AssetSubscribersState extends State<AssetSubscribers>
   }
 
   Widget assetTile(String name, String type) {
-    return Card(
-      elevation: notifier.isDark ? 0 : 5,
-      shadowColor: Colors.black,
-      color: notifier.gettilewihitecolor,
-      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: ListTile(
-          title: Row(
-            children: [
-              Text(
-                name,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-            ],
-          ),
-          trailing: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              type,
-              style: TextStyle(
-                fontStyle: FontStyle.italic,
-                fontSize: 12,
-                fontFamily: fontbody,
-                color: notifier.getbluewhitecolor,
-              ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 15,
+              fontFamily: fontbody,
+              color: notifier.getbluewhitecolor,
             ),
           ),
-        ),
+          Text(
+            type,
+            style: TextStyle(
+              fontStyle: FontStyle.italic,
+              fontSize: 12,
+              fontFamily: fontbody,
+              color: notifier.getbluewhitecolor,
+            ),
+          ),
+        ],
       ),
     );
   }

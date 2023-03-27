@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -228,7 +230,15 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   child: Column(
                     children: [
                       for (var i = 0; i <= 10; i++) ...[
-                        assetTile('', 'ASSET $i', 'Property', i % 2 == 0),
+                        GestureDetector(
+                            onTap: () {
+                              appState.currentAction = PageAction(
+                                state: PageState.addPage,
+                                page: TokenizedAssetDetailViewPageConfig,
+                              );
+                            },
+                            child: assetTile(
+                                '', 'ASSET $i', 'Property', i % 2 == 0)),
                       ],
                       SizedBox(height: height / 20),
                     ],
@@ -236,6 +246,20 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                 ),
               ]),
             ),
+            // Transform.scale(
+            //   scale: 0.7,
+            //   child: CupertinoSwitch(
+            //     activeColor: notifier.getgreencolor,
+            //     value: notifier.getIsDark,
+            //     onChanged: (val) async {
+            //       final prefs = await SharedPreferences.getInstance();
+            //       setState(() {
+            //         notifier.setIsDark = val;
+            //         prefs.setBool("setIsDark", val);
+            //       });
+            //     },
+            //   ),
+            // ),
           ],
         ),
       ),
@@ -295,7 +319,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
               ),
             ],
           ),
-          trailing: TextButton(
+          trailing: ElevatedButton(
             onPressed: () async {
               isSubscribed
                   ? showUnSubscribePopup(
@@ -308,6 +332,25 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                       dropdownItems: getStandardWallets,
                     );
             },
+            style: ButtonStyle(
+              overlayColor:
+                  MaterialStateProperty.all<Color>(notifier.getsplashgrey),
+              backgroundColor:
+                  MaterialStateProperty.all<Color>(notifier.getbluewhitecolor),
+              side: MaterialStateProperty.all(
+                BorderSide(
+                    color: notifier.getbluewhitecolor,
+                    width: 1,
+                    style: BorderStyle.solid),
+              ),
+              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(10),
+                  ),
+                ),
+              ),
+            ),
             child: Container(
               width: width / 4,
               child: Row(
@@ -318,14 +361,14 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     style: TextStyle(
                         fontFamily: fontsemibold,
                         fontSize: 12,
-                        color: notifier.getblck),
+                        color: notifier.getwihitecolor),
                   ),
                   Icon(
                       isSubscribed
                           ? Icons.check_circle
                           : Icons.add_circle_rounded,
                       size: 20,
-                      color: notifier.getblck),
+                      color: notifier.getwihitecolor),
                 ],
               ),
             ),

@@ -210,7 +210,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30.0),
                   child: Text(
-                    'Purchase with TROV',
+                    'Purchase with cNGN',
                     style: TextStyle(
                       fontSize: 15,
                       fontFamily: fontsemibold,
@@ -262,63 +262,63 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             ),
             infoTile(
               notifier,
-              'Category',
+              'Asset Category',
               'Real Estate',
             ),
             infoTile(
               notifier,
-              'Country',
+              'Asset Country',
               'Nigeria',
             ),
             infoTile(
               notifier,
-              'Address',
+              'Asset Location Address',
               'No. 10 Maitama, Abuja',
             ),
             infoTile(
               notifier,
-              'Issuer',
+              'Asset Issuer',
               'Atlantis Developers',
             ),
             infoTile(
               notifier,
-              'Issuer Website',
+              'Asset Issuer Website',
               'www.atlantis.com',
             ),
             infoTile(
               notifier,
-              'Total Supply',
+              'Asset Token Total Supply',
               '1000',
             ),
             infoTile(
               notifier,
-              'Quantity Purchased',
+              'Asset Tokens Quantity Purchased',
               '400',
             ),
             infoTile(
               notifier,
-              'Total Subscribed',
+              'Total Subscribed Users',
               '2,000',
             ),
             infoTile(
               notifier,
-              'Price per Asset',
-              '100 TROV',
+              'Price Per Asset Token',
+              '100 cNGN',
             ),
             infoTile(
               notifier,
-              'Funding Method',
-              'TROV',
+              'Asset Token Purchase Method',
+              'cNGN',
             ),
             infoTile(
               notifier,
-              'Sales Window',
+              'Asset Token Sales Window',
               '12/01/2023 - 30/03/2023',
             ),
             infoTile(
               notifier,
-              'Cap Quantity',
-              '5 Tokens',
+              'Token Sale Cap',
+              '5 [ATLANTIS 1] Token',
             ),
             infoTile(
               notifier,
@@ -332,13 +332,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             ),
             infoTile(
               notifier,
-              'Payout Currency',
-              'TROV',
-            ),
-            infoTile(
-              notifier,
-              'Countries Exempted',
-              'See list',
+              'Payout Method',
+              'cNGN',
             ),
             Card(
               elevation: notifier.isDark ? 0 : 3,
@@ -354,7 +349,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Countries Exempted',
+                            'Exempted Countries',
                             style: TextStyle(
                               fontSize: 13,
                               fontFamily: fontsemibold,
@@ -394,7 +389,47 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Proof of Existence',
+                            'Additional Requirements',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                            child: Text(
+                              'See list',
+                              style: TextStyle(
+                                decoration: TextDecoration.underline,
+                                fontSize: 13,
+                                fontFamily: fontbody,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Card(
+              elevation: notifier.isDark ? 0 : 3,
+              shadowColor: Colors.black,
+              color: notifier.gettilewihitecolor,
+              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: ListTile(
+                  title: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Verified Proof of Existence',
                             style: TextStyle(
                               fontSize: 13,
                               fontFamily: fontsemibold,
@@ -406,7 +441,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             child: Text(
                               'C of O',
                               style: TextStyle(
-                                decoration: TextDecoration.underline,
                                 fontSize: 13,
                                 fontFamily: fontbody,
                                 color: notifier.getbluewhitecolor,
@@ -418,7 +452,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             child: Text(
                               'Survey Plan',
                               style: TextStyle(
-                                decoration: TextDecoration.underline,
                                 fontSize: 13,
                                 fontFamily: fontbody,
                                 color: notifier.getbluewhitecolor,
@@ -430,7 +463,6 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             child: Text(
                               'Governor\'s Consent',
                               style: TextStyle(
-                                decoration: TextDecoration.underline,
                                 fontSize: 13,
                                 fontFamily: fontbody,
                                 color: notifier.getbluewhitecolor,
