@@ -149,7 +149,7 @@ class Wallet {
   List<String> getAccesses(permissions, String username) {
     var accesses = <String>[];
 
-    if (permission != null) {
+    if (permissions != null) {
       for (var i = 0; i < permissions.length; i++) {
         if (permissions[i]['targetUsername'] == username &&
             !accesses.contains(permissions[i]['permission'])) {
