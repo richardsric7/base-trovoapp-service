@@ -85,6 +85,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
             assetInfo(
               'ANMF',
               '12.4304324',
+              '1,243.04324 cNGN',
               notifier.getbluewhitecolor,
               wihitecolor,
             ),
@@ -382,6 +383,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
   Widget assetInfo(
     String assetCode,
     String balance,
+    String currencyValue,
     Color backColor,
     Color foreColor,
   ) {
@@ -432,7 +434,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                   Row(
                     children: [
                       Text(
-                        'Animal Farm Token ',
+                        getBalance(balance),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w400,
@@ -464,7 +466,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                   Container(
                     width: width / 1.8,
                     child: Text(
-                      getBalance(balance),
+                      getBalance(currencyValue),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
