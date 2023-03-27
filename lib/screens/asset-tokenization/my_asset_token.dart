@@ -2,17 +2,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get_utils/get_utils.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/top_drop_downs.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -30,8 +34,12 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
   late ColorNotifier notifier;
   late DataProvider appState;
   late TabController tabController;
+  late Wallet wallet;
+  late Asset? asset;
   bool localHideBalance = false;
   final Authenticator _authenticator = Authenticator();
+  String selectedWallet = '';
+  String selectedAsset = '';
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -69,22 +77,93 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    wallet = appState.primaryWallet;
+
+    if (selectedAsset.isEmpty) {
+      selectedAsset =
+          "${getAssetCode(appState.primaryWallet.claimedAssets!.first.assetCode)}|${getAssetIssuer(appState.primaryWallet.claimedAssets!.first.assetIssuer)}";
+    }
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(height / 15),
+        child: AppBar(
+            centerTitle: true,
+            elevation: 0,
+            backgroundColor: notifier.getwihitecolor,
+            leading: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Image.asset("assets/images/back.png", scale: 5),
+            ),
+            actions: [
+              Container(
+                width: width / 1.2,
+                child: Row(
+                  children: [
+                    TopDropdowns(
+                        onWalletChanged: (newValue) {
+                          selectedWallet = newValue;
+                          this.wallet =
+                              appState.userInfo!.getWallet(selectedWallet);
+
+                          this.asset = wallet.claimedAssets!.firstWhereOrNull((x) =>
+                              "${getAssetCode(x.assetCode)}|${getAssetIssuer(x.assetIssuer)}" ==
+                              selectedAsset);
+
+                          setState(() {});
+                        },
+                        onAssetChanged: (newValue) {
+                          setState(() {
+                            selectedAsset = newValue;
+                            newValue = newValue.toString().contains('XBN')
+                                ? '|'
+                                : newValue;
+                            for (var asset in wallet.claimedAssets!) {
+                              var splitNewValue =
+                                  newValue.toString().split('|');
+                              if (asset.assetCode == splitNewValue[0] &&
+                                  asset.assetIssuer == splitNewValue[1]) {
+                                this.asset = asset;
+                              }
+                            }
+                          });
+                        },
+                        claimedAssets: wallet.claimedAssets!,
+                        selectedAsset: selectedAsset,
+                        selectedWallet: wallet.publicKey),
+                  ],
+                ),
+              ),
+              if (appState.walletMode == "Testnet") ...[
+                Visibility(
+                  visible: true,
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 5),
+                    child: Banner(
+                      location: BannerLocation.topEnd,
+                      message: "Testnet",
+                    ),
+                  ),
+                ),
+              ]
+            ]),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            CustomAppBar(
-              context,
-              notifier.getwihitecolor,
-              '',
-              notifier.getbluewhitecolor,
-              height: height / 15,
-            ).getBar(),
+            // CustomAppBar(
+            //   context,
+            //   notifier.getwihitecolor,
+            //   '',
+            //   notifier.getbluewhitecolor,
+            //   height: height / 15,
+            // ).getBar(),
             assetInfo(
-              'ANMF',
-              '12.4304324',
+              'Kenny',
+              '12.4304324 ANMF',
               '1,243.04324 cNGN',
               notifier.getbluewhitecolor,
               wihitecolor,
@@ -381,7 +460,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
   }
 
   Widget assetInfo(
-    String assetCode,
+    String walletAlias,
     String balance,
     String currencyValue,
     Color backColor,
@@ -420,7 +499,7 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                   Container(
                     width: width / 2,
                     child: Text(
-                      assetCode,
+                      walletAlias,
                       style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -436,10 +515,10 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                       Text(
                         getBalance(balance),
                         style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                           color: foreColor,
-                          fontFamily: fontbody,
+                          fontFamily: fontsemibold,
                         ),
                       ),
                       SizedBox(
@@ -468,10 +547,10 @@ class _MyAssetTokenDetails extends State<MyAssetTokenDetails>
                     child: Text(
                       getBalance(currencyValue),
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
                         color: foreColor,
-                        fontFamily: fontsemibold,
+                        fontFamily: fontbody,
                       ),
                     ),
                   ),
