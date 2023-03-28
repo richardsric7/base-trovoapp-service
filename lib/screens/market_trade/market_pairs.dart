@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/custom_render.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -21,6 +23,13 @@ class _MarketPairsState extends State<MarketPairs>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  List<String> options = [
+    'TROV',
+    'USDC',
+    'USDT',
+    'XBN',
+  ];
+
   List<Map> marketPairs = <Map>[
     {
       'pair': 'TROV/CNGN',
@@ -37,7 +46,95 @@ class _MarketPairsState extends State<MarketPairs>
       'price': '0.49 USDT',
       'isChecked': true,
     },
+    {
+      'pair': 'TROV/XBN',
+      'price': '1000 XBN',
+      'isChecked': false,
+    },
+    {
+      'pair': 'XBN/CNGN',
+      'price': '0.5 CNGN',
+      'isChecked': false,
+    },
+    {
+      'pair': 'XBN/USDC',
+      'price': '0.0003 USDC',
+      'isChecked': true,
+    },
+    {
+      'pair': 'XBN/USDT',
+      'price': '0.0003 USDT',
+      'isChecked': false,
+    },
+    {
+      'pair': 'TROV/CNGN',
+      'price': '200 CNGN',
+      'isChecked': false,
+    },
+    {
+      'pair': 'TROV/USDC',
+      'price': '0.24 USDC',
+      'isChecked': true,
+    },
+    {
+      'pair': 'TROV/USDT',
+      'price': '1.5 USDT',
+      'isChecked': false,
+    },
+    {
+      'pair': 'TROV/XBN',
+      'price': '1000 XBN',
+      'isChecked': true,
+    },
+    {
+      'pair': 'XBN/CNGN',
+      'price': '0.5 CNGN',
+      'isChecked': false,
+    },
+    {
+      'pair': 'XBN/USDC',
+      'price': '0.49 USDC',
+      'isChecked': false,
+    },
+    {
+      'pair': 'XBN/USDT',
+      'price': '0.5 USDT',
+      'isChecked': true,
+    },
+    {
+      'pair': 'TROV/USDT',
+      'price': '0.4 USDT',
+      'isChecked': false,
+    },
+    {
+      'pair': 'TROV/USDC',
+      'price': '0.82 USDT',
+      'isChecked': false,
+    },
+    {
+      'pair': 'TROV/CNGN',
+      'price': '30 CNGN',
+      'isChecked': true,
+    },
+    {
+      'pair': 'TROV/XBN',
+      'price': '1.4 XBN',
+      'isChecked': false,
+    },
   ];
+
+  List<DropdownMenuItem<String>> get getOptions {
+    List<DropdownMenuItem<String>> myOptions = [];
+    options.forEach((value) {
+      myOptions.add(DropdownMenuItem(
+          child: Text(
+            value,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: value));
+    });
+    return myOptions;
+  }
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -74,6 +171,38 @@ class _MarketPairsState extends State<MarketPairs>
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
+            Row(
+              children: [
+                Container(
+                  width: width / 2,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: dropdown(
+                      (value) {},
+                      getOptions,
+                      null,
+                      'Insurance',
+                      context,
+                      null,
+                    ),
+                  ),
+                ),
+                CustomTextFormField.textField(
+                  'Search Pairs',
+                  notifier.getbluecolor,
+                  null,
+                  notifier.getgrey,
+                  null,
+                  notifier.getblck,
+                  notifier.getgrey,
+                  45.sp,
+                  150.sp,
+                  // controller: referrerController,
+                  // validator: validateReferrer,
+                  onSaved: (value) {},
+                ),
+              ],
+            ),
             SizedBox(height: height / 50),
             table(),
             SizedBox(height: height / 50),

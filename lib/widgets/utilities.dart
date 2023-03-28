@@ -116,6 +116,9 @@ getAssetIssuer(assetIssuer) {
 formatNumber(double number) =>
     NumberFormat("#,##0.0000000", "en_US").format(number);
 
+formatNumberShort(double number) =>
+    NumberFormat("#,##0.00", "en_US").format(number);
+
 formatHistoryNumber(double number, double trimNum) {
   // if number is greater than 1million return 1m or 1.2m
   if (number >= trimNum) {

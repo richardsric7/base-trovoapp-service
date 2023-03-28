@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -9,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -23,6 +26,98 @@ class _MarketTradeState extends State<MarketTrade>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  List<Map> marketPairs = <Map>[
+    {
+      'pair': 'TROV/CNGN',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': true,
+    },
+    {
+      'pair': 'TROV/USDC',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': false,
+    },
+    {
+      'pair': 'TROV/USDT',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': true,
+    },
+    {
+      'pair': 'TROV/XBN',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': false,
+    },
+    {
+      'pair': 'XBN/CNGN',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': false,
+    },
+    {
+      'pair': 'XBN/USDC',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': true,
+    },
+    {
+      'pair': 'XBN/USDT',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': false,
+    },
+    {
+      'pair': 'TROV/CNGN',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': false,
+    },
+    {
+      'pair': 'TROV/USDC',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': true,
+    },
+    {
+      'pair': 'TROV/USDT',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': false,
+    },
+    {
+      'pair': 'TROV/XBN',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': true,
+    },
+    {
+      'pair': 'XBN/CNGN',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': false,
+    },
+    {
+      'pair': 'XBN/USDC',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': false,
+    },
+    {
+      'pair': 'XBN/USDT',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': true,
+    },
+    {
+      'pair': 'TROV/USDT',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': false,
+    },
+    {
+      'pair': 'TROV/USDC',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': false,
+    },
+    {
+      'pair': 'TROV/CNGN',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': true,
+    },
+    {
+      'pair': 'TROV/XBN',
+      'price': formatNumberShort(Random().nextInt(10000).toDouble()),
+      'isGreen': false,
+    },
+  ];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -75,27 +170,17 @@ class _MarketTradeState extends State<MarketTrade>
               spacing: 5,
               runSpacing: 5,
               children: [
-                for (var i = 0; i <= 5; i++) ...[
+                for (var i = 0; i < marketPairs.length; i++) ...[
                   chartCard(
                       Image.asset(
                         'assets/images/trovo.png',
                         height: height / 50,
                       ),
-                      'TROV/NGN',
-                      '27,763.32',
+                      marketPairs[i]['pair'],
+                      marketPairs[i]['price'],
                       '8.46%',
-                      true),
-                  chartCard(
-                    Image.asset(
-                      'assets/images/trovo.png',
-                      height: height / 50,
-                    ),
-                    'BTC/USDT',
-                    '27,763.32',
-                    '8.46%',
-                    false,
-                  ),
-                ]
+                      marketPairs[i]['isGreen']),
+                ],
               ],
             ),
             SizedBox(height: height / 50),

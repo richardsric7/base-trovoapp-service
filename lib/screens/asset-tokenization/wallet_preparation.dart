@@ -77,6 +77,19 @@ class _WalletPreparationState extends State<WalletPreparation>
     return wallets;
   }
 
+  List<DropdownMenuItem<String>> get getStandardWallets {
+    List<DropdownMenuItem<String>> wallets = [];
+    appState.userInfo!.getStandardWallets.forEach((wallet) {
+      wallets.add(DropdownMenuItem(
+          child: Text(
+            wallet.alias!,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: wallet.publicKey));
+    });
+    return wallets;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -231,6 +244,82 @@ class _WalletPreparationState extends State<WalletPreparation>
                 null,
                 appState.userInfo!.getMarketMakingWallets.length > 0
                     ? appState.userInfo!.getMarketMakingWallets.first.alias
+                    : '',
+                context,
+                null,
+              ),
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: TextButton(
+                    onPressed: () {
+                      appState.returnView = PageAction(
+                          state: PageState.addAll,
+                          pages: [
+                            BottomHomePageConfig,
+                            WalletPreparationViewPageConfig
+                          ]);
+                      appState.currentAction =
+                          PageAction(state: PageState.addAll, pages: [
+                        BottomHomePageConfig,
+                      ]);
+                      changeTabPage(appState, ButtomTabPage.Wallets.index);
+                      setState(() {});
+                    },
+                    child: Text(
+                      'Or create a new wallet for this',
+                      style: TextStyle(
+                        decoration: TextDecoration.underline,
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 30,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text(
+                    'Select Distribution Wallet',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  Text(
+                    'What does this mean?',
+                    style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: dropdown(
+                (value) {},
+                getStandardWallets,
+                null,
+                appState.userInfo!.getStandardWallets.length > 0
+                    ? appState.userInfo!.getStandardWallets.first.alias
                     : '',
                 context,
                 null,
