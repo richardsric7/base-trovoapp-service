@@ -87,16 +87,19 @@ class _DisableAccountRecovery extends State<DisableAccountRecovery> {
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         appBar: CustomAppBar(
-                context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 20)
-            .getBar(),
+          context,
+          notifier.getwihitecolor,
+          "",
+          notifier.getblck,
+          height: height / 15,
+        ).getBar(),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
           child: Form(
             key: _formKey,
             child: Column(
               children: [
-                SizedBox(height: height / 50),
+                // SizedBox(height: height / 50),
                 Text(
                   LanguageEn.disable,
                   textAlign: TextAlign.center,

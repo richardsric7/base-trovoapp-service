@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -127,11 +125,27 @@ class _ReceiveAssetState extends State<ReceiveAsset>
               if (appState.walletMode == "Testnet") ...[
                 Visibility(
                   visible: true,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 5),
-                    child: Banner(
-                      location: BannerLocation.topEnd,
-                      message: "Testnet",
+                  child: Container(
+                    color: Color(0xFFAA453E),
+                    width: 18,
+                    child: RotatedBox(
+                      quarterTurns: 1,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
+                            child: Text(
+                              'Testnet',
+                              style: TextStyle(
+                                fontFamily: fontsemibold,
+                                color: wihitecolor,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

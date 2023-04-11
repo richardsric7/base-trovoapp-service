@@ -52,6 +52,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   String? description;
   String? secretKey;
   int isAssetIssuerWallet = 0;
+  final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   String password = '';
   late Account primaryWalletKeyPair;
   late Account newSubWalletKeyPair;
@@ -125,12 +126,16 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     userInfo = appState.userInfo!;
 
     return Scaffold(
+        key: key,
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
+        drawer: getDrawer(context, appState, notifier),
         appBar: CustomAppBarWithoutLeading(
           context,
           notifier.getwihitecolor,
           height: height / 15,
+          scaffoldKey: key,
+          showMenu: true,
           txt: LanguageEn.wallets,
           titlecolor: notifier.getbluewhitecolor,
         ).getBar(),

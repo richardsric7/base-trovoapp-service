@@ -147,42 +147,126 @@ class _MarketTradeState extends State<MarketTrade>
       body: SingleChildScrollView(
         child: Column(
           children: [
-            CustomAppBar(
-              context,
-              notifier.getwihitecolor,
-              'Favorites',
-              notifier.getbluewhitecolor,
-              height: height / 15,
-            ).getBar(),
-            SmallButton(
-              LanguageEn.marketpairs,
-              notifier.getbluewhitecolor,
-              wihitecolor,
-              onTap: () {
-                appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: MarketPairsViewPageConfig,
-                );
-              },
-            ),
-            SizedBox(height: height / 50),
-            Wrap(
-              spacing: 5,
-              runSpacing: 5,
-              children: [
-                for (var i = 0; i < marketPairs.length; i++) ...[
-                  chartCard(
+            if (true) ...[
+              CustomAppBar(
+                context,
+                notifier.getwihitecolor,
+                'Market Trade',
+                notifier.getbluewhitecolor,
+                height: height / 15,
+              ).getBar(),
+              Container(
+                height: height / 1.2,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                       Image.asset(
-                        'assets/images/trovo.png',
-                        height: height / 50,
+                        "assets/images/transfer.png",
+                        height: height / 2.5,
                       ),
-                      marketPairs[i]['pair'],
-                      marketPairs[i]['price'],
-                      '8.46%',
-                      marketPairs[i]['isGreen']),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Card(
+                          shadowColor: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15.0),
+                          ),
+                          color: notifier.isDark
+                              ? notifier.getbluecolor90
+                              : notifier.getaddsubwalletgrey,
+                          child: Center(
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  height: height / 70,
+                                ),
+                                Text(
+                                  LanguageEn.welcometoassettokenization2,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontFamily: fontbody,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: height / 70,
+                                ),
+                                Text(
+                                  LanguageEn.welcometoassettokenization3,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    height: 1.4,
+                                    fontFamily: fontbody,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: height / 50,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: height / 20,
+                      ),
+                      Text(
+                        'Coming Soon ...',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                      SizedBox(
+                        height: height / 90,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            ] else ...[
+              CustomAppBar(
+                context,
+                notifier.getwihitecolor,
+                'Favorites',
+                notifier.getbluewhitecolor,
+                height: height / 15,
+              ).getBar(),
+              SmallButton(
+                LanguageEn.marketpairs,
+                notifier.getbluewhitecolor,
+                notifier.getwihitecolor,
+                onTap: () {
+                  appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: MarketPairsViewPageConfig,
+                  );
+                },
+              ),
+              SizedBox(height: height / 50),
+              Wrap(
+                spacing: 5,
+                runSpacing: 5,
+                children: [
+                  for (var i = 0; i < marketPairs.length; i++) ...[
+                    chartCard(
+                        Image.asset(
+                          'assets/images/trovo.png',
+                          height: height / 50,
+                        ),
+                        marketPairs[i]['pair'],
+                        marketPairs[i]['price'],
+                        '8.46%',
+                        marketPairs[i]['isGreen']),
+                  ],
                 ],
-              ],
-            ),
+              ),
+            ],
             SizedBox(height: height / 50),
           ],
         ),

@@ -33,6 +33,7 @@ class Payment_HistoryState extends State<PaymentHistory>
   late DataProvider appState;
   late List<Wallet> wallets;
   late Wallet wallet;
+  final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   String selectedWallet = '';
   late List<Asset> claimedAssets;
   bool isFromSharedWalletsView = false;
@@ -191,8 +192,10 @@ class Payment_HistoryState extends State<PaymentHistory>
     claimedAssets = wallet.claimedAssets!;
 
     return Scaffold(
+      key: key,
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
+      drawer: getDrawer(context, appState, notifier),
       appBar: AppBar(
         centerTitle: true,
         leading: isFromSharedWalletsView
@@ -202,40 +205,66 @@ class Payment_HistoryState extends State<PaymentHistory>
                 },
                 child: Image.asset("assets/images/back.png", scale: 5),
               )
-            : null,
+            : IconButton(
+                onPressed: () {
+                  key.currentState!.openDrawer();
+                },
+                icon: Icon(
+                  Icons.menu,
+                  size: 35,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            SizedBox(width: width / 15),
+            // SizedBox(width: width / 15),
             Text(
               LanguageEn.transactionHistory,
               style:
                   TextStyle(color: notifier.getblck, fontFamily: fontsemibold),
             ),
             TextButton(
-                onPressed: () {
-                  setState(() {
-                    showFilter = !showFilter;
-                  });
-                },
-                child: Container(
-                  child: Image.asset(
-                    "assets/images/filter-list.png",
-                    height: height / 35,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ))
+              onPressed: () {
+                setState(() {
+                  showFilter = !showFilter;
+                });
+              },
+              child: Container(
+                child: Image.asset(
+                  "assets/images/filter-list.png",
+                  height: height / 35,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+            ),
           ],
         ),
         actions: [
           if (appState.walletMode == "Testnet") ...[
             Visibility(
               visible: true,
-              child: Padding(
-                padding: EdgeInsets.only(top: 5),
-                child: Banner(
-                  location: BannerLocation.topEnd,
-                  message: "Testnet",
+              child: Container(
+                color: Color(0xFFAA453E),
+                width: 18,
+                child: RotatedBox(
+                  quarterTurns: 1,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        child: Text(
+                          'Testnet',
+                          style: TextStyle(
+                            fontFamily: fontsemibold,
+                            color: wihitecolor,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

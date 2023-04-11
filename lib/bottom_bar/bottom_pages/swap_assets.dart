@@ -44,6 +44,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
   String? sourceAssetRawDropdownValue;
   String? destinationAssetRawDropdownValue;
   String selectedWallet = '';
+  final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   final formKey = GlobalKey<FormState>();
   bool sourceErr = false;
   bool destErr = false;
@@ -115,12 +116,16 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
     appState = Provider.of<DataProvider>(context, listen: true);
 
     return Scaffold(
+      key: key,
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
+      drawer: getDrawer(context, appState, notifier),
       appBar: CustomAppBarWithoutLeading(
         context,
         notifier.getwihitecolor,
         height: height / 15,
+        scaffoldKey: key,
+        showMenu: true,
         txt: "Swap",
         titlecolor: notifier.getbluewhitecolor,
       ).getBar(),

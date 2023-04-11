@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/storage/state.dart';
 
@@ -75,11 +76,27 @@ class CustomAppBar {
           if (appState.walletMode == "Testnet") ...[
             Visibility(
               visible: true,
-              child: Padding(
-                padding: EdgeInsets.only(top: 5),
-                child: Banner(
-                  location: BannerLocation.topEnd,
-                  message: "Testnet",
+              child: Container(
+                color: Color(0xFFAA453E),
+                width: 18,
+                child: RotatedBox(
+                  quarterTurns: 1,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: Text(
+                          'Testnet',
+                          style: TextStyle(
+                            fontFamily: fontsemibold,
+                            color: wihitecolor,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -97,12 +114,16 @@ class CustomAppBarWithoutLeading {
   final String? txt;
   final Color? titlecolor;
   final Color color;
+  final GlobalKey<ScaffoldState>? scaffoldKey; // Create a key
+  final bool showMenu;
   late DataProvider appState;
 
   CustomAppBarWithoutLeading(
     this.context,
     this.color, {
     Key? key,
+    this.scaffoldKey,
+    this.showMenu = false,
     this.txt,
     this.titlecolor,
     required this.height,
@@ -115,6 +136,18 @@ class CustomAppBarWithoutLeading {
         centerTitle: true,
         elevation: 0,
         backgroundColor: color,
+        leading: showMenu
+            ? IconButton(
+                onPressed: () {
+                  scaffoldKey?.currentState!.openDrawer();
+                },
+                icon: Icon(
+                  Icons.menu,
+                  size: 35,
+                  color: titlecolor,
+                ),
+              )
+            : null,
         title: Text(
           txt ?? '',
           style: TextStyle(color: titlecolor, fontFamily: fontsemibold),
@@ -123,11 +156,27 @@ class CustomAppBarWithoutLeading {
           if (appState.walletMode == "Testnet") ...[
             Visibility(
               visible: true,
-              child: Padding(
-                padding: EdgeInsets.only(top: 5),
-                child: Banner(
-                  location: BannerLocation.topEnd,
-                  message: "Testnet",
+              child: Container(
+                color: Color(0xFFAA453E),
+                width: 18,
+                child: RotatedBox(
+                  quarterTurns: 1,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: Text(
+                          'Testnet',
+                          style: TextStyle(
+                            fontFamily: fontsemibold,
+                            color: wihitecolor,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
