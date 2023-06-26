@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -9,7 +9,6 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -80,7 +79,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
       builder: (context, child) => Scaffold(
         appBar: CustomAppBar(
                 context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 20)
+                height: height / 18)
             .getBar(),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
@@ -90,7 +89,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
               children: [
                 SizedBox(height: height / 50),
                 Text(
-                  LanguageEn.answer,
+                  "answer".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
@@ -98,7 +97,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                       fontFamily: fontsemibold),
                 ),
                 Text(
-                  LanguageEn.securityquestions,
+                  "securityquestions".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
@@ -127,7 +126,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                               Container(
                                 width: width / 1.3,
                                 child: Text(
-                                  LanguageEn.answersecurityquestionsdescription,
+                                  "answersecurityquestionsdescription".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 16,
@@ -163,7 +162,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                             child: Column(
                               children: [
                                 Text(
-                                  LanguageEn.somethingwentwrong,
+                                  "somethingwentwrong".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 16,
@@ -186,7 +185,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                                             notifier.getbluecolor!),
                                   ),
                                   child: Text(
-                                    LanguageEn.retry,
+                                    "retry".tr(),
                                     style: TextStyle(
                                       fontFamily: fontsemibold,
                                     ),
@@ -210,7 +209,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                                     'You have not setup security questions yet.'),
                                 SizedBox(height: height / 20),
                                 Button(
-                                  LanguageEn.back,
+                                  "back".tr(),
                                   notifier.getbluecolor,
                                   wihitecolor,
                                   onTap: () {
@@ -244,7 +243,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
                               ],
                               SizedBox(height: height / 20),
                               Button(
-                                LanguageEn.continuee,
+                                "continuee".tr(),
                                 notifier.getbluecolor,
                                 wihitecolor,
                                 onTap: () {
@@ -299,7 +298,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: CustomTextFormField.textField(
-            LanguageEn.enteranswer,
+            "enteranswer".tr(),
             notifier.getbluecolor,
             Icons.question_answer_outlined,
             notifier.getgrey,
@@ -315,7 +314,7 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
             },
             validator: (value) {
               if (value.toString().isEmpty) {
-                return LanguageEn.pleaseenteranswer;
+                return "pleaseenteranswer".tr();
               }
               return null;
             },
@@ -373,11 +372,11 @@ class _AnswerSecurityQuestions extends State<AnswerSecurityQuestions> {
       } else {
         hideLoader(context);
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['error']);
+            title: "error".tr(), message: responseData['data']['error']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }

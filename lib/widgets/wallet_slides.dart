@@ -1,5 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
@@ -106,7 +106,7 @@ class _WalletSlideState extends State<WalletSlide> {
                   Row(
                     children: [
                       Text(
-                        LanguageEn.totalbalance,
+                        "totalbalance".tr(),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w400,

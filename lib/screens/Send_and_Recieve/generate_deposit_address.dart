@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -13,7 +14,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -77,7 +77,7 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
                     width: 20,
                   ),
                   Text(
-                    'Deposit ${getAssetCode(asset.assetCode!)}',
+                    '${"deposit".tr()} ${getAssetCode(asset.assetCode!)}',
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -94,7 +94,7 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
                 height: height / 10,
               ),
               Button(
-                'Generate Deposit Address',
+                "generatedepositaddress".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -138,7 +138,7 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
                       height: height / 50,
                     ),
                     Text(
-                      'You don’t have any deposit address yet. Please tap on the button below to generate addresses in order to continue with your deposit transaction.',
+                      "nodepositaddressyet".tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontSize: 15,
@@ -189,11 +189,11 @@ class _GenerateDepositAddressState extends State<GenerateDepositAddress>
       } else {
         hideLoader(context);
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       hideLoader(context);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
   }
 }

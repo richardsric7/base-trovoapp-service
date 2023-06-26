@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +11,6 @@ import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
-import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class EnsurePrivacy extends StatefulWidget {
@@ -45,7 +45,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
             children: [
               SizedBox(height: height / 20),
               Text(
-                LanguageEn.backup,
+                "backup".tr(),
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
@@ -55,7 +55,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
               Container(
                 width: width / 1.2,
                 child: Text(
-                  LanguageEn.iensuredprivacy,
+                  "iensuredprivacy".tr(),
                   style: TextStyle(
                       color: notifier.getgrey,
                       fontSize: 15.sp,
@@ -66,7 +66,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
               Container(
                 width: width / 1.2,
                 child: Text(
-                  LanguageEn.iunderstandimportanceofsecretkey,
+                  "iunderstandimportanceofsecretkey".tr(),
                   style: TextStyle(
                       color: notifier.getgrey,
                       fontSize: 15.sp,
@@ -77,7 +77,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
               Container(
                 width: width / 1.2,
                 child: Text(
-                  LanguageEn.iunderstandliability,
+                  "iunderstandliability".tr(),
                   style: TextStyle(
                       color: notifier.getgrey,
                       fontSize: 15.sp,
@@ -95,7 +95,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
                       }),
               SizedBox(height: height / 4.3),
               Button(
-                LanguageEn.continuee,
+                "continuee".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -103,8 +103,8 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
                     gotoNext();
                   } else {
                     popup(context,
-                        title: LanguageEn.important,
-                        message: LanguageEn.ensureaccepted);
+                        title: "important".tr(),
+                        message: "ensureaccepted".tr());
                   }
                 },
               ),
@@ -143,7 +143,7 @@ class _EnsurePrivacyState extends State<EnsurePrivacy> {
               padding: const EdgeInsets.all(16.0),
               width: width / 1.2,
               child: Text(
-                LanguageEn.iunderstandall,
+                "iunderstandall".tr(),
                 style: TextStyle(
                     fontSize: height / 55,
                     color: notifier.getgrey,

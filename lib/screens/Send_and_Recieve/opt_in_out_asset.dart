@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -154,7 +155,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          'Add/Remove Asset',
+          "addremoveasset".tr(),
           notifier.getbluewhitecolor,
           height: height / 15,
         ).getBar(),
@@ -175,7 +176,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                       width: width / 15,
                     ),
                     Text(
-                      'Select wallet',
+                      "selectwallet".tr(),
                       style: TextStyle(
                           color: notifier.getbluewhitecolor,
                           fontSize: 15,
@@ -238,7 +239,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                                     Container(
                                       width: width / 1.28,
                                       child: Text(
-                                        'Select the wallet where you want to add or remove assets from.',
+                                        "selectwallet2".tr(),
                                         textAlign: TextAlign.justify,
                                         style: TextStyle(
                                             fontSize: 15,
@@ -275,7 +276,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
             height: height / 50,
           ),
           Button(
-            'Other',
+            "other".tr(),
             notifier.getbluecolor,
             wihitecolor,
             onTap: () {
@@ -393,7 +394,7 @@ class _OptInOutAssetState extends State<OptInOutAsset>
                 ),
               ),
               child: Text(
-                entry.value['isRemovable'] ? 'Remove' : 'Add',
+                entry.value['isRemovable'] ? "remove".tr() : "add".tr(),
                 style: TextStyle(
                   fontFamily: fontsemibold,
                   fontSize: 9,

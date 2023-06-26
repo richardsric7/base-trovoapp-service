@@ -1,6 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/utils.dart';
+import 'package:get/utils.dart' hide Trans;
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -13,8 +14,6 @@ import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
-
 import '../../custom_bloc_observer/fonts.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -58,7 +57,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          'Trovo Patron Plans',
+          "trovopatronplans".tr(),
           notifier.getblck,
           height: height / 15,
         ).getBar(),
@@ -75,7 +74,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Subscription types',
+                      "subscriptiontypes".tr(),
                       style: TextStyle(
                           fontSize: 20,
                           color: notifier.getbluewhitecolor,
@@ -114,7 +113,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              LanguageEn.somethingwentwrong,
+                              "somethingwentwrong".tr(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 16,
@@ -133,7 +132,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                                         notifier.getbluecolor!),
                               ),
                               child: Text(
-                                LanguageEn.retry,
+                                "retry".tr(),
                                 style: TextStyle(
                                   fontFamily: fontsemibold,
                                 ),
@@ -198,9 +197,9 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                               height: height / 50,
                             ),
                             planItem(
-                              '${info.patronPackage.capitalizeFirst!} Patron',
-                              '\$${info.patronTiers[0].price} per month / \$${info.patronTiers[1].price} per year / \$${info.patronTiers[2].price} lifetime.',
-                              'Subscribe to ${info.patronPackage.capitalizeFirst!}',
+                              '${info.patronPackage.capitalizeFirst!} ${"patron".tr()}',
+                              '\$${info.patronTiers[0].price} ${"permonth".tr()} / \$${info.patronTiers[1].price} per year / \$${info.patronTiers[2].price} lifetime.',
+                              '${"subscribeto".tr()} ${info.patronPackage.capitalizeFirst!}',
                               onReadMore: () {
                                 appState.viewData = {
                                   'patronInfo': info,
@@ -296,7 +295,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                                       MaterialTapTargetSize.shrinkWrap,
                                   alignment: Alignment.centerLeft),
                               child: Text(
-                                'Read more',
+                                "readmore".tr(),
                                 style: TextStyle(
                                   fontStyle: FontStyle.italic,
                                   fontSize: 15,
@@ -355,10 +354,10 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
       if (responseData['statusCode'] == 200) {
         return responseData['data'];
       } else {
-        return Future.error('Error! Something went wrong.');
+        return Future.error("somethingwentwrong".tr());
       }
     } catch (e) {
-      return Future.error('Error! ${e}');
+      return Future.error('${"error".tr()} ${e}');
     }
   }
 }

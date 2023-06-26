@@ -1,10 +1,10 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/utils.dart';
-import 'package:intl/intl.dart';
+import 'package:get/utils.dart' hide Trans;
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -20,7 +20,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -236,7 +235,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                 Padding(
                   padding: const EdgeInsets.all(30.0),
                   child: Text(
-                    'Once your subscription expires, you will no longer have access to the Trovo Patron perks and will need to resubscribe to keep enjoying the benefits.',
+                    "nobenefitsoncesubexpires".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 12,
@@ -251,7 +250,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
-                  LanguageEn.password,
+                  "password".tr(),
                   notifier.getbluewhitecolor,
                   Icons.lock,
                   notifier.getgrey,
@@ -272,14 +271,14 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
               ),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
-                  LanguageEn.authorizewithbiometrics,
+                  "authorizewithbiometrics".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: toggleSwitch,
                 ),
               ] else ...[
                 Button(
-                  LanguageEn.authorize,
+                  "authorize".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: handleAuthorization,
@@ -299,9 +298,9 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
   }
 
   String? validatePassword(String? value) {
-    if (value!.isEmpty) return 'Enter your password';
+    if (value!.isEmpty) return "pleaseenteryourpassword".tr();
 
-    if (value.length < 6) return 'Use 6 characters or more for your password';
+    if (value.length < 6) return "use6charsormoreforpassword".tr();
 
     return null;
   }
@@ -314,8 +313,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
     if (password == appState.password!) {
       sendDataToServer();
     } else {
-      popup(context,
-          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
   }
 
@@ -360,11 +358,11 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
         completeRequest(responseData['data']);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }
@@ -400,7 +398,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
           appState,
         );
         appState.viewData![SuccessViewPageConfig.key] = {
-          'title': LanguageEn.success,
+          'title': "success".tr(),
           'message': 'Subscription successful!',
           'useOnDone': true,
           'onDone': () {
@@ -415,10 +413,10 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
             state: PageState.replaceAll, page: SuccessViewPageConfig);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
 
     hideLoader(context);

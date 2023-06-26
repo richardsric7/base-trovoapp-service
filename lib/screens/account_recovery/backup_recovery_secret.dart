@@ -1,12 +1,12 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/network/requests.dart';
-import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
@@ -15,7 +15,6 @@ import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
-import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/secret.dart';
 
@@ -50,7 +49,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
           child: Column(
             children: [
               Text(
-                LanguageEn.backupwallet,
+                "backupwallet".tr(),
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
@@ -60,7 +59,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
               Container(
                 width: width / 1.2,
                 child: Text(
-                  LanguageEn.writeitdown,
+                  "writeitdown".tr(),
                   style: TextStyle(
                       color: notifier.getgrey,
                       fontSize: 15.sp,
@@ -95,7 +94,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
                       padding: const EdgeInsets.all(16.0),
                       width: width / 1.2,
                       child: Text(
-                        LanguageEn.invalidateoldsigner,
+                        "invalidateoldsigner".tr(),
                         style: TextStyle(
                             fontSize: height / 55,
                             color: notifier.getgrey,
@@ -107,7 +106,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
               ],
               SizedBox(height: height / 20),
               Button(
-                LanguageEn.continuee,
+                "continuee".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -161,11 +160,11 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
             page: AccountRecoverySuccessViewPageConfig);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
   }
 
@@ -207,11 +206,11 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
       } else {
         hideLoader(context);
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['error']);
+            title: "error".tr(), message: responseData['data']['error']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }

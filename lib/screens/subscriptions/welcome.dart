@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -51,7 +52,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          'Trovo Patron',
+          "trovopatron".tr(),
           notifier.getblck,
           height: height / 15,
         ).getBar(),
@@ -66,7 +67,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                 padding: EdgeInsets.symmetric(horizontal: width / 15),
                 child: Column(children: [
                   Text(
-                    'Unlock the full potential of the Trovotech ecosystem with Trovo Patron',
+                    "unlockfulltrovotechpotential".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: notifier.getblck,
@@ -80,7 +81,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                 padding: EdgeInsets.symmetric(horizontal: width / 15),
                 child: Column(children: [
                   Text(
-                    'You currently are not a Trovo Patron',
+                    "youarenotatrovopatron".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: notifier.getbluewhitecolor,
@@ -91,7 +92,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
               ),
               SizedBox(height: height / 10),
               Button(
-                'View all Trovo Patron plans',
+                "viewpatronplans".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {

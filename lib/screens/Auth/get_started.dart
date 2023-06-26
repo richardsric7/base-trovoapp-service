@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -56,7 +57,7 @@ class _GetStartedState extends State<GetStarted> {
                   height: height / 2.3),
               SizedBox(height: height / 20),
               Text(
-                'What would you',
+                "whatwouldyou".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getblck,
@@ -64,7 +65,7 @@ class _GetStartedState extends State<GetStarted> {
                     fontFamily: fontsemibold),
               ),
               Text(
-                'like to do?',
+                "liketodo".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getblck,
@@ -73,7 +74,7 @@ class _GetStartedState extends State<GetStarted> {
               ),
               SizedBox(height: height / 30.5),
               Button(
-                LanguageEn.getstarted,
+                "getstarted".tr(),
                 notifier.getbluecolor,
                 notifier.getwihitecolor,
                 onTap: () {
@@ -83,7 +84,7 @@ class _GetStartedState extends State<GetStarted> {
               ),
               SizedBox(height: height / 50.5),
               ButtonOutlined(
-                LanguageEn.importwallet,
+                "importwallet".tr(),
                 notifier.getwihitecolor,
                 notifier.getbluecolor,
                 onTap: () {
@@ -93,7 +94,7 @@ class _GetStartedState extends State<GetStarted> {
               ),
               SizedBox(height: height / 50),
               ButtonOutlined(
-                LanguageEn.recoveraccount,
+                "recoveraccount".tr(),
                 notifier.getbluecolor80,
                 wihitecolor,
                 onTap: () {

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,7 +6,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -68,7 +68,7 @@ class _FingerPrintState extends State<FingerPrint> {
             children: [
               Center(
                 child: Text(
-                  LanguageEn.biometrics,
+                  "biometrics".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
@@ -79,7 +79,7 @@ class _FingerPrintState extends State<FingerPrint> {
               SizedBox(height: height / 45),
               Center(
                 child: Text(
-                  LanguageEn.unlockwithbiometrics,
+                  "unlockwithbiometrics".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontSize: 16.sp,
@@ -110,7 +110,7 @@ class _FingerPrintState extends State<FingerPrint> {
                   ),
                   SizedBox(width: width / 40),
                   Text(
-                    LanguageEn.enablebiometrics,
+                    "enablebiometrics".tr(),
                     style: TextStyle(
                         color: notifier.getgrey,
                         fontSize: 15.sp,
@@ -132,7 +132,7 @@ class _FingerPrintState extends State<FingerPrint> {
               ),
               SizedBox(height: height / 20),
               Button(
-                LanguageEn.goahead,
+                "goahead".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: _handleSubmit,
@@ -204,7 +204,7 @@ class _FingerPrintState extends State<FingerPrint> {
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          LanguageEn.important,
+                          "important".tr(),
                           style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
@@ -225,7 +225,7 @@ class _FingerPrintState extends State<FingerPrint> {
                               padding: const EdgeInsets.symmetric(
                                   vertical: 10.0, horizontal: 5.0),
                               child: Text(
-                                LanguageEn.skipBiometricsMessage,
+                                "skipBiometricsMessage".tr(),
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontWeight: FontWeight.w300,
@@ -262,7 +262,7 @@ class _FingerPrintState extends State<FingerPrint> {
                               ),
                             ),
                             child: Text(
-                              LanguageEn.skipBiometrics,
+                              "skipBiometrics".tr(),
                               style: TextStyle(
                                   color: wihitecolor, fontFamily: fontbody),
                             ),
@@ -271,7 +271,7 @@ class _FingerPrintState extends State<FingerPrint> {
                             onPressed: () =>
                                 Navigator.of(context).pop(), // dismiss dialog,
                             child: Text(
-                              LanguageEn.cancel,
+                              "cancel".tr(),
                               style: TextStyle(
                                   color: notifier.getbluecolor,
                                   fontFamily: fontbody),

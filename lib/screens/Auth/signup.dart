@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -13,9 +12,8 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_passw
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/Auth/login.dart';
 import 'package:trovo_wallet/services/push_fcm_service.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -59,7 +57,7 @@ class _SignUpState extends State<SignUp> {
   String passPhrase = '';
   String secretKey = '';
   bool importMode = false;
-  String errorText = 'dasadas';
+  String errorText = '';
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -116,7 +114,7 @@ class _SignUpState extends State<SignUp> {
                       children: [
                         SizedBox(height: height / 50),
                         Text(
-                          LanguageEn.ittakesaminute1,
+                          "ittakesaminute1".tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -124,7 +122,7 @@ class _SignUpState extends State<SignUp> {
                               fontFamily: fontsemibold),
                         ),
                         Text(
-                          LanguageEn.ittakesaminute2,
+                          "ittakesaminute2".tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -174,7 +172,7 @@ class _SignUpState extends State<SignUp> {
                         SizedBox(height: height / 50),
                         // Email address
                         CustomTextFormField.textField(
-                          LanguageEn.emailadress,
+                          "emailadress".tr(),
                           notifier.getbluecolor,
                           Icons.email,
                           notifier.getgrey,
@@ -192,7 +190,7 @@ class _SignUpState extends State<SignUp> {
                         SizedBox(height: height / 50),
                         // Username
                         CustomTextFormField.textField(
-                          LanguageEn.username,
+                          "username".tr(),
                           notifier.getbluecolor,
                           Icons.person,
                           notifier.getgrey,
@@ -210,7 +208,7 @@ class _SignUpState extends State<SignUp> {
                         SizedBox(height: height / 50),
                         // Phone Number
                         phoneFormField(
-                          labletext: LanguageEn.phonenumber,
+                          labletext: "phonenumber".tr(),
                           focuscolor: notifier.getbluecolor,
                           preicon: Icons.phone,
                           lablecolor: notifier.getgrey,
@@ -223,7 +221,7 @@ class _SignUpState extends State<SignUp> {
                         SizedBox(height: height / 50),
                         // Referrer's Username
                         CustomTextFormField.textField(
-                          LanguageEn.referrer,
+                          "referrer".tr(),
                           notifier.getbluecolor,
                           Icons.link,
                           notifier.getgrey,
@@ -250,7 +248,7 @@ class _SignUpState extends State<SignUp> {
                           if (usePassPhrase) ...[
                             // Pass phrase/Mnemonic
                             passPhraseInput(
-                              '${LanguageEn.passphrase} (optional)',
+                              '${"passphrase".tr()} (optional)',
                               notifier.getbluecolor,
                               notifier.getgrey,
                               notifier.getblck,
@@ -268,7 +266,7 @@ class _SignUpState extends State<SignUp> {
                           ] else ...[
                             // Secret Key
                             CustomPasswordFormField(
-                              '${LanguageEn.secretkey} (optional)',
+                              '${"secretkey".tr()} (optional)',
                               notifier.getbluecolor,
                               Icons.lock,
                               notifier.getgrey,
@@ -281,7 +279,7 @@ class _SignUpState extends State<SignUp> {
                                     value!.trim().replaceAll(' ', '');
                                 if (trimmedVal.isNotEmpty &&
                                     trimmedVal.length < 56) {
-                                  return LanguageEn.secretkeyinvalid;
+                                  return "secretkeyinvalid".tr();
                                 }
                                 return null;
                               },
@@ -321,7 +319,7 @@ class _SignUpState extends State<SignUp> {
               // Create Account
               SizedBox(height: height / 25),
               Button(
-                LanguageEn.signup,
+                "signup".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () => _validateAndSave(),
@@ -331,7 +329,7 @@ class _SignUpState extends State<SignUp> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    LanguageEn.alreadyregistered,
+                    "alreadyregistered".tr(),
                     style: TextStyle(
                         color: notifier.getgrey,
                         fontSize: 13.sp,
@@ -339,10 +337,11 @@ class _SignUpState extends State<SignUp> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Get.to(() => const Login());
+                      state.currentAction = PageAction(
+                          state: PageState.replaceAll, page: LoginPageConfig);
                     },
                     child: Text(
-                      ' ' + LanguageEn.signin,
+                      ' ' + "signin".tr(),
                       style: TextStyle(
                           color: notifier.isDark
                               ? notifier.getbluecolor50
@@ -481,7 +480,7 @@ class _SignUpState extends State<SignUp> {
             Row(
               children: [
                 Text(
-                  LanguageEn.enterpassphrase,
+                  "enterpassphrase".tr(),
                   style: TextStyle(
                       fontSize: height / 55,
                       color: notifier.getblck,
@@ -530,7 +529,7 @@ class _SignUpState extends State<SignUp> {
         children: [
           // Firstname
           CustomTextFormField.textField(
-            LanguageEn.fanme,
+            "fanme".tr(),
             notifier.getbluecolor,
             Icons.person,
             notifier.getgrey,
@@ -546,7 +545,7 @@ class _SignUpState extends State<SignUp> {
           SizedBox(height: height / 50),
           // Lastname
           CustomTextFormField.textField(
-            LanguageEn.lname,
+            "lname".tr(),
             notifier.getbluecolor,
             Icons.person,
             notifier.getgrey,
@@ -567,7 +566,7 @@ class _SignUpState extends State<SignUp> {
         children: [
           // EntityName
           CustomTextFormField.textField(
-            LanguageEn.entityname,
+            "entityname".tr(),
             notifier.getbluecolor,
             Icons.person,
             notifier.getgrey,
@@ -660,11 +659,11 @@ class _SignUpState extends State<SignUp> {
     RegExp regex = new RegExp(pattern);
 
     if (value!.trim().replaceAll(' ', '').isEmpty) {
-      return LanguageEn.emailvalidateempty;
+      return "emailvalidateempty".tr();
     }
 
     if (!regex.hasMatch(value.trim().replaceAll(' ', ''))) {
-      return LanguageEn.emailvalidateinvalid;
+      return "emailvalidateinvalid".tr();
     }
 
     return null;
@@ -672,16 +671,16 @@ class _SignUpState extends State<SignUp> {
 
   String? validateUsername(String? value) {
     if (value!.trim().replaceAll(' ', '').isEmpty) {
-      return LanguageEn.usernamevalidateempty;
+      return "usernamevalidateempty".tr();
     }
 
     if (value.trim().replaceAll(' ', '').length < 3 ||
         value.trim().replaceAll(' ', '').length > 16) {
-      return LanguageEn.usernamevalidatelength;
+      return "usernamevalidatelength".tr();
     }
 
     if (num.tryParse(value.trim().replaceAll(' ', '')) != null) {
-      return LanguageEn.usernamevalidatenumber;
+      return "usernamevalidatenumber".tr();
     }
 
     String pattern = r'^(?!.*\.\.)(?!.*\.$)[^\W][\w]{2,16}$';
@@ -689,7 +688,7 @@ class _SignUpState extends State<SignUp> {
 
     if (!regex.hasMatch(value.trim().replaceAll(' ', '')) ||
         value.contains('_')) {
-      return LanguageEn.usernamevalidateinvalid;
+      return "usernamevalidateinvalid".tr();
     }
 
     return null;
@@ -701,15 +700,15 @@ class _SignUpState extends State<SignUp> {
 
     if (value!.isNotEmpty && value.trim().replaceAll(' ', '').length < 3 ||
         value.trim().replaceAll(' ', '').length > 16) {
-      return LanguageEn.usernamevalidatelength;
+      return "usernamevalidatelength".tr();
     }
 
     if (value.isNotEmpty && !regex.hasMatch(value.trim().replaceAll(' ', ''))) {
-      return LanguageEn.usernamevalidateinvalid;
+      return "usernamevalidateinvalid".tr();
     }
 
     if (value.contains('_')) {
-      return LanguageEn.usernamevalidateinvalid;
+      return "usernamevalidateinvalid".tr();
     }
 
     return null;
@@ -725,8 +724,7 @@ class _SignUpState extends State<SignUp> {
       print(e);
       // must be some sort of server error
       // let's throw it
-      popup(context,
-          title: LanguageEn.error, message: LanguageEn.invalidcredentials);
+      popup(context, title: "error".tr(), message: "invalidcredentials".tr());
       return null;
     }
   }
@@ -736,15 +734,15 @@ class _SignUpState extends State<SignUp> {
     RegExp regex = new RegExp(pattern);
 
     if (value!.trim().replaceAll(' ', '').isEmpty) {
-      return LanguageEn.firstnamevalidateempty;
+      return "firstnamevalidateempty".tr();
     }
 
     if (value.trim().replaceAll(' ', '').length < 3) {
-      return LanguageEn.namevalidatelength;
+      return "namevalidatelength".tr();
     }
 
     if (corporate == 0 && regex.hasMatch(value.trim().replaceAll(' ', ''))) {
-      return LanguageEn.invalidname;
+      return "invalidname".tr();
     }
 
     return null;
@@ -756,15 +754,15 @@ class _SignUpState extends State<SignUp> {
     var trimmedValue = value!.trimLeft().trimRight();
 
     if (trimmedValue.isEmpty) {
-      return LanguageEn.entitynamevalidateempty;
+      return "entitynamevalidateempty".tr();
     }
 
     if (trimmedValue.length < 3) {
-      return LanguageEn.namevalidatelength;
+      return "namevalidatelength".tr();
     }
 
     if (regex.hasMatch(trimmedValue)) {
-      return LanguageEn.invalidname;
+      return "invalidname".tr();
     }
 
     return null;
@@ -775,15 +773,15 @@ class _SignUpState extends State<SignUp> {
     RegExp regex = new RegExp(pattern);
 
     if (value!.isEmpty) {
-      return LanguageEn.lastnamevalidateempty;
+      return "lastnamevalidateempty".tr();
     }
 
     if (value.trim().replaceAll(' ', '').length < 3) {
-      return LanguageEn.namevalidatelength;
+      return "namevalidatelength".tr();
     }
 
     if (corporate == 0 && regex.hasMatch(value.trim().replaceAll(' ', ''))) {
-      return LanguageEn.invalidname;
+      return "invalidname".tr();
     }
 
     return null;
@@ -798,8 +796,7 @@ class _SignUpState extends State<SignUp> {
       print(e);
       // must be some sort of server error
       // let's throw it
-      popup(context,
-          title: LanguageEn.error, message: LanguageEn.invalidcredentials);
+      popup(context, title: "error".tr(), message: "invalidcredentials".tr());
       return null;
     }
   }
@@ -896,13 +893,13 @@ class _SignUpState extends State<SignUp> {
             PageAction(state: PageState.addPage, page: VerificationPageConfig);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
       hideLoader(context);
       popup(context,
-          title: LanguageEn.error,
+          title: "error".tr(),
           message: e.toString().contains('firebase')
               ? 'Network error! Please check your connection and try again.'
               : e.toString());

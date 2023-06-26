@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -14,7 +14,6 @@ import 'package:trovo_wallet/models/deposit_transaction_model.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/models/withdrawal_transaction_model.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -72,7 +71,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
             children: [
               SizedBox(height: height / 50),
               Text(
-                '${transactionDirection == TransactionDirection.Deposit ? 'Deposit' : 'Withdrawal'} ${LanguageEn.details}',
+                '${transactionDirection == TransactionDirection.Deposit ? 'Deposit' : 'Withdrawal'} ${"details".tr()}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -126,7 +125,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 height: height / 20,
               ),
               Button(
-                'Done',
+                "done".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -153,7 +152,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
-            'Deposited on',
+            "depositedon".tr(),
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: notifier.getbluewhitecolor,
@@ -193,7 +192,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                             text: depositInfo.toAddress,
                           ),
                         ),
-                        showSnackBar('To address', context),
+                        showSnackBar("toaddress".tr(), context),
                       },
                       icon: Icon(
                         Icons.copy,
@@ -213,7 +212,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
           child: Text(
-            'From',
+            "from".tr(),
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: notifier.getbluewhitecolor,
@@ -253,7 +252,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                             text: depositInfo.fromAddress,
                           ),
                         ),
-                        showSnackBar('From address', context),
+                        showSnackBar("fromaddress".tr(), context),
                       },
                       icon: Icon(
                         Icons.copy,
@@ -273,7 +272,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
           child: Text(
-            'Trovo Wallet Info',
+            "trovowalletinfo".tr(),
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: notifier.getbluewhitecolor,
@@ -313,7 +312,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                             text: depositInfo.fromAddress,
                           ),
                         ),
-                        showSnackBar('Wallet alias', context),
+                        showSnackBar("walletalias".tr(), context),
                       },
                       icon: Icon(
                         Icons.copy,
@@ -351,7 +350,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                             text: depositInfo.fromAddress,
                           ),
                         ),
-                        showSnackBar('Public key', context),
+                        showSnackBar("publickey".tr(), context),
                       },
                       icon: Icon(
                         Icons.copy,
@@ -371,7 +370,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
-            LanguageEn.blockchainproof,
+            "blockchainproof".tr(),
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: notifier.getbluewhitecolor,
@@ -414,7 +413,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                         text: depositInfo.transactionId,
                       ),
                     ),
-                    showSnackBar('Transaction ID', context),
+                    showSnackBar("transactionid".tr(), context),
                   },
                   icon: Icon(
                     Icons.copy,
@@ -432,7 +431,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
           child: Text(
-            'Transaction Status',
+            "transactionstatus",
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: notifier.getbluewhitecolor,
@@ -447,7 +446,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
-            depositInfo.isCompleted ? 'Completed' : 'Pending',
+            depositInfo.isCompleted ? "completed".tr() : "pending_2".tr(),
             style: TextStyle(
               color: notifier.getbluewhitecolor,
               fontSize: 13.sp,
@@ -465,7 +464,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
-            'Date',
+            "date".tr(),
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: notifier.getbluewhitecolor,
@@ -506,7 +505,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
-            'Withdrawn from',
+            "withdrawnfrom".tr(),
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: notifier.getbluewhitecolor,
@@ -584,7 +583,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                             text: withdrawalInfo.walletPublicKey,
                           ),
                         ),
-                        showSnackBar('Public key', context),
+                        showSnackBar("publickey".tr(), context),
                       },
                       icon: Icon(
                         Icons.copy,
@@ -604,7 +603,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
           child: Text(
-            'Network Info',
+            "networkinfo".tr(),
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: notifier.getbluewhitecolor,
@@ -618,11 +617,11 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
           child: Column(
             children: [
               keyValuePair(
-                'Network:',
+                '${"network".tr()}:',
                 truncatePublicKey(withdrawalInfo.withdrawalNetwork),
               ),
               keyValuePair(
-                'Address:',
+                '${"address".tr()}:',
                 truncatePublicKey(withdrawalInfo.withdrawalAddress),
                 copy: true,
                 copyText: withdrawalInfo.withdrawalAddress,
@@ -636,7 +635,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
           child: Text(
-            'Fees',
+            "fees".tr(),
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: notifier.getbluewhitecolor,
@@ -650,14 +649,14 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
           child: Column(
             children: [
               keyValuePair(
-                'Network fee:',
+                '${"networkfee".tr()}:',
                 '${withdrawalInfo.withdrawalNetworkFee} ${withdrawalInfo.currency}',
               ),
               SizedBox(
                 height: height / 50,
               ),
               keyValuePair(
-                'Services fee:',
+                '${"servicefee".tr()}:',
                 '${withdrawalInfo.withdrawalServiceFee} XBN',
               ),
             ],
@@ -669,7 +668,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
-            LanguageEn.blockchainproof,
+            "blockchainproof".tr(),
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: notifier.getbluewhitecolor,
@@ -712,7 +711,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                         text: withdrawalInfo.transactionId,
                       ),
                     ),
-                    showSnackBar('Transaction ID', context),
+                    showSnackBar("transactionid".tr(), context),
                   },
                   icon: Icon(
                     Icons.copy,
@@ -733,7 +732,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Text(
-            'Date',
+            "date".tr(),
             style: TextStyle(
               fontWeight: FontWeight.w500,
               color: notifier.getbluewhitecolor,

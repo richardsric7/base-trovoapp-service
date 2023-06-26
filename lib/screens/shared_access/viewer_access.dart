@@ -112,7 +112,7 @@
 //                               ] else ...[
 //                                 Text(
 //                                   'Name of viewers appear here',
-//                                   // : LanguageEn.enteraccountsusernameapprovers,
+//                                   // : "enteraccountsusernameapprovers".tr(),
 //                                   style: TextStyle(
 //                                       color: notifier.getbluewhitecolor,
 //                                       fontFamily: fontbody,
@@ -135,7 +135,7 @@
 //         Container(
 //           width: width / 1.1,
 //           child: Text(
-//             LanguageEn.enteraccountsusernameviewers + 'kenmaddy_bantu',
+//             "enteraccountsusernameviewers".tr() + 'kenmaddy_bantu',
 //             textAlign: TextAlign.center,
 //             style: TextStyle(
 //                 color: notifier.getbluewhitecolor,
@@ -175,7 +175,7 @@
 //                 MaterialStateProperty.all<Color>(notifier.getbluecolor!),
 //           ),
 //           child: Text(
-//             LanguageEn.add,
+//             "add".tr(),
 //             style: TextStyle(
 //               fontFamily: fontsemibold,
 //             ),
@@ -209,7 +209,7 @@
 //         //       ),
 //         //       Container(
 //         //         child: Text(
-//         //           LanguageEn.doyouwanttoaddapprovers,
+//         //           "doyouwanttoaddapprovers".tr(),
 //         //           overflow: TextOverflow.visible,
 //         //           style: TextStyle(
 //         //             fontSize: 15,

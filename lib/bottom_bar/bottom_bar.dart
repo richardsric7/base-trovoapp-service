@@ -1,15 +1,14 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'bottom_pages/swap_assets.dart';
 import 'bottom_pages/wallets.dart';
@@ -79,7 +78,7 @@ class _BottomHomeState extends State<BottomHome> {
                     fit: BoxFit.contain,
                   ),
                 ),
-                label: 'Home'),
+                label: "home".tr()),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
                 icon: AnimatedContainer(
@@ -98,7 +97,7 @@ class _BottomHomeState extends State<BottomHome> {
                     fit: BoxFit.fitHeight,
                   ),
                 ),
-                label: 'Wallets'),
+                label: "wallets".tr()),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
                 icon: AnimatedContainer(
@@ -116,7 +115,7 @@ class _BottomHomeState extends State<BottomHome> {
                           ? height / 37
                           : height / 45),
                 ),
-                label: 'History'),
+                label: "history".tr()),
             BottomNavigationBarItem(
                 backgroundColor: notifire.getwihitecolor,
                 icon: AnimatedContainer(
@@ -132,7 +131,7 @@ class _BottomHomeState extends State<BottomHome> {
                           ? height / 37
                           : height / 45),
                 ),
-                label: 'Swap'),
+                label: "swap".tr()),
             BottomNavigationBarItem(
               backgroundColor: notifire.getwihitecolor,
               icon: AnimatedContainer(
@@ -150,7 +149,7 @@ class _BottomHomeState extends State<BottomHome> {
                       : height / 43,
                 ),
               ),
-              label: 'Tokenize',
+              label: "tokenize".tr(),
             ),
           ],
           // onTap: (index) {
@@ -183,7 +182,7 @@ class _BottomHomeState extends State<BottomHome> {
     // the codes below resets the wallets screen to its default view each time
     // the user exits the screen
     appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
-    appState.walletView.actionText = LanguageEn.addsubwallet;
+    appState.walletView.actionText = "addsubwallet".tr();
     appState.walletView.view = WalletView.listWallets;
     //========================================================================
     setState(() {

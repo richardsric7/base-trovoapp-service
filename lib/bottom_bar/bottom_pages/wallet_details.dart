@@ -1,9 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
-import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
@@ -14,7 +14,6 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/wallet_slides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -119,18 +118,18 @@ class _WalletDetailsState extends State<WalletDetails>
               tabs: [
                 Tab(
                   height: 20,
-                  text: LanguageEn.assets,
+                  text: "assets".tr(),
                 ),
                 if (wallet.unClaimedAssets != null && tabLength == 2) ...[
                   Tab(
                     height: 20,
                     text:
-                        '${LanguageEn.pending} (${wallet.unClaimedAssets == null ? 0 : wallet.unClaimedAssets!.length})',
+                        '${"pending".tr()} (${wallet.unClaimedAssets == null ? 0 : wallet.unClaimedAssets!.length})',
                   ),
                 ],
                 // Tab(
                 //   height: 20,
-                //   text: LanguageEn.nfts,
+                //   text: "nfts".tr(),
                 // ),
               ],
             ),
@@ -215,7 +214,7 @@ class _WalletDetailsState extends State<WalletDetails>
                                             10, 28.0, 10, 0),
                                         child: Center(
                                           child: Text(
-                                            LanguageEn.noassets,
+                                            "noassets".tr(),
                                             style: TextStyle(
                                               fontSize: 13,
                                               fontWeight: FontWeight.bold,
@@ -293,7 +292,7 @@ class _WalletDetailsState extends State<WalletDetails>
                                               10, 28.0, 10, 0),
                                           child: Center(
                                             child: Text(
-                                              LanguageEn.nopendingassets,
+                                              "nopendingassets".tr(),
                                               style: TextStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.bold,
@@ -355,7 +354,7 @@ class _WalletDetailsState extends State<WalletDetails>
           padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
           child: Center(
             child: Text(
-              LanguageEn.noNFTs,
+              "noNFTs".tr(),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,

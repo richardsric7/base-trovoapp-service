@@ -1,7 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
-import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -15,7 +15,6 @@ import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'payment_history.dart';
@@ -61,7 +60,6 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![ShareReceiptViewPageConfig.key];
-    print('viewData: $viewData');
     name = viewData.from;
     publicKey = viewData.fromPublicKey;
     memo = viewData.memo!;
@@ -76,7 +74,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     if (viewData.transactionType!.contains('SWAP') &&
         viewData.memo!.contains('>')) {
       var splitResult = viewData.memo!.split('>');
-      memo = "Swapped ${splitResult[0]} to ${splitResult[1]}";
+      memo = "swappedto".tr(args: [splitResult[0], splitResult[1]]);
     }
 
     amount = viewData.amount;
@@ -113,7 +111,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                       ),
                       SizedBox(height: height / 30),
                       Text(
-                        '${viewData.transactionType!.capitalizeFirst!} ${LanguageEn.details}',
+                        '${viewData.transactionType!.capitalizeFirst!} ${"details".tr()}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
@@ -124,7 +122,10 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                       Container(
                         width: width / 1.5,
                         child: Text(
-                          'Generated from Trovo-Wallet on ${DateFormat('MMMM dd, yyyy hh:mm a').format(DateTime.now())}',
+                          "generatedon".tr(args: [
+                            DateFormat('MMMM dd, yyyy hh:mm a')
+                                .format(DateTime.now())
+                          ]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -167,8 +168,8 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       child: Text(
                                         viewData.transactionDirection! ==
                                                 TransactionDirection.Send
-                                            ? LanguageEn.sentfrom
-                                            : 'Received on',
+                                            ? "sentfrom".tr()
+                                            : "receivedon".tr(),
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
@@ -178,7 +179,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       ),
                                     ),
                                     SizedBox(
-                                      width: width / 1.3,
+                                      width: width / 1.2,
                                       child: Column(
                                         children: [
                                           Row(
@@ -191,14 +192,14 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                                   viewData.transactionDirection! ==
                                                           TransactionDirection
                                                               .Send
-                                                      ? '${viewData.from!}'
-                                                      : '${viewData.to!}',
+                                                      ? viewData.from!
+                                                      : viewData.to!,
                                                   style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.w500,
                                                       color: notifier
                                                           .getbluewhitecolor,
-                                                      fontSize: 18.sp,
+                                                      fontSize: 16.sp,
                                                       fontFamily: fontbody,
                                                       overflow:
                                                           TextOverflow.visible),
@@ -267,8 +268,8 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       child: Text(
                                         viewData.transactionDirection! ==
                                                 TransactionDirection.Send
-                                            ? LanguageEn.to
-                                            : 'From',
+                                            ? "to".tr()
+                                            : "from".tr(),
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
@@ -292,7 +293,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 20.0),
                                     child: Text(
-                                      LanguageEn.amount,
+                                      "amount".tr(),
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
@@ -331,7 +332,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 20.0),
                                       child: Text(
-                                        LanguageEn.formemo,
+                                        "formemo".tr(),
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
@@ -367,7 +368,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 20.0),
                                     child: Text(
-                                      LanguageEn.blockchainproof,
+                                      "blockchainproof".tr(),
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
@@ -417,7 +418,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 20.0),
                                     child: Text(
-                                      'Date',
+                                      "date".tr(),
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
@@ -459,7 +460,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                 height: height / 30,
               ),
               Button(
-                'Share Image',
+                "shareimage".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -472,12 +473,12 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                 height: height / 50,
               ),
               Button(
-                'Share PDF',
+                "sharepdf".tr(),
                 notifier.getbluecolor70,
                 wihitecolor,
                 onTap: () {
                   sharePDF(
-                      'Blockchain proof\n${bantuBlockchainExplorerBaseUrl}${viewData.transactionId!}',
+                      '${"blockchainproof".tr()}\n${bantuBlockchainExplorerBaseUrl}${viewData.transactionId!}',
                       shareArea);
                 },
               ),
@@ -485,7 +486,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                 height: height / 50,
               ),
               ButtonOutlined(
-                'Share Text',
+                "sharetext".tr(),
                 notifier.getwihitecolor,
                 notifier.getbluewhitecolor,
                 onTap: () {
@@ -568,12 +569,26 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
     String? shareString;
     switch (viewData.transactionDirection) {
       case TransactionDirection.Send:
-        shareString =
-            'Payment Details\n____________________\n\nSent $amount $assetCode \n\nTo: ${name.toString().isEmpty ? publicKey! : name} \n\nFor: ${viewData.memo} \n\nTransaction Id: ${viewData.transactionId!.toLowerCase()} \n\nTime: ${date} \n\nBlockchain Proof: ${bantuBlockchainExplorerBaseUrl + viewData.transactionId!}';
+        shareString = "sharestringsend".tr(args: [
+          amount.toString(),
+          assetCode!,
+          name.toString().isEmpty ? publicKey! : name!,
+          viewData.memo!,
+          viewData.transactionId!.toLowerCase(),
+          date!,
+          bantuBlockchainExplorerBaseUrl + viewData.transactionId!
+        ]);
         break;
       default:
-        shareString =
-            'Payment Details\n____________________\n\nRecieved $amount $assetCode \n\nFrom: ${name.toString().isEmpty ? publicKey! : name} \n\nFor: ${viewData.memo} \n\nTransaction Id: ${viewData.transactionId!.toLowerCase()} \n\nTime: ${date} \n\nBlockchain Proof: ${bantuBlockchainExplorerBaseUrl + viewData.transactionId!}';
+        shareString = "sharestringreceive".tr(args: [
+          amount.toString(),
+          assetCode!,
+          name.toString().isEmpty ? publicKey! : name!,
+          viewData.memo!,
+          viewData.transactionId!.toLowerCase(),
+          date!,
+          bantuBlockchainExplorerBaseUrl + viewData.transactionId!
+        ]);
     }
 
     Share.share(shareString);

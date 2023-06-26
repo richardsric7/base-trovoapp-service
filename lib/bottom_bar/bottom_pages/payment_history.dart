@@ -1,5 +1,5 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -10,7 +10,6 @@ import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -132,7 +131,7 @@ class Payment_HistoryState extends State<PaymentHistory>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            "All assets",
+            "allassets".tr(),
             overflow: TextOverflow.ellipsis,
           ),
         ],
@@ -220,7 +219,7 @@ class Payment_HistoryState extends State<PaymentHistory>
           children: [
             // SizedBox(width: width / 15),
             Text(
-              LanguageEn.transactionHistory,
+              "transactionHistory".tr(),
               style:
                   TextStyle(color: notifier.getblck, fontFamily: fontsemibold),
             ),
@@ -255,7 +254,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 5),
                         child: Text(
-                          'Testnet',
+                          "testnet".tr(),
                           style: TextStyle(
                             fontFamily: fontsemibold,
                             color: wihitecolor,
@@ -342,7 +341,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                         },
                         assetsDropdownItems,
                         appState.filterAsset,
-                        'Assets',
+                        "assets".tr(),
                         context,
                         null,
                       ),
@@ -413,10 +412,10 @@ class Payment_HistoryState extends State<PaymentHistory>
             String text;
             switch (status) {
               case LoadMoreStatus.fail:
-                text = "Tap to load more";
+                text = "taptoloadmore".tr();
                 break;
               case LoadMoreStatus.idle:
-                text = "Tap to load more";
+                text = "taptoloadmore".tr();
                 break;
               // case LoadMoreStatus.loading:
               //   text = "Loading";
@@ -447,7 +446,7 @@ class Payment_HistoryState extends State<PaymentHistory>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Sorry no results here',
+              "sorrynoresults".tr(),
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontFamily: fontsemibold,
@@ -466,7 +465,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                     MaterialStateProperty.all<Color>(notifier.getbluecolor!),
               ),
               child: Text(
-                'Refresh',
+                "refresh".tr(),
                 style: TextStyle(
                   fontFamily: fontsemibold,
                 ),
@@ -485,21 +484,21 @@ class Payment_HistoryState extends State<PaymentHistory>
     var assetCode = transaction.assetCode;
     var date = transaction.transactionDate;
     var name =
-        '${LanguageEn.receivedfrom} ${extractUsername(transaction.from!) ?? truncate(transaction.fromPublicKey!)}';
+        '${"receivedfrom".tr()} ${extractUsername(transaction.from!) ?? truncate(transaction.fromPublicKey!)}';
 
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
     if (transaction.fromPublicKey == selectedWallet) {
       transaction.transactionDirection = TransactionDirection.Send;
       name =
-          '${LanguageEn.sentto} ${extractUsername(transaction.to!) ?? truncate(transaction.toPublicKey!)}';
+          '${"sentto".tr()} ${extractUsername(transaction.to!) ?? truncate(transaction.toPublicKey!)}';
     }
 
     if (transaction.transactionType!.contains('SWAP')) {
       transaction.transactionDirection = TransactionDirection.Swap;
       var splitResult =
           transaction.transactionType!.replaceAll('SWAP', '').trim().split('>');
-      name = "Swapped ${splitResult[0]} to ${splitResult[1]}";
+      name = "swappedto".tr(args: [splitResult[0], splitResult[1]]);
     }
 
     return GestureDetector(
@@ -557,7 +556,6 @@ class Payment_HistoryState extends State<PaymentHistory>
                         ),
                       ),
                       Row(
-                        // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Text(
                             timeago.format(date!),
@@ -578,7 +576,6 @@ class Payment_HistoryState extends State<PaymentHistory>
                           Text(
                             name,
                             overflow: TextOverflow.visible,
-                            // textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w400,
@@ -633,7 +630,6 @@ class Payment_HistoryState extends State<PaymentHistory>
   }
 
   String? extractUsername(String data) {
-    print('data $data');
     if (data.isNotEmpty) {
       const start = '[';
       const end = ']';
@@ -680,7 +676,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                     ),
                     child: Text(
                       appState.filterUsername == null
-                          ? "Enter username"
+                          ? "enterusername2".tr()
                           : appState.filterUsername!,
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
@@ -733,7 +729,7 @@ class Payment_HistoryState extends State<PaymentHistory>
                     ),
                     child: Text(
                       appState.filterMemo == null
-                          ? "Enter memo"
+                          ? "entermemo".tr()
                           : truncate(appState.filterMemo!, length: 30),
                       textAlign: TextAlign.start,
                       overflow: TextOverflow.ellipsis,
@@ -1035,7 +1031,7 @@ class Payment_HistoryState extends State<PaymentHistory>
       return "${DateFormat('dd/MM/yy').format(appState.filterStartDate!)} - ${DateFormat('dd/MM/yy').format(appState.filterEndDate!)} ";
     }
 
-    return 'Enter range';
+    return "enterrange".tr();
   }
 
   getAmountRangeValue() {
@@ -1043,11 +1039,11 @@ class Payment_HistoryState extends State<PaymentHistory>
       return "${appState.filterMinAmount} - ${appState.filterMaxAmount} ";
     }
 
-    return 'Enter range';
+    return "enterrange".tr();
   }
 
   getTruncatedPublicKey(String? publicKey) {
-    if (publicKey == null) return "Enter public key";
+    if (publicKey == null) return "enterpublickey".tr();
     if (publicKey.length <= 7) return publicKey;
     return truncate(publicKey, length: 7) +
         publicKey.substring(publicKey.length - 7);
@@ -1055,10 +1051,10 @@ class Payment_HistoryState extends State<PaymentHistory>
 
   getTransactionDirectionValue() {
     if (filterType == HistoryFilterType.TransactionDirection) {
-      if (appState.filterQuery.contains('swap')) return "Swap";
-      if (appState.filterQuery.contains('payment')) return "Payment";
+      if (appState.filterQuery.contains('swap')) return "swap".tr();
+      if (appState.filterQuery.contains('payment')) return "payment".tr();
 
-      return "All";
+      return "all".tr();
     }
   }
 
@@ -1067,7 +1063,6 @@ class Payment_HistoryState extends State<PaymentHistory>
       case HistoryFilterType.Username:
         textFieldPopup(context, rel: HistoryFilterType.Username,
             onDone: (value) async {
-          print('timer fired! $value');
           appState.setFilterUsername = value;
           if (value != null && value.isNotEmpty) {
             appState.setFilterQuery = "&name=${value}";
@@ -1200,7 +1195,6 @@ class Payment_HistoryState extends State<PaymentHistory>
   @override
   void dispose() {
     super.dispose();
-    print('disposing...');
     appState.viewData = {};
     resetFilters();
   }

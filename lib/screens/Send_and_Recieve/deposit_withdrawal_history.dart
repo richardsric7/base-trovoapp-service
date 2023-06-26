@@ -1,6 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -238,7 +238,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                       padding: EdgeInsets.only(top: 5),
                       child: Banner(
                         location: BannerLocation.topEnd,
-                        message: "Testnet",
+                        message: "testnet".tr(),
                       ),
                     ),
                   ),
@@ -330,10 +330,10 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
             String text;
             switch (status) {
               case LoadMoreStatus.fail:
-                text = "Tap to load more";
+                text = "taptoloadmore".tr();
                 break;
               case LoadMoreStatus.idle:
-                text = "Tap to load more";
+                text = "taptoloadmore".tr();
                 break;
               default:
                 text = "";
@@ -362,7 +362,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Sorry no results here',
+              "sorrynoresults".tr(),
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontFamily: fontsemibold,
@@ -386,7 +386,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                     MaterialStateProperty.all<Color>(notifier.getbluecolor!),
               ),
               child: Text(
-                'Refresh',
+                "refresh".tr(),
                 style: TextStyle(
                   fontFamily: fontsemibold,
                 ),
@@ -476,7 +476,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                       Wrap(
                         children: [
                           Text(
-                            'From address: ${truncatePublicKey(transaction.fromAddress)}',
+                            '${"fromaddress".tr()}: ${truncatePublicKey(transaction.fromAddress)}',
                             overflow: TextOverflow.visible,
                             // textAlign: TextAlign.center,
                             style: TextStyle(
@@ -491,7 +491,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                       Wrap(
                         children: [
                           Text(
-                            'To address: ${truncatePublicKey(transaction.toAddress)}',
+                            '${"toaddress".tr()}: ${truncatePublicKey(transaction.toAddress)}',
                             overflow: TextOverflow.visible,
                             // textAlign: TextAlign.center,
                             style: TextStyle(
@@ -591,7 +591,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                       Wrap(
                         children: [
                           Text(
-                            'Network: ${transaction.withdrawalNetwork}',
+                            '${"network".tr()}: ${transaction.withdrawalNetwork}',
                             overflow: TextOverflow.visible,
                             style: TextStyle(
                               fontSize: 15,
@@ -608,7 +608,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
                       Wrap(
                         children: [
                           Text(
-                            'Status: ${transaction.withdrawalStatus}',
+                            '${"status".tr()}: ${transaction.withdrawalStatus}',
                             overflow: TextOverflow.visible,
                             // textAlign: TextAlign.center,
                             style: TextStyle(
@@ -673,12 +673,12 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
       case FilterType.WithdrawalStatus:
         text = appState.filterQuery.contains('withdrawalStatus')
             ? appState.filterWithdrawalStatus
-            : 'Choose status';
+            : "choosestatus".tr();
         break;
       case FilterType.WithdrawalAddress:
         text = appState.filterQuery.contains('withdrawalAddress')
             ? truncatePublicKey(appState.filterWithdrawalAddress)
-            : 'Choose status';
+            : "choosestatus".tr();
         break;
       default:
     }
@@ -819,7 +819,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
       return "${DateFormat('dd/MM/yy').format(appState.filterStartDate!)} - ${DateFormat('dd/MM/yy').format(appState.filterEndDate!)} ";
     }
 
-    return 'Enter range';
+    return "enterrange".tr();
   }
 
   getAmountRangeValue() {
@@ -827,7 +827,7 @@ class _DepositWithdrawHistoryState extends State<DepositWithdrawHistory>
       return "${appState.filterMinAmount} - ${appState.filterMaxAmount} ";
     }
 
-    return 'Enter range';
+    return "enterrange".tr();
   }
 
   adjustScrollPosition() {

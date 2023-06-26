@@ -1,9 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'router_delegate.dart';
 
 class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
@@ -44,13 +44,13 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
       if (appState.currentBottomTabIndex == 1) {
         if (appState.walletView.view == WalletView.addSubWallet) {
           appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
-          appState.walletView.actionText = LanguageEn.addsubwallet;
+          appState.walletView.actionText = "addsubwallet".tr();
           appState.walletView.view = WalletView.listWallets;
           appState.updateListeners();
           return true;
         } else if (appState.walletView.view == WalletView.confirmAddSubWallet) {
           appState.walletView.actionIcon = Icons.cancel_outlined;
-          appState.walletView.actionText = LanguageEn.cancel;
+          appState.walletView.actionText = "cancel".tr();
           appState.walletView.view = WalletView.addSubWallet;
           appState.updateListeners();
           return true;
@@ -74,7 +74,7 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
             actions: [
               TextButton(
                 child: Text(
-                  'Yes',
+                  "yes".tr(),
                   style: TextStyle(fontSize: 16.0, color: trovoblue90),
                 ),
                 onPressed: () => Navigator.of(
@@ -84,7 +84,7 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
               ),
               TextButton(
                   child: Text(
-                    'No',
+                    "no".tr(),
                     style: TextStyle(fontSize: 16.0, color: trovoblue90),
                   ),
                   onPressed: () {
@@ -103,7 +103,7 @@ class TrovoWalletBackButtonDispatcher extends RootBackButtonDispatcher {
                 ),
               ),
               child: Text(
-                'Are you sure you want to close this application?',
+                "areyousure?".tr(),
                 style: TextStyle(
                   fontSize: 18.0,
                   fontWeight: FontWeight.w400,

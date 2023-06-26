@@ -1,11 +1,10 @@
-import 'dart:async';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -21,11 +20,9 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/wallet_slides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class Home extends StatefulWidget {
@@ -219,19 +216,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               tabs: [
                                 Tab(
                                   height: 20,
-                                  text: LanguageEn.assets,
+                                  text: "assets".tr(),
                                 ),
                                 if (unclaimedAssets != null &&
                                     tabLength == 2) ...[
                                   Tab(
                                     height: 20,
                                     text:
-                                        '${LanguageEn.pending} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
+                                        '${"pending".tr()} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
                                   ),
                                 ],
                                 // Tab(
                                 //   height: 20,
-                                //   text: LanguageEn.nfts,
+                                //   text: "nfts".tr(),
                                 // ),
                               ],
                             ),
@@ -298,7 +295,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
                             child: Center(
                               child: Text(
-                                LanguageEn.nopendingassets,
+                                "nopendingassets".tr(),
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
@@ -378,7 +375,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
                   child: Center(
                     child: Text(
-                      LanguageEn.noassets,
+                      "noassets".tr(),
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
@@ -404,7 +401,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
           child: Center(
             child: Text(
-              LanguageEn.noNFTs,
+              "noNFTs".tr(),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -447,7 +444,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          LanguageEn.goodday,
+                          "goodday".tr(),
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluewhitecolor,
@@ -593,7 +590,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 7),
                               child: Text(
-                                'Testnet',
+                                "testnet".tr(),
                                 style: TextStyle(
                                   fontFamily: fontsemibold,
                                   color: wihitecolor,
@@ -801,7 +798,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             Row(
                               children: [
                                 Text(
-                                  LanguageEn.taptoviewall,
+                                  "taptoviewall".tr(),
                                   style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,
@@ -958,7 +955,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               child: Column(
                 children: [
                   Text(
-                    'Your wallet is ready!',
+                    "yourwalletisready".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 17,
@@ -970,7 +967,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     height: height / 90,
                   ),
                   Text(
-                    'But you cannot use it for any transaction just yet until it is activated with at least 10 Bantu tokens (XBN)',
+                    "butyoucannotuseityet".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
@@ -982,7 +979,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     height: height / 50,
                   ),
                   Text(
-                    'You can get Bantu tokens (XBN) for your wallet in 3 easy ways',
+                    "youcangetbantutokens".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 17,
@@ -1002,7 +999,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           height: height / 50,
         ),
         Button(
-          'Request XBN from Trovo user',
+          "requestfromuser".tr(),
           notifier.getbluecolor,
           wihitecolor,
           onTap: () {
@@ -1021,7 +1018,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           height: height / 50,
         ),
         ButtonOutlined(
-          'Send XBN to your wallet',
+          "sendxbntoyourwallet".tr(),
           notifier.getbluecolor80,
           wihitecolor,
           onTap: () {
@@ -1030,21 +1027,21 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 text: appState.primaryWallet.publicKey,
               ),
             );
-            showSnackBar('Public key', context);
+            showSnackBar("publickey".tr(), context);
           },
         ),
         SizedBox(
           height: height / 50,
         ),
         ButtonOutlined(
-          'Buy XBN on TrovoP2P',
+          "buyfromp2p".tr(),
           notifier.getwihitecolor,
           notifier.getbluewhitecolor,
           onTap: () {
             popup(
               context,
-              title: 'Coming soon!',
-              message: 'TrovoP2P will be launching soon.',
+              title: "comingsoon".tr(),
+              message: "p2pwillbelaunchingsoon".tr(),
               bodyColor: notifier.getbluewhitecolor,
             );
             // _launchUrl();
@@ -1055,12 +1052,5 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         ),
       ],
     );
-  }
-
-  Future<void> _launchUrl() async {
-    Uri uri = Uri.https(trovoP2pUrl, '/');
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      throw 'Could not launch $uri';
-    }
   }
 }

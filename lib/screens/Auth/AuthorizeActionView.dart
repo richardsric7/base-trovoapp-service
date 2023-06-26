@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,7 +17,6 @@ import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
-import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 
@@ -51,7 +51,7 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
             children: [
               SizedBox(height: height / 10),
               Text(
-                '${LanguageEn.authorize} ${viewData!['serviceShortName']}',
+                '${"authorize".tr()} ${viewData!['serviceShortName']}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -76,7 +76,7 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
-                  LanguageEn.password,
+                  "password".tr(),
                   notifier.getbluewhitecolor,
                   Icons.lock,
                   notifier.getgrey,
@@ -97,14 +97,14 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
               ),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
-                  LanguageEn.authorizewithbiometrics,
+                  "authorizewithbiometrics".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: toggleSwitch,
                 ),
               ] else ...[
                 Button(
-                  LanguageEn.authorize,
+                  "authorize".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: handleAuthorization,
@@ -112,7 +112,7 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
               ],
               SizedBox(height: height / 50.5),
               ButtonOutlined(
-                LanguageEn.cancel,
+                "cancel".tr(),
                 notifier.getwihitecolor,
                 notifier.getbluewhitecolor,
                 onTap: () {
@@ -137,8 +137,7 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
     if (password == appState.password!) {
       authorize();
     } else {
-      popup(context,
-          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
   }
 
@@ -193,11 +192,11 @@ class _AuthorizeActionViewState extends State<AuthorizeActionView> {
                 state: PageState.replaceAll, page: BottomHomePageConfig));
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
     hideLoader(context);
   }

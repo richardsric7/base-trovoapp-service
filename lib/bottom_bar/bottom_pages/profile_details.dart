@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -10,7 +11,6 @@ import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -57,7 +57,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          LanguageEn.myprofile,
+          "myprofile".tr(),
           notifier.getblck,
           height: height / 15,
         ).getBar(),
@@ -144,7 +144,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                     fontSize: 13.sp),
               ),
               Text(
-                '${LanguageEn.referralid}: ${appState.userInfo!.username}',
+                '${"referralid".tr()}: ${appState.userInfo!.username}',
                 style: TextStyle(
                     color: notifier.getgrey,
                     fontFamily: fontsemibold,
@@ -156,7 +156,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               //   child: Row(
               //     children: [
               //       Text(
-              //         LanguageEn.bio,
+              //         "bio".tr(),
               //         style: TextStyle(
               //             color: notifier.getbluewhitecolor,
               //             fontFamily: fontsemibold,
@@ -172,7 +172,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               //   child: Row(
               //     children: [
               //       Text(
-              //         LanguageEn.socials,
+              //         "socials".tr(),
               //         style: TextStyle(
               //             color: notifier.getbluewhitecolor,
               //             fontFamily: fontsemibold,
@@ -184,7 +184,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               // socials(),
               SizedBox(height: height / 50),
               Text(
-                'Referral Info (Downlines)',
+                "referralinfo".tr(),
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -217,7 +217,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
         child: Text(
-          'Referral Level',
+          "referrallevel".tr(),
           style: TextStyle(
               fontFamily: fontsemibold, color: notifier.getbluewhitecolor),
         ),
@@ -225,7 +225,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
         child: Text(
-          'No. Referred',
+          "numberreferred".tr(),
           style: TextStyle(
               fontFamily: fontsemibold, color: notifier.getbluewhitecolor),
         ),
@@ -239,7 +239,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
               child: Text(
-                'Level $index',
+                '${"level".tr()} $index',
                 style: TextStyle(
                     fontFamily: fontbody, color: notifier.getbluewhitecolor),
               ),
@@ -274,10 +274,10 @@ class _ProfileDetailsState extends State<ProfileDetails> {
           uiSettings: [
             AndroidUiSettings(
               toolbarColor: notifier.getbluecolor80,
-              toolbarTitle: 'Crop Image',
+              toolbarTitle: "cropimage".tr(),
             ),
             IOSUiSettings(
-              title: 'Crop Image',
+              title: "cropimage".tr(),
             ),
           ]);
       if (croppedImage != null) {
@@ -287,7 +287,6 @@ class _ProfileDetailsState extends State<ProfileDetails> {
   }
 
   Future<void> uploadImage(croppedImage) async {
-    print('-----------------------${croppedImage.path}');
     try {
       showLoader(context);
       // make initial request to the server using the
@@ -302,26 +301,23 @@ class _ProfileDetailsState extends State<ProfileDetails> {
         secretKey: primaryWalletKeyPair.secretKey,
         publicKey: primaryWalletKeyPair.publicKey,
       );
-      print('----------this is responseData: $responseData');
       if (responseData['statusCode'] == 200) {
         String imageUrl = responseData['data'].toString().replaceAll('"', '');
         appState.userInfo!.imageThumbnailURL = imageUrl;
         appState.updateListeners();
-        print(
-            '---------------------appState.userInfo!.imageThumbnailURL: ${appState.userInfo!.imageThumbnailURL}');
         await StoreData()
             .storeInsertData('userInfo', appState.userInfo!.toJSONEncodable());
         setState(() {});
         hideLoader(context);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
       print(e);
       hideLoader(context);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
   }
 
@@ -346,7 +342,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    LanguageEn.emailadress,
+                    "emailadress".tr(),
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -381,7 +377,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                LanguageEn.phonenumber,
+                                "phonenumber".tr(),
                                 style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -409,7 +405,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                                   // GestureDetector(
                                   //   onTap: () {},
                                   //   child: Text(
-                                  //     LanguageEn.edit,
+                                  //     "edit".tr(),
                                   //     style: TextStyle(
                                   //       fontSize: 13,
                                   //       fontWeight: FontWeight.w400,
@@ -427,7 +423,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                         //   child: Column(
                         //     children: [
                         //       Text(
-                        //         LanguageEn.unverified,
+                        //         "unverified".tr(),
                         //         style: TextStyle(
                         //             fontSize: 11,
                         //             fontWeight: FontWeight.w600,
@@ -440,7 +436,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                         //       GestureDetector(
                         //         onTap: () {},
                         //         child: Text(
-                        //           LanguageEn.taptoverify,
+                        //           "taptoverify".tr(),
                         //           style: TextStyle(
                         //             fontSize: 10,
                         //             fontWeight: FontWeight.w400,
@@ -467,7 +463,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                   //     children: [
                   //       Container(
                   //         child: Text(
-                  //           LanguageEn.advancedkyc,
+                  //           "advancedkyc".tr(),
                   //           style: TextStyle(
                   //               fontSize: 16,
                   //               fontWeight: FontWeight.w600,
@@ -479,7 +475,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                   //         child: Column(
                   //           children: [
                   //             Text(
-                  //               LanguageEn.unverified,
+                  //               "unverified".tr(),
                   //               style: TextStyle(
                   //                   fontSize: 11,
                   //                   fontWeight: FontWeight.w600,
@@ -492,7 +488,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                   //             GestureDetector(
                   //               onTap: () {},
                   //               child: Text(
-                  //                 LanguageEn.taptostart,
+                  //                 "taptostart".tr(),
                   //                 style: TextStyle(
                   //                   fontSize: 10,
                   //                   fontWeight: FontWeight.w400,
@@ -560,7 +556,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                           child: Column(
                             children: [
                               Text(
-                                LanguageEn.unverified,
+                                "unverified".tr(),
                                 style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
@@ -573,7 +569,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                               GestureDetector(
                                 onTap: () {},
                                 child: Text(
-                                  LanguageEn.taptoverify,
+                                  "taptoverify".tr(),
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w400,
@@ -639,7 +635,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                         GestureDetector(
                           onTap: () {},
                           child: Text(
-                            LanguageEn.taptoconnect,
+                            "taptoconnect".tr(),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w400,

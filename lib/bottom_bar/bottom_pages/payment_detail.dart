@@ -1,8 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get_utils/get_utils.dart';
-import 'package:intl/intl.dart';
+import 'package:get/get_utils/get_utils.dart' hide Trans;
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -16,7 +16,6 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'payment_history.dart';
@@ -105,7 +104,7 @@ class _PaymentDetails extends State<PaymentDetails>
             children: [
               SizedBox(height: height / 30),
               Text(
-                '${viewData.transactionType!.capitalizeFirst!} ${LanguageEn.details}',
+                '${viewData.transactionType!.capitalizeFirst!} ${"details".tr()}',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -155,8 +154,8 @@ class _PaymentDetails extends State<PaymentDetails>
                               child: Text(
                                 viewData.transactionDirection! ==
                                         TransactionDirection.Send
-                                    ? LanguageEn.sentfrom
-                                    : 'Received on',
+                                    ? "sentfrom".tr()
+                                    : "receivedon".tr(),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: notifier.getbluewhitecolor,
@@ -201,7 +200,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                               ),
                                             ),
                                             showSnackBar(
-                                                'To username', context),
+                                                "tousername".tr(), context),
                                           },
                                           icon: Icon(
                                             Icons.copy,
@@ -258,7 +257,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                               ),
                                             ),
                                             showSnackBar(
-                                                'To public key', context),
+                                                "topublickey2".tr(), context),
                                           },
                                           icon: Icon(
                                             Icons.copy,
@@ -284,8 +283,8 @@ class _PaymentDetails extends State<PaymentDetails>
                               child: Text(
                                 viewData.transactionDirection! ==
                                         TransactionDirection.Send
-                                    ? LanguageEn.to
-                                    : 'From',
+                                    ? "to".tr()
+                                    : "from".tr(),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: notifier.getbluewhitecolor,
@@ -333,8 +332,8 @@ class _PaymentDetails extends State<PaymentDetails>
                                         );
                                         showSnackBar(
                                             name.toString().isEmpty
-                                                ? 'Address'
-                                                : 'Username',
+                                                ? "address".tr()
+                                                : "username".tr(),
                                             context);
                                       },
                                       icon: Icon(
@@ -379,7 +378,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                               text: publicKey,
                                             ),
                                           ),
-                                          showSnackBar('Address', context),
+                                          showSnackBar("address".tr(), context),
                                         },
                                         icon: Icon(
                                           Icons.copy,
@@ -404,7 +403,7 @@ class _PaymentDetails extends State<PaymentDetails>
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 20.0),
                               child: Text(
-                                LanguageEn.formemo,
+                                "formemo".tr(),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: notifier.getbluewhitecolor,
@@ -440,7 +439,7 @@ class _PaymentDetails extends State<PaymentDetails>
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 20.0),
                             child: Text(
-                              LanguageEn.blockchainproof,
+                              "blockchainproof".tr(),
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: notifier.getbluewhitecolor,
@@ -484,7 +483,8 @@ class _PaymentDetails extends State<PaymentDetails>
                                           text: viewData.transactionId!,
                                         ),
                                       ),
-                                      showSnackBar('Transaction ID', context),
+                                      showSnackBar(
+                                          "transactionid".tr(), context),
                                     },
                                     icon: Icon(
                                       Icons.copy,
@@ -506,7 +506,7 @@ class _PaymentDetails extends State<PaymentDetails>
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 20.0),
                             child: Text(
-                              'Date',
+                              "date".tr(),
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: notifier.getbluewhitecolor,
@@ -554,7 +554,7 @@ class _PaymentDetails extends State<PaymentDetails>
                 height: height / 20,
               ),
               Button(
-                'Generate receipt',
+                "generatereceipt".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -69,7 +70,7 @@ class _TermsOfServiceState extends State<TermsOfService> {
                 Row(
                   children: [
                     Text(
-                      LanguageEn.iagreetothe,
+                      "iagreetothe".tr(),
                       style: TextStyle(
                           fontSize: height / 55,
                           color: notifier.getblck,
@@ -80,7 +81,7 @@ class _TermsOfServiceState extends State<TermsOfService> {
                         appState.goToWebView(termsOfServiceUrl);
                       },
                       child: Text(
-                        ' ' + LanguageEn.termsofservices,
+                        ' ' + "termsofservices".tr(),
                         style: TextStyle(
                           fontFamily: fontbody,
                           fontSize: height / 55,
@@ -95,7 +96,7 @@ class _TermsOfServiceState extends State<TermsOfService> {
                 Row(
                   children: [
                     Text(
-                      LanguageEn.and,
+                      "and".tr(),
                       style: TextStyle(
                           fontFamily: fontbody,
                           fontSize: height / 55,
@@ -109,7 +110,7 @@ class _TermsOfServiceState extends State<TermsOfService> {
                         appState.goToWebView(privacyPolicyUrl);
                       },
                       child: Text(
-                        LanguageEn.privacypolicy,
+                        "privacypolicy".tr(),
                         style: TextStyle(
                           fontFamily: fontbody,
                           fontSize: height / 55,
@@ -130,7 +131,7 @@ class _TermsOfServiceState extends State<TermsOfService> {
           Padding(
             padding: EdgeInsets.fromLTRB(10.0, 0, 0, 0),
             child: Text(
-              LanguageEn.termsofserviceerror,
+              "termsofserviceerror".tr(),
               style: TextStyle(
                   color: Colors.red, fontSize: 12, fontWeight: FontWeight.w400),
             ),

@@ -1,10 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../custom_bloc_observer/fonts.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -50,7 +49,7 @@ class _ThreeonbondingState extends State<Threeonbonding> {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: width / 10),
                 child: Text(
-                  LanguageEn.domorewithblockchain,
+                  "domorewithblockchain".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getblck,

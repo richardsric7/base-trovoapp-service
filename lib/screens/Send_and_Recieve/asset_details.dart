@@ -1,7 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide Trans;
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
@@ -160,7 +161,7 @@ class _AssetDetailsState extends State<AssetDetails>
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 2),
                               child: Text(
-                                'Testnet',
+                                "testnet".tr(),
                                 style: TextStyle(
                                   fontFamily: fontsemibold,
                                   color: wihitecolor,
@@ -221,7 +222,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 actionButtons(),
               ] else ...[
                 Button(
-                  'Receive',
+                  "receive".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () {
@@ -356,7 +357,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '${getAssetCode(curatedAsset!.assetCode)} Token',
+                    '${getAssetCode(curatedAsset!.assetCode)} ${"token".tr()}',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -416,7 +417,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   ),
                   if (asset!.assetIssuer.toString().isNotEmpty) ...[
                     Text(
-                      'Issuer Public Key',
+                      "issuerpubkey".tr(),
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -460,7 +461,7 @@ class _AssetDetailsState extends State<AssetDetails>
                                     text: asset!.assetIssuer!,
                                   ),
                                 ),
-                                showSnackBar('Issuer public key', context),
+                                showSnackBar("issuerpubkey".tr(), context),
                               },
                               icon: Icon(Icons.copy),
                               color: notifier.getbluewhitecolor,
@@ -477,7 +478,7 @@ class _AssetDetailsState extends State<AssetDetails>
                     ),
                     if (curatedAsset!.contactEmail!.toString().isNotEmpty) ...[
                       Text(
-                        'Contact Email',
+                        "contactemail".tr(),
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -541,7 +542,7 @@ class _AssetDetailsState extends State<AssetDetails>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '${getAssetCode(asset!.assetCode!)} Token',
+                    '${getAssetCode(asset!.assetCode!)} ${"token".tr()}',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -571,7 +572,7 @@ class _AssetDetailsState extends State<AssetDetails>
                   ),
                   if (asset!.assetIssuer!.toString().isNotEmpty) ...[
                     Text(
-                      'Issuer Public Key',
+                      "issuerpubkey".tr(),
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -611,7 +612,7 @@ class _AssetDetailsState extends State<AssetDetails>
                                     text: asset!.assetIssuer!,
                                   ),
                                 ),
-                                showSnackBar('Issuer public key', context),
+                                showSnackBar("issuerpubkey".tr(), context),
                               },
                               icon: Icon(Icons.copy),
                               color: notifier.getbluewhitecolor,

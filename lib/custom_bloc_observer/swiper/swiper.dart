@@ -1,8 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/Auth/get_started.dart';
 import 'package:trovo_wallet/screens/page_view/onbonding_two.dart';
 import 'package:trovo_wallet/screens/page_view/onbondingthree.dart';
 import 'package:trovo_wallet/screens/page_view/one_onbonding.dart';
@@ -11,7 +10,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../router/page_actions.dart';
 import '../../storage/state.dart';
-import '../../utils/enstring.dart';
 import '../button/custtom_button.dart';
 
 class Swiper extends StatefulWidget {
@@ -103,7 +101,7 @@ class _SwiperState extends State<Swiper> {
               ),
               SizedBox(height: height / 20.5),
               ButtonOutlined(
-                currentPage == 2 ? LanguageEn.proceed : LanguageEn.skip,
+                currentPage == 2 ? "proceed".tr() : "skip".tr(),
                 notifier.getwihitecolor,
                 notifier.getbluecolor,
                 onTap: () {

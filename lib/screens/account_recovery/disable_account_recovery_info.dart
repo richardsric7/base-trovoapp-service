@@ -1,10 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/wallet.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -67,7 +67,7 @@ class _DisableAccountRecoveryInfoState
             // crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                LanguageEn.disable,
+                "disable".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -75,7 +75,7 @@ class _DisableAccountRecoveryInfoState
                     fontFamily: fontsemibold),
               ),
               Text(
-                LanguageEn.accountrecovery,
+                "accountrecovery".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -103,7 +103,7 @@ class _DisableAccountRecoveryInfoState
                             Container(
                               width: width / 1.3,
                               child: Text(
-                                LanguageEn.disableaccountrecoverydescription,
+                                "disableaccountrecoverydescription".tr(),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontSize: 16,
@@ -121,7 +121,7 @@ class _DisableAccountRecoveryInfoState
               ),
               SizedBox(height: height / 20),
               Button(
-                LanguageEn.proceed,
+                "proceed".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () => appState.currentAction = PageAction(

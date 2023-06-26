@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -41,7 +42,7 @@ class _CreateSubWalletSuccessViewState
               ),
               SizedBox(height: height / 11),
               Text(
-                LanguageEn.createsuccess,
+                "createsuccess".tr(),
                 style: TextStyle(
                     color: notifier.getblck,
                     fontFamily: fontsemibold,
@@ -49,7 +50,7 @@ class _CreateSubWalletSuccessViewState
               ),
               SizedBox(height: height / 50),
               Text(
-                LanguageEn.youhavecreatedsuccessfully,
+                "youhavecreatedsuccessfully".tr(),
                 style: TextStyle(
                     color: notifier.getgrey,
                     fontSize: 15.sp,
@@ -57,7 +58,7 @@ class _CreateSubWalletSuccessViewState
               ),
               SizedBox(height: height / 4.3),
               Button(
-                LanguageEn.continuee,
+                "continuee".tr(),
                 notifier.getbluecolor,
                 notifier.getwihitecolor,
                 onTap: () {

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -112,7 +113,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
             child: Column(
               children: [
                 Text(
-                  LanguageEn.setup,
+                  "setup".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
@@ -120,7 +121,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                       fontFamily: fontsemibold),
                 ),
                 Text(
-                  LanguageEn.securityquestions,
+                  "securityquestions".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
@@ -149,7 +150,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                               Container(
                                 width: width / 1.3,
                                 child: Text(
-                                  LanguageEn.setupsecurityquestionsdescription,
+                                  "setupsecurityquestionsdescription".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 16,
@@ -185,7 +186,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                             child: Column(
                               children: [
                                 Text(
-                                  LanguageEn.somethingwentwrong,
+                                  "somethingwentwrong".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 16,
@@ -205,7 +206,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                                             notifier.getbluecolor!),
                                   ),
                                   child: Text(
-                                    LanguageEn.retry,
+                                    "retry".tr(),
                                     style: TextStyle(
                                       fontFamily: fontsemibold,
                                     ),
@@ -231,7 +232,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
                     }),
                 SizedBox(height: height / 20),
                 Button(
-                  LanguageEn.continuee,
+                  "continuee".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () {
@@ -285,7 +286,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
             hint: Container(
               child: Text(
                 // Choose question n
-                '${LanguageEn.choosequestion} $rel',
+                '${"choosequestion".tr()} $rel',
                 style: TextStyle(
                   color: questionsMap[rel]!['e'] == true
                       ? Colors.red
@@ -332,7 +333,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
         SizedBox(height: height / 50),
         if (questionsMap[rel]!['q'].toString().isNotEmpty) ...[
           CustomTextFormField.textField(
-            LanguageEn.enteranswer,
+            "enteranswer".tr(),
             notifier.getbluecolor,
             Icons.question_answer_outlined,
             notifier.getgrey,
@@ -423,8 +424,8 @@ class _SecurityQuestions extends State<SecurityQuestions> {
         await updateUserInfo(signer, secretKey, publicKey, username, appState);
         appState.viewData = {
           SuccessViewPageConfig.key: {
-            'title': LanguageEn.success,
-            'message': LanguageEn.securityquestionssuccessmessage,
+            'title': "success".tr(),
+            'message': "securityquestionssuccessmessage".tr(),
             'useOnDone': true,
             'onDone': () {
               appState.currentAction = appState.returnView ??
@@ -439,11 +440,11 @@ class _SecurityQuestions extends State<SecurityQuestions> {
             state: PageState.replaceAll, page: SuccessViewPageConfig);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
   }
 

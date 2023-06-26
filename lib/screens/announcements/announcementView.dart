@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -32,7 +33,7 @@ class AnnouncementView extends StatelessWidget {
           child: CustomAppBar(
             context,
             notifier.getwihitecolor,
-            "Asset Tokenization",
+            announcement.title!,
             notifier.getbluewhitecolor,
             height: height / 15,
           ).getBar(),

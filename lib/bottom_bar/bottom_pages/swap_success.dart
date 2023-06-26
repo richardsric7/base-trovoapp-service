@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,7 +13,6 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -76,7 +76,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
               ),
               SizedBox(height: height / 50),
               Text(
-                LanguageEn.yourtransactionwassuccessful,
+                "yourtransactionwassuccessful".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -99,7 +99,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
                         child: Text(
-                          LanguageEn.swapped,
+                          "swapped".tr(),
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluewhitecolor,
@@ -127,7 +127,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Service Fee',
+                              "servicefee".tr(),
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: notifier.getbluewhitecolor,
@@ -160,7 +160,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20.0, vertical: 10),
                         child: Text(
-                          LanguageEn.blockchainproof,
+                          "blockchainproof".tr(),
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluewhitecolor,
@@ -203,7 +203,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                                       text: transactionData['transactionId'],
                                     ),
                                   ),
-                                  showSnackBar('Transaction ID', context),
+                                  showSnackBar("transactionid".tr(), context),
                                 },
                                 icon: Icon(Icons.copy),
                                 color: notifier.getbluewhitecolor,
@@ -223,7 +223,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                 height: height / 20,
               ),
               Button(
-                LanguageEn.dashboard,
+                "dashboard".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -277,7 +277,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
               height: 5,
             ),
             Text(
-              LanguageEn.to,
+              "to".tr(),
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: notifier.getbluewhitecolor,

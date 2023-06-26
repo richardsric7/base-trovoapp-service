@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -113,7 +114,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${LanguageEn.send} ${getAssetCode(asset!.assetCode)}',
+                      '${"send".tr()} ${getAssetCode(asset!.assetCode)}',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -143,7 +144,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                 height: height / 10,
               ),
               Button(
-                LanguageEn.proceed,
+                "proceed".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -214,7 +215,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                         height: height / 50,
                       ),
                       CustomTextFormField.textField(
-                        'Sending wallet',
+                        "sendingwallet".tr(),
                         notifier.getbluecolor,
                         Icons.wallet,
                         notifier.getgrey,
@@ -234,7 +235,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                     ),
                     GestureDetector(
                       child: CustomTextFormField.textField(
-                        LanguageEn.to,
+                        "to".tr(),
                         notifier.getbluecolor,
                         Icons.send,
                         notifier.getgrey,
@@ -252,7 +253,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                     ),
                     SizedBox(height: height / 50),
                     CustomTextFormField.textField(
-                      LanguageEn.amount,
+                      "amount".tr(),
                       notifier.getbluecolor,
                       Icons.currency_exchange,
                       notifier.getgrey,
@@ -281,7 +282,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
                     if (!appState.hideBalances) ...[availableBalance()],
                     SizedBox(height: height / 50),
                     CustomTextFormField.textField(
-                      LanguageEn.memo,
+                      "memo".tr(),
                       notifier.getbluecolor,
                       Icons.edit_note,
                       notifier.getgrey,
@@ -321,9 +322,9 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
 
   String? validateTo(String? value) {
     // reciever cannot be empty
-    if (value!.isEmpty) return 'Please enter reciever username or public key';
+    if (value!.isEmpty) return "enterreceiverusername".tr();
 
-    if (value.length < 3) return 'Invalid username or public key';
+    if (value.length < 3) return "invalidusernameorpublickey".tr();
 
     return null;
   }
@@ -333,28 +334,28 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       setState(() {
         amountError = true;
       });
-      'Please enter amount to send';
+      "pleaseenteramounttosend".tr();
     }
 
     if (double.tryParse(value) == null) {
       setState(() {
         amountError = true;
       });
-      return 'Please enter a valid amount';
+      return "pleaseentervalidamount".tr();
     }
 
     if (double.tryParse(value)! <= 0) {
       setState(() {
         amountError = true;
       });
-      return 'Value must be greater than 0';
+      return "valuemustbegreaterthan".tr(args: ['0']);
     }
 
     if (double.tryParse(value)! > asset!.amount!) {
       setState(() {
         amountError = true;
       });
-      return 'You don\'t have sufficient balance';
+      return "youdonthavesufficientbalance".tr();
     }
 
     if ((getAssetCode(asset!.assetCode) == 'XBN') &&
@@ -362,7 +363,7 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
       setState(() {
         amountError = true;
       });
-      return 'You don\'t have sufficient balance';
+      return "youdonthavesufficientbalance".tr();
     }
 
     setState(() {
@@ -417,11 +418,11 @@ class _SendAsset extends State<SendAsset> with TickerProviderStateMixin {
         postProcessData(messageShown, messageLength, responseData['data']);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       hideLoader(context);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
   }
 

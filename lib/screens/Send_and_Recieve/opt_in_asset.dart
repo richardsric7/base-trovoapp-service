@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/utils.dart';
+import 'package:get/utils.dart' hide Trans;
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -18,7 +19,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -79,7 +79,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          '${LanguageEn.add} [${asset.assetCode}]',
+          '${"add".tr()} [${asset.assetCode}]',
           notifier.getbluewhitecolor,
           height: height / 15,
         ).getBar(),
@@ -99,14 +99,14 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
               ),
               if (wallet.canInitiate) ...[
                 Button(
-                  LanguageEn.addasset,
+                  "addasset".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: optInAsset,
                 ),
               ] else ...[
                 Button(
-                  LanguageEn.back,
+                  "back".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () {
@@ -145,7 +145,8 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      LanguageEn.optininfo
+                      "optininfo"
+                          .tr()
                           .replaceAll('assetCode', asset.assetCode!)
                           .replaceAll('walletAlias', wallet.alias!),
                       textAlign: TextAlign.center,
@@ -164,9 +165,11 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                     width: width / 1.3,
                     child: Text(
                       wallet.canInitiate
-                          ? LanguageEn.optininfo2
+                          ? "optininfo2"
+                              .tr()
                               .replaceAll('walletAlias', wallet.alias!)
-                          : LanguageEn.notenoughpermission
+                          : "notenoughpermission"
+                              .tr()
                               .replaceAll('walletAlias', wallet.alias!),
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -211,7 +214,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '${getAssetCode(asset.assetCode)} Token',
+                    '${getAssetCode(asset.assetCode)} ${"token".tr()}',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -271,7 +274,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                   ),
                   if (asset.assetIssuer.toString().isNotEmpty) ...[
                     Text(
-                      'Issuer Public Key',
+                      "issuerpubkey".tr(),
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -315,7 +318,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                                     text: asset.assetIssuer!,
                                   ),
                                 ),
-                                showSnackBar('Issuer public key', context),
+                                showSnackBar("issuerpubkey".tr(), context),
                               },
                               icon: Icon(Icons.copy),
                               color: notifier.getbluewhitecolor,
@@ -332,7 +335,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                     ),
                     if (asset.contactEmail!.toString().isNotEmpty) ...[
                       Text(
-                        'Contact Email',
+                        "contactemail".tr(),
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -397,7 +400,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '${getAssetCode(asset.assetCode!)} Token',
+                    '${getAssetCode(asset.assetCode!)} ${"token".tr()}',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -420,7 +423,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                   ),
                   if (asset.assetIssuer!.toString().isNotEmpty) ...[
                     Text(
-                      'Issuer Public Key',
+                      "issuerpubkey".tr(),
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -453,7 +456,7 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
                                   text: asset.assetIssuer!,
                                 ),
                               ),
-                              showSnackBar('Issuer public key', context),
+                              showSnackBar("issuerpubkey".tr(), context),
                             },
                             icon: Icon(Icons.copy),
                             color: notifier.getbluewhitecolor,
@@ -507,12 +510,12 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
         // print('sending full data to server.........');
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }
@@ -559,12 +562,12 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
           forceRefresh: true,
         );
         appState.viewData![SuccessViewPageConfig.key] = {
-          'title': LanguageEn.success,
+          'title': "success".tr(),
           'message': wallet.isSharedWalletAndCanInitiate
-              ? LanguageEn.optinassetsuccessshared
+              ? "optinassetsuccessshared"
+                  .tr()
                   .replaceAll('asset', asset.assetCode!)
-              : LanguageEn.optinassetsuccess
-                  .replaceAll('asset', asset.assetCode!),
+              : "optinassetsuccess".tr().replaceAll('asset', asset.assetCode!),
           'useOnDone': true,
           'onDone': () {
             appState.currentAction = PageAction(
@@ -577,11 +580,11 @@ class _OptInAssetState extends State<OptInAsset> with TickerProviderStateMixin {
             PageAction(state: PageState.addPage, page: SuccessViewPageConfig);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
 
     hideLoader(context);

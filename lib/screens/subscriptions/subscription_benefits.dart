@@ -1,7 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/utils.dart';
+import 'package:get/utils.dart' hide Trans;
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -57,7 +58,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          '${patronInfo.patronPackage.capitalizeFirst!} Patron',
+          '${patronInfo.patronPackage.capitalizeFirst!} ${"patron".tr()}',
           notifier.getblck,
           height: height / 15,
         ).getBar(),
@@ -85,7 +86,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
               ),
               SizedBox(height: height / 20),
               Button(
-                'Subscribe to ${patronInfo.patronPackage.capitalizeFirst!}',
+                '${"subscribeto".tr()} ${patronInfo.patronPackage.capitalizeFirst!}',
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {

@@ -1,9 +1,9 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
-import 'package:intl/intl.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -19,7 +19,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -59,7 +58,6 @@ class _ApprovalDetails extends State<ApprovalDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     viewData = appState.viewData![ApprovalDetailsViewPageConfig.key];
     wallet = appState.userInfo!.getWalletByAlias(viewData['alias']);
-    print('========> viewData: $viewData');
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -79,7 +77,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Approve transaction request',
+                    "approverequest".tr(),
                     style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
@@ -111,16 +109,18 @@ class _ApprovalDetails extends State<ApprovalDetails>
                           SizedBox(
                             height: height / 50,
                           ),
-                          displayInfo(key: 'Wallet', value: viewData['alias']),
                           displayInfo(
-                              key: 'Transaction type',
+                              key: "wallet".tr(), value: viewData['alias']),
+                          displayInfo(
+                              key: "transactiontype".tr(),
                               value: viewData['transactionType']
                                   .toString()
                                   .capitalizeFirst!),
                           displayInfo(
-                              key: 'Initiator', value: viewData['initiator']),
+                              key: "initiator".tr(),
+                              value: viewData['initiator']),
                           displayInfo(
-                              key: 'Initiated',
+                              key: "initiated".tr(),
                               value:
                                   '${DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(viewData['createdAt']))}'),
                           // displayInfo(
@@ -130,7 +130,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Description: ',
+                                '${"description".tr()}: ',
                                 style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
@@ -164,24 +164,24 @@ class _ApprovalDetails extends State<ApprovalDetails>
                             ],
                           ),
                           displayInfo(
-                              key: 'Approval status',
+                              key: "approvalstatus".tr(),
                               value:
                                   '${viewData['approvalsGotten'].toString()} out of ${viewData['approvalsNeeded'].toString()} approvals recieved'),
                           if (viewData['approvedBy'].toString().isNotEmpty) ...[
                             displayInfo(
-                                key: 'Approved by',
+                                key: "approvedby".tr(),
                                 value: '${viewData['approvedBy']}'),
                           ],
                           if (viewData['rejectedBy'].toString().isNotEmpty) ...[
                             displayInfo(
-                                key: 'Rejected by',
+                                key: "rejectedby".tr(),
                                 value: '${viewData['rejectedBy']}'),
                             displayInfo(
-                                key: 'Reason for rejection',
+                                key: "reasonforrejection".tr(),
                                 value: viewData['reasonForRejection']),
                           ],
                           displayInfo(
-                              key: 'Transaction status',
+                              key: "transactionstatus".tr(),
                               value: viewData['transactionStatus']
                                   .toString()
                                   .capitalizeFirst!),
@@ -211,7 +211,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                 Form(
                   key: formKey,
                   child: CustomPasswordFormField(
-                    LanguageEn.password,
+                    "password".tr(),
                     notifier.getbluewhitecolor,
                     Icons.lock,
                     notifier.getgrey,
@@ -232,14 +232,14 @@ class _ApprovalDetails extends State<ApprovalDetails>
                 ),
                 if (appState.biometricEnabled && password.isEmpty) ...[
                   Button(
-                    'Approve with biometrics',
+                    "approvewithbiometrics".tr(),
                     notifier.getbluecolor,
                     wihitecolor,
                     onTap: toggleSwitch,
                   ),
                 ] else ...[
                   Button(
-                    'Approve',
+                    "approve".tr(),
                     notifier.getbluecolor,
                     wihitecolor,
                     onTap: handleAuthorization,
@@ -250,7 +250,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                 ),
                 if (appState.biometricEnabled && password.isEmpty) ...[
                   ButtonOutlined(
-                    'Reject with biometrics',
+                    "rejectwithbiometrics".tr(),
                     notifier.getwihitecolor,
                     notifier.getbluewhitecolor,
                     onTap: () {
@@ -264,7 +264,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                   ),
                 ] else ...[
                   ButtonOutlined(
-                    'Reject',
+                    "reject".tr(),
                     notifier.getwihitecolor,
                     notifier.getbluewhitecolor,
                     onTap: () {
@@ -282,7 +282,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
                   height: height / 20,
                 ),
                 Button(
-                  'Done',
+                  "done".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () => Navigator.of(context).pop(),
@@ -346,12 +346,12 @@ class _ApprovalDetails extends State<ApprovalDetails>
                 viewData['rejectedBy']
                     .toString()
                     .contains(appState.userInfo!.username!))
-            ? 'You have already signed this transaction '
-            : 'Your approval has been requested for this transaction';
+            ? "youhavealreadysigned".tr()
+            : "yourapprovalisrequested".tr();
       case 'REJECTED':
-        return 'This transaction has already been rejected';
+        return "thistransactionisrejected".tr();
       case 'COMPLETED':
-        return 'This transaction has been completed';
+        return "transactioncompleted".tr();
       default:
         return '';
     }
@@ -369,8 +369,7 @@ class _ApprovalDetails extends State<ApprovalDetails>
       }
       sendDataToServer();
     } else {
-      popup(context,
-          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
   }
 
@@ -397,9 +396,9 @@ class _ApprovalDetails extends State<ApprovalDetails>
   }
 
   String? validatePassword(String? value) {
-    if (value!.isEmpty) return 'Enter your password';
+    if (value!.isEmpty) return "enteryourpassword".tr();
 
-    if (value.length < 6) return 'Use 6 characters or more for your password';
+    if (value.length < 6) return "hinterrorpassword".tr();
 
     return null;
   }
@@ -428,11 +427,11 @@ class _ApprovalDetails extends State<ApprovalDetails>
         sendDataToServerAgain(responseData['data']);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }
@@ -468,9 +467,8 @@ class _ApprovalDetails extends State<ApprovalDetails>
           responseData['statusCode'] == 202) {
         appState.getApprovals();
         appState.viewData![SuccessViewPageConfig.key] = {
-          'title': 'Transaction approval submitted',
-          'message':
-              'You have successfully submitted your own approval for this transaction.',
+          'title': "transactionapprovalsubmitted".tr(),
+          'message': "transactionapprovalsubmitted2".tr(),
           'useOnDone': true,
           'onDone': () {
             appState.currentAction = PageAction(
@@ -482,11 +480,11 @@ class _ApprovalDetails extends State<ApprovalDetails>
         hideLoader(context);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }
@@ -516,8 +514,8 @@ class _ApprovalDetails extends State<ApprovalDetails>
           responseData['statusCode'] == 202) {
         appState.getApprovals();
         appState.viewData![SuccessViewPageConfig.key] = {
-          'title': 'Rejection submitted',
-          'message': 'You have successfully rejected this transaction.',
+          'title': "rejectionsubmitted".tr(),
+          'message': "rejectionsubmitted2".tr(),
           'useOnDone': true,
           'onDone': () {
             appState.currentAction = PageAction(
@@ -529,11 +527,11 @@ class _ApprovalDetails extends State<ApprovalDetails>
         hideLoader(context);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }

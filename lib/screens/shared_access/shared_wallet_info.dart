@@ -1,5 +1,4 @@
-import 'dart:convert';
-
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,16 +7,13 @@ import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
-import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 
@@ -71,7 +67,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
       appBar: CustomAppBar(
         context,
         notifier.getwihitecolor,
-        'Shared Access',
+        "sharedaccess".tr(),
         notifier.getbluewhitecolor,
         height: height / 15,
       ).getBar(),
@@ -106,7 +102,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                 child: Column(
                   children: [
                     Text(
-                      'Description',
+                      "description".tr(),
                       style: TextStyle(
                         fontSize: 17,
                         fontFamily: fontsemibold,
@@ -129,7 +125,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                       height: height / 50,
                     ),
                     Text(
-                      'Owner',
+                      "owner".tr(),
                       style: TextStyle(
                         fontSize: 17,
                         fontFamily: fontsemibold,
@@ -151,7 +147,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                       height: height / 50,
                     ),
                     Text(
-                      'Permissions',
+                      "permissions".tr(),
                       style: TextStyle(
                         fontSize: 17,
                         fontFamily: fontsemibold,
@@ -165,7 +161,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                       width: width / 1.3,
                       child: Wrap(alignment: WrapAlignment.center, children: [
                         Text(
-                          'You have ',
+                          "youhave".tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontFamily: fontbody,
@@ -185,7 +181,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                             width: width / 90,
                           ),
                           Text(
-                            'and',
+                            "and".tr(),
                             style: TextStyle(
                               fontSize: 16,
                               fontFamily: fontbody,
@@ -208,7 +204,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                           ),
                         ],
                         Text(
-                          'access on this wallet',
+                          "accessonthiswallet".tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontFamily: fontbody,
@@ -250,7 +246,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          LanguageEn.somethingwentwrong,
+                          "somethingwentwrong".tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               fontSize: 16,
@@ -271,7 +267,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                                 notifier.getbluecolor!),
                           ),
                           child: Text(
-                            LanguageEn.retry,
+                            "retry".tr(),
                             style: TextStyle(
                               fontFamily: fontsemibold,
                             ),
@@ -284,7 +280,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                   return Column(
                     children: [
                       Button(
-                        'View wallet',
+                        "viewwallet".tr(),
                         notifier.getbluecolor,
                         wihitecolor,
                         onTap: () {
@@ -302,7 +298,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                         height: height / 50,
                       ),
                       ButtonOutlined(
-                        'View transaction history',
+                        "viewtransactionhistory".tr(),
                         notifier.getbluecolor80,
                         wihitecolor,
                         onTap: () {
@@ -323,7 +319,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                       if (wallet.isInitiator) ...[
                         SizedBox(height: height / 50),
                         ButtonOutlined(
-                          'Modify shared access',
+                          "modifysharedaccess".tr(),
                           notifier.getbluecolor60,
                           notifier.getbluewhitecolor,
                           onTap: () {
@@ -337,7 +333,7 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                         ),
                         SizedBox(height: height / 50),
                         ButtonOutlined(
-                          'Disable shared access',
+                          "disablesharedaccess".tr(),
                           notifier.getwihitecolor,
                           notifier.getbluewhitecolor,
                           onTap: () {
@@ -350,10 +346,10 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
                     ],
                   );
                 } else {
-                  return const Text('Empty data');
+                  return Text("emptydata".tr());
                 }
               } else {
-                return Text('State: ${snapshot.connectionState}');
+                return Text('${"state".tr()}: ${snapshot.connectionState}');
               }
             },
           )
@@ -379,10 +375,10 @@ class _SharedWalletInfoState extends State<SharedWalletInfo> {
       if (responseData['statusCode'] == 200) {
         return responseData['data'];
       } else {
-        return Future.error('Error! Something went wrong.');
+        return Future.error("somethingwentwrong".tr());
       }
     } catch (e) {
-      return Future.error('Error! ${e}');
+      return Future.error('${"error".tr()} ${e}');
     }
   }
 

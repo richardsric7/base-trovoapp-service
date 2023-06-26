@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
@@ -11,7 +12,6 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/models/asset.dart';
-import 'package:trovo_wallet/models/curated_asset.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
@@ -113,7 +113,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${LanguageEn.withdraw} ${getAssetCode(asset!.assetCode)}',
+                      '${"withdraw".tr()} ${getAssetCode(asset!.assetCode)}',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -156,7 +156,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              LanguageEn.somethingwentwrong,
+                              "somethingwentwrong".tr(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 16,
@@ -175,7 +175,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                                         notifier.getbluecolor!),
                               ),
                               child: Text(
-                                LanguageEn.retry,
+                                "retry".tr(),
                                 style: TextStyle(
                                   fontFamily: fontsemibold,
                                 ),
@@ -194,7 +194,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                             height: height / 40,
                           ),
                           Button(
-                            LanguageEn.proceed,
+                            "proceed".tr(),
                             notifier.getbluecolor,
                             wihitecolor,
                             onTap: () {
@@ -281,7 +281,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                       height: height / 50,
                     ),
                     Text(
-                      'Network',
+                      "network".tr(),
                       style: TextStyle(
                           fontSize: 15,
                           color: notifier.getbluewhitecolor,
@@ -316,7 +316,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                                   : notifier.getaddsubwalletgrey,
                             ),
                             hint: Text(
-                              'Select network',
+                              "selectnetwork".tr(),
                               style: TextStyle(
                                 color: notifier.getbluewhitecolor,
                                 fontFamily: fontbody,
@@ -363,22 +363,22 @@ class _WithdrawAsset extends State<WithdrawAsset>
                             padding: const EdgeInsets.all(20.0),
                             child: Column(
                               children: [
-                                myKeyValueRow('Network fee',
+                                myKeyValueRow("networkfee".tr(),
                                     '${networks[index]['withdrawFee']} ${asset!.assetCode}'),
                                 SizedBox(
                                   height: height / 90,
                                 ),
-                                myKeyValueRow('Min',
+                                myKeyValueRow("min".tr(),
                                     '${networks[index]['withdrawMin']} ${asset!.assetCode}'),
                                 SizedBox(
                                   height: height / 90,
                                 ),
-                                myKeyValueRow('Max',
+                                myKeyValueRow("max".tr(),
                                     '${networks[index]['withdrawMax']} ${asset!.assetCode}'),
                                 SizedBox(
                                   height: height / 90,
                                 ),
-                                myKeyValueRow('Estimated arrival time',
+                                myKeyValueRow("eta".tr(),
                                     '${networks[index]['estimatedArrivalTime'].toString()} min(s)'),
                               ],
                             ),
@@ -391,7 +391,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                     ],
                     GestureDetector(
                       child: CustomTextFormField.textField(
-                        "${LanguageEn.withdraw} ${LanguageEn.to}",
+                        "${"withdraw".tr()} ${"to".tr()}",
                         notifier.getbluecolor,
                         Icons.send,
                         notifier.getgrey,
@@ -408,7 +408,7 @@ class _WithdrawAsset extends State<WithdrawAsset>
                     ),
                     SizedBox(height: height / 50),
                     CustomTextFormField.textField(
-                      LanguageEn.amount,
+                      "amount".tr(),
                       notifier.getbluecolor,
                       Icons.currency_exchange,
                       notifier.getgrey,
@@ -495,10 +495,10 @@ class _WithdrawAsset extends State<WithdrawAsset>
     RegExp regex = new RegExp(networks[index]['addressRegex']);
 
     // reciever cannot be empty
-    if (value!.isEmpty) return 'Please enter destination address';
+    if (value!.isEmpty) return "enterdestinationaddress".tr();
 
     if (!regex.hasMatch(value.trim().replaceAll(' ', '')))
-      return 'Invalid destination address';
+      return "invaliddestinationaddress".tr();
 
     return null;
   }
@@ -510,35 +510,35 @@ class _WithdrawAsset extends State<WithdrawAsset>
       setState(() {
         amountError = true;
       });
-      return 'Please enter amount to send';
+      return "pleaseenteramounttosend".tr();
     }
 
     if (double.tryParse(value) == null) {
       setState(() {
         amountError = true;
       });
-      return 'Please enter a valid amount';
+      return "pleaseentervalidamount".tr();
     }
 
     if (double.tryParse(value)! < double.parse(minValue)) {
       setState(() {
         amountError = true;
       });
-      return 'Value less than min withdrawable';
+      return "valuelessthanwithdrawable".tr();
     }
 
     if (double.tryParse(value)! > double.parse(maxValue)) {
       setState(() {
         amountError = true;
       });
-      return 'Value greater than max withdrawable';
+      return "valuegreaterthanwithdrawable".tr();
     }
 
     if (double.tryParse(value)! > (asset!.amount!)) {
       setState(() {
         amountError = true;
       });
-      return 'You don\'t have sufficient balance';
+      return "youdonthavesufficientbalance".tr();
     }
 
     setState(() {
@@ -602,10 +602,10 @@ class _WithdrawAsset extends State<WithdrawAsset>
         );
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -8,7 +9,6 @@ import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/storage/cache.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -70,7 +70,7 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
           child: Column(
             children: [
               Text(
-                LanguageEn.enable,
+                "enable".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -78,7 +78,7 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
                     fontFamily: fontsemibold),
               ),
               Text(
-                LanguageEn.accountrecovery,
+                "accountrecovery".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -90,13 +90,13 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
               //   child: Image.asset("assets/images/palm-recognition.png",
               //       height: height / 2.8),
               // ),
-              description(LanguageEn.enableaccountrecoverydescription1),
-              description(LanguageEn.enableaccountrecoverydescription2),
-              description(LanguageEn.enableaccountrecoverydescription3),
-              description(LanguageEn.enableaccountrecoverydescription4),
+              description("enableaccountrecoverydescription1".tr()),
+              description("enableaccountrecoverydescription2".tr()),
+              description("enableaccountrecoverydescription3".tr()),
+              description("enableaccountrecoverydescription4".tr()),
               SizedBox(height: height / 20),
               Button(
-                LanguageEn.taptoenableaccountrecovery,
+                "taptoenableaccountrecovery".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: _handleSubmit,
@@ -180,12 +180,12 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
         postProcessData(messageShown, messageLength, responseData['data']);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }
@@ -241,19 +241,19 @@ class _SetupAccountRecoveryState extends State<SetupAccountRecovery> {
             primaryWallet.publicKey!, appState.userInfo!.username, appState);
         appState.viewData = {
           SuccessViewPageConfig.key: {
-            'title': LanguageEn.success,
-            'message': LanguageEn.enableaccountrecoverysuccess,
+            'title': "success".tr(),
+            'message': "enableaccountrecoverysuccess".tr(),
           }
         };
         appState.currentAction =
             PageAction(state: PageState.replace, page: SuccessViewPageConfig);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
 
     hideLoader(context);

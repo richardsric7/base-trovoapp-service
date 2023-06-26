@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -92,7 +93,7 @@ class _ImportWalletState extends State<ImportWallet> {
                         Row(
                           children: [
                             Text(
-                              LanguageEn.import,
+                              "import".tr(),
                               style: TextStyle(
                                   color: notifier.getbluewhitecolor,
                                   fontSize: 26.sp,
@@ -102,7 +103,7 @@ class _ImportWalletState extends State<ImportWallet> {
                               width: width / 50,
                             ),
                             Text(
-                              LanguageEn.wallet,
+                              "wallet".tr(),
                               style: TextStyle(
                                   color: notifier.getbluewhitecolor,
                                   fontSize: 26.sp,
@@ -113,7 +114,7 @@ class _ImportWalletState extends State<ImportWallet> {
                         SizedBox(height: height / 15),
                         // Email address
                         CustomTextFormField.textField(
-                          LanguageEn.usernameoremail,
+                          "usernameoremail".tr(),
                           notifier.getbluecolor,
                           Icons.email,
                           notifier.getgrey,
@@ -125,11 +126,11 @@ class _ImportWalletState extends State<ImportWallet> {
                           validator: (value) {
                             var trimmedVal = value!.trim().replaceAll(' ', '');
                             if (trimmedVal.isEmpty) {
-                              return LanguageEn.usernameoremailempty;
+                              return "usernameoremailempty".tr();
                             }
 
                             if (trimmedVal.length < 3) {
-                              return LanguageEn.usernameoremailinvalid;
+                              return "usernameoremailinvalid".tr();
                             }
                           },
                           onSaved: storeUsernameOrEmail,
@@ -146,7 +147,7 @@ class _ImportWalletState extends State<ImportWallet> {
                         if (usePassPhrase) ...[
                           // Pass phrase/Mnemonic
                           passPhraseInput(
-                            LanguageEn.passphrase,
+                            "passphrase".tr(),
                             notifier.getbluecolor,
                             notifier.getgrey,
                             notifier.getblck,
@@ -155,7 +156,7 @@ class _ImportWalletState extends State<ImportWallet> {
                             300.sp,
                             validator: (value) {
                               if (value.isEmpty) {
-                                return LanguageEn.enterpassphraseempty;
+                                return "enterpassphraseempty".tr();
                               }
                             },
                             onSaved: (value) {
@@ -169,7 +170,7 @@ class _ImportWalletState extends State<ImportWallet> {
                         ] else ...[
                           // Secret Key
                           CustomPasswordFormField(
-                            LanguageEn.secretkey,
+                            "secretkey".tr(),
                             notifier.getbluecolor,
                             Icons.lock,
                             notifier.getgrey,
@@ -181,11 +182,11 @@ class _ImportWalletState extends State<ImportWallet> {
                               var trimmedVal =
                                   value!.trim().replaceAll(' ', '');
                               if (trimmedVal.isEmpty) {
-                                return LanguageEn.entersecretkeyempty;
+                                return "entersecretkeyempty".tr();
                               }
 
                               if (trimmedVal.length < 56) {
-                                return LanguageEn.secretkeyinvalid;
+                                return "secretkeyinvalid".tr();
                               }
                             },
                             onSaved: (value) {
@@ -197,7 +198,7 @@ class _ImportWalletState extends State<ImportWallet> {
                         ],
                         SizedBox(height: height / 40),
                         CustomPasswordFormField(
-                          LanguageEn.password,
+                          "password".tr(),
                           notifier.getbluecolor,
                           Icons.lock,
                           notifier.getgrey,
@@ -214,7 +215,7 @@ class _ImportWalletState extends State<ImportWallet> {
                         ),
                         SizedBox(height: height / 80),
                         CustomPasswordFormField(
-                          LanguageEn.confirmPassword,
+                          "confirmPassword".tr(),
                           notifier.getbluecolor,
                           Icons.lock,
                           notifier.getgrey,
@@ -241,7 +242,7 @@ class _ImportWalletState extends State<ImportWallet> {
               ),
               SizedBox(height: height / 20),
               Button(
-                LanguageEn.continuee,
+                "continuee".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () => saveForm(),
@@ -296,7 +297,7 @@ class _ImportWalletState extends State<ImportWallet> {
             Row(
               children: [
                 Text(
-                  LanguageEn.enterpassphrase,
+                  "enterpassphrase".tr(),
                   style: TextStyle(
                       fontSize: height / 55,
                       color: notifier.getblck,
@@ -368,7 +369,7 @@ class _ImportWalletState extends State<ImportWallet> {
   String? storeUsernameOrEmail(String? value) {
     var currValue = value!.trim().replaceAll(' ', '');
     if (currValue.isEmpty) {
-      return LanguageEn.emailvalidateempty;
+      return "emailvalidateempty".tr();
     }
 
     setState(() {
@@ -428,8 +429,7 @@ class _ImportWalletState extends State<ImportWallet> {
           // must be some sort of server error
           // let's throw it
           popup(context,
-              title: LanguageEn.error,
-              message: responseData['data']['message']);
+              title: "error".tr(), message: responseData['data']['message']);
         }
       }
       hideLoader(context);
@@ -478,12 +478,12 @@ class _ImportWalletState extends State<ImportWallet> {
   String? validatePassword(value) {
     if (value.isEmpty) {
       //return "Enter a password";
-      return LanguageEn.passwordemptyerror;
+      return "passwordemptyerror".tr();
     }
 
     if (value.trim().replaceAll(' ', '').length < 6) {
       //return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
+      return "hinterrorpassword".tr();
     }
 
     return null;
@@ -492,17 +492,17 @@ class _ImportWalletState extends State<ImportWallet> {
   String? validateConfirmPassword(value) {
     if (value.isEmpty) {
       // return "Confirm your password";
-      return LanguageEn.confirmpasswordemptyerror;
+      return "confirmpasswordemptyerror".tr();
     }
 
     if (value.trim().replaceAll(' ', '').length < 6) {
       // return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
+      return "hinterrorpassword".tr();
     }
 
     if (password != value.trim().replaceAll(' ', '')) {
       //  return 'Those passwords didn\’t match. Try again.';
-      return LanguageEn.passwordmismatcherror;
+      return "passwordmismatcherror".tr();
     }
 
     return null;
@@ -534,8 +534,7 @@ class _ImportWalletState extends State<ImportWallet> {
       print(e);
       // must be some sort of server error
       // let's throw it
-      popup(context,
-          title: LanguageEn.error, message: LanguageEn.invalidcredentials);
+      popup(context, title: "error".tr(), message: "invalidcredentials".tr());
       return null;
     }
   }
@@ -549,8 +548,7 @@ class _ImportWalletState extends State<ImportWallet> {
       print(e);
       // must be some sort of server error
       // let's throw it
-      popup(context,
-          title: LanguageEn.error, message: LanguageEn.invalidcredentials);
+      popup(context, title: "error".tr(), message: "invalidcredentials".tr());
       return null;
     }
   }

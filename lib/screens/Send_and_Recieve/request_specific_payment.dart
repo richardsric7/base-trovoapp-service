@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -98,7 +99,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${LanguageEn.request} ${getAssetCode(asset!.assetCode)}',
+                      '${"request".tr()} ${getAssetCode(asset!.assetCode)}',
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -114,7 +115,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
               formFields(),
               SizedBox(height: height / 20),
               Button(
-                LanguageEn.proceed,
+                "proceed".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -145,7 +146,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                   height: height / 50,
                 ),
                 CustomTextFormField.textField(
-                  'Receiving wallet',
+                  "receivingwallet".tr(),
                   notifier.getbluecolor,
                   Icons.wallet,
                   notifier.getgrey,
@@ -160,7 +161,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                 ),
                 SizedBox(height: height / 50),
                 CustomTextFormField.textField(
-                  LanguageEn.amount,
+                  "amount".tr(),
                   notifier.getbluecolor,
                   Icons.currency_exchange,
                   notifier.getgrey,
@@ -184,7 +185,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
                 ),
                 SizedBox(height: height / 50),
                 CustomTextFormField.textField(
-                  LanguageEn.memo,
+                  "memo".tr(),
                   notifier.getbluecolor,
                   Icons.edit_note,
                   notifier.getgrey,
@@ -224,21 +225,21 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
       setState(() {
         amountError = true;
       });
-      'Please enter amount to send';
+      "pleaseenteramounttosend".tr();
     }
 
     if (double.tryParse(value) == null) {
       setState(() {
         amountError = true;
       });
-      return 'Please enter a valid amount';
+      return "pleaseentervalidamount".tr();
     }
 
     if (double.tryParse(value)! <= 0) {
       setState(() {
         amountError = true;
       });
-      return 'Value must be greater than 0';
+      return "valuemustbegreaterthan".tr(args: ['0']);
     }
 
     setState(() {
@@ -288,12 +289,12 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
             page: RequestSpecificPaymentDetailsViewPageConfig);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
       hideLoader(context);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
   }
 }
