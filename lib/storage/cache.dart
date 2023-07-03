@@ -1,4 +1,3 @@
-// import 'dart:ffi';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/announcement.dart';
 import 'package:trovo_wallet/network/requests.dart';
