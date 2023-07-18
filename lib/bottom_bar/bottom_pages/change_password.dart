@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,7 +7,6 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
@@ -77,7 +77,7 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                     child: Column(
                       children: [
                         Text(
-                          LanguageEn.changepassword,
+                          "changepassword".tr(),
                           style: TextStyle(
                               color: notifier.getblck,
                               fontSize: 26.sp,
@@ -86,7 +86,7 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                         SizedBox(height: height / 10),
                         // Old Password
                         CustomPasswordFormField(
-                          LanguageEn.oldpassword,
+                          "oldpassword".tr(),
                           notifier.getbluecolor,
                           Icons.lock,
                           notifier.getgrey,
@@ -104,7 +104,7 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                         SizedBox(height: height / 40),
                         // New Password
                         CustomPasswordFormField(
-                          LanguageEn.newpassword,
+                          "newpassword".tr(),
                           notifier.getbluecolor,
                           Icons.lock,
                           notifier.getgrey,
@@ -122,7 +122,7 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                         SizedBox(height: height / 80),
                         // New Password
                         CustomPasswordFormField(
-                          LanguageEn.confirmPassword,
+                          "confirmPassword".tr(),
                           notifier.getbluecolor,
                           Icons.lock,
                           notifier.getgrey,
@@ -138,23 +138,8 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                 ],
               ),
               SizedBox(height: height / 20),
-              // if (appState.biometricEnabled) ...[
-              //   Button(
-              //     LanguageEn.authorizewithbiometrics,
-              //     notifier.getbluecolor,
-              //     notifier.getwihitecolor,
-              //     onTap: () {
-              //       final form = _formKey.currentState;
-              //       if (!form!.validate()) {
-              //         return;
-              //       }
-              //       form.save();
-              //       toggleSwitch();
-              //     },
-              //   ),
-              // ] else ...[
               Button(
-                LanguageEn.changepassword,
+                "changepassword".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -166,7 +151,6 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                   changePassword();
                 },
               ),
-              // ],
               SizedBox(height: height / 10),
               Padding(
                 padding: EdgeInsets.only(
@@ -203,16 +187,15 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
       appState.setPassword = await StoreData().storeGetData('password');
       appState.viewData = {
         SuccessViewPageConfig.key: {
-          'title': LanguageEn.success,
-          'message': "Your password has been successfully changed!",
+          'title': "success".tr(),
+          'message': "passwordchangesuccessful".tr(),
         }
       };
       appState.currentAction =
           PageAction(state: PageState.replace, page: SuccessViewPageConfig);
     } catch (e) {
       print(e);
-      popup(context,
-          title: LanguageEn.error, message: LanguageEn.somethingwentwrong);
+      popup(context, title: "error".tr(), message: "somethingwentwrong".tr());
     }
   }
 
@@ -220,16 +203,16 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
     print('old password: $value');
     if (value.isEmpty) {
       //return "Enter a password";
-      return LanguageEn.passwordemptyerror;
+      return "passwordemptyerror".tr();
     }
 
     if (value.trim().replaceAll(' ', '').length < 6) {
       //return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
+      return "hinterrorpassword".tr();
     }
     print('checking old password');
     if (oldPassword != appState.password!) {
-      return LanguageEn.invalidpassword;
+      return "invalidpassword".tr();
     }
 
     return null;
@@ -239,12 +222,12 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
     print('new password: ${value.trim().replaceAll(' ', '')}');
     if (value.isEmpty) {
       // return "Confirm your password";
-      return LanguageEn.newpasswordemptyerror;
+      return "newpasswordemptyerror".tr();
     }
 
     if (value.trim().replaceAll(' ', '').length < 6) {
       // return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
+      return "hinterrorpassword".tr();
     }
 
     return null;
@@ -255,17 +238,17 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
         'confirm password: ${value.trim().replaceAll(' ', '')} & $newPassword');
     if (value.isEmpty) {
       // return "Confirm your password";
-      return LanguageEn.confirmnewpasswordemptyerror;
+      return "confirmnewpasswordemptyerror".tr();
     }
 
     if (value.trim().replaceAll(' ', '').length < 6) {
       // return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
+      return "hinterrorpassword".tr();
     }
 
     if (newPassword != value.trim().replaceAll(' ', '')) {
       //  return 'Those passwords didn\’t match. Try again.';
-      return LanguageEn.passwordmismatcherror;
+      return "passwordmismatcherror".tr();
     }
 
     return null;

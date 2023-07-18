@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:scan/scan.dart';
-import 'package:trovo_wallet/router/page_actions.dart';
-import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -102,7 +101,7 @@ class _QrScannerState extends State<QrScanner> {
                 padding: const EdgeInsets.symmetric(vertical: 15.0),
                 child: Center(
                   child: Text(
-                    LanguageEn.placeqrcode,
+                    "placeqrcode".tr(),
                     style: TextStyle(
                         color: Colors.white60, fontWeight: FontWeight.w500),
                     textAlign: TextAlign.center,

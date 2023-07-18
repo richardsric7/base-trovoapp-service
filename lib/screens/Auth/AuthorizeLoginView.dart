@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -51,7 +52,7 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
             children: [
               SizedBox(height: height / 10),
               Text(
-                '${LanguageEn.authorize} Login',
+                '${"authorize".tr()} Login',
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
@@ -78,7 +79,7 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
-                  LanguageEn.password,
+                  "password".tr(),
                   notifier.getbluewhitecolor,
                   Icons.lock,
                   notifier.getgrey,
@@ -99,14 +100,14 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
               ),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
-                  LanguageEn.authorizewithbiometrics,
+                  "authorizewithbiometrics".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: toggleSwitch,
                 ),
               ] else ...[
                 Button(
-                  LanguageEn.authorize,
+                  "authorize".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: handleAuthorization,
@@ -114,7 +115,7 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
               ],
               SizedBox(height: height / 50.5),
               ButtonOutlined(
-                LanguageEn.cancel,
+                "cancel".tr(),
                 notifier.getwihitecolor,
                 notifier.getbluewhitecolor,
                 onTap: () {
@@ -139,8 +140,7 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
     if (password == appState.password!) {
       authorize();
     } else {
-      popup(context,
-          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
   }
 
@@ -195,11 +195,11 @@ class _AuthorizeLoginViewState extends State<AuthorizeLoginView> {
                 state: PageState.replaceAll, page: BottomHomePageConfig));
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
     hideLoader(context);
   }

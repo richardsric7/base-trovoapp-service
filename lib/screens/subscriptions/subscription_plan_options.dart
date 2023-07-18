@@ -1,6 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/utils.dart';
+import 'package:get/utils.dart' hide Trans;
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -8,12 +9,8 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/models/patronInfo.dart';
-import 'package:trovo_wallet/models/patronTier.dart';
-import 'package:trovo_wallet/router/page_actions.dart';
-import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-
 import '../../custom_bloc_observer/fonts.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -58,7 +55,7 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          '${patronInfo.patronPackage.capitalizeFirst} Options',
+          '${patronInfo.patronPackage.capitalizeFirst} ${"options".tr()}',
           notifier.getblck,
           height: height / 15,
         ).getBar(),
@@ -89,7 +86,7 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
                   height: height / 50,
                 ),
                 planOption(
-                  '${tier.tier.capitalizeFirst} subscription ${tier.tier == 'LIFETIME' ? '(recommended)' : ''}',
+                  '${tier.tier.capitalizeFirst} ${"subscription".tr().toLowerCase()} ${tier.tier == 'LIFETIME' ? '(recommended)' : ''}',
                   '\$${tier.price}',
                   () {
                     // appState.viewData = {
@@ -101,9 +98,8 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
                     //     page: AuthorizeSubscriptionViewPageConfig);
                     popup(
                       context,
-                      title: 'Coming soon!',
-                      message:
-                          'Trovo patron will become active on mainnet and then you can subscribe to a patron plan.',
+                      title: "comingsoon".tr(),
+                      message: "comingsoondetails".tr(),
                       bodyColor: notifier.getbluewhitecolor,
                     );
                   },

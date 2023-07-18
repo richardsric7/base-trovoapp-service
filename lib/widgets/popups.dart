@@ -1,12 +1,9 @@
-import 'dart:math';
-
 import 'package:app_settings/app_settings.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
@@ -15,17 +12,12 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/screens/Send_and_Recieve/deposit_withdrawal_history.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
-import 'package:trovo_wallet/widgets/bar_chart.dart';
-import 'package:trovo_wallet/widgets/price_points.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../custom_bloc_observer/notifire_clor.dart';
 import '../router/page_actions.dart';
 import '../router/ui_pages.dart';
 import '../screens/shared_access/shared_access.dart';
 import '../storage/state.dart';
-import '../utils/enstring.dart';
-
-// late ColorNotifier notifier;
 
 popup(context,
     {required String title,
@@ -112,7 +104,7 @@ popup(context,
                         ),
                       ),
                       child: Text(
-                        LanguageEn.continuee,
+                        "continuee".tr(),
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
@@ -130,11 +122,11 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(LanguageEn.biometricsrequired),
+          title: Text("biometricsrequired".tr()),
           actions: [
             TextButton(
               child: Text(
-                LanguageEn.cancel,
+                "cancel".tr(),
                 style: TextStyle(
                     fontSize: 14.0,
                     fontFamily: fontbody,
@@ -148,7 +140,7 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
             ),
             TextButton(
                 child: Text(
-                  LanguageEn.gotosettings,
+                  "gotosettings".tr(),
                   style: TextStyle(
                       fontSize: 14.0,
                       fontFamily: fontbody,
@@ -167,7 +159,7 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
               ),
             ),
             child: Text(
-              LanguageEn.biometricsnotenabled,
+              "biometricsnotenabled".tr(),
               style: TextStyle(
                 fontFamily: fontbody,
                 fontSize: 15.0,
@@ -207,7 +199,7 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        LanguageEn.oops,
+                        "oops".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -229,7 +221,7 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10.0, horizontal: 5.0),
                             child: Text(
-                              LanguageEn.accountnotfound,
+                              "accountnotfound".tr(),
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
@@ -270,7 +262,7 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.continuee,
+                        "continuee".tr(),
                         style: TextStyle(
                             color: notifier.getwihitecolor,
                             fontFamily: fontbody),
@@ -307,7 +299,7 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.cancel,
+                        "cancel".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontbody),
@@ -348,7 +340,7 @@ void ensureBackupPrivacyDialog(context, action) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        LanguageEn.important,
+                        "important".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -369,7 +361,7 @@ void ensureBackupPrivacyDialog(context, action) {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10.0, horizontal: 5.0),
                             child: Text(
-                              LanguageEn.ensureprivacybackup,
+                              "ensureprivacybackup".tr(),
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
@@ -403,7 +395,7 @@ void ensureBackupPrivacyDialog(context, action) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.continuee,
+                        "continuee".tr(),
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
@@ -439,7 +431,7 @@ void ensureBackupPrivacyDialog(context, action) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.cancel,
+                        "cancel".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontbody),
@@ -484,7 +476,7 @@ void showPasswordDialog(context, action) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        LanguageEn.password,
+                        "password".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -507,7 +499,7 @@ void showPasswordDialog(context, action) {
                             child: Form(
                               key: formKey,
                               child: CustomPasswordFormField(
-                                LanguageEn.password,
+                                "password".tr(),
                                 notifier.getbluewhitecolor,
                                 Icons.lock,
                                 notifier.getgrey,
@@ -517,12 +509,12 @@ void showPasswordDialog(context, action) {
                                 300.sp,
                                 validator: (String? value) {
                                   if (value!.isEmpty)
-                                    return 'Enter your password';
+                                    return "pleaseenteryourpassword".tr();
 
                                   if (value.length < 6)
-                                    return 'Use 6 characters or more for your password';
+                                    return "use6charsormoreforpassword".tr();
                                   if (password != appState.password!) {
-                                    return 'Invalid password';
+                                    return "invalidpassword".tr();
                                   }
                                   return null;
                                 },
@@ -541,7 +533,6 @@ void showPasswordDialog(context, action) {
                         horizontal: 10.0, vertical: 5.0),
                     child: ElevatedButton(
                       onPressed: () {
-                        print('elevated button pressed...$password');
                         if (!formKey.currentState!.validate()) {
                           return;
                         }
@@ -564,7 +555,7 @@ void showPasswordDialog(context, action) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.continuee,
+                        "continuee".tr(),
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
@@ -600,7 +591,7 @@ void showPasswordDialog(context, action) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.cancel,
+                        "cancel".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontbody),
@@ -642,7 +633,7 @@ void warnSkipBackupDialog(context, onSkip) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        LanguageEn.important,
+                        "important".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -663,7 +654,7 @@ void warnSkipBackupDialog(context, onSkip) {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10.0, horizontal: 5.0),
                             child: Text(
-                              LanguageEn.warnskipbackup,
+                              "warnskipbackup".tr(),
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
@@ -698,7 +689,7 @@ void warnSkipBackupDialog(context, onSkip) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.cancel,
+                        "cancel".tr(),
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
@@ -736,7 +727,7 @@ void warnSkipBackupDialog(context, onSkip) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.skip,
+                        "skip".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontbody),
@@ -777,7 +768,7 @@ void updateAppMessagePopup(context, message, Function() onTap) {
                     padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
                     child: Center(
                       child: Text(
-                        'Update App',
+                        "updateapp".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -833,7 +824,7 @@ void updateAppMessagePopup(context, message, Function() onTap) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.update,
+                        "update".tr(),
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
@@ -873,7 +864,7 @@ void showResponseMessage(context, message, successAction) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        LanguageEn.important,
+                        "important".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -931,7 +922,7 @@ void showResponseMessage(context, message, successAction) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.continuee,
+                        "continuee".tr(),
                         style: TextStyle(
                           color: wihitecolor,
                           fontFamily: fontbody,
@@ -970,7 +961,7 @@ void showResponseMessage(context, message, successAction) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.cancel,
+                        "cancel".tr(),
                         style: TextStyle(
                           color: notifier.getbluewhitecolor,
                           fontFamily: fontbody,
@@ -1012,7 +1003,7 @@ void mintWalletExplainerPopup(context) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        LanguageEn.information,
+                        "information".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -1033,7 +1024,7 @@ void mintWalletExplainerPopup(context) {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10.0, horizontal: 5.0),
                             child: Text(
-                              LanguageEn.explainmintwallet,
+                              "explainmintwallet".tr(),
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
@@ -1069,7 +1060,7 @@ void mintWalletExplainerPopup(context) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.continuee,
+                        "continuee".tr(),
                         style: TextStyle(
                           color: wihitecolor,
                           fontFamily: fontbody,
@@ -1111,7 +1102,7 @@ void showSuccessAlert(context, {required onTap}) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        LanguageEn.success,
+                        "success".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -1166,7 +1157,7 @@ void showSuccessAlert(context, {required onTap}) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.continuee,
+                        "continuee".tr(),
                         style: TextStyle(
                             color: notifier.getwihitecolor,
                             fontFamily: fontbody),
@@ -1217,7 +1208,7 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 20.0, horizontal: 5.0),
                             child: Text(
-                              LanguageEn.chooseimagesource,
+                              "chooseimagesource".tr(),
                               style: TextStyle(
                                 fontSize: 17,
                                 color: notifier.getbluewhitecolor,
@@ -1255,7 +1246,7 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.gallery,
+                        "gallery".tr(),
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
@@ -1294,7 +1285,7 @@ void imageSourceDialog(context, {onCamera, onGallery}) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.camera,
+                        "camera".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontbody),
@@ -1341,7 +1332,7 @@ customDateRangePopup(context, {required void Function() onDone}) async {
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          'Enter the date range below',
+                          "enterdaterange".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontSize: 15,
@@ -1359,20 +1350,20 @@ customDateRangePopup(context, {required void Function() onDone}) async {
                           children: [
                             Wrap(
                               children: [
-                                quickDateRange(context, text: 'Past week',
+                                quickDateRange(context, text: "pastweek".tr(),
                                     onPressed: () {
                                   appState.setFilterStartDate = DateTime.now()
                                       .subtract(Duration(days: 7));
                                   appState.setFilterEndDate = DateTime.now();
                                 }),
-                                quickDateRange(context, text: 'Past month',
+                                quickDateRange(context, text: "pastmonth".tr(),
                                     onPressed: () {
                                   var date = DateTime.now();
                                   appState.setFilterEndDate = date;
                                   appState.setFilterStartDate = DateTime(
                                       date.year, date.month - 1, date.day);
                                 }),
-                                quickDateRange(context, text: 'Past 3 months',
+                                quickDateRange(context, text: "past3month".tr(),
                                     onPressed: () {
                                   var date = DateTime.now();
                                   appState.setFilterEndDate = date;
@@ -1390,7 +1381,7 @@ customDateRangePopup(context, {required void Function() onDone}) async {
                               child: Column(
                                 children: [
                                   Text(
-                                    'Start Date',
+                                    "startdate".tr(),
                                     textAlign: TextAlign.start,
                                     style: TextStyle(
                                         color: notifier.getbluewhitecolor,
@@ -1453,7 +1444,7 @@ customDateRangePopup(context, {required void Function() onDone}) async {
                               child: Column(
                                 children: [
                                   Text(
-                                    'End Date',
+                                    "enddate".tr(),
                                     textAlign: TextAlign.start,
                                     style: TextStyle(
                                         color: notifier.getbluewhitecolor,
@@ -1550,7 +1541,7 @@ customDateRangePopup(context, {required void Function() onDone}) async {
                           ),
                         ),
                         child: Text(
-                          LanguageEn.done,
+                          "done".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),
@@ -1631,7 +1622,7 @@ amountRangePopup(context, {required void Function() onDone}) async {
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          'Enter the amount range below',
+                          "enteramountrange".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontSize: 15,
@@ -1650,7 +1641,7 @@ amountRangePopup(context, {required void Function() onDone}) async {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               CustomTextFormField.textFieldWithoutIcon(
-                                'minimum amount',
+                                "minimumamount".tr(),
                                 notifier.getbluecolor,
                                 notifier.getgrey,
                                 notifier.getprefixicon,
@@ -1672,7 +1663,7 @@ amountRangePopup(context, {required void Function() onDone}) async {
                                 height: height / 30,
                               ),
                               CustomTextFormField.textFieldWithoutIcon(
-                                'maximum amount',
+                                "maximumamount".tr(),
                                 notifier.getbluecolor,
                                 notifier.getgrey,
                                 notifier.getprefixicon,
@@ -1721,7 +1712,7 @@ amountRangePopup(context, {required void Function() onDone}) async {
                           ),
                         ),
                         child: Text(
-                          LanguageEn.done,
+                          "done".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),
@@ -1848,7 +1839,7 @@ textFieldPopup(context,
                           ),
                         ),
                         child: Text(
-                          LanguageEn.done,
+                          "done".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),
@@ -1892,7 +1883,7 @@ transactionTypePopup(context,
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          'Select transaction type',
+                          "selecttransactiontype".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontSize: 15,
@@ -1910,15 +1901,15 @@ transactionTypePopup(context,
                           children: [
                             Wrap(
                               children: [
-                                quickDateRange(context, text: 'All',
+                                quickDateRange(context, text: "all".tr(),
                                     onPressed: () {
                                   onAllSelected();
                                 }),
-                                quickDateRange(context, text: 'Swap',
+                                quickDateRange(context, text: "swap".tr(),
                                     onPressed: () {
                                   onSwapSelected();
                                 }),
-                                quickDateRange(context, text: 'Payment',
+                                quickDateRange(context, text: "payment".tr(),
                                     onPressed: () {
                                   onPaymentSelected();
                                 }),
@@ -1969,7 +1960,7 @@ wrappedAssetTransactionTypePopup(
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          'Select transaction type',
+                          "selecttransactiontype".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontSize: 15,
@@ -1987,12 +1978,13 @@ wrappedAssetTransactionTypePopup(
                           children: [
                             Wrap(
                               children: [
-                                quickDateRange(context, text: 'Deposit history',
-                                    onPressed: () {
+                                quickDateRange(context,
+                                    text: "deposithistory".tr(), onPressed: () {
                                   onDepositSelected();
                                 }),
                                 quickDateRange(context,
-                                    text: 'Withdrawal history', onPressed: () {
+                                    text: "withdrawalhistory".tr(),
+                                    onPressed: () {
                                   onWithdrawSelected();
                                 }),
                               ],
@@ -2042,7 +2034,7 @@ wrappedAssetTransactionStatusPopup(
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          'Choose status',
+                          "choosestatus".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontSize: 15,
@@ -2060,11 +2052,11 @@ wrappedAssetTransactionStatusPopup(
                           children: [
                             Wrap(
                               children: [
-                                quickDateRange(context, text: 'Pending',
+                                quickDateRange(context, text: "pending_2".tr(),
                                     onPressed: () {
                                   onPendingSelected();
                                 }),
-                                quickDateRange(context, text: 'Completed',
+                                quickDateRange(context, text: "completed".tr(),
                                     onPressed: () {
                                   onCompletedSelected();
                                 }),
@@ -2087,26 +2079,26 @@ wrappedAssetTransactionStatusPopup(
 String getLabelText(HistoryFilterType rel) {
   switch (rel) {
     case HistoryFilterType.FromPublicKey:
-      return 'Enter from public key below';
+      return "enterfrompublickey".tr();
     case HistoryFilterType.ToPublicKey:
-      return 'Enter to public key below';
+      return "entertopublickey".tr();
     case HistoryFilterType.Memo:
-      return 'Enter to memo text below';
+      return "entermemotext".tr();
     default:
-      return 'Enter username or full name below';
+      return "enterusernameorfullname".tr();
   }
 }
 
 String getPlaceholder(HistoryFilterType rel) {
   switch (rel) {
     case HistoryFilterType.FromPublicKey:
-      return 'from public key';
+      return "frompublickey".tr();
     case HistoryFilterType.ToPublicKey:
-      return 'to public key';
+      return "topublickey".tr();
     case HistoryFilterType.Memo:
-      return 'memo';
+      return "memo".tr();
     default:
-      return 'username';
+      return "username".tr();
   }
 }
 
@@ -2138,7 +2130,7 @@ void haveYouSetupSecurityQuestionsPopup(context,
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        LanguageEn.important,
+                        "important".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -2159,7 +2151,7 @@ void haveYouSetupSecurityQuestionsPopup(context,
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10.0, horizontal: 5.0),
                             child: Text(
-                              LanguageEn.haveyousetupsecurityquestions,
+                              "haveyousetupsecurityquestions".tr(),
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
@@ -2196,7 +2188,7 @@ void haveYouSetupSecurityQuestionsPopup(context,
                         ),
                       ),
                       child: Text(
-                        LanguageEn.ihavesetupsecurityquestions,
+                        "ihavesetupsecurityquestions".tr(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: wihitecolor,
@@ -2237,7 +2229,7 @@ void haveYouSetupSecurityQuestionsPopup(context,
                         ),
                       ),
                       child: Text(
-                        LanguageEn.ihavenotsetupsecurityquestions,
+                        "ihavenotsetupsecurityquestions".tr(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: notifier.getbluewhitecolor,
@@ -2281,7 +2273,7 @@ shareAccessInfoPopup(context) async {
                     padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 10.0),
                     child: Center(
                       child: Text(
-                        'Shared Access',
+                        "sharedaccess".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -2303,8 +2295,7 @@ shareAccessInfoPopup(context) async {
                                 vertical: 10.0, horizontal: 20.0),
                             child: RichText(
                               text: TextSpan(
-                                text:
-                                    'Here you can give others various access rights to your wallet.\n\n',
+                                text: "welcometosharedaccess".tr(),
                                 style: TextStyle(
                                   fontSize: 17,
                                   fontFamily: fontbody,
@@ -2312,7 +2303,7 @@ shareAccessInfoPopup(context) async {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: 'Viewer Access ',
+                                    text: '${"vieweraccess".tr()} ',
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontsemibold,
@@ -2320,8 +2311,7 @@ shareAccessInfoPopup(context) async {
                                     ),
                                   ),
                                   TextSpan(
-                                    text:
-                                        'enables other users to view your wallet balance, receive payment into your wallet and view your wallet history.\n\n',
+                                    text: "describevieweraccess".tr(),
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontbody,
@@ -2329,7 +2319,7 @@ shareAccessInfoPopup(context) async {
                                     ),
                                   ),
                                   TextSpan(
-                                    text: 'Initiator Access ',
+                                    text: '${"initiatoraccess".tr()} ',
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontsemibold,
@@ -2337,8 +2327,7 @@ shareAccessInfoPopup(context) async {
                                     ),
                                   ),
                                   TextSpan(
-                                    text:
-                                        'enables other users in addition to viewer access, to initiate a transaction from your wallet and pass it to the appropriate approvers to approve.\n\n',
+                                    text: "describeinitiatoraccess".tr(),
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontbody,
@@ -2346,7 +2335,7 @@ shareAccessInfoPopup(context) async {
                                     ),
                                   ),
                                   TextSpan(
-                                    text: 'Approver Access ',
+                                    text: '${"approveraccess".tr()} ',
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontsemibold,
@@ -2354,8 +2343,7 @@ shareAccessInfoPopup(context) async {
                                     ),
                                   ),
                                   TextSpan(
-                                    text:
-                                        'enables other users in addition to viewer access, to become approvers on your wallet, this means that whenever a transaction is initiated from your wallet by the initiators, it must be approved by the required number of approvers out of the added approvers for the transaction to successfully go through.\n\n',
+                                    text: "describeapproveraccess".tr(),
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontbody,
@@ -2363,7 +2351,7 @@ shareAccessInfoPopup(context) async {
                                     ),
                                   ),
                                   TextSpan(
-                                    text: 'Note: ',
+                                    text: '${"note".tr()}: ',
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontsemibold,
@@ -2371,8 +2359,7 @@ shareAccessInfoPopup(context) async {
                                     ),
                                   ),
                                   TextSpan(
-                                    text:
-                                        'You must be careful when giving approver access because once you give others approver access on any of your wallets, the wallet seizes to be your sole wallet, it now becomes a jointly owned wallet that must get the approval of all the required approvers for any transaction to take place on it successfully.\n\nIf you happen not to be an initiator on the wallet with approver access, even though the wallet is originally your wallet, you will no longer be able to initiate transactions from the wallet.\n\nAlso if you happen not to be an Approver on the wallet with approver access enabled, you cannot approve any transaction on the wallet as well, you can only view the wallet going forward.\n\nIndividuals can use Approver Access, however, it is best suited for organizations, businesses, associations, and any other use case where more than 1 person is required to operate a wallet.',
+                                    text: "moresharedaccessdetails".tr(),
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontFamily: fontbody,
@@ -2409,7 +2396,7 @@ shareAccessInfoPopup(context) async {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.done,
+                        "done".tr(),
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
@@ -2451,7 +2438,7 @@ void rejectionReasonPopup(context, void Function(String) action) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        'Reject transaction',
+                        "rejecttransaction".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -2473,7 +2460,7 @@ void rejectionReasonPopup(context, void Function(String) action) {
                                 const EdgeInsets.symmetric(horizontal: 20.0),
                             child: Center(
                               child: Text(
-                                'Please enter your reason for rejecting this transaction',
+                                "rejectionreason".tr(),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     color: notifier.getbluewhitecolor,
@@ -2491,7 +2478,7 @@ void rejectionReasonPopup(context, void Function(String) action) {
                             child: Form(
                               key: formKey,
                               child: CustomTextFormField.textFieldWithoutIcon(
-                                'Enter reason',
+                                "enterreason".tr(),
                                 notifier.getbluewhitecolor,
                                 notifier.getgrey,
                                 notifier.getgrey,
@@ -2501,10 +2488,10 @@ void rejectionReasonPopup(context, void Function(String) action) {
                                 300.sp,
                                 validator: (String? value) {
                                   if (value!.isEmpty)
-                                    return 'Please enter your reason ';
+                                    return "pleaseenterreason".tr();
 
                                   if (value.length < 5)
-                                    return 'Reason must be 5 characters or more';
+                                    return "reasonmustbe5ormorechars".tr();
 
                                   return null;
                                 },
@@ -2545,7 +2532,7 @@ void rejectionReasonPopup(context, void Function(String) action) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.continuee,
+                        "continuee".tr(),
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
@@ -2581,7 +2568,7 @@ void rejectionReasonPopup(context, void Function(String) action) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.cancel,
+                        "cancel".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontbody),
@@ -2683,7 +2670,7 @@ approvalListTransactionTypePopup(context, List<String> options, String label,
                         Container(
                           width: width / 1.7,
                           child: Text(
-                            'Include transactions I have already signed',
+                            "includealreadysignedtransactions".tr(),
                             overflow: TextOverflow.visible,
                             style: TextStyle(
                               fontSize: 13,
@@ -2802,7 +2789,7 @@ approvalTextFieldPopup(context,
                           ),
                         ),
                         child: Text(
-                          LanguageEn.done,
+                          "done".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),
@@ -2826,15 +2813,10 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
   String selectedWallet = '';
   var filteredWallets = {};
   appState.transactionableWallets.forEach((key, value) {
-    print('key: $key, value: $value');
     if (value['claimedAssets'] != null) {
       for (var i = 0; i < value['claimedAssets'].length; i++) {
-        print('assetCode: $assetCode, assetIssuer: $assetIssuer dsds');
-        print(
-            'assetCode: ${value['claimedAssets'][i]['assetCode']}, assetIssuer: ${value['claimedAssets'][i]['assetIssuer']}');
         if (value['claimedAssets'][i]['assetIssuer'] == assetIssuer &&
             value['claimedAssets'][i]['assetCode'] == assetCode) {
-          print('got here....');
           filteredWallets[key] = value;
         }
       }
@@ -2909,7 +2891,7 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        'Select sending wallet',
+                        "selectsendingwallet".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontSize: 18,
@@ -2936,7 +2918,7 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
                         selectedWallet.toString().isEmpty
                             ? null
                             : selectedWallet,
-                        'Choose wallet',
+                        "choosewallet".tr(),
                         context,
                         (context) {
                           return walletDropdownItems(true);
@@ -2982,7 +2964,7 @@ void showChooseWalletPopup(context, assetCode, assetIssuer,
                         ),
                       ),
                       child: Text(
-                        LanguageEn.cancel,
+                        "cancel".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontbody),
@@ -3031,7 +3013,7 @@ wrappedAssetsTextFieldPopup(context,
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          'Enter withdrawal address below',
+                          "enterwithdrawaladdress".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontSize: 15,
@@ -3047,7 +3029,7 @@ wrappedAssetsTextFieldPopup(context,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 35.0),
                           child: CustomTextFormField.textFieldWithoutIcon(
-                            'withdrawal address',
+                            "withdrawaladdress".tr(),
                             notifier.getbluecolor,
                             notifier.getgrey,
                             notifier.getprefixicon,
@@ -3093,7 +3075,7 @@ wrappedAssetsTextFieldPopup(context,
                           ),
                         ),
                         child: Text(
-                          LanguageEn.done,
+                          "done".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),
@@ -3138,7 +3120,7 @@ void addCustomAssetPopup(context, void Function(String, String) action) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        'Add Asset',
+                        "addasset".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -3163,7 +3145,7 @@ void addCustomAssetPopup(context, void Function(String, String) action) {
                               child: Column(
                                 children: [
                                   CustomTextFormField.textFieldWithoutIcon(
-                                    'Enter asset code',
+                                    "enterassetcode".tr(),
                                     notifier.getbluewhitecolor,
                                     notifier.getgrey,
                                     notifier.getgrey,
@@ -3173,7 +3155,7 @@ void addCustomAssetPopup(context, void Function(String, String) action) {
                                     300.sp,
                                     validator: (String? value) {
                                       if (value!.isEmpty)
-                                        return 'Please enter asset code';
+                                        return "enterassetcodeplease".tr();
 
                                       return null;
                                     },
@@ -3183,7 +3165,7 @@ void addCustomAssetPopup(context, void Function(String, String) action) {
                                   ),
                                   SizedBox(height: 5),
                                   CustomTextFormField.textFieldWithoutIcon(
-                                    'Enter asset issuer public key',
+                                    "enterissuerpublickey".tr(),
                                     notifier.getbluewhitecolor,
                                     notifier.getgrey,
                                     notifier.getgrey,
@@ -3193,7 +3175,8 @@ void addCustomAssetPopup(context, void Function(String, String) action) {
                                     300.sp,
                                     validator: (String? value) {
                                       if (value!.isEmpty)
-                                        return 'Please enter asset issuer\'s public key ';
+                                        return "enterissuerpublickeyplease"
+                                            .tr();
 
                                       return null;
                                     },
@@ -3236,7 +3219,7 @@ void addCustomAssetPopup(context, void Function(String, String) action) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.continuee,
+                        "continuee".tr(),
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
@@ -3272,7 +3255,7 @@ void addCustomAssetPopup(context, void Function(String, String) action) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.cancel,
+                        "cancel".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontbody),
@@ -3313,7 +3296,7 @@ void warnDisableSharedAccessDialog(context, void Function() onDisable) {
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        LanguageEn.important,
+                        "important".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -3333,7 +3316,7 @@ void warnDisableSharedAccessDialog(context, void Function() onDisable) {
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10.0, horizontal: 5.0),
                             child: Text(
-                              LanguageEn.warnDisableSharedAccess,
+                              "warnDisableSharedAccess".tr(),
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
@@ -3370,7 +3353,7 @@ void warnDisableSharedAccessDialog(context, void Function() onDisable) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.disable,
+                        "disable".tr(),
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
@@ -3407,7 +3390,7 @@ void warnDisableSharedAccessDialog(context, void Function() onDisable) {
                         ),
                       ),
                       child: Text(
-                        LanguageEn.cancel,
+                        "cancel".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontbody),
@@ -3449,7 +3432,7 @@ void viewOnlySharedWalletOptions(
                     padding: const EdgeInsets.all(20.0),
                     child: Center(
                       child: Text(
-                        LanguageEn.sharedaccess,
+                        "sharedaccess".tr(),
                         style: TextStyle(
                             color: notifier.getblck,
                             fontSize: 18,
@@ -3481,7 +3464,7 @@ void viewOnlySharedWalletOptions(
                         ),
                       ),
                       child: Text(
-                        'Modify shared access',
+                        "modifysharedaccess".tr(),
                         style:
                             TextStyle(color: wihitecolor, fontFamily: fontbody),
                       ),
@@ -3519,7 +3502,7 @@ void viewOnlySharedWalletOptions(
                         ),
                       ),
                       child: Text(
-                        'Disable shared access',
+                        "disablesharedaccess".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontbody),
@@ -3581,7 +3564,7 @@ showDocumentUploadPopup(context, String title,
                         (value) {},
                         dropdownItems,
                         null,
-                        'Purchase Receipt',
+                        "purchasereceipt".tr(),
                         context,
                         null,
                       ),
@@ -3618,7 +3601,7 @@ showDocumentUploadPopup(context, String title,
                                       width: width / 50,
                                     ),
                                     Text(
-                                      'Select file',
+                                      "selectfile".tr(),
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontFamily: fontbody,
@@ -3662,7 +3645,7 @@ showDocumentUploadPopup(context, String title,
                                       width: width / 50,
                                     ),
                                     Text(
-                                      'Take Photo',
+                                      "takephoto".tr(),
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontFamily: fontbody,
@@ -3686,7 +3669,7 @@ showDocumentUploadPopup(context, String title,
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20.0),
                           child: CustomTextFormField.textField(
-                            'URL to file (optional)',
+                            "urltofile".tr(),
                             notifier.getbluecolor,
                             null,
                             notifier.getgrey,
@@ -3728,7 +3711,7 @@ showDocumentUploadPopup(context, String title,
                           ),
                         ),
                         child: Text(
-                          'Upload',
+                          "upload".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),
@@ -3780,7 +3763,7 @@ showSubscribePopup(context,
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          'Are you sure you want to subscribe to the [Atlantis 1] Asset with the following wallet?',
+                          "confirmsubscribewithwallet".tr(args: ['Atlantis 1']),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -3795,7 +3778,7 @@ showSubscribePopup(context,
                         (value) {},
                         dropdownItems,
                         null,
-                        'Choose wallet',
+                        "choosewallet".tr(),
                         context,
                         null,
                       ),
@@ -3844,7 +3827,7 @@ showSubscribePopup(context,
                           ),
                         ),
                         child: Text(
-                          'Yes, I want to Subscribe',
+                          "iwanttosubscribe".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),
@@ -3882,7 +3865,7 @@ showSubscribePopup(context,
                           ),
                         ),
                         child: Text(
-                          LanguageEn.cancel,
+                          "cancel".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontFamily: fontbody),
@@ -3936,7 +3919,8 @@ showUnSubscribePopup(
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          'Do you want to unsubscribe from [Atlantis 1] Asset?',
+                          "confirmunsubscribewithwallet"
+                              .tr(args: ["Atlantis 1"]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -3971,7 +3955,7 @@ showUnSubscribePopup(
                           ),
                         ),
                         child: Text(
-                          'Unsubscribe',
+                          "unsubscribe".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),
@@ -4009,7 +3993,7 @@ showUnSubscribePopup(
                           ),
                         ),
                         child: Text(
-                          LanguageEn.cancel,
+                          "cancel".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontFamily: fontbody),
@@ -4062,7 +4046,7 @@ showBuyTokenPopup(context,
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          'Add more Atlantis Tokens to the following wallet?',
+                          "addmoretokens".tr(args: ["Atlantis"]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -4077,7 +4061,7 @@ showBuyTokenPopup(context,
                         (value) {},
                         dropdownItems,
                         null,
-                        'Choose wallet',
+                        "choosewallet".tr(),
                         context,
                         null,
                       ),
@@ -4126,7 +4110,7 @@ showBuyTokenPopup(context,
                           ),
                         ),
                         child: Text(
-                          'Proceed to buy Tokens',
+                          "proceedtobuytokens".tr(),
                           style: TextStyle(
                               color: wihitecolor, fontFamily: fontbody),
                         ),
@@ -4163,7 +4147,7 @@ showBuyTokenPopup(context,
                           ),
                         ),
                         child: Text(
-                          LanguageEn.cancel,
+                          "cancel".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontFamily: fontbody),

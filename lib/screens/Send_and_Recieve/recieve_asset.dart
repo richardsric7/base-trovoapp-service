@@ -1,7 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/utils.dart';
+import 'package:get/utils.dart' hide Trans;
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
@@ -136,7 +137,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: Text(
-                              'Testnet',
+                              "testnet".tr(),
                               style: TextStyle(
                                 fontFamily: fontsemibold,
                                 color: wihitecolor,
@@ -165,7 +166,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                     width: 20,
                   ),
                   Text(
-                    "Receive " + getAssetCode(asset!.assetCode),
+                    "${"receive".tr()} " + getAssetCode(asset!.assetCode),
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -190,7 +191,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                 height: height / 20,
               ),
               Button(
-                LanguageEn.requestspecificamount,
+                "requestspecificamount".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -207,7 +208,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
               ),
               SizedBox(height: height / 50.5),
               ButtonOutlined(
-                LanguageEn.dashboard,
+                "dashboard".tr(),
                 notifier.getwihitecolor,
                 notifier.getbluewhitecolor,
                 onTap: () {
@@ -247,7 +248,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    'Receiving Wallet',
+                    "receivingwallet".tr(),
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -276,7 +277,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                               text: wallet.alias!,
                             ),
                           );
-                          showSnackBar('Wallet alias', context);
+                          showSnackBar("walletalias".tr(), context);
                         },
                         icon: Icon(Icons.copy,
                             size: 20, color: notifier.getbluewhitecolor),
@@ -313,7 +314,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    LanguageEn.receivefromnontrovowallet,
+                    "receivefromnontrovowallet".tr(),
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -341,7 +342,7 @@ class _ReceiveAssetState extends State<ReceiveAsset>
                               text: wallet.publicKey!,
                             ),
                           );
-                          showSnackBar('Public key', context);
+                          showSnackBar("publickey".tr(), context);
                         },
                         icon: Icon(Icons.copy,
                             size: 20, color: notifier.getbluewhitecolor),

@@ -1,9 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
@@ -56,7 +56,7 @@ class _CreatePassword extends State<CreatePassword> {
       builder: (context, child) => Scaffold(
         appBar: CustomAppBar(
                 context, notifier.getwihitecolor, "", notifier.getblck,
-                height: height / 20)
+                height: height / 18)
             .getBar(),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
@@ -65,7 +65,7 @@ class _CreatePassword extends State<CreatePassword> {
             child: Column(
               children: [
                 Text(
-                  LanguageEn.letsgetyoustarted1,
+                  "letsgetyoustarted1".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
@@ -73,7 +73,7 @@ class _CreatePassword extends State<CreatePassword> {
                       fontFamily: fontsemibold),
                 ),
                 Text(
-                  LanguageEn.letsgetyoustarted2,
+                  "letsgetyoustarted2".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
@@ -85,7 +85,7 @@ class _CreatePassword extends State<CreatePassword> {
                       height: height / 2.8),
                 ),
                 Text(
-                  LanguageEn.enteryourpassword,
+                  "enteryourpassword".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getgrey,
@@ -94,7 +94,7 @@ class _CreatePassword extends State<CreatePassword> {
                 ),
                 SizedBox(height: height / 50),
                 CustomPasswordFormField(
-                  LanguageEn.password,
+                  "password".tr(),
                   notifier.getbluecolor,
                   Icons.lock,
                   notifier.getgrey,
@@ -111,7 +111,7 @@ class _CreatePassword extends State<CreatePassword> {
                 ),
                 SizedBox(height: height / 50),
                 CustomPasswordFormField(
-                  LanguageEn.confirmPassword,
+                  "confirmPassword".tr(),
                   notifier.getbluecolor,
                   Icons.lock,
                   notifier.getgrey,
@@ -123,7 +123,7 @@ class _CreatePassword extends State<CreatePassword> {
                 ),
                 SizedBox(height: height / 20),
                 Button(
-                  LanguageEn.continuee,
+                  "continuee".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: saveAndProceed,
@@ -144,12 +144,12 @@ class _CreatePassword extends State<CreatePassword> {
     print('password: $value');
     if (value.isEmpty) {
       //return "Enter a password";
-      return LanguageEn.passwordemptyerror;
+      return "passwordemptyerror".tr();
     }
 
     if (value.trim().replaceAll(' ', '').length < 6) {
       //return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
+      return "hinterrorpassword".tr();
     }
 
     return null;
@@ -159,17 +159,17 @@ class _CreatePassword extends State<CreatePassword> {
     print('confirm password: ${value.trim().replaceAll(' ', '')} & $password');
     if (value.isEmpty) {
       // return "Confirm your password";
-      return LanguageEn.confirmpasswordemptyerror;
+      return "confirmpasswordemptyerror".tr();
     }
 
     if (value.trim().replaceAll(' ', '').length < 6) {
       // return 'Use 6 characters or more for your password';
-      return LanguageEn.hinterrorpassword;
+      return "hinterrorpassword".tr();
     }
 
     if (password != value.trim().replaceAll(' ', '')) {
       //  return 'Those passwords didn\’t match. Try again.';
-      return LanguageEn.passwordmismatcherror;
+      return "passwordmismatcherror".tr();
     }
 
     return null;

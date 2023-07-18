@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -182,7 +183,7 @@ class _MarketTradeState extends State<MarketTrade>
                                   height: height / 70,
                                 ),
                                 Text(
-                                  LanguageEn.welcometoassettokenization2,
+                                  "welcometoassettokenization2".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 15,
@@ -194,7 +195,7 @@ class _MarketTradeState extends State<MarketTrade>
                                   height: height / 70,
                                 ),
                                 Text(
-                                  LanguageEn.welcometoassettokenization3,
+                                  "welcometoassettokenization3".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 13,
@@ -238,7 +239,7 @@ class _MarketTradeState extends State<MarketTrade>
                 height: height / 15,
               ).getBar(),
               SmallButton(
-                LanguageEn.marketpairs,
+                "marketpairs".tr(),
                 notifier.getbluewhitecolor,
                 notifier.getwihitecolor,
                 onTap: () {

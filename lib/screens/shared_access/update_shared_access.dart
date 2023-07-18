@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -14,7 +15,6 @@ import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -133,7 +133,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          'Update Shared Access',
+          "updatesharedaccess".tr(),
           notifier.getbluewhitecolor,
           height: height / 15,
         ).getBar(),
@@ -150,7 +150,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                           height: height / 20,
                         ),
                         Text(
-                          'View Access',
+                          "viewaccess".tr(),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -160,7 +160,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                         showViewers(),
                         SizedBox(height: height / 25),
                         Button(
-                          'Proceed',
+                          "proceed".tr(),
                           notifier.getbluecolor,
                           wihitecolor,
                           onTap: () {
@@ -191,15 +191,15 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                       tabs: [
                         Tab(
                           height: 50,
-                          text: 'Viewers',
+                          text: "viewers".tr(),
                         ),
                         Tab(
                           height: 50,
-                          text: 'Approvers',
+                          text: "approvers".tr(),
                         ),
                         Tab(
                           height: 50,
-                          text: 'Initiators',
+                          text: "initiators".tr(),
                         ),
                       ],
                     ),
@@ -223,7 +223,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                   ),
                   SizedBox(height: height / 50),
                   Button(
-                    'Proceed',
+                    "proceed".tr(),
                     notifier.getbluecolor,
                     wihitecolor,
                     onTap: () {
@@ -279,7 +279,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                                 ],
                               ] else ...[
                                 Text(
-                                  'Name of viewers appear here',
+                                  "nameofviewersappearhere".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: notifier.getbluewhitecolor,
@@ -303,7 +303,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
         Container(
           width: width / 1.1,
           child: Text(
-            LanguageEn.enteraccountsusernameviewers,
+            "enteraccountsusernameviewers".tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
@@ -317,7 +317,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: CustomTextFormField.textFieldWithoutIcon(
-            'Viewer',
+            "viewer".tr(),
             notifier.getbluecolor,
             notifier.getgrey,
             notifier.getprefixicon,
@@ -348,7 +348,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             setState(() {});
 
             if (username.isEmpty) {
-              viewerUsernameErrorMessage = 'Please enter a username';
+              viewerUsernameErrorMessage = "enterusername".tr();
               setState(() {});
               return;
             }
@@ -359,9 +359,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               // setState(() {});
               popup(
                 context,
-                title: 'Error!',
-                message:
-                    'You cannot add yourself as a viewer on this wallet because as the owner of this wallet you already have view access.',
+                title: "error".tr(),
+                message: "cannotaddyourself".tr(),
                 bodyColor: Colors.red,
               );
               return;
@@ -370,7 +369,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             if (viewers
                 .where((viewer) => viewer.targetUsername == username)
                 .isNotEmpty) {
-              viewerUsernameErrorMessage = 'Username already added';
+              viewerUsernameErrorMessage = "usernamealreadyadded".tr();
               setState(() {});
               return;
             }
@@ -381,9 +380,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                 .isNotEmpty) {
               popup(
                 context,
-                title: 'Alert',
-                message:
-                    'This user is already added to approver access which gives them implicit view access. Please remove them from approver access if you want to grant them view-only access.',
+                title: "alert".tr(),
+                message: "usernamealreadyaddedtoapproverslist".tr(),
                 bodyColor: notifier.getbluecolor,
               );
               return;
@@ -395,9 +393,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                 .isNotEmpty) {
               popup(
                 context,
-                title: 'Error',
-                message:
-                    'This user is already added to initiator access which gives them implicit view access. Please remove them from initiator access if you want to grant them view-only access.',
+                title: "error".tr(),
+                message: "usernamealreadyaddedtoinitiatorslist".tr(),
                 bodyColor: notifier.getbluecolor,
               );
               return;
@@ -405,7 +402,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
 
             var userInfo = await checkUsername(username);
             if (userInfo == null) {
-              viewerUsernameErrorMessage = 'This is not a valid Trovo username';
+              viewerUsernameErrorMessage = "notavalidtrovousername".tr();
               setState(() {});
               return;
             }
@@ -426,7 +423,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                 MaterialStateProperty.all<Color>(notifier.getbluecolor!),
           ),
           child: Text(
-            LanguageEn.add,
+            "add".tr(),
             style: TextStyle(
               fontFamily: fontsemibold,
             ),
@@ -456,8 +453,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                     onChanged: (value) {
                       setState(() {
                         if (value == false && approvers.length > 0) {
-                          showResponseMessage(context,
-                              'All existing approvers and initiator access will be revoked. Do you want to proceed?',
+                          showResponseMessage(
+                              context, "allexistingapproverswillberemoved".tr(),
                               () {
                             approvers.forEach((approver) {
                               approver.permissionState =
@@ -489,7 +486,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               ),
               Container(
                 child: Text(
-                  LanguageEn.doyouwanttoaddapprovers,
+                  "doyouwanttoaddapprovers".tr(),
                   overflow: TextOverflow.visible,
                   style: TextStyle(
                     fontSize: 15,
@@ -534,7 +531,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
                           child: Text(
-                            'Approvals',
+                            "approvals".tr(),
                             style: TextStyle(
                                 color: notifier.getbluewhitecolor,
                                 fontFamily: fontsemibold,
@@ -599,7 +596,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'of',
+                          'of'.tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontFamily: fontbody,
@@ -619,7 +616,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
                           child: Text(
-                            'Approvers',
+                            "approvers".tr(),
                             style: TextStyle(
                                 color: notifier.getbluewhitecolor,
                                 fontFamily: fontsemibold,
@@ -686,7 +683,10 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Text(
-              '${noOfApprovalsNeeded} approvals required out of ${noOfApprovers} approvers',
+              "noapprovalsrequiredoutofno".tr(args: [
+                noOfApprovalsNeeded.toString(),
+                noOfApprovers.toString()
+              ]),
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: notifier.getbluewhitecolor,
@@ -699,7 +699,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
           ),
           Container(
             child: Text(
-              LanguageEn.enteraccountsusernameapprovers,
+              "enteraccountsusernameapprovers".tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: notifier.getbluewhitecolor,
@@ -737,7 +737,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                                   ],
                                 ] else ...[
                                   Text(
-                                    'You have added no approvers yet',
+                                    "noapproversyet".tr(),
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         color: notifier.getbluewhitecolor,
@@ -759,7 +759,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             height: height / 50,
           ),
           CustomTextFormField.textFieldWithoutIcon(
-            'Approver',
+            "approver".tr(),
             notifier.getbluecolor,
             notifier.getgrey,
             notifier.getprefixicon,
@@ -789,7 +789,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               setState(() {});
 
               if (username.isEmpty) {
-                approverUsernameErrorMessage = 'Please enter a username';
+                approverUsernameErrorMessage = "enterusername".tr();
                 setState(() {});
                 return;
               }
@@ -797,7 +797,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
               if (approvers
                   .where((approver) => approver.targetUsername == username)
                   .isNotEmpty) {
-                approverUsernameErrorMessage = 'Username already added';
+                approverUsernameErrorMessage = "usernamealreadyadded".tr();
                 setState(() {});
                 return;
               }
@@ -810,9 +810,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                       .length ==
                   noOfApprovers) {
                 popup(context,
-                    title: 'Error!',
-                    message:
-                        'Number of usernames cannot be more than the number of approvers you selected');
+                    title: "error".tr(),
+                    message: "usernamecannotbemorethannoapprovers".tr());
                 return;
               }
 
@@ -823,8 +822,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                   viewer.targetUsername == username &&
                   viewer.permissionState != PermissionState.Revoked);
               if (tempViewer.isNotEmpty) {
-                showResponseMessage(context,
-                    'This user\'s view-only access will be revoked since they will have implicit view access as an approver',
+                showResponseMessage(context, "willrevokeviewonlyaccess".tr(),
                     () {
                   approvers.add(
                     Permission(
@@ -868,8 +866,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
 
               var userInfo = await checkUsername(username);
               if (userInfo == null) {
-                approverUsernameErrorMessage =
-                    'This is not a valid Trovo username';
+                approverUsernameErrorMessage = "notavalidtrovousername".tr();
                 setState(() {});
                 return;
               }
@@ -890,7 +887,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                   MaterialStateProperty.all<Color>(notifier.getbluecolor!),
             ),
             child: Text(
-              LanguageEn.add,
+              "add".tr(),
               style: TextStyle(
                 fontFamily: fontsemibold,
               ),
@@ -940,7 +937,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                                 ],
                               ] else ...[
                                 Text(
-                                  'You have added no initiators yet',
+                                  "noinitatorsyet".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: notifier.getbluewhitecolor,
@@ -963,7 +960,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
         ),
         Container(
           child: Text(
-            LanguageEn.enteraccountsusernameinitiators,
+            "enteraccountsusernameinitiators".tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
@@ -975,7 +972,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
           height: height / 50,
         ),
         CustomTextFormField.textFieldWithoutIcon(
-          'Initiator',
+          "initiator".tr(),
           notifier.getbluecolor,
           notifier.getgrey,
           notifier.getprefixicon,
@@ -1005,7 +1002,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             setState(() {});
 
             if (username.isEmpty) {
-              initiatorUsernameErrorMessage = 'Please enter a username';
+              initiatorUsernameErrorMessage = "enterusername".tr();
               setState(() {});
               return;
             }
@@ -1013,7 +1010,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
             if (initiators
                 .where((initiator) => initiator.targetUsername == username)
                 .isNotEmpty) {
-              initiatorUsernameErrorMessage = 'Username already added';
+              initiatorUsernameErrorMessage = "usernamealreadyadded".tr();
               setState(() {});
               return;
             }
@@ -1025,9 +1022,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                 viewer.targetUsername == username &&
                 viewer.permissionState != PermissionState.Revoked);
             if (tempViewer.isNotEmpty) {
-              showResponseMessage(context,
-                  'This user\'s view-only access will be revoked since they will have implicit view access as an initiator',
-                  () {
+              showResponseMessage(context, "willrevokeviewonlyaccess".tr(), () {
                 initiators.add(
                   Permission(
                     targetUsername: username,
@@ -1070,8 +1065,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
 
             var userInfo = await checkUsername(username);
             if (userInfo == null) {
-              initiatorUsernameErrorMessage =
-                  'This is not a valid Trovo username';
+              initiatorUsernameErrorMessage = "notavalidtrovousername".tr();
               setState(() {});
               return;
             }
@@ -1091,7 +1085,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
                 MaterialStateProperty.all<Color>(notifier.getbluecolor!),
           ),
           child: Text(
-            LanguageEn.add,
+            "add".tr(),
             style: TextStyle(
               fontFamily: fontsemibold,
             ),
@@ -1147,7 +1141,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
 
       return null;
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
       return null;
     }
@@ -1181,8 +1175,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
         return userItem(
           '${permList[index].targetUsername} [${permList[index].fullName}]',
           () {
-            showResponseMessage(context,
-                'You are about to revoke this user\'s $rel access to this wallet. Do you want to proceed?',
+            showResponseMessage(context, "abouttorevokeaccess".tr(args: [rel]),
                 () {
               permList[index].permissionState = PermissionState.Revoked;
               setState(() {});
@@ -1204,7 +1197,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
 
     if (addApprovers) {
       if (approversList.isEmpty) {
-        popup(context, title: 'Error!', message: 'Please add approvers.');
+        popup(context, title: "error".tr(), message: "addapprovers".tr());
         _tabController.animateTo(1);
         return false;
       }
@@ -1212,9 +1205,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
       if (approversList.length < noOfApprovers ||
           approversList.length > noOfApprovers) {
         popup(context,
-            title: 'Error!',
-            message:
-                'Number of approver usernames cannot be less than or more than the number of approvers you selected. Please add more approvers.');
+            title: "error".tr(),
+            message: "approverscannotbelessnoofapprover".tr());
         _tabController.animateTo(1);
         return false;
       }
@@ -1222,9 +1214,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
       if (initiatorsList.isEmpty) {
         popup(
           context,
-          title: 'Error!',
-          message:
-              'You must have at least one user with initiator access to this wallet.',
+          title: "error".tr(),
+          message: "musthaveatleastoneinitiator".tr(),
         );
         _tabController.animateTo(2);
         return false;
@@ -1232,9 +1223,8 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
 
       if (approversList.isEmpty) {
         popup(context,
-            title: 'Error!',
-            message:
-                'You cannot have initiators without having approvers. Please add approvers.');
+            title: "error".tr(),
+            message: "cannothaveinitiatorswithoutapprovers".tr());
         _tabController.animateTo(1);
         return false;
       }

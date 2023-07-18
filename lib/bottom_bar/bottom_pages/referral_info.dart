@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,7 +7,6 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -52,7 +52,7 @@ class _ReferralInfoState extends State<ReferralInfo>
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          LanguageEn.myreferrals,
+          "myreferrals".tr(),
           notifier.getblck,
           height: height / 15,
         ).getBar(),
@@ -82,8 +82,8 @@ class _ReferralInfoState extends State<ReferralInfo>
                 onTap: () {
                   share();
                 },
-                child: invitefriend(notifier.getbluecolor,
-                    LanguageEn.invitefriends, wihitecolor),
+                child: invitefriend(
+                    notifier.getbluecolor, "invitefriends".tr(), wihitecolor),
               ),
               SizedBox(height: height / 50),
               DefaultTabController(
@@ -105,11 +105,11 @@ class _ReferralInfoState extends State<ReferralInfo>
                           tabs: [
                             Tab(
                               height: 50,
-                              text: LanguageEn.referrals,
+                              text: "referrals".tr(),
                             ),
                             Tab(
                               height: 50,
-                              text: LanguageEn.rewards,
+                              text: "rewards".tr(),
                             ),
                           ],
                         ),
@@ -125,7 +125,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                     children: [
                       SizedBox(height: height / 30),
                       Text(
-                        "4 ${LanguageEn.referrals}",
+                        "4 ${"referrals".tr()}",
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold,
@@ -138,7 +138,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                     children: [
                       SizedBox(height: height / 30),
                       Text(
-                        "25 TROV earned",
+                        "amountearned".tr(args: ['25 TROV']),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold,

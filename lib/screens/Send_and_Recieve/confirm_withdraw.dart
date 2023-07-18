@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,7 +18,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -86,7 +86,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    LanguageEn.confirmyourtransaction,
+                    "confirmyourtransaction".tr(),
                     style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
@@ -99,7 +99,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                 height: height / 20,
               ),
               Text(
-                'You are about to withdraw',
+                "warnwithdraw".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -149,7 +149,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                 height: height / 50,
               ),
               Text(
-                LanguageEn.to,
+                "to".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -176,7 +176,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
-                  LanguageEn.password,
+                  "password".tr(),
                   notifier.getbluewhitecolor,
                   Icons.lock,
                   notifier.getgrey,
@@ -197,14 +197,14 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
               ),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
-                  LanguageEn.authorizewithbiometrics,
+                  "authorizewithbiometrics".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: toggleSwitch,
                 ),
               ] else ...[
                 Button(
-                  LanguageEn.authorize,
+                  "authorize".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: handleAuthorization,
@@ -280,7 +280,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     return Column(
       children: [
         Text(
-          'Fees',
+          "fees".tr(),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
@@ -309,7 +309,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Service fee:',
+                        '${"servicefee".tr()}:',
                         style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -332,7 +332,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Network fee:',
+                        '${"networkfee".tr()}:',
                         style: TextStyle(
                             fontSize: 15,
                             color: notifier.getbluewhitecolor,
@@ -360,7 +360,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     return Column(
       children: [
         Text(
-          'Withdrawal Network',
+          "withdrawalnetwork".tr(),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
@@ -415,8 +415,7 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
     if (password == appState.password!) {
       sendDataToServer();
     } else {
-      popup(context,
-          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
   }
 
@@ -517,11 +516,11 @@ class _ConfirmWithdrawal extends State<ConfirmWithdrawal>
         hideLoader(context);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }

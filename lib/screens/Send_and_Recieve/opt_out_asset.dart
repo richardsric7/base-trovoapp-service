@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -71,7 +72,7 @@ class _OptOutAssetState extends State<OptOutAsset>
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          'Remove [${asset.assetCode}]',
+          '${"remove".tr()} [${asset.assetCode}]',
           notifier.getbluewhitecolor,
           height: height / 15,
         ).getBar(),
@@ -92,14 +93,14 @@ class _OptOutAssetState extends State<OptOutAsset>
               ),
               if (wallet.canInitiate && !hasAvailableBalance) ...[
                 Button(
-                  LanguageEn.removeasset,
+                  "removeasset".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: optOutAsset,
                 ),
               ] else ...[
                 Button(
-                  LanguageEn.back,
+                  "back".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () {
@@ -138,7 +139,8 @@ class _OptOutAssetState extends State<OptOutAsset>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      LanguageEn.optoutinfo
+                      "optoutinfo"
+                          .tr()
                           .replaceAll('assetCode', asset.assetCode!),
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -156,7 +158,8 @@ class _OptOutAssetState extends State<OptOutAsset>
                     Container(
                       width: width / 1.3,
                       child: Text(
-                        LanguageEn.optoutinfo2
+                        "optoutinfo2"
+                            .tr()
                             .replaceAll('assetCode', asset.assetCode!)
                             .replaceAll('walletAlias', wallet.alias!),
                         textAlign: TextAlign.center,
@@ -172,7 +175,8 @@ class _OptOutAssetState extends State<OptOutAsset>
                     Container(
                       width: width / 1.3,
                       child: Text(
-                        LanguageEn.notenoughpermission
+                        "notenoughpermission"
+                            .tr()
                             .replaceAll('walletAlias', wallet.alias!),
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -217,7 +221,8 @@ class _OptOutAssetState extends State<OptOutAsset>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      LanguageEn.burninfo
+                      "burninfo"
+                          .tr()
                           .replaceAll('assetCode', asset.assetCode!)
                           .replaceAll('walletAlias', wallet.alias!)
                           .replaceAll('amount', asset.amount.toString()),
@@ -257,7 +262,7 @@ class _OptOutAssetState extends State<OptOutAsset>
                                 text: asset.assetIssuer!,
                               ),
                             ),
-                            showSnackBar('Issuer public key', context),
+                            showSnackBar("issuerpubkey".tr(), context),
                           },
                           icon: Icon(Icons.copy),
                           color: notifier.getbluewhitecolor,
@@ -306,12 +311,12 @@ class _OptOutAssetState extends State<OptOutAsset>
         // print('sending full data to server.........');
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }
@@ -358,12 +363,12 @@ class _OptOutAssetState extends State<OptOutAsset>
           forceRefresh: true,
         );
         appState.viewData![SuccessViewPageConfig.key] = {
-          'title': LanguageEn.success,
+          'title': "success".tr(),
           'message': wallet.isSharedWalletAndCanInitiate
-              ? LanguageEn.optoutassetsuccessshared
+              ? "optoutassetsuccessshared"
+                  .tr()
                   .replaceAll('asset', asset.assetCode!)
-              : LanguageEn.optoutassetsuccess
-                  .replaceAll('asset', asset.assetCode!),
+              : "optoutassetsuccess".tr().replaceAll('asset', asset.assetCode!),
           'useOnDone': true,
           'onDone': () {
             appState.currentAction = PageAction(
@@ -376,11 +381,11 @@ class _OptOutAssetState extends State<OptOutAsset>
             PageAction(state: PageState.addPage, page: SuccessViewPageConfig);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
 
     hideLoader(context);

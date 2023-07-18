@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get_utils/get_utils.dart';
+import 'package:get/get_utils/get_utils.dart' hide Trans;
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
@@ -16,7 +16,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -69,7 +68,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
           elevation: 0,
           backgroundColor: notifier.getwihitecolor,
           title: Text(
-            LanguageEn.pendingassets,
+            "pendingassets".tr(),
             style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -96,14 +95,14 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                 height: height / 10,
               ),
               Button(
-                LanguageEn.claimasset,
+                "claimasset".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: claimAsset,
               ),
               SizedBox(height: height / 50),
               ButtonOutlined(
-                'Reject asset',
+                "rejectasset".tr(),
                 notifier.getwihitecolor,
                 notifier.getbluewhitecolor,
                 onTap: () {
@@ -116,7 +115,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Nothing to show here.\n\nThis asset may have already been claimed or does not exist.',
+                    "nothingtoshowhere".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 17,
@@ -130,7 +129,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                 height: height / 10,
               ),
               Button(
-                LanguageEn.back,
+                "back".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -167,7 +166,8 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      LanguageEn.pendingassetwarning
+                      "pendingassetwarning"
+                          .tr()
                           .replaceAll('assetCode', asset!.assetCode!)
                           .replaceAll('walletAlias', wallet.alias!),
                       textAlign: TextAlign.center,
@@ -185,7 +185,7 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
                   Container(
                     width: width / 1.3,
                     child: Text(
-                      LanguageEn.pendingassetwarning2,
+                      "pendingassetwarning2".tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
@@ -236,12 +236,12 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         // print('sending full data to server.........');
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }
@@ -282,9 +282,9 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         updateUserInfo(appState.primaryWallet.signer!, appState.secretKeys[0],
             appState.primaryWallet.publicKey!, userInfo.username, appState);
         appState.viewData![SuccessViewPageConfig.key] = {
-          'title': LanguageEn.success,
-          'message': LanguageEn.trustassetsuccess
-              .replaceAll('asset', asset!.assetCode!),
+          'title': "success".tr(),
+          'message':
+              "trustassetsuccess".tr().replaceAll('asset', asset!.assetCode!),
           'useOnDone': true,
           'onDone': () {
             appState.currentAction = appState.returnView ??
@@ -298,11 +298,11 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
             state: PageState.replaceAll, page: SuccessViewPageConfig);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
 
     hideLoader(context);
@@ -338,12 +338,12 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
         completeRejectAsset(responseData['data']);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }
@@ -405,11 +405,11 @@ class _PendingAssetDetailsState extends State<PendingAssetDetails>
             state: PageState.replaceAll, page: SuccessViewPageConfig);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
 
     hideLoader(context);

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/models/deposit_transaction_model.dart';
@@ -9,7 +10,6 @@ import 'package:trovo_wallet/models/withdrawal_transaction_model.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/store.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/models/user.dart';
@@ -85,7 +85,7 @@ class DataProvider with ChangeNotifier {
   WalletsListViewData walletView = WalletsListViewData(
       view: WalletView.listWallets,
       actionIcon: Icons.add_circle_outline_sharp,
-      actionText: LanguageEn.addsubwallet);
+      actionText: "addsubwallet".tr());
 
   String walletMode = 'Testnet';
   set setWalletMode(String value) {
@@ -265,6 +265,12 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  String defaultLanguage = '';
+  set setDefaultLanguage(value) {
+    defaultLanguage = value;
+    notifyListeners();
+  }
+
 // region transaction history filter
   DateTime? filterStartDate;
   set setFilterStartDate(value) {
@@ -390,7 +396,7 @@ class DataProvider with ChangeNotifier {
         notifyListeners();
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {}
   }

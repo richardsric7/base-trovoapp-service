@@ -92,6 +92,7 @@ dependencies:
   image_cropper: ^3.0.0
   expandable: ^5.0.1
   enhance_stepper: ^0.1.1
+  easy_localization: ^3.0.1
   cupertino_stepper:
   url_launcher: ^6.1.7
   pdf: ^3.8.4
@@ -128,6 +129,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/translations/
 
 
   # To add assets to your application, add an assets section, like this:

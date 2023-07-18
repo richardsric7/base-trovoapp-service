@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,7 +14,6 @@ import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -63,7 +63,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
               ),
               SizedBox(height: height / 50),
               Text(
-                LanguageEn.yourtransactionwassuccessful,
+                "yourtransactionwassuccessful".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -96,7 +96,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20.0, 15, 0, 0),
                         child: Text(
-                          LanguageEn.sentto,
+                          "sentto".tr(),
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluewhitecolor,
@@ -123,7 +123,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20.0, vertical: 10),
                           child: Text(
-                            LanguageEn.formemo,
+                            "formemo".tr(),
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
                               color: notifier.getbluewhitecolor,
@@ -161,7 +161,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20.0, vertical: 10),
                         child: Text(
-                          LanguageEn.blockchainproof,
+                          "blockchainproof".tr(),
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluewhitecolor,
@@ -204,7 +204,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                                       text: viewData['transactionId'],
                                     ),
                                   ),
-                                  showSnackBar('Transaction ID', context),
+                                  showSnackBar("transactionid".tr(), context),
                                 },
                                 icon: Icon(Icons.copy),
                                 color: notifier.getbluewhitecolor,
@@ -224,7 +224,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                 height: height / 20,
               ),
               Button(
-                'Generate receipt',
+                "generatereceipt".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -255,7 +255,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                 height: height / 50,
               ),
               ButtonOutlined(
-                LanguageEn.dashboard,
+                "dashboard".tr(),
                 notifier.getwihitecolor,
                 notifier.getbluewhitecolor,
                 onTap: () {

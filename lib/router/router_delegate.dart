@@ -34,7 +34,7 @@ import 'package:trovo_wallet/screens/Auth/AuthorizeLoginView.dart';
 import 'package:trovo_wallet/screens/Auth/create_password.dart';
 import 'package:trovo_wallet/screens/Auth/get_started.dart';
 import 'package:trovo_wallet/screens/Auth/signup.dart';
-import 'package:trovo_wallet/screens/Auth/vericication.dart';
+import 'package:trovo_wallet/screens/Auth/verification.dart';
 import 'package:trovo_wallet/screens/Backup/backup_all.dart';
 import 'package:trovo_wallet/screens/Backup/congratulation.dart';
 import 'package:trovo_wallet/screens/Backup/ensure_privacy.dart';

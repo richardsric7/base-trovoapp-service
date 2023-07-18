@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,7 +10,6 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -173,7 +172,7 @@ class _LoginState extends State<Login> {
                     Column(
                       children: [
                         Text(
-                          LanguageEn.welcome,
+                          "welcome".tr(),
                           style: TextStyle(
                               color: notifier.getblck,
                               fontSize: 26.sp,
@@ -192,7 +191,7 @@ class _LoginState extends State<Login> {
                         ),
                         SizedBox(height: height / 40),
                         Text(
-                          LanguageEn.youhavebeenmissed,
+                          "youhavebeenmissed".tr(),
                           style: TextStyle(
                               fontSize: 16.sp,
                               color: notifier.getgrey,
@@ -204,7 +203,7 @@ class _LoginState extends State<Login> {
                     Form(
                       key: _formKey,
                       child: CustomPasswordFormField(
-                        LanguageEn.password,
+                        "password".tr(),
                         notifier.getbluecolor,
                         Icons.lock,
                         notifier.getgrey,
@@ -232,7 +231,7 @@ class _LoginState extends State<Login> {
                             page: ImportWalletPageConfig);
                       },
                       child: Text(
-                        LanguageEn.forgotpassword,
+                        "forgotpassword".tr(),
                         style: TextStyle(
                             color: notifier.getdarkgrey,
                             fontSize: 13.5.sp,
@@ -245,14 +244,14 @@ class _LoginState extends State<Login> {
                 SizedBox(height: height / 25),
                 if (appState.biometricEnabled && password.isEmpty) ...[
                   Button(
-                    LanguageEn.signinwithbiometrics,
+                    "signinwithbiometrics".tr(),
                     notifier.getbluecolor,
                     wihitecolor,
                     onTap: toggleSwitch,
                   ),
                 ] else ...[
                   Button(
-                    LanguageEn.signin,
+                    "signin".tr(),
                     notifier.getbluecolor,
                     wihitecolor,
                     onTap: handleSignin,
@@ -272,7 +271,7 @@ class _LoginState extends State<Login> {
                       ),
                     ),
                     Text(
-                      LanguageEn.oR,
+                      "oR".tr(),
                       style: TextStyle(color: notifier.getgrey),
                     ),
                     Expanded(
@@ -287,7 +286,7 @@ class _LoginState extends State<Login> {
                   ],
                 ),
                 ButtonOutlined(
-                  LanguageEn.signup,
+                  "signup".tr(),
                   notifier.getwihitecolor,
                   notifier.getbluewhitecolor,
                   onTap: () {
@@ -298,7 +297,7 @@ class _LoginState extends State<Login> {
                 ),
                 SizedBox(height: height / 50),
                 ButtonOutlined(
-                  LanguageEn.recoveraccount,
+                  "recoveraccount".tr(),
                   notifier.getbluecolor80,
                   wihitecolor,
                   onTap: () {
@@ -309,7 +308,7 @@ class _LoginState extends State<Login> {
                 ),
                 SizedBox(height: height / 50),
                 Text(
-                  '${LanguageEn.version} ${appState.appVersion}',
+                  '${"version".tr()} ${appState.appVersion}',
                   style: TextStyle(
                       color: notifier.getdarkgrey,
                       fontSize: 13.5.sp,
@@ -361,8 +360,7 @@ class _LoginState extends State<Login> {
           PageAction(state: PageState.replaceAll, page: BottomHomePageConfig);
       appState.isLoggedIn = true;
     } else {
-      popup(context,
-          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
   }
 

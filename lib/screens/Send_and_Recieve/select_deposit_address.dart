@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -104,7 +104,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                     width: 20,
                   ),
                   Text(
-                    'Deposit ${getAssetCode(asset!.assetCode)}',
+                    '${"deposit".tr()} ${getAssetCode(asset!.assetCode)}',
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -119,7 +119,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                 child: Text(
-                  'Please make your deposit to the address displayed below on the selected network.',
+                  "deposittoaddress".tr(),
                   style: TextStyle(
                       fontSize: 15,
                       color: notifier.getbluewhitecolor,
@@ -132,7 +132,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                 child: Text(
-                  'Network',
+                  "network".tr(),
                   style: TextStyle(
                       fontSize: 15,
                       color: notifier.getbluewhitecolor,
@@ -170,7 +170,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                         ),
                         // value: selectedNetwork,
                         hint: Text(
-                          'Select network',
+                          "selectnetwork".tr(),
                           style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontbody,
@@ -205,7 +205,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                   child: Text(
-                    'Deposit Address',
+                    "depositaddress".tr(),
                     style: TextStyle(
                         fontSize: 15,
                         color: notifier.getbluewhitecolor,
@@ -255,7 +255,8 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                                           text: selectedNetwork,
                                         ),
                                       );
-                                      showSnackBar('Deposit address', context);
+                                      showSnackBar(
+                                          "depositaddress".tr(), context);
                                     },
                                     icon: Icon(Icons.copy,
                                         size: 20,
@@ -277,7 +278,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'OR',
+                      "oR".tr(),
                       style: TextStyle(
                           fontSize: 15,
                           color: notifier.getbluewhitecolor,
@@ -291,7 +292,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
                   child: Text(
-                    'Scan QR Code',
+                    "scanqrcode".tr(),
                     style: TextStyle(
                         fontSize: 15,
                         color: notifier.getbluewhitecolor,
@@ -320,7 +321,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                   height: height / 10,
                 ),
                 Button(
-                  'Done',
+                  "done".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () {
@@ -359,7 +360,7 @@ class _SelectDepositAddressState extends State<SelectDepositAddress>
                                   Container(
                                     width: width / 1.28,
                                     child: Text(
-                                      'To get the deposit address, please select the network where you would like to make the deposit.',
+                                      "selectdepositnetwork".tr(),
                                       textAlign: TextAlign.justify,
                                       style: TextStyle(
                                           fontSize: 15,

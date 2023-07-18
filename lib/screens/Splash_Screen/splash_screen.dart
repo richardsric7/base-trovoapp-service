@@ -79,6 +79,8 @@ class _SplashScreenState extends State<SplashScreen>
       appState.timeout = await StoreData().storeGetData('timeOut') ?? '5';
       appState.setDefaultCurrency =
           await StoreData().storeGetData('defaultCurrency') ?? 'USD';
+      appState.setDefaultLanguage =
+          await StoreData().storeGetData('defaultLanguage') ?? 'en';
       appState.sethideWalletList = List.filled(6, appState.hideBalances);
 
       if (!appState.appIsOpen) appState.initFirebaseListener(context);

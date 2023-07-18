@@ -20,6 +20,7 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'custom_bloc_observer/notifire_clor.dart';
 import 'firebase_options.dart';
 import 'storage/store.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 void main() async {
   await GetStorage.init();
@@ -34,8 +35,17 @@ void main() async {
         .storeInsertData('initialDynamicLink', dynamicLink.link.toString());
   }
 
+  await EasyLocalization.ensureInitialized();
+
   BlocOverrides.runZoned(
-    () => runApp(const App()),
+    () => runApp(
+      EasyLocalization(
+          supportedLocales: [Locale('en', 'US')],
+          path:
+              'assets/translations', // <-- change the path of the translation files
+          fallbackLocale: Locale('en'),
+          child: App()),
+    ),
   );
 }
 
@@ -82,6 +92,9 @@ class _AppState extends State<App> {
         onPanDown: (_) => _initializeTimer(),
         onScaleStart: (_) => _initializeTimer(),
         child: MaterialApp.router(
+          localizationsDelegates: context.localizationDelegates,
+          supportedLocales: context.supportedLocales,
+          locale: context.locale,
           routerDelegate: delegate!,
           routeInformationParser: parser,
           backButtonDispatcher: backButtonDispatcher,

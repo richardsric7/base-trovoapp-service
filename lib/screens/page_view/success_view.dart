@@ -1,10 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
@@ -63,7 +63,7 @@ class _SuccessView extends State<SuccessView> {
             children: [
               SizedBox(height: height / 10),
               Text(
-                LanguageEn.success,
+                "success".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -92,9 +92,7 @@ class _SuccessView extends State<SuccessView> {
                           child: Column(
                             children: [
                               Text(
-                                title.isEmpty
-                                    ? LanguageEn.congratulations
-                                    : title,
+                                title.isEmpty ? "congratulations".tr() : title,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontSize: 16,
@@ -124,7 +122,7 @@ class _SuccessView extends State<SuccessView> {
                 height: height / 20,
               ),
               Button(
-                LanguageEn.done,
+                "done".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -157,7 +155,6 @@ class _SuccessView extends State<SuccessView> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     appState.viewData![SuccessViewPageConfig.key] = null;
   }

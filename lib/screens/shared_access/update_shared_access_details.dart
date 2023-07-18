@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,7 +18,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -77,7 +77,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Confirm request',
+                    "confirmrequest".tr(),
                     style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
@@ -92,7 +92,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Text(
-                  'You are about to make the following modifications to your shared access',
+                  "youareabouttomodify".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
@@ -123,7 +123,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                             height: height / 50,
                           ),
                           Text(
-                            'Wallet',
+                            "wallet".tr(),
                             style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -192,7 +192,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                               height: height / 50,
                             ),
                             Text(
-                              'Viewer access',
+                              "vieweraccess".tr(),
                               style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
@@ -251,7 +251,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                               height: height / 50,
                             ),
                             Text(
-                              'Approver access',
+                              "approveraccess".tr(),
                               style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
@@ -309,7 +309,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                               height: height / 50,
                             ),
                             Text(
-                              'Initiator access',
+                              "initiatoraccess".tr(),
                               style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
@@ -367,7 +367,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
                               height: height / 50,
                             ),
                             Text(
-                              'No. of approvals required',
+                              "noofapprovalsrequired".tr(),
                               style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
@@ -406,7 +406,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
-                  LanguageEn.password,
+                  "password".tr(),
                   notifier.getbluewhitecolor,
                   Icons.lock,
                   notifier.getgrey,
@@ -427,14 +427,14 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
               ),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
-                  LanguageEn.authorizewithbiometrics,
+                  "authorizewithbiometrics".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: toggleSwitch,
                 ),
               ] else ...[
                 Button(
-                  LanguageEn.authorize,
+                  "authorize".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: handleAuthorization,
@@ -461,8 +461,7 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
     if (password == appState.password!) {
       sendDataToServer();
     } else {
-      popup(context,
-          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
   }
 
@@ -485,9 +484,9 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
   }
 
   String? validatePassword(String? value) {
-    if (value!.isEmpty) return 'Enter your password';
+    if (value!.isEmpty) return "pleaseenteryourpassword".tr();
 
-    if (value.length < 6) return 'Use 6 characters or more for your password';
+    if (value.length < 6) return "use6charsormoreforpassword".tr();
 
     return null;
   }
@@ -497,19 +496,19 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
     Color color;
     switch (permission.permissionState) {
       case PermissionState.Added:
-        text = 'Added';
+        text = "added".tr();
         color = notifier.getgreencolor;
         break;
       case PermissionState.Revoked:
-        text = 'Revoked';
+        text = "revoked".tr();
         color = Colors.red;
         break;
       case PermissionState.Modified:
-        text = 'Modified';
+        text = "modified".tr();
         color = Colors.yellow;
         break;
       default:
-        text = 'Active';
+        text = "active".tr();
         color = notifier.getbluewhitecolor;
     }
     return Padding(
@@ -578,10 +577,6 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
             },
           );
         }
-
-        print('added: $addedPermissions');
-        print('modified: $modifiedPermissions');
-        print('revoked: $revokedPermissions');
       }
 
       for (var i = 0; i < viewData['approvers'].length; i++) {
@@ -685,11 +680,11 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
         hideLoader(context);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }
@@ -762,11 +757,11 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
         hideLoader(context);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
         hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }

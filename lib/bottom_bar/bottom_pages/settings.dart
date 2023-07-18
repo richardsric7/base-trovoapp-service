@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -13,7 +13,6 @@ import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/store.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
@@ -45,6 +44,12 @@ class _SettingsState extends State<Settings> {
     }
   }
 
+  final internationalLanguages = <String, String>{
+    "en": "English",
+    "ig": "Igbo",
+    "fr": "French",
+  };
+
   List<DropdownMenuItem<String>> get getCurrencies {
     List<DropdownMenuItem<String>> currencies = [];
     appState.fiatRate.forEach((key, value) {
@@ -56,6 +61,20 @@ class _SettingsState extends State<Settings> {
           value: key));
     });
     return currencies;
+  }
+
+  List<DropdownMenuItem<String>> get getLanguages {
+    List<DropdownMenuItem<String>> languages = [];
+    internationalLanguages.forEach((key, value) {
+      languages.add(DropdownMenuItem(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: key));
+    });
+    return languages;
   }
 
   @override
@@ -127,15 +146,15 @@ class _SettingsState extends State<Settings> {
                   onTap: () {
                     share();
                   },
-                  child: invitefriend(notifier.getbluecolor,
-                      LanguageEn.invitefriends, wihitecolor),
+                  child: invitefriend(
+                      notifier.getbluecolor, "invitefriends".tr(), wihitecolor),
                 ),
                 SizedBox(height: height / 25),
                 Row(
                   children: [
                     SizedBox(width: width / 20),
                     Text(
-                      LanguageEn.preferences,
+                      "preferences".tr(),
                       style: TextStyle(
                           color: notifier.getgrey,
                           fontSize: 13.sp,
@@ -145,23 +164,22 @@ class _SettingsState extends State<Settings> {
                 ),
                 SizedBox(height: height / 50),
                 // GestureDetector(
-                //   child: iteamlist(
-                //       "assets/images/languages.png", "", LanguageEn.languages),
+                //   child: languages(
+                //       "assets/images/languages.png", "", "languages".tr()),
                 // ),
                 GestureDetector(
                   child: currency(
-                      "assets/images/currency.png", "", LanguageEn.currency),
+                      "assets/images/currency.png", "", "currency".tr()),
                 ),
                 GestureDetector(
-                  child:
-                      darkmode("assets/images/theme.png", "", LanguageEn.theme),
+                  child: darkmode("assets/images/theme.png", "", "theme".tr()),
                 ),
                 SizedBox(height: height / 25),
                 Row(
                   children: [
                     SizedBox(width: width / 20),
                     Text(
-                      LanguageEn.security,
+                      "security".tr(),
                       style: TextStyle(
                           color: notifier.getgrey,
                           fontSize: 13.sp,
@@ -174,27 +192,27 @@ class _SettingsState extends State<Settings> {
                   onTap: () => appState.currentAction = PageAction(
                       state: PageState.addPage,
                       page: PasswordMgtViewPageConfig),
-                  child: iteamlist("assets/images/lock.png", "",
-                      LanguageEn.passwordmanagement),
+                  child: iteamlist(
+                      "assets/images/lock.png", "", "passwordmanagement".tr()),
                 ),
                 GestureDetector(
                   child: hideBalance(
-                      "assets/images/eyeoff.png", "", LanguageEn.hidebalance),
+                      "assets/images/eyeoff.png", "", "hidebalance".tr()),
                 ),
                 GestureDetector(
                   child: timeout(
-                      "assets/images/hourglass.png", "", LanguageEn.timeout),
+                      "assets/images/hourglass.png", "", "timeout".tr()),
                 ),
                 GestureDetector(
-                  child: biometrics("assets/images/biometrics.png", "",
-                      LanguageEn.biometrics),
+                  child: biometrics(
+                      "assets/images/biometrics.png", "", "biometrics".tr()),
                 ),
                 SizedBox(height: height / 25),
                 Row(
                   children: [
                     SizedBox(width: width / 20),
                     Text(
-                      LanguageEn.wallet,
+                      "wallet".tr(),
                       style: TextStyle(
                           color: notifier.getgrey,
                           fontSize: 13.sp,
@@ -203,10 +221,8 @@ class _SettingsState extends State<Settings> {
                   ],
                 ),
                 SizedBox(height: height / 50),
-
                 walletMode(
-                    "assets/images/walletmode.png", "", LanguageEn.walletmode),
-
+                    "assets/images/walletmode.png", "", "walletmode".tr()),
                 SizedBox(height: height / 25),
                 GestureDetector(
                   onTap: () {
@@ -214,12 +230,11 @@ class _SettingsState extends State<Settings> {
                         state: PageState.replaceAll, page: LoginPageConfig);
                     appState.isLoggedIn = false;
                   },
-                  child:
-                      logout("assets/images/logout.png", "", LanguageEn.logout),
+                  child: logout("assets/images/logout.png", "", "logout".tr()),
                 ),
                 SizedBox(height: height / 30),
                 Text(
-                  '${LanguageEn.version} ${appState.appVersion}',
+                  '${"version".tr()} ${appState.appVersion}',
                   style: TextStyle(
                       color: notifier.getdarkgrey,
                       fontSize: 13.5.sp,
@@ -408,13 +423,13 @@ class _SettingsState extends State<Settings> {
                       items: <DropdownMenuItem<String>>[
                         DropdownMenuItem(
                             child: Text(
-                              'Testnet',
+                              "testnet".tr(),
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: 'Testnet'),
                         DropdownMenuItem(
                             child: Text(
-                              'Mainnet',
+                              "mainnet".tr(),
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: 'Mainet'),
@@ -494,31 +509,31 @@ class _SettingsState extends State<Settings> {
                       items: <DropdownMenuItem<String>>[
                         DropdownMenuItem(
                             child: Text(
-                              '1 ${LanguageEn.minute}',
+                              '1 ${"minute".tr()}',
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: '1'),
                         DropdownMenuItem(
                             child: Text(
-                              '2 ${LanguageEn.minutes}',
+                              '2 ${"minutes".tr()}',
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: '2'),
                         DropdownMenuItem(
                             child: Text(
-                              '5 ${LanguageEn.minutes}',
+                              '5 ${"minutes".tr()}',
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: '5'),
                         DropdownMenuItem(
                             child: Text(
-                              '10 ${LanguageEn.minutes}',
+                              '10 ${"minutes".tr()}',
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: '10'),
                         DropdownMenuItem(
                             child: Text(
-                              '15 ${LanguageEn.minutes}',
+                              '15 ${"minutes".tr()}',
                               overflow: TextOverflow.ellipsis,
                             ),
                             value: '15'),
@@ -596,6 +611,80 @@ class _SettingsState extends State<Settings> {
                         appState.setDefaultCurrency = newValue.toString();
                       },
                       items: getCurrencies,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: width / 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget languages(image, txt, name) {
+    return Container(
+      color: Colors.transparent,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        child: Row(
+          children: [
+            SizedBox(width: width / 25),
+            Image.asset(
+              image,
+              height: height / 30,
+              width: 30,
+              color: notifier.getbluewhitecolor,
+            ),
+            SizedBox(width: width / 40),
+            Text(
+              name,
+              style: TextStyle(
+                  color: notifier.getblck,
+                  fontSize: 13.sp,
+                  fontFamily: fontsemibold),
+            ),
+            const Spacer(),
+            SizedBox(width: width / 100),
+            Container(
+              width: width / 5,
+              height: 20,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField(
+                      isExpanded: true,
+                      dropdownColor: notifier.isDark
+                          ? darktilewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                      value: appState.defaultLanguage,
+                      icon: Visibility(
+                          visible: false, child: Icon(Icons.arrow_downward)),
+                      decoration: InputDecoration(
+                        contentPadding:
+                            EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                        ),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      elevation: 0,
+                      style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      onChanged: (newValue) async {
+                        context.setLocale(Locale(newValue.toString()));
+                        await StoreData().storeInsertData(
+                            'defaultLanguage', newValue.toString());
+                        appState.setDefaultLanguage = newValue.toString();
+                      },
+                      items: getLanguages,
                     ),
                   ),
                 ],

@@ -128,9 +128,9 @@ class _TopDropdownsState extends State<TopDropdowns> {
                   return walletDropdownItems(true);
                 },
               )),
-          if (widget.claimedAssets != null) ...[
+          if (widget.claimedAssets.isNotEmpty) ...[
             SizedBox(
-              width: width / 40,
+              width: width / 70,
             ),
             Expanded(
               flex: 3,

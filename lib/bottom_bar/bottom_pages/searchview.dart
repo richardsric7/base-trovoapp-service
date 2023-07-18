@@ -1,8 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import '../../../custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import '../../../utils/medeiaqury/medeiaqury.dart';
@@ -39,7 +39,7 @@ class _SearchViewState extends State<SearchView> {
             elevation: 0,
             backgroundColor: notifier.getwihitecolor,
             title: Text(
-              LanguageEn.search,
+              "search".tr(),
               style: TextStyle(
                   fontSize: 20.sp,
                   color: notifier.getblck,
@@ -71,7 +71,7 @@ class _SearchViewState extends State<SearchView> {
                   children: [
                     Center(
                       child: Text(
-                        'This is search view...',
+                        "thisissearchview".tr(),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,

@@ -1,9 +1,9 @@
 import 'dart:math';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
-import 'package:intl/intl.dart';
 import 'package:loadmore/loadmore.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -18,7 +18,6 @@ import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -264,7 +263,7 @@ class _SharedAccessState extends State<SharedAccess>
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          LanguageEn.sharedaccess,
+          "sharedaccess".tr(),
           notifier.getbluewhitecolor,
           height: height / 15,
         ).getBar(),
@@ -432,7 +431,7 @@ class _SharedAccessState extends State<SharedAccess>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              LanguageEn.somethingwentwrong,
+                              "somethingwentwrong".tr(),
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 16,
@@ -451,7 +450,7 @@ class _SharedAccessState extends State<SharedAccess>
                                         notifier.getbluecolor!),
                               ),
                               child: Text(
-                                LanguageEn.retry,
+                                "retry".tr(),
                                 style: TextStyle(
                                   fontFamily: fontsemibold,
                                 ),
@@ -487,10 +486,10 @@ class _SharedAccessState extends State<SharedAccess>
                           String text;
                           switch (status) {
                             case LoadMoreStatus.fail:
-                              text = "Tap to load more";
+                              text = "taptoloadmore".tr();
                               break;
                             case LoadMoreStatus.idle:
-                              text = "Tap to load more";
+                              text = "taptoloadmore".tr();
                               break;
                             default:
                               text = "";
@@ -538,7 +537,7 @@ class _SharedAccessState extends State<SharedAccess>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'No results here.',
+                            "sorrynoresults".tr(),
                             overflow: TextOverflow.visible,
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -553,7 +552,7 @@ class _SharedAccessState extends State<SharedAccess>
                   } else {
                     return Center(
                       child: Text(
-                        'Error fetching data. Please try again',
+                        "errorfetchingdata".tr(),
                         overflow: TextOverflow.visible,
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -565,7 +564,7 @@ class _SharedAccessState extends State<SharedAccess>
                     );
                   }
                 } else {
-                  return Text('State: ${snapshot.connectionState}');
+                  return Text('${"state".tr()}: ${snapshot.connectionState}');
                 }
               },
             ),
@@ -623,7 +622,7 @@ class _SharedAccessState extends State<SharedAccess>
                     Padding(
                       padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                       child: Text(
-                        'Transaction type:',
+                        '${"transactiontype".tr()}:',
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily: fontsemibold,
@@ -661,7 +660,7 @@ class _SharedAccessState extends State<SharedAccess>
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      'Initiated by:',
+                      '${"initiatedby".tr()}:',
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
@@ -693,7 +692,7 @@ class _SharedAccessState extends State<SharedAccess>
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      'Approval status:',
+                      '${"approvalstatus".tr()}:',
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
@@ -725,7 +724,7 @@ class _SharedAccessState extends State<SharedAccess>
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      'Transaction status:',
+                      '${"transactionstatus2".tr()}:',
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
@@ -757,7 +756,7 @@ class _SharedAccessState extends State<SharedAccess>
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      'Initiated:',
+                      '${"initiated".tr()}:',
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
@@ -800,7 +799,7 @@ class _SharedAccessState extends State<SharedAccess>
               child: Row(
                 children: [
                   Text(
-                    'Mode',
+                    "mode".tr(),
                     style: TextStyle(
                         color: notifier.getbluewhitecolor,
                         fontFamily: fontbody,
@@ -862,7 +861,7 @@ class _SharedAccessState extends State<SharedAccess>
                 child: Row(
                   children: [
                     Text(
-                      LanguageEn.filterby,
+                      "filterby".tr(),
                       style: TextStyle(
                           color: notifier.getbluewhitecolor,
                           fontFamily: fontbody,
@@ -958,7 +957,7 @@ class _SharedAccessState extends State<SharedAccess>
                       Center(
                         heightFactor: 15.sp,
                         child: Text(
-                          'Nothing to show here',
+                          "nothingtoshowhere2".tr(),
                           style: TextStyle(
                             fontSize: 17,
                             fontFamily: fontbody,
@@ -1059,7 +1058,7 @@ class _SharedAccessState extends State<SharedAccess>
           Center(
             heightFactor: 15.sp,
             child: Text(
-              'Nothing to show here',
+              "nothingtoshowhere2".tr(),
               style: TextStyle(
                 fontSize: 17,
                 fontFamily: fontbody,
@@ -1113,7 +1112,7 @@ class _SharedAccessState extends State<SharedAccess>
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      'Owner:',
+                      '${"owner".tr()}:',
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
@@ -1142,7 +1141,7 @@ class _SharedAccessState extends State<SharedAccess>
                   Padding(
                     padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                     child: Text(
-                      'Permissions:',
+                      '${"permissions".tr()}:',
                       style: TextStyle(
                         fontSize: 15,
                         fontFamily: fontsemibold,
@@ -1273,7 +1272,7 @@ class _SharedAccessState extends State<SharedAccess>
                             Padding(
                               padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                               child: Text(
-                                'Viewer access',
+                                "vieweraccess".tr(),
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontFamily: fontsemibold,
@@ -1313,7 +1312,7 @@ class _SharedAccessState extends State<SharedAccess>
                             Padding(
                               padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                               child: Text(
-                                'Approver access',
+                                "approveraccess".tr(),
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontFamily: fontsemibold,
@@ -1350,7 +1349,7 @@ class _SharedAccessState extends State<SharedAccess>
                             Padding(
                               padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
                               child: Text(
-                                'Initiator access',
+                                "initiatoraccess".tr(),
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontFamily: fontsemibold,
@@ -1396,7 +1395,7 @@ class _SharedAccessState extends State<SharedAccess>
       Step(
         state: currentStep > 0 ? StepState.complete : StepState.indexed,
         isActive: currentStep >= 0,
-        title: Text("Add viewer access",
+        title: Text("addvieweraccess",
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
                 fontFamily: fontsemibold,
@@ -1410,7 +1409,7 @@ class _SharedAccessState extends State<SharedAccess>
       Step(
         state: currentStep > 1 ? StepState.complete : StepState.indexed,
         isActive: currentStep >= 1,
-        title: Text("Add approver access",
+        title: Text("addapproveraccess".tr(),
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
                 fontFamily: fontsemibold,
@@ -1424,7 +1423,7 @@ class _SharedAccessState extends State<SharedAccess>
       Step(
         state: currentStep > 2 ? StepState.complete : StepState.indexed,
         isActive: currentStep >= 2,
-        title: Text("Add initiator access",
+        title: Text("addinitiatoraccess".tr(),
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
                 fontFamily: fontsemibold,
@@ -1473,7 +1472,7 @@ class _SharedAccessState extends State<SharedAccess>
           SizedBox(
             height: height / 30,
           ),
-          Text("Add viewer access",
+          Text("addvieweraccess".tr(),
               style: TextStyle(
                   color: notifier.getbluewhitecolor,
                   fontFamily: fontsemibold,
@@ -1520,7 +1519,7 @@ class _SharedAccessState extends State<SharedAccess>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'You do not have any shareable wallet at the moment.',
+                "noshareablewalletyet".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 16,
@@ -1539,7 +1538,7 @@ class _SharedAccessState extends State<SharedAccess>
                       MaterialStateProperty.all<Color>(notifier.getbluecolor!),
                 ),
                 child: Text(
-                  'Go to wallets',
+                  "gotowallet".tr(),
                   style: TextStyle(
                     fontFamily: fontsemibold,
                   ),
@@ -1592,7 +1591,7 @@ class _SharedAccessState extends State<SharedAccess>
                                 ],
                               ] else ...[
                                 Text(
-                                  'Name of viewers appear here',
+                                  "nameofviewersappearhere".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: notifier.getbluewhitecolor,
@@ -1616,7 +1615,7 @@ class _SharedAccessState extends State<SharedAccess>
         Container(
           width: width / 1.1,
           child: Text(
-            LanguageEn.enteraccountsusernameviewers,
+            "enteraccountsusernameviewers".tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
@@ -1630,7 +1629,7 @@ class _SharedAccessState extends State<SharedAccess>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: CustomTextFormField.textFieldWithoutIcon(
-            'Viewer',
+            "viewer".tr(),
             notifier.getbluecolor,
             notifier.getgrey,
             notifier.getprefixicon,
@@ -1661,7 +1660,7 @@ class _SharedAccessState extends State<SharedAccess>
             setState(() {});
 
             if (username.isEmpty) {
-              viewerUsernameErrorMessage = 'Please enter a username';
+              viewerUsernameErrorMessage = "enterusername".tr();
               setState(() {});
               return;
             }
@@ -1672,16 +1671,15 @@ class _SharedAccessState extends State<SharedAccess>
               // setState(() {});
               popup(
                 context,
-                title: 'Error!',
-                message:
-                    'You cannot add yourself as a viewer on this wallet because as the owner of this wallet you already have view access.',
+                title: "error".tr(),
+                message: "cannotaddyourself".tr(),
                 bodyColor: Colors.red,
               );
               return;
             }
 
             if (viewers.contains(username)) {
-              viewerUsernameErrorMessage = 'Username already added';
+              viewerUsernameErrorMessage = "usernamealreadyadded".tr();
               setState(() {});
               return;
             }
@@ -1690,9 +1688,8 @@ class _SharedAccessState extends State<SharedAccess>
             if (approvers.contains(username)) {
               popup(
                 context,
-                title: 'Alert',
-                message:
-                    'This user is already added to approver access which gives them view access. Please remove them from approver access if you want to grant them view-only access.',
+                title: "alert".tr(),
+                message: "usernamealreadyaddedtoapproverslist".tr(),
                 bodyColor: notifier.getbluecolor,
               );
               return;
@@ -1702,9 +1699,8 @@ class _SharedAccessState extends State<SharedAccess>
             if (initiators.contains(username)) {
               popup(
                 context,
-                title: 'Error',
-                message:
-                    'This user is already added to initiator access which gives them view access. Please remove them from initiator access if you want to grant them view-only access.',
+                title: "error".tr(),
+                message: "usernamealreadyaddedtoinitiatorslist".tr(),
                 bodyColor: notifier.getbluecolor,
               );
               return;
@@ -1712,7 +1708,7 @@ class _SharedAccessState extends State<SharedAccess>
 
             var userInfo = await checkUsername(username);
             if (userInfo == null) {
-              viewerUsernameErrorMessage = 'This is not a valid Trovo username';
+              viewerUsernameErrorMessage = "notavalidtrovousername".tr();
               setState(() {});
               return;
             }
@@ -1728,7 +1724,7 @@ class _SharedAccessState extends State<SharedAccess>
                 MaterialStateProperty.all<Color>(notifier.getbluecolor!),
           ),
           child: Text(
-            LanguageEn.add,
+            "add".tr(),
             style: TextStyle(
               fontFamily: fontsemibold,
             ),
@@ -1771,7 +1767,7 @@ class _SharedAccessState extends State<SharedAccess>
               ),
               Container(
                 child: Text(
-                  LanguageEn.doyouwanttoaddapprovers,
+                  "doyouwanttoaddapprovers".tr(),
                   overflow: TextOverflow.visible,
                   style: TextStyle(
                     fontSize: 15,
@@ -1790,9 +1786,8 @@ class _SharedAccessState extends State<SharedAccess>
           onPressed: () {
             if (!addApprovers && viewers.isEmpty) {
               popup(context,
-                  title: 'Error!',
-                  message:
-                      'Please enter the username of those you want to grant access to this wallet');
+                  title: "error".tr(),
+                  message: "enterusernametograntaccess".tr());
               return;
             }
 
@@ -1823,7 +1818,7 @@ class _SharedAccessState extends State<SharedAccess>
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Text(
-              addApprovers ? 'Add approver access' : 'Proceed',
+              addApprovers ? "addapproveraccess".tr() : "proceed".tr(),
               style: TextStyle(
                 fontFamily: fontsemibold,
                 fontSize: 14.sp,
@@ -1864,7 +1859,7 @@ class _SharedAccessState extends State<SharedAccess>
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
                           child: Text(
-                            'Approvals',
+                            "approvals".tr(),
                             style: TextStyle(
                                 color: notifier.getbluewhitecolor,
                                 fontFamily: fontsemibold,
@@ -1929,7 +1924,7 @@ class _SharedAccessState extends State<SharedAccess>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'of',
+                          "of".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontFamily: fontbody,
@@ -1949,7 +1944,7 @@ class _SharedAccessState extends State<SharedAccess>
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
                           child: Text(
-                            'Approvers',
+                            "approvers".tr(),
                             style: TextStyle(
                                 color: notifier.getbluewhitecolor,
                                 fontFamily: fontsemibold,
@@ -2015,7 +2010,10 @@ class _SharedAccessState extends State<SharedAccess>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: Text(
-              '${noOfApprovalsNeeded} approvals required out of ${noOfApprovers} approvers',
+              "noapprovalsrequiredoutofno".tr(args: [
+                noOfApprovalsNeeded.toString(),
+                noOfApprovers.toString()
+              ]),
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: notifier.getbluewhitecolor,
@@ -2028,7 +2026,7 @@ class _SharedAccessState extends State<SharedAccess>
           ),
           Container(
             child: Text(
-              LanguageEn.enteraccountsusernameapprovers,
+              "enteraccountsusernameapprovers".tr(),
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: notifier.getbluewhitecolor,
@@ -2073,7 +2071,7 @@ class _SharedAccessState extends State<SharedAccess>
                                   ],
                                 ] else ...[
                                   Text(
-                                    'Name of approvers appear here',
+                                    "nameofapproversappearhere".tr(),
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         color: notifier.getbluewhitecolor,
@@ -2095,7 +2093,7 @@ class _SharedAccessState extends State<SharedAccess>
             height: height / 50,
           ),
           CustomTextFormField.textFieldWithoutIcon(
-            'Approver',
+            "approver".tr(),
             notifier.getbluecolor,
             notifier.getgrey,
             notifier.getprefixicon,
@@ -2125,22 +2123,21 @@ class _SharedAccessState extends State<SharedAccess>
               setState(() {});
 
               if (username.isEmpty) {
-                approverUsernameErrorMessage = 'Please enter a username';
+                approverUsernameErrorMessage = "enterusername".tr();
                 setState(() {});
                 return;
               }
 
               if (approvers.contains(username)) {
-                approverUsernameErrorMessage = 'Username already added';
+                approverUsernameErrorMessage = "usernamealreadyadded".tr();
                 setState(() {});
                 return;
               }
 
               if (approvers.length == noOfApprovers) {
                 popup(context,
-                    title: 'Error!',
-                    message:
-                        'Number of usernames cannot be more than the number of approvers you selected');
+                    title: "error".tr(),
+                    message: "usernamecannotbemorethannoapprovers".tr());
                 return;
               }
 
@@ -2148,9 +2145,7 @@ class _SharedAccessState extends State<SharedAccess>
               // no need to check again that the username is valid so we add it to
               // to the approvers list
               if (viewers.contains(username)) {
-                showResponseMessage(context,
-                    'This user will be removed from the view-only access as they will have view access as an approver/initiator',
-                    () {
+                showResponseMessage(context, "userwillberemoved".tr(), () {
                   viewers.removeWhere((userItem) => userItem == username);
                   approvers.add(username);
                   approversController.text = '';
@@ -2171,8 +2166,7 @@ class _SharedAccessState extends State<SharedAccess>
 
               var userInfo = await checkUsername(username);
               if (userInfo == null) {
-                approverUsernameErrorMessage =
-                    'This is not a valid Trovo username';
+                approverUsernameErrorMessage = "notavalidtrovousername".tr();
                 setState(() {});
                 return;
               }
@@ -2187,7 +2181,7 @@ class _SharedAccessState extends State<SharedAccess>
                   MaterialStateProperty.all<Color>(notifier.getbluecolor!),
             ),
             child: Text(
-              LanguageEn.add,
+              "add".tr(),
               style: TextStyle(
                 fontFamily: fontsemibold,
               ),
@@ -2207,17 +2201,15 @@ class _SharedAccessState extends State<SharedAccess>
 
               if (approvers.isEmpty) {
                 popup(context,
-                    title: 'Error!',
-                    message:
-                        'Please enter the username of those you want to grant approver access to this wallet');
+                    title: "error".tr(),
+                    message: "enterusernametograntaccess".tr());
                 return;
               }
 
               if (approvers.length < noOfApprovers) {
                 popup(context,
-                    title: 'Error!',
-                    message:
-                        'Number of usernames cannot be less than the number of approvers you selected');
+                    title: "error".tr(),
+                    message: "usernamecannotbemorethannoapprovers".tr());
                 return;
               }
 
@@ -2244,7 +2236,7 @@ class _SharedAccessState extends State<SharedAccess>
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Text(
-                'Add initiator access',
+                "addinitiatoraccess".tr(),
                 style: TextStyle(
                   fontFamily: fontsemibold,
                   fontSize: 14.sp,
@@ -2299,7 +2291,7 @@ class _SharedAccessState extends State<SharedAccess>
                                 ],
                               ] else ...[
                                 Text(
-                                  'Name of initiators appear here',
+                                  "nameofinitiatorsappearhere".tr(),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: notifier.getbluewhitecolor,
@@ -2322,7 +2314,7 @@ class _SharedAccessState extends State<SharedAccess>
         ),
         Container(
           child: Text(
-            LanguageEn.enteraccountsusernameinitiators,
+            "enteraccountsusernameinitiators".tr(),
             textAlign: TextAlign.center,
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
@@ -2334,7 +2326,7 @@ class _SharedAccessState extends State<SharedAccess>
           height: height / 50,
         ),
         CustomTextFormField.textFieldWithoutIcon(
-          'Initiator',
+          "initiator".tr(),
           notifier.getbluecolor,
           notifier.getgrey,
           notifier.getprefixicon,
@@ -2364,13 +2356,13 @@ class _SharedAccessState extends State<SharedAccess>
             setState(() {});
 
             if (username.isEmpty) {
-              initiatorUsernameErrorMessage = 'Please enter a username';
+              initiatorUsernameErrorMessage = "enterusername".tr();
               setState(() {});
               return;
             }
 
             if (initiators.contains(username)) {
-              initiatorUsernameErrorMessage = 'Username already added';
+              initiatorUsernameErrorMessage = "usernamealreadyadded".tr();
               setState(() {});
               return;
             }
@@ -2381,9 +2373,7 @@ class _SharedAccessState extends State<SharedAccess>
             if (viewers.contains(username)) {
               // initiators.add(username);
               // initiatorsController.text = '';
-              showResponseMessage(context,
-                  'This user will be removed from the view-only access as they will have view access as an initiator',
-                  () {
+              showResponseMessage(context, "userwillberemoved".tr(), () {
                 viewers.removeWhere((username) => username == username);
                 initiators.add(username);
                 initiatorsController.text = '';
@@ -2404,8 +2394,7 @@ class _SharedAccessState extends State<SharedAccess>
 
             var userInfo = await checkUsername(username);
             if (userInfo == null) {
-              initiatorUsernameErrorMessage =
-                  'This is not a valid Trovo username';
+              initiatorUsernameErrorMessage = "notavalidtrovousername".tr();
               setState(() {});
               return;
             }
@@ -2420,7 +2409,7 @@ class _SharedAccessState extends State<SharedAccess>
                 MaterialStateProperty.all<Color>(notifier.getbluecolor!),
           ),
           child: Text(
-            LanguageEn.add,
+            "add".tr(),
             style: TextStyle(
               fontFamily: fontsemibold,
             ),
@@ -2436,25 +2425,22 @@ class _SharedAccessState extends State<SharedAccess>
           onPressed: () {
             if (initiators.isEmpty) {
               popup(context,
-                  title: 'Error!',
-                  message:
-                      'Please enter the username of those you want to grant initiator access to this wallet');
+                  title: "error".tr(),
+                  message: "enterusernametograntaccess".tr());
               return;
             }
 
             if (approvers.length < noOfApprovers) {
               popup(context,
-                  title: 'Error!',
-                  message:
-                      'Number of approver usernames cannot be less than the number of approvers you selected. Please go back and add more approvers.');
+                  title: "error".tr(),
+                  message: "approverscannotbelessnoofapprover".tr());
               return;
             }
 
             if (approvers.isEmpty) {
               popup(context,
-                  title: 'Error!',
-                  message:
-                      'You cannot have initiators without having approvers. Please add approvers.');
+                  title: "error".tr(),
+                  message: "cannothaveinitiatorswithoutapprovers".tr());
               return;
             }
 
@@ -2481,7 +2467,7 @@ class _SharedAccessState extends State<SharedAccess>
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Text(
-              'Proceed',
+              "proceed".tr(),
               style: TextStyle(
                 fontFamily: fontsemibold,
                 fontSize: 14.sp,
@@ -2507,7 +2493,7 @@ class _SharedAccessState extends State<SharedAccess>
         child: Column(
           children: [
             Text(
-              LanguageEn.choosewallet,
+              "choosewallet".tr(),
               style: TextStyle(
                   color: notifier.getbluewhitecolor,
                   fontFamily: fontbody,
@@ -2590,7 +2576,7 @@ class _SharedAccessState extends State<SharedAccess>
 
       return null;
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
       return null;
     }
@@ -2676,7 +2662,7 @@ class _SharedAccessState extends State<SharedAccess>
         approvalListTransactionTypePopup(
           context,
           transactionStatus,
-          'Select transaction status',
+          "selecttransactionstatus".tr(),
           (status) {
             appState.setFilterTransactionStatus = status.capitalizeFirst;
             appState.setFilterQuery =
@@ -2691,7 +2677,7 @@ class _SharedAccessState extends State<SharedAccess>
         approvalListTransactionTypePopup(
           context,
           transactionTypes,
-          'Select transaction type',
+          "selecttransactiontype".tr(),
           (transactionType) {
             appState.setFilterTransactionType = transactionType.capitalizeFirst;
             appState.setFilterQuery = "&transactionType=$transactionType";
@@ -2702,9 +2688,9 @@ class _SharedAccessState extends State<SharedAccess>
         break;
       case ApprovalsListFilterType.WalletAlias:
         approvalTextFieldPopup(context,
-            label: 'Enter wallet alias',
+            label: "enterwalletalias".tr(),
             value: appState.filterWalletAlias,
-            placeholder: 'Enter alias', onDone: (value) async {
+            placeholder: "enteralias".tr(), onDone: (value) async {
           if (value != null && value.toString().isNotEmpty) {
             appState.setFilterWalletAlias = value;
             appState.setFilterQuery = "&walletAlias=$value";
@@ -2716,9 +2702,9 @@ class _SharedAccessState extends State<SharedAccess>
         break;
       case ApprovalsListFilterType.Description:
         approvalTextFieldPopup(context,
-            label: 'Enter decription',
+            label: "enterdescription".tr(),
             value: appState.filterDescription,
-            placeholder: 'Enter description', onDone: (value) async {
+            placeholder: "enterdescription".tr(), onDone: (value) async {
           if (value != null && value.toString().isNotEmpty) {
             appState.setFilterDescription = value;
             appState.setFilterQuery = "&description=$value";
@@ -2730,9 +2716,9 @@ class _SharedAccessState extends State<SharedAccess>
         break;
       case ApprovalsListFilterType.TransactionId:
         approvalTextFieldPopup(context,
-            label: 'Enter Transaction ID',
+            label: "entertransactionid".tr(),
             value: appState.filterTransactionId,
-            placeholder: 'Transaction ID', onDone: (value) async {
+            placeholder: "transactionid".tr(), onDone: (value) async {
           if (value != null && value.toString().isNotEmpty) {
             appState.setFilterTransactionId = value;
             appState.setFilterQuery = "&transactionID=$value";
@@ -2751,9 +2737,9 @@ class _SharedAccessState extends State<SharedAccess>
         break;
       case ApprovalsListFilterType.WalletPublicKey:
         approvalTextFieldPopup(context,
-            label: 'Enter wallet public key',
+            label: "enterwalletpublickey".tr(),
             value: appState.filterWalletPublicKey,
-            placeholder: 'Public Key', onDone: (value) async {
+            placeholder: "publickey".tr(), onDone: (value) async {
           if (value != null && value.toString().isNotEmpty) {
             appState.setFilterWalletPublicKey = value;
             appState.setFilterQuery = "&walletPublicKey=$value";
@@ -2765,9 +2751,9 @@ class _SharedAccessState extends State<SharedAccess>
         break;
       case ApprovalsListFilterType.Initiator:
         approvalTextFieldPopup(context,
-            label: 'Enter initiator username',
+            label: "enterinitiatorusername".tr(),
             value: appState.filterInitiatorUsername,
-            placeholder: 'Username', onDone: (value) async {
+            placeholder: "username".tr(), onDone: (value) async {
           if (value != null && value.toString().isNotEmpty) {
             appState.setFilterInitiatorUsername = value;
             appState.setFilterQuery = "&initiator=$value";
@@ -2830,7 +2816,7 @@ class _SharedAccessState extends State<SharedAccess>
             approvalListTransactionTypePopup(
               context,
               transactionStatus,
-              'Select transaction status',
+              "selecttransactionstatus".tr(),
               (status) {
                 appState.setFilterTransactionStatus = status.capitalizeFirst;
                 appState.setFilterQuery =
@@ -2842,16 +2828,16 @@ class _SharedAccessState extends State<SharedAccess>
             );
           },
           label: appState.filterTransactionStatus.isEmpty
-              ? "Choose status"
+              ? "choosestatus".tr()
               : appState.filterTransactionStatus,
         );
       case ApprovalsListFilterType.WalletAlias:
         return content(
           onPressed: () {
             approvalTextFieldPopup(context,
-                label: 'Enter wallet alias',
+                label: "enterwalletalias".tr(),
                 value: appState.filterWalletAlias,
-                placeholder: 'Enter alias', onDone: (value) async {
+                placeholder: "enteralias".tr(), onDone: (value) async {
               if (value != null && value.toString().isNotEmpty) {
                 appState.setFilterWalletAlias = value;
                 appState.setFilterQuery = "&walletAlias=$value";
@@ -2860,16 +2846,16 @@ class _SharedAccessState extends State<SharedAccess>
             });
           },
           label: appState.filterWalletAlias.isEmpty
-              ? "Enter alias"
+              ? "enteralias".tr()
               : appState.filterWalletAlias,
         );
       case ApprovalsListFilterType.Description:
         return content(
           onPressed: () {
             approvalTextFieldPopup(context,
-                label: 'Enter decription',
+                label: "enterdescription".tr(),
                 value: appState.filterDescription,
-                placeholder: 'Enter description', onDone: (value) async {
+                placeholder: "enterdescription".tr(), onDone: (value) async {
               if (value != null && value.toString().isNotEmpty) {
                 appState.setFilterDescription = value;
                 appState.setFilterQuery = "&description=$value";
@@ -2878,7 +2864,7 @@ class _SharedAccessState extends State<SharedAccess>
             });
           },
           label: appState.filterDescription.isEmpty
-              ? "Enter description"
+              ? "enterdescription".tr()
               : truncate(appState.filterDescription, length: 30),
         );
 
@@ -2886,9 +2872,9 @@ class _SharedAccessState extends State<SharedAccess>
         return content(
           onPressed: () {
             approvalTextFieldPopup(context,
-                label: 'Enter wallet public key',
+                label: "enterwalletpublickey".tr(),
                 value: appState.filterWalletPublicKey,
-                placeholder: 'Public Key', onDone: (value) async {
+                placeholder: "publickey".tr(), onDone: (value) async {
               if (value != null && value.toString().isNotEmpty) {
                 appState.setFilterWalletPublicKey = value;
                 appState.setFilterQuery = "&walletPublicKey=$value";
@@ -2902,9 +2888,9 @@ class _SharedAccessState extends State<SharedAccess>
         return content(
           onPressed: () {
             approvalTextFieldPopup(context,
-                label: 'Enter Transaction ID',
+                label: "entertransctionid".tr(),
                 value: appState.filterTransactionId,
-                placeholder: 'Transaction ID', onDone: (value) async {
+                placeholder: "transactionid".tr(), onDone: (value) async {
               if (value != null && value.toString().isNotEmpty) {
                 appState.setFilterTransactionId = value;
                 appState.setFilterQuery = "&transactionID=$value";
@@ -2913,16 +2899,16 @@ class _SharedAccessState extends State<SharedAccess>
             });
           },
           label: appState.filterTransactionId.isEmpty
-              ? 'Enter ID'
+              ? "enterid".tr()
               : appState.filterTransactionId,
         );
       case ApprovalsListFilterType.Initiator:
         return content(
           onPressed: () {
             approvalTextFieldPopup(context,
-                label: 'Enter initiator username',
+                label: "enterinitiatorusername".tr(),
                 value: appState.filterInitiatorUsername,
-                placeholder: 'Username', onDone: (value) async {
+                placeholder: "username".tr(), onDone: (value) async {
               if (value != null && value.toString().isNotEmpty) {
                 appState.setFilterInitiatorUsername = value;
                 appState.setFilterQuery = "&initiator=$value";
@@ -2931,7 +2917,7 @@ class _SharedAccessState extends State<SharedAccess>
             });
           },
           label: appState.filterInitiatorUsername.isEmpty
-              ? 'Enter username'
+              ? "enterusername2".tr()
               : appState.filterInitiatorUsername,
         );
       case ApprovalsListFilterType.DateRange:
@@ -2951,7 +2937,7 @@ class _SharedAccessState extends State<SharedAccess>
             approvalListTransactionTypePopup(
               context,
               transactionTypes,
-              'Select transaction type',
+              "selecttransactiontype".tr(),
               (transactionType) {
                 appState.setFilterTransactionType =
                     transactionType.capitalizeFirst;
@@ -2971,11 +2957,11 @@ class _SharedAccessState extends State<SharedAccess>
       return "${DateFormat('dd/MM/yy').format(appState.filterStartDate!)} - ${DateFormat('dd/MM/yy').format(appState.filterEndDate!)} ";
     }
 
-    return 'Enter range';
+    return "enterrange".tr();
   }
 
   getTruncatedPublicKey(String publicKey) {
-    if (publicKey.isEmpty) return "Enter public key";
+    if (publicKey.isEmpty) return "enterpublickey".tr();
     if (publicKey.length <= 7) return publicKey;
     return truncate(publicKey, length: 7) +
         publicKey.substring(publicKey.length - 7);
@@ -3012,7 +2998,7 @@ String getNames(listOfNames) {
   }
 
   if (listOfNames.length > 3) {
-    names.add('...tap to view all');
+    names.add('...${"taptoviewall".tr()}');
   }
 
   return names.join(', ');

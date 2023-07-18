@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -12,7 +12,6 @@ import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -64,7 +63,7 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    LanguageEn.account,
+                    "account".tr(),
                     style: TextStyle(
                         color: notifier.getbluewhitecolor,
                         fontSize: 26.sp,
@@ -74,7 +73,7 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                     width: width / 50,
                   ),
                   Text(
-                    LanguageEn.recovery,
+                    "recovery".tr(),
                     style: TextStyle(
                         color: notifier.getbluewhitecolor,
                         fontSize: 26.sp,
@@ -102,7 +101,7 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                           height: height / 50,
                         ),
                         Text(
-                          LanguageEn.haveyoubackedup,
+                          "haveyoubackedup".tr(),
                           overflow: TextOverflow.visible,
                           style: TextStyle(
                               fontSize: 15,
@@ -144,7 +143,7 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                         padding: const EdgeInsets.all(16.0),
                         width: width / 1.2,
                         child: Text(
-                          LanguageEn.ihavebackedupmywallet,
+                          "ihavebackedupmywallet".tr(),
                           style: TextStyle(
                               fontSize: height / 55,
                               color: notifier.getgrey,
@@ -159,7 +158,7 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                 height: height / 20,
               ),
               Button(
-                LanguageEn.completeaccountrecovery,
+                "completeaccountrecovery".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -167,8 +166,8 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                     completeAccountRecovery();
                   } else {
                     popup(context,
-                        title: LanguageEn.important,
-                        message: LanguageEn.ensurebackedup);
+                        title: "important".tr(),
+                        message: "ensurebackedup".tr());
                   }
                 },
               ),
@@ -239,11 +238,11 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
       } else {
         hideLoader(context);
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['error']);
+            title: "error".tr(), message: responseData['data']['error']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }

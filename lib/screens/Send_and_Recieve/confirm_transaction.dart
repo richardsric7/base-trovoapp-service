@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,7 +11,6 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/bottom_tab_page.dart';
-import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
@@ -87,7 +87,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    LanguageEn.confirmyourtransaction,
+                    "confirmyourtransaction".tr(),
                     style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
@@ -100,7 +100,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 height: height / 20,
               ),
               Text(
-                LanguageEn.youareabouttosend,
+                "youareabouttosend".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -166,7 +166,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                 height: height / 50,
               ),
               Text(
-                LanguageEn.to,
+                "to".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -190,7 +190,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                   height: height / 50,
                 ),
                 Text(
-                  'Service Fee',
+                  "servicefee".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
@@ -221,9 +221,9 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
                             SizedBox(
                               height: height / 50,
                             ),
-                            myKeyValueRow(
-                                "Fee: ", transactionData['fee'] + '%'),
-                            myKeyValueRow("Amount (Calculated): ",
+                            myKeyValueRow("${"fee".tr()}: ",
+                                transactionData['fee'] + '%'),
+                            myKeyValueRow("${"amountcalculated".tr()}: ",
                                 "${transactionData['feeAmount']} ${asset!.assetCode.toString().isEmpty ? 'XBN' : asset!.assetCode}"),
                             SizedBox(
                               height: height / 50,
@@ -241,7 +241,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
-                  LanguageEn.password,
+                  "password".tr(),
                   notifier.getbluewhitecolor,
                   Icons.lock,
                   notifier.getgrey,
@@ -262,14 +262,14 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
               ),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
-                  LanguageEn.authorizewithbiometrics,
+                  "authorizewithbiometrics".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: toggleSwitch,
                 ),
               ] else ...[
                 Button(
-                  LanguageEn.authorize,
+                  "authorize".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: handleAuthorization,
@@ -424,7 +424,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     return Column(
       children: [
         Text(
-          LanguageEn.descriptionmemo,
+          "descriptionmemo".tr(),
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
@@ -481,8 +481,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
     if (password == appState.password!) {
       sendDataToServer();
     } else {
-      popup(context,
-          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
   }
 
@@ -585,7 +584,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
       } else {
         popup(
           context,
-          title: LanguageEn.error,
+          title: "error".tr(),
           message: responseData['data']['message'].toString().isEmpty
               ? responseData['data']['error']
               : responseData['data']['message'],
@@ -593,7 +592,7 @@ class _ConfirmTransaction extends State<ConfirmTransaction>
         hideLoader(context);
       }
     } catch (e) {
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
   }

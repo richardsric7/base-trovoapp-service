@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
@@ -54,7 +55,7 @@ class _AnnouncementsViewState extends State<AnnouncementsView> {
             backgroundColor: notifier.getwihitecolor,
             centerTitle: true,
             title: Text(
-              'Announcements',
+              "announcements".tr(),
               style: TextStyle(
                   fontSize: 20.sp,
                   color: notifier.getblck,
@@ -96,7 +97,7 @@ class _AnnouncementsViewState extends State<AnnouncementsView> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                LanguageEn.somethingwentwrong,
+                                "somethingwentwrong".tr(),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontSize: 16,

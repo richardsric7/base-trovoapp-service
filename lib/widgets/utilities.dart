@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -23,9 +23,7 @@ import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
-
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 
@@ -38,7 +36,7 @@ void showSnackBar(String rel, BuildContext context) {
     SnackBar(
       backgroundColor: notifier.getbluecolor,
       content: Text(
-        '$rel copied successfully',
+        '$rel ${"copiedsuccessfully".tr()}',
         style: TextStyle(
           color: wihitecolor,
           fontSize: 12.sp,
@@ -47,7 +45,7 @@ void showSnackBar(String rel, BuildContext context) {
         ),
       ),
       action: SnackBarAction(
-        label: 'DISMISS',
+        label: "dismiss".tr(),
         textColor: wihitecolor,
         onPressed: () => {
           ScaffoldMessenger.of(context).clearSnackBars(),
@@ -73,7 +71,7 @@ void showSnackBarForInfo(String message, BuildContext context) {
         ),
       ),
       action: SnackBarAction(
-        label: 'DISMISS',
+        label: "dismiss".tr(),
         textColor: wihitecolor,
         onPressed: () => {
           ScaffoldMessenger.of(context).clearSnackBars(),
@@ -130,7 +128,7 @@ formatHistoryNumber(double number, double trimNum) {
 }
 
 truncatePublicKey(String? publicKey) {
-  if (publicKey == null) return "Enter public key";
+  if (publicKey == null) return "enterpublickey".tr();
   if (publicKey.length <= 7) return publicKey;
   return truncate(publicKey, length: 7) +
       publicKey.substring(publicKey.length - 7);
@@ -150,8 +148,6 @@ class doubleTypeFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    print('this is old value ${oldValue.text}');
-    print('this is new value ${newValue.text}');
     return TextEditingValue(
         text: formatNumber(double.parse(newValue.text.replaceAll(',', ''))),
         selection: TextSelection.collapsed(offset: newValue.selection.end + 1));
@@ -168,15 +164,6 @@ void changeTabPage(appState, index) {
       appState.currentBottomTabIndex = index;
     }
   });
-}
-
-void handleDynamicLinkData(Uri parsedUri) {
-  print('action: ${parsedUri.queryParameters['action']}');
-  print('description: ${parsedUri.queryParameters['description']}');
-  print('deviceInfo: ${parsedUri.queryParameters['deviceInfo']}');
-  print('targetUser: ${parsedUri.queryParameters['targetUser']}');
-  print('ownerUsername: ${parsedUri.queryParameters['ownerUsername']}');
-  print('serviceShortName: ${parsedUri.queryParameters['serviceShortName']}');
 }
 
 String calculateFiatValue(String assetBalance, String usdPrice, String currency,
@@ -234,7 +221,7 @@ Widget buildExpandable(context) {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Text(
-                      "Learn more",
+                      "learnmore".tr(),
                       style: TextStyle(
                         color: notifier.getbluecolor,
                         fontFamily: fontbody,
@@ -267,7 +254,7 @@ Widget buildExpandable(context) {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "What is shared access?",
+                        "whatissharedaccess".tr(),
                         style: TextStyle(
                           color: notifier.getbluecolor90,
                           fontFamily: fontsemibold,
@@ -553,11 +540,11 @@ void disableSharedAccess(
       hideLoader(context);
     } else {
       popup(context,
-          title: LanguageEn.error, message: responseData['data']['message']);
+          title: "error".tr(), message: responseData['data']['message']);
       hideLoader(context);
     }
   } catch (e) {
-    popup(context, title: LanguageEn.error, message: e.toString());
+    popup(context, title: "error".tr(), message: e.toString());
     hideLoader(context);
   }
 }
@@ -565,11 +552,10 @@ void disableSharedAccess(
 void signAndCommitTransaction(responseFromServer, BuildContext context,
     DataProvider appState, Wallet wallet, bool viewOnly) async {
   try {
-    print('signing and sending....');
     String viewOnlySuccess =
-        'Shared access has successfully been disabled on this wallet [${wallet.alias}]';
+        "sharedaccessdisabledsuccessfully".tr(args: [wallet.alias!]);
     String sharedAccessSuccess =
-        'Your request to disable shared access on wallet [${wallet.alias!}] has been submitted. This transaction will be completed when it gets the required number of approvals.';
+        "sharedaccessdisablerequestsuccessful".tr(args: [wallet.alias!]);
     showLoader(context);
 
     //sign the transaction and the submit again
@@ -582,11 +568,7 @@ void signAndCommitTransaction(responseFromServer, BuildContext context,
     responseFromServer['transactionSignature'] = signature;
     responseFromServer['commit'] = 1;
 
-    print('second: ${responseFromServer}');
-
     String requestBody = jsonEncode(responseFromServer);
-
-    print('second: ${requestBody}');
 
     Map responseData = await makeDeleteRequest(
       uri: '/v1/shared-access/users/account',
@@ -607,7 +589,7 @@ void signAndCommitTransaction(responseFromServer, BuildContext context,
         forceRefresh: true,
       );
       appState.viewData![SuccessViewPageConfig.key] = {
-        'title': 'Request successfully submitted',
+        'title': "requestsubmitted".tr(),
         'message': viewOnly ? viewOnlySuccess : sharedAccessSuccess,
         'useOnDone': true,
         'onDone': () {
@@ -622,11 +604,11 @@ void signAndCommitTransaction(responseFromServer, BuildContext context,
       hideLoader(context);
     } else {
       popup(context,
-          title: LanguageEn.error, message: responseData['data']['message']);
+          title: "error".tr(), message: responseData['data']['message']);
       hideLoader(context);
     }
   } catch (e) {
-    popup(context, title: LanguageEn.error, message: e.toString());
+    popup(context, title: "error".tr(), message: e.toString());
     hideLoader(context);
   }
 }
@@ -797,7 +779,7 @@ Widget getDrawer(
             height: height / 35,
           ),
           title: Text(
-            LanguageEn.sharedaccess,
+            "sharedaccess".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -815,7 +797,7 @@ Widget getDrawer(
             color: notifier.getgrey.withOpacity(.80),
           ),
           title: Text(
-            LanguageEn.markettrade,
+            "markettrade".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -837,7 +819,7 @@ Widget getDrawer(
             height: height / 40,
           ),
           title: Text(
-            LanguageEn.trovopatron,
+            "trovopatron".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -858,7 +840,7 @@ Widget getDrawer(
             height: height / 40,
           ),
           title: Text(
-            LanguageEn.addremoveasset,
+            "addremoveasset".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -880,7 +862,7 @@ Widget getDrawer(
             height: height / 40,
           ),
           title: Text(
-            LanguageEn.importwallet,
+            "importwallet".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -900,7 +882,7 @@ Widget getDrawer(
             height: height / 40,
           ),
           title: Text(
-            LanguageEn.backupwallet,
+            "backupwallet".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -925,7 +907,7 @@ Widget getDrawer(
             height: height / 40,
           ),
           title: Text(
-            LanguageEn.accountrecovery,
+            "accountrecovery".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -977,7 +959,7 @@ Widget getDrawer(
             height: height / 40,
           ),
           title: Text(
-            'Settings',
+            "settings".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -998,7 +980,7 @@ Widget getDrawer(
             height: height / 40,
           ),
           title: Text(
-            LanguageEn.helpandsupport,
+            "helpandsupport".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -1016,7 +998,7 @@ Widget getDrawer(
             height: height / 40,
           ),
           title: Text(
-            LanguageEn.termsofuse,
+            "termsofuse".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -1034,7 +1016,7 @@ Widget getDrawer(
             height: height / 40,
           ),
           title: Text(
-            LanguageEn.abouttrovowallet,
+            "abouttrovowallet".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,
@@ -1052,7 +1034,7 @@ Widget getDrawer(
             height: height / 40,
           ),
           title: Text(
-            LanguageEn.logout,
+            "logout".tr(),
             style: TextStyle(
               fontFamily: fontbody,
               color: notifier.getbluewhitecolor,

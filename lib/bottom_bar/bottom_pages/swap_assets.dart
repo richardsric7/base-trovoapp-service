@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -16,7 +17,6 @@ import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -126,7 +126,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
         height: height / 15,
         scaffoldKey: key,
         showMenu: true,
-        txt: "Swap",
+        txt: "swap".tr(),
         titlecolor: notifier.getbluewhitecolor,
       ).getBar(),
       body: SmartRefresher(
@@ -146,7 +146,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       width: width / 15,
                     ),
                     Text(
-                      'Select wallet',
+                      "selectwallet".tr(),
                       style: TextStyle(
                           color: notifier.getbluewhitecolor,
                           fontSize: 15,
@@ -198,7 +198,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         height: height / 50,
                       ),
                       CustomTextFormField.textField(
-                        LanguageEn.amount,
+                        "amount".tr(),
                         notifier.getbluecolor,
                         Icons.currency_exchange,
                         notifier.getgrey,
@@ -239,7 +239,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         height: height / 20,
                       ),
                       Button(
-                        LanguageEn.proceed,
+                        "proceed".tr(),
                         notifier.getbluecolor,
                         wihitecolor,
                         onTap: () {
@@ -286,7 +286,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    LanguageEn.swapfrom,
+                    "swapfrom".tr(),
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -327,7 +327,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       hint: Container(
                         width: 150, //and here
                         child: Text(
-                          LanguageEn.chooseasset,
+                          "chooseasset".tr(),
                           style: TextStyle(
                             color: sourceErr
                                 ? Colors.red
@@ -414,7 +414,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                   ),
                   SizedBox(height: height / 25),
                   Text(
-                    LanguageEn.swapto,
+                    "swapto".tr(),
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -455,7 +455,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                       hint: Container(
                         width: 150, //and here
                         child: Text(
-                          LanguageEn.chooseasset,
+                          "chooseasset".tr(),
                           style: TextStyle(
                             color: destErr
                                 ? Colors.red
@@ -545,8 +545,6 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
       String requestBody = jsonEncode(map);
 
-      print('requestBody ====> $requestBody');
-
       Map responseData = await makePostRequest(
         uri: getEndpoint(),
         body: requestBody,
@@ -565,11 +563,11 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
         postProcessData(messageShown, messageLength, responseData['data']);
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       // print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
   }
 
@@ -677,24 +675,24 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
 
   String? validateAmount(String? value) {
     if (value!.isEmpty || double.tryParse(value)! <= 0) {
-      return 'Please enter amount to swap';
+      return "enteramounttoswap".tr();
     }
 
     if (double.tryParse(value) == null) {
-      return 'Please enter a valid amount';
+      return "pleaseentervalidamount".tr();
     }
 
     if (sourceAsset == null) {
-      return 'Please choose assets to swap';
+      return "chooseassettoswap".tr();
     }
 
     if (double.tryParse(value)! > (sourceAsset!.amount!)) {
-      return 'You don\'t have sufficient balance';
+      return "youdonthavesufficientbalance".tr();
     }
 
     if (getAssetCode(sourceAsset!.assetCode) == 'XBN' &&
         double.tryParse(value)! > (sourceAsset!.amount! - 6)) {
-      return 'You don\'t have sufficient balance';
+      return "youdonthavesufficientbalance".tr();
     }
 
     return null;

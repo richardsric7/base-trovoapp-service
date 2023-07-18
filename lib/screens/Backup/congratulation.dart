@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +10,6 @@ import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
-import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class Congratulations extends StatelessWidget {
@@ -30,7 +30,7 @@ class Congratulations extends StatelessWidget {
             children: [
               SizedBox(height: height / 10),
               Text(
-                '${LanguageEn.congratulations}',
+                '${"congratulations".tr()}',
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
@@ -48,8 +48,8 @@ class Congratulations extends StatelessWidget {
                 padding: const EdgeInsets.all(15.0),
                 child: Text(
                   appState.activeWallet!.primaryWallet == 1
-                      ? LanguageEn.walletcreatesuccess
-                      : LanguageEn.subwalletcreatesuccess,
+                      ? "walletcreatesuccess".tr()
+                      : "subwalletcreatesuccess".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getgrey,
@@ -60,7 +60,7 @@ class Congratulations extends StatelessWidget {
               ),
               SizedBox(height: height / 20),
               Button(
-                LanguageEn.backup,
+                "backup".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -78,7 +78,7 @@ class Congratulations extends StatelessWidget {
               ),
               SizedBox(height: height / 50.5),
               ButtonOutlined(
-                LanguageEn.skip,
+                "skip".tr(),
                 notifier.getwihitecolor,
                 notifier.getbluewhitecolor,
                 onTap: () {

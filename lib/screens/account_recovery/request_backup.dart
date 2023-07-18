@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +10,6 @@ import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../router/page_actions.dart';
 import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
-import '../../utils/enstring.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class RequestBackup extends StatelessWidget {
@@ -32,7 +32,7 @@ class RequestBackup extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
-                  '${LanguageEn.congratulations}',
+                  '${"congratulations".tr()}',
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
                       fontFamily: fontsemibold,
@@ -54,7 +54,7 @@ class RequestBackup extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: Text(
-                  LanguageEn.backupnewsecretkeygenerated,
+                  "backupnewsecretkeygenerated".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getgrey,
@@ -65,7 +65,7 @@ class RequestBackup extends StatelessWidget {
               ),
               SizedBox(height: height / 20),
               Button(
-                LanguageEn.taptobackup,
+                "taptobackup".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {

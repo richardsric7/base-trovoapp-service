@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -9,7 +10,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
@@ -78,7 +78,7 @@ class _TransactionStatus extends State<TransactionStatus> {
           child: Column(
             children: [
               Text(
-                'Transaction Status',
+                "transactionstatus".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
@@ -95,7 +95,8 @@ class _TransactionStatus extends State<TransactionStatus> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 50),
                 child: Text(
-                  'Your [${transactionInfo['currency']}] withdrawal request is being processed',
+                  "transactionprocessing"
+                      .tr(args: [transactionInfo['currency']]),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontSize: 20,
@@ -109,7 +110,7 @@ class _TransactionStatus extends State<TransactionStatus> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Text(
-                  'Your wallet will be debited  once your Withdrawal transaction has been confirmed',
+                  "accountwillbedebited".tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       fontSize: 16,
@@ -133,12 +134,12 @@ class _TransactionStatus extends State<TransactionStatus> {
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       children: [
-                        keyValuePair('Wallet', wallet.alias!),
+                        keyValuePair("wallet".tr(), wallet.alias!),
                         SizedBox(
                           height: height / 90,
                         ),
                         keyValuePair(
-                            'Withdraw Address',
+                            "walletaddress".tr(),
                             truncate(transactionInfo['withdrawalAddress'],
                                     length: 5) +
                                 transactionInfo['withdrawalAddress'].substring(
@@ -152,7 +153,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Asset',
+                              "asset".tr(),
                               style: TextStyle(
                                   fontSize: 15,
                                   color: notifier.getbluewhitecolor,
@@ -229,7 +230,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                 height: height / 20,
               ),
               Button(
-                'View in History',
+                "viewinhistory".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -254,7 +255,7 @@ class _TransactionStatus extends State<TransactionStatus> {
                 height: height / 50,
               ),
               ButtonOutlined(
-                LanguageEn.dashboard,
+                "dashboard".tr(),
                 notifier.getwihitecolor,
                 notifier.getbluewhitecolor,
                 onTap: () {

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -21,7 +22,6 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
@@ -113,7 +113,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     if ((appState.returnView != null && appState.returnView!.pages != null) &&
         appState.returnView!.pages!.contains(WalletPreparationViewPageConfig)) {
       appState.walletView.actionIcon = Icons.cancel_outlined;
-      appState.walletView.actionText = LanguageEn.cancel;
+      appState.walletView.actionText = "cancel".tr();
       appState.walletView.view = WalletView.addSubWallet;
     }
   }
@@ -136,7 +136,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
           height: height / 15,
           scaffoldKey: key,
           showMenu: true,
-          txt: LanguageEn.wallets,
+          txt: "wallets".tr(),
           titlecolor: notifier.getbluewhitecolor,
         ).getBar(),
         body: SmartRefresher(
@@ -243,19 +243,19 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                 onTap: () {
                   if (appState.walletView.view == WalletView.listWallets) {
                     appState.walletView.actionIcon = Icons.cancel_outlined;
-                    appState.walletView.actionText = LanguageEn.cancel;
+                    appState.walletView.actionText = "cancel".tr();
                     appState.walletView.view = WalletView.addSubWallet;
                   } else if (appState.walletView.view ==
                       WalletView.addSubWallet) {
                     appState.walletView.actionIcon =
                         Icons.add_circle_outline_sharp;
-                    appState.walletView.actionText = LanguageEn.addsubwallet;
+                    appState.walletView.actionText = "addsubwallet".tr();
                     appState.walletView.view = WalletView.listWallets;
                     resetForm();
                   } else if (appState.walletView.view ==
                       WalletView.confirmAddSubWallet) {
                     appState.walletView.actionIcon = Icons.cancel_outlined;
-                    appState.walletView.actionText = LanguageEn.cancel;
+                    appState.walletView.actionText = "cancel".tr();
                     appState.walletView.view = WalletView.addSubWallet;
                   }
 
@@ -603,7 +603,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     Container(
                       width: width / 1.4,
                       child: Text(
-                        LanguageEn.abouttocreatesubwallet,
+                        "abouttocreatesubwallet".tr(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15,
@@ -616,7 +616,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                       height: height / 50,
                     ),
                     Text(
-                      LanguageEn.chooseamethod,
+                      "chooseamethod".tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
@@ -650,7 +650,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                           ),
                         ),
                         Text(
-                          LanguageEn.importexistingwallet,
+                          "importexistingwallet".tr(),
                           style: TextStyle(
                             fontSize: 15,
                             fontFamily: fontsemibold,
@@ -682,7 +682,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                           ),
                         ),
                         Text(
-                          LanguageEn.createnewwallet,
+                          "createnewwallet".tr(),
                           style: TextStyle(
                             fontSize: 15,
                             fontFamily: fontsemibold,
@@ -763,7 +763,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
           ),
           // Tag name
           CustomTextFormField.textField(
-            LanguageEn.tag,
+            "tag".tr(),
             notifier.getbluecolor,
             Icons.tag,
             notifier.getgrey,
@@ -791,7 +791,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
           ),
           SizedBox(height: height / 50),
           CustomTextFormField.textField(
-            LanguageEn.description,
+            "description".tr(),
             notifier.getbluecolor,
             Icons.description,
             notifier.getgrey,
@@ -813,7 +813,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             SizedBox(height: height / 50),
             // Secret Key
             CustomPasswordFormField(
-              LanguageEn.secretkey,
+              "secretkey".tr(),
               notifier.getbluecolor,
               Icons.lock,
               notifier.getgrey,
@@ -824,11 +824,11 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               validator: (value) {
                 var trimmedVal = value!.trim().replaceAll(' ', '');
                 if (trimmedVal.isEmpty) {
-                  return LanguageEn.entersecretkeyempty;
+                  return "entersecretkeyempty".tr();
                 }
 
                 if (trimmedVal.length < 56) {
-                  return LanguageEn.secretkeyinvalid;
+                  return "secretkeyinvalid".tr();
                 }
 
                 try {
@@ -840,7 +840,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                 return null;
               },
               onSaved: (value) {
-                print('email: $value');
+                print('${"email".tr()}: $value');
                 secretKey = value!.trim().replaceAll(' ', '');
               },
               maxLength: 56,
@@ -848,7 +848,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
           ],
           SizedBox(height: height / 30),
           Button(
-            LanguageEn.continuee,
+            "continuee".tr(),
             notifier.getbluecolor,
             wihitecolor,
             onTap: () => submitForm(),
@@ -885,7 +885,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   Container(
                     width: width / 1.4,
                     child: Text(
-                      LanguageEn.requesttocreatesubwallet,
+                      "requesttocreatesubwallet".tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15,
@@ -898,7 +898,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     height: height / 50,
                   ),
                   Text(
-                    LanguageEn.tag,
+                    "tag".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -919,7 +919,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     height: height / 50,
                   ),
                   Text(
-                    LanguageEn.description,
+                    "description".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -940,7 +940,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     height: height / 50,
                   ),
                   Text(
-                    LanguageEn.method,
+                    "method".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -950,8 +950,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   ),
                   Text(
                     action == WalletAction.import
-                        ? LanguageEn.importsubwallet
-                        : LanguageEn.createnewsubwallet,
+                        ? "importsubwallet".tr()
+                        : "createnewsubwallet".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -963,7 +963,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     height: height / 50,
                   ),
                   Text(
-                    'Wallet type',
+                    "wallettype".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -984,7 +984,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     height: height / 50,
                   ),
                   Text(
-                    LanguageEn.publickey,
+                    "publickey".tr(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 15,
@@ -1010,7 +1010,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 15.0),
                     child: Text(
-                      'Please note that completing this process will attract some charges.',
+                      "willattractcharges".tr(),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
@@ -1031,7 +1031,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       SizedBox(height: height / 50),
       // Secret Key
       CustomPasswordFormField(
-        LanguageEn.password,
+        "password".tr(),
         notifier.getbluecolor,
         Icons.lock,
         notifier.getgrey,
@@ -1059,14 +1059,14 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
 
       if (appState.biometricEnabled && password.isEmpty) ...[
         Button(
-          LanguageEn.authorizewithbiometrics,
+          "authorizewithbiometrics".tr(),
           notifier.getbluecolor,
           wihitecolor,
           onTap: toggleSwitch,
         ),
       ] else ...[
         Button(
-          LanguageEn.authorize,
+          "authorize".tr(),
           notifier.getbluecolor,
           wihitecolor,
           onTap: handleAuthorization,
@@ -1162,15 +1162,14 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   }
 
   String? validatePassword(String? value) {
-    if (value!.isEmpty) return 'Enter your password';
+    if (value!.isEmpty) return "pleaseenteryourpassword".tr();
 
-    if (value.length < 6) return 'Use 6 characters or more for your password';
+    if (value.length < 6) return "use6charsormoreforpassword".tr();
 
     return null;
   }
 
   submitForm() async {
-    print('submitting...');
     var form = _formKey2.currentState;
     if (!form!.validate()) {
       return;
@@ -1180,7 +1179,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     setState(() {
       appState.walletView.view = WalletView.confirmAddSubWallet;
       appState.walletView.actionIcon = Icons.arrow_circle_left_outlined;
-      appState.walletView.actionText = LanguageEn.back;
+      appState.walletView.actionText = "back".tr();
       password = '';
       secretKey = '';
     });
@@ -1195,7 +1194,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
           // parse supplied secret to get the keypair
           newSubWalletKeyPair = TrovoWalletSDK().parseSecretKey(secretKey);
         } catch (e) {
-          popup(context, title: 'Error!', message: 'Secret Key is invalid');
+          popup(context, title: "error".tr(), message: "invalidsecretkey".tr());
         }
       } else {
         // generate keypair for the new subwallet
@@ -1205,22 +1204,20 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   }
 
   String? validateTag(String? value) {
-    print('validating tag...');
-    if (value!.isEmpty) return 'Enter wallet tag';
+    if (value!.isEmpty) return "enterwallettag".tr();
 
     String pattern = r'^[a-zA-Z0-9\_]*$';
     RegExp regex = new RegExp(pattern);
 
     if (!regex.hasMatch(value.trim().replaceAll(' ', ''))) {
-      return 'Invalid tag name';
+      return "invalidtagname".tr();
     }
 
     return null;
   }
 
   String? validateDescription(String? value) {
-    print('validating description...');
-    if (value!.isEmpty) return 'Enter wallet description';
+    if (value!.isEmpty) return "enterwalletdesc".tr();
 
     return null;
   }
@@ -1247,8 +1244,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     if (password == appState.password!) {
       sendDataToServer();
     } else {
-      popup(context,
-          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
   }
 
@@ -1283,24 +1279,21 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
 
-        print('new dialog $messageLength');
-        print('messagecount $messageShown');
         await postProcessData(
             messageShown, messageLength, responseData['data']);
         // print('sending full data to server.........');
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['message']);
+            title: "error".tr(), message: responseData['data']['message']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
     hideLoader(context);
   }
 
   postProcessData(messageShown, messageLength, data) {
-    print('messageShown: $messageShown messageLength $messageLength');
     // we would like to display all messages returned from the initial
     // request to server using a popup. In order to achieve that we
     // employ the use of a little recursion here. Please recursive
@@ -1340,17 +1333,10 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         responseBody['networkPassPhrase'],
       );
 
-      print('this is primary sign: $primarySignature');
-      print('this is subwallet sign: $subWalletSignature');
-
       responseBody['primarySignature'] = primarySignature;
       responseBody['subWalletSignature'] = subWalletSignature;
 
-      print(responseBody);
-
       String requestBody = jsonEncode(responseBody);
-
-      print('this is request body: $requestBody');
 
       Map responseData = await makePostRequest(
         uri: '/v1/users/subwallet',
@@ -1360,7 +1346,6 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         publicKey: primaryWalletKeyPair.publicKey,
       );
 
-      print('response: $responseData');
       if (responseData['statusCode'] == 200) {
         // add the secret key of this new subwallet to
         // the existing list of secrets
@@ -1387,11 +1372,11 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         resetForm();
       } else {
         popup(context,
-            title: LanguageEn.error, message: responseData['data']['error']);
+            title: "error".tr(), message: responseData['data']['error']);
       }
     } catch (e) {
       print(e);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
 
     hideLoader(context);
@@ -1402,7 +1387,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     description = '';
     secretKey = '';
     appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
-    appState.walletView.actionText = LanguageEn.addsubwallet;
+    appState.walletView.actionText = "addsubwallet".tr();
     appState.walletView.view = WalletView.listWallets;
   }
 

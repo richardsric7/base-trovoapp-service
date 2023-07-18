@@ -1,9 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 
@@ -36,7 +36,7 @@ class _ComplateerificationState extends State<Complateerification> {
               ),
               SizedBox(height: height / 11),
               Text(
-                LanguageEn.youreverified,
+                "youreverified".tr(),
                 style: TextStyle(
                     color: notifier.getblck,
                     fontFamily: fontsemibold,
@@ -44,7 +44,7 @@ class _ComplateerificationState extends State<Complateerification> {
               ),
               SizedBox(height: height / 50),
               Text(
-                LanguageEn.youhavebeensucces,
+                "youhavebeensucces".tr(),
                 style: TextStyle(
                     color: notifier.getgrey,
                     fontSize: 15.sp,
@@ -52,7 +52,7 @@ class _ComplateerificationState extends State<Complateerification> {
               ),
               SizedBox(height: height / 4.3),
               Button(
-                LanguageEn.continuee,
+                "continuee".tr(),
                 notifier.getbluecolor,
                 notifier.getwihitecolor,
                 onTap: () {

@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -11,7 +11,6 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -69,7 +68,7 @@ class RequestSpecificPaymentDetailsState
                     width: 20,
                   ),
                   Text(
-                    "Receive ${viewData['amount']} ${getAssetCode(viewData['assetCode'])}",
+                    "${"receive".tr()} ${viewData['amount']} ${getAssetCode(viewData['assetCode'])}",
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -97,19 +96,25 @@ class RequestSpecificPaymentDetailsState
                 ],
               ),
               Button(
-                LanguageEn.share,
+                "share".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
                   share(
-                    'Scan Qrcode or tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${viewData['walletAlias']}] => ${viewData['dynamicLink']}',
+                    "sharemessage".tr(args: [
+                      viewData['amount'],
+                      getAssetCode(viewData['assetCode']),
+                      viewData['walletAlias'],
+                      viewData['dynamicLink']
+                    ]),
+                    // 'Scan Qrcode or tap link to pay ${viewData['amount']} ${getAssetCode(viewData['assetCode'])} to [${viewData['walletAlias']}] => ${viewData['dynamicLink']}',
                     shareArea,
                   );
                 },
               ),
               SizedBox(height: height / 50.5),
               ButtonOutlined(
-                LanguageEn.dashboard,
+                "dashboard".tr(),
                 notifier.getwihitecolor,
                 notifier.getbluewhitecolor,
                 onTap: () {
@@ -149,7 +154,7 @@ class RequestSpecificPaymentDetailsState
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    LanguageEn.receivingwallet,
+                    "receivingwallet".tr(),
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -178,7 +183,7 @@ class RequestSpecificPaymentDetailsState
                               text: viewData['walletAlias'],
                             ),
                           );
-                          showSnackBar('Wallet alias', context);
+                          showSnackBar("walletalias".tr(), context);
                         },
                         icon: Icon(Icons.copy,
                             size: 20, color: notifier.getbluewhitecolor),
@@ -215,7 +220,7 @@ class RequestSpecificPaymentDetailsState
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    LanguageEn.formemo,
+                    "formemo".tr(),
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,

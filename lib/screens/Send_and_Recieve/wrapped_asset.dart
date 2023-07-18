@@ -1,6 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/utils.dart';
+import 'package:get/utils.dart' hide Trans;
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -113,8 +114,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                     vertical: 15.0, horizontal: 25.0),
                 child: RichText(
                   text: TextSpan(
-                    text: 'Welcome to the assetCode '
-                        .replaceAll('assetCode', asset!.assetCode!),
+                    text: '${"welcometothe".tr(args: [asset!.assetCode!])} ',
                     style: TextStyle(
                       fontSize: 15,
                       fontFamily: fontbody,
@@ -122,7 +122,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                     ),
                     children: [
                       TextSpan(
-                        text: 'Deposit ',
+                        text: '${"deposit".tr()} ',
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily: fontsemibold,
@@ -130,7 +130,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                         ),
                       ),
                       TextSpan(
-                        text: 'and ',
+                        text: '${"and".tr()} ',
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily: fontbody,
@@ -138,7 +138,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                         ),
                       ),
                       TextSpan(
-                        text: 'Withdraw ',
+                        text: '${"withdraw".tr()} ',
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily: fontsemibold,
@@ -146,7 +146,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                         ),
                       ),
                       TextSpan(
-                        text: 'page. Here, you can do the following:',
+                        text: "hereyoucandothefollowing".tr(),
                         style: TextStyle(
                           fontSize: 15,
                           fontFamily: fontbody,
@@ -173,7 +173,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Deposit and Withdraw',
+                                "depositandwithdraw".tr(),
                                 style: TextStyle(
                                     fontSize: 15,
                                     color: notifier.getbluewhitecolor,
@@ -205,7 +205,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Deposit/Withdraw History',
+                                "depositwithdrawhistory".tr(),
                                 style: TextStyle(
                                     fontSize: 15,
                                     color: notifier.getbluewhitecolor,
@@ -213,7 +213,7 @@ class _WrappedAssetState extends State<WrappedAsset>
                               ),
                               SizedBox(height: height / 90),
                               Text(
-                                'View your deposit and withdrawal history by clicking on the transaction history button here.',
+                                "viewdepositwithdrawhistory".tr(),
                                 textAlign: TextAlign.justify,
                                 style: TextStyle(
                                     fontSize: 15,

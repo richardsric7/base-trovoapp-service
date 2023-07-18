@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,7 +18,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -84,7 +84,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    LanguageEn.confirmswap,
+                    "confirmswap".tr(),
                     style: TextStyle(
                         fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
@@ -97,7 +97,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 height: height / 20,
               ),
               Text(
-                LanguageEn.youareabouttoswap,
+                "youareabouttoswap".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -163,7 +163,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 height: height / 50,
               ),
               Text(
-                LanguageEn.to,
+                "to".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -180,7 +180,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 height: height / 50,
               ),
               Text(
-                'Service Fee',
+                "servicefee".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -210,8 +210,9 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                           SizedBox(
                             height: height / 50,
                           ),
-                          myKeyValueRow("Fee: ", transactionData['fee'] + '%'),
-                          myKeyValueRow("Amount (Calculated): ",
+                          myKeyValueRow(
+                              "${"fee".tr()}: ", transactionData['fee'] + '%'),
+                          myKeyValueRow("${"amountcalculated".tr()}: ",
                               "${transactionData['feeAmount']} ${transactionData['sourceAssetCode'].toString().isEmpty ? 'XBN' : transactionData['sourceAssetCode']}"),
                           SizedBox(
                             height: height / 50,
@@ -226,7 +227,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                 height: height / 50,
               ),
               Text(
-                LanguageEn.wallet,
+                "wallet".tr(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -278,7 +279,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
               Form(
                 key: formKey,
                 child: CustomPasswordFormField(
-                  LanguageEn.password,
+                  "password".tr(),
                   notifier.getbluewhitecolor,
                   Icons.lock,
                   notifier.getgrey,
@@ -299,14 +300,14 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
               ),
               if (appState.biometricEnabled && password.isEmpty) ...[
                 Button(
-                  LanguageEn.authorizewithbiometrics,
+                  "authorizewithbiometrics".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: toggleSwitch,
                 ),
               ] else ...[
                 Button(
-                  LanguageEn.authorize,
+                  "authorize".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: handleAuthorization,
@@ -413,8 +414,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
     if (password == appState.password!) {
       sendDataToServer();
     } else {
-      popup(context,
-          title: LanguageEn.oops, message: LanguageEn.invalidpassword);
+      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
   }
 
@@ -437,9 +437,9 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
   }
 
   String? validatePassword(String? value) {
-    if (value!.isEmpty) return 'Enter your password';
+    if (value!.isEmpty) return "pleaseenteryourpassword".tr();
 
-    if (value.length < 6) return 'Use 6 characters or more for your password';
+    if (value.length < 6) return "use6charsormoreforpassword".tr();
 
     return null;
   }
@@ -523,7 +523,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
         hideLoader(context);
         popup(
           context,
-          title: LanguageEn.error,
+          title: "error".tr(),
           message: responseData['data']['message'].toString().isEmpty
               ? responseData['data']['error']
               : responseData['data']['message'],
@@ -532,7 +532,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
     } catch (e) {
       // print(e);
       hideLoader(context);
-      popup(context, title: LanguageEn.error, message: e.toString());
+      popup(context, title: "error".tr(), message: e.toString());
     }
   }
 }

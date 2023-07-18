@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:otp_text_field/otp_text_field.dart';
@@ -8,7 +8,6 @@ import 'package:otp_text_field/style.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/models/user.dart';
@@ -88,7 +87,7 @@ class _VeryficationState extends State<Veryfication> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        LanguageEn.enterverification,
+                        "enterverification".tr(),
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontSize: 23.sp,
@@ -96,8 +95,7 @@ class _VeryficationState extends State<Veryfication> {
                       ),
                       SizedBox(height: height / 30),
                       Text(
-                        LanguageEn.enterfourdigitnumber +
-                            state.userInfo!.email!,
+                        "enterfourdigitnumber".tr() + state.userInfo!.email!,
                         style: TextStyle(
                             fontSize: 14.sp,
                             color: notifier.getgrey,
@@ -144,7 +142,7 @@ class _VeryficationState extends State<Veryfication> {
               ),
               SizedBox(height: height / 10),
               Button(
-                LanguageEn.verify,
+                "verify".tr(),
                 notifier.getbluecolor,
                 wihitecolor,
                 onTap: () {
@@ -152,8 +150,7 @@ class _VeryficationState extends State<Veryfication> {
                     completeRegistration();
                   } else {
                     popup(context,
-                        title: LanguageEn.alert,
-                        message: LanguageEn.enterverification);
+                        title: "alert".tr(), message: "enterverification".tr());
                   }
                 },
               ),
@@ -209,8 +206,8 @@ class _VeryficationState extends State<Veryfication> {
       print(e);
       hideLoader(context);
       popup(context,
-          title: LanguageEn.error,
-          // message: LanguageEn.somethingwentwrong);
+          title: "error".tr(),
+          // message: "somethingwentwrong".tr());
           message: e.toString());
     }
   }
@@ -222,7 +219,7 @@ class _VeryficationState extends State<Veryfication> {
       getUserInfo();
     } else {
       popup(context,
-          title: LanguageEn.error, message: responseData['data']['message']);
+          title: "error".tr(), message: responseData['data']['message']);
     }
   }
 
@@ -250,13 +247,13 @@ class _VeryficationState extends State<Veryfication> {
     } else if (responseData['statusCode'] == 404) {
       hideLoader(context);
       popup(context,
-          title: LanguageEn.error, message: responseData['data']['message']);
+          title: "error".tr(), message: responseData['data']['message']);
     } else {
       hideLoader(context);
       // must be some sort of server error
       // let's throw it
       popup(context,
-          title: LanguageEn.error, message: responseData['data']['message']);
+          title: "error".tr(), message: responseData['data']['message']);
     }
   }
 
@@ -304,12 +301,12 @@ class _VeryficationState extends State<Veryfication> {
 
   //   if (responseData['statusCode'] == 200) {
   //     popup(context,
-  //         title: LanguageEn.success,
-  //         message: LanguageEn.errormessage + responseData['data']['message']);
+  //         title: "success".tr(),
+  //         message: "errormessage".tr() + responseData['data']['message']);
   //   } else {
   //     popup(context,
-  //         title: LanguageEn.error,
-  //         message: LanguageEn.errormessage + responseData['data']['message']);
+  //         title: "error".tr(),
+  //         message: "errormessage".tr() + responseData['data']['message']);
   //   }
 
   //   resetTimer();
