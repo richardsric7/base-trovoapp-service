@@ -4,7 +4,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -37,15 +36,13 @@ void main() async {
 
   await EasyLocalization.ensureInitialized();
 
-  BlocOverrides.runZoned(
-    () => runApp(
-      EasyLocalization(
-          supportedLocales: [Locale('en', 'US')],
-          path:
-              'assets/translations', // <-- change the path of the translation files
-          fallbackLocale: Locale('en'),
-          child: App()),
-    ),
+  runApp(
+    EasyLocalization(
+        supportedLocales: [Locale('en', 'US')],
+        path:
+            'assets/translations', // <-- change the path of the translation files
+        fallbackLocale: Locale('en'),
+        child: App()),
   );
 }
 
