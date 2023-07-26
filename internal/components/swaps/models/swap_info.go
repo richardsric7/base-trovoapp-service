@@ -60,11 +60,12 @@ type SwapSendPathInput struct {
 
 // SwapSendPathInput model struct for user input when importing keys for new user
 type SwapPathInput struct {
-	DestinationAccount string
-	DestinationAssets  string
-	SourceAssetCode    string
-	SourceAssetIssuer  string
-	SourceAmount       string
+	// DestinationAccount     string
+	SourceAssets string
+	// SourceAccount          string
+	DestinationAssetCode   string
+	DestinationAssetIssuer string
+	DestinationAmount      string
 }
 
 // SwapSendPathInput model struct for user input when importing keys for new user
@@ -92,19 +93,29 @@ type SwapSendInfo struct {
 	ReturnedDescription    string   `json:"-"`
 }
 
-// SwapReceivePathInput model struct for user input when importing keys for new user
-type SwapReceivePathInput struct {
+// SwapReceiveInfo model struct for swap strict receive input when swapping to specific amount
+type SwapReceiveInfo struct {
 	DestinationAccount     string   `json:"destinationAccount"`
-	DestinationAssetType   string   `json:"destinationAssetType"`
 	DestinationAssetCode   string   `json:"destinationAssetCode"`
 	DestinationAssetIssuer string   `json:"destinationAssetIssuer"`
 	DestinationAmount      string   `json:"destinationAmount"`
 	SourceAccount          string   `json:"sourceAccount"`
-	SourceAssets           string   `json:"sourceAssets"`
+	SourceAssetCode        string   `json:"sourceAssetCode"`
+	SourceAssetIssuer      string   `json:"sourceAssetIssuer"`
 	Transaction            string   `json:"transaction"`
-	TransactionSource      string   `json:"-"`
 	TransactionSignature   string   `json:"transactionSignature"`
 	TransactionID          string   `json:"transactionId"`
 	NetworkPassPhrase      string   `json:"networkPassPhrase"`
 	Messages               []string `json:"messages"`
+	Memo                   string   `json:"-"`
+	Multiparty             int      `json:"-"`
+	TransactionSource      string   `json:"-"`
+	SignatureRequired      int      `json:"signatureRequired"`
+	Commit                 int      `json:"commit"`
+	SHash                  string   `json:"sHash"`
+	Fee                    string   `json:"fee"`
+	FeeAmount              string   `json:"feeAmount"`
+	SwapAmount             string   `json:"swapAmount"`
+	RequiredEstimate       string   `json:"requiredEstimate"`
+	ReturnedDescription    string   `json:"-"`
 }

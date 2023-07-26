@@ -53,11 +53,11 @@ func SendSMS(userMobile, messageBody string, db *gorm.DB) error {
 
 func SendSMSWithInfobip(destNumber, messageBody string) error {
 
-	baseHost := os.Getenv("BANTUPAY_SMS_HOST")
+	baseHost := os.Getenv("INFOBIP_SMS_HOST")
 	if len(baseHost) == 0 {
 		return &tErrors.ErrorTemporaryServerError{}
 	}
-	smsAPIKey := os.Getenv("BANTUPAY_SMS_API_KEY")
+	smsAPIKey := os.Getenv("INFOBIP_SMS_API_KEY")
 	if len(smsAPIKey) == 0 {
 		return &tErrors.ErrorTemporaryServerError{}
 	}
@@ -72,9 +72,9 @@ func SendSMSWithInfobip(destNumber, messageBody string) error {
 	destNumber = strings.ReplaceAll(strings.ReplaceAll(destNumber, "+", ""), "-", "")
 	destination := infobip.NewSmsDestination(destNumber)
 
-	from := os.Getenv("TROVOTECH_SMS_FROM")
+	from := os.Getenv("TROVOWALLET_SMS_FROM")
 	if len(from) == 0 {
-		from = "Trovotech"
+		from = "TrovoWallet"
 	}
 	text := messageBody
 	message := infobip.NewSmsTextualMessage()
@@ -103,22 +103,22 @@ func SendSMSWithInfobip(destNumber, messageBody string) error {
 
 func SendSMSWithTermiiGateway(destNumber, messageBody string) error {
 
-	baseHost := os.Getenv("TERMII_URL")
+	baseHost := os.Getenv("TERMII_SMS_URL")
 	if len(baseHost) == 0 {
-		log.Println("[SendSMSWithTermiiGateway] TERMII_URL is not set")
+		log.Println("[SendSMSWithTermiiGateway] TERMII_SMS_URL is not set")
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	if len(os.Getenv("TERMII_API_KEY")) == 0 {
+	if len(os.Getenv("TERMII_SMS_API_KEY")) == 0 {
 
-		log.Println("[SendSMSWithTermiiGateway] TERMII_API_KEY is not set")
+		log.Println("[SendSMSWithTermiiGateway] TERMII_SMS_API_KEY is not set")
 
 		return &tErrors.ErrorTemporaryServerError{}
 	}
 
-	if len(os.Getenv("TERMII_SENDER_ID")) == 0 {
+	if len(os.Getenv("TERMII_SMS_SENDER_ID")) == 0 {
 
-		log.Println("[SendSMSWithTermiiGateway] TERMII_SENDER_ID is not set")
+		log.Println("[SendSMSWithTermiiGateway] TERMII_SMS_SENDER_ID is not set")
 
 		return &tErrors.ErrorTemporaryServerError{}
 	}
@@ -127,7 +127,7 @@ func SendSMSWithTermiiGateway(destNumber, messageBody string) error {
 
 	text := messageBody
 
-	senderID := os.Getenv("TERMII_SENDER_ID")
+	senderID := os.Getenv("TERMII_SMS_SENDER_ID")
 	channel := "generic"
 	log.Println("[SendSMSWithTermiiGateway] sending sms to: ", destNumber, " with message: ", text)
 	if strings.HasPrefix(destNumber, "234") {
@@ -136,7 +136,7 @@ func SendSMSWithTermiiGateway(destNumber, messageBody string) error {
 		log.Println("[SendSMSWithTermiiGateway] sending sms with sender ID: ", senderID, " through channel: ", channel)
 	}
 
-	url := fmt.Sprintf("https://%s/api/sms/send?to=%s&from=%s&sms=%s&type=plain&channel=%s&api_key=%s", os.Getenv("TERMII_URL"), destNumber, senderID, url.QueryEscape(text), channel, os.Getenv("TERMII_API_KEY"))
+	url := fmt.Sprintf("https://%s/api/sms/send?to=%s&from=%s&sms=%s&type=plain&channel=%s&api_key=%s", os.Getenv("TERMII_SMS_URL"), destNumber, senderID, url.QueryEscape(text), channel, os.Getenv("TERMII_SMS_API_KEY"))
 	log.Println("URL:", url)
 
 	resp, err := http.Post(url, "application/json", nil)
