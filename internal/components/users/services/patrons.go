@@ -50,6 +50,8 @@ func SubscribeToPatronPackage(signerUser *userModels.User, patronSubInput *userM
 	priceConfig, err := userModels.PatronMembershipGradeID(patronSubInput.PatronMembershipGradeID).GetPatronMemberShipConfig(gc)
 	if err != nil {
 		return
+	} else {
+		log.Println(priceConfig)
 	}
 
 	return
@@ -63,6 +65,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, primaryWallet *userMo
 	subscription, errGetSub := GetPatronSubscription(owner.Username, gc)
 
 	if errGetSub == nil {
+		log.Println(subscription)
 		subscriptionExists = true
 	}
 
@@ -92,11 +95,18 @@ func generatePatronSubscriptionXdr(owner *userModels.User, primaryWallet *userMo
 	_, requiredTrovEstimate, errGetEstimate := swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
 
 	if errGetEstimate != nil {
-		log.Println("[generatePatronSubscriptionXdr] error getting required TROV estimate. Error ", errGetEstimate)
+		log.Println("[generatePatronSubscriptionXdr] error getting required TROV estimate. Error ", errGetEstimate, requiredTrovEstimate)
 		return "", errGetEstimate
 	}
 	{
 		//routine checks for package subscription ability
+		if subscriptionExists {
+			//run routine for subscription exists
+		} else {
+			//run routine for new subscription
+		}
 	}
+
+	return "", nil
 
 }
