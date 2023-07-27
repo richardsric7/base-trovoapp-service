@@ -186,7 +186,7 @@ func SwapReceive(signerUser, walletOwner *userModels.User, wallet *userModels.Us
 	}
 
 	if len(swapInfo.TransactionSignature) == 0 {
-		xdrBase64, err := generateSwapReceiveXdr(signerUser.PrimarySigner, walletOwner, wallet, swapInfo, gc)
+		xdrBase64, _, err := generateSwapReceiveXdr(signerUser.PrimarySigner, walletOwner, wallet, swapInfo, gc)
 		if err != nil {
 			return err
 		}
@@ -538,7 +538,8 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 	return xdrBase64, nil
 }
 
-func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wallet *userModels.UserWallet, swapInfo *swapModels.SwapReceiveInfo, gc *sharedconfig.GlobalConfig) (string, error) {
+// generateSwapReceiveXdr generates xdr for strict receive operation. Returns the base64 xdr transaction string, the operation object, and error
+func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wallet *userModels.UserWallet, swapInfo *swapModels.SwapReceiveInfo, gc *sharedconfig.GlobalConfig) (string, []txnbuild.Operation, error) {
 	// baseReserve := network.GetBlockchainBaseReserve()
 	// charge := baseReserve.Mul(decimal.NewFromInt(3)).Truncate(7).String()
 	client := gc.BantuExpansionClient
@@ -548,7 +549,7 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 	var amountToSwap decimal.Decimal
 
 	if amountToSwap, err = decimal.NewFromString(swapInfo.DestinationAmount); err != nil {
-		return "", &swapErrors.ErrorInvalidSwapAmount{}
+		return "", []txnbuild.Operation{}, &swapErrors.ErrorInvalidSwapAmount{}
 	}
 
 	newAmountToSwap := amountToSwap.Truncate(7).String()
@@ -586,17 +587,17 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 	_, destAccountTrustsDestinationAsset, _, _, _, _ := network.BlockchainAccountProperties(client, swapInfo.DestinationAccount, destinationAsset)
 
 	if sourceAccountErr != nil {
-		return "", sourceAccountErr
+		return "", []txnbuild.Operation{}, sourceAccountErr
 	}
 
 	if !sourceAccountExists {
-		return "", &tErrors.ErrorUnderfundedAccount{}
+		return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{}
 	}
 
 	if !destinationAsset.IsNative() {
 
 		if !destAccountTrustsDestinationAsset {
-			return "", &tErrors.CustomError{
+			return "", []txnbuild.Operation{}, &tErrors.CustomError{
 				Param:      "destinationAccount",
 				Err:        "error-destination-cannot-accept-asset",
 				ErrMessage: "Destination address cannot accept the asset " + swapInfo.DestinationAssetCode,
@@ -610,11 +611,11 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 	if sourceAsset.IsNative() {
 		if !sourceAccountTrustsDestinationAsset {
 			if sourceAccountNativeBalance.LessThan(amountToSwapDec.Add(appliedCharge)) {
-				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to accommodate the amount needed to opt you into the destination asset or you reduce same from the amount you want to swap.", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+				return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to accommodate the amount needed to opt you into the destination asset or you reduce same from the amount you want to swap.", (amountToSwapDec.Add(appliedCharge)).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
 			}
 		} else {
 			if sourceAccountNativeBalance.LessThan(amountToSwapDec) {
-				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+				return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
 			}
 		}
 
@@ -622,11 +623,11 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 
 		if !sourceAccountTrustsDestinationAsset {
 			if sourceAccountNativeBalance.LessThan(appliedCharge) {
-				return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to complete this transaction", appliedCharge.Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
+				return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v to complete this transaction", appliedCharge.Sub(sourceAccountNativeBalance), os.Getenv("NATIVE_ASSET_CODE"))}
 			}
 		}
 		if sourceAccountCustomBalance.LessThan(amountToSwapDec) {
-			return "", &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
+			return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{Detail: fmt.Sprintf("Not enough funds. Needs Extra %v %v or you reduce same from the amount you want to swap.", (amountToSwapDec).Sub(sourceAccountCustomBalance), sourceAsset.GetCode())}
 		}
 
 	}
@@ -645,10 +646,10 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 		DestinationAssetIssuer: swapInfo.DestinationAssetIssuer,
 		DestinationAmount:      newAmountToSwap,
 	}
-	path, requiredEstimate, err := getStrictReceivePaths(pathInput, client)
+	path, requiredEstimate, err := GetStrictReceivePaths(pathInput, client)
 	if err != nil {
 		log.Println("[generateSwapReceiveXdr]error fetching valid swap Path ", err)
-		return "", err
+		return "", []txnbuild.Operation{}, err
 	}
 
 	//check is source account has minimum of that required estimate
@@ -657,7 +658,7 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 		if len(acode) == 0 {
 			acode = nativeAssetCode
 		}
-		return "", &tErrors.ErrorUnderfundedAccount{
+		return "", []txnbuild.Operation{}, &tErrors.ErrorUnderfundedAccount{
 			Detail: fmt.Sprintf("You need extra %v %v to complete the transaction at this time.", decimal.RequireFromString(requiredEstimate).Sub(sourceAccountNativeBalance), acode),
 		}
 	}
@@ -747,7 +748,7 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 
 	if err != nil {
 		log.Println("[generateSwapReceiveXdr] error constructing transaction ", err)
-		return "", err
+		return "", ops, err
 	}
 
 	// if swapInfo.Multiparty == 1 {
@@ -756,7 +757,7 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 
 	if err != nil {
 		log.Println("[generateSwapReceiveXdr] error signing transaction with channelAccount key ", err)
-		return "", &tErrors.ErrorTemporaryServerError{}
+		return "", ops, &tErrors.ErrorTemporaryServerError{}
 	}
 	// }
 
@@ -768,13 +769,13 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 		tx, err = tx.Sign(network.GetBlockchainNetworkPassPhrase(), feeKeypair)
 		if err != nil {
 			log.Println("[generateSwapReceiveXdr] error signing transaction with swap fee key", err)
-			return "", &tErrors.ErrorTemporaryServerError{}
+			return "", ops, &tErrors.ErrorTemporaryServerError{}
 		}
 	}
 
 	if err != nil {
 		log.Println("[generateSwapReceiveXdr]error constructing transaction ", err)
-		return "", err
+		return "", ops, err
 	}
 
 	var xdrBase64 string
@@ -782,12 +783,12 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 	xdrBase64, err = tx.Base64()
 	if err != nil {
 		log.Println("[generateSwapXdr] error getting txn base64", err)
-		return "", err
+		return "", ops, err
 	}
 	swapInfo.Memo = memo
 	swapInfo.Messages = messages
 	swapInfo.RequiredEstimate = requiredEstimate
-	return xdrBase64, nil
+	return xdrBase64, ops, nil
 }
 
 // getStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
@@ -949,7 +950,7 @@ func getStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 }
 
 // getStrictReceivePaths gets Strict Receive Paths for Strict Receive Path Payment request
-func getStrictReceivePaths(pathInput swapModels.SwapPathInput, client *horizonclient.Client) (paths []txnbuild.Asset, requiredEstimate string, err error) {
+func GetStrictReceivePaths(pathInput swapModels.SwapPathInput, client *horizonclient.Client) (paths []txnbuild.Asset, requiredEstimate string, err error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")

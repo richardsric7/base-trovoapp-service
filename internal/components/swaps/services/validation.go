@@ -97,7 +97,8 @@ func ValidateSwapSendInfo(swapInfo *swapModels.SwapSendInfo) error {
 	return nil
 
 }
-// ValidateSwapSendPathInfo validates payment information
+
+// ValidateSwapSendPathInfo validates swap information
 func ValidateSwapReceiveInfo(swapInfo *swapModels.SwapReceiveInfo) error {
 
 	//required parameters

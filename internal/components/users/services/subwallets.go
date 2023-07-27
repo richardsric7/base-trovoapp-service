@@ -21,7 +21,7 @@ import (
 )
 
 func CreateNewSubWallet(accountOwner *userModels.User, subWalletInfo *userModels.SubWalletInfo, gc *sharedconfig.GlobalConfig) (*userModels.SubWalletInfo, error) {
-	client := network.GetBlockchainClient()
+	client := gc.BantuExpansionClient
 	var err error
 	var xdrBase64 string
 	var subWalletObj userModels.UserWallet
