@@ -3,6 +3,7 @@ package users
 import (
 	"log"
 	"os"
+	"time"
 	swapModel "trovo-wallet-api/internal/components/swaps/models"
 	swaps "trovo-wallet-api/internal/components/swaps/services"
 	userModels "trovo-wallet-api/internal/components/users/models"
@@ -32,6 +33,10 @@ func GetPatronMembershipGrades(gc *sharedconfig.GlobalConfig) (memberships []use
 	gc.DB.Find(&memberships)
 	return
 }
+func GetPatronMembershipGradeByID(id uint64, gc *sharedconfig.GlobalConfig) (membership userModels.PatronMembershipGrade, err error) {
+	err = gc.DB.First(&membership, id).Error
+	return
+}
 
 func GetPatronSubscriptionLogs(username string, gc *sharedconfig.GlobalConfig) (patronSubLogs []userModels.UserPatronSubscriptionLog) {
 	patronSubLogs = make([]userModels.UserPatronSubscriptionLog, 0)
@@ -41,7 +46,7 @@ func GetPatronSubscriptionLogs(username string, gc *sharedconfig.GlobalConfig) (
 
 func GetPatronSubscription(username string, gc *sharedconfig.GlobalConfig) (patronSub userModels.UserPatronMembership, err error) {
 
-	err = gc.DB.Order("createdAt DESC").Where("username = ?", username).Find(&patronSub).Error
+	err = gc.DB.Order("createdAt DESC").Where("username = ?", username).First(&patronSub).Error
 
 	return
 }
@@ -60,6 +65,8 @@ func SubscribeToPatronPackage(signerUser *userModels.User, patronSubInput *userM
 func generatePatronSubscriptionXdr(owner *userModels.User, primaryWallet *userModels.UserWallet, patronSubInput *userModels.PatronSubscriptionInput, priceConfig *userModels.PatronMembershipGrade, gc *sharedconfig.GlobalConfig) (string, error) {
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	// check if it is a new subscription or old
+	maxDateTime := time.Date(9999, 12, 31, 23, 59, 59, 999999999, time.UTC)
+	log.Println(maxDateTime)
 	var subscriptionExists bool
 	var subscription userModels.UserPatronMembership
 	subscription, errGetSub := GetPatronSubscription(owner.Username, gc)
@@ -67,6 +74,16 @@ func generatePatronSubscriptionXdr(owner *userModels.User, primaryWallet *userMo
 	if errGetSub == nil {
 		log.Println(subscription)
 		subscriptionExists = true
+	}
+
+	patronMembership, errGetMem := GetPatronMembershipGradeByID(patronSubInput.PatronMembershipGradeID, gc)
+
+	if errGetMem != nil {
+		return "", &tErrors.CustomError{
+			Param:      "patronpackageId",
+			Err:        "error-invalid-membership",
+			ErrMessage: "Submitted tier and package are invalid.",
+		}
 	}
 
 	sourceAccountExists, _, _, _, _, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, primaryWallet.ID, nativeAsset)
@@ -102,6 +119,41 @@ func generatePatronSubscriptionXdr(owner *userModels.User, primaryWallet *userMo
 		//routine checks for package subscription ability
 		if subscriptionExists {
 			//run routine for subscription exists
+			//check if it is higest tier
+			if subscription.PatronPackageID == "DIAMOND" {
+
+				if subscription.PatronTierID == "LIFETIME" {
+					//cannot upgrade anymore
+					return "", &tErrors.CustomError{
+						Param:      "patronpackageId",
+						Err:        "error-already-higest-tier",
+						ErrMessage: "Account is already member of the highest available tier and package",
+					}
+				}
+
+			} else if subscription.PatronPackageID == "PLATINUM" {
+				if subscription.PatronTierID == "LIFETIME" && (patronMembership.PatronPackage == "GOLD" || patronMembership.PatronPackage == "PLATINUM") {
+					//cannot downgrade
+					return "", &tErrors.CustomError{
+						Param:      "patronpackageId",
+						Err:        "error-already-higest-tier",
+						ErrMessage: "Account is already member of the highest available tier in this package",
+					}
+				}
+
+			} else if subscription.PatronPackageID == "GOLD" {
+				if subscription.PatronTierID == "LIFETIME" && patronMembership.PatronPackage == "GOLD" {
+					//cannot downgrade
+					return "", &tErrors.CustomError{
+						Param:      "patronpackageId",
+						Err:        "error-already-higest-tier",
+						ErrMessage: "Account is already member of the highest available tier in this package",
+					}
+				}
+			}
+			// if subscription.ValidTill.Year()==maxDateTime.Year(){
+			// 	//already life time
+			// }
 		} else {
 			//run routine for new subscription
 		}
