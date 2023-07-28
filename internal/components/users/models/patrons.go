@@ -23,7 +23,7 @@ type UserPatronMembership struct {
 	PatronPackage   PatronPackage `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	PatronTierID    string        `json:"patronTierId"`
 	PatronTier      PatronTier    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
-	ValidTill       time.Time     `gorm:"not null" json:"validTill"` //lifetime is represented by 'infinity'
+	ValidTill       time.Time     `gorm:"not null" json:"validTill"` //lifetime is represented by year '9999'
 }
 
 type PatronMembershipGrade struct {
@@ -42,8 +42,8 @@ type UserPatronSubscriptionLog struct {
 	PatronTierID          string    `json:"patronTierId"`
 	ActivePatronPackageID *string   `gorm:"null" json:"activePatronPackageId"` //valid and used only when effectiveDate is future
 	ActivePatronTierID    *string   `gorm:"null" json:"activePatronTierId"`    //valid and used only when effectiveDate is future
-	EffectiveDate         time.Time `gorm:"not null" json:"effectiveDate"`     //Holds when this subscription becomes effective. lifetime is represented by 'infinity'
-	ValidTill             time.Time `gorm:"not null" json:"validTill"`         //lifetime is represented by 'infinity'
+	EffectiveDate         time.Time `gorm:"not null" json:"effectiveDate"`     //Holds when this subscription becomes effective. 
+	ValidTill             time.Time `gorm:"not null" json:"validTill"`         //lifetime is represented by year '9999'
 }
 
 type PatronSubscriptionInput struct {

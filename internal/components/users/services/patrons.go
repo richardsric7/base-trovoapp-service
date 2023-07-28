@@ -65,8 +65,8 @@ func SubscribeToPatronPackage(signerUser *userModels.User, patronSubInput *userM
 func generatePatronSubscriptionXdr(owner *userModels.User, primaryWallet *userModels.UserWallet, patronSubInput *userModels.PatronSubscriptionInput, priceConfig *userModels.PatronMembershipGrade, gc *sharedconfig.GlobalConfig) (string, error) {
 	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
 	// check if it is a new subscription or old
-	maxDateTime := time.Date(9999, 12, 31, 23, 59, 59, 999999999, time.UTC)
-	log.Println(maxDateTime)
+	lifetime := time.Date(9999, 12, 31, 23, 59, 59, 999999999, time.UTC)
+	log.Println(lifetime)
 	var subscriptionExists bool
 	var subscription userModels.UserPatronMembership
 	subscription, errGetSub := GetPatronSubscription(owner.Username, gc)
@@ -151,12 +151,36 @@ func generatePatronSubscriptionXdr(owner *userModels.User, primaryWallet *userMo
 					}
 				}
 			}
-			// if subscription.ValidTill.Year()==maxDateTime.Year(){
-			// 	//already life time
-			// }
+
 		} else {
 			//run routine for new subscription
 		}
+	}
+	tx := gc.DB.Begin()
+	defer tx.Rollback()
+	if subscriptionExists {
+		subscription.PatronPackageID = patronMembership.PatronPackage
+		subscription.PatronTierID = patronMembership.PatronTierID
+		if patronMembership.PatronTierID == "LIFETIME" {
+			subscription.ValidTill = lifetime
+		}
+		if patronMembership.PatronTierID == "ANNUAL" {
+			subscription.ValidTill = time.Now().AddDate(1, 0, 0)
+		}
+		if patronMembership.PatronTierID == "MONTHLY" {
+			subscription.ValidTill = time.Now().AddDate(0, 1, 0)
+		}
+		e := tx.Save(&subscription).Error
+
+		if e != nil {
+			return "", &tErrors.CustomError{
+				Param:      "patronpackageId",
+				Err:        "error-unable to subscribe",
+				ErrMessage: "Unable to subscribe to this package",
+			}
+		}
+		// var subscriptionLog userModels.UserPatronSubscriptionLog
+
 	}
 
 	return "", nil
