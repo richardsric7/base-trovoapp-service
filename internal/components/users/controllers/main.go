@@ -3936,7 +3936,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			err = userServices.SubscribeToPatronPackage(&accountSignerUser, &subInput, gc)
+			sublog, err := userServices.SubscribeToPatronPackage(&accountSignerUser, &subInput, gc)
 			if err != nil {
 				var ex tErrors.GenericError
 				var ok bool
@@ -3960,7 +3960,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			if accountSignerUser.PushNotificationToken != nil && len(subInput.TransactionID) > 0 {
 				dataPayload := make(map[string]string)
 				dataPayload["route"] = "patrons"
-				accountSignerUser.SendPushMessage("Patron membership subscription updated!", fmt.Sprintf("You have updated your patron subscription to %v %v.", priceConfig.PatronPackage, priceConfig.PatronTierID), "", dataPayload, gc)
+				accountSignerUser.SendPushMessage("Patron membership subscription updated!", fmt.Sprintf("You have updated your patron subscription to %v %v, Effective as from %v", priceConfig.PatronPackage, priceConfig.PatronTierID, sublog.EffectiveDate), "", dataPayload, gc)
 			}
 			accountSignerUser.InvalidateUserCache(gc)
 
