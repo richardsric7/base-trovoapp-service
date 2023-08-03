@@ -15,7 +15,8 @@ import 'package:flutter/foundation.dart'
 /// );
 /// ```
 class DefaultFirebaseOptions {
-  static FirebaseOptions get currentPlatform {
+  static FirebaseOptions currentPlatform(String walletMode) {
+    print('walletMode: $walletMode');
     if (kIsWeb) {
       throw UnsupportedError(
         'DefaultFirebaseOptions have not been configured for web - '
@@ -24,9 +25,9 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        return android;
+        return walletMode == "Testnet" ? androidTestNet : androidMainnet;
       case TargetPlatform.iOS:
-        return ios;
+        return walletMode == "Testnet" ? iosTestNet : iosMainnet;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -49,7 +50,7 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions android = FirebaseOptions(
+  static const FirebaseOptions androidTestNet = FirebaseOptions(
     apiKey: 'AIzaSyBKdXjdmZDCNUkNn45nPf6T9BRtCROG0UE',
     appId: '1:572371578875:android:213ad7583e9ea30244255e',
     messagingSenderId: '572371578875',
@@ -57,13 +58,33 @@ class DefaultFirebaseOptions {
     storageBucket: 'trovotech-website.appspot.com',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
+  static const FirebaseOptions iosTestNet = FirebaseOptions(
     apiKey: 'AIzaSyC6QC2-JjxUHg3jAjbQBIBty5YtBOnJfsw',
     appId: '1:572371578875:ios:fc95ede8ed5006ad44255e',
     messagingSenderId: '572371578875',
     projectId: 'trovotech-website',
     storageBucket: 'trovotech-website.appspot.com',
-    iosClientId: '572371578875-uqpeb4pagtfm3leaobcjovfhri4eoc16.apps.googleusercontent.com',
-    iosBundleId: 'com.example.gocrypto',
+    iosClientId:
+        '572371578875-uqpeb4pagtfm3leaobcjovfhri4eoc16.apps.googleusercontent.com',
+    iosBundleId: 'com.trovo.wallet',
+  );
+
+  static const FirebaseOptions androidMainnet = FirebaseOptions(
+    apiKey: 'AIzaSyA4eXXAzx6JcyUdNscm_mOgxQ_vdYp6Mvo',
+    appId: '1:883904669467:android:3560253101ca2241d855be',
+    messagingSenderId: '883904669467',
+    projectId: 'trovo-infra-mainnet',
+    storageBucket: 'trovo-infra-mainnet.appspot.com',
+  );
+
+  static const FirebaseOptions iosMainnet = FirebaseOptions(
+    apiKey: 'AIzaSyC1Pa6HSM0GD3yzlofCfPSURggP3-aEKIw',
+    appId: '1:883904669467:ios:4c2d3ff8ee21134ed855be',
+    messagingSenderId: '883904669467',
+    projectId: 'trovo-infra-mainnet',
+    storageBucket: 'trovo-infra-mainnet.appspot.com',
+    iosClientId:
+        '883904669467-jfe5mukot91a3285td32v3k9f9e5950r.apps.googleusercontent.com',
+    iosBundleId: 'com.trovo.wallet',
   );
 }

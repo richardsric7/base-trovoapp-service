@@ -101,7 +101,13 @@ void selectNotification(String? route) async {
 
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message");
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // await Firebase.initializeApp(
+  //     options: DefaultFirebaseOptions.currentPlatform(_appState.walletMode));
+  var app = await Firebase.initializeApp(
+      name: 'Mainnet',
+      options: DefaultFirebaseOptions.currentPlatform("Mainnet"));
+  print(
+      '-----------------------------------------------this is the initialized app from backgroundMessagingHandler:  ${app.name}');
 }
 
 Future<void> showNotification(RemoteMessage payload) async {

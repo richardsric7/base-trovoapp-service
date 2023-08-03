@@ -432,7 +432,7 @@ class _SettingsState extends State<Settings> {
                               "mainnet".tr(),
                               overflow: TextOverflow.ellipsis,
                             ),
-                            value: 'Mainet'),
+                            value: 'Mainnet'),
                       ],
                     ),
                   ),

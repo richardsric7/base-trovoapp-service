@@ -24,7 +24,15 @@ import 'package:easy_localization/easy_localization.dart';
 void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // await Firebase.initializeApp(
+  //     options: DefaultFirebaseOptions.currentPlatform(
+  //         await StoreData().storeGetData('walletMode') ?? "Testnet"));
+  var app = await Firebase.initializeApp(
+      name: 'Mainnet',
+      options: DefaultFirebaseOptions.currentPlatform("Mainnet"));
+  print(
+      '-----------------------------------------------this is the initialized app from main method:  ${app.name}');
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await StoreData().storeDeleteItem('initialDynamicLink');
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -57,7 +65,7 @@ class _AppState extends State<App> {
   TrovoWalletBackButtonDispatcher? backButtonDispatcher;
   final appState = DataProvider();
   Timer? _timer;
-  var messaging;
+  late FirebaseMessaging messaging;
   TrovoWalletRouterDelegate? delegate;
   final parser = TrovoWalletRouteParser();
 
@@ -139,26 +147,30 @@ class _AppState extends State<App> {
     }
   }
 
-  void registerNotification() async {
-    // 1. Initialize the Firebase app
-    await Firebase.initializeApp();
+  // void registerNotification() async {
+  //   // 1. Initialize the Firebase app
+  //   // await Firebase.initializeApp();
+  //   var app = await Firebase.initializeApp(
+  //       name: 'Mainnet',
+  //       options: DefaultFirebaseOptions.currentPlatform("Mainnet"));
+  //   print(
+  //       '-----------------------------------------------this is the initialized app from registerNotification:  ${app.name}');
 
-    // 2. Instantiate Firebase Messaging
-    messaging = FirebaseMessaging.instance;
+  //   // 2. Instantiate Firebase Messaging
+  //   messaging = FirebaseMessaging.instance;
+  //   // 3. On iOS, this helps to take the user permissions
+  //   NotificationSettings settings = await messaging.requestPermission(
+  //     alert: true,
+  //     badge: true,
+  //     provisional: false,
+  //     sound: true,
+  //   );
 
-    // 3. On iOS, this helps to take the user permissions
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      badge: true,
-      provisional: false,
-      sound: true,
-    );
-
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted permission');
-      // TODO: handle the received notifications
-    } else {
-      print('User declined or has not accepted permission');
-    }
-  }
+  //   if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+  //     print('User granted permission');
+  //     // TODO: handle the received notifications
+  //   } else {
+  //     print('User declined or has not accepted permission');
+  //   }
+  // }
 }
