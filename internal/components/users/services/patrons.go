@@ -213,7 +213,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 		}
 
 		// do not create or modify subscription until the effective date.
-		e := tx.Save(&subscriptionLog).Error
+		e := tx.Create(&subscriptionLog).Error
 
 		if e != nil {
 			log.Printf("[SubscribeToPatronPackage] error creating subscriptionLog for user [%v], error: %v\n", owner.Username, e)
@@ -246,6 +246,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 
 	} else {
 		//new subscription
+
 		if patronMembership.PatronTierID == "LIFETIME" {
 			// subscription.ValidTill = lifetime
 			subscriptionLog.ValidTill = lifetime
@@ -265,7 +266,17 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 			subscriptionLog.ValidTill = time.Now().AddDate(0, 1, 0) //1 month after
 
 		}
+		e := tx.Create(&subscriptionLog).Error
 
+		if e != nil {
+			log.Printf("[SubscribeToPatronPackage] error creating subscriptionLog for user [%v], [%+v], error: %v\n", owner.Username, subscriptionLog, e)
+
+			return subscriptionLog, &tErrors.CustomError{
+				Param:      "patronPackageId",
+				Err:        "error-unable to subscribe",
+				ErrMessage: "Unable to subscribe to this package",
+			}
+		}
 		//if new subscription, activate it immediately
 		subscription = userModels.UserPatronMembership{
 			Username:        owner.Username,
@@ -273,7 +284,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 			PatronTierID:    subscriptionLog.PatronTierID,
 			ValidTill:       subscriptionLog.ValidTill,
 		}
-		e := tx.Create(&subscription).Error
+		e = tx.Create(&subscription).Error
 
 		if e != nil {
 			log.Printf("[SubscribeToPatronPackage] error creating subscription for user [%v], [%+v], error: %v\n", owner.Username, subscription, e)
