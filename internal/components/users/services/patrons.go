@@ -446,7 +446,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 				SendAmount:    requiredTrovAssetEstimate,
 				Destination:   patronFeeKP.Address(),
 				DestAsset:     txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
-				DestMin:       requiredTrovAssetEstimate,
+				DestMin:       "0.0000001",
 				Path:          path,
 				SourceAccount: owner.PublicKey, //primary wallet
 			})
