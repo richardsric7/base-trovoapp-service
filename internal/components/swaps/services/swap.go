@@ -958,13 +958,13 @@ func GetStrictReceivePaths(pathInput swapModels.SwapPathInput, client *horizoncl
 	var swapPaths horizon.PathsPage
 	paths = make([]txnbuild.Asset, 0)
 	var destinationAssetType horizonclient.AssetType
-	if len(pathInput.DestinationAssetCode) == 0 {
+	if len(pathInput.DestinationAssetIssuer) == 0 {
 		destinationAssetType = horizonclient.AssetTypeNative
 		pathInput.DestinationAssetCode = ""
 		pathInput.DestinationAssetIssuer = ""
-	} else if len(pathInput.DestinationAssetCode) < 5 {
+	} else if len(pathInput.DestinationAssetCode) < 5 && len(pathInput.DestinationAssetIssuer) == 56 {
 		destinationAssetType = horizonclient.AssetType4
-	} else {
+	} else if len(pathInput.DestinationAssetCode) > 4 && len(pathInput.DestinationAssetCode) <= 12 && len(pathInput.DestinationAssetIssuer) == 56 {
 		destinationAssetType = horizonclient.AssetType12
 	}
 	// if pathInput.SourceAccount != "" {
@@ -983,7 +983,7 @@ func GetStrictReceivePaths(pathInput swapModels.SwapPathInput, client *horizoncl
 		SourceAssets:           pathInput.SourceAssets,
 	}
 
-	swapPaths, err = client.Paths(sspr)
+	swapPaths, err = client.StrictReceivePaths(sspr)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "handshake") || strings.Contains(err.Error(), "read tcp") || strings.Contains(err.Error(), "connection reset by peer") || strings.Contains(err.Error(), "dial tcp") || strings.Contains(err.Error(), "no such host") {
