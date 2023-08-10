@@ -45,13 +45,13 @@ func GetPatronMembershipGradeByID(id uint64, gc *sharedconfig.GlobalConfig) (mem
 
 func GetPatronSubscriptionLogs(username string, gc *sharedconfig.GlobalConfig) (patronSubLogs []userModels.UserPatronSubscriptionLog) {
 	patronSubLogs = make([]userModels.UserPatronSubscriptionLog, 0)
-	gc.DB.Order("createdAt DESC").Where("username = ?", username).Find(&patronSubLogs)
+	gc.DB.Order("created_at DESC").Where("username = ?", username).Find(&patronSubLogs)
 	return
 }
 
 func GetPatronSubscription(username string, gc *sharedconfig.GlobalConfig) (patronSub userModels.UserPatronMembership, err error) {
 
-	err = gc.DB.Order("createdAt DESC").Where("username = ?", username).First(&patronSub).Error
+	err = gc.DB.Order("created_at DESC").Where("username = ?", username).First(&patronSub).Error
 
 	return
 }

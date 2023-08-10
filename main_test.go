@@ -3864,7 +3864,7 @@ func TestPatronSubscription(t *testing.T) {
 	}
 
 	payload := PatronSubscriptionInput{
-		PatronMembershipGradeID: 7,
+		PatronMembershipGradeID: 9,
 		PaymentAssetCode:        "XBN",
 		PaymentAssetIssuer:      "",
 	}
