@@ -232,7 +232,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 			e := tx.Save(&subscription).Error
 
 			if e != nil {
-				log.Printf("[SubscribeToPatronPackage] error saving subscription for user [%v], error: %v\n", owner.Username, e)
+				log.Printf("[SubscribeToPatronPackage] error saving subscription for user [%v], [%+v], error: %v\n", owner.Username, subscription, e)
 
 				return subscriptionLog, &tErrors.CustomError{
 					Param:      "patronPackageId",
@@ -255,7 +255,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 		e := tx.Create(&subscription).Error
 
 		if e != nil {
-			log.Printf("[SubscribeToPatronPackage] error creating subscription for user [%v], error: %v\n", owner.Username, e)
+			log.Printf("[SubscribeToPatronPackage] error creating subscription for user [%v], [%+v], error: %v\n", owner.Username, subscription, e)
 
 			return subscriptionLog, &tErrors.CustomError{
 				Param:      "patronPackageId",
