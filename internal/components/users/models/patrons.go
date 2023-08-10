@@ -42,12 +42,14 @@ type UserPatronSubscriptionLog struct {
 	PatronTierID          string    `json:"patronTierId"`
 	ActivePatronPackageID *string   `gorm:"null" json:"activePatronPackageId"` //valid and used only when effectiveDate is future
 	ActivePatronTierID    *string   `gorm:"null" json:"activePatronTierId"`    //valid and used only when effectiveDate is future
-	EffectiveDate         time.Time `gorm:"not null" json:"effectiveDate"`     //Holds when this subscription becomes effective. 
+	EffectiveDate         time.Time `gorm:"not null" json:"effectiveDate"`     //Holds when this subscription becomes effective.
 	ValidTill             time.Time `gorm:"not null" json:"validTill"`         //lifetime is represented by year '9999'
 }
 
 type PatronSubscriptionInput struct {
 	PatronMembershipGradeID uint64   `json:"patronMembershipGradeId"`
+	PaymentAssetCode        string   `json:"paymentAssetCode"`
+	PaymentAssetIssuer      string   `json:"paymentAssetIssuer"`
 	Transaction             string   `json:"transaction"`
 	TransactionSignature    string   `json:"transactionSignature"`
 	TransactionID           string   `json:"transactionId"`

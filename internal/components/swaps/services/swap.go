@@ -404,7 +404,7 @@ func generateSwapSendXdr(signerPublicKey string, owner *userModels.User, wallet 
 		SourceAssetIssuer: swapInfo.SourceAssetIssuer,
 		SourceAmount:      newAmountToSwap,
 	}
-	path, swappedEstimate, err := getStrictSendPaths(pathInput, client)
+	path, swappedEstimate, err := GetStrictSendPaths(pathInput, client)
 	if err != nil {
 		log.Println("[generateSwapXdr]error fetching valid swap Path ", err)
 		return "", err
@@ -791,8 +791,8 @@ func generateSwapReceiveXdr(signerPublicKey string, owner *userModels.User, wall
 	return xdrBase64, ops, nil
 }
 
-// getStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
-func getStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonclient.Client) (paths []txnbuild.Asset, swappedEstimate string, err error) {
+// GetStrictSendPaths gets Strict Send Paths for Strict Send Path Payment request
+func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonclient.Client) (paths []txnbuild.Asset, swappedEstimate string, err error) {
 	discord.WebhookURL = "https://discord.com/api/webhooks/824381163367170058/75RxS1LzWA800hWereJJumw"
 	if len(os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")) > 50 {
 		discord.WebhookURL = os.Getenv("EXPANSION_NETWORK_ERROR_WEBHOOK")

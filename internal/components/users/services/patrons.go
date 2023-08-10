@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 	swapModel "trovo-wallet-api/internal/components/swaps/models"
 	swaps "trovo-wallet-api/internal/components/swaps/services"
@@ -126,8 +127,6 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 				}
 			}
 
-		} else {
-			//run routine for new subscription
 		}
 	}
 	// var subscriptionLog userModels.UserPatronSubscriptionLog
@@ -306,15 +305,32 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 }
 
 func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userModels.PatronSubscriptionInput, priceConfig *userModels.PatronMembershipGrade, gc *sharedconfig.GlobalConfig) (string, error) {
-	var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	// var nativeAsset txnbuild.Asset = txnbuild.NativeAsset{}
+	nativeAssetCode := os.Getenv("NATIVE_ASSET_CODE")
 	var ops []txnbuild.Operation = make([]txnbuild.Operation, 0)
-	chanAccount := <-gc.ChannelAccounts
-	defer func(c *keypair.Full) {
-		gc.ChannelAccounts <- c
-	}(chanAccount)
+	patronFeeKP := keypair.MustParseFull(os.Getenv("PATRON_FEE_WALLET"))
+	sourceAssets := ""
+	var errGetEstimate error
+	var requiredUsdEstimate, requiredTrovAssetEstimate string
+	var path []txnbuild.Asset
+	if len(patronSubInput.PaymentAssetIssuer) == 56 {
+		sourceAssets = strings.ToUpper(fmt.Sprintf("%v:%v", patronSubInput.PaymentAssetCode, patronSubInput.PaymentAssetIssuer))
+	}
 
-	_, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), nativeAsset)
-	sourceAccountExists, _, _, _, _, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.PublicKey, nativeAsset)
+	var asset txnbuild.Asset
+	if len(patronSubInput.PaymentAssetIssuer) == 0 {
+		asset = txnbuild.NativeAsset{}
+	} else {
+		asset = txnbuild.CreditAsset{Code: patronSubInput.PaymentAssetCode, Issuer: patronSubInput.PaymentAssetIssuer}
+	}
+	// chanAccount := <-gc.ChannelAccounts
+	// defer func(c *keypair.Full) {
+	// 	gc.ChannelAccounts <- c
+	// }(chanAccount)
+
+	// _, _, _, _, chanSourceAccount, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, chanAccount.Address(), nativeAsset)
+
+	sourceAccountExists, _, nativeBalance, customBalance, sourceAccount, sourceAccountErr := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.PublicKey, asset)
 
 	if sourceAccountErr != nil {
 		log.Println("[generatePatronSubscriptionXdr] error checking account properties on blockchain. Error ", sourceAccountErr)
@@ -330,32 +346,109 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 		}
 	}
 
+	// //get the trov quantity/equivalent needed for the USD from the market.
+	// pathInput := swapModel.SwapPathInput{
+	// 	SourceAssets:           "TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
+	// 	DestinationAssetCode:   strings.Split(os.Getenv("DOLLAR_ASSET"), ":")[0],
+	// 	DestinationAssetIssuer: strings.Split(os.Getenv("DOLLAR_ASSET"), ":")[1],
+	// 	DestinationAmount:      decimal.NewFromFloat(priceConfig.Price).Truncate(7).String(),
+	// }
 	//get the trov quantity/equivalent needed for the USD from the market.
 	pathInput := swapModel.SwapPathInput{
-		SourceAssets:           os.Getenv("DOLLAR_ASSET"),
-		DestinationAssetCode:   "TROV",
-		DestinationAssetIssuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
+		SourceAssets:           sourceAssets,
+		DestinationAssetCode:   strings.Split(os.Getenv("DOLLAR_ASSET"), ":")[0],
+		DestinationAssetIssuer: strings.Split(os.Getenv("DOLLAR_ASSET"), ":")[1],
 		DestinationAmount:      decimal.NewFromFloat(priceConfig.Price).Truncate(7).String(),
 	}
-	_, requiredTrovEstimate, errGetEstimate := swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
+	_, requiredUsdEstimate, errGetEstimate = swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
+	requiredTrovAssetEstimate = requiredUsdEstimate
+	if errGetEstimate != nil && requiredUsdEstimate == "" {
+		log.Println("[generatePatronSubscriptionXdr] error getting required TROV estimate. Error ", errGetEstimate, requiredUsdEstimate)
 
-	if errGetEstimate != nil && requiredTrovEstimate == "" {
-		log.Println("[generatePatronSubscriptionXdr] error getting required TROV estimate. Error ", errGetEstimate, requiredTrovEstimate)
 		return "", errGetEstimate
 	}
-	patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v TROV will be debited from wallet %v to complete the subscription.", requiredTrovEstimate, owner.Username))
 
-	patronFeeKP := keypair.MustParseFull(os.Getenv("PATRON_FEE_WALLET"))
-	ops = append(ops, &txnbuild.Payment{
-		Destination:   patronFeeKP.Address(),
-		Amount:        requiredTrovEstimate,
-		Asset:         txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
-		SourceAccount: owner.PublicKey, //primary wallet
-	})
+	if !asset.IsNative() {
+		// log.Println("[generatePatronSubscriptionXdr] error account does not exist on ledger. Error ")
+		if customBalance.LessThan(decimal.RequireFromString(requiredUsdEstimate)) {
+			return "", &tErrors.ErrorUnderfundedAccount{
+				Detail: fmt.Sprintf("You need to add at least %v %v to make up for the subscription fee.", decimal.RequireFromString(requiredUsdEstimate).Sub(customBalance).String(), patronSubInput.PaymentAssetCode),
+			}
+		}
+
+	} else {
+		if nativeBalance.LessThan(decimal.RequireFromString(requiredUsdEstimate)) {
+			return "", &tErrors.ErrorUnderfundedAccount{
+				Detail: fmt.Sprintf("You need to add at least %v %v to make up for the subscription fee.", decimal.RequireFromString(requiredUsdEstimate).Sub(nativeBalance).String(), nativeAssetCode),
+			}
+		}
+	}
+	// //assume the primary wallet does not have trustline to the trov asset. Build the trustline.
+	// _, destAccountTrustsDestinationAsset, _, _, _, _ := network.BlockchainAccountProperties(gc.BantuExpansionClient, owner.PublicKey, txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"})
+
+	// if !destAccountTrustsDestinationAsset {
+
+	// 	ops = append(ops, &txnbuild.ChangeTrust{
+	// 		Line:          txnbuild.ChangeTrustAssetWrapper{Asset: txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"}},
+	// 		Limit:         "900000000000",
+	// 		SourceAccount: owner.PublicKey,
+	// 	})
+	// }
+	if !strings.EqualFold(patronSubInput.PaymentAssetCode, "TROV") {
+
+		//get swap the asset amount to TROV.
+		pathInput := swapModel.SwapSendPathInput{
+			DestinationAssets: "TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
+			SourceAssetCode:   patronSubInput.PaymentAssetCode,
+			SourceAssetIssuer: patronSubInput.PaymentAssetIssuer,
+			SourceAmount:      requiredUsdEstimate,
+		}
+
+		path, requiredTrovAssetEstimate, errGetEstimate = swaps.GetStrictSendPaths(pathInput, gc.BantuExpansionClient)
+
+		if errGetEstimate != nil && requiredTrovAssetEstimate == "" {
+			log.Printf("[generatePatronSubscriptionXdr] error getting required %v estimate. Error %v", patronSubInput.PaymentAssetCode, errGetEstimate)
+			return "", errGetEstimate
+		}
+
+		{
+			//build a swap operation to swap the non-trov asset to trov so that trov can be debited.
+			var sendAsset txnbuild.Asset
+			if len(patronSubInput.PaymentAssetIssuer) == 0 {
+				sendAsset = txnbuild.NativeAsset{}
+			} else {
+				sendAsset = txnbuild.CreditAsset{Code: patronSubInput.PaymentAssetCode, Issuer: patronSubInput.PaymentAssetIssuer}
+			}
+
+			ops = append(ops, &txnbuild.PathPaymentStrictSend{
+				SendAsset:     sendAsset,
+				Destination:   patronFeeKP.Address(),
+				DestAsset:     txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
+				DestMin:       requiredTrovAssetEstimate,
+				Path:          path,
+				SourceAccount: owner.PublicKey, //primary wallet
+			})
+		}
+	} else {
+
+		ops = append(ops, &txnbuild.Payment{
+			Destination:   patronFeeKP.Address(),
+			Amount:        requiredTrovAssetEstimate,
+			Asset:         txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
+			SourceAccount: owner.PublicKey, //primary wallet
+		})
+	}
+	if len(patronSubInput.PaymentAssetIssuer) == 0 {
+		patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredTrovAssetEstimate, nativeAssetCode, owner.Username))
+
+	} else {
+
+		patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredTrovAssetEstimate, patronSubInput.PaymentAssetCode, owner.Username))
+	}
 
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
-			SourceAccount:        chanSourceAccount,
+			SourceAccount:        sourceAccount,
 			IncrementSequenceNum: true,
 			Operations:           ops,
 			BaseFee:              3000,

@@ -303,7 +303,16 @@ type PaymentHistoryJSON struct {
 	Amount          string    `json:"amount"`
 	TransactionID   string    `json:"transactionId"`
 }
-
+type PatronSubscriptionInput struct {
+	PatronMembershipGradeID uint64   `json:"patronMembershipGradeId"`
+	PaymentAssetCode        string   `json:"paymentAssetCode"`
+	PaymentAssetIssuer      string   `json:"paymentAssetIssuer"`
+	Transaction             string   `json:"transaction"`
+	TransactionSignature    string   `json:"transactionSignature"`
+	TransactionID           string   `json:"transactionId"`
+	NetworkPassPhrase       string   `json:"networkPassPhrase"`
+	Messages                []string `json:"messages"`
+}
 type PaginatedPaymentHistory struct {
 	Pages        int                  `json:"pages"`
 	CurrentPage  int                  `json:"currentPage"`
@@ -3406,7 +3415,6 @@ func TestCreateMarketOffer(t *testing.T) {
 	// 	Quantity:       "2",
 	// }
 
-	
 	// payload := MarketOfferRequest{
 	// 	OfferType:      "SELL",
 	// 	AssetCode:      "BTC",
@@ -3417,7 +3425,6 @@ func TestCreateMarketOffer(t *testing.T) {
 	// 	Quantity:       "2",
 	// }
 
-	
 	payload := MarketOfferRequest{
 		OfferType:      "BUY",
 		AssetCode:      "ETH",
@@ -3820,6 +3827,125 @@ func TestCreateWithdrawalRequestShared(t *testing.T) {
 	}
 
 	log.Println("[TestCreateWithdrawalRequestShared] completed")
+	// time.Sleep(time.Second * 10)
+
+}
+
+func TestPatronSubscription(t *testing.T) {
+
+	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
+	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
+	// pk := "GCZ77KBBPINJRHZEYZMCF7SSR5WZVDCUPFG6OSB6FORQVEJV2UOHBG3B"
+	pk := "GDLAUQBDFCNO5LJILXMTVSVQHCQOEKKZ7ANYHL2W75WJDAF3QDHVMGGK" //ric1_shared
+	secretKey := "SA37LXNUXO62HXXL2SUXVLDCUA6SSQAOUSO2B3LNVMAO3WPE3RDK5OPZ"
+	// pk := os.Getenv("RICPK")
+	// secretKey := os.Getenv("RICSC")
+	// channelAccountSK := ""
+	// ownerUsername := "ric"
+	kp := keypair.MustParseFull(secretKey)
+	// log.Println(kp.Address())
+	baseURL := stagingURL
+	// var sEnc string
+	// if strings.Contains(ownerUsername, "/") {
+	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
+
+	// } else {
+	// 	sEnc = ownerUsername
+	// }
+	fullPath := "/v1/patron"
+	// fullPath := fmt.Sprintf("/v1/users", targetUser, loginID)
+	ts := time.Now().Unix() / 1000
+	tsString := fmt.Sprintf("%v", ts)
+	signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+	if err != nil {
+		t.Errorf(err.Error())
+		return
+
+	}
+
+	payload := PatronSubscriptionInput{
+		PatronMembershipGradeID: 7,
+		PaymentAssetCode:        "",
+		PaymentAssetIssuer:      "",
+	}
+
+	errorResponse := new(ErrorResponse)
+	rResponse := new(PatronSubscriptionInput)
+
+	_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+		Set("X-TW-PUBLIC-KEY", pk).
+		Set("X-TW-SIGNER", kp.Address()).
+		Set("X-TW-SIGNATURE", signedHttpHeader).
+		Set("X-TW-TIMESTAMP", tsString).
+		Base(baseURL).
+		Post(fullPath).BodyJSON(payload).Receive(rResponse, errorResponse)
+	//get payload string
+	if len(errorResponse.Error) > 0 {
+		log.Println("[TestPatronSubscription] server response error:", *errorResponse)
+		t.Errorf(errorResponse.Error)
+		return
+
+	}
+
+	if err != nil {
+		log.Println("[TestPatronSubscription]request error:", err)
+		t.Errorf(err.Error())
+
+		return
+	}
+
+	log.Printf("[TestPatronSubscription] Confirmation Response:[%+v]\n", rResponse)
+	{
+		//run the payment signing and submission
+		p := *rResponse
+		log.Printf("[TestPatronSubscription] response: %+v\n", p)
+		time.Sleep(5 * time.Second)
+		//sign transaction
+
+		signedBase64, err := middleware.SignBase64Txn(kp.Seed(), p.Transaction, p.NetworkPassPhrase)
+		if err != nil {
+			log.Println("[TestPatronSubscription] confirm transaction error:", err)
+			t.Errorf(err.Error())
+
+			return
+		}
+
+		p.TransactionSignature = signedBase64
+
+		ts := time.Now().Unix() / 1000
+		tsString := fmt.Sprintf("%v", ts)
+		signedHttpHeader, err := middleware.SignHttp(fullPath, kp.Address()+tsString, kp.Seed())
+		if err != nil {
+			t.Errorf(err.Error())
+			return
+
+		}
+		_, err = sling.New().Set("User-Agent", "TROVO Go TEST").
+			Set("X-TW-PUBLIC-KEY", pk).
+			Set("X-TW-SIGNER", kp.Address()).
+			Set("X-TW-SIGNATURE", signedHttpHeader).
+			Set("X-TW-TIMESTAMP", tsString).
+			Base(baseURL).
+			Post(fullPath).BodyJSON(p).Receive(rResponse, errorResponse)
+
+		if err != nil {
+			log.Println("[TestPatronSubscription] server 2nd response error:", err.Error())
+
+			t.Errorf("[TestPatronSubscription] server second response error: %v", err)
+			return
+
+		}
+		if len(errorResponse.Error) > 0 {
+			log.Println("[TestPatronSubscription] server 2nd response error:", *errorResponse)
+			t.Errorf(errorResponse.Error)
+			return
+
+		}
+
+		log.Printf("TestPatronSubscription Response:[%+v]\n", p)
+	}
+
+	log.Println("[TestPatronSubscription] completed")
 	// time.Sleep(time.Second * 10)
 
 }
