@@ -343,7 +343,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	patronFeeKP := keypair.MustParseFull(os.Getenv("PATRON_FEE_WALLET"))
 	sourceAssets := ""
 	var errGetEstimate error
-	var requiredUsdEstimate, requiredTrovAssetEstimate string
+	var requiredUsdWorth, estimatedTrov string
 	var path []txnbuild.Asset
 	if len(patronSubInput.PaymentAssetIssuer) == 56 {
 		sourceAssets = strings.ToUpper(fmt.Sprintf("%v:%v", patronSubInput.PaymentAssetCode, patronSubInput.PaymentAssetIssuer))
@@ -392,28 +392,28 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 		DestinationAssetIssuer: strings.Split(os.Getenv("DOLLAR_ASSET"), ":")[1],
 		DestinationAmount:      decimal.NewFromFloat(priceConfig.Price).Truncate(7).String(),
 	}
-	_, requiredUsdEstimate, errGetEstimate = swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
-	requiredTrovAssetEstimate = requiredUsdEstimate
+	_, requiredUsdWorth, errGetEstimate = swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
+	// requiredTrovAssetEstimate = requiredUsdEstimate
 
-	log.Printf("requires %v %v to convert to %v %v\n", requiredTrovAssetEstimate, patronSubInput.PaymentAssetCode, priceConfig.Price, "USDT")
-	if errGetEstimate != nil && requiredUsdEstimate == "" {
-		log.Println("[generatePatronSubscriptionXdr] error getting required TROV estimate. Error ", errGetEstimate, requiredUsdEstimate)
+	log.Printf("requires %v %v to convert to %v %v\n", requiredUsdWorth, patronSubInput.PaymentAssetCode, priceConfig.Price, "USDT")
+	if errGetEstimate != nil && requiredUsdWorth == "" {
+		log.Println("[generatePatronSubscriptionXdr] error getting required TROV estimate. Error ", errGetEstimate, requiredUsdWorth)
 
 		return "", errGetEstimate
 	}
 
 	if !asset.IsNative() {
 		// log.Println("[generatePatronSubscriptionXdr] error account does not exist on ledger. Error ")
-		if customBalance.LessThan(decimal.RequireFromString(requiredUsdEstimate)) {
+		if customBalance.LessThan(decimal.RequireFromString(requiredUsdWorth)) {
 			return "", &tErrors.ErrorUnderfundedAccount{
-				Detail: fmt.Sprintf("You need to add at least %v %v to make up for the subscription fee.", decimal.RequireFromString(requiredUsdEstimate).Sub(customBalance).String(), patronSubInput.PaymentAssetCode),
+				Detail: fmt.Sprintf("You need to add at least %v %v to make up for the subscription fee.", decimal.RequireFromString(requiredUsdWorth).Sub(customBalance).String(), patronSubInput.PaymentAssetCode),
 			}
 		}
 
 	} else {
-		if nativeBalance.LessThan(decimal.RequireFromString(requiredUsdEstimate)) {
+		if nativeBalance.LessThan(decimal.RequireFromString(requiredUsdWorth)) {
 			return "", &tErrors.ErrorUnderfundedAccount{
-				Detail: fmt.Sprintf("You need to add at least %v %v to make up for the subscription fee.", decimal.RequireFromString(requiredUsdEstimate).Sub(nativeBalance).String(), nativeAssetCode),
+				Detail: fmt.Sprintf("You need to add at least %v %v to make up for the subscription fee.", decimal.RequireFromString(requiredUsdWorth).Sub(nativeBalance).String(), nativeAssetCode),
 			}
 		}
 	}
@@ -435,12 +435,12 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 			DestinationAssets: "TROV:GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ",
 			SourceAssetCode:   patronSubInput.PaymentAssetCode,
 			SourceAssetIssuer: patronSubInput.PaymentAssetIssuer,
-			SourceAmount:      requiredUsdEstimate,
+			SourceAmount:      requiredUsdWorth,
 		}
 
-		path, requiredTrovAssetEstimate, errGetEstimate = swaps.GetStrictSendPaths(pathInput, gc.BantuExpansionClient)
-		log.Printf(" %v %v converts to %v %v\n", requiredTrovAssetEstimate, patronSubInput.PaymentAssetCode, priceConfig.Price, "USDT")
-		if errGetEstimate != nil && requiredTrovAssetEstimate == "" {
+		path, estimatedTrov, errGetEstimate = swaps.GetStrictSendPaths(pathInput, gc.BantuExpansionClient)
+		log.Printf(" %v %v converts to %v %v\n", requiredUsdWorth, patronSubInput.PaymentAssetCode, estimatedTrov, "TROV")
+		if errGetEstimate != nil && estimatedTrov == "" {
 			log.Printf("[generatePatronSubscriptionXdr] error getting required %v estimate. Error %v", patronSubInput.PaymentAssetCode, errGetEstimate)
 			return "", errGetEstimate
 		}
@@ -456,7 +456,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 
 			ops = append(ops, &txnbuild.PathPaymentStrictSend{
 				SendAsset:     sendAsset,
-				SendAmount:    requiredTrovAssetEstimate,
+				SendAmount:    estimatedTrov,
 				Destination:   patronFeeKP.Address(),
 				DestAsset:     txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
 				DestMin:       "0.0000001",
@@ -468,17 +468,17 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 
 		ops = append(ops, &txnbuild.Payment{
 			Destination:   patronFeeKP.Address(),
-			Amount:        requiredTrovAssetEstimate,
+			Amount:        requiredUsdWorth,
 			Asset:         txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
 			SourceAccount: owner.PublicKey, //primary wallet
 		})
 	}
 	if len(patronSubInput.PaymentAssetIssuer) == 0 {
-		patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredTrovAssetEstimate, nativeAssetCode, owner.Username))
+		patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredUsdWorth, nativeAssetCode, owner.Username))
 
 	} else {
 
-		patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredTrovAssetEstimate, patronSubInput.PaymentAssetCode, owner.Username))
+		patronSubInput.Messages = append(patronSubInput.Messages, fmt.Sprintf("%v %v will be debited from wallet %v to complete the subscription.", requiredUsdWorth, patronSubInput.PaymentAssetCode, owner.Username))
 	}
 
 	tx, err := txnbuild.NewTransaction(
