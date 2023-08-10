@@ -443,6 +443,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 
 			ops = append(ops, &txnbuild.PathPaymentStrictSend{
 				SendAsset:     sendAsset,
+				SendAmount:    requiredTrovAssetEstimate,
 				Destination:   patronFeeKP.Address(),
 				DestAsset:     txnbuild.CreditAsset{Code: "TROV", Issuer: "GAXMBPVA2GNG6A3NV6Q664VZASMROS5ZACKSMTPVCRIKPOJIV43A2CTJ"},
 				DestMin:       requiredTrovAssetEstimate,
