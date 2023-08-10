@@ -394,6 +394,8 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 	}
 	_, requiredUsdEstimate, errGetEstimate = swaps.GetStrictReceivePaths(pathInput, gc.BantuExpansionClient)
 	requiredTrovAssetEstimate = requiredUsdEstimate
+
+	log.Printf("requires %v %v to convert to %v %v\n", requiredTrovAssetEstimate, patronSubInput.PaymentAssetCode, priceConfig.Price, "USDT")
 	if errGetEstimate != nil && requiredUsdEstimate == "" {
 		log.Println("[generatePatronSubscriptionXdr] error getting required TROV estimate. Error ", errGetEstimate, requiredUsdEstimate)
 
@@ -437,7 +439,7 @@ func generatePatronSubscriptionXdr(owner *userModels.User, patronSubInput *userM
 		}
 
 		path, requiredTrovAssetEstimate, errGetEstimate = swaps.GetStrictSendPaths(pathInput, gc.BantuExpansionClient)
-
+		log.Printf(" %v %v converts to %v %v\n", requiredTrovAssetEstimate, patronSubInput.PaymentAssetCode, priceConfig.Price, "USDT")
 		if errGetEstimate != nil && requiredTrovAssetEstimate == "" {
 			log.Printf("[generatePatronSubscriptionXdr] error getting required %v estimate. Error %v", patronSubInput.PaymentAssetCode, errGetEstimate)
 			return "", errGetEstimate
