@@ -800,13 +800,13 @@ func GetStrictSendPaths(pathInput swapModels.SwapSendPathInput, client *horizonc
 	var swapPaths horizon.PathsPage
 	paths = make([]txnbuild.Asset, 0)
 	var sourceAssetType horizonclient.AssetType
-	if len(pathInput.SourceAssetCode) == 0 {
+	if len(pathInput.SourceAssetIssuer) == 0 {
 		sourceAssetType = horizonclient.AssetTypeNative
 		pathInput.SourceAssetCode = ""
 		pathInput.SourceAssetIssuer = ""
-	} else if len(pathInput.SourceAssetCode) < 5 {
+	} else if len(pathInput.SourceAssetCode) < 5 && len(pathInput.SourceAssetIssuer) == 56 {
 		sourceAssetType = horizonclient.AssetType4
-	} else {
+	} else if len(pathInput.SourceAssetCode) > 4 && len(pathInput.SourceAssetCode) <= 12 && len(pathInput.SourceAssetIssuer) == 56 {
 		sourceAssetType = horizonclient.AssetType12
 	}
 	if pathInput.DestinationAccount != "" {
