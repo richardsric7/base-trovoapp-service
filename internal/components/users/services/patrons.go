@@ -132,17 +132,19 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 	// var subscriptionLog userModels.UserPatronSubscriptionLog
 	tx := gc.DB.Begin()
 	defer tx.Rollback()
+
+	subscriptionLog = userModels.UserPatronSubscriptionLog{
+		ID:                    uuid.NewString(),
+		Username:              owner.Username,
+		PatronPackageID:       patronMembership.PatronPackage,
+		PatronTierID:          patronMembership.PatronTierID,
+		ActivePatronPackageID: &subscription.PatronPackageID,
+		ActivePatronTierID:    &subscription.PatronTierID,
+		// EffectiveDate:         subscription.ValidTill.AddDate(0, 0, 1), // starts the next day that the active subsription expires
+	}
 	if subscriptionExists {
 		//can be upgrade or renewal
-		subscriptionLog = userModels.UserPatronSubscriptionLog{
-			ID:                    uuid.NewString(),
-			Username:              owner.Username,
-			PatronPackageID:       patronMembership.PatronPackage,
-			PatronTierID:          patronMembership.PatronTierID,
-			ActivePatronPackageID: &subscription.PatronPackageID,
-			ActivePatronTierID:    &subscription.PatronTierID,
-			// EffectiveDate:         subscription.ValidTill.AddDate(0, 0, 1), // starts the next day that the active subsription expires
-		}
+
 		// subscription.PatronPackageID = patronMembership.PatronPackage
 		// subscription.PatronTierID = patronMembership.PatronTierID
 		if patronMembership.PatronTierID == "LIFETIME" {
@@ -244,6 +246,25 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 
 	} else {
 		//new subscription
+		if patronMembership.PatronTierID == "LIFETIME" {
+			// subscription.ValidTill = lifetime
+			subscriptionLog.ValidTill = lifetime
+			subscriptionLog.EffectiveDate = time.Now()
+		}
+		if patronMembership.PatronTierID == "ANNUAL" {
+
+			subscriptionLog.EffectiveDate = time.Now()
+			subscriptionLog.ValidTill = time.Now().AddDate(1, 0, 0) //1 year after the active subscription expires
+
+			// subscription.ValidTill = subscription.ValidTill.AddDate(1, 0, 0) //1 year after the active subscription expires
+		}
+
+		if patronMembership.PatronTierID == "MONTHLY" {
+
+			subscriptionLog.EffectiveDate = time.Now()
+			subscriptionLog.ValidTill = time.Now().AddDate(0, 1, 0) //1 month after
+
+		}
 
 		//if new subscription, activate it immediately
 		subscription = userModels.UserPatronMembership{
