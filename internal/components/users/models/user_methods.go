@@ -1554,13 +1554,15 @@ func (u *User) GetCuratedSwapList(gc *sharedconfig.GlobalConfig) (list []assets.
 	return list
 }
 
-func (u *User) GetPatronMembership(gc *sharedconfig.GlobalConfig) *UserPatronMembership {
-	var membership UserPatronMembership
+func (u *User) GetPatronMembership(gc *sharedconfig.GlobalConfig) (membership UserPatronMembership, err error) {
+	// var membership UserPatronMembership
 	e := gc.DB.Preload(clause.Associations).Where("username = ?", u.Username).First(&membership).Error
 	if e != nil {
-		return nil
+		log.Printf("[GetPatronMembership] error : %v\n", e)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
 	}
-	return &membership
+	return membership, nil
 }
 func (pid PatronPackageID) GetPatronPackage(gc *sharedconfig.GlobalConfig) (patronPackage PatronPackage, err error) {
 	err = gc.DB.Where("id = ?", strings.ToUpper(string(pid))).First(&patronPackage).Error
@@ -1589,7 +1591,7 @@ func (pid PatronMembershipGradeID) GetPatronMemberShipConfig(gc *sharedconfig.Gl
 
 func (u *User) GetPatronSubscriptionLogs(gc *sharedconfig.GlobalConfig) (patronSubLogs []UserPatronSubscriptionLog) {
 	patronSubLogs = make([]UserPatronSubscriptionLog, 0)
-	gc.DB.Order("createdAt DESC").Where("username = ?", u.Username).Find(&patronSubLogs)
+	gc.DB.Order("created_at DESC").Where("username = ?", u.Username).Find(&patronSubLogs)
 	return
 }
 

@@ -19,6 +19,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
+	"gorm.io/gorm/clause"
 )
 
 func GetPatronPackages(gc *sharedconfig.GlobalConfig) (patronPackages []userModels.PatronPackage) {
@@ -51,9 +52,13 @@ func GetPatronSubscriptionLogs(username string, gc *sharedconfig.GlobalConfig) (
 
 func GetPatronSubscription(username string, gc *sharedconfig.GlobalConfig) (patronSub userModels.UserPatronMembership, err error) {
 
-	err = gc.DB.Order("created_at DESC").Where("username = ?", username).First(&patronSub).Error
-
-	return
+	e := gc.DB.Preload(clause.Associations).Where("username = ?", username).First(&patronSub).Error
+	if e != nil {
+		log.Printf("[GetPatronSubscription] error : %v\n", e)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return
+	}
+	return patronSub, nil
 }
 
 func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels.PatronSubscriptionInput, gc *sharedconfig.GlobalConfig) (subscriptionLog userModels.UserPatronSubscriptionLog, err error) {
