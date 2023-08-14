@@ -4,6 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/firebase_options.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
@@ -93,7 +94,6 @@ initMyNotification(BuildContext context) {
 
 void selectNotification(String? route) async {
   if (route != null) {
-    print('================notification payload: $route');
     goToPageRoute(route);
     return;
   }
@@ -101,13 +101,10 @@ void selectNotification(String? route) async {
 
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message");
-  // await Firebase.initializeApp(
-  //     options: DefaultFirebaseOptions.currentPlatform(_appState.walletMode));
-  var app = await Firebase.initializeApp(
-      name: 'Mainnet',
-      options: DefaultFirebaseOptions.currentPlatform("Mainnet"));
+  await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform(_appState.walletMode));
   print(
-      '-----------------------------------------------this is the initialized app from backgroundMessagingHandler:  ${app.name}');
+      '-----------------------------------------------this is the initialized app from backgroundMessagingHandler:  ${DefaultFirebaseOptions.currentPlatform(_appState.walletMode)}');
 }
 
 Future<void> showNotification(RemoteMessage payload) async {

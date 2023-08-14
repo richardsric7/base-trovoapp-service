@@ -24,15 +24,11 @@ import 'package:easy_localization/easy_localization.dart';
 void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // await Firebase.initializeApp(
-  //     options: DefaultFirebaseOptions.currentPlatform(
-  //         await StoreData().storeGetData('walletMode') ?? "Testnet"));
-  var app = await Firebase.initializeApp(
-      name: 'Mainnet',
-      options: DefaultFirebaseOptions.currentPlatform("Mainnet"));
+  await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform(
+          await StoreData().storeGetData('walletMode') ?? "Testnet"));
   print(
-      '-----------------------------------------------this is the initialized app from main method:  ${app.name}');
+      '-----------------------------------------------this is the initialized app from main method:  ${DefaultFirebaseOptions.currentPlatform(await StoreData().storeGetData('walletMode') ?? "Testnet")}');
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await StoreData().storeDeleteItem('initialDynamicLink');
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -86,7 +82,6 @@ class _AppState extends State<App> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<ColorNotifier>(create: (_) => ColorNotifier()),
