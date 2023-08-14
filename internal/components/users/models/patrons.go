@@ -56,3 +56,9 @@ type PatronSubscriptionInput struct {
 	NetworkPassPhrase       string   `json:"networkPassPhrase"`
 	Messages                []string `json:"messages"`
 }
+
+type PatronSubscriptionPaymentAsset struct {
+	AssetCode   string `gorm:"primaryKey" json:"assetCode"`
+	AssetIssuer string `json:"assetIssuer"`
+	Inactive    uint   `gorm:"default:0" json:"-"`
+}

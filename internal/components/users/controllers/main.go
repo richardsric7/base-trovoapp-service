@@ -3885,8 +3885,9 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			patronTiers := userServices.GetPatronTiers(gc)
 			patronLogs := userSigner.GetPatronSubscriptionLogs(gc)
 			memberships := userServices.GetPatronMembershipGrades(gc)
+			paymentAssets := userServices.GetPatronSubscriptionPaymentAssets(gc)
 
-			c.JSON(http.StatusOK, gin.H{"membershipGrades": memberships, "patronPackages": patronPakcages, "patronTiers": patronTiers, "patronSubscriptionLogs": patronLogs})
+			c.JSON(http.StatusOK, gin.H{"membershipGrades": memberships, "patronPackages": patronPakcages, "patronTiers": patronTiers, "patronSubscriptionLogs": patronLogs, "subscriptionPaymentAssets": paymentAssets})
 
 		})
 

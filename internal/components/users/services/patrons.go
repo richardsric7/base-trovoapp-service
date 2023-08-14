@@ -50,6 +50,12 @@ func GetPatronSubscriptionLogs(username string, gc *sharedconfig.GlobalConfig) (
 	return
 }
 
+func GetPatronSubscriptionPaymentAssets(gc *sharedconfig.GlobalConfig) (paymentAssets []userModels.PatronSubscriptionPaymentAsset) {
+	paymentAssets = make([]userModels.PatronSubscriptionPaymentAsset, 0)
+	gc.DB.Where("inactive = ?", 0).Find(&paymentAssets)
+	return
+}
+
 func GetPatronSubscription(username string, gc *sharedconfig.GlobalConfig) (patronSub userModels.UserPatronMembership, err error) {
 
 	e := gc.DB.Preload(clause.Associations).Where("username = ?", username).First(&patronSub).Error
