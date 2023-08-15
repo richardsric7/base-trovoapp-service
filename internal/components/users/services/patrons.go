@@ -88,7 +88,6 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 
 	pendingSubscriptionCount, err := countPendingSubscriptionForUser(owner.Username, gc)
 	if err != nil {
-		log.Println(" error in countPendingSubscriptionForUser: ", err)
 		return
 	}
 	if pendingSubscriptionCount > 0 {
