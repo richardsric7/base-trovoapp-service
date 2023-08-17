@@ -32,5 +32,6 @@ flutter pub get
 to install the various project dependecies.
 
 **Step 5:**
+
 Then run the project using ```flutter run``` (after configuring FVM correctly, you can refer to the video again), 
 but to be on a safer side, use ```fvm flutter run```
