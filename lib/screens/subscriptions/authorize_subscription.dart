@@ -13,6 +13,7 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/patronInfo.dart';
 import 'package:trovo_wallet/models/patronTier.dart';
 import 'package:trovo_wallet/network/requests.dart';
@@ -24,7 +25,9 @@ import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../custom_bloc_observer/fonts.dart';
+import '../../models/wallet.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class AuthorizeSubscription extends StatefulWidget {
@@ -40,8 +43,26 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
   final Authenticator _authenticator = Authenticator();
   late PatronInfo patronInfo;
   late PatronTier patronTier;
+  late List<Asset> paymentAssets;
+  late Wallet wallet;
+  late List<Asset> claimedAssets;
   String password = '';
   final formKey = GlobalKey<FormState>();
+  String? selectedAsset;
+
+  List<DropdownMenuItem<String>> get getAssetDropdownItems {
+    List<DropdownMenuItem<String>> menuItems = [];
+    for (var asset in paymentAssets) {
+      menuItems.add(DropdownMenuItem(
+          child: Text(
+            getAssetCode(asset.assetCode),
+            overflow: TextOverflow.visible,
+          ),
+          value:
+              '${getAssetCode(asset.assetCode)}|${getAssetIssuer(asset.assetIssuer)}'));
+    }
+    return menuItems;
+  }
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -58,8 +79,11 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
+    wallet = appState.primaryWallet;
+    claimedAssets = wallet.claimedAssets!;
     patronInfo = appState.viewData!['patronInfo'];
     patronTier = appState.viewData!['selectedTier'];
+    paymentAssets = appState.viewData!['paymentAssets'];
   }
 
   @override
@@ -72,7 +96,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          'Trovo Patron',
+          "trovopatron".tr(),
           notifier.getblck,
           height: height / 15,
         ).getBar(),
@@ -89,7 +113,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'You have chosen ',
+                    "youhavechosen".tr(),
                     style: TextStyle(
                         fontSize: 22,
                         color: notifier.getbluewhitecolor,
@@ -141,7 +165,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Subscription Plan',
+                                    "subscriptionplan".tr(),
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w400,
@@ -172,7 +196,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Expiry Date',
+                                    "expirydate".tr(),
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.w400,
@@ -206,7 +230,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      'This package has no expiry date',
+                                      "hasnoexpirydate".tr(),
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.w400,
@@ -244,6 +268,81 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                   ),
                 ),
               ],
+              SizedBox(
+                height: height / 50,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "paymentasset".tr(),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w400,
+                      color: notifier.getbluewhitecolor,
+                      fontFamily: fontsemibold,
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(height: height / 50),
+              Container(
+                width: width / 1.6,
+                child: DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  value: selectedAsset,
+                  dropdownColor: notifier.isDark
+                      ? darktilewhitecolor
+                      : notifier.getaddsubwalletgrey,
+                  decoration: InputDecoration(
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    filled: true,
+                    fillColor: notifier.isDark
+                        ? darktilewhitecolor
+                        : notifier.getaddsubwalletgrey,
+                    errorStyle: TextStyle(
+                      fontFamily: fontbody,
+                      fontSize: 12,
+                      overflow: TextOverflow.visible,
+                    ),
+                  ),
+                  hint: Container(
+                    width: 150, //and here
+                    child: Text(
+                      "chooseasset".tr(),
+                      style: TextStyle(
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontbody,
+                      ),
+                      textAlign: TextAlign.end,
+                    ),
+                  ),
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                  elevation: 0,
+                  style: TextStyle(
+                      color: notifier.getbluewhitecolor,
+                      fontSize: 15,
+                      fontFamily: fontsemibold,
+                      fontWeight: FontWeight.w500),
+                  onChanged: (newValue) {
+                    selectedAsset = newValue;
+                    setState(() {});
+                  },
+                  items: getAssetDropdownItems,
+                ),
+              ),
               SizedBox(
                 height: height / 20,
               ),
@@ -343,6 +442,10 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
       // following credentials
       Map map = {
         'patronMembershipGradeId': patronInfo.id,
+        'paymentAssetCode': selectedAsset?.split('|')[0],
+        'paymentAssetIssuer': selectedAsset?.split('|')[0] == 'XBN'
+            ? ''
+            : selectedAsset?.split('|')[1],
       };
       String requestBody = jsonEncode(map);
 

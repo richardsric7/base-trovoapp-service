@@ -8,6 +8,7 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/patronInfo.dart';
 import 'package:trovo_wallet/models/patronTier.dart';
 import 'package:trovo_wallet/network/requests.dart';
@@ -145,8 +146,20 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                       var membershipGrades = snapshot.data!['membershipGrades'];
                       var tiers = snapshot.data!['patronTiers'];
                       var patronPackages = snapshot.data!['patronPackages'];
-                      var list = <PatronInfo>[];
+                      var paymentAssets =
+                          snapshot.data!['subscriptionPaymentAssets'];
+                      var patronInfoList = <PatronInfo>[];
+                      var paymentAssetsList = <Asset>[];
                       var myset = Set<String>();
+
+                      for (var asset in paymentAssets) {
+                        paymentAssetsList.add(
+                          Asset(
+                            assetCode: asset['assetCode'],
+                            assetIssuer: asset['assetIssuer'],
+                          ),
+                        );
+                      }
 
                       for (var grade in membershipGrades) {
                         var tierList = <PatronTier>[];
@@ -178,9 +191,9 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                             }
                           }
 
-                          list.add(package);
+                          patronInfoList.add(package);
                         } else {
-                          list
+                          patronInfoList
                               .firstWhere((item) =>
                                   item.patronPackage == grade['patronPackage'])
                               .patronTiers
@@ -192,7 +205,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
 
                       return Column(
                         children: [
-                          for (var info in list) ...[
+                          for (var info in patronInfoList) ...[
                             SizedBox(
                               height: height / 50,
                             ),
@@ -212,6 +225,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                               onTap: () {
                                 appState.viewData = {
                                   'patronInfo': info,
+                                  'paymentAssets': paymentAssetsList,
                                 };
                                 appState.currentAction = PageAction(
                                     state: PageState.addPage,
@@ -352,6 +366,8 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
       );
 
       if (responseData['statusCode'] == 200) {
+        print(
+            '=======================> patron response: ${responseData['data']}');
         return responseData['data'];
       } else {
         return Future.error("somethingwentwrong".tr());
