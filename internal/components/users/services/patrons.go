@@ -241,12 +241,12 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 				if (subscription.PatronPackageID == "GOLD" && patronMembership.PatronPackage == "DIAMOND") ||
 					(subscription.PatronPackageID == "GOLD" && patronMembership.PatronPackage == "PLATINUM") ||
 					(subscription.PatronPackageID == "DIAMOND" && patronMembership.PatronPackage == "PLATINUM") {
-					subscriptionLog.EffectiveDate = time.Now()
 
 					//update UserPatronMembership table
 					subscription.PatronTierID = patronMembership.PatronTierID
 					subscription.PatronPackageID = patronMembership.PatronPackage
 					//update UserPatronSubscriptionLogs table
+					subscriptionLog.EffectiveDate = time.Now()
 					subscriptionLog.PatronTierID = patronMembership.PatronTierID
 					subscriptionLog.PatronPackageID = patronMembership.PatronPackage
 				}
