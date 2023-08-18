@@ -235,7 +235,22 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 			subscription.PatronPackageID = patronMembership.PatronPackage
 			subscription.PatronTierID = patronMembership.PatronTierID
 			subscription.ValidTill = subscriptionLog.ValidTill
+			// Now, we handle the upgrade case
+			if subscriptionExists && patronMembership.PatronTierID == "LIFETIME" {
+				//ensure it's an upgrade  case before setting the time
+				if (subscription.PatronPackageID == "GOLD" && patronMembership.PatronPackage == "DIAMOND") ||
+					(subscription.PatronPackageID == "GOLD" && patronMembership.PatronPackage == "PLATINUM") ||
+					(subscription.PatronPackageID == "DIAMOND" && patronMembership.PatronPackage == "PLATINUM") {
+					subscriptionLog.EffectiveDate = time.Now()
 
+					//update UserPatronMembership table
+					subscription.PatronTierID = patronMembership.PatronTierID
+					subscription.PatronPackageID = patronMembership.PatronPackage
+					//update UserPatronSubscriptionLogs table
+					subscriptionLog.PatronTierID = patronMembership.PatronTierID
+					subscriptionLog.PatronPackageID = patronMembership.PatronPackage
+				}
+			}
 			e := tx.Save(&subscription).Error
 
 			if e != nil {
