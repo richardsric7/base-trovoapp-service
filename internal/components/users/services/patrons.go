@@ -61,6 +61,19 @@ func GetPatronSubscription(username string, gc *sharedconfig.GlobalConfig) (patr
 	return patronSub, nil
 }
 
+func UpdateUserPatronPackageID(gc *sharedconfig.GlobalConfig, username, patronTierID, newPackageID string) error {
+	updates := map[string]interface{}{
+		"PatronPackageID": newPackageID,
+	}
+	if err := gc.DB.Model(&userModels.UserPatronMembership{}).
+		Where("username = ? AND patron_tier_id = ?", username, patronTierID).
+		Updates(updates).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels.PatronSubscriptionInput, gc *sharedconfig.GlobalConfig) (subscriptionLog userModels.UserPatronSubscriptionLog, err error) {
 
 	patronSubInput.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
@@ -217,6 +230,34 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 			}
 		}
 
+		if (subscription.PatronTierID == "LIFETIME") && (patronMembership.PatronTierID == "LIFETIME") {
+			//ensure it's an upgrade  case before setting the time
+			if (subscription.PatronPackageID == "GOLD" && patronMembership.PatronPackage == "DIAMOND") ||
+				(subscription.PatronPackageID == "GOLD" && patronMembership.PatronPackage == "PLATINUM") ||
+				(subscription.PatronPackageID == "DIAMOND" && patronMembership.PatronPackage == "PLATINUM") {
+
+				//update UserPatronMembership table
+				subscription.PatronTierID = patronMembership.PatronTierID
+				subscription.PatronPackageID = patronMembership.PatronPackage
+				//update UserPatronSubscriptionLogs table
+				subscriptionLog.EffectiveDate = time.Now()
+				subscriptionLog.PatronTierID = patronMembership.PatronTierID
+				subscriptionLog.PatronPackageID = patronMembership.PatronPackage
+				err := UpdateUserPatronPackageID(gc, subscription.Username, patronMembership.PatronTierID, patronMembership.PatronPackage)
+				if err != nil {
+					log.Printf("[UpdateSubscriptionToPatronPackage] error updating subscription for user [%v], error: %v\n", owner.Username, err)
+
+					return subscriptionLog, &tErrors.CustomError{
+						Param:      "patronPackageId",
+						Err:        "error-unable to update subscription",
+						ErrMessage: "Unable to update subscription",
+					}
+				}
+				subscriptionLog.EffectiveDate = time.Now()
+				subscriptionLog.PatronTierID = patronMembership.PatronTierID
+				subscriptionLog.PatronPackageID = patronMembership.PatronPackage
+			}
+		}
 		// do not create or modify subscription until the effective date.
 		e := tx.Create(&subscriptionLog).Error
 
@@ -235,22 +276,6 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 			subscription.PatronPackageID = patronMembership.PatronPackage
 			subscription.PatronTierID = patronMembership.PatronTierID
 			subscription.ValidTill = subscriptionLog.ValidTill
-			// Now, we handle the upgrade case
-			if subscriptionExists && patronMembership.PatronTierID == "LIFETIME" {
-				//ensure it's an upgrade  case before setting the time
-				if (subscription.PatronPackageID == "GOLD" && patronMembership.PatronPackage == "DIAMOND") ||
-					(subscription.PatronPackageID == "GOLD" && patronMembership.PatronPackage == "PLATINUM") ||
-					(subscription.PatronPackageID == "DIAMOND" && patronMembership.PatronPackage == "PLATINUM") {
-
-					//update UserPatronMembership table
-					subscription.PatronTierID = patronMembership.PatronTierID
-					subscription.PatronPackageID = patronMembership.PatronPackage
-					//update UserPatronSubscriptionLogs table
-					subscriptionLog.EffectiveDate = time.Now()
-					subscriptionLog.PatronTierID = patronMembership.PatronTierID
-					subscriptionLog.PatronPackageID = patronMembership.PatronPackage
-				}
-			}
 			e := tx.Save(&subscription).Error
 
 			if e != nil {
