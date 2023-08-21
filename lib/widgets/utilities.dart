@@ -134,7 +134,7 @@ truncatePublicKey(String? publicKey) {
       publicKey.substring(publicKey.length - 7);
 }
 
-String truncate(String text, {length: 7, omission: '...'}) {
+String truncate(String text, {length = 7, omission = '...'}) {
   if (length >= text.length) {
     return text;
   }
@@ -333,7 +333,7 @@ Widget userItem(
   void Function()? onClick, {
   required Color backColor,
   required Color foreColor,
-  double? fontSize: 12,
+  double? fontSize = 12,
   bool restoreMode = false,
 }) {
   return Padding(
@@ -659,7 +659,7 @@ Widget pill(
   String name, {
   required Color backColor,
   required Color foreColor,
-  double? fontSize: 12,
+  double? fontSize = 12,
   bool hideDirectionUp = false,
   bool showDirectionDown = false,
 }) {

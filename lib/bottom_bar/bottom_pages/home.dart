@@ -1024,7 +1024,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           onTap: () {
             Clipboard.setData(
               ClipboardData(
-                text: appState.primaryWallet.publicKey,
+                text: appState.primaryWallet.publicKey!,
               ),
             );
             showSnackBar("publickey".tr(), context);
