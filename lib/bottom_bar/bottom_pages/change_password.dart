@@ -80,7 +80,7 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                           "changepassword".tr(),
                           style: TextStyle(
                               color: notifier.getblck,
-                              fontSize: 26.sp,
+                              fontSize: 26,
                               fontFamily: fontsemibold),
                         ),
                         SizedBox(height: height / 10),
@@ -92,8 +92,8 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                           notifier.getgrey,
                           notifier.getprefixicon,
                           notifier.getblck,
-                          70.sp,
-                          300.sp,
+                          70,
+                          300,
                           onChanged: (value) {
                             setState(() {
                               oldPassword = value!.trim().replaceAll(' ', '');
@@ -110,8 +110,8 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                           notifier.getgrey,
                           notifier.getprefixicon,
                           notifier.getblck,
-                          70.sp,
-                          300.sp,
+                          70,
+                          300,
                           onChanged: (value) {
                             setState(() {
                               newPassword = value!.trim().replaceAll(' ', '');
@@ -128,8 +128,8 @@ class _PasswordMgtViewState extends State<PasswordMgtView> {
                           notifier.getgrey,
                           notifier.getprefixicon,
                           notifier.getblck,
-                          70.sp,
-                          300.sp,
+                          70,
+                          300,
                           validator: validateConfirmPassword,
                         ),
                       ],

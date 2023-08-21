@@ -68,7 +68,7 @@ class _PaymentDetails extends State<PaymentDetails>
     // if record.from is same as the current active wallet public key
     // then it was a send transaction
     if (viewData.transactionDirection == TransactionDirection.Send) {
-      name = '${extractUsername(viewData.to!)}';
+      name = extractUsername(viewData.to!);
       publicKey = viewData.toPublicKey;
     }
 
@@ -109,7 +109,7 @@ class _PaymentDetails extends State<PaymentDetails>
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
-                    fontSize: 22.sp),
+                    fontSize: 22),
               ),
               SizedBox(height: height / 30),
               Text(
@@ -122,7 +122,7 @@ class _PaymentDetails extends State<PaymentDetails>
                         ? Colors.red
                         : notifier.getgreencolor,
                     fontFamily: fontsemibold,
-                    fontSize: 20.sp),
+                    fontSize: 20),
               ),
               SizedBox(
                 height: height / 50,
@@ -159,7 +159,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: notifier.getbluewhitecolor,
-                                  fontSize: 16.sp,
+                                  fontSize: 16,
                                   fontFamily: fontsemibold,
                                 ),
                               ),
@@ -168,49 +168,59 @@ class _PaymentDetails extends State<PaymentDetails>
                               width: width / 1.3,
                               child: Column(
                                 children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 3,
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 20.0),
-                                          child: Text(
-                                            viewData.transactionDirection! ==
-                                                    TransactionDirection.Send
-                                                ? '${extractUsername(viewData.from!)}'
-                                                : '${extractUsername(viewData.to!)}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w500,
-                                              color: notifier.getbluewhitecolor,
-                                              fontSize: 18.sp,
-                                              fontFamily: fontbody,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: IconButton(
-                                          padding: EdgeInsets.zero,
-                                          onPressed: () => {
-                                            Clipboard.setData(
-                                              ClipboardData(
-                                                text: viewData.toPublicKey!,
+                                  if ((viewData.transactionDirection ==
+                                              TransactionDirection.Send &&
+                                          viewData.from!.isNotEmpty) ||
+                                      (viewData.transactionDirection ==
+                                              TransactionDirection.Receive &&
+                                          viewData.to!.isNotEmpty)) ...[
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 3,
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 20.0),
+                                            child: Text(
+                                              viewData.transactionDirection! ==
+                                                      TransactionDirection.Send
+                                                  ? extractUsername(
+                                                      viewData.from!)
+                                                  : extractUsername(
+                                                      viewData.to!),
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                color:
+                                                    notifier.getbluewhitecolor,
+                                                fontSize: 18,
+                                                fontFamily: fontbody,
                                               ),
                                             ),
-                                            showSnackBar(
-                                                "tousername".tr(), context),
-                                          },
-                                          icon: Icon(
-                                            Icons.copy,
-                                            size: 20,
                                           ),
-                                          color: notifier.getbluewhitecolor,
                                         ),
-                                      ),
-                                    ],
-                                  ),
+                                        Expanded(
+                                          flex: 1,
+                                          child: IconButton(
+                                            padding: EdgeInsets.zero,
+                                            onPressed: () => {
+                                              Clipboard.setData(
+                                                ClipboardData(
+                                                  text: viewData.toPublicKey!,
+                                                ),
+                                              ),
+                                              showSnackBar(
+                                                  "tousername".tr(), context),
+                                            },
+                                            icon: Icon(
+                                              Icons.copy,
+                                              size: 20,
+                                            ),
+                                            color: notifier.getbluewhitecolor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                   Row(
                                     children: [
                                       Expanded(
@@ -240,7 +250,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                             style: TextStyle(
                                               fontWeight: FontWeight.w500,
                                               color: notifier.getbluewhitecolor,
-                                              fontSize: 13.sp,
+                                              fontSize: 13,
                                               fontFamily: fontbody,
                                             ),
                                           ),
@@ -288,7 +298,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: notifier.getbluewhitecolor,
-                                  fontSize: 16.sp,
+                                  fontSize: 16,
                                   fontFamily: fontsemibold,
                                 ),
                               ),
@@ -313,7 +323,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                           : name!,
                                       style: TextStyle(
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 18.sp,
+                                        fontSize: 18,
                                         fontFamily: fontbody,
                                       ),
                                     ),
@@ -326,7 +336,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                         Clipboard.setData(
                                           ClipboardData(
                                             text: name.toString().isEmpty
-                                                ? publicKey
+                                                ? publicKey!
                                                 : name!,
                                           ),
                                         );
@@ -364,7 +374,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
-                                          fontSize: 13.sp,
+                                          fontSize: 13,
                                           fontFamily: fontbody,
                                         ),
                                       ),
@@ -376,7 +386,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                         onPressed: () => {
                                           Clipboard.setData(
                                             ClipboardData(
-                                              text: publicKey,
+                                              text: publicKey!,
                                             ),
                                           ),
                                           showSnackBar("address".tr(), context),
@@ -408,7 +418,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: notifier.getbluewhitecolor,
-                                  fontSize: 16.sp,
+                                  fontSize: 16,
                                   fontFamily: fontsemibold,
                                 ),
                               ),
@@ -424,7 +434,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   color: notifier.getbluewhitecolor,
-                                  fontSize: 15.sp,
+                                  fontSize: 15,
                                   fontFamily: fontbody,
                                 ),
                               ),
@@ -444,7 +454,7 @@ class _PaymentDetails extends State<PaymentDetails>
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: notifier.getbluewhitecolor,
-                                fontSize: 16.sp,
+                                fontSize: 16,
                                 fontFamily: fontsemibold,
                               ),
                             ),
@@ -468,7 +478,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                       style: TextStyle(
                                         decoration: TextDecoration.underline,
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 12.sp,
+                                        fontSize: 12,
                                         fontWeight: FontWeight.w500,
                                         fontFamily: fontbody,
                                       ),
@@ -511,7 +521,7 @@ class _PaymentDetails extends State<PaymentDetails>
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: notifier.getbluewhitecolor,
-                                fontSize: 16.sp,
+                                fontSize: 16,
                                 fontFamily: fontsemibold,
                               ),
                             ),
@@ -526,7 +536,7 @@ class _PaymentDetails extends State<PaymentDetails>
                               '$date',
                               style: TextStyle(
                                 color: notifier.getbluewhitecolor,
-                                fontSize: 13.sp,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w500,
                                 fontFamily: fontbody,
                               ),

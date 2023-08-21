@@ -66,7 +66,7 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                     "account".tr(),
                     style: TextStyle(
                         color: notifier.getbluewhitecolor,
-                        fontSize: 26.sp,
+                        fontSize: 26,
                         fontFamily: fontsemibold),
                   ),
                   SizedBox(
@@ -76,7 +76,7 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                     "recovery".tr(),
                     style: TextStyle(
                         color: notifier.getbluewhitecolor,
-                        fontSize: 26.sp,
+                        fontSize: 26,
                         fontFamily: fontsemibold),
                   ),
                 ],
@@ -121,11 +121,11 @@ class _CompleteAccountRecovery extends State<CompleteAccountRecovery>
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Transform.scale(
-                    scale: 1.sp,
+                    scale: 1,
                     child: Checkbox(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(
-                          Radius.circular(5.sp),
+                          Radius.circular(5),
                         ),
                       ),
                       activeColor: notifier.getbluecolor,

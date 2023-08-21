@@ -19,20 +19,20 @@ class Custompasswordtextfild {
         decoration: InputDecoration(
           label: Text(labletext),
           disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           prefixIcon: Icon(preicon, color: iconcolor),
           labelStyle: TextStyle(color: lablecolor),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           enabledBorder: OutlineInputBorder(
             borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(color: focuscolor, width: 1.0),
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
         ),
       ),
@@ -106,7 +106,7 @@ class _CustomPasswordFormFieldState extends State<CustomPasswordFormField> {
           ),
           label: Text(widget.labelText!),
           disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           prefixIcon: Icon(widget.preIcon, color: widget.iconColor),
           suffixIcon: IconButton(
@@ -122,15 +122,15 @@ class _CustomPasswordFormFieldState extends State<CustomPasswordFormField> {
               )),
           labelStyle: TextStyle(color: widget.labelColor),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           enabledBorder: OutlineInputBorder(
             borderSide: const BorderSide(color: Colors.grey, width: 1.0),
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(color: widget.focusColor!, width: 1.0),
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
         ),
         onChanged: widget.onChanged,

@@ -176,7 +176,7 @@ class _ButtonOutlinedState extends State<ButtonOutlined> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontFamily: fontbody,
-                        fontSize: 15.sp,
+                        fontSize: 15,
                         color: widget.buttontextcolor),
                   ),
                 ),

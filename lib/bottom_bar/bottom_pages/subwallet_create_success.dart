@@ -46,14 +46,14 @@ class _CreateSubWalletSuccessViewState
                 style: TextStyle(
                     color: notifier.getblck,
                     fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                    fontSize: 27),
               ),
               SizedBox(height: height / 50),
               Text(
                 "youhavecreatedsuccessfully".tr(),
                 style: TextStyle(
                     color: notifier.getgrey,
-                    fontSize: 15.sp,
+                    fontSize: 15,
                     fontFamily: fontbody),
               ),
               SizedBox(height: height / 4.3),

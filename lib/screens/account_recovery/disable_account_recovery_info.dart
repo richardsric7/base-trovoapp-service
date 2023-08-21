@@ -71,7 +71,7 @@ class _DisableAccountRecoveryInfoState
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
-                    fontSize: 30.sp,
+                    fontSize: 30,
                     fontFamily: fontsemibold),
               ),
               Text(
@@ -79,7 +79,7 @@ class _DisableAccountRecoveryInfoState
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
-                    fontSize: 30.sp,
+                    fontSize: 30,
                     fontFamily: fontsemibold),
               ),
               SizedBox(height: height / 45),

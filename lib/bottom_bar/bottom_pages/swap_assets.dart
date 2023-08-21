@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -209,8 +208,8 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
                         // of the textbox so it will
                         // consistent when showing an
                         // error message
-                        70.sp,
-                        300.sp,
+                        70,
+                        300,
                         onChanged: (value) {
                           if (value != null && value.toString().isNotEmpty) {
                             setState(() {
@@ -714,7 +713,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
               style: TextStyle(
                   color: notifier.getdarkgrey,
                   fontWeight: FontWeight.w400,
-                  fontSize: 12.0.sp),
+                  fontSize: 12.0),
             ),
           ),
           Flexible(
@@ -725,7 +724,7 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
               "${formatNumber(sourceAsset!.amount!)} ${getAssetCode(sourceAsset!.assetCode)}",
               textScaleFactor: 1.0,
               textAlign: TextAlign.right,
-              style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0.sp),
+              style: TextStyle(color: notifier.getdarkgrey, fontSize: 12.0),
             ),
           )),
         ],

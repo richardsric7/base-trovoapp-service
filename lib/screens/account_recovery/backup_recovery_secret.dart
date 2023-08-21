@@ -53,7 +53,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                    fontSize: 27),
               ),
               SizedBox(height: height / 50),
               Container(
@@ -62,7 +62,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
                   "writeitdown".tr(),
                   style: TextStyle(
                       color: notifier.getgrey,
-                      fontSize: 15.sp,
+                      fontSize: 15,
                       fontFamily: fontbody),
                 ),
               ),
@@ -75,11 +75,11 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Transform.scale(
-                      scale: 1.sp,
+                      scale: 1,
                       child: Checkbox(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(
-                            Radius.circular(5.sp),
+                            Radius.circular(5),
                           ),
                         ),
                         activeColor: notifier.getbluecolor,

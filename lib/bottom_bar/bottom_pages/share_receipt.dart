@@ -116,7 +116,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold,
-                            fontSize: 22.sp),
+                            fontSize: 22),
                       ),
                       SizedBox(height: 3),
                       Container(
@@ -130,7 +130,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontFamily: fontbody,
-                              fontSize: 12.sp),
+                              fontSize: 12),
                         ),
                       ),
                       SizedBox(height: height / 50),
@@ -173,7 +173,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
-                                          fontSize: 16.sp,
+                                          fontSize: 16,
                                           fontFamily: fontsemibold,
                                         ),
                                       ),
@@ -182,38 +182,50 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       width: width / 1.2,
                                       child: Column(
                                         children: [
-                                          Row(
-                                            children: [
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
+                                          if ((viewData.transactionDirection ==
+                                                      TransactionDirection
+                                                          .Send &&
+                                                  viewData.from!.isNotEmpty) ||
+                                              (viewData.transactionDirection ==
+                                                      TransactionDirection
+                                                          .Receive &&
+                                                  viewData.to!.isNotEmpty)) ...[
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  flex: 3,
+                                                  child: Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
                                                         horizontal: 20.0),
-                                                child: Text(
-                                                  viewData.transactionDirection! ==
-                                                          TransactionDirection
-                                                              .Send
-                                                      ? viewData.from!
-                                                      : viewData.to!,
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                      color: notifier
-                                                          .getbluewhitecolor,
-                                                      fontSize: 16.sp,
-                                                      fontFamily: fontbody,
-                                                      overflow:
-                                                          TextOverflow.visible),
+                                                    child: Text(
+                                                      viewData.transactionDirection! ==
+                                                              TransactionDirection
+                                                                  .Send
+                                                          ? viewData.from!
+                                                          : viewData.to!,
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          color: notifier
+                                                              .getbluewhitecolor,
+                                                          fontSize: 16,
+                                                          fontFamily: fontbody,
+                                                          overflow: TextOverflow
+                                                              .visible),
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
+                                              ],
+                                            ),
+                                          ],
                                           Row(
                                             children: [
                                               Expanded(
                                                 flex: 3,
                                                 child: Padding(
                                                   padding: const EdgeInsets
-                                                          .symmetric(
+                                                      .symmetric(
                                                       horizontal: 20.0,
                                                       vertical: 5),
                                                   child: Text(
@@ -245,7 +257,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                                           FontWeight.w500,
                                                       color: notifier
                                                           .getbluewhitecolor,
-                                                      fontSize: 13.sp,
+                                                      fontSize: 13,
                                                       fontFamily: fontbody,
                                                     ),
                                                   ),
@@ -273,7 +285,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
-                                          fontSize: 16.sp,
+                                          fontSize: 16,
                                           fontFamily: fontsemibold,
                                         ),
                                       ),
@@ -297,7 +309,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 16.sp,
+                                        fontSize: 16,
                                         fontFamily: fontsemibold,
                                       ),
                                     ),
@@ -316,7 +328,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 15.sp,
+                                        fontSize: 15,
                                         fontFamily: fontbody,
                                       ),
                                     ),
@@ -336,7 +348,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
-                                          fontSize: 16.sp,
+                                          fontSize: 16,
                                           fontFamily: fontsemibold,
                                         ),
                                       ),
@@ -352,7 +364,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
-                                          fontSize: 15.sp,
+                                          fontSize: 15,
                                           fontFamily: fontbody,
                                         ),
                                       ),
@@ -372,7 +384,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 16.sp,
+                                        fontSize: 16,
                                         fontFamily: fontsemibold,
                                       ),
                                     ),
@@ -398,7 +410,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                                     TextDecoration.underline,
                                                 color:
                                                     notifier.getbluewhitecolor,
-                                                fontSize: 12.sp,
+                                                fontSize: 12,
                                                 fontWeight: FontWeight.w500,
                                                 fontFamily: fontbody,
                                               ),
@@ -422,7 +434,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 16.sp,
+                                        fontSize: 16,
                                         fontFamily: fontsemibold,
                                       ),
                                     ),
@@ -434,7 +446,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       '$date',
                                       style: TextStyle(
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 13.sp,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.w500,
                                         fontFamily: fontbody,
                                       ),
@@ -526,7 +538,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluewhitecolor,
-                        fontSize: 15.sp,
+                        fontSize: 15,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -546,7 +558,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluewhitecolor,
-                        fontSize: 13.sp,
+                        fontSize: 13,
                         fontFamily: fontbody,
                       ),
                     ),

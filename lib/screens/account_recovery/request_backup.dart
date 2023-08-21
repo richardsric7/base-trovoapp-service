@@ -36,7 +36,7 @@ class RequestBackup extends StatelessWidget {
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
                       fontFamily: fontsemibold,
-                      fontSize: 27.sp),
+                      fontSize: 27),
                 ),
               ),
               Padding(
@@ -47,7 +47,7 @@ class RequestBackup extends StatelessWidget {
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
                       fontFamily: fontsemibold,
-                      fontSize: 27.sp),
+                      fontSize: 27),
                 ),
               ),
               SizedBox(height: height / 50),
@@ -58,8 +58,8 @@ class RequestBackup extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getgrey,
-                      fontSize: 20.sp,
-                      wordSpacing: 3.sp,
+                      fontSize: 20,
+                      wordSpacing: 3,
                       fontFamily: fontbody),
                 ),
               ),

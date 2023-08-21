@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/utils.dart' hide Trans;
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -120,11 +121,15 @@ class _BackupAllState extends State<BackupAll> {
   List<Wallet> getUserWallets() {
     var wallets = <Wallet>[];
     secrets.forEach((secret) {
-      print(secret);
       Account account = TrovoWalletSDK().parseSecretKey(secret);
       var wlt = user.wallets!
-          .firstWhere((wallet) => wallet.publicKey == account.publicKey);
-      wlt.secretKey = secret;
+          .firstWhereOrNull((wallet) => wallet.publicKey == account.publicKey);
+      if (wlt != null) {
+        wlt.secretKey = secret;
+      } else {
+        wlt = state.primaryWallet;
+        wlt.secretKey = secret;
+      }
       wallets.add(wlt);
     });
     return wallets;
