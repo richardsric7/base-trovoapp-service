@@ -67,6 +67,20 @@ func GetPatronSubscription(username string, gc *sharedconfig.GlobalConfig) (patr
 	return patronSub, nil
 }
 
+func countPendingSubscriptionForUser(username string, gc *sharedconfig.GlobalConfig) (int64, error) {
+	var pendingSubscriptionsCount int64
+	err := gc.DB.Model(&userModels.UserPatronMembership{}).
+		Where("username = ? AND CAST(valid_till AS DATE) > CAST(? AS DATE)", username, time.Now()).
+		Count(&pendingSubscriptionsCount).Error
+	if err != nil {
+		log.Printf("[CountPendingSubscription] error : %v\n", err)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return -1, err
+	}
+
+	return pendingSubscriptionsCount, nil
+}
+
 func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels.PatronSubscriptionInput, gc *sharedconfig.GlobalConfig) (subscriptionLog userModels.UserPatronSubscriptionLog, err error) {
 
 	patronSubInput.NetworkPassPhrase = network.GetBlockchainNetworkPassPhrase()
@@ -76,6 +90,18 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 		return
 	} else {
 		log.Println(priceConfig)
+	}
+
+	pendingSubscriptionCount, err := countPendingSubscriptionForUser(owner.Username, gc)
+	if err != nil {
+		return
+	}
+	if pendingSubscriptionCount > 0 {
+		return subscriptionLog, &tErrors.CustomError{
+			Param:      "patronPackageId",
+			Err:        "you-have-pending-subscription",
+			ErrMessage: "You have a pending subscription",
+		}
 	}
 	// check if it is a new subscription or old
 	lifetime := time.Date(9999, 12, 31, 23, 59, 59, 999999999, time.UTC)
