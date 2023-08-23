@@ -104,7 +104,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 		}
 	}
 	// check if it is a new subscription or old
-	lifetime := time.Date(9999, 12, 31, 23, 59, 59, 999999999, time.UTC)
+	lifetime := time.Date(9999, 12, 1, 23, 59, 59, 000000000, time.UTC)
 	log.Println(lifetime)
 	var subscriptionExists, subscriptionRenewal bool
 	var subscription userModels.UserPatronMembership
