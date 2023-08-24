@@ -82,6 +82,21 @@ class DataProvider with ChangeNotifier {
     return _transactionableWallets;
   }
 
+  Map<String, Map<String, int>> assetOrderings = {};
+  set setAssetOrderings(immutableMap) {
+    if (immutableMap != null) {
+      immutableMap.forEach((key, valueMap) => {
+            valueMap.forEach((key2, value2) {
+              if (assetOrderings[key] == null) {
+                assetOrderings[key] = {key2: int.parse(value2.toString())};
+              }
+              assetOrderings[key]![key2] = int.parse(value2.toString());
+            })
+          });
+    }
+    notifyListeners();
+  }
+
   bool dialogOpen = false;
   WalletsListViewData walletView = WalletsListViewData(
       view: WalletView.listWallets,

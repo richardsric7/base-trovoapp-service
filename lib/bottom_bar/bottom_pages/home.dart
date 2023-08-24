@@ -71,6 +71,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   @override
   void dispose() {
     _tabController.dispose();
+    StoreData().storeInsertData('assetOrderings', appState.assetOrderings);
     super.dispose();
   }
 
@@ -94,6 +95,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   asset.assetCode!.isEmpty && asset.assetIssuer!.isEmpty)
               .amount ==
           0;
+
+      reOrderClaimedAssets(activeWallet!);
     }
 
     // in order to make assets tab length dynamic we have to check
@@ -285,7 +288,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               page: PendingAssetDetailsViewPageConfig,
                             );
                           },
-                          child: tiles(unclaimedAssets![i], activeWalletIndex),
+                          child: tiles(
+                              unclaimedAssets![i], null, activeWalletIndex),
                         ),
                       ],
                     ] else ...[
@@ -346,25 +350,42 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       child: Column(
         children: [
           if (claimedAssets!.length > 0) ...[
-            for (var i = 0; i < claimedAssets!.length; i++) ...[
-              GestureDetector(
-                onTap: () {
-                  appState.setActiveWallet = wallets
-                      .firstWhere((wallet) => wallet.publicKey == activeWallet);
-
-                  appState.viewData = {
-                    'assetCode': claimedAssets![i].assetCode,
-                    'assetIssuer': claimedAssets![i].assetIssuer,
-                    'walletPublicKey': activeWallet,
-                  };
-                  appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: AssetDetailsViewPageConfig,
-                  );
+            Container(
+              height: height / 1.85,
+              child: ReorderableListView(
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
+                onReorder: (oldIndex, newIndex) {
+                  if (oldIndex < newIndex) {
+                    newIndex -= 1;
+                  }
+                  final Asset item = claimedAssets!.removeAt(oldIndex);
+                  claimedAssets!.insert(newIndex, item);
+                  setState(() {});
                 },
-                child: tiles(claimedAssets![i], activeWalletIndex),
+                children: [
+                  for (var i = 0; i < claimedAssets!.length; i++) ...[
+                    GestureDetector(
+                      key: Key(i.toString()),
+                      onTap: () {
+                        appState.setActiveWallet = wallets.firstWhere(
+                            (wallet) => wallet.publicKey == activeWallet);
+
+                        appState.viewData = {
+                          'assetCode': claimedAssets![i].assetCode,
+                          'assetIssuer': claimedAssets![i].assetIssuer,
+                          'walletPublicKey': activeWallet,
+                        };
+                        appState.currentAction = PageAction(
+                          state: PageState.addPage,
+                          page: AssetDetailsViewPageConfig,
+                        );
+                      },
+                      child: tiles(claimedAssets![i], i, activeWalletIndex),
+                    ),
+                  ],
+                ],
               ),
-            ],
+            ),
             SizedBox(
               height: height / 22,
             ),
@@ -714,7 +735,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   claimedAssets = wallets[activeWalletIndex].claimedAssets,
                   unclaimedAssets = wallets[activeWalletIndex].unClaimedAssets,
                 },
-              )
+              ),
+              reOrderClaimedAssets(activeWallet!),
             }),
         height: height / 5.4,
         padEnds: false,
@@ -828,7 +850,26 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget tiles(Asset asset, int indexOfWallet) {
+  void reOrderClaimedAssets(String publicKey) {
+    // order asset according to user preference
+    if (appState.assetOrderings[publicKey] != null) {
+      claimedAssets!.forEach((asset) => asset.userPreferredIndex =
+          appState.assetOrderings[publicKey]![asset.assetCode] ?? 0);
+      claimedAssets!
+          .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
+    }
+  }
+
+  Widget tiles(Asset asset, int? indexOfAsset, int indexOfWallet) {
+    if (indexOfAsset != null) {
+      if (appState.assetOrderings[wallets[indexOfWallet].publicKey!] == null) {
+        appState.assetOrderings[wallets[indexOfWallet].publicKey!] = {
+          asset.assetCode!: indexOfAsset
+        };
+      }
+      appState.assetOrderings[wallets[indexOfWallet].publicKey!]![
+          asset.assetCode!] = indexOfAsset;
+    }
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
