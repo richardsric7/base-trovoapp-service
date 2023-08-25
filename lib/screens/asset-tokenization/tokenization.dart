@@ -95,7 +95,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
               height: height / 15,
             ).getBar(),
             SizedBox(height: height / 50),
-            if (true) ...[
+            if (false) ...[
               Container(
                 height: height / 1.3,
                 child: Center(
