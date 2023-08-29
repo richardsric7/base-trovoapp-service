@@ -3,10 +3,12 @@ package users
 import "time"
 
 type PatronPackage struct {
-	ID            string `json:"id"`
-	Description   string `json:"description"`
-	Inactive      int    `gorm:"default:0" json:"inactive"`
-	PriorityOrder int    `gorm:"default:1" json:"-"`
+	ID               string `json:"id"`
+	Description      string `json:"description"`
+	PackageListTitle string `json:"packageListTitle"`
+	PackageList      string `json:"packageList"`
+	Inactive         int    `gorm:"default:0" json:"inactive"`
+	PriorityOrder    int    `gorm:"default:1" json:"-"`
 }
 
 type PatronTier struct {
