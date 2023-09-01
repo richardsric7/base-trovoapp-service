@@ -4,12 +4,14 @@ class PatronMembership {
   String? patronTierId;
   int? price;
   DateTime? validTill;
+  String? logo;
   PatronMembership({
     this.username,
     this.patronPackageId,
     this.patronTierId,
     this.price,
     this.validTill,
+    this.logo,
   });
 
   toJSONEncodable() {

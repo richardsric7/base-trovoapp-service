@@ -29,6 +29,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
   late ColorNotifier notifier;
   late DataProvider appState;
   late Future<Map> fetchPlansFuture;
+  int currentTab = 0;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -66,23 +67,13 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(
-                height: height / 30,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "subscriptiontypes".tr(),
-                      style: TextStyle(
-                          fontSize: 20,
-                          color: notifier.getbluewhitecolor,
-                          fontFamily: fontsemibold),
-                    ),
-                  ],
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  MyTab('Monthly', 0, currentTab == 0),
+                  MyTab('Yearly', 1, currentTab == 1),
+                  MyTab('Lifetime', 2, currentTab == 2),
+                ],
               ),
               FutureBuilder<Map>(
                 future: fetchPlansFuture,
@@ -183,11 +174,25 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                             patronPackage: grade['patronPackage'],
                             patronTiers: tierList,
                             description: '',
+                            packageList: [],
+                            packageListTitle: '',
+                            logo: '',
                           );
 
                           for (var p in patronPackages) {
+                            print('object ====> $p');
                             if (p['id'] == grade['patronPackage']) {
                               package.description = p['description'];
+                              package.packageListTitle = p['packageListTitle'];
+                              package.packageList =
+                                  p['packageList'].toString().split('|');
+                              package.logo =
+                                  p['id'].toString().toLowerCase() == 'gold'
+                                      ? "assets/images/gold.png"
+                                      : p['id'].toString().toLowerCase() ==
+                                              'diamond'
+                                          ? "assets/images/diamond.png"
+                                          : "assets/images/platinum.png";
                             }
                           }
 
@@ -210,9 +215,8 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                               height: height / 50,
                             ),
                             planItem(
-                              '${info.patronPackage.capitalizeFirst!} ${"patron".tr()}',
-                              '\$${info.patronTiers[0].price} ${"permonth".tr()} / \$${info.patronTiers[1].price} per year / \$${info.patronTiers[2].price} lifetime.',
-                              '${"subscribeto".tr()} ${info.patronPackage.capitalizeFirst!}',
+                              info,
+                              getColor(info.patronPackage),
                               onReadMore: () {
                                 appState.viewData = {
                                   'patronInfo': info,
@@ -225,12 +229,16 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                               onTap: () {
                                 appState.viewData = {
                                   'patronInfo': info,
+                                  'selectedTier': info.patronTiers[currentTab],
                                   'paymentAssets': paymentAssetsList,
                                 };
+                                // appState.currentAction = PageAction(
+                                //     state: PageState.addPage,
+                                //     page:
+                                //         SubscriptionPlanOptionsViewPageConfig);
                                 appState.currentAction = PageAction(
                                     state: PageState.addPage,
-                                    page:
-                                        SubscriptionPlanOptionsViewPageConfig);
+                                    page: AuthorizeSubscriptionViewPageConfig);
                               },
                             ),
                           ],
@@ -260,7 +268,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
     );
   }
 
-  Widget planItem(String name, String description, String buttonText,
+  Widget planItem(PatronInfo info, Color color,
       {required void Function() onTap, required void Function() onReadMore}) {
     return Column(
       children: [
@@ -268,92 +276,257 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
           child: Container(
             decoration: BoxDecoration(
-              border: Border.all(color: notifier.getbluewhitecolor, width: 1.5),
-              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
               color: notifier.isDark
                   ? darktilewhitecolor
                   : notifier.getaddsubwalletgrey,
             ),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
-              child: Row(
-                children: [
-                  Container(
-                    width: width / 1.2,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: width / 50,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              children: [
+                Container(
+                  height: 10,
+                  decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(15.0),
+                          topRight: Radius.circular(15.0)),
+                      color: color),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10.0, vertical: 15.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: width / 1.2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              name,
-                              style: TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w400,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontsemibold,
-                              ),
+                            SizedBox(
+                              width: width / 50,
                             ),
-                            TextButton(
-                              onPressed: onReadMore,
-                              style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size(50, 30),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  alignment: Alignment.centerLeft),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${info.patronPackage.capitalizeFirst!} ${"patron".tr()}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: notifier.getbluewhitecolor,
+                                        fontFamily: fontsemibold,
+                                      ),
+                                    ),
+                                    Text(
+                                      currentTab == 0
+                                          ? "amountpermonth".tr(args: [
+                                              info.patronTiers[currentTab].price
+                                                  .toString(),
+                                            ])
+                                          : currentTab == 1
+                                              ? "amountperyear".tr(args: [
+                                                  info.patronTiers[currentTab]
+                                                      .price
+                                                      .toString()
+                                                ])
+                                              : "lifetimeplan".tr(),
+                                      style: TextStyle(
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.w400,
+                                        color: notifier.getbluewhitecolor,
+                                        fontFamily: fontsemibold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Image.asset(info.logo),
+                              ],
+                            ),
+                            if (info.patronPackage ==
+                                    appState.userInfo?.patronMembership
+                                        ?.patronPackageId &&
+                                info.patronTiers[currentTab].price ==
+                                    appState
+                                        .userInfo?.patronMembership?.price) ...[
+                              SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Button(
+                                    'currentplan'.tr(),
+                                    notifier.getbluewhitecolor,
+                                    notifier.getwihitecolor,
+                                    onTap: () {},
+                                    width: 130,
+                                    height: height / 25,
+                                  ),
+                                ],
+                              ),
+                            ],
+                            SizedBox(height: 20),
+                            Container(
+                              width: width / 1.5,
                               child: Text(
-                                "readmore".tr(),
+                                info.packageListTitle,
+                                // '\$${info.patronTiers[0].price} ${"permonth".tr()} / \$${info.patronTiers[1].price} per year / \$${info.patronTiers[2].price} lifetime.',
+                                overflow: TextOverflow.visible,
                                 style: TextStyle(
-                                  fontStyle: FontStyle.italic,
                                   fontSize: 15,
-                                  fontWeight: FontWeight.w400,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontsemibold,
+                                  color: notifier.getgrey,
+                                  fontFamily: fontbody,
                                 ),
                               ),
                             ),
+                            SizedBox(height: width / 50),
+                            for (var item in info.packageList) ...[
+                              Row(
+                                children: [
+                                  Image.asset(
+                                    "assets/images/charm_tick.png",
+                                    width: 25,
+                                  ),
+                                  SizedBox(width: 5),
+                                  Container(
+                                    width: width / 1.5,
+                                    child: Text(
+                                      item,
+                                      overflow: TextOverflow.visible,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w400,
+                                        color: notifier.getbluewhitecolor,
+                                        fontFamily: fontbody,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        Text(
-                          description,
-                          overflow: TextOverflow.visible,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w400,
-                            color: notifier.getbluewhitecolor,
-                            fontFamily: fontbody,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 5),
+                ButtonOutlined(
+                  '${"subscribeto".tr()} ${info.patronPackage.capitalizeFirst!}',
+                  notifier.getaddsubwalletgrey,
+                  notifier.getbluecolor,
+                  borderColor: notifier.getbluecolor,
+                  onTap: onTap,
+                  width: width / 1.4,
+                  height: height / 20,
+                ),
+                SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: onReadMore,
+                      style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size(50, 30),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          alignment: Alignment.centerLeft),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            "seemore".tr(),
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontsemibold,
+                            ),
                           ),
-                        ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                      ],
+                          SizedBox(
+                            width: 5,
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 12,
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: height / 50),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget MyTab(String name, int number, bool isActive) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            child: ElevatedButton(
+              onPressed: () => setState(() => currentTab = number),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(
+                  notifier.isDark
+                      ? darktilewhitecolor
+                      : isActive
+                          ? notifier.getaddsubwalletgrey
+                          : wihitecolor,
+                ),
+                side: MaterialStateProperty.all(
+                  BorderSide(
+                      color: isActive
+                          ? notifier.getbluewhitecolor
+                          : notifier.getaddsubwalletgrey,
+                      width: 1.5,
+                      style: BorderStyle.solid),
+                ),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(15),
                     ),
                   ),
-                ],
+                ),
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10),
+                child: Text(
+                  name,
+                  overflow: TextOverflow.visible,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: isActive
+                        ? notifier.getbluewhitecolor
+                        : notifier.getgrey,
+                    fontFamily: isActive ? fontsemibold : fontbody,
+                  ),
+                ),
               ),
             ),
           ),
         ),
-        SizedBox(height: 5),
-        Button(
-          buttonText,
-          notifier.getbluecolor,
-          wihitecolor,
-          onTap: onTap,
-        ),
       ],
     );
+  }
+
+  Color getColor(String patronPlan) {
+    print('=============> $patronPlan');
+    if (patronPlan.toLowerCase() == 'gold')
+      return notifier.getgoldcolor;
+    else if (patronPlan.toLowerCase() == 'platinum')
+      return notifier.getplatinumcolor;
+    else
+      return notifier.getdiamondcolor;
   }
 
   Future<Map> fetchPatronPlans() async {

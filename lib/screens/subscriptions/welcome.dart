@@ -181,8 +181,17 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
 
                   if (grade['patronPackage'] ==
                           patronMembership?.patronPackageId &&
-                      grade['patronTier'] == patronMembership?.patronTierId)
+                      grade['patronTier'] == patronMembership?.patronTierId) {
                     patronMembership?.price = grade['price'];
+                    patronMembership?.logo =
+                        grade['patronPackage'].toString().toLowerCase() ==
+                                'gold'
+                            ? "assets/images/gold.png"
+                            : grade['patronPackage'].toString().toLowerCase() ==
+                                    'diamond'
+                                ? "assets/images/diamond.png"
+                                : "assets/images/platinum.png";
+                  }
 
                   if (myset.add(grade['patronPackage'])) {
                     var package = PatronInfo(
@@ -190,11 +199,23 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                       patronPackage: grade['patronPackage'],
                       patronTiers: tierList,
                       description: '',
+                      packageList: [],
+                      packageListTitle: '',
+                      logo: '',
                     );
 
                     for (var p in patronPackages) {
                       if (p['id'] == grade['patronPackage']) {
                         package.description = p['description'];
+                        package.packageListTitle = p['packageListTitle'];
+                        package.packageList =
+                            p['packageList'].toString().split('|');
+                        package.logo =
+                            p['id'].toString().toLowerCase() == 'gold'
+                                ? "assets/images/gold.png"
+                                : p['id'].toString().toLowerCase() == 'diamond'
+                                    ? "assets/images/diamond.png"
+                                    : "assets/images/platinum.png";
                       }
                     }
 
@@ -228,7 +249,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                           ),
                           Row(
                             children: [
-                              Image.asset("assets/images/gold.png",
+                              Image.asset(patronMembership?.logo ?? '',
                                   height: height / 30),
                               SizedBox(
                                 width: 5,
@@ -303,17 +324,6 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                       ),
                     ),
                     SizedBox(height: height / 10),
-                    ButtonOutlined(
-                      "cancelsubscription".tr(),
-                      notifier.getwihitecolor,
-                      notifier.getbluewhitecolor,
-                      onTap: () {
-                        appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: SubscriptionPlansViewPageConfig);
-                      },
-                    ),
-                    SizedBox(height: height / 50),
                     Button(
                       "viewpatronplans".tr(),
                       notifier.getbluecolor,
