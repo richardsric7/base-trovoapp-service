@@ -183,14 +183,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                           patronMembership?.patronPackageId &&
                       grade['patronTier'] == patronMembership?.patronTierId) {
                     patronMembership?.price = grade['price'];
-                    patronMembership?.logo =
-                        grade['patronPackage'].toString().toLowerCase() ==
-                                'gold'
-                            ? "assets/images/gold.png"
-                            : grade['patronPackage'].toString().toLowerCase() ==
-                                    'diamond'
-                                ? "assets/images/diamond.png"
-                                : "assets/images/platinum.png";
+                    patronMembership?.id = grade['id'];
                   }
 
                   if (myset.add(grade['patronPackage'])) {
@@ -249,7 +242,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                           ),
                           Row(
                             children: [
-                              Image.asset(patronMembership?.logo ?? '',
+                              Image.asset(patronMembership!.getLogo(),
                                   height: height / 30),
                               SizedBox(
                                 width: 5,

@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/patronInfo.dart';
+import 'package:trovo_wallet/models/patronMembership.dart';
 import 'package:trovo_wallet/models/patronTier.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
@@ -30,6 +31,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
   late DataProvider appState;
   late Future<Map> fetchPlansFuture;
   int currentTab = 0;
+  late PatronMembership? patronMembership;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -47,6 +49,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
     fetchPlansFuture = fetchPatronPlans();
+    patronMembership = appState.userInfo?.patronMembership;
   }
 
   @override
@@ -410,15 +413,20 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                   ),
                 ),
                 SizedBox(height: 5),
-                ButtonOutlined(
-                  '${"subscribeto".tr()} ${info.patronPackage.capitalizeFirst!}',
-                  notifier.getaddsubwalletgrey,
-                  notifier.getbluecolor,
-                  borderColor: notifier.getbluecolor,
-                  onTap: onTap,
-                  width: width / 1.4,
-                  height: height / 20,
-                ),
+                if (info.patronPackage !=
+                        appState.userInfo?.patronMembership?.patronPackageId &&
+                    info.patronTiers[currentTab].price !=
+                        appState.userInfo?.patronMembership?.price) ...[
+                  ButtonOutlined(
+                    getActionVerb(info),
+                    notifier.getaddsubwalletgrey,
+                    notifier.getbluecolor,
+                    borderColor: notifier.getbluecolor,
+                    onTap: onTap,
+                    width: width / 1.4,
+                    height: height / 20,
+                  ),
+                ],
                 SizedBox(height: 5),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -519,8 +527,17 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
     );
   }
 
+  String getActionVerb(PatronInfo info) {
+    if (patronMembership == null) {
+      return '${"subscribeto".tr()} ${info.patronPackage.capitalizeFirst!}';
+    } else if (info.id > patronMembership!.id!) {
+      return '${"downgradeto".tr()}${info.patronPackage.capitalizeFirst!}';
+    } else {
+      return '${"upgradeto".tr()}${info.patronPackage.capitalizeFirst!}';
+    }
+  }
+
   Color getColor(String patronPlan) {
-    print('=============> $patronPlan');
     if (patronPlan.toLowerCase() == 'gold')
       return notifier.getgoldcolor;
     else if (patronPlan.toLowerCase() == 'platinum')

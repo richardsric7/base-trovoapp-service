@@ -604,6 +604,8 @@
     "lifetimeplan": "This is a lifetime plan.",
     "nextbilldate": "Next Bill Date",
     "subscribedto": "Subscribed to {} patron ({})",
+    "upgradeto": "Upgrade to ",
+    "downgradeto": "Downgrade to ",
     "activity": "Activity",
     "youhavechosen": "You have chosen",
     "paymentasset": "Select payment asset",

@@ -741,31 +741,49 @@ Widget getDrawer(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                child: CircleAvatar(
-                  radius: 30,
-                  backgroundColor: notifier.getbluecolor70,
-                  child: GestureDetector(
-                    onTap: () {
-                      appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: ProfileDetailsViewPageConfig);
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(100.0),
-                      child: Image.network(
-                        appState.userInfo!.imageThumbnailURL!,
-                        width: width / 6.8,
-                        // height: width / 10,
-                        fit: BoxFit.fill,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/images/trovo.png',
-                            width: width / 9,
-                          );
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: notifier.getbluecolor70,
+                      child: GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: ProfileDetailsViewPageConfig);
                         },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100.0),
+                          child: Image.network(
+                            appState.userInfo!.imageThumbnailURL!,
+                            width: width / 6.8,
+                            // height: width / 10,
+                            fit: BoxFit.fill,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/trovo.png',
+                                width: width / 9,
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    Container(
+                      width: width / 6.0,
+                      height: height / 12.5,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Image.asset(
+                            appState.userInfo!.patronMembership!.getLogo(),
+                            width: 30,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
