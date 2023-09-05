@@ -12,6 +12,8 @@ class Button extends StatefulWidget {
   final String? buttontext;
   final Color? colorbutton;
   final Color? buttontextcolor;
+  final double? width;
+  final double? height;
   final void Function()? onTap;
 
   const Button(
@@ -20,6 +22,8 @@ class Button extends StatefulWidget {
     this.buttontextcolor, {
     Key? key,
     this.onTap,
+    this.height,
+    this.width,
   }) : super(key: key);
 
   @override
@@ -61,8 +65,8 @@ class _ButtonState extends State<Button> {
         children: <Widget>[
           LayoutBuilder(builder: (context, constraints) {
             return Container(
-              height: height / 15,
-              width: width / 1.1,
+              height: widget.height ?? height / 15,
+              width: widget.width ?? width / 1.1,
               child: ElevatedButton(
                 onPressed: widget.onTap,
                 style: ButtonStyle(
@@ -100,10 +104,12 @@ class ButtonOutlined extends StatefulWidget {
   final Color? colorbutton;
   final Color? buttontextcolor;
   final Color? borderColor;
+  final double? width;
+  final double? height;
   final void Function()? onTap;
 
   const ButtonOutlined(this.buttontext, this.colorbutton, this.buttontextcolor,
-      {Key? key, this.onTap, this.borderColor})
+      {Key? key, this.onTap, this.width, this.height, this.borderColor})
       : super(key: key);
 
   @override
@@ -145,8 +151,8 @@ class _ButtonOutlinedState extends State<ButtonOutlined> {
         children: [
           LayoutBuilder(builder: (context, constraints) {
             return Container(
-              height: height / 15,
-              width: width / 1.1,
+              height: widget.height ?? height / 15,
+              width: widget.width ?? width / 1.1,
               child: TextButton(
                 onPressed: widget.onTap,
                 style: ButtonStyle(

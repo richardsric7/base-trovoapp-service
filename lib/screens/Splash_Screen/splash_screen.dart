@@ -118,6 +118,8 @@ class _SplashScreenState extends State<SplashScreen>
             await StoreData().storeGetData('assetBalances');
         appState.setDefaultAssets =
             await StoreData().storeGetData('defaultAssets');
+        appState.setAssetOrderings =
+            await StoreData().storeGetData('assetOrderings');
         appState.setNFTs = await StoreData().storeGetData('nfts');
         appState.setFiatRate = await StoreData().storeGetData('fiatRate') ?? {};
         appState.introducedSharedAccess =

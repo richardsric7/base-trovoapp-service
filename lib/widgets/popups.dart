@@ -148,7 +148,7 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
                       color: Colors.teal),
                 ),
                 onPressed: () async {
-                  await AppSettings.openSecuritySettings();
+                  await AppSettings.openAppSettings();
                 }),
           ],
           content: Container(

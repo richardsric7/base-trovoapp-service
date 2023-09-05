@@ -1,9 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:restart_app/restart_app.dart';
+// import 'package:restart_app/restart_app.dart';
 import 'package:trovo_wallet/models/deposit_transaction_model.dart';
 import 'package:trovo_wallet/models/transaction.dart';
 import 'package:trovo_wallet/models/wallet.dart';
@@ -16,9 +15,7 @@ import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/models/user.dart';
-import '../firebase_options.dart';
 import '../router/page_actions.dart';
-import '../screens/notifications/firebase_dynamic_links.dart';
 import 'cache.dart';
 
 class DataProvider with ChangeNotifier {
@@ -84,6 +81,21 @@ class DataProvider with ChangeNotifier {
       }
     }
     return _transactionableWallets;
+  }
+
+  Map<String, Map<String, int>> assetOrderings = {};
+  set setAssetOrderings(immutableMap) {
+    if (immutableMap != null) {
+      immutableMap.forEach((key, valueMap) => {
+            valueMap.forEach((key2, value2) {
+              if (assetOrderings[key] == null) {
+                assetOrderings[key] = {key2: int.parse(value2.toString())};
+              }
+              assetOrderings[key]![key2] = int.parse(value2.toString());
+            })
+          });
+    }
+    notifyListeners();
   }
 
   bool dialogOpen = false;

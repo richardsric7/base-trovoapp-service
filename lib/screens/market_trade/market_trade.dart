@@ -148,7 +148,7 @@ class _MarketTradeState extends State<MarketTrade>
       body: SingleChildScrollView(
         child: Column(
           children: [
-            if (true) ...[
+            if (false) ...[
               CustomAppBar(
                 context,
                 notifier.getwihitecolor,

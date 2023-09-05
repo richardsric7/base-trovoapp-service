@@ -326,7 +326,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                         Clipboard.setData(
                                           ClipboardData(
                                             text: name.toString().isEmpty
-                                                ? publicKey
+                                                ? publicKey!
                                                 : name!,
                                           ),
                                         );
@@ -375,7 +375,7 @@ class _PaymentDetails extends State<PaymentDetails>
                                         onPressed: () => {
                                           Clipboard.setData(
                                             ClipboardData(
-                                              text: publicKey,
+                                              text: publicKey!,
                                             ),
                                           ),
                                           showSnackBar("address".tr(), context),

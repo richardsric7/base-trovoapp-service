@@ -106,9 +106,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                height: height / 15,
-              ),
+              SizedBox(height: height / 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -125,133 +123,22 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    '${patronInfo.patronPackage.capitalizeFirst}',
+                    '${patronInfo.patronPackage.capitalizeFirst} ${"patron".tr()}',
                     style: TextStyle(
                         fontSize: 22,
                         color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
+                  ),
+                  Image.asset(
+                    patronInfo.logo,
+                    height: 30,
                   ),
                 ],
               ),
               SizedBox(
                 height: 20,
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                        color: notifier.getbluewhitecolor, width: 1.5),
-                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                    color: notifier.isDark
-                        ? darktilewhitecolor
-                        : notifier.getaddsubwalletgrey,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 15.0),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: width / 1.2,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                width: width / 50,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "subscriptionplan".tr(),
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w400,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontsemibold,
-                                    ),
-                                  )
-                                ],
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    patronTier.tier.capitalizeFirst!,
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w400,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontbody,
-                                    ),
-                                  )
-                                ],
-                              ),
-                              SizedBox(
-                                height: 50,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "expirydate".tr(),
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w400,
-                                      color: notifier.getbluewhitecolor,
-                                      fontFamily: fontsemibold,
-                                    ),
-                                  )
-                                ],
-                              ),
-                              if (patronTier.isExpirable) ...[
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      DateFormat('MMMM dd, yyyy').format(
-                                          DateTime.now().add(
-                                              patronTier.tier == 'Annual'
-                                                  ? Duration(days: 31)
-                                                  : Duration(days: 365))),
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w400,
-                                        color: notifier.getbluewhitecolor,
-                                        fontFamily: fontbody,
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ] else ...[
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "hasnoexpirydate".tr(),
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w400,
-                                        color: notifier.getbluewhitecolor,
-                                        fontFamily: fontbody,
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ],
-                              SizedBox(
-                                height: 20,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              planItem(),
               if (patronTier.isExpirable) ...[
                 SizedBox(
                   height: height / 50,
@@ -384,7 +271,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
                 ),
               ],
               SizedBox(
-                height: height / 20,
+                height: height / 10,
               ),
               Padding(
                   padding: EdgeInsets.only(
@@ -394,6 +281,148 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
         ),
       ),
     );
+  }
+
+  Widget planItem() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: Column(
+              children: [
+                Container(
+                  height: 10,
+                  decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(15.0),
+                          topRight: Radius.circular(15.0)),
+                      color: getColor(patronInfo.patronPackage)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10.0, vertical: 15.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: width / 1.2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: width / 50,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "subscriptionplan".tr(),
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w400,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontsemibold,
+                                  ),
+                                )
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  patronTier.tier.capitalizeFirst!,
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w400,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontbody,
+                                  ),
+                                )
+                              ],
+                            ),
+                            SizedBox(
+                              height: 50,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "expirydate".tr(),
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w400,
+                                    color: notifier.getbluewhitecolor,
+                                    fontFamily: fontsemibold,
+                                  ),
+                                )
+                              ],
+                            ),
+                            if (patronTier.isExpirable) ...[
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    DateFormat('MMMM dd, yyyy').format(
+                                        DateTime.now().add(
+                                            patronTier.tier == 'Annual'
+                                                ? Duration(days: 31)
+                                                : Duration(days: 365))),
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w400,
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontbody,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ] else ...[
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "hasnoexpirydate".tr(),
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w400,
+                                      color: notifier.getbluewhitecolor,
+                                      fontFamily: fontbody,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ],
+                            SizedBox(
+                              height: 20,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color getColor(String patronPlan) {
+    if (patronPlan.toLowerCase() == 'gold')
+      return notifier.getgoldcolor;
+    else if (patronPlan.toLowerCase() == 'platinum')
+      return notifier.getplatinumcolor;
+    else
+      return notifier.getdiamondcolor;
   }
 
   String? validatePassword(String? value) {
