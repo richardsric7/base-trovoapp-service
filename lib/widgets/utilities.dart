@@ -769,20 +769,24 @@ Widget getDrawer(
                         ),
                       ),
                     ),
-                    Container(
-                      width: width / 6.0,
-                      height: height / 12.5,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Image.asset(
-                            appState.userInfo!.patronMembership!.getLogo(),
-                            width: 30,
-                          ),
-                        ],
+                    if (appState.userInfo != null &&
+                        appState.userInfo!.patronMembership != null) ...[
+                      Container(
+                        width: width / 6.0,
+                        height: height / 12.5,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Image.asset(
+                              appState.userInfo!.patronMembership?.getLogo() ??
+                                  'assets/images/trovo.png',
+                              width: 30,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),

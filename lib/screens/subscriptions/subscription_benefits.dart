@@ -60,7 +60,7 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
           notifier.getwihitecolor,
           '',
           notifier.getbluewhitecolor,
-          height: height / 20,
+          height: height / 15,
         ).getBar(),
         backgroundColor: notifier.getwihitecolor,
         body: SingleChildScrollView(
