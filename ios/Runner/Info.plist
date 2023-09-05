@@ -76,5 +76,7 @@
 	<array>
 		<string>en</string>
 	</array>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 </dict>
 </plist>
