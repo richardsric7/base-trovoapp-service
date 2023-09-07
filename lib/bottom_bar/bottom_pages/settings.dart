@@ -22,6 +22,7 @@ import 'package:trovo_wallet/widgets/utilities.dart';
 
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
+import '../../widgets/loader.dart';
 
 class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
@@ -226,9 +227,10 @@ class _SettingsState extends State<Settings> {
                 SizedBox(height: height / 25),
                 GestureDetector(
                   onTap: () {
-                    appState.currentAction = PageAction(
-                        state: PageState.replaceAll, page: LoginPageConfig);
-                    appState.isLoggedIn = false;
+                    // appState.currentAction = PageAction(
+                    //     state: PageState.replaceAll, page: LoginPageConfig);
+                    // appState.isLoggedIn = false;
+                    throw Exception('Fuck you!');
                   },
                   child: logout("assets/images/logout.png", "", "logout".tr()),
                 ),
@@ -413,12 +415,10 @@ class _SettingsState extends State<Settings> {
                         fontFamily: fontsemibold,
                         fontWeight: FontWeight.w500,
                       ),
-                      onChanged: (newValue) {
-                        setState(() {
-                          StoreData().storeInsertData(
-                              'walletMode', newValue.toString());
-                        });
-                        appState.setWalletMode = newValue.toString();
+                      onChanged: (newValue) async {
+                        showLoader(context);
+                        await appState.changeWalletMode(newValue.toString());
+                        hideLoader(context);
                       },
                       items: <DropdownMenuItem<String>>[
                         DropdownMenuItem(
@@ -432,7 +432,7 @@ class _SettingsState extends State<Settings> {
                               "mainnet".tr(),
                               overflow: TextOverflow.ellipsis,
                             ),
-                            value: 'Mainet'),
+                            value: 'Mainnet'),
                       ],
                     ),
                   ),

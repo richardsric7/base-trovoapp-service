@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:trovo_wallet/bottom_bar/bottom_pages/referral_info.dart';
 import 'package:trovo_wallet/models/curated_asset.dart';
+import 'package:trovo_wallet/models/patronMembership.dart';
 import 'package:trovo_wallet/models/referral_info.dart';
 
 import 'wallet.dart';
@@ -25,6 +26,7 @@ class UserInfo {
   String? imageThumbnailURL;
   int? membershipType;
   DateTime? membershipExpiry;
+  PatronMembership? patronMembership;
   int? kycVerified;
   int? verified;
   int? suspended;
@@ -50,6 +52,7 @@ class UserInfo {
     this.imageThumbnailURL,
     this.membershipType,
     this.membershipExpiry,
+    this.patronMembership,
     this.kycVerified,
     this.verified,
     this.suspended,
@@ -80,7 +83,8 @@ class UserInfo {
       "pushNotificationToken": pushNotificationToken,
       "imageThumbnailURL": imageThumbnailURL,
       "membershipType": membershipType,
-      "membershipExpiry": membershipExpiry!.toIso8601String(),
+      "membershipExpiry": membershipExpiry?.toIso8601String(),
+      "patronMembership": patronMembership?.toJSONEncodable(),
       "kycVerified": kycVerified,
       "verified": verified,
       "suspended": suspended,
@@ -108,6 +112,9 @@ class UserInfo {
       imageThumbnailURL: m['imageThumbnailURL'],
       membershipType: m['membershipType'],
       membershipExpiry: DateTime.tryParse(m['membershipExpiry']),
+      patronMembership: m['patronMembership'] != null
+          ? PatronMembership().deserializeJson(m['patronMembership'])
+          : null,
       kycVerified: m['kycVerified'],
       verified: m['verified'],
       suspended: m['suspended'],

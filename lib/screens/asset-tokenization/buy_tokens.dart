@@ -8,7 +8,6 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -266,7 +265,7 @@ Widget CheckItem(
   required Color backColor,
   required Color foreColor,
   required Color borderColor,
-  double? fontSize: 15,
+  double? fontSize = 15,
 }) {
   return Padding(
     padding: const EdgeInsets.all(3.0),

@@ -61,11 +61,13 @@ class _SwapAssetsState extends State<SwapAssets> with TickerProviderStateMixin {
           child: Row(
             children: [
               Container(
-                constraints:
-                    isSelected ? BoxConstraints(maxWidth: width / 3) : null,
+                constraints: isSelected
+                    ? BoxConstraints(maxWidth: width / 4)
+                    : BoxConstraints(maxWidth: width / 2.5),
                 child: Text(
                   wallet.alias!,
-                  overflow: TextOverflow.ellipsis,
+                  overflow:
+                      isSelected ? TextOverflow.ellipsis : TextOverflow.visible,
                 ),
               ),
               if (wallet.isSharedWallet) ...[
