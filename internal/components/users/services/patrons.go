@@ -69,8 +69,8 @@ func GetPatronSubscription(username string, gc *sharedconfig.GlobalConfig) (patr
 
 func countPendingSubscriptionForUser(username string, gc *sharedconfig.GlobalConfig) (int64, error) {
 	var pendingSubscriptionsCount int64
-	err := gc.DB.Model(&userModels.UserPatronMembership{}).
-		Where("username = ? AND CAST(valid_till AS DATE) > CAST(? AS DATE)", username, time.Now()).
+	err := gc.DB.Model(&userModels.UserPatronSubscriptionLog{}).
+		Where("username = ? AND CAST(effective_date AS DATE) > CAST(? AS DATE)", username, time.Now()).
 		Count(&pendingSubscriptionsCount).Error
 	if err != nil {
 		log.Printf("[CountPendingSubscription] error : %v\n", err)
@@ -270,6 +270,7 @@ func SubscribeToPatronPackage(owner *userModels.User, patronSubInput *userModels
 			subscription.PatronPackageID = patronMembership.PatronPackage
 			subscription.PatronTierID = patronMembership.PatronTierID
 			subscription.ValidTill = subscriptionLog.ValidTill
+			subscriptionLog.EffectiveDate = time.Now()
 
 			e := tx.Save(&subscription).Error
 
