@@ -45,7 +45,7 @@ void main() async {
         supportedLocales: [Locale('en', 'US')],
         path:
             'assets/translations', // <-- change the path of the translation files
-        fallbackLocale: Locale('en'),
+        fallbackLocale: Locale('en-US'),
         child: App()),
   );
 }
