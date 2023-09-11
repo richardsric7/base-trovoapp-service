@@ -2,6 +2,7 @@ package main
 
 import (
 	cache "trovo-wallet-api/internal/cache"
+	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	pns "trovo-wallet-api/internal/pns"
@@ -163,19 +164,19 @@ func main() {
 	//migrate DB models if any
 	db.MigrateDB(database)
 
-	//errMigrate := roachDB.AutoMigrate(&paymentModels.TrackedWallet{})
-	//if errMigrate != nil {
-	//	if !strings.Contains(errMigrate.Error(), "constraint") {
-	//		log.Fatalf("Error migrating TrackedWallet model, error: %v", errMigrate)
-	//	}
-	//}
-	//log.Println("migrating tracked wallet done...")
-	//errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedPublicKey{})
-	//if errMigrate != nil {
-	//	if !strings.Contains(errMigrate.Error(), "constraint") {
-	//		log.Fatalf("Error migrating TrackedPublicKey model, error: %v", errMigrate)
-	//	}
-	//}
+	errMigrate := roachDB.AutoMigrate(&paymentModels.TrackedWallet{})
+	if errMigrate != nil {
+		if !strings.Contains(errMigrate.Error(), "constraint") {
+			log.Fatalf("Error migrating TrackedWallet model, error: %v", errMigrate)
+		}
+	}
+	log.Println("migrating tracked wallet done...")
+	errMigrate = roachDB.AutoMigrate(&paymentModels.TrackedPublicKey{})
+	if errMigrate != nil {
+		if !strings.Contains(errMigrate.Error(), "constraint") {
+			log.Fatalf("Error migrating TrackedPublicKey model, error: %v", errMigrate)
+		}
+	}
 	log.Println("migrating tracked public key done...")
 
 	//setup redis
