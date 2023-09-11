@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/wallet_slides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -57,6 +58,13 @@ class _WalletDetailsState extends State<WalletDetails>
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    StoreData().storeInsertData('assetOrderings', appState.assetOrderings);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
@@ -74,6 +82,8 @@ class _WalletDetailsState extends State<WalletDetails>
       _tabController = TabController(length: tabLength, vsync: this);
       _tabController.addListener(tabListener);
     }
+
+    reOrderClaimedAssets(wallet.publicKey!);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -97,9 +107,19 @@ class _WalletDetailsState extends State<WalletDetails>
     );
   }
 
+  void reOrderClaimedAssets(String publicKey) {
+    // order asset according to user preference
+    if (appState.assetOrderings[publicKey] != null) {
+      wallet.claimedAssets!.forEach((asset) => asset.userPreferredIndex =
+          appState.assetOrderings[publicKey]![asset.assetCode] ?? 0);
+      wallet.claimedAssets!
+          .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
+    }
+  }
+
   Widget assetsTabs() {
     return Container(
-      height: height / 1.1,
+      height: height / 1.106,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -140,97 +160,124 @@ class _WalletDetailsState extends State<WalletDetails>
                 SizedBox(
                   height: height / 40,
                 ),
-                Expanded(
+                Container(
+                  height: height / 1.14,
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      Container(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                WalletSlide(
-                                  backColor: notifier.getbluecolor,
-                                  foreColor: wihitecolor,
-                                  alias: wallet.alias!.capitalizeFirst!,
-                                  totalBalance:
-                                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
-                                  fiatBalance: appState.defaultCurrency == 'USD'
-                                      ? null
-                                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallet.claimedAssets!)} USD',
-                                  initialHiddenState: appState.hideBalances,
-                                  onHiddenStateChanged: (state) => {
-                                    setState(
-                                      () => {
-                                        localHideBalance = state,
-                                      },
-                                    )
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0),
+                        child: Column(
+                          children: [
+                            WalletSlide(
+                              backColor: notifier.getbluecolor,
+                              foreColor: wihitecolor,
+                              alias: wallet.alias!.capitalizeFirst!,
+                              totalBalance:
+                                  '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
+                              fiatBalance: appState.defaultCurrency == 'USD'
+                                  ? null
+                                  : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallet.claimedAssets!)} USD',
+                              initialHiddenState: appState.hideBalances,
+                              onHiddenStateChanged: (state) => {
+                                setState(
+                                  () => {
+                                    localHideBalance = state,
                                   },
-                                ),
-                                SizedBox(
-                                  height: height / 30,
-                                ),
-                                if (wallet.claimedAssets!.length > 0) ...[
-                                  for (var asset in wallet.claimedAssets!) ...[
-                                    GestureDetector(
-                                        onTap: () {
-                                          appState.returnView = PageAction(
-                                            state: PageState.addAll,
-                                            pages: [
-                                              BottomHomePageConfig,
-                                              WalletDetailsViewPageConfig
-                                            ],
-                                          );
-
-                                          if (rel == 'sharedWalletView') {
-                                            appState.returnView = PageAction(
+                                )
+                              },
+                            ),
+                            SizedBox(
+                              height: height / 30,
+                            ),
+                            if (wallet.claimedAssets!.length > 0) ...[
+                              Container(
+                                height: height / 1.54,
+                                child: ReorderableListView(
+                                  padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
+                                  onReorder: (oldIndex, newIndex) {
+                                    if (oldIndex < newIndex) {
+                                      newIndex -= 1;
+                                    }
+                                    final Asset item = wallet.claimedAssets!
+                                        .removeAt(oldIndex);
+                                    wallet.claimedAssets!
+                                        .insert(newIndex, item);
+                                    setState(() {});
+                                  },
+                                  children: [
+                                    for (var i = 0;
+                                        i < wallet.claimedAssets!.length;
+                                        i++) ...[
+                                      ...[
+                                        GestureDetector(
+                                            key: Key(wallet.claimedAssets![i]
+                                                .assetIssuer!),
+                                            onTap: () {
+                                              appState.returnView = PageAction(
                                                 state: PageState.addAll,
                                                 pages: [
                                                   BottomHomePageConfig,
-                                                  SharedAccessViewPageConfig,
-                                                  SharedWalletInfoViewPageConfig,
                                                   WalletDetailsViewPageConfig
-                                                ]);
-                                          }
+                                                ],
+                                              );
 
-                                          appState.viewData = {
-                                            'assetCode': asset.assetCode,
-                                            'assetIssuer': asset.assetIssuer,
-                                            'walletPublicKey': wallet.publicKey,
-                                          };
-                                          appState.currentAction = PageAction(
-                                            state: PageState.addPage,
-                                            page: AssetDetailsViewPageConfig,
-                                          );
-                                        },
-                                        child: tiles(asset)),
+                                              if (rel == 'sharedWalletView') {
+                                                appState.returnView =
+                                                    PageAction(
+                                                        state: PageState.addAll,
+                                                        pages: [
+                                                      BottomHomePageConfig,
+                                                      SharedAccessViewPageConfig,
+                                                      SharedWalletInfoViewPageConfig,
+                                                      WalletDetailsViewPageConfig
+                                                    ]);
+                                              }
+
+                                              appState.viewData = {
+                                                'assetCode': wallet
+                                                    .claimedAssets![i]
+                                                    .assetCode,
+                                                'assetIssuer': wallet
+                                                    .claimedAssets![i]
+                                                    .assetIssuer,
+                                                'walletPublicKey':
+                                                    wallet.publicKey,
+                                              };
+                                              appState.currentAction =
+                                                  PageAction(
+                                                state: PageState.addPage,
+                                                page:
+                                                    AssetDetailsViewPageConfig,
+                                              );
+                                            },
+                                            child: tiles(
+                                                wallet.claimedAssets![i], i)),
+                                      ],
+                                    ],
                                   ],
-                                ] else ...[
-                                  Container(
-                                    height: height / 3,
-                                    child: Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            10, 28.0, 10, 0),
-                                        child: Center(
-                                          child: Text(
-                                            "noassets".tr(),
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: fontsemibold,
-                                              color: notifier.getblck,
-                                            ),
-                                          ),
-                                        )),
-                                  ),
-                                ],
-                                SizedBox(
-                                  height: height / 10,
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
+                            ] else ...[
+                              Container(
+                                height: height / 3,
+                                child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        10, 28.0, 10, 0),
+                                    child: Center(
+                                      child: Text(
+                                        "noassets".tr(),
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: fontsemibold,
+                                          color: notifier.getblck,
+                                        ),
+                                      ),
+                                    )),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                       if (tabLength == 2) ...[
@@ -281,7 +328,7 @@ class _WalletDetailsState extends State<WalletDetails>
                                                 PendingAssetDetailsViewPageConfig,
                                           );
                                         },
-                                        child: tiles(asset),
+                                        child: tiles(asset, null),
                                       ),
                                     ],
                                   ] else ...[
@@ -485,7 +532,16 @@ class _WalletDetailsState extends State<WalletDetails>
     );
   }
 
-  Widget tiles(Asset asset) {
+  Widget tiles(Asset asset, int? indexOfAsset) {
+    if (indexOfAsset != null) {
+      if (appState.assetOrderings[wallet.publicKey!] == null) {
+        appState.assetOrderings[wallet.publicKey!] = {
+          asset.assetCode!: indexOfAsset
+        };
+      }
+      appState.assetOrderings[wallet.publicKey!]![asset.assetCode!] =
+          indexOfAsset;
+    }
     return Card(
       shadowColor: Colors.black,
       color: notifier.gettilewihitecolor,

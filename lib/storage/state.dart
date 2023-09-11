@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:restart_app/restart_app.dart';
+// import 'package:restart_app/restart_app.dart';
 import 'package:trovo_wallet/models/deposit_transaction_model.dart';
 import 'package:trovo_wallet/models/transaction.dart';
 import 'package:trovo_wallet/models/wallet.dart';
@@ -81,6 +83,21 @@ class DataProvider with ChangeNotifier {
     return _transactionableWallets;
   }
 
+  Map<String, Map<String, int>> assetOrderings = {};
+  set setAssetOrderings(immutableMap) {
+    if (immutableMap != null) {
+      immutableMap.forEach((key, valueMap) => {
+            valueMap.forEach((key2, value2) {
+              if (assetOrderings[key] == null) {
+                assetOrderings[key] = {key2: int.parse(value2.toString())};
+              }
+              assetOrderings[key]![key2] = int.parse(value2.toString());
+            })
+          });
+    }
+    notifyListeners();
+  }
+
   bool dialogOpen = false;
   WalletsListViewData walletView = WalletsListViewData(
       view: WalletView.listWallets,
@@ -88,9 +105,16 @@ class DataProvider with ChangeNotifier {
       actionText: "addsubwallet".tr());
 
   String walletMode = 'Testnet';
-  set setWalletMode(String value) {
-    walletMode = value;
-    notifyListeners();
+
+  Future<void> changeWalletMode(String value) async {
+    try {
+      StoreData().storeInsertData('walletMode', value);
+      walletMode = value;
+      Restart.restartApp();
+      notifyListeners();
+    } catch (e) {
+      print(e);
+    }
   }
 
   bool hideBalances = false;

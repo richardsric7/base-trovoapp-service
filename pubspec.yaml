@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.0.33+34
+version: 0.0.45+45
 
 environment:
   sdk: ">=2.16.2 <=3.0.5"
@@ -60,8 +60,8 @@ dependencies:
   sembast: ^3.2.0
   intl_phone_field: ^3.1.0
   flutter_overlay_loader: ^2.0.0
-  firebase_core: ^1.17.1
-  firebase_messaging: ^11.4.1
+  firebase_core: ^2.15.0
+  firebase_messaging: ^14.6.5
   cool_dropdown: ^1.4.1
   otp_text_field: ^1.1.3
   toggle_switch: ^2.0.1
@@ -70,24 +70,24 @@ dependencies:
   app_settings: ^4.1.6
   flutter_svg: ^1.0.3
   flutter_local_notifications: ^9.6.0
-  firebase_core_platform_interface: 4.5.1
-  firebase_analytics: ^9.1.9
+  firebase_core_platform_interface: ^4.8.0
+  firebase_analytics: ^10.4.4
   carousel_slider: ^4.1.1
-  carousel_extended: ^1.1.0
+  # carousel_extended: ^1.1.0
   scan:
   timeago: ^3.2.2
   loadmore: ^2.0.1
   qr_code_scanner: ^1.0.0
   syncfusion_flutter_sliders: ^19.4.56
   image_picker: ^0.8.4+10
+  restart_app: ^1.1.2
   intl:
   pull_to_refresh: ^2.0.0
   share_plus: ^6.3.1
   uni_links: ^0.5.1
-  firebase_crashlytics: ^2.8.7
-  firebase_dynamic_links: ^4.3.4
-  firebase_remote_config: ^2.0.15
-  device_preview: ^1.1.0
+  firebase_crashlytics: ^3.3.4
+  firebase_dynamic_links: ^5.3.4
+  firebase_remote_config: ^4.2.4
   syncfusion_flutter_core: ^19.4.56
   image_cropper: ^3.0.0
   expandable: ^5.0.1

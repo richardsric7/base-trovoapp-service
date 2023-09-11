@@ -134,7 +134,7 @@ truncatePublicKey(String? publicKey) {
       publicKey.substring(publicKey.length - 7);
 }
 
-String truncate(String text, {length: 7, omission: '...'}) {
+String truncate(String text, {length = 7, omission = '...'}) {
   if (length >= text.length) {
     return text;
   }
@@ -333,7 +333,7 @@ Widget userItem(
   void Function()? onClick, {
   required Color backColor,
   required Color foreColor,
-  double? fontSize: 12,
+  double? fontSize = 12,
   bool restoreMode = false,
 }) {
   return Padding(
@@ -659,7 +659,7 @@ Widget pill(
   String name, {
   required Color backColor,
   required Color foreColor,
-  double? fontSize: 12,
+  double? fontSize = 12,
   bool hideDirectionUp = false,
   bool showDirectionDown = false,
 }) {
@@ -741,31 +741,53 @@ Widget getDrawer(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                child: CircleAvatar(
-                  radius: 30,
-                  backgroundColor: notifier.getbluecolor70,
-                  child: GestureDetector(
-                    onTap: () {
-                      appState.currentAction = PageAction(
-                          state: PageState.addPage,
-                          page: ProfileDetailsViewPageConfig);
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(100.0),
-                      child: Image.network(
-                        appState.userInfo!.imageThumbnailURL!,
-                        width: width / 6.8,
-                        // height: width / 10,
-                        fit: BoxFit.fill,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/images/trovo.png',
-                            width: width / 9,
-                          );
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: notifier.getbluecolor70,
+                      child: GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: ProfileDetailsViewPageConfig);
                         },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100.0),
+                          child: Image.network(
+                            appState.userInfo!.imageThumbnailURL!,
+                            width: width / 6.8,
+                            // height: width / 10,
+                            fit: BoxFit.fill,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/trovo.png',
+                                width: width / 9,
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    if (appState.userInfo != null &&
+                        appState.userInfo!.patronMembership != null) ...[
+                      Container(
+                        width: width / 6.0,
+                        height: height / 12.5,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Image.asset(
+                              appState.userInfo!.patronMembership?.getLogo() ??
+                                  'assets/images/trovo.png',
+                              width: 30,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],

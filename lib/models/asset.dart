@@ -8,6 +8,8 @@ class Asset {
   double? amount;
   double? usdPrice;
   double? nativePrice;
+  int userPreferredIndex =
+      0; // index where user prefers it to appear on asset list
   Map? inTrade;
   List<CryptoWalletDepositAddress>? cryptoWalletDepositAddresses;
 

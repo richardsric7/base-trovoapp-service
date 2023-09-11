@@ -9,9 +9,11 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/models/patronInfo.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/widgets/popups.dart';
 import '../../custom_bloc_observer/fonts.dart';
+import '../../models/asset.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
 class SubscriptionPlanOptions extends StatefulWidget {
@@ -26,6 +28,7 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
   late ColorNotifier notifier;
   late DataProvider appState;
   late PatronInfo patronInfo;
+  late List<Asset> paymentAssets;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -43,6 +46,7 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
     patronInfo = appState.viewData!['patronInfo'] as PatronInfo;
+    paymentAssets = appState.viewData!['paymentAssets'];
   }
 
   @override
@@ -89,19 +93,20 @@ class _SubscriptionPlanOptionsState extends State<SubscriptionPlanOptions> {
                   '${tier.tier.capitalizeFirst} ${"subscription".tr().toLowerCase()} ${tier.tier == 'LIFETIME' ? '(recommended)' : ''}',
                   '\$${tier.price}',
                   () {
-                    // appState.viewData = {
-                    //   'patronInfo': patronInfo,
-                    //   'selectedTier': tier,
-                    // };
-                    // appState.currentAction = PageAction(
-                    //     state: PageState.addPage,
-                    //     page: AuthorizeSubscriptionViewPageConfig);
-                    popup(
-                      context,
-                      title: "comingsoon".tr(),
-                      message: "comingsoondetails".tr(),
-                      bodyColor: notifier.getbluewhitecolor,
-                    );
+                    appState.viewData = {
+                      'patronInfo': patronInfo,
+                      'selectedTier': tier,
+                      'paymentAssets': paymentAssets,
+                    };
+                    appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: AuthorizeSubscriptionViewPageConfig);
+                    // popup(
+                    //   context,
+                    //   title: "comingsoon".tr(),
+                    //   message: "comingsoondetails".tr(),
+                    //   bodyColor: notifier.getbluewhitecolor,
+                    // );
                   },
                 ),
               ]

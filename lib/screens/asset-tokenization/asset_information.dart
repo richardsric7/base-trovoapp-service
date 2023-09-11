@@ -1124,7 +1124,7 @@ Widget CheckItem(
   required Color backColor,
   required Color foreColor,
   required Color borderColor,
-  double? fontSize: 15,
+  double? fontSize = 15,
 }) {
   return Padding(
     padding: const EdgeInsets.all(3.0),
