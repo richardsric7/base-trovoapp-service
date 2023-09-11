@@ -3,7 +3,6 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -140,7 +139,7 @@ class _SettingsState extends State<Settings> {
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
                       fontFamily: fontsemibold,
-                      fontSize: 18.sp),
+                      fontSize: 18),
                 ),
                 SizedBox(height: height / 50),
                 GestureDetector(
@@ -158,7 +157,7 @@ class _SettingsState extends State<Settings> {
                       "preferences".tr(),
                       style: TextStyle(
                           color: notifier.getgrey,
-                          fontSize: 13.sp,
+                          fontSize: 13,
                           fontFamily: fontsemibold),
                     ),
                   ],
@@ -183,7 +182,7 @@ class _SettingsState extends State<Settings> {
                       "security".tr(),
                       style: TextStyle(
                           color: notifier.getgrey,
-                          fontSize: 13.sp,
+                          fontSize: 13,
                           fontFamily: fontsemibold),
                     ),
                   ],
@@ -216,7 +215,7 @@ class _SettingsState extends State<Settings> {
                       "wallet".tr(),
                       style: TextStyle(
                           color: notifier.getgrey,
-                          fontSize: 13.sp,
+                          fontSize: 13,
                           fontFamily: fontsemibold),
                     ),
                   ],
@@ -227,10 +226,9 @@ class _SettingsState extends State<Settings> {
                 SizedBox(height: height / 25),
                 GestureDetector(
                   onTap: () {
-                    // appState.currentAction = PageAction(
-                    //     state: PageState.replaceAll, page: LoginPageConfig);
-                    // appState.isLoggedIn = false;
-                    throw Exception('Fuck you!');
+                    appState.currentAction = PageAction(
+                        state: PageState.replaceAll, page: LoginPageConfig);
+                    appState.isLoggedIn = false;
                   },
                   child: logout("assets/images/logout.png", "", "logout".tr()),
                 ),
@@ -239,7 +237,7 @@ class _SettingsState extends State<Settings> {
                   '${"version".tr()} ${appState.appVersion}',
                   style: TextStyle(
                       color: notifier.getdarkgrey,
-                      fontSize: 13.5.sp,
+                      fontSize: 13.5,
                       fontFamily: fontbody),
                 ),
                 SizedBox(height: height / 30),
@@ -338,7 +336,7 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 14.sp,
+                  fontSize: 14,
                   fontFamily: fontsemibold),
             ),
             const Spacer(),
@@ -352,7 +350,7 @@ class _SettingsState extends State<Settings> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            Icon(Icons.arrow_forward_ios, color: notifier.getgrey, size: 17.sp),
+            Icon(Icons.arrow_forward_ios, color: notifier.getgrey, size: 17),
             SizedBox(width: width / 15),
           ],
         ),
@@ -379,7 +377,7 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 13.sp,
+                  fontSize: 13,
                   fontFamily: fontsemibold),
             ),
             const Spacer(),
@@ -465,7 +463,7 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 13.sp,
+                  fontSize: 13,
                   fontFamily: fontsemibold),
             ),
             const Spacer(),
@@ -569,7 +567,7 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 13.sp,
+                  fontSize: 13,
                   fontFamily: fontsemibold),
             ),
             const Spacer(),
@@ -642,7 +640,7 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 13.sp,
+                  fontSize: 13,
                   fontFamily: fontsemibold),
             ),
             const Spacer(),
@@ -713,7 +711,7 @@ class _SettingsState extends State<Settings> {
             name,
             style: TextStyle(
                 color: notifier.getblck,
-                fontSize: 13.sp,
+                fontSize: 13,
                 fontFamily: fontsemibold),
           ),
         ],
@@ -739,7 +737,7 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 13.sp,
+                  fontSize: 13,
                   fontFamily: fontsemibold),
             ),
             const Spacer(),
@@ -783,7 +781,7 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 13.sp,
+                  fontSize: 13,
                   fontFamily: fontsemibold),
             ),
             const Spacer(),
@@ -823,7 +821,7 @@ class _SettingsState extends State<Settings> {
               name,
               style: TextStyle(
                   color: notifier.getblck,
-                  fontSize: 13.sp,
+                  fontSize: 13,
                   fontFamily: fontsemibold),
             ),
             const Spacer(),

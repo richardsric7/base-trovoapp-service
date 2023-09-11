@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 class Announcement {
   int? id;
   String? message;

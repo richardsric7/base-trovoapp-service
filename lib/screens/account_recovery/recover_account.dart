@@ -80,7 +80,7 @@ class _RecoverAccountState extends State<RecoverAccount> {
                           "account".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
-                              fontSize: 26.sp,
+                              fontSize: 26,
                               fontFamily: fontsemibold),
                         ),
                         SizedBox(
@@ -90,7 +90,7 @@ class _RecoverAccountState extends State<RecoverAccount> {
                           "recovery".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
-                              fontSize: 26.sp,
+                              fontSize: 26,
                               fontFamily: fontsemibold),
                         ),
                       ],
@@ -246,7 +246,7 @@ class _RecoverAccountState extends State<RecoverAccount> {
             "resendotp".tr(),
             style: TextStyle(
                 color: notifier.getdarkgrey,
-                fontSize: 15.sp,
+                fontSize: 15,
                 fontFamily: fontbody),
           ),
         ),
@@ -360,8 +360,8 @@ class _RecoverAccountState extends State<RecoverAccount> {
           notifier.getprefixicon,
           notifier.getblck,
           notifier.getgrey,
-          70.sp,
-          300.sp,
+          70,
+          300,
           validator: (value) {
             var trimmedVal = value!.trim().replaceAll(' ', '');
             if (trimmedVal.isEmpty) {
@@ -394,7 +394,7 @@ class _RecoverAccountState extends State<RecoverAccount> {
               "alreadyhaveotp".tr(),
               style: TextStyle(
                   color: notifier.getdarkgrey,
-                  fontSize: 15.sp,
+                  fontSize: 15,
                   fontFamily: fontbody),
             ),
           ),

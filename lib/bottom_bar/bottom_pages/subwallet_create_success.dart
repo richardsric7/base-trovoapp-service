@@ -7,7 +7,6 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:provider/provider.dart';
 
@@ -46,14 +45,14 @@ class _CreateSubWalletSuccessViewState
                 style: TextStyle(
                     color: notifier.getblck,
                     fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                    fontSize: 27),
               ),
               SizedBox(height: height / 50),
               Text(
                 "youhavecreatedsuccessfully".tr(),
                 style: TextStyle(
                     color: notifier.getgrey,
-                    fontSize: 15.sp,
+                    fontSize: 15,
                     fontFamily: fontbody),
               ),
               SizedBox(height: height / 4.3),

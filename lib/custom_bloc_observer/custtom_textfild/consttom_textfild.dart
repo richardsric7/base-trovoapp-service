@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 
 class Customtextfild {
@@ -17,20 +16,20 @@ class Customtextfild {
         decoration: InputDecoration(
           label: Text(labletext),
           disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           prefixIcon: Icon(preicon, color: iconcolor),
           labelStyle: TextStyle(color: lablecolor),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(color: bordercolor, width: 1),
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(color: focuscolor, width: 1),
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
         ),
       ),
@@ -65,8 +64,8 @@ class CustomTextFormField {
   }) {
     return Container(
       color: Colors.transparent,
-      height: h,
-      width: w,
+      height: double.parse(h.toString()),
+      width: double.parse(w.toString()),
       child: TextFormField(
         key: key,
         maxLength: maxLength,
@@ -90,20 +89,20 @@ class CustomTextFormField {
           ),
           label: Text(labletext),
           disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           prefixIcon: preicon == null ? null : Icon(preicon, color: iconcolor),
           labelStyle: TextStyle(color: lablecolor),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(color: bordercolor, width: 1),
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(color: focuscolor, width: 1),
-            borderRadius: BorderRadius.circular(15.sp),
+            borderRadius: BorderRadius.circular(15),
           ),
         ),
         inputFormatters: inputFormatters,
@@ -169,19 +168,19 @@ class CustomTextFormField {
           ),
           label: Text(labletext),
           disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.sp),
+            borderRadius: BorderRadius.circular(10),
           ),
           labelStyle: TextStyle(color: lablecolor),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.sp),
+            borderRadius: BorderRadius.circular(10),
           ),
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(color: bordercolor, width: 1),
-            borderRadius: BorderRadius.circular(10.sp),
+            borderRadius: BorderRadius.circular(10),
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(color: focuscolor, width: 1),
-            borderRadius: BorderRadius.circular(10.sp),
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
         inputFormatters: inputFormatters,

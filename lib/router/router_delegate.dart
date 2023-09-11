@@ -767,9 +767,7 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
   }
 
   void _removePage(MaterialPage page) {
-    if (page != null) {
-      _pages.remove(page);
-    }
+    _pages.remove(page);
   }
 
   void pop() {

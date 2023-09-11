@@ -75,7 +75,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
-                    fontSize: 16.sp),
+                    fontSize: 16),
               ),
               SizedBox(height: height / 50),
               GestureDetector(
@@ -98,7 +98,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                           labelColor: notifier.getbluewhitecolor,
                           indicatorColor: notifier.getbluewhitecolor,
                           labelStyle: TextStyle(
-                            fontSize: 13.sp,
+                            fontSize: 13,
                             fontWeight: FontWeight.w600,
                             fontFamily: fontsemibold,
                           ),
@@ -129,7 +129,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold,
-                            fontSize: 16.sp),
+                            fontSize: 16),
                       ),
                       referralList(),
                     ],
@@ -142,7 +142,7 @@ class _ReferralInfoState extends State<ReferralInfo>
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold,
-                            fontSize: 16.sp),
+                            fontSize: 16),
                       ),
                       commissionList(),
                     ],
@@ -213,7 +213,7 @@ class _ReferralInfoState extends State<ReferralInfo>
             name,
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
-                fontSize: 15.sp,
+                fontSize: 15,
                 fontFamily: 'Gilroy_Medium'),
           ),
           Text(
@@ -358,13 +358,13 @@ class _ReferralInfoState extends State<ReferralInfo>
                         textAlign: TextAlign.start,
                         style: TextStyle(
                             fontFamily: fontbody,
-                            fontSize: 13.sp,
+                            fontSize: 13,
                             color: buttontextcolor),
                       ),
                     ),
                     Icon(
                       Icons.arrow_forward_ios,
-                      size: 12.sp,
+                      size: 12,
                       color: wihitecolor,
                     )
                   ],

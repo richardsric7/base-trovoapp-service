@@ -18,7 +18,6 @@ import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -301,7 +300,7 @@ class _RequestSpecificPayment extends State<RequestSpecificPayment>
 
 class _Utf8LengthLimitingTextInputFormatter extends TextInputFormatter {
   _Utf8LengthLimitingTextInputFormatter(this.maxLength)
-      : assert(maxLength == null || maxLength == -1 || maxLength > 0);
+      : assert(maxLength == -1 || maxLength > 0);
 
   final int maxLength;
 
@@ -310,9 +309,7 @@ class _Utf8LengthLimitingTextInputFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    if (maxLength != null &&
-        maxLength > 0 &&
-        bytesLength(newValue.text) > maxLength) {
+    if (maxLength > 0 && bytesLength(newValue.text) > maxLength) {
       // If already at the maximum and tried to enter even more, keep the old value.
       if (bytesLength(oldValue.text) == maxLength) {
         return oldValue;

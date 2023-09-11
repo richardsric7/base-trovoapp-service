@@ -4,12 +4,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
+import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
+import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
-import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/fonts.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../router/page_actions.dart';
@@ -53,7 +53,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
-                    fontSize: 27.sp),
+                    fontSize: 27),
               ),
               SizedBox(height: height / 50),
               Container(
@@ -62,7 +62,7 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
                   "writeitdown".tr(),
                   style: TextStyle(
                       color: notifier.getgrey,
-                      fontSize: 15.sp,
+                      fontSize: 15,
                       fontFamily: fontbody),
                 ),
               ),
@@ -75,11 +75,11 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Transform.scale(
-                      scale: 1.sp,
+                      scale: 1,
                       child: Checkbox(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(
-                            Radius.circular(5.sp),
+                            Radius.circular(5),
                           ),
                         ),
                         activeColor: notifier.getbluecolor,

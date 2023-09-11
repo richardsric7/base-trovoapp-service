@@ -27,7 +27,7 @@ class _SearchViewState extends State<SearchView> {
         resizeToAvoidBottomInset: false,
         backgroundColor: notifier.getwihitecolor,
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(70.sp),
+          preferredSize: Size.fromHeight(70),
           // here the desired height
           child: AppBar(
             leading: GestureDetector(
@@ -41,7 +41,7 @@ class _SearchViewState extends State<SearchView> {
             title: Text(
               "search".tr(),
               style: TextStyle(
-                  fontSize: 20.sp,
+                  fontSize: 20,
                   color: notifier.getblck,
                   fontFamily: 'Gilroy_Bold'),
             ),
@@ -62,8 +62,8 @@ class _SearchViewState extends State<SearchView> {
                       notifier.getblck,
                       notifier.getgrey,
                       notifier.getgrey,
-                      50.sp,
-                      310.sp),
+                      50,
+                      310),
                 ),
                 SizedBox(height: height / 20),
                 Column(
@@ -99,15 +99,13 @@ class _SearchViewState extends State<SearchView> {
           style: TextStyle(
               color: notifier.getgrey,
               fontFamily: 'Gilroy_Medium',
-              fontSize: 13.sp),
+              fontSize: 13),
         ),
         SizedBox(height: height / 200),
         Text(
           rate,
           style: TextStyle(
-              color: notifier.getblck,
-              fontFamily: 'Gilroy_Bold',
-              fontSize: 14.sp),
+              color: notifier.getblck, fontFamily: 'Gilroy_Bold', fontSize: 14),
         ),
         SizedBox(height: height / 200),
         Text(
@@ -115,7 +113,7 @@ class _SearchViewState extends State<SearchView> {
           style: TextStyle(
               color: const Color(0xff22C36B),
               fontFamily: 'Gilroy_Bold',
-              fontSize: 14.sp),
+              fontSize: 14),
         )
       ],
     );

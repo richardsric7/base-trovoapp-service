@@ -556,8 +556,6 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
       );
 
       if (responseData['statusCode'] == 200) {
-        print(
-            '=======================> patron response: ${responseData['data']}');
         return responseData['data'];
       } else {
         return Future.error("somethingwentwrong".tr());

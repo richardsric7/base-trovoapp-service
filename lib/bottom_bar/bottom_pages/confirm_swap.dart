@@ -86,7 +86,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                   Text(
                     "confirmswap".tr(),
                     style: TextStyle(
-                        fontSize: 20.sp,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: notifier.getbluewhitecolor,
                         fontFamily: fontsemibold),
@@ -285,8 +285,8 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                   notifier.getgrey,
                   notifier.getprefixicon,
                   notifier.getblck,
-                  70.sp,
-                  300.sp,
+                  70,
+                  300,
                   validator: validatePassword,
                   onChanged: (value) {
                     setState(() {
@@ -375,7 +375,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluewhitecolor,
-                        fontSize: 19.sp,
+                        fontSize: 19,
                         fontFamily: fontsemibold,
                       ),
                     ),
@@ -387,7 +387,7 @@ class _ConfirmSwap extends State<ConfirmSwap> with TickerProviderStateMixin {
                         '+ ${calculateFiatValue(swappedEstimate, viewData["destinationUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                         style: TextStyle(
                           color: notifier.getbluewhitecolor,
-                          fontSize: 12.sp,
+                          fontSize: 12,
                           fontWeight: FontWeight.w500,
                           fontFamily: fontbody,
                         ),

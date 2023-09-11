@@ -6,7 +6,6 @@ import '../custom_bloc_observer/constants.dart';
 import '../custom_bloc_observer/fonts.dart';
 import '../custom_bloc_observer/notifire_clor.dart';
 import '../storage/state.dart';
-import '../utils/enstring.dart';
 import '../utils/medeiaqury/medeiaqury.dart';
 
 class TermsOfService extends StatefulWidget {
