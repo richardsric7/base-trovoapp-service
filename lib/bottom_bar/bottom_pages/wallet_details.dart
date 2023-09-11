@@ -181,9 +181,7 @@ class _WalletDetailsState extends State<WalletDetails>
                               initialHiddenState: appState.hideBalances,
                               onHiddenStateChanged: (state) => {
                                 setState(
-                                  () => {
-                                    localHideBalance = state,
-                                  },
+                                  () => localHideBalance = state,
                                 )
                               },
                             ),

@@ -229,7 +229,7 @@ class _MarketPairsState extends State<MarketPairs>
 
   List<TableRow> getTableRows(String pairs, String price, bool isChecked) {
     List<TableRow> tableRows = [];
-    bool checked = isChecked;
+    // bool checked = isChecked;
 
     tableRows.add(TableRow(children: [
       Padding(

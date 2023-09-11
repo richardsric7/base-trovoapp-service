@@ -109,7 +109,7 @@ class DataProvider with ChangeNotifier {
     try {
       StoreData().storeInsertData('walletMode', value);
       walletMode = value;
-      Restart.restartApp();
+      // Restart.restartApp();
       notifyListeners();
     } catch (e) {
       print(e);

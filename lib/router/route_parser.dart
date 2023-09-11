@@ -5,7 +5,7 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
   @override
   Future<PageConfiguration> parseRouteInformation(
       RouteInformation routeInformation) async {
-    final uri = Uri.parse(routeInformation.location!);
+    final uri = routeInformation.uri;
     if (uri.pathSegments.isEmpty) {
       return SplashPageConfig;
     }
@@ -183,8 +183,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return ProceedsPayOutViewPageConfig;
       case LiquidateAssetViewPath:
         return LiquidateAssetViewPageConfig;
-      case LiquidateAssetViewPath:
-        return LiquidateAssetViewPageConfig;
       case WalletPreparationViewPath:
         return WalletPreparationViewPageConfig;
       case MyAssetTokenDetailsViewPath:
@@ -204,204 +202,204 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
   RouteInformation restoreRouteInformation(PageConfiguration configuration) {
     switch (configuration.uiPage) {
       case Pages.Splash:
-        return const RouteInformation(location: SplashPath);
+        return RouteInformation(uri: Uri.parse(SplashPath));
       case Pages.Login:
-        return const RouteInformation(location: LoginPath);
+        return RouteInformation(uri: Uri.parse(LoginPath));
       case Pages.Onboarding:
-        return const RouteInformation(location: OnboardingPath);
+        return RouteInformation(uri: Uri.parse(OnboardingPath));
       case Pages.Signup:
-        return const RouteInformation(location: SignupPath);
+        return RouteInformation(uri: Uri.parse(SignupPath));
       case Pages.CreatePassword:
-        return const RouteInformation(location: CreatePasswordPath);
+        return RouteInformation(uri: Uri.parse(CreatePasswordPath));
       case Pages.ImportWallet:
-        return const RouteInformation(location: ImportWalletPath);
+        return RouteInformation(uri: Uri.parse(ImportWalletPath));
       case Pages.Verification:
-        return const RouteInformation(location: VerificationPath);
+        return RouteInformation(uri: Uri.parse(VerificationPath));
       case Pages.EnsurePrivacy:
-        return const RouteInformation(location: EnsurePrivacyPath);
+        return RouteInformation(uri: Uri.parse(EnsurePrivacyPath));
       case Pages.Congratulations:
-        return const RouteInformation(location: CongratulationsPath);
+        return RouteInformation(uri: Uri.parse(CongratulationsPath));
       case Pages.Fingerprint:
-        return const RouteInformation(location: FingerprintPath);
+        return RouteInformation(uri: Uri.parse(FingerprintPath));
       case Pages.BottomHome:
-        return const RouteInformation(location: BottomHomePath);
+        return RouteInformation(uri: Uri.parse(BottomHomePath));
       case Pages.WebView:
-        return const RouteInformation(location: WebViewPath);
+        return RouteInformation(uri: Uri.parse(WebViewPath));
       case Pages.QrScanner:
-        return const RouteInformation(location: QrScannerPath);
+        return RouteInformation(uri: Uri.parse(QrScannerPath));
       case Pages.SearchView:
-        return const RouteInformation(location: SearchViewPath);
+        return RouteInformation(uri: Uri.parse(SearchViewPath));
       case Pages.NotificationsView:
-        return const RouteInformation(location: NotificationsViewPath);
+        return RouteInformation(uri: Uri.parse(NotificationsViewPath));
       case Pages.CreateSubWalletSuccessView:
-        return const RouteInformation(location: CreateSubWalletSuccessViewPath);
+        return RouteInformation(uri: Uri.parse(CreateSubWalletSuccessViewPath));
       case Pages.WalletDetailsView:
-        return const RouteInformation(location: WalletDetailsViewPath);
+        return RouteInformation(uri: Uri.parse(WalletDetailsViewPath));
       case Pages.AssetDetailsView:
-        return const RouteInformation(location: AssetDetailsViewPath);
+        return RouteInformation(uri: Uri.parse(AssetDetailsViewPath));
       case Pages.SendAssetView:
-        return const RouteInformation(location: SendAssetViewPath);
+        return RouteInformation(uri: Uri.parse(SendAssetViewPath));
       case Pages.ConfirmTransactionView:
-        return const RouteInformation(location: ConfirmTransactionViewPath);
+        return RouteInformation(uri: Uri.parse(ConfirmTransactionViewPath));
       case Pages.TransactionSuccessView:
-        return const RouteInformation(location: TransactionSuccessViewPath);
+        return RouteInformation(uri: Uri.parse(TransactionSuccessViewPath));
       case Pages.ReceiveAssetView:
-        return const RouteInformation(location: ReceiveAssetViewPath);
+        return RouteInformation(uri: Uri.parse(ReceiveAssetViewPath));
       case Pages.PendingAssetDetailsView:
-        return const RouteInformation(location: PendingAssetDetailsViewPath);
+        return RouteInformation(uri: Uri.parse(PendingAssetDetailsViewPath));
       case Pages.PaymentHistoryView:
-        return const RouteInformation(location: PaymentHistoryViewPath);
+        return RouteInformation(uri: Uri.parse(PaymentHistoryViewPath));
       case Pages.PaymentDetailsView:
-        return const RouteInformation(location: PaymentDetailsViewPath);
+        return RouteInformation(uri: Uri.parse(PaymentDetailsViewPath));
       case Pages.SwapAssetsView:
-        return const RouteInformation(location: SwapAssetsViewPath);
+        return RouteInformation(uri: Uri.parse(SwapAssetsViewPath));
       case Pages.ConfirmSwapView:
-        return const RouteInformation(location: ConfirmSwapViewPath);
+        return RouteInformation(uri: Uri.parse(ConfirmSwapViewPath));
       case Pages.SwapSuccessView:
-        return const RouteInformation(location: SwapSuccessViewPath);
+        return RouteInformation(uri: Uri.parse(SwapSuccessViewPath));
       case Pages.ProfileDetailsView:
-        return const RouteInformation(location: ProfileDetailsViewPath);
+        return RouteInformation(uri: Uri.parse(ProfileDetailsViewPath));
       case Pages.ReferralInfoView:
-        return const RouteInformation(location: ReferralInfoViewPath);
+        return RouteInformation(uri: Uri.parse(ReferralInfoViewPath));
       case Pages.PasswordMgtView:
-        return const RouteInformation(location: PasswordMgtViewPath);
+        return RouteInformation(uri: Uri.parse(PasswordMgtViewPath));
       case Pages.BackupAllView:
-        return const RouteInformation(location: BackupAllViewPath);
+        return RouteInformation(uri: Uri.parse(BackupAllViewPath));
       case Pages.AuthorizeLoginView:
-        return const RouteInformation(location: AuthorizeLoginViewPath);
+        return RouteInformation(uri: Uri.parse(AuthorizeLoginViewPath));
       case Pages.AuthorizeActionView:
-        return const RouteInformation(location: AuthorizeActionViewPath);
+        return RouteInformation(uri: Uri.parse(AuthorizeActionViewPath));
       case Pages.RequestSpecificPaymentView:
-        return const RouteInformation(location: RequestSpecificPaymentViewPath);
+        return RouteInformation(uri: Uri.parse(RequestSpecificPaymentViewPath));
       case Pages.RequestSpecificPaymentDetailsView:
-        return const RouteInformation(
-            location: RequestSpecificPaymentDetailsViewPath);
+        return RouteInformation(
+            uri: Uri.parse(RequestSpecificPaymentDetailsViewPath));
       case Pages.SecurityQuestionsView:
-        return const RouteInformation(location: SecurityQuestionsViewPath);
+        return RouteInformation(uri: Uri.parse(SecurityQuestionsViewPath));
       case Pages.RequestOtpView:
-        return const RouteInformation(location: RequestOtpViewPath);
+        return RouteInformation(uri: Uri.parse(RequestOtpViewPath));
       case Pages.AccountRecoverySuccessView:
-        return const RouteInformation(location: AccountRecoverySuccessViewPath);
+        return RouteInformation(uri: Uri.parse(AccountRecoverySuccessViewPath));
       case Pages.SharedAccessView:
-        return const RouteInformation(location: SharedAccessViewPath);
+        return RouteInformation(uri: Uri.parse(SharedAccessViewPath));
       case Pages.SetupAccountRecoveryView:
-        return const RouteInformation(location: SetupAccountRecoveryViewPath);
+        return RouteInformation(uri: Uri.parse(SetupAccountRecoveryViewPath));
       case Pages.DisableAccountRecoveryView:
-        return const RouteInformation(location: DisableAccountRecoveryViewPath);
+        return RouteInformation(uri: Uri.parse(DisableAccountRecoveryViewPath));
       case Pages.RecoverAccountView:
-        return const RouteInformation(location: RecoverAccountViewPath);
+        return RouteInformation(uri: Uri.parse(RecoverAccountViewPath));
       case Pages.AnswerSecurityQuestionsView:
-        return const RouteInformation(
-            location: AnswerSecurityQuestionsViewPath);
+        return RouteInformation(
+            uri: Uri.parse(AnswerSecurityQuestionsViewPath));
       case Pages.RequestBackupView:
-        return const RouteInformation(location: RequestBackupViewPath);
+        return RouteInformation(uri: Uri.parse(RequestBackupViewPath));
       case Pages.BackupRecoverySecretView:
-        return const RouteInformation(location: BackupRecoverySecretViewPath);
+        return RouteInformation(uri: Uri.parse(BackupRecoverySecretViewPath));
       case Pages.CompleteAccountRecoveryView:
-        return const RouteInformation(
-            location: CompleteAccountRecoveryViewPath);
+        return RouteInformation(
+            uri: Uri.parse(CompleteAccountRecoveryViewPath));
       case Pages.DisableAccountRecoveryInfoView:
-        return const RouteInformation(
-            location: DisableAccountRecoveryInfoViewPath);
+        return RouteInformation(
+            uri: Uri.parse(DisableAccountRecoveryInfoViewPath));
       case Pages.SuccessView:
-        return const RouteInformation(location: SuccessViewPath);
+        return RouteInformation(uri: Uri.parse(SuccessViewPath));
       case Pages.SecurityQuestionsForInactiveAccountsView:
-        return const RouteInformation(
-            location: SecurityQuestionsForInactiveAccountsViewPath);
+        return RouteInformation(
+            uri: Uri.parse(SecurityQuestionsForInactiveAccountsViewPath));
       case Pages.AddSharedAccessDetailsView:
-        return const RouteInformation(location: AddSharedAccessDetailsViewPath);
+        return RouteInformation(uri: Uri.parse(AddSharedAccessDetailsViewPath));
       case Pages.SharedWalletInfoView:
-        return const RouteInformation(location: SharedWalletInfoViewPath);
+        return RouteInformation(uri: Uri.parse(SharedWalletInfoViewPath));
       case Pages.ApprovalDetailsView:
-        return const RouteInformation(location: ApprovalDetailsViewPath);
+        return RouteInformation(uri: Uri.parse(ApprovalDetailsViewPath));
       case Pages.UpdateSharedAccessView:
-        return const RouteInformation(location: UpdateSharedAccessViewPath);
+        return RouteInformation(uri: Uri.parse(UpdateSharedAccessViewPath));
       case Pages.UpdateSharedAccessDetailsView:
-        return const RouteInformation(
-            location: UpdateSharedAccessDetailsViewPath);
+        return RouteInformation(
+            uri: Uri.parse(UpdateSharedAccessDetailsViewPath));
       case Pages.WelcomeToSharedAccessView:
-        return const RouteInformation(location: WelcomeToSharedAccessViewPath);
+        return RouteInformation(uri: Uri.parse(WelcomeToSharedAccessViewPath));
       case Pages.GetStartedView:
-        return const RouteInformation(location: GetStartedViewPath);
+        return RouteInformation(uri: Uri.parse(GetStartedViewPath));
       case Pages.ShareReceiptView:
-        return const RouteInformation(location: ShareReceiptViewPath);
+        return RouteInformation(uri: Uri.parse(ShareReceiptViewPath));
       case Pages.AnnouncementView:
-        return const RouteInformation(location: AnnouncementViewPath);
+        return RouteInformation(uri: Uri.parse(AnnouncementViewPath));
       case Pages.WrappedAssetView:
-        return const RouteInformation(location: WrappedAssetViewPath);
+        return RouteInformation(uri: Uri.parse(WrappedAssetViewPath));
       case Pages.GenerateDepositAddressView:
-        return const RouteInformation(location: GenerateDepositAddressViewPath);
+        return RouteInformation(uri: Uri.parse(GenerateDepositAddressViewPath));
       case Pages.SelectDepositAddressView:
-        return const RouteInformation(location: SelectDepositAddressViewPath);
+        return RouteInformation(uri: Uri.parse(SelectDepositAddressViewPath));
       case Pages.WithdrawAssetView:
-        return const RouteInformation(location: WithdrawAssetViewPath);
+        return RouteInformation(uri: Uri.parse(WithdrawAssetViewPath));
       case Pages.ConfirmWithdrawView:
-        return const RouteInformation(location: ConfirmWithdrawViewPath);
+        return RouteInformation(uri: Uri.parse(ConfirmWithdrawViewPath));
       case Pages.TransactionStatusView:
-        return const RouteInformation(location: TransactionStatusViewPath);
+        return RouteInformation(uri: Uri.parse(TransactionStatusViewPath));
       case Pages.DepositWithdrawHistoryView:
-        return const RouteInformation(location: DepositWithdrawHistoryViewPath);
+        return RouteInformation(uri: Uri.parse(DepositWithdrawHistoryViewPath));
       case Pages.DepositWithdrawDetailsView:
-        return const RouteInformation(location: DepositWithdrawDetailsViewPath);
+        return RouteInformation(uri: Uri.parse(DepositWithdrawDetailsViewPath));
       case Pages.WelcomeSubscriptionsView:
-        return const RouteInformation(location: WelcomeSubscriptionsViewPath);
+        return RouteInformation(uri: Uri.parse(WelcomeSubscriptionsViewPath));
       case Pages.SubscriptionPlansView:
-        return const RouteInformation(location: SubscriptionPlansViewPath);
+        return RouteInformation(uri: Uri.parse(SubscriptionPlansViewPath));
       case Pages.SubscriptionPlanBenefitsView:
-        return const RouteInformation(
-            location: SubscriptionPlanBenefitsViewPath);
+        return RouteInformation(
+            uri: Uri.parse(SubscriptionPlanBenefitsViewPath));
       case Pages.SubscriptionPlanOptionsView:
-        return const RouteInformation(
-            location: SubscriptionPlanOptionsViewPath);
+        return RouteInformation(
+            uri: Uri.parse(SubscriptionPlanOptionsViewPath));
       case Pages.AuthorizeSubscriptionView:
-        return const RouteInformation(location: AuthorizeSubscriptionViewPath);
+        return RouteInformation(uri: Uri.parse(AuthorizeSubscriptionViewPath));
       case Pages.OptInAssetView:
-        return const RouteInformation(location: OptInAssetViewPath);
+        return RouteInformation(uri: Uri.parse(OptInAssetViewPath));
       case Pages.OptOutAssetView:
-        return const RouteInformation(location: OptOutAssetViewPath);
+        return RouteInformation(uri: Uri.parse(OptOutAssetViewPath));
       case Pages.OptInOutAssetView:
-        return const RouteInformation(location: OptInOutAssetViewPath);
+        return RouteInformation(uri: Uri.parse(OptInOutAssetViewPath));
       case Pages.TokenizationWelcomeView:
-        return const RouteInformation(location: TokenizationWelcomeViewPath);
+        return RouteInformation(uri: Uri.parse(TokenizationWelcomeViewPath));
       case Pages.SettingsView:
-        return const RouteInformation(location: SettingsViewPath);
+        return RouteInformation(uri: Uri.parse(SettingsViewPath));
       case Pages.TokenizeAssetView:
-        return const RouteInformation(location: TokenizeAssetViewPath);
+        return RouteInformation(uri: Uri.parse(TokenizeAssetViewPath));
       case Pages.AssetInformationView:
-        return const RouteInformation(location: AssetInformationViewPath);
+        return RouteInformation(uri: Uri.parse(AssetInformationViewPath));
       case Pages.AssetVerificationDocumentsView:
-        return const RouteInformation(
-            location: AssetVerificationDocumentsViewPath);
+        return RouteInformation(
+            uri: Uri.parse(AssetVerificationDocumentsViewPath));
       case Pages.TokenizedAssetDetailView:
-        return const RouteInformation(location: TokenizedAssetDetailViewPath);
+        return RouteInformation(uri: Uri.parse(TokenizedAssetDetailViewPath));
       case Pages.BuyTokensView:
-        return const RouteInformation(location: BuyTokensViewPath);
+        return RouteInformation(uri: Uri.parse(BuyTokensViewPath));
       case Pages.ConfirmBuyView:
-        return const RouteInformation(location: ConfirmBuyViewPath);
+        return RouteInformation(uri: Uri.parse(ConfirmBuyViewPath));
       case Pages.TokenizedAssetsListView:
-        return const RouteInformation(location: TokenizedAssetsListViewPath);
+        return RouteInformation(uri: Uri.parse(TokenizedAssetsListViewPath));
       case Pages.AssetDashboardView:
-        return const RouteInformation(location: AssetDashboardViewPath);
+        return RouteInformation(uri: Uri.parse(AssetDashboardViewPath));
       case Pages.AssetSubscribersView:
-        return const RouteInformation(location: AssetSubscribersViewPath);
+        return RouteInformation(uri: Uri.parse(AssetSubscribersViewPath));
       case Pages.TotalSalesView:
-        return const RouteInformation(location: TotalSalesViewPath);
+        return RouteInformation(uri: Uri.parse(TotalSalesViewPath));
       case Pages.ProceedsPayOutView:
-        return const RouteInformation(location: ProceedsPayOutViewPath);
+        return RouteInformation(uri: Uri.parse(ProceedsPayOutViewPath));
       case Pages.LiquidateAssetView:
-        return const RouteInformation(location: LiquidateAssetViewPath);
+        return RouteInformation(uri: Uri.parse(LiquidateAssetViewPath));
       case Pages.WalletPreparationView:
-        return const RouteInformation(location: WalletPreparationViewPath);
+        return RouteInformation(uri: Uri.parse(WalletPreparationViewPath));
       case Pages.MyAssetTokenDetailsView:
-        return const RouteInformation(location: MyAssetTokenDetailsViewPath);
+        return RouteInformation(uri: Uri.parse(MyAssetTokenDetailsViewPath));
       case Pages.MarketTradeView:
-        return const RouteInformation(location: MarketTradeViewPath);
+        return RouteInformation(uri: Uri.parse(MarketTradeViewPath));
       case Pages.MarketTradeInfoView:
-        return const RouteInformation(location: MarketTradeInfoViewPath);
+        return RouteInformation(uri: Uri.parse(MarketTradeInfoViewPath));
       case Pages.MarketPairsView:
-        return const RouteInformation(location: MarketPairsViewPath);
+        return RouteInformation(uri: Uri.parse(MarketPairsViewPath));
       default:
-        return const RouteInformation(location: SplashPath);
+        return RouteInformation(uri: Uri.parse(SplashPath));
     }
   }
 }
