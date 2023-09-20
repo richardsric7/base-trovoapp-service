@@ -147,8 +147,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return SubscriptionPlansViewPageConfig;
       case SubscriptionPlanBenefitsViewPath:
         return SubscriptionPlanBenefitsViewPageConfig;
-      case SubscriptionPlanOptionsViewPath:
-        return SubscriptionPlanOptionsViewPageConfig;
       case AuthorizeSubscriptionViewPath:
         return AuthorizeSubscriptionViewPageConfig;
       case OptInAssetViewPath:
@@ -348,9 +346,6 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
       case Pages.SubscriptionPlanBenefitsView:
         return RouteInformation(
             uri: Uri.parse(SubscriptionPlanBenefitsViewPath));
-      case Pages.SubscriptionPlanOptionsView:
-        return RouteInformation(
-            uri: Uri.parse(SubscriptionPlanOptionsViewPath));
       case Pages.AuthorizeSubscriptionView:
         return RouteInformation(uri: Uri.parse(AuthorizeSubscriptionViewPath));
       case Pages.OptInAssetView:

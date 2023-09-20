@@ -599,7 +599,7 @@
     "currentplan": "Current Plan",
     "currentpatronplan": "{} Patron ({})",
     "amountpermonth": "${} per month",
-    "amountperyear": "{} per year",
+    "amountperyear": "${} per year",
     "lifetimenobilling": "You are on a lifetime plan.",
     "lifetimeplan": "This is a lifetime plan.",
     "nextbilldate": "Next Bill Date",

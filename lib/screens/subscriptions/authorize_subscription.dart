@@ -469,7 +469,7 @@ class _AuthorizeSubscriptionState extends State<AuthorizeSubscription> {
       // make initial request to the server using the
       // following credentials
       Map map = {
-        'patronMembershipGradeId': patronInfo.id,
+        'patronMembershipGradeId': patronTier.id,
         'paymentAssetCode': selectedAsset?.split('|')[0],
         'paymentAssetIssuer': selectedAsset?.split('|')[0] == 'XBN'
             ? ''

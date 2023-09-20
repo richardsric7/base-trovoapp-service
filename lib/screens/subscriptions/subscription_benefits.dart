@@ -104,21 +104,30 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
               tile(
                   '\$${patronInfo.patronTiers[0].price} per month',
                   'Billed per month',
-                  appState.userInfo?.patronMembership?.patronTierId!
-                          .toLowerCase() ==
-                      patronInfo.patronTiers[0].tier.toLowerCase()),
+                  (appState.userInfo?.patronMembership?.patronTierId!
+                              .toLowerCase() ==
+                          patronInfo.patronTiers[0].tier.toLowerCase() &&
+                      appState.userInfo?.patronMembership?.patronPackageId!
+                              .toLowerCase() ==
+                          patronInfo.patronPackage.toLowerCase())),
               tile(
                   '\$${patronInfo.patronTiers[1].price} per year',
                   'Billed annually',
-                  appState.userInfo?.patronMembership?.patronTierId!
-                          .toLowerCase() ==
-                      patronInfo.patronTiers[1].tier.toLowerCase()),
+                  (appState.userInfo?.patronMembership?.patronTierId!
+                              .toLowerCase() ==
+                          patronInfo.patronTiers[1].tier.toLowerCase() &&
+                      appState.userInfo?.patronMembership?.patronPackageId!
+                              .toLowerCase() ==
+                          patronInfo.patronPackage.toLowerCase())),
               tile(
                   '\$${patronInfo.patronTiers[2].price} per lifetime',
                   'Billed once',
-                  appState.userInfo?.patronMembership?.patronTierId!
-                          .toLowerCase() ==
-                      patronInfo.patronTiers[2].tier.toLowerCase()),
+                  (appState.userInfo?.patronMembership?.patronTierId!
+                              .toLowerCase() ==
+                          patronInfo.patronTiers[2].tier.toLowerCase() &&
+                      appState.userInfo?.patronMembership?.patronPackageId!
+                              .toLowerCase() ==
+                          patronInfo.patronPackage.toLowerCase())),
               SizedBox(height: height / 10),
             ],
           ),

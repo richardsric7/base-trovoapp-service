@@ -75,7 +75,6 @@ const String DepositWithdrawDetailsViewPath = '/DepositWithdrawDetailsView';
 const String WelcomeSubscriptionsViewPath = '/WelcomeSubscriptionsView';
 const String SubscriptionPlansViewPath = '/SubscriptionPlansView';
 const String SubscriptionPlanBenefitsViewPath = '/SubscriptionPlanBenefitsView';
-const String SubscriptionPlanOptionsViewPath = '/SubscriptionPlanOptionsView';
 const String AuthorizeSubscriptionViewPath = '/AuthorizeSubscriptionView';
 const String OptInAssetViewPath = '/OptInAssetView';
 const String OptOutAssetViewPath = '/OptOutAssetView';
@@ -179,7 +178,6 @@ enum Pages {
   WelcomeSubscriptionsView,
   SubscriptionPlansView,
   SubscriptionPlanBenefitsView,
-  SubscriptionPlanOptionsView,
   AuthorizeSubscriptionView,
   OptInAssetView,
   OptOutAssetView,
@@ -570,11 +568,6 @@ PageConfiguration SubscriptionPlanBenefitsViewPageConfig = PageConfiguration(
     key: 'SubscriptionPlanBenefitsView',
     path: SubscriptionPlanBenefitsViewPath,
     uiPage: Pages.SubscriptionPlanBenefitsView,
-    currentPageAction: null);
-PageConfiguration SubscriptionPlanOptionsViewPageConfig = PageConfiguration(
-    key: 'SubscriptionPlanOptionsView',
-    path: SubscriptionPlanOptionsViewPath,
-    uiPage: Pages.SubscriptionPlanOptionsView,
     currentPageAction: null);
 PageConfiguration AuthorizeSubscriptionViewPageConfig = PageConfiguration(
     key: 'AuthorizeSubscriptionView',
