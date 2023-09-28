@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/cupertino.dart';
@@ -18,10 +20,8 @@ import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
-
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import '../../widgets/loader.dart';
 
 class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
@@ -62,6 +62,8 @@ class _SettingsState extends State<Settings> {
     });
     return currencies;
   }
+
+  final _dropDownKey = GlobalKey<FormFieldState>();
 
   List<DropdownMenuItem<String>> get getLanguages {
     List<DropdownMenuItem<String>> languages = [];
@@ -390,6 +392,7 @@ class _SettingsState extends State<Settings> {
                   Expanded(
                     child: DropdownButtonFormField(
                       isExpanded: true,
+                      key: _dropDownKey,
                       dropdownColor: notifier.isDark
                           ? darktilewhitecolor
                           : notifier.getaddsubwalletgrey,
@@ -413,24 +416,22 @@ class _SettingsState extends State<Settings> {
                         fontFamily: fontsemibold,
                         fontWeight: FontWeight.w500,
                       ),
-                      onChanged: (newValue) async {
-                        showLoader(context);
-                        await appState.changeWalletMode(newValue.toString());
-                        hideLoader(context);
-                      },
+                      onChanged: handleEnvironmentSwitch,
                       items: <DropdownMenuItem<String>>[
                         DropdownMenuItem(
-                            child: Text(
-                              "testnet".tr(),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            value: 'Testnet'),
+                          child: Text(
+                            "testnet".tr(),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          value: 'Testnet',
+                        ),
                         DropdownMenuItem(
-                            child: Text(
-                              "mainnet".tr(),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            value: 'Mainnet'),
+                          child: Text(
+                            "mainnet".tr(),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          value: 'Mainnet',
+                        ),
                       ],
                     ),
                   ),
@@ -546,6 +547,16 @@ class _SettingsState extends State<Settings> {
         ),
       ),
     );
+  }
+
+  void handleEnvironmentSwitch(String? newValue) async {
+    if (newValue != appState.walletMode) {
+      showSwitchEnvironmentPopup(context, onProceed: () async {
+        await appState.changeWalletMode(newValue.toString());
+      }, onCancel: () {
+        _dropDownKey.currentState!.reset();
+      }, toEnvironment: newValue!);
+    }
   }
 
   Widget currency(image, txt, name) {

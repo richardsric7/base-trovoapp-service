@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
@@ -105,11 +107,16 @@ class DataProvider with ChangeNotifier {
 
   String walletMode = 'Testnet';
 
-  Future<void> changeWalletMode(String value) async {
+  Future<void> changeWalletMode(String value, {bool isReversed = false}) async {
     try {
       StoreData().storeInsertData('walletMode', value);
       walletMode = value;
-      // Restart.restartApp();
+      currentAction =
+          PageAction(state: PageState.addPage, page: SplashPageConfig);
+      Timer(const Duration(seconds: 4), () {
+        StoreData().storeInsertData('restartedAfterSwitch', !isReversed);
+        Restart.restartApp();
+      });
       notifyListeners();
     } catch (e) {
       print(e);

@@ -1,13 +1,19 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/network/requests.dart';
+import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/user.dart';
 import '../../router/page_actions.dart';
@@ -66,13 +72,15 @@ class _SplashScreenState extends State<SplashScreen>
   // initState is to place and await the async function from inside
   // another function which will not be awaited in initState
   runAsync() async {
-    await getVal();
+    await initializeAppData();
     await initFirebaseTools();
   }
 
-  getVal() async {
+  initializeAppData() async {
     try {
       fetchVersionInfo(appState);
+      bool restartedAfterSwitch =
+          await StoreData().storeGetData('restartedAfterSwitch') ?? false;
       appState.isFirstTime =
           await StoreData().storeGetData('isFirstTime') ?? true;
       initialDynamicLink = await StoreData().storeGetData('initialDynamicLink');
@@ -130,32 +138,49 @@ class _SplashScreenState extends State<SplashScreen>
         var primaryWallet = appState.userInfo!.wallets!.firstWhere(
             (wallet) => wallet.primaryWallet == 1,
             orElse: () => appState.userInfo!.wallets![0]);
-        updateUserInfo(primaryWallet.signer, appState.secretKeys[0],
-            primaryWallet.publicKey, appState.userInfo!.username!, appState);
-        getFiatRates(primaryWallet.signer, appState.secretKeys[0],
-            primaryWallet.publicKey, appState.userInfo!.username!, appState);
-        fetchNotifications(appState);
         appState.activeWallet = primaryWallet;
         // check if app was not already open
         // if app was not already open then move to the next view
         // else wait for the dynamiclink handler to take over
-        Timer.periodic(Duration(milliseconds: 200), (timer) {
+        Timer.periodic(Duration(milliseconds: 200), (timer) async {
           if (timerIsDone) {
             timer.cancel();
             appState.setSplashFinished();
             appState.appIsOpen = true;
 
-            if (initialDynamicLink != null) {
-              appState.processDeepLink(context, Uri.parse(initialDynamicLink!));
+            print('-------------> ${restartedAfterSwitch}');
+            if (restartedAfterSwitch) {
+              await importWalletAfterSwitch(appState, context);
             } else {
-              appState.currentAction = PageAction(
-                  state: PageState.replaceAll, page: LoginPageConfig);
+              updateUserInfo(
+                primaryWallet.signer,
+                appState.secretKeys[0],
+                primaryWallet.publicKey,
+                appState.userInfo!.username!,
+                appState,
+              );
+              getFiatRates(
+                primaryWallet.signer,
+                appState.secretKeys[0],
+                primaryWallet.publicKey,
+                appState.userInfo!.username!,
+                appState,
+              );
+              fetchNotifications(appState);
+
+              if (initialDynamicLink != null) {
+                appState.processDeepLink(
+                    context, Uri.parse(initialDynamicLink!));
+              } else {
+                appState.currentAction = PageAction(
+                    state: PageState.replaceAll, page: LoginPageConfig);
+              }
             }
           }
         });
       }
     } catch (e) {
-      print('[getVal]getVal exception:' + e.toString());
+      print('initializeAppData exception:' + e.toString());
     }
   }
 
@@ -213,6 +238,109 @@ class _SplashScreenState extends State<SplashScreen>
         )),
       ),
     );
+  }
+
+  Future<void> importWalletAfterSwitch(
+    DataProvider appState,
+    BuildContext context,
+  ) async {
+    var username = appState.userInfo!.username;
+    var signer = appState.primaryWallet.signer!;
+    var publicKey = appState.primaryWallet.publicKey!;
+    var secretKey = appState.secretKeys[0];
+    String? token = await StoreData().storeGetData('token');
+
+    if (token == null) {
+      token = await FCM().getPushNotificationToken();
+    }
+    Map responseData = await makeGetRequest(
+        uri: '/v1/users/username?type=import&pnt=$token',
+        // uri: '/v1/users/${username}?type=import&pnt=$token',
+        signer: signer,
+        publicKey: publicKey,
+        secretKey: secretKey);
+    print('----------------->2: ${secretKey}');
+    print('response: ${responseData}');
+
+    if (responseData['statusCode'] == 200) {
+      fetchNotifications(appState);
+      getFiatRates(signer, secretKey, publicKey, username, appState);
+      storeUserInfo(responseData['data'], appState);
+      appState.currentAction =
+          PageAction(state: PageState.addPage, page: LoginPageConfig);
+    } else if (responseData['statusCode'] == 404) {
+      accountNotFoundAfterSwitchPopup(
+        context,
+        onContinueWithCredentials: () => {},
+        onImportNewCredential: () => {
+          appState.currentAction =
+              PageAction(state: PageState.addPage, page: ImportWalletPageConfig)
+        },
+        onGoBackToPrevEnvironment: () {
+          appState.changeWalletMode(
+            appState.walletMode == 'Testnet' ? 'Mainnet' : 'Testnet',
+            isReversed: true,
+          );
+        },
+      );
+    } else {
+      // must be some sort of server error
+      // let's throw it
+      popup(context,
+          title: "error".tr(), message: responseData['data']['message']);
+    }
+  }
+
+  void createUserAccountAfterSwitch() async {
+    try {
+      showLoader(context);
+      String? token = await StoreData().storeGetData('token');
+
+      if (token == null) {
+        token = await FCM().getPushNotificationToken();
+      }
+
+      Map map = {
+        'username': appState.userInfo!.username,
+        'email': appState.userInfo!.email,
+        'firstName': appState.userInfo!.firstName,
+        'lastName': appState.userInfo!.lastName,
+        'mobile': appState.userInfo!.mobile,
+        'mobileCountryCode': appState.userInfo!.countryCode,
+        'referrer': appState.userInfo!.referrer,
+        'pushNotificationToken': token,
+        'corporate': appState.userInfo!.corporate,
+        'verificationCode': '',
+      };
+
+      String jsonBody = jsonEncode(map);
+
+      Map responseData = await makePostRequest(
+          uri: '/v1/users',
+          body: jsonBody,
+          signer: appState.primaryWallet.signer!,
+          publicKey: appState.primaryWallet.publicKey!,
+          secretKey: appState.primaryWallet.secretKey![0]);
+
+      // print('$responseData');
+      hideLoader(context);
+
+      if (responseData['statusCode'] == 202) {
+        appState.currentAction =
+            PageAction(state: PageState.addPage, page: VerificationPageConfig);
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
+      print(e);
+      hideLoader(context);
+      popup(context,
+          title: "error".tr(),
+          message: e.toString().contains('firebase')
+              ? 'Network error! Please check your connection and try again.'
+              : e.toString());
+    }
   }
 
   @override
