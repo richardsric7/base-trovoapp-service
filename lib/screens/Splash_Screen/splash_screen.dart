@@ -259,8 +259,6 @@ class _SplashScreenState extends State<SplashScreen>
         signer: signer,
         publicKey: publicKey,
         secretKey: secretKey);
-    print('----------------->2: ${secretKey}');
-    print('response: ${responseData}');
 
     if (responseData['statusCode'] == 200) {
       fetchNotifications(appState);

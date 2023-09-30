@@ -16,8 +16,6 @@ Future<void> updateUserInfo(signer, secretKey, publicKey, username, appState,
     publicKey: publicKey!,
   );
 
-  print('response: ${responseData}');
-
   if (responseData['statusCode'] == 200) {
     await storeUserInfo(responseData['data'], appState);
   }
