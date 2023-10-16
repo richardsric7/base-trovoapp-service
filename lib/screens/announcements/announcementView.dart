@@ -10,8 +10,14 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 
-class AnnouncementView extends StatelessWidget {
-  AnnouncementView({Key? key}) : super(key: key);
+class AnnouncementView extends StatefulWidget {
+  const AnnouncementView({super.key});
+
+  @override
+  State<AnnouncementView> createState() => _AnnouncementView();
+}
+
+class _AnnouncementView extends State<AnnouncementView> {
   late DataProvider appState;
   late ColorNotifier notifier;
 

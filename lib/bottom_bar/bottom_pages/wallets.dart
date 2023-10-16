@@ -1353,7 +1353,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         // contains the secret key of the newly created subwallet
         await StoreData().storeInsertData('secretKey', appState.secretKeys);
         await updateUserInfo(
-          appState.primaryWallet.publicKey,
+          appState.primaryWallet.signer,
           appState.secretKeys[0],
           appState.primaryWallet.publicKey,
           userInfo.username,

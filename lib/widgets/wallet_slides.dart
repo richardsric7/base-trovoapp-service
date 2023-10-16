@@ -13,13 +13,13 @@ import 'package:local_auth/error_codes.dart' as auth_error;
 import 'popups.dart';
 
 class WalletSlide extends StatefulWidget {
-  String alias;
-  String totalBalance;
-  String? fiatBalance;
-  Color backColor;
-  Color foreColor;
-  bool initialHiddenState;
-  void Function(bool)? onHiddenStateChanged;
+  final String alias;
+  final String totalBalance;
+  final String? fiatBalance;
+  final Color backColor;
+  final Color foreColor;
+  final bool initialHiddenState;
+  final void Function(bool)? onHiddenStateChanged;
 
   WalletSlide({
     Key? key,

@@ -12,8 +12,14 @@ import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class Congratulations extends StatelessWidget {
-  Congratulations({Key? key}) : super(key: key);
+class Congratulations extends StatefulWidget {
+  const Congratulations({super.key});
+
+  @override
+  State<Congratulations> createState() => _Congratulations();
+}
+
+class _Congratulations extends State<Congratulations> {
   late DataProvider appState;
   late ColorNotifier notifier;
 

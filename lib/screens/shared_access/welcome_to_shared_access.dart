@@ -13,8 +13,14 @@ import '../../router/ui_pages.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
-class WelcomeToSharedAccess extends StatelessWidget {
-  WelcomeToSharedAccess({Key? key}) : super(key: key);
+class WelcomeToSharedAccess extends StatefulWidget {
+  const WelcomeToSharedAccess({super.key});
+
+  @override
+  State<WelcomeToSharedAccess> createState() => _WelcomeToSharedAccess();
+}
+
+class _WelcomeToSharedAccess extends State<WelcomeToSharedAccess> {
   late DataProvider appState;
   late ColorNotifier notifier;
 
