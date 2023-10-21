@@ -65,8 +65,8 @@ class _SwiperState extends State<Swiper> {
 
   @override
   Widget build(BuildContext context) {
-    notifier = Provider.of<ColorNotifier>(context, listen: true);
-    var appState = Provider.of<DataProvider>(context, listen: true);
+    notifier = Provider.of<ColorNotifier>(context, listen: false);
+    var appState = Provider.of<DataProvider>(context, listen: false);
     return Scaffold(
       backgroundColor: notifier.getwihitecolor,
       body: Column(

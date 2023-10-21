@@ -81,7 +81,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
-                    fontSize: 22.sp),
+                    fontSize: 22),
               ),
               SizedBox(height: height / 30),
               Padding(
@@ -103,7 +103,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluewhitecolor,
-                            fontSize: 16.sp,
+                            fontSize: 16,
                             fontFamily: fontsemibold,
                           ),
                         ),
@@ -131,7 +131,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: notifier.getbluewhitecolor,
-                                fontSize: 16.sp,
+                                fontSize: 16,
                                 fontFamily: fontsemibold,
                               ),
                             ),
@@ -143,7 +143,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 color: notifier.getbluewhitecolor,
-                                fontSize: 19.sp,
+                                fontSize: 19,
                                 fontFamily: fontbody,
                               ),
                             ),
@@ -164,7 +164,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluewhitecolor,
-                            fontSize: 16.sp,
+                            fontSize: 16,
                             fontFamily: fontsemibold,
                           ),
                         ),
@@ -187,7 +187,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                                   style: TextStyle(
                                     decoration: TextDecoration.underline,
                                     color: notifier.getbluewhitecolor,
-                                    fontSize: 12.sp,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                     fontFamily: fontbody,
                                   ),
@@ -254,7 +254,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: notifier.getbluewhitecolor,
-                fontSize: 19.sp,
+                fontSize: 19,
                 fontFamily: fontbody,
               ),
             ),
@@ -265,7 +265,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
               '- ${calculateFiatValue(sourceAmount, viewData["sourceUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
               style: TextStyle(
                 color: notifier.getbluewhitecolor,
-                fontSize: 12.sp,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
                 fontFamily: fontbody,
               ),
@@ -281,7 +281,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: notifier.getbluewhitecolor,
-                fontSize: 16.sp,
+                fontSize: 16,
                 fontFamily: fontsemibold,
               ),
             ),
@@ -293,7 +293,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 color: notifier.getbluewhitecolor,
-                fontSize: 19.sp,
+                fontSize: 19,
                 fontFamily: fontbody,
               ),
             ),
@@ -305,7 +305,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                 '+ ${calculateFiatValue(swappedEstimate, viewData["destinationUsdPrice"].toString(), appState.defaultCurrency, appState)} ${appState.defaultCurrency}',
                 style: TextStyle(
                   color: notifier.getbluewhitecolor,
-                  fontSize: 12.sp,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                   fontFamily: fontbody,
                 ),

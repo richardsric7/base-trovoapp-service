@@ -1,5 +1,3 @@
-import 'patronTier.dart';
-
 class PatronSubscriptionLog {
   String id;
   DateTime createdAt;

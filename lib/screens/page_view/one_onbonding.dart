@@ -34,7 +34,7 @@ class _OneonbondingState extends State<Oneonbonding> {
 
   @override
   Widget build(BuildContext context) {
-    notifier = Provider.of<ColorNotifier>(context, listen: true);
+    notifier = Provider.of<ColorNotifier>(context, listen: false);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     return Scaffold(
@@ -47,16 +47,18 @@ class _OneonbondingState extends State<Oneonbonding> {
             SizedBox(height: height / 20),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: width / 15),
-              child: Column(children: [
-                Text(
-                  "welcometotrovowallet".tr(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: notifier.getblck,
-                      fontSize: 25.sp,
-                      fontFamily: fontsemibold),
-                ),
-              ]),
+              child: Column(
+                children: [
+                  Text(
+                    "welcometotrovowallet".tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: notifier.getblck,
+                        fontSize: 25.sp,
+                        fontFamily: fontsemibold),
+                  ),
+                ],
+              ),
             )
           ],
         ),

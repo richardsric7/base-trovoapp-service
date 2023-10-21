@@ -161,7 +161,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                           if (tier['tier'] == grade['patronTier']) {
                             tierList.add(
                               PatronTier(
-                                id: tier['id'],
+                                id: grade['id'],
                                 tier: tier['tier'],
                                 canExpire: tier['canExpire'],
                                 inactive: tier['inactive'],
@@ -183,7 +183,6 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                           );
 
                           for (var p in patronPackages) {
-                            print('object ====> $p');
                             if (p['id'] == grade['patronPackage']) {
                               package.description = p['description'];
                               package.packageListTitle = p['packageListTitle'];
@@ -235,10 +234,6 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                                   'selectedTier': info.patronTiers[currentTab],
                                   'paymentAssets': paymentAssetsList,
                                 };
-                                // appState.currentAction = PageAction(
-                                //     state: PageState.addPage,
-                                //     page:
-                                //         SubscriptionPlanOptionsViewPageConfig);
                                 appState.currentAction = PageAction(
                                     state: PageState.addPage,
                                     page: AuthorizeSubscriptionViewPageConfig);
@@ -413,10 +408,8 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                   ),
                 ),
                 SizedBox(height: 5),
-                if (info.patronPackage !=
-                        appState.userInfo?.patronMembership?.patronPackageId &&
-                    info.patronTiers[currentTab].price !=
-                        appState.userInfo?.patronMembership?.price) ...[
+                if (info.patronTiers[currentTab].price !=
+                    appState.userInfo?.patronMembership?.price) ...[
                   ButtonOutlined(
                     getActionVerb(info),
                     notifier.getaddsubwalletgrey,
@@ -528,13 +521,12 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
   }
 
   String getActionVerb(PatronInfo info) {
-    if (patronMembership == null) {
-      return '${"subscribeto".tr()} ${info.patronPackage.capitalizeFirst!}';
-    } else if (info.id > patronMembership!.id!) {
+    if (info.id > patronMembership!.id!) {
       return '${"downgradeto".tr()}${info.patronPackage.capitalizeFirst!}';
-    } else {
+    } else if (info.id < patronMembership!.id!) {
       return '${"upgradeto".tr()}${info.patronPackage.capitalizeFirst!}';
-    }
+    } else
+      return '${"subscribeto".tr()} ${info.patronPackage.capitalizeFirst!}';
   }
 
   Color getColor(String patronPlan) {
@@ -556,8 +548,6 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
       );
 
       if (responseData['statusCode'] == 200) {
-        print(
-            '=======================> patron response: ${responseData['data']}');
         return responseData['data'];
       } else {
         return Future.error("somethingwentwrong".tr());

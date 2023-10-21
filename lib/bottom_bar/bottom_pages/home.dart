@@ -2,7 +2,6 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart' hide Trans;
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -212,7 +211,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               labelColor: notifier.getbluewhitecolor,
                               indicatorColor: notifier.getbluewhitecolor,
                               labelStyle: TextStyle(
-                                fontSize: 14.sp,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 fontFamily: fontsemibold,
                               ),
@@ -469,7 +468,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             color: notifier.getbluewhitecolor,
-                            fontSize: 14.sp,
+                            fontSize: 14,
                             fontFamily: fontbody,
                           ),
                         ),
@@ -480,7 +479,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           userInfo.firstName!.capitalizeFirst!,
                           style: TextStyle(
                             color: notifier.getbluewhitecolor,
-                            fontSize: 17.sp,
+                            fontSize: 17,
                             fontFamily: fontsemibold,
                           ),
                         ),
@@ -517,7 +516,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       children: [
                         Icon(
                           Icons.people_alt_outlined,
-                          size: 25.sp,
+                          size: 25,
                           color: notifier.getbluewhitecolor,
                         ),
                         FutureBuilder<Map>(

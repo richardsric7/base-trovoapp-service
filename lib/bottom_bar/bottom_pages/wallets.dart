@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -150,7 +149,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   padding: const EdgeInsets.all(10.0),
                   child: Container(
                       color: notifier.getfavorites,
-                      padding: EdgeInsets.all(8.sp),
+                      padding: EdgeInsets.all(8),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -184,7 +183,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                               elevation: 0,
                               style: TextStyle(
                                   color: notifier.getbluewhitecolor,
-                                  fontSize: 15.sp,
+                                  fontSize: 15,
                                   fontFamily: fontsemibold,
                                   fontWeight: FontWeight.w500),
                               onChanged: (newValue) {
@@ -740,7 +739,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                         //         style: TextStyle(
                         //           decoration: TextDecoration.underline,
                         //           color: notifier.getbluewhitecolor,
-                        //           fontSize: 12.sp,
+                        //           fontSize: 12,
                         //           fontWeight: FontWeight.w500,
                         //           fontFamily: fontbody,
                         //         ),
@@ -770,8 +769,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             notifier.getbluewhitecolor,
             notifier.getblck,
             notifier.getgrey,
-            70.sp,
-            300.sp,
+            70,
+            300,
             initialValue: tag,
             onChanged: (value) {
               setState(() {
@@ -798,8 +797,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             notifier.getbluewhitecolor,
             notifier.getblck,
             notifier.getgrey,
-            70.sp,
-            300.sp,
+            70,
+            300,
             initialValue: description,
             onSaved: (value) {
               print('description: $value');
@@ -819,8 +818,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
               notifier.getgrey,
               notifier.getbluewhitecolor,
               notifier.getblck,
-              70.sp,
-              300.sp,
+              70,
+              300,
               validator: (value) {
                 var trimmedVal = value!.trim().replaceAll(' ', '');
                 if (trimmedVal.isEmpty) {
@@ -1037,8 +1036,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         notifier.getgrey,
         notifier.getbluewhitecolor,
         notifier.getblck,
-        70.sp,
-        300.sp,
+        70,
+        300,
         validator: validatePassword,
         textInputAction: TextInputAction.done,
         onChanged: (value) {

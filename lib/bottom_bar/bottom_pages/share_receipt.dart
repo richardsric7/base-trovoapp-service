@@ -116,7 +116,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                         style: TextStyle(
                             color: notifier.getbluewhitecolor,
                             fontFamily: fontsemibold,
-                            fontSize: 22.sp),
+                            fontSize: 22),
                       ),
                       SizedBox(height: 3),
                       Container(
@@ -130,7 +130,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontFamily: fontbody,
-                              fontSize: 12.sp),
+                              fontSize: 12),
                         ),
                       ),
                       SizedBox(height: height / 50),
@@ -173,7 +173,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
-                                          fontSize: 16.sp,
+                                          fontSize: 16,
                                           fontFamily: fontsemibold,
                                         ),
                                       ),
@@ -245,7 +245,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                                           FontWeight.w500,
                                                       color: notifier
                                                           .getbluewhitecolor,
-                                                      fontSize: 13.sp,
+                                                      fontSize: 13,
                                                       fontFamily: fontbody,
                                                     ),
                                                   ),
@@ -273,7 +273,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
-                                          fontSize: 16.sp,
+                                          fontSize: 16,
                                           fontFamily: fontsemibold,
                                         ),
                                       ),
@@ -297,7 +297,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 16.sp,
+                                        fontSize: 16,
                                         fontFamily: fontsemibold,
                                       ),
                                     ),
@@ -316,7 +316,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 15.sp,
+                                        fontSize: 15,
                                         fontFamily: fontbody,
                                       ),
                                     ),
@@ -336,7 +336,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
-                                          fontSize: 16.sp,
+                                          fontSize: 16,
                                           fontFamily: fontsemibold,
                                         ),
                                       ),
@@ -352,7 +352,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                         style: TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: notifier.getbluewhitecolor,
-                                          fontSize: 15.sp,
+                                          fontSize: 15,
                                           fontFamily: fontbody,
                                         ),
                                       ),
@@ -372,7 +372,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 16.sp,
+                                        fontSize: 16,
                                         fontFamily: fontsemibold,
                                       ),
                                     ),
@@ -398,7 +398,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                                     TextDecoration.underline,
                                                 color:
                                                     notifier.getbluewhitecolor,
-                                                fontSize: 12.sp,
+                                                fontSize: 12,
                                                 fontWeight: FontWeight.w500,
                                                 fontFamily: fontbody,
                                               ),
@@ -422,7 +422,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 16.sp,
+                                        fontSize: 16,
                                         fontFamily: fontsemibold,
                                       ),
                                     ),
@@ -434,7 +434,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                       '$date',
                                       style: TextStyle(
                                         color: notifier.getbluewhitecolor,
-                                        fontSize: 13.sp,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.w500,
                                         fontFamily: fontbody,
                                       ),
@@ -526,7 +526,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluewhitecolor,
-                        fontSize: 15.sp,
+                        fontSize: 15,
                         fontFamily: fontbody,
                       ),
                     ),
@@ -546,7 +546,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluewhitecolor,
-                        fontSize: 13.sp,
+                        fontSize: 13,
                         fontFamily: fontbody,
                       ),
                     ),

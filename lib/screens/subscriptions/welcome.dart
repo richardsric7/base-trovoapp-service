@@ -169,7 +169,7 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                   for (var tier in tiers) {
                     if (tier['tier'] == grade['patronTier']) {
                       var t = PatronTier(
-                        id: tier['id'],
+                        id: grade['id'],
                         tier: tier['tier'],
                         canExpire: tier['canExpire'],
                         inactive: tier['inactive'],
@@ -267,35 +267,38 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                             ],
                           ),
                           SizedBox(height: height / 70),
-                          Text(
-                            "billingamount".tr(),
-                            textAlign: TextAlign.start,
-                            style: TextStyle(
-                                color: notifier.getgrey,
-                                fontSize: 13.sp,
-                                fontFamily: fontbody),
-                          ),
-                          Text(
-                            patronMembership?.patronTierId!.toLowerCase() ==
-                                    'monthly'
-                                ? "amountpermonth".tr(args: [
-                                    patronMembership?.price.toString() ?? '',
-                                  ])
-                                : patronMembership?.patronTierId!
-                                            .toLowerCase() ==
-                                        'annual'
-                                    ? "amountperyear".tr(args: [
-                                        patronMembership?.price.toString() ??
-                                            '',
-                                      ])
-                                    : "lifetimenobilling".tr(),
-                            textAlign: TextAlign.start,
-                            style: TextStyle(
-                                color: notifier.getbluewhitecolor,
-                                fontSize: 17.sp,
-                                fontFamily: fontsemibold),
-                          ),
-                          SizedBox(height: height / 70),
+                          if (patronMembership?.patronTierId!.toLowerCase() !=
+                              'lifetime') ...[
+                            Text(
+                              "billingamount".tr(),
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                  color: notifier.getgrey,
+                                  fontSize: 13.sp,
+                                  fontFamily: fontbody),
+                            ),
+                            Text(
+                              patronMembership?.patronTierId!.toLowerCase() ==
+                                      'monthly'
+                                  ? "amountpermonth".tr(args: [
+                                      patronMembership?.price.toString() ?? '',
+                                    ])
+                                  : patronMembership?.patronTierId!
+                                              .toLowerCase() ==
+                                          'annual'
+                                      ? "amountperyear".tr(args: [
+                                          patronMembership?.price.toString() ??
+                                              '',
+                                        ])
+                                      : "lifetimenobilling".tr(),
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                  color: notifier.getbluewhitecolor,
+                                  fontSize: 17.sp,
+                                  fontFamily: fontsemibold),
+                            ),
+                            SizedBox(height: height / 70),
+                          ],
                           Text(
                             "nextbilldate".tr(),
                             textAlign: TextAlign.start,
@@ -305,8 +308,11 @@ class _WelcomeSubscriptionsState extends State<WelcomeSubscriptions> {
                                 fontFamily: fontbody),
                           ),
                           Text(
-                            DateFormat('dd MMM, y')
-                                .format(patronMembership!.validTill!),
+                            patronMembership?.patronTierId!.toLowerCase() ==
+                                    'lifetime'
+                                ? "lifetimenobilling".tr()
+                                : DateFormat('dd MMM, y')
+                                    .format(patronMembership!.validTill!),
                             textAlign: TextAlign.start,
                             style: TextStyle(
                                 color: notifier.getbluewhitecolor,

@@ -134,21 +134,21 @@ class _ProfileDetailsState extends State<ProfileDetails> {
                 style: TextStyle(
                     color: notifier.getbluewhitecolor,
                     fontFamily: fontsemibold,
-                    fontSize: 16.sp),
+                    fontSize: 16),
               ),
               Text(
                 '@${appState.userInfo!.username}',
                 style: TextStyle(
                     color: notifier.getgrey,
                     fontFamily: fontsemibold,
-                    fontSize: 13.sp),
+                    fontSize: 13),
               ),
               Text(
                 '${"referralid".tr()}: ${appState.userInfo!.username}',
                 style: TextStyle(
                     color: notifier.getgrey,
                     fontFamily: fontsemibold,
-                    fontSize: 13.sp),
+                    fontSize: 13),
               ),
               // SizedBox(height: height / 20),
               // Padding(
@@ -160,7 +160,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               //         style: TextStyle(
               //             color: notifier.getbluewhitecolor,
               //             fontFamily: fontsemibold,
-              //             fontSize: 16.sp),
+              //             fontSize: 16),
               //       ),
               //     ],
               //   ),
@@ -176,7 +176,7 @@ class _ProfileDetailsState extends State<ProfileDetails> {
               //         style: TextStyle(
               //             color: notifier.getbluewhitecolor,
               //             fontFamily: fontsemibold,
-              //             fontSize: 16.sp),
+              //             fontSize: 16),
               //       ),
               //     ],
               //   ),

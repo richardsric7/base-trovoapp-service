@@ -10,8 +10,6 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/models/patronInfo.dart';
-import 'package:trovo_wallet/router/page_actions.dart';
-import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 
 import '../../custom_bloc_observer/fonts.dart';
@@ -106,21 +104,30 @@ class _SubscriptionPlanBenefitsState extends State<SubscriptionPlanBenefits> {
               tile(
                   '\$${patronInfo.patronTiers[0].price} per month',
                   'Billed per month',
-                  appState.userInfo?.patronMembership?.patronTierId!
-                          .toLowerCase() ==
-                      patronInfo.patronTiers[0].tier.toLowerCase()),
+                  (appState.userInfo?.patronMembership?.patronTierId!
+                              .toLowerCase() ==
+                          patronInfo.patronTiers[0].tier.toLowerCase() &&
+                      appState.userInfo?.patronMembership?.patronPackageId!
+                              .toLowerCase() ==
+                          patronInfo.patronPackage.toLowerCase())),
               tile(
                   '\$${patronInfo.patronTiers[1].price} per year',
                   'Billed annually',
-                  appState.userInfo?.patronMembership?.patronTierId!
-                          .toLowerCase() ==
-                      patronInfo.patronTiers[1].tier.toLowerCase()),
+                  (appState.userInfo?.patronMembership?.patronTierId!
+                              .toLowerCase() ==
+                          patronInfo.patronTiers[1].tier.toLowerCase() &&
+                      appState.userInfo?.patronMembership?.patronPackageId!
+                              .toLowerCase() ==
+                          patronInfo.patronPackage.toLowerCase())),
               tile(
                   '\$${patronInfo.patronTiers[2].price} per lifetime',
                   'Billed once',
-                  appState.userInfo?.patronMembership?.patronTierId!
-                          .toLowerCase() ==
-                      patronInfo.patronTiers[2].tier.toLowerCase()),
+                  (appState.userInfo?.patronMembership?.patronTierId!
+                              .toLowerCase() ==
+                          patronInfo.patronTiers[2].tier.toLowerCase() &&
+                      appState.userInfo?.patronMembership?.patronPackageId!
+                              .toLowerCase() ==
+                          patronInfo.patronPackage.toLowerCase())),
               SizedBox(height: height / 10),
             ],
           ),

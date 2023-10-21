@@ -110,7 +110,7 @@ class _SecurityQuestionsForInactiveAccounts
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
-                      fontSize: 30.sp,
+                      fontSize: 30,
                       fontFamily: fontsemibold),
                 ),
                 Text(
@@ -118,7 +118,7 @@ class _SecurityQuestionsForInactiveAccounts
                   textAlign: TextAlign.center,
                   style: TextStyle(
                       color: notifier.getbluewhitecolor,
-                      fontSize: 30.sp,
+                      fontSize: 30,
                       fontFamily: fontsemibold),
                 ),
                 SizedBox(height: height / 20),
@@ -333,8 +333,8 @@ class _SecurityQuestionsForInactiveAccounts
             notifier.getprefixicon,
             notifier.getblck,
             notifier.getgrey,
-            70.sp,
-            300.sp,
+            70,
+            300,
             // validator: validateEmail,
             onSaved: (value) {
               print('email: $value');

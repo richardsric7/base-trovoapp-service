@@ -3,7 +3,8 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 class FirebaseDynamicLinkInitializer {
   void initializeDeeplinking() async {
     try {
-      final dynamicLinkParams = DynamicLinkParameters(
+      // final dynamicLinkParams = DynamicLinkParameters(
+      DynamicLinkParameters(
         link: Uri.parse("https://trovowallet.page.link"),
         uriPrefix: "https://trovowallet.page.link",
         androidParameters: const AndroidParameters(
@@ -25,8 +26,8 @@ class FirebaseDynamicLinkInitializer {
         //   imageUrl: Uri.parse("https://example.com/image.png"),
         // ),
       );
-      final dynamicLink =
-          await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+      // final dynamicLink =
+      //     await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
     } catch (e) {
       print('===============> no network or something...$e');
     }

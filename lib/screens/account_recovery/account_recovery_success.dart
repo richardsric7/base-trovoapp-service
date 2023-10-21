@@ -66,7 +66,7 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: notifier.getbluewhitecolor,
-                        fontSize: 30.sp,
+                        fontSize: 30,
                         fontFamily: fontsemibold),
                   ),
                   SizedBox(width: width / 50),
@@ -75,7 +75,7 @@ class _AccountRecoverySuccess extends State<AccountRecoverySuccess> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: notifier.getbluewhitecolor,
-                        fontSize: 30.sp,
+                        fontSize: 30,
                         fontFamily: fontsemibold),
                   ),
                 ],

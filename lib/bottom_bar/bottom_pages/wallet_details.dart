@@ -131,7 +131,7 @@ class _WalletDetailsState extends State<WalletDetails>
               labelColor: notifier.getbluewhitecolor,
               indicatorColor: notifier.getbluewhitecolor,
               labelStyle: TextStyle(
-                fontSize: 14.sp,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 fontFamily: fontsemibold,
               ),
@@ -181,9 +181,7 @@ class _WalletDetailsState extends State<WalletDetails>
                               initialHiddenState: appState.hideBalances,
                               onHiddenStateChanged: (state) => {
                                 setState(
-                                  () => {
-                                    localHideBalance = state,
-                                  },
+                                  () => localHideBalance = state,
                                 )
                               },
                             ),

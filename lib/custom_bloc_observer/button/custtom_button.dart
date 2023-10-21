@@ -1,7 +1,6 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -181,7 +180,7 @@ class _ButtonOutlinedState extends State<ButtonOutlined> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontFamily: fontbody,
-                        fontSize: 15.sp,
+                        fontSize: 15,
                         color: widget.buttontextcolor),
                   ),
                 ),

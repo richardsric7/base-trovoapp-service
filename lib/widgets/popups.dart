@@ -313,6 +313,193 @@ Future<bool?> accountNotFoundPopup(BuildContext context) {
       });
 }
 
+Future<bool?> accountNotFoundAfterSwitchPopup(
+  BuildContext context, {
+  required void Function() onContinueWithCredentials,
+  required void Function() onImportNewCredential,
+  required void Function() onGoBackToPrevEnvironment,
+}) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  var appState = Provider.of<DataProvider>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            scrollable: true,
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
+            content: Container(
+              decoration: BoxDecoration(
+                color: notifier.getwihitecolor,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(23),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Center(
+                      child: Text(
+                        "oops".tr(),
+                        style: TextStyle(
+                            color: notifier.getblck,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: fontbody),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    constraints: BoxConstraints(
+                      maxHeight: height / 5,
+                    ),
+                    // height: height / 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10.0, horizontal: 5.0),
+                            child: Text(
+                              "accountnotfoundafterswitch"
+                                  .tr(args: [appState.walletMode]),
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w300,
+                                color: Colors.red,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 5.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Navigator.of(context).pop();
+                        onContinueWithCredentials();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        "continuewithcredentials".tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: notifier.getwihitecolor,
+                            fontFamily: fontbody),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0, vertical: 5.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Navigator.of(context).pop();
+                        // appState.currentAction = PageAction(
+                        //     state: PageState.addPage,
+                        //     page: ImportWalletPageConfig);
+                        onImportNewCredential();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getbluecolor90),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        "importanotherwallet".tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: notifier.getwihitecolor,
+                            fontFamily: fontbody),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // dismiss dialog,
+                        onGoBackToPrevEnvironment();
+                      },
+                      style: ButtonStyle(
+                        fixedSize: MaterialStateProperty.all(
+                          Size(width / 1.5, height / 20),
+                        ),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                            notifier.getsplashgrey),
+                        elevation: MaterialStateProperty.all<double>(0),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            notifier.getwihitecolor!),
+                        side: MaterialStateProperty.all(
+                          BorderSide(
+                              color: notifier.getgrey,
+                              width: 1,
+                              style: BorderStyle.solid),
+                        ),
+                        shape:
+                            MaterialStateProperty.all<RoundedRectangleBorder>(
+                          const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        "gobacktopreviousnet".tr(args: [
+                          appState.walletMode == 'Testnet'
+                              ? 'Mainnet'
+                              : 'Testnet'
+                        ]),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontFamily: fontbody),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: height / 50),
+                ],
+              ),
+            ));
+      });
+}
+
 void ensureBackupPrivacyDialog(context, action) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
@@ -4148,6 +4335,283 @@ showBuyTokenPopup(context,
                         ),
                         child: Text(
                           "cancel".tr(),
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: height / 50),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
+showSwitchEnvironmentPopup(context,
+    {required void Function() onProceed,
+    required void Function() onCancel,
+    required String toEnvironment}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                width: width / 1.1,
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "doyouwanttoswitch".tr(args: [toEnvironment]),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "appwillrestart".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // dismiss dialog,
+                          onProceed();
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "switchto".tr(args: [toEnvironment]),
+                          style: TextStyle(
+                              color: wihitecolor, fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // dismiss dialog,
+                          onCancel();
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          overlayColor: MaterialStateProperty.all<Color>(
+                              notifier.getsplashgrey),
+                          elevation: MaterialStateProperty.all<double>(0),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getwihitecolor!),
+                          side: MaterialStateProperty.all(
+                            BorderSide(
+                                color: notifier.getgrey,
+                                width: 1,
+                                style: BorderStyle.solid),
+                          ),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "cancel".tr(),
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: height / 50),
+                  ],
+                ),
+              ));
+        });
+      });
+}
+
+showSwitchModePopup(context,
+    {required void Function() onCreateWallet,
+    required void Function() onImportWallet,
+    required String toEnvironment}) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(0),
+              content: Container(
+                width: width / 1.1,
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "welcometothe".tr(args: [toEnvironment]),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: notifier.getbluewhitecolor,
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Center(
+                        child: Text(
+                          "whatwouldyouliketodo".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: notifier.getbluewhitecolor,
+                              fontSize: 15,
+                              fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // dismiss dialog,
+                          onCreateWallet();
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "createwallet".tr(),
+                          style: TextStyle(
+                              color: wihitecolor, fontFamily: fontbody),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // dismiss dialog,
+                          onImportWallet();
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          overlayColor: MaterialStateProperty.all<Color>(
+                              notifier.getsplashgrey),
+                          elevation: MaterialStateProperty.all<double>(0),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getwihitecolor!),
+                          side: MaterialStateProperty.all(
+                            BorderSide(
+                                color: notifier.getgrey,
+                                width: 1,
+                                style: BorderStyle.solid),
+                          ),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "importwallet".tr(),
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
                               fontFamily: fontbody),

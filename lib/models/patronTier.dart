@@ -1,5 +1,5 @@
 class PatronTier {
-  String id;
+  int id;
   String tier;
   int canExpire;
   int inactive;

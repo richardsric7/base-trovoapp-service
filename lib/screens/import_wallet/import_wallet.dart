@@ -7,7 +7,6 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/storage/cache.dart';
-import 'package:trovo_wallet/utils/enstring.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/models/user.dart';
@@ -188,6 +187,7 @@ class _ImportWalletState extends State<ImportWallet> {
                               if (trimmedVal.length < 56) {
                                 return "secretkeyinvalid".tr();
                               }
+                              return null;
                             },
                             onSaved: (value) {
                               secretKey = value!.trim().replaceAll(' ', '');

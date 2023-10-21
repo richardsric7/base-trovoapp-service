@@ -86,7 +86,6 @@ import 'package:trovo_wallet/screens/shared_access/update_shared_access_details.
 import 'package:trovo_wallet/screens/shared_access/welcome_to_shared_access.dart';
 import 'package:trovo_wallet/screens/subscriptions/authorize_subscription.dart';
 import 'package:trovo_wallet/screens/subscriptions/subscription_benefits.dart';
-import 'package:trovo_wallet/screens/subscriptions/subscription_plan_options.dart';
 import 'package:trovo_wallet/screens/subscriptions/subscription_plans.dart';
 import 'package:trovo_wallet/screens/subscriptions/welcome.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -370,10 +369,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.SubscriptionPlanBenefitsView:
           _addPageData(SubscriptionPlanBenefits(),
               SubscriptionPlanBenefitsViewPageConfig);
-          break;
-        case Pages.SubscriptionPlanOptionsView:
-          _addPageData(
-              SubscriptionPlanOptions(), SubscriptionPlanOptionsViewPageConfig);
           break;
         case Pages.AuthorizeSubscriptionView:
           _addPageData(
@@ -673,9 +668,6 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
       case Pages.SubscriptionPlanBenefitsView:
         SubscriptionPlanBenefitsViewPageConfig.currentPageAction = action;
         break;
-      case Pages.SubscriptionPlanOptionsView:
-        SubscriptionPlanOptionsViewPageConfig.currentPageAction = action;
-        break;
       case Pages.AuthorizeSubscriptionView:
         AuthorizeSubscriptionViewPageConfig.currentPageAction = action;
         break;
@@ -767,9 +759,7 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
   }
 
   void _removePage(MaterialPage page) {
-    if (page != null) {
-      _pages.remove(page);
-    }
+    _pages.remove(page);
   }
 
   void pop() {
