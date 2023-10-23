@@ -57,7 +57,6 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
     appState = Provider.of<DataProvider>(context, listen: true);
     activeWallet = appState.activeWallet;
     viewData = appState.viewData![AddSharedAccessDetailsViewPageConfig.key];
-    print('this is viewData');
     print(viewData);
 
     return ScreenUtilInit(

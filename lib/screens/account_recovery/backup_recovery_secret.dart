@@ -33,7 +33,6 @@ class _BackupRecoverySecretState extends State<BackupRecoverySecret> {
     state = Provider.of<DataProvider>(context, listen: true);
     var data = state.viewData![EnsurePrivacyPageConfig.key];
 
-    print(data);
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
