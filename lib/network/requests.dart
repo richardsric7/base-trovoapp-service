@@ -549,6 +549,7 @@ Future<Map> makeDeleteRequest({
 
 getRequestHeader({uri, signer, publicKey, secretKey}) async {
   var deviceID = await getDeviceDetails();
+  var appVersion = await getAppVersion();
   var ms = (new DateTime.now().toUtc()).millisecondsSinceEpoch;
   var serverTs = (ms / 1000).round().toString();
   var toSign = uri + signer + serverTs;
@@ -563,6 +564,7 @@ getRequestHeader({uri, signer, publicKey, secretKey}) async {
     "X-TW-PUBLIC-KEY": publicKey,
     "X-TW-SIGNER": signer,
     "X-TW-DEVICE-ID": deviceID,
+    "X-TW-APP-VERSION": appVersion,
     "X-TW-TIMESTAMP": serverTs
   };
 
