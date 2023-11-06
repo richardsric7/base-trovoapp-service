@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:calendar_calendar/calendar_calendar.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:trovo_wallet/storage/store.dart';
 
 class FCM {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -76,28 +78,15 @@ class FCM {
 // }
 
   Future<String> getPushNotificationToken() async {
-    // String? savedToken = await StoreData().storeGetData('token');
-    String? token = await _firebaseMessaging.getToken();
+    String? walletMode = await StoreData().storeGetData('walletMode');
+    String? token = await StoreData().storeGetData('${walletMode}-token');
+    if (token == null) {
+      var result = await _firebaseMessaging.getToken();
+      var createdAt = DateTime.now();
+      token = '${result!}|$createdAt';
+      await StoreData().storeInsertData('${walletMode}-token', token);
+    }
     print('FCM Token ${token}');
-    return token!;
-
-    //   print('------------------I have gotten the token----------------');
-    //   print('token: $token');
-    //   if (token.length > 50) {
-    //   // print('............passed...............');
-    //   if (savedToken == null) {
-    //     var body = '{"PushNotificationToken": "$strToken"}';
-    //     makePutRequest('/v2/users/$username', body, secretKey, publicKey);
-    //     await StoreData().storeInsertData('token', '$strToken');
-    //   } else if (savedToken != token) {
-    //     var body = '{"PushNotificationToken": "$strToken"}';
-    //     makePutRequest('/v2/users/$username', body, secretKey, publicKey);
-    //     await StoreData().storeInsertData('token', '$strToken');
-    //   } else {
-    //     //  print('Token $token exits and have not changed');
-    //   }
-    // } else {
-    //   // print('this Token $token not valid ');
-    // }
+    return token;
   }
 }

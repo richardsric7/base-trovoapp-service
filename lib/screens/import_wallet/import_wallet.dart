@@ -403,11 +403,8 @@ class _ImportWalletState extends State<ImportWallet> {
         appState.setTempPassword = password;
         appState.setTempPublicKey = creds.publicKey;
         appState.setTempSecretKey = creds.secretKey;
-        String? token = await StoreData().storeGetData('token');
-
-        if (token == null) {
-          token = await FCM().getPushNotificationToken();
-        }
+        String result = await FCM().getPushNotificationToken();
+        var token = result.split('|').first;
 
         Map responseData = await makeGetRequest(
             uri: '/v1/users/${username}?type=import&pnt=$token',

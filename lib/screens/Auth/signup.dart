@@ -833,11 +833,8 @@ class _SignUpState extends State<SignUp> {
 
       form.save();
 
-      String? token = await StoreData().storeGetData('token');
-
-      if (token == null) {
-        token = await FCM().getPushNotificationToken();
-      }
+      String result = await FCM().getPushNotificationToken();
+      var token = result.split('|').first;
 
       Map map = {
         'username': username,

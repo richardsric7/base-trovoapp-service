@@ -165,12 +165,6 @@ class _VeryficationState extends State<Veryfication> {
     try {
       showLoader(context);
 
-      String? token = await StoreData().storeGetData('token');
-
-      if (token == null) {
-        token = await FCM().getPushNotificationToken();
-      }
-
       Map map = {
         'username': state.userInfo!.username!,
         'email': state.userInfo!.email,

@@ -148,16 +148,22 @@ class _SplashScreenState extends State<SplashScreen>
             appState.setSplashFinished();
             appState.appIsOpen = true;
 
-            print('-------------> ${restartedAfterSwitch}');
             if (restartedAfterSwitch) {
               await importWalletAfterSwitch(appState, context);
             } else {
+              String result = await FCM().getPushNotificationToken();
+
+              var token = result.split('|').first;
+              DateTime createdAt = DateTime.parse(result.split('|').last);
+              var dateDifference = DateTime.now().difference(createdAt);
+
               updateUserInfo(
                 primaryWallet.signer,
                 appState.secretKeys[0],
                 primaryWallet.publicKey,
                 appState.userInfo!.username!,
                 appState,
+                pnt: dateDifference.inDays > 10 ? token : null,
               );
               getFiatRates(
                 primaryWallet.signer,
@@ -248,11 +254,10 @@ class _SplashScreenState extends State<SplashScreen>
     var signer = appState.primaryWallet.signer!;
     var publicKey = appState.primaryWallet.publicKey!;
     var secretKey = appState.secretKeys[0];
-    String? token = await StoreData().storeGetData('token');
 
-    if (token == null) {
-      token = await FCM().getPushNotificationToken();
-    }
+    String result = await FCM().getPushNotificationToken();
+    var token = result.split('|').first;
+
     Map responseData = await makeGetRequest(
         uri: '/v1/users/username?type=import&pnt=$token',
         // uri: '/v1/users/${username}?type=import&pnt=$token',
@@ -289,57 +294,53 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  void createUserAccountAfterSwitch() async {
-    try {
-      showLoader(context);
-      String? token = await StoreData().storeGetData('token');
+  // void createUserAccountAfterSwitch() async {
+  //   try {
+  //     showLoader(context);
+  //     String token = await FCM().getPushNotificationToken();
 
-      if (token == null) {
-        token = await FCM().getPushNotificationToken();
-      }
+  //     Map map = {
+  //       'username': appState.userInfo!.username,
+  //       'email': appState.userInfo!.email,
+  //       'firstName': appState.userInfo!.firstName,
+  //       'lastName': appState.userInfo!.lastName,
+  //       'mobile': appState.userInfo!.mobile,
+  //       'mobileCountryCode': appState.userInfo!.countryCode,
+  //       'referrer': appState.userInfo!.referrer,
+  //       'pushNotificationToken': token,
+  //       'corporate': appState.userInfo!.corporate,
+  //       'verificationCode': '',
+  //     };
 
-      Map map = {
-        'username': appState.userInfo!.username,
-        'email': appState.userInfo!.email,
-        'firstName': appState.userInfo!.firstName,
-        'lastName': appState.userInfo!.lastName,
-        'mobile': appState.userInfo!.mobile,
-        'mobileCountryCode': appState.userInfo!.countryCode,
-        'referrer': appState.userInfo!.referrer,
-        'pushNotificationToken': token,
-        'corporate': appState.userInfo!.corporate,
-        'verificationCode': '',
-      };
+  //     String jsonBody = jsonEncode(map);
 
-      String jsonBody = jsonEncode(map);
+  //     Map responseData = await makePostRequest(
+  //         uri: '/v1/users',
+  //         body: jsonBody,
+  //         signer: appState.primaryWallet.signer!,
+  //         publicKey: appState.primaryWallet.publicKey!,
+  //         secretKey: appState.primaryWallet.secretKey![0]);
 
-      Map responseData = await makePostRequest(
-          uri: '/v1/users',
-          body: jsonBody,
-          signer: appState.primaryWallet.signer!,
-          publicKey: appState.primaryWallet.publicKey!,
-          secretKey: appState.primaryWallet.secretKey![0]);
+  //     // print('$responseData');
+  //     hideLoader(context);
 
-      // print('$responseData');
-      hideLoader(context);
-
-      if (responseData['statusCode'] == 202) {
-        appState.currentAction =
-            PageAction(state: PageState.addPage, page: VerificationPageConfig);
-      } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
-      }
-    } catch (e) {
-      print(e);
-      hideLoader(context);
-      popup(context,
-          title: "error".tr(),
-          message: e.toString().contains('firebase')
-              ? 'Network error! Please check your connection and try again.'
-              : e.toString());
-    }
-  }
+  //     if (responseData['statusCode'] == 202) {
+  //       appState.currentAction =
+  //           PageAction(state: PageState.addPage, page: VerificationPageConfig);
+  //     } else {
+  //       popup(context,
+  //           title: "error".tr(), message: responseData['data']['message']);
+  //     }
+  //   } catch (e) {
+  //     print(e);
+  //     hideLoader(context);
+  //     popup(context,
+  //         title: "error".tr(),
+  //         message: e.toString().contains('firebase')
+  //             ? 'Network error! Please check your connection and try again.'
+  //             : e.toString());
+  //   }
+  // }
 
   @override
   void dispose() {

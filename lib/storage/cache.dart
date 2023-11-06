@@ -5,9 +5,13 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 
 Future<void> updateUserInfo(signer, secretKey, publicKey, username, appState,
-    {bool forceRefresh = false}) async {
+    {bool forceRefresh = false, String? pnt}) async {
   String uri = '/v1/users/$username';
   if (forceRefresh) uri += '?type=refresh';
+
+  if (pnt != null) uri += '?type=import&pnt=$pnt';
+
+  print('this is uri===============>>>>>>> $uri');
 
   Map responseData = await makeGetRequest(
     uri: uri,
