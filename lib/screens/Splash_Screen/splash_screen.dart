@@ -148,7 +148,8 @@ class _SplashScreenState extends State<SplashScreen>
             appState.setSplashFinished();
             appState.appIsOpen = true;
 
-            if (restartedAfterSwitch) {
+            if (true) {
+              // if (restartedAfterSwitch) {
               await importWalletAfterSwitch(appState, context);
             } else {
               String result = await FCM().getPushNotificationToken();
@@ -234,7 +235,7 @@ class _SplashScreenState extends State<SplashScreen>
                   fontSize: 35.sp),
             ),
             Text(
-              "Wallet",
+              "App",
               style: TextStyle(
                   color: notifier.getdarkgrey,
                   fontFamily: 'Matahari_Semi_Bold',
@@ -255,15 +256,19 @@ class _SplashScreenState extends State<SplashScreen>
     var publicKey = appState.primaryWallet.publicKey!;
     var secretKey = appState.secretKeys[0];
 
+    print('ggggggggggggggggggggggggggg => ${signer} => ${publicKey}');
+
     String result = await FCM().getPushNotificationToken();
     var token = result.split('|').first;
 
     Map responseData = await makeGetRequest(
-        uri: '/v1/users/username?type=import&pnt=$token',
-        // uri: '/v1/users/${username}?type=import&pnt=$token',
+        // uri: '/v1/users/ric?type=import&pnt=$token',
+        uri: '/v1/users/${username}?type=import&pnt=$token',
         signer: signer,
         publicKey: publicKey,
         secretKey: secretKey);
+
+    print('response==================> $responseData');
 
     if (responseData['statusCode'] == 200) {
       fetchNotifications(appState);
@@ -274,7 +279,8 @@ class _SplashScreenState extends State<SplashScreen>
     } else if (responseData['statusCode'] == 404) {
       accountNotFoundAfterSwitchPopup(
         context,
-        onContinueWithCredentials: () => {},
+        onContinueWithCredentials: () async =>
+            await createUserAccountAfterSwitch(),
         onImportNewCredential: () => {
           appState.currentAction =
               PageAction(state: PageState.addPage, page: ImportWalletPageConfig)
@@ -294,53 +300,58 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  // void createUserAccountAfterSwitch() async {
-  //   try {
-  //     showLoader(context);
-  //     String token = await FCM().getPushNotificationToken();
+  Future<void> createUserAccountAfterSwitch() async {
+    try {
+      showLoader(context);
+      appState.userInfo!.pushNotificationToken =
+          await FCM().getPushNotificationToken();
+      Map map = {
+        'username': appState.userInfo!.username,
+        'email': appState.userInfo!.email,
+        'firstName': appState.userInfo!.firstName,
+        'lastName': appState.userInfo!.lastName,
+        'mobile': appState.userInfo!.mobile,
+        'mobileCountryCode': 'NG',
+        'referrer': 'ric',
+        'pushNotificationToken': appState.userInfo!.pushNotificationToken,
+        'corporate': appState.userInfo!.corporate,
+        'verificationCode': '',
+      };
 
-  //     Map map = {
-  //       'username': appState.userInfo!.username,
-  //       'email': appState.userInfo!.email,
-  //       'firstName': appState.userInfo!.firstName,
-  //       'lastName': appState.userInfo!.lastName,
-  //       'mobile': appState.userInfo!.mobile,
-  //       'mobileCountryCode': appState.userInfo!.countryCode,
-  //       'referrer': appState.userInfo!.referrer,
-  //       'pushNotificationToken': token,
-  //       'corporate': appState.userInfo!.corporate,
-  //       'verificationCode': '',
-  //     };
+      print('creating user account after switch... ${map}');
 
-  //     String jsonBody = jsonEncode(map);
+      String jsonBody = jsonEncode(map);
 
-  //     Map responseData = await makePostRequest(
-  //         uri: '/v1/users',
-  //         body: jsonBody,
-  //         signer: appState.primaryWallet.signer!,
-  //         publicKey: appState.primaryWallet.publicKey!,
-  //         secretKey: appState.primaryWallet.secretKey![0]);
+      Map responseData = await makePostRequest(
+          uri: '/v1/users',
+          body: jsonBody,
+          signer: appState.primaryWallet.publicKey!,
+          publicKey: appState.primaryWallet.publicKey!,
+          secretKey: appState.secretKeys[0]);
 
-  //     // print('$responseData');
-  //     hideLoader(context);
+      // print('$responseData');
+      hideLoader(context);
 
-  //     if (responseData['statusCode'] == 202) {
-  //       appState.currentAction =
-  //           PageAction(state: PageState.addPage, page: VerificationPageConfig);
-  //     } else {
-  //       popup(context,
-  //           title: "error".tr(), message: responseData['data']['message']);
-  //     }
-  //   } catch (e) {
-  //     print(e);
-  //     hideLoader(context);
-  //     popup(context,
-  //         title: "error".tr(),
-  //         message: e.toString().contains('firebase')
-  //             ? 'Network error! Please check your connection and try again.'
-  //             : e.toString());
-  //   }
-  // }
+      if (responseData['statusCode'] == 202) {
+        appState.tempPublicKey = appState.primaryWallet.publicKey!;
+        appState.tempSecretKey = appState.secretKeys[0];
+        appState.tempSigner = appState.primaryWallet.publicKey!;
+        appState.currentAction =
+            PageAction(state: PageState.addPage, page: VerificationPageConfig);
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
+      print(e);
+      hideLoader(context);
+      popup(context,
+          title: "error".tr(),
+          message: e.toString().contains('firebase')
+              ? 'Network error! Please check your connection and try again.'
+              : e.toString());
+    }
+  }
 
   @override
   void dispose() {

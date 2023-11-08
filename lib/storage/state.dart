@@ -208,6 +208,12 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  String? tempSigner = '';
+  set setTempSigner(value) {
+    tempSigner = value;
+    notifyListeners();
+  }
+
   String tempReferrerUsername = '';
   set setTempReferrerUsername(value) {
     tempReferrerUsername = value;

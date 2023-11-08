@@ -171,8 +171,10 @@ class _VeryficationState extends State<Veryfication> {
         'firstName': state.userInfo!.firstName,
         'lastName': state.userInfo!.lastName,
         'mobile': state.userInfo!.mobile,
-        'mobileCountryCode': state.userInfo!.countryCode,
-        'referrer': state.userInfo!.referrer,
+        'mobileCountryCode': 'NG',
+        // 'mobileCountryCode': state.userInfo!.countryCode,
+        'referrer': 'ric',
+        // 'referrer': state.userInfo!.referrer,
         'pushNotificationToken': state.userInfo!.pushNotificationToken,
         'corporate': state.userInfo!.corporate,
         'verificationCode': otp,
@@ -183,11 +185,12 @@ class _VeryficationState extends State<Veryfication> {
 
       var publicKey = state.tempPublicKey;
       var secretKey = state.tempSecretKey;
+      var signer = state.tempSigner;
 
       Map responseData = await makePostRequest(
         uri: '/v1/users',
         body: jsonBody,
-        signer: publicKey,
+        signer: signer ?? publicKey,
         publicKey: publicKey,
         secretKey: secretKey,
       );
