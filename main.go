@@ -2,6 +2,8 @@ package main
 
 import (
 	cache "trovo-wallet-api/internal/cache"
+	paymentModels "trovo-wallet-api/internal/components/payments/models"
+	tErrors "trovo-wallet-api/internal/errors"
 	"trovo-wallet-api/internal/network"
 	pns "trovo-wallet-api/internal/pns"
 	"trovo-wallet-api/internal/sharedconfig"
@@ -17,7 +19,6 @@ import (
 	msc "trovo-wallet-api/internal/components/announcements/controllers"
 	callbacks "trovo-wallet-api/internal/components/callbacks/controllers"
 	payments "trovo-wallet-api/internal/components/payments/controllers"
-	paymentModels "trovo-wallet-api/internal/components/payments/models"
 	rates "trovo-wallet-api/internal/components/rates/controllers"
 	root "trovo-wallet-api/internal/components/root/controllers"
 	serviceLinks "trovo-wallet-api/internal/components/servicelinks/controllers"
@@ -579,6 +580,17 @@ func main() {
 
 	}()
 
+	//ACTIVATES PENDING PATRON SUBSCRIPTION
+	go func() {
+		err := UpdateUserPatronMemberships(database)
+		if err != nil {
+			log.Printf("[MAIN] error updating memberships: %v\n", err)
+			return
+		}
+		//clear the user cache
+
+	}()
+
 	{
 		if os.Getenv("ENABLE_CRYPTO_DEPOSIT_MINTING") == "1" {
 			go func() {
@@ -753,4 +765,78 @@ func main() {
 		log.Println(router.Run(":8080"))
 	}
 
+}
+
+func FindAllPendingSubscriptions(gc *gorm.DB) ([]userModels.UserPatronSubscriptionLog, error) {
+	var pendingSubscriptions []userModels.UserPatronSubscriptionLog
+	err := gc.Model(&userModels.UserPatronSubscriptionLog{}).
+		Where("CAST(effective_date AS DATE) >= CAST(? AS DATE)", time.Now()).
+		Find(&pendingSubscriptions).Error
+	if err != nil {
+		log.Printf("[FindPendingSubscriptions] error: %v\n", err)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return nil, err
+	}
+
+	return pendingSubscriptions, nil
+}
+
+func UpdateUserPatronMemberships(db *gorm.DB) error {
+	// Step 1: Fetch pending subscriptions
+	pendingSubscriptions, err := FindAllPendingSubscriptions(db)
+	if err != nil {
+		log.Printf("[UpdateUserPatronMemberships] NO PENDING memberships: %v\n", err)
+		return err
+	}
+	if len(pendingSubscriptions) == 0 {
+		log.Printf("[UpdateUserPatronMemberships] no pending memberships: %v\n", err)
+		return nil
+	}
+
+	// Step 2: Extract unique usernames
+	uniqueUsernames := make(map[string]struct{})
+	for _, subscription := range pendingSubscriptions {
+		uniqueUsernames[subscription.Username] = struct{}{}
+	}
+
+	// Step 3: Fetch UserPatronMemberships based on usernames
+	var memberships []userModels.UserPatronMembership
+	err = db.Where("username IN (?)", getUniqueUsernamesSlice(uniqueUsernames)).Find(&memberships).Error
+	if err != nil {
+		log.Printf("[UpdateUserPatronMemberships] error fetching memberships: %v\n", err)
+		err = &tErrors.ErrorTemporaryServerError{}
+		return err
+	}
+
+	// Step 4: Update UserPatronMemberships with data from subscriptions
+	for _, subscription := range pendingSubscriptions {
+		for i, membership := range memberships {
+			if membership.Username == subscription.Username {
+				// Update membership with data from subscription
+				memberships[i].PatronPackageID = subscription.PatronPackageID
+				memberships[i].PatronTierID = subscription.PatronTierID
+				memberships[i].ValidTill = subscription.ValidTill
+			}
+		}
+	}
+
+	// Save the updated memberships back to the database
+	for _, membership := range memberships {
+		err := db.Save(&membership).Error
+		if err != nil {
+			log.Printf("[UpdateUserPatronMemberships] error updating membership: %v\n", err)
+			err = &tErrors.ErrorTemporaryServerError{}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func getUniqueUsernamesSlice(uniqueUsernames map[string]struct{}) []string {
+	usernames := make([]string, 0, len(uniqueUsernames))
+	for username := range uniqueUsernames {
+		usernames = append(usernames, username)
+	}
+	return usernames
 }
