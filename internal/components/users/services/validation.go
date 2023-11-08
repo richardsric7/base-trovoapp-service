@@ -10,7 +10,7 @@ import (
 	"github.com/nyaruka/phonenumbers"
 )
 
-//NormalizeUserRegistrationInfo normalizes user registration info. lowercases usernames and emails., and trims space.
+// NormalizeUserRegistrationInfo normalizes user registration info. lowercases usernames and emails., and trims space.
 func NormalizeUserRegistrationInfo(user *usermodels.UserRegistrationInfo) {
 
 	user.Username = strings.TrimSpace(strings.ToLower(user.Username))
@@ -30,11 +30,12 @@ func NormalizeUserRegistrationInfo(user *usermodels.UserRegistrationInfo) {
 
 }
 
-//ValidateUserRegistrationInfo validates user registration info
+// ValidateUserRegistrationInfo validates user registration info
 func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 	//required parameters
 	{
 		if len(user.Username) == 0 {
+			log.Printf("[ValidateUserRegistrationInfo] failed due to missing parameter [%v]", "username")
 			return &tErrors.ErrorMissingParameter{Parameter: "username"}
 
 		}
@@ -77,43 +78,58 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 		if len(user.PublicKey) == 0 {
 			var x tErrors.ErrorMissingParameter
 			x.Parameter = "publicKey"
+			log.Printf("[ValidateUserRegistrationInfo] failed due to %v\n", x.Message())
+
 			return &x
 		}
 
 		if len(user.Email) == 0 {
 			var x tErrors.ErrorMissingParameter
 			x.Parameter = "email"
+			log.Printf("[ValidateUserRegistrationInfo] failed due to %v\n", x.Message())
+
 			return &x
 		}
 		if len(user.Mobile) == 0 {
 			var x tErrors.ErrorMissingParameter
 			x.Parameter = "mobile"
+			log.Printf("[ValidateUserRegistrationInfo] failed due to %v\n", x.Message())
+
 			return &x
 		}
 		if len(user.MobileCountryCode) == 0 {
 			var x tErrors.ErrorMissingParameter
 			x.Parameter = "mobileCountryCode"
+			log.Printf("[ValidateUserRegistrationInfo] failed due to %v\n", x.Message())
+
 			return &x
 		}
 		if len(user.LastName) == 0 && user.Corporate == 0 {
 			var x tErrors.ErrorMissingParameter
 			x.Parameter = "lastname"
+			log.Printf("[ValidateUserRegistrationInfo] failed due to %v\n", x.Message())
+
 			return &x
 		}
 		if len(user.FirstName) == 0 {
 			var x tErrors.ErrorMissingParameter
 			x.Parameter = "firstname"
+			log.Printf("[ValidateUserRegistrationInfo] failed due to %v\n", x.Message())
+
 			return &x
 		}
 		if len(user.LastName) > 50 {
+			log.Printf("[ValidateUserRegistrationInfo] failed due to invalid field %v\n", "lastName")
 
 			return &tErrors.ErrorInvalidName{Field: "lastName"}
 		}
 		if len(user.LastName) > 50 {
+			log.Printf("[ValidateUserRegistrationInfo] failed due to invalid field %v\n", "lastName")
 
 			return &tErrors.ErrorInvalidName{Field: "lastName"}
 		}
 		if len(user.FirstName) > 50 {
+			log.Printf("[ValidateUserRegistrationInfo] failed due to invalid field %v\n", "firstName")
 
 			return &tErrors.ErrorInvalidName{Field: "firstName"}
 		}
@@ -125,14 +141,15 @@ func ValidateUserRegistrationInfo(user usermodels.UserRegistrationInfo) error {
 		//check if first name contains numbers
 		for _, c := range []byte(strings.ToLower(user.FirstName)) {
 			if strings.Contains("1234567890_", string(c)) && user.Corporate == 0 {
-				log.Println("[ValidateUserRegistrationInfo] first name validation failed for ", user)
-				return &tErrors.ErrorNameFailedValidation{Detail: fmt.Sprintf("%v not allowed in firstname", string(c))}
+				e := tErrors.ErrorNameFailedValidation{Detail: fmt.Sprintf("%v not allowed in firstname", string(c))}
+				return &e
 			}
 		}
 		//check if last name contains numbers
 		if len(user.LastName) > 0 {
 			for _, c := range []byte(strings.ToLower(user.LastName)) {
 				if strings.Contains("1234567890_", string(c)) && user.Corporate == 0 {
+
 					log.Println("[ValidateUserRegistrationInfo] last name validation failed for ", user)
 
 					return &tErrors.ErrorNameFailedValidation{Detail: fmt.Sprintf("%v not allowed in lastname", string(c))}

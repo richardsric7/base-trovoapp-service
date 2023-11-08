@@ -45,15 +45,15 @@ func RegisterUser(userInfo userModels.UserRegistrationInfo, gc *sharedconfig.Glo
 	errValidation := ValidateUserRegistrationInfo(userInfo)
 
 	if errValidation != nil {
-		log.Printf("[RegisterUser]  Validation failed for user:%v, Error:%v", userInfo.Username, errValidation)
-		discord.Say(fmt.Sprintf("[RegisterUser]  Validation failed for user:%v, Error:%v", userInfo.Username, errValidation))
+		log.Printf("[RegisterUser]  Validation failed for user:%v, Error:%v[%v]", userInfo.Username, errValidation,errValidation.Error())
+		discord.Say(fmt.Sprintf("[RegisterUser]  Validation failed for user:%v, Error:%v[%v]", userInfo.Username, errValidation, errValidation.Error()))
 		return userInfo, false, errValidation
 	}
 
 	user, dbErrors := users.UserRegistrationDbChecks(userInfo, gc.DB)
 
 	if dbErrors != nil {
-		discord.Say(fmt.Sprintf("[RegisterUser] Registration DB check failed for user:%v, Error:%v", userInfo.Username, dbErrors))
+		discord.Say(fmt.Sprintf("[RegisterUser] Registration DB check failed for user:%v, Error:%v[%v]", userInfo.Username, dbErrors, dbErrors.Error()))
 		return userInfo, false, dbErrors
 	}
 

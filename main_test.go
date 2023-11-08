@@ -522,8 +522,8 @@ func TestCreateAccount(t *testing.T) {
 
 	// pk := "GCSTDHLYVVFGNPWASPOVAIRJOQVDDJJON2S3AB3LNXX3PDJCIGDMUQZM"
 	// secretKey := "SCIPZFUIWIZEHHAIHDQVOTGODPHMHNAZC2VBC7PN3YYD74PQYFHGCP4F"
-	pk := "GA3IWLP7QYBSUEISKHQZ2B7SOIOT2ITLXQDTWLR623VZEIN4NUOJVKYX"
-	secretKey := "SB5T6I3USO3FRAQTHOFTIYWD6JQ3RZFUBP3PK7LWQ2MBF4ZA47USY6QI"
+	pk := "GCWNKFHXYJ7XW6ZL3UFTKXBSRFK7EKBLXXRZQR6PIK3N2KBKQ74I3RIC"
+	secretKey := "SCX34AW7B6C46IHXOEPBZ4AWTAL7L3RV6UQKGLW65STXRWB4BHMRVBIS"
 	// pk := "GCZ77KBBPINJRHZEYZMCF7SSR5WZVDCUPFG6OSB6FORQVEJV2UOHBG3B" //ric1
 	// secretKey := "SA37LXNUXO62HXXL2SUXVLDCUA6SSQAOUSO2B3LNVMAO3WPE3RDK5OPZ" //ric1
 	// pk := os.Getenv("RICPK")
@@ -532,7 +532,8 @@ func TestCreateAccount(t *testing.T) {
 	// ownerUsername := "ric"
 	kp := keypair.MustParseFull(secretKey)
 	// log.Println(kp.Address())
-	baseURL := stagingURL
+	// baseURL := stagingURL
+	baseURL := prodURL
 	// var sEnc string
 	// if strings.Contains(ownerUsername, "/") {
 	// 	sEnc = base64.URLEncoding.EncodeToString([]byte(ownerUsername))
@@ -551,28 +552,28 @@ func TestCreateAccount(t *testing.T) {
 
 	}
 
-	payload := UserRegistrationInfo{
-		Username:          "crypto",
-		Email:             "richards.ric7@gmail.com",
-		FirstName:         "CryptoMinter",
-		LastName:          "Initator",
-		Mobile:            "+234-8050564392",
-		MobileCountryCode: "NG",
-		PublicKey:         pk,
-		Referrer:          "ric1",
-		VerificationCode:  "172579",
-	}
 	// payload := UserRegistrationInfo{
-	// 	Username:          "ric",
-	// 	Email:             "richardsric7@gmail.com",
-	// 	FirstName:         "Ric",
-	// 	LastName:          "Rcichards",
-	// 	Mobile:            "+234-8180067955",
+	// 	Username:          "crypto",
+	// 	Email:             "richards.ric7@gmail.com",
+	// 	FirstName:         "CryptoMinter",
+	// 	LastName:          "Initator",
+	// 	Mobile:            "+234-8050564392",
 	// 	MobileCountryCode: "NG",
 	// 	PublicKey:         pk,
-	// 	Referrer:          "",
-	// 	VerificationCode:  "120462",
+	// 	Referrer:          "ric1",
+	// 	VerificationCode:  "",
 	// }
+	payload := UserRegistrationInfo{
+		Username:          "ric",
+		Email:             "richardsric7@gmail.com",
+		FirstName:         "Ric",
+		LastName:          "Rcichards",
+		Mobile:            "+234-8180067955",
+		MobileCountryCode: "NG",
+		PublicKey:         pk,
+		Referrer:          "",
+		VerificationCode:  "397012",
+	}
 	errorResponse := new(ErrorResponse)
 	rResponse := new(map[string]string)
 
