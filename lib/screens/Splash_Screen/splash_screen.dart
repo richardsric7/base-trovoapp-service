@@ -234,7 +234,7 @@ class _SplashScreenState extends State<SplashScreen>
                   fontSize: 35.sp),
             ),
             Text(
-              "Wallet",
+              "App",
               style: TextStyle(
                   color: notifier.getdarkgrey,
                   fontFamily: 'Matahari_Semi_Bold',
