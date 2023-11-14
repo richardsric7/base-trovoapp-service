@@ -45,6 +45,7 @@ storeUserInfo(userInfoMap, state) async {
   // save useInfo to appstate
   state.setUser = UserInfo()
       .deserializeJson(userInfo, walletsSharedWithUser, assetBalances);
+  state.activeWallet = state.primaryWallet;
   state.setNFTs = nfts;
   state.setSharedWallets = walletsSharedWithUser;
   state.setassetBalances = assetBalances;
