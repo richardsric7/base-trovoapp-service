@@ -10,6 +10,7 @@ import 'package:trovo_wallet/storage/cache.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/models/user.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import '../../custom_bloc_observer/button/custtom_button.dart';
 import '../../custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
@@ -394,7 +395,7 @@ class _ImportWalletState extends State<ImportWallet> {
 
       Account? creds = usePassPhrase
           ? await getCredsFromPassPhrase()
-          : parseKey(secretKey!)!;
+          : parseKey(context, secretKey!)!;
 
       if (creds != null) {
         // store these credentials and the password before making request
@@ -411,7 +412,6 @@ class _ImportWalletState extends State<ImportWallet> {
             signer: creds.publicKey,
             publicKey: creds.publicKey,
             secretKey: creds.secretKey);
-        // print('response: ${responseData}');
 
         if (responseData['statusCode'] == 200) {
           fetchNotifications(appState);
@@ -526,20 +526,6 @@ class _ImportWalletState extends State<ImportWallet> {
       var trimmedPassprase = passPhrase!.trimLeft().trimRight();
       Account account = await TrovoWalletSDK()
           .retrieveCredentialsFromPassPhrase(trimmedPassprase);
-      return account;
-    } catch (e) {
-      print(e);
-      // must be some sort of server error
-      // let's throw it
-      popup(context, title: "error".tr(), message: "invalidcredentials".tr());
-      return null;
-    }
-  }
-
-  Account? parseKey(String secretKey) {
-    try {
-      Account account =
-          TrovoWalletSDK().parseSecretKey(secretKey.toUpperCase());
       return account;
     } catch (e) {
       print(e);

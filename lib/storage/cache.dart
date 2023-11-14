@@ -40,6 +40,7 @@ storeUserInfo(userInfoMap, state) async {
       .storeInsertData('walletsSharedWithUser', walletsSharedWithUser);
   await StoreData().storeInsertData('isFirstTime', false);
   await StoreData().storeInsertData('defaultAssets', defaultAssets);
+  await StoreData().storeInsertData('restartedAfterSwitch', false);
 
   // save useInfo to appstate
   state.setUser = UserInfo()

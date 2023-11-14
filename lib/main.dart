@@ -133,6 +133,8 @@ class _AppState extends State<App> {
         appState.currentAction =
             PageAction(state: PageState.replaceAll, page: OnboardingPageConfig);
       });
+    } else if (appState.restartedAfterSwitch) {
+      // do nothing
     } else {
       setState(() {
         appState.currentAction =

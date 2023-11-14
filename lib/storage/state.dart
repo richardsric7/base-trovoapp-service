@@ -25,6 +25,7 @@ class DataProvider with ChangeNotifier {
   List<String> secretKeys = [];
   bool isDark = false;
   bool biometricEnabled = false;
+  bool restartedAfterSwitch = false;
   bool isFirstTime = true;
   String timeout = '5'; // 5 minutes
   String? password;

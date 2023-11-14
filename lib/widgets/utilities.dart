@@ -141,6 +141,19 @@ String truncate(String text, {length = 7, omission = '...'}) {
   return text.replaceRange(length, text.length, omission);
 }
 
+Account? parseKey(BuildContext context, String secretKey) {
+  try {
+    Account account = TrovoWalletSDK().parseSecretKey(secretKey.toUpperCase());
+    return account;
+  } catch (e) {
+    print(e);
+    // must be some sort of server error
+    // let's throw it
+    popup(context, title: "error".tr(), message: "invalidcredentials".tr());
+    return null;
+  }
+}
+
 class doubleTypeFormatter extends TextInputFormatter {
   doubleTypeFormatter();
   @override

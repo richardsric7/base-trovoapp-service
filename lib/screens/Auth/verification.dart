@@ -276,6 +276,7 @@ class _VeryficationState extends State<Veryfication> {
     await StoreData().storeInsertData('publicKey', state.tempPublicKey);
     await StoreData()
         .storeInsertData('secretKey', <String>[state.tempSecretKey]);
+    await StoreData().storeInsertData('restartedAfterSwitch', false);
 
     // save useInfo to appstate
     state.setUser = UserInfo()
@@ -292,57 +293,6 @@ class _VeryficationState extends State<Veryfication> {
     state.currentAction =
         PageAction(state: PageState.addPage, page: CongratulationsPageConfig);
   }
-
-  // void resendOTP() async {
-  //   Map responseData = await postUserInfo();
-
-  //   if (responseData['statusCode'] == 200) {
-  //     popup(context,
-  //         title: "success".tr(),
-  //         message: "errormessage".tr() + responseData['data']['message']);
-  //   } else {
-  //     popup(context,
-  //         title: "error".tr(),
-  //         message: "errormessage".tr() + responseData['data']['message']);
-  //   }
-
-  //   resetTimer();
-  //   startTimer();
-  // }
-
-//   void startTimer() {
-//     countdownTimer =
-//         Timer.periodic(Duration(seconds: 1), (_) => setCountDown());
-//   }
-
-// // Step 4
-//   void stopTimer() {
-//     setState(() {
-//       countdownTimer!.cancel();
-//       countdownTimer = null;
-//     });
-//   }
-
-// // Step 5
-//   void resetTimer() {
-//     stopTimer();
-//     setState(() => myDuration = Duration(seconds: 10));
-//   }
-
-// // Step 6
-//   void setCountDown() {
-//     final reduceSecondsBy = 1;
-//     setState(() {
-//       final seconds = myDuration.inSeconds - reduceSecondsBy;
-//       if (seconds < 0) {
-//         print('stopping...');
-//         countdownTimer!.cancel();
-//         print('stopped!');
-//       } else {
-//         myDuration = Duration(seconds: seconds);
-//       }
-//     });
-//   }
 
   @override
   void dispose() {
