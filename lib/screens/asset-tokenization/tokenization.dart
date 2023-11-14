@@ -64,6 +64,45 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     return wallets;
   }
 
+  var listOfAssets = <Map<String, String>>[
+    {
+      "imageUrl": "",
+      "assetName": "ATLANTIS 1",
+      "assetClass": "Property",
+      "status": "Approved"
+    },
+    {
+      "imageUrl": "",
+      "assetName": "Cascadia Growth",
+      "assetClass": "Property",
+      "status": "Approved"
+    },
+    {
+      "imageUrl": "",
+      "assetName": "Titan Properties",
+      "assetClass": "Property",
+      "status": "Pending"
+    },
+    {
+      "imageUrl": "",
+      "assetName": "Kings Home",
+      "assetClass": "Property",
+      "status": "Pending"
+    },
+    {
+      "imageUrl": "",
+      "assetName": "Heart Realty",
+      "assetClass": "Property",
+      "status": "Rejected"
+    },
+    {
+      "imageUrl": "",
+      "assetName": "Infinity Productions",
+      "assetClass": "Property",
+      "status": "Approved",
+    },
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -90,251 +129,260 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
               notifier.getwihitecolor,
               scaffoldKey: key,
               showMenu: true,
-              txt: 'Asset Tokenization',
+              txt: '',
               titlecolor: notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
-            SizedBox(height: height / 50),
-            // ignore: dead_code
-            if (false) ...[
-              Container(
-                height: height / 1.3,
+            // SizedBox(height: height / 50),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Card(
+                shadowColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                color: notifier.isDark
+                    ? notifier.getaddsubwalletgrey
+                    : notifier.getbluecolor90,
                 child: Center(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        "assets/images/wallet.png",
-                        height: height / 2.5,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Card(
-                          shadowColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15.0),
-                          ),
-                          color: notifier.isDark
-                              ? notifier.getbluecolor90
-                              : notifier.getaddsubwalletgrey,
-                          child: Center(
-                            child: Column(
-                              children: [
-                                SizedBox(
-                                  height: height / 70,
-                                ),
-                                Text(
-                                  "welcometoassettokenization2".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontFamily: fontbody,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: height / 70,
-                                ),
-                                Text(
-                                  "welcometoassettokenization3".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    height: 1.4,
-                                    fontFamily: fontbody,
-                                    color: notifier.getbluewhitecolor,
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: height / 50,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
                       SizedBox(
-                        height: height / 20,
+                        height: height / 70,
                       ),
                       Text(
-                        'Coming Soon ...',
-                        overflow: TextOverflow.ellipsis,
+                        "welcometoassettokenization2".tr(),
+                        textAlign: TextAlign.center,
                         style: TextStyle(
+                          fontSize: 15,
                           fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
+                          color: notifier.getwihitecolor,
                         ),
                       ),
                       SizedBox(
-                        height: height / 90,
+                        height: height / 70,
+                      ),
+                      Text(
+                        "welcometoassettokenization3".tr(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.4,
+                          fontFamily: fontbody,
+                          color: notifier.getwihitecolor,
+                        ),
+                      ),
+                      SizedBox(
+                        height: height / 70,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () async {
+                              appState.currentAction = PageAction(
+                                state: PageState.addPage,
+                                page: WalletPreparationViewPageConfig,
+                              );
+                            },
+                            style: ButtonStyle(
+                              overlayColor: MaterialStateProperty.all<Color>(
+                                  notifier.getsplashgrey),
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  notifier.getbluewhitecolor),
+                              side: MaterialStateProperty.all(
+                                BorderSide(
+                                    color: notifier.getbluewhitecolor,
+                                    width: 1,
+                                    style: BorderStyle.solid),
+                              ),
+                              shape: MaterialStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            child: Container(
+                              width: width / 1.5,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_circle_rounded,
+                                    size: 20,
+                                    color: notifier.getwihitecolor,
+                                  ),
+                                  SizedBox(
+                                    width: 4,
+                                  ),
+                                  Text(
+                                    "Tokenize Asset",
+                                    style: TextStyle(
+                                        fontFamily: fontsemibold,
+                                        fontSize: 12,
+                                        color: notifier.getwihitecolor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: height / 50,
                       ),
                     ],
                   ),
                 ),
-              )
-            ] else ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Card(
-                  shadowColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15.0),
+              ),
+            ),
+            SizedBox(height: height / 70),
+            // Padding(
+            //   padding: const EdgeInsets.fromLTRB(20, 12.0, 20, 10.0),
+            //   child: TabBar(
+            //     controller: tabController,
+            //     labelColor: notifier.getbluewhitecolor,
+            //     indicatorColor: notifier.getbluewhitecolor,
+            //     labelStyle: TextStyle(
+            //       fontSize: 15.sp,
+            //       fontFamily: fontsemibold,
+            //     ),
+            //     tabs: [
+            //       Tab(
+            //         height: 20,
+            //         text: 'Primary Offering',
+            //       ),
+            //       Tab(
+            //         height: 20,
+            //         text: 'All Assets',
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            // Container(
+            //   height: height / 2.25,
+            //   child: TabBarView(controller: tabController, children: [
+            //     SingleChildScrollView(
+            //       child: Column(
+            //         children: [
+            //           for (var i = 10; i >= 0; i--) ...[
+            //             GestureDetector(
+            //               onTap: () {
+            //                 appState.currentAction = PageAction(
+            //                   state: PageState.addPage,
+            //                   page: TokenizedAssetDetailViewPageConfig,
+            //                 );
+            //               },
+            //               child: assetTile(
+            //                   '', 'ASSET $i', 'Property', i % 2 == 0),
+            //             ),
+            //           ],
+            //           SizedBox(height: height / 20),
+            //         ],
+            //       ),
+            //     ),
+            //     SingleChildScrollView(
+            //       child: Column(
+            //         children: [
+            //           for (var i = 0; i <= 10; i++) ...[
+            //             GestureDetector(
+            //                 onTap: () {
+            //                   appState.currentAction = PageAction(
+            //                     state: PageState.addPage,
+            //                     page: TokenizedAssetDetailViewPageConfig,
+            //                   );
+            //                 },
+            //                 child: assetTile(
+            //                     '', 'ASSET $i', 'Property', i % 2 == 0)),
+            //           ],
+            //           SizedBox(height: height / 20),
+            //         ],
+            //       ),
+            //     ),
+            //   ]),
+            // ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Tokenized Assets',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluecolor,
+                    ),
                   ),
-                  color: notifier.isDark
-                      ? notifier.getbluecolor90
-                      : notifier.getaddsubwalletgrey,
-                  child: Center(
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: height / 70,
-                        ),
-                        Text(
-                          "welcometoassettokenization".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                        SizedBox(
-                          height: height / 70,
-                        ),
-                        Text(
-                          "welcometoassettokenization2".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontFamily: fontbody,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                        SizedBox(
-                          height: height / 70,
-                        ),
-                        Text(
-                          "welcometoassettokenization3".tr(),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            height: 1.4,
-                            fontFamily: fontbody,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                        SizedBox(
-                          height: height / 70,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            SmallButton(
-                              'Tokenize asset',
-                              notifier.getbluewhitecolor!,
-                              notifier.getwihitecolor,
-                              onTap: () {
-                                appState.currentAction = PageAction(
-                                  state: PageState.addPage,
-                                  page: WalletPreparationViewPageConfig,
-                                );
-                              },
-                            ),
-                            SmallButtonOutlined(
-                              'See my assets',
-                              notifier.isDark
-                                  ? notifier.getbluecolor90
-                                  : notifier.getaddsubwalletgrey,
-                              notifier.getbluewhitecolor,
-                              onTap: () {
-                                appState.currentAction = PageAction(
-                                  state: PageState.addPage,
-                                  page: TokenizedAssetsListViewPageConfig,
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
-                      ],
+                  Icon(
+                    Icons.filter_list_outlined,
+                    color: notifier.getbluecolor,
+                  )
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Sort by:',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontbody,
+                      color: notifier.getbluecolor,
                     ),
                   ),
                 ),
-              ),
-              SizedBox(height: height / 70),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12.0, 20, 10.0),
-                child: TabBar(
-                  controller: tabController,
-                  labelColor: notifier.getbluewhitecolor,
-                  indicatorColor: notifier.getbluewhitecolor,
-                  labelStyle: TextStyle(
-                    fontSize: 15.sp,
+                Text(
+                  'All',
+                  style: TextStyle(
+                    fontSize: 13,
                     fontFamily: fontsemibold,
+                    color: notifier.getbluecolor,
                   ),
-                  tabs: [
-                    Tab(
-                      height: 20,
-                      text: 'Primary Offering',
-                    ),
-                    Tab(
-                      height: 20,
-                      text: 'All Assets',
-                    ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Container(
+              height: height / 1.78,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    for (var i = 0; i < listOfAssets.length; i++) ...[
+                      GestureDetector(
+                        onTap: () {
+                          appState.currentAction = PageAction(
+                            state: PageState.addPage,
+                            page: AssetDashboardViewPageConfig,
+                          );
+                        },
+                        child: assetTile(
+                          listOfAssets[i]['imageUrl'] ?? '',
+                          listOfAssets[i]['assetName'] ?? '',
+                          'Property',
+                          listOfAssets[i]['status'] ?? '',
+                        ),
+                      ),
+                    ],
+                    SizedBox(height: height / 20),
                   ],
                 ),
               ),
-              Container(
-                height: height / 2.25,
-                child: TabBarView(controller: tabController, children: [
-                  SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        for (var i = 10; i >= 0; i--) ...[
-                          GestureDetector(
-                            onTap: () {
-                              appState.currentAction = PageAction(
-                                state: PageState.addPage,
-                                page: TokenizedAssetDetailViewPageConfig,
-                              );
-                            },
-                            child: assetTile(
-                                '', 'ASSET $i', 'Property', i % 2 == 0),
-                          ),
-                        ],
-                        SizedBox(height: height / 20),
-                      ],
-                    ),
-                  ),
-                  SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        for (var i = 0; i <= 10; i++) ...[
-                          GestureDetector(
-                              onTap: () {
-                                appState.currentAction = PageAction(
-                                  state: PageState.addPage,
-                                  page: TokenizedAssetDetailViewPageConfig,
-                                );
-                              },
-                              child: assetTile(
-                                  '', 'ASSET $i', 'Property', i % 2 == 0)),
-                        ],
-                        SizedBox(height: height / 20),
-                      ],
-                    ),
-                  ),
-                ]),
-              ),
-            ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget assetTile(String imageUrl, String name, String type, isSubscribed) {
+  Widget assetTile(String imageUrl, String name, String type, String status) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
       shadowColor: Colors.black,
@@ -364,12 +412,15 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getblck,
+                  Container(
+                    width: width / 3.4,
+                    child: Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getblck,
+                      ),
                     ),
                   ),
                   Padding(
@@ -387,62 +438,44 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
               ),
             ],
           ),
-          trailing: ElevatedButton(
-            onPressed: () async {
-              isSubscribed
-                  ? showUnSubscribePopup(
-                      context,
-                      onDone: () {},
-                    )
-                  : showSubscribePopup(
-                      context,
-                      onDone: () {},
-                      dropdownItems: getStandardWallets,
-                    );
-            },
-            style: ButtonStyle(
-              overlayColor:
-                  MaterialStateProperty.all<Color>(notifier.getsplashgrey),
-              backgroundColor:
-                  MaterialStateProperty.all<Color>(notifier.getbluewhitecolor),
-              side: MaterialStateProperty.all(
-                BorderSide(
-                    color: notifier.getbluewhitecolor,
-                    width: 1,
-                    style: BorderStyle.solid),
+          trailing: Container(
+            width: width / 4,
+            child: Card(
+              shadowColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5.0),
               ),
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(
-                    Radius.circular(10),
+              color: notifier.isDark
+                  ? notifier.getbluecolor90
+                  : notifier.getaddsubwalletgrey,
+              child: Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: Text(
+                  status,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontFamily: fontsemibold,
+                    color: getStatusColor(status),
+                    overflow: TextOverflow.visible,
                   ),
                 ),
-              ),
-            ),
-            child: Container(
-              width: width / 4,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    isSubscribed ? 'Subscribed' : 'Subscribe',
-                    style: TextStyle(
-                        fontFamily: fontsemibold,
-                        fontSize: 12,
-                        color: notifier.getwihitecolor),
-                  ),
-                  Icon(
-                      isSubscribed
-                          ? Icons.check_circle
-                          : Icons.add_circle_rounded,
-                      size: 20,
-                      color: notifier.getwihitecolor),
-                ],
               ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  Color getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'rejected':
+        return Colors.red;
+      case 'approved':
+        return notifier.getgreencolor;
+      default: // pending
+        return notifier.getbluecolor;
+    }
   }
 }
