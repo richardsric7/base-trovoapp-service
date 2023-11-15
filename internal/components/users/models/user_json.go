@@ -21,6 +21,7 @@ type UserJSON struct {
 	PushNotificationToken  string                    `json:"pushNotificationToken"`
 	Corporate              int                       `json:"corporate"`
 	MobileVerified         int                       `json:"mobileVerified"`
+	CountryCode            string                    `json:"countryCode"`
 	MembershipType         int                       `json:"membershipType"`
 	MembershipExpiry       time.Time                 `json:"membershipExpiry"`
 	KYCVerified            int                       `json:"kycVerified"`

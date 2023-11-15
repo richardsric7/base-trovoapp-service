@@ -49,6 +49,9 @@ func (u *User) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj UserJSON) {
 		if u.PushNotificationToken != nil {
 			jsonObj.PushNotificationToken = *u.PushNotificationToken
 		}
+		if u.CountryCode != nil {
+			jsonObj.CountryCode = *u.CountryCode
+		}
 
 	}
 	{
