@@ -81,6 +81,8 @@ class _SplashScreenState extends State<SplashScreen>
   initializeAppData() async {
     try {
       fetchVersionInfo(appState);
+      appState.walletMode =
+          await StoreData().storeGetData('walletMode') ?? "Mainnet";
       appState.restartedAfterSwitch =
           await StoreData().storeGetData('restartedAfterSwitch') ?? false;
       appState.isFirstTime =
@@ -117,8 +119,6 @@ class _SplashScreenState extends State<SplashScreen>
           assetBalances,
         );
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');
-        appState.walletMode =
-            await StoreData().storeGetData('walletMode') ?? "Testnet";
         appState.setPassword = await StoreData().storeGetData('password');
         appState.biometricEnabled =
             await StoreData().storeGetData('biometricsEnabled') ?? false;
@@ -330,8 +330,8 @@ class _SplashScreenState extends State<SplashScreen>
         'firstName': appState.userInfo!.firstName,
         'lastName': appState.userInfo!.lastName,
         'mobile': appState.userInfo!.mobile,
-        'mobileCountryCode': 'NG',
-        'referrer': 'ric',
+        'mobileCountryCode': appState.userInfo!.countryCode,
+        'referrer': appState.userInfo!.referrer,
         'pushNotificationToken': appState.userInfo!.pushNotificationToken,
         'corporate': appState.userInfo!.corporate,
         'verificationCode': '',

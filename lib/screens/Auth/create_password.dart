@@ -193,6 +193,7 @@ class _CreatePassword extends State<CreatePassword> {
         appState.setTempPassword = password;
         appState.setTempPublicKey = account.publicKey;
         appState.setTempSecretKey = account.secretKey;
+        appState.setTempSigner = account.publicKey;
 
         hideLoader(context);
         appState.currentAction =
