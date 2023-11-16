@@ -1,8 +1,8 @@
 import 'dart:convert';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -12,6 +12,8 @@ import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
+import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
@@ -26,6 +28,7 @@ import 'package:trovo_wallet/utils/local_auth.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
+import 'package:trovo_wallet/widgets/wallet_slides.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
@@ -50,6 +53,11 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
   String? tag;
   String? description;
   String? secretKey;
+  late List<Wallet> carouselWallets;
+  late List<Wallet> wallets;
+  String? activeWallet;
+  int activeWalletIndex = 0;
+  late Asset gas;
   int isAssetIssuerWallet = 0;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   String password = '';
@@ -72,6 +80,34 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     'Market Making/Trade',
     'Bulk Payment'
   ];
+
+  var listOfAssets = <Map<String, String>>[
+    {
+      "imageUrl": "",
+      "assetName": "Animal Farm",
+      "assetClass": "Agriculture",
+      "balance": "2049"
+    },
+    {
+      "imageUrl": "",
+      "assetName": "Beacon Homes",
+      "assetClass": "Property",
+      "balance": "3250"
+    },
+    {
+      "imageUrl": "",
+      "assetName": "C-Vitals",
+      "assetClass": "Health",
+      "balance": "100"
+    },
+    {
+      "imageUrl": "",
+      "assetName": "Drinkfly",
+      "assetClass": "Beverage",
+      "balance": "4000"
+    }
+  ];
+
   int selectedWalletType = 0;
 
   List<DropdownMenuItem<String>> get walletTypeDropdownItems {
@@ -115,6 +151,9 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
       appState.walletView.actionText = "cancel".tr();
       appState.walletView.view = WalletView.addSubWallet;
     }
+    gas = appState.primaryWallet.claimedAssets!
+        .where((asset) => asset.assetCode == '')
+        .first;
   }
 
   @override
@@ -123,6 +162,13 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     userInfo = appState.userInfo!;
+    wallets = userInfo.wallets!;
+    carouselWallets =
+        wallets.length > 6 ? wallets.getRange(0, 6).toList() : wallets;
+
+    if ((activeWallet == null && wallets.length > 0)) {
+      activeWallet = wallets[0].publicKey;
+    }
 
     return Scaffold(
         key: key,
@@ -146,7 +192,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             children: [
               if (appState.walletView.view == WalletView.listWallets) ...[
                 Padding(
-                  padding: const EdgeInsets.all(10.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   child: Container(
                       color: notifier.getfavorites,
                       padding: EdgeInsets.all(8),
@@ -197,18 +243,74 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                           SizedBox(
                             width: width / 15,
                           ),
-                          GestureDetector(
-                            onTap: () => setState(() {
-                              isTileView = !isTileView;
-                            }),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SvgPicture.asset(
-                                isTileView
-                                    ? "assets/images/listview.svg"
-                                    : "assets/images/tileview.svg",
-                                color: notifier.getbluewhitecolor,
-                              ),
+                          // GestureDetector(
+                          //   onTap: () => setState(() {
+                          //     isTileView = !isTileView;
+                          //   }),
+                          //   child: Padding(
+                          //     padding: const EdgeInsets.all(8.0),
+                          //     child: SvgPicture.asset(
+                          //       isTileView
+                          //           ? "assets/images/listview.svg"
+                          //           : "assets/images/tileview.svg",
+                          //       color: notifier.getbluewhitecolor,
+                          //     ),
+                          //   ),
+                          // ),
+                          Expanded(
+                            child: Container(
+                              child: Card(
+                                  shadowColor: Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                  color: notifier.isDark
+                                      ? notifier.getbluecolor90
+                                      : notifier.getaddsubwalletgrey,
+                                  child: TextButton(
+                                    onPressed: () {
+                                      appState.viewData = {
+                                        'assetCode': '',
+                                        'assetIssuer': '',
+                                        'walletPublicKey':
+                                            appState.primaryWallet.publicKey,
+                                      };
+                                      appState.currentAction = PageAction(
+                                          state: PageState.addPage,
+                                          page: AssetDetailsViewPageConfig);
+                                    },
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          children: [
+                                            Icon(
+                                              Icons.local_gas_station,
+                                              color: notifier.getbluecolor,
+                                            ),
+                                            Container(
+                                              width: 100,
+                                              child: Text(
+                                                '${formatHistoryNumber(gas.amount!, 1000)} ${getAssetCode(gas.assetCode)}',
+                                                overflow: TextOverflow.visible,
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontFamily: fontsemibold,
+                                                  color: notifier.getbluecolor,
+                                                  overflow:
+                                                      TextOverflow.visible,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  )),
                             ),
                           ),
                         ],
@@ -219,25 +321,23 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   height: height / 40,
                 )
               ],
-              GestureDetector(
-                onTap: () {
-                  appState.viewData = {
-                    'walletPublicKey': appState.primaryWallet.publicKey
-                  };
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: WalletDetailsViewPageConfig);
-                },
-                child: walletListItem(
-                  appState.primaryWallet.alias!.capitalizeFirst,
-                  '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, appState.primaryWallet.claimedAssets!)} USD',
-                  '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, appState.primaryWallet.claimedAssets!)} ${appState.defaultCurrency}',
-                  notifier.getstructuredbluecolor,
-                ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
+              // GestureDetector(
+              //   onTap: () {
+              //     appState.viewData = {
+              //       'walletPublicKey': appState.primaryWallet.publicKey
+              //     };
+              //     appState.currentAction = PageAction(
+              //         state: PageState.addPage,
+              //         page: WalletDetailsViewPageConfig);
+              //   },
+              //   child: walletListItem(
+              //     appState.primaryWallet.alias!.capitalizeFirst,
+              //     '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, appState.primaryWallet.claimedAssets!)} USD',
+              //     '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, appState.primaryWallet.claimedAssets!)} ${appState.defaultCurrency}',
+              //     notifier.getstructuredbluecolor,
+              //   ),
+              // ),
+              walletSlides(wallets),
               GestureDetector(
                 onTap: () {
                   if (appState.walletView.view == WalletView.listWallets) {
@@ -265,7 +365,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     Icon(
                       appState.walletView.actionIcon,
                       color: notifier.getbluewhitecolor,
-                      size: 35,
+                      size: 30,
                     ),
                     SizedBox(
                       height: 5,
@@ -273,7 +373,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                     Text(
                       appState.walletView.actionText,
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 15,
                         fontWeight: FontWeight.w500,
                         color: notifier.getbluewhitecolor,
                         fontFamily: fontbody,
@@ -283,7 +383,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                 ),
               ),
               SizedBox(
-                height: height / 50,
+                height: height / 90,
               ),
               if (appState.walletView.view == WalletView.addSubWallet) ...[
                 addSubwallet()
@@ -291,7 +391,8 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
                   WalletView.confirmAddSubWallet) ...[
                 confirmAddSubwallet()
               ] else ...[
-                isTileView ? gridView() : walletListView(),
+                // isTileView ? gridView() : walletListView(),
+                showAssets(),
               ],
               Padding(
                   padding: EdgeInsets.only(
@@ -299,6 +400,225 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
             ],
           ),
         ));
+  }
+
+  Widget assetTile(String imageUrl, String name, String type, String balance) {
+    return Card(
+      elevation: notifier.isDark ? 0 : 5,
+      shadowColor: Colors.black,
+      color: notifier.gettilewihitecolor,
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: ListTile(
+          title: Row(
+            children: [
+              Image.network(
+                imageUrl,
+                height: 35,
+                width: 35,
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.asset(
+                    'assets/images/trovo.png',
+                    height: 35,
+                    width: 35,
+                  );
+                },
+              ),
+              SizedBox(width: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: width / 3.4,
+                    child: Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getblck,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      type,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: notifier.getblck,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          trailing: Container(
+            width: width / 4,
+            child: Text(
+              balance,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontFamily: fontsemibold,
+                color: notifier.getbluecolor,
+                overflow: TextOverflow.visible,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget showAssets() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Assets',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluecolor,
+                ),
+              ),
+              Icon(
+                Icons.filter_list_outlined,
+                color: notifier.getbluecolor,
+              )
+            ],
+          ),
+        ),
+        Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                'Sort by:',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontFamily: fontbody,
+                  color: notifier.getbluecolor,
+                ),
+              ),
+            ),
+            Text(
+              'Asset Tokens',
+              style: TextStyle(
+                fontSize: 13,
+                fontFamily: fontsemibold,
+                color: notifier.getbluecolor,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+        Container(
+          height: height / 2.3,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                for (var i = 0; i < listOfAssets.length; i++) ...[
+                  GestureDetector(
+                    onTap: () {
+                      appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: AssetDashboardViewPageConfig,
+                      );
+                    },
+                    child: assetTile(
+                      listOfAssets[i]['imageUrl'] ?? '',
+                      listOfAssets[i]['assetName'] ?? '',
+                      'Property',
+                      listOfAssets[i]['balance'] ?? '',
+                    ),
+                  ),
+                ],
+                SizedBox(height: height / 20),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget walletSlides(List<Wallet> wallets) {
+    var colors = [
+      notifier.getbluecolor,
+      notifier.getbluecolor90,
+      notifier.getbluecolor80,
+      notifier.getbluecolor70,
+      notifier.getbluecolor60,
+      notifier.getbluecolor50,
+    ];
+    return CarouselSlider(
+      options: CarouselOptions(
+        onPageChanged: ((index, reason) => {
+              setState(
+                () => {
+                  activeWalletIndex = index == 5 ? index - 1 : index,
+                  activeWallet = wallets[activeWalletIndex].publicKey,
+                },
+              ),
+            }),
+        height: height / 5.4,
+        padEnds: false,
+        enableInfiniteScroll: false,
+        clipBehavior: Clip.antiAlias,
+        viewportFraction: wallets.length > 1 ? 0.9 : 1,
+      ),
+      items: carouselWallets.map((wallet) {
+        var indexOfWallet = wallets.indexOf(wallet);
+        return Builder(
+          builder: (BuildContext context) {
+            return GestureDetector(
+              onTap: () {
+                appState.viewData = {
+                  'walletPublicKey': wallets[indexOfWallet].publicKey
+                };
+                appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: WalletDetailsViewPageConfig);
+              },
+              child: WalletSlide(
+                backColor: colors[wallets.indexOf(wallet)],
+                foreColor: getColor(context, indexOfWallet),
+                alias: wallet.alias!.capitalizeFirst!,
+                assetCount: wallet.claimedAssets?.length.toString(),
+                totalBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallets[indexOfWallet].claimedAssets!)} ${appState.defaultCurrency}',
+                fiatBalance: appState.defaultCurrency == 'USD'
+                    ? null
+                    : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallets[indexOfWallet].claimedAssets!)} USD',
+                initialHiddenState: appState.hideWalletList[indexOfWallet],
+                onHiddenStateChanged: (state) => {
+                  setState(
+                    () => {
+                      appState.hideWalletList[indexOfWallet] = state,
+                      StoreData().storeInsertData(
+                          'hideWalletList', appState.hideWalletList)
+                    },
+                  )
+                },
+              ),
+            );
+          },
+        );
+      }).toList(),
+    );
   }
 
   Widget gridView() {
@@ -1353,7 +1673,7 @@ class _WalletsState extends State<Wallets> with SingleTickerProviderStateMixin {
         // contains the secret key of the newly created subwallet
         await StoreData().storeInsertData('secretKey', appState.secretKeys);
         await updateUserInfo(
-          appState.primaryWallet.publicKey,
+          appState.primaryWallet.signer,
           appState.secretKeys[0],
           appState.primaryWallet.publicKey,
           userInfo.username,

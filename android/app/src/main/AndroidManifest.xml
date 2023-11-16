@@ -47,6 +47,20 @@
                 <category android:name="android.intent.category.DEFAULT" /> 
                 <category android:name="android.intent.category.BROWSABLE" /> 
                 <!-- Accepts URIs that begin with YOUR_SCHEME://YOUR_HOST --> 
+                <data android:scheme="https" android:host="trovowalletdev.page.link" /> 
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" /> 
+                <category android:name="android.intent.category.BROWSABLE" /> 
+                <!-- Accepts URIs that begin with YOUR_SCHEME://YOUR_HOST --> 
+                <data android:scheme="https" android:host="trovoapp.page.link" /> 
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" /> 
+                <category android:name="android.intent.category.BROWSABLE" /> 
+                <!-- Accepts URIs that begin with YOUR_SCHEME://YOUR_HOST --> 
                 <data android:scheme="https" android:host="trovowallet.page.link" /> 
             </intent-filter>
         </activity>

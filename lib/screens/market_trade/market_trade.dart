@@ -145,6 +145,7 @@ class _MarketTradeState extends State<MarketTrade>
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // ignore: dead_code
             if (false) ...[
               CustomAppBar(
                 context,

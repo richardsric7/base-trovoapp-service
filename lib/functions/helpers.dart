@@ -1,8 +1,8 @@
 import 'dart:io';
-
 import 'package:android_id/android_id.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 Future getDeviceDetails() async {
   String? identifier;
@@ -20,4 +20,11 @@ Future getDeviceDetails() async {
   }
 
   return identifier;
+}
+
+Future<String> getAppVersion() async {
+  PackageInfo packageInfo = await PackageInfo.fromPlatform();
+  var appVersion = packageInfo.version;
+  print('========> $appVersion');
+  return appVersion;
 }

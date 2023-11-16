@@ -43,11 +43,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   List<Asset>? unclaimedAssets;
   List<Asset>? claimedAssets;
   String? activeWallet;
-  int tabLength = 1;
+  int tabLength = 2;
   int activeTabIndex = 0;
   int activeWalletIndex = 0;
   var noOfTransactionsToSign;
   var noXbnBalance = false;
+  late Asset gas;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
 
   @override
@@ -59,6 +60,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     appState = Provider.of<DataProvider>(context, listen: false);
     appState.filterQuery = "&transactionStatus=PENDING";
     appState.getApprovals();
+    gas = appState.primaryWallet.claimedAssets!
+        .where((asset) => asset.assetCode == '')
+        .first;
   }
 
   void tabListener() {
@@ -101,13 +105,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     // in order to make assets tab length dynamic we have to check
     // for when we have pending asset and then change the tablength
     // to 3 or back to 2 when we do not have pending assets.
-    if (unclaimedAssets != null && unclaimedAssets!.length > 0) {
-      // if (activeTabIndex == _tabController.length - 1) activeTabIndex = 1;
-      tabLength = 2;
-    } else {
-      tabLength = 1;
-      // if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
-    }
+    // if (unclaimedAssets != null && unclaimedAssets!.length > 0) {
+    //   // if (activeTabIndex == _tabController.length - 1) activeTabIndex = 1;
+    //   tabLength = 2;
+    // } else {
+    //   tabLength = 1;
+    //   // if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
+    // }
 
     if (tabLength != _tabController.length) {
       // change the length of tabController too or you will have an error
@@ -241,7 +245,201 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     SizedBox(
                       height: height / 70,
                     ),
-                    assetsTabs(),
+                    // assetsTabs(),
+                    // area of new screen
+                    // //////////////////
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  height: height / 12,
+                                  child: Card(
+                                      shadowColor: Colors.black,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                      ),
+                                      color: notifier.isDark
+                                          ? notifier.getbluecolor90
+                                          : notifier.getaddsubwalletgrey,
+                                      child: TextButton(
+                                        onPressed: () {
+                                          appState.viewData = {
+                                            'assetCode': '',
+                                            'assetIssuer': '',
+                                            'walletPublicKey': activeWallet,
+                                          };
+
+                                          appState.currentAction = PageAction(
+                                              state: PageState.addPage,
+                                              page: AssetDetailsViewPageConfig);
+                                        },
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.local_gas_station,
+                                                  color: notifier.getbluecolor,
+                                                ),
+                                                Text(
+                                                  "Gas",
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: fontsemibold,
+                                                    color:
+                                                        notifier.getbluecolor,
+                                                    overflow:
+                                                        TextOverflow.visible,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  '${formatHistoryNumber(gas.amount!, 1000)} ${getAssetCode(gas.assetCode)}',
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: fontsemibold,
+                                                    color:
+                                                        notifier.getbluecolor,
+                                                    overflow:
+                                                        TextOverflow.visible,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      )),
+                                ),
+                              ),
+                              Expanded(
+                                child: Container(
+                                  height: height / 12,
+                                  child: Card(
+                                      shadowColor: Colors.black,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                      ),
+                                      color: notifier.isDark
+                                          ? notifier.getbluecolor90
+                                          : notifier.getaddsubwalletgrey,
+                                      child: TextButton(
+                                        onPressed: () {
+                                          changeTabPage(appState,
+                                              ButtomTabPage.Wallets.index);
+                                        },
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceAround,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Card(
+                                                  shadowColor: Colors.black,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0),
+                                                  ),
+                                                  color:
+                                                      notifier.getbluecolor90,
+                                                  child: Icon(
+                                                    Icons.arrow_outward,
+                                                    color:
+                                                        notifier.getwihitecolor,
+                                                    size: 20,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "See Assets",
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: fontsemibold,
+                                                    color:
+                                                        notifier.getbluecolor,
+                                                    overflow:
+                                                        TextOverflow.visible,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  "24 Assets",
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontFamily: fontsemibold,
+                                                    color:
+                                                        notifier.getbluecolor,
+                                                    overflow:
+                                                        TextOverflow.visible,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      )),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: height / 50),
+                          DefaultTabController(
+                            length: tabLength,
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: tabLength == 2 ? 0 : 100,
+                                  ),
+                                  child: TabBar(
+                                    controller: _tabController,
+                                    labelColor: notifier.getbluewhitecolor,
+                                    indicatorColor: notifier.getbluewhitecolor,
+                                    labelStyle: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: fontsemibold,
+                                    ),
+                                    tabs: [
+                                      Tab(
+                                        height: 20,
+                                        text: "Primary Listing".tr(),
+                                      ),
+                                      Tab(
+                                        height: 20,
+                                        text: "Secondary Listing".tr(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                listingTabs(),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: height / 70,
+                          ),
+                        ],
+                      ),
+                    )
                   ] else ...[
                     showFundWallet(),
                   ]
@@ -250,6 +448,68 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  var listOfAssets = <Map<String, String>>[
+    {"imageUrl": "", "assetName": "ATLANTIS 1", "assetClass": "Property"},
+    {"imageUrl": "", "assetName": "Orchard Estate", "assetClass": "Property"},
+    {"imageUrl": "", "assetName": "Beacon Homes", "assetClass": "Property"},
+    {"imageUrl": "", "assetName": "Animal Farm", "assetClass": "Property"},
+  ];
+
+  Widget listingTabs() {
+    return Container(
+      height: height / 2.21,
+      child: TabBarView(
+        controller: _tabController,
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                for (var i = 0; i < listOfAssets.length; i++) ...[
+                  GestureDetector(
+                    onTap: () {
+                      appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: TokenizedAssetDetailViewPageConfig,
+                      );
+                    },
+                    child: assetTile(
+                        listOfAssets[i]['imageUrl'] ?? '',
+                        listOfAssets[i]['assetName'] ?? '',
+                        'Property',
+                        i % 2 == 0),
+                  ),
+                ],
+                SizedBox(height: height / 20),
+              ],
+            ),
+          ),
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                for (var i = 0; i < listOfAssets.length; i++) ...[
+                  GestureDetector(
+                    onTap: () {
+                      appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: TokenizedAssetDetailViewPageConfig,
+                      );
+                    },
+                    child: assetTile(
+                        listOfAssets[i]['imageUrl'] ?? '',
+                        listOfAssets[i]['assetName'] ?? '',
+                        'Property',
+                        i % 2 == 0),
+                  ),
+                ],
+                SizedBox(height: height / 20),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -713,6 +973,131 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         ),
       ), //SizedBox
     );
+  }
+
+  Widget assetTile(String imageUrl, String name, String type, isSubscribed) {
+    return Card(
+      elevation: notifier.isDark ? 0 : 5,
+      shadowColor: Colors.black,
+      color: notifier.gettilewihitecolor,
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: ListTile(
+          title: Row(
+            children: [
+              Image.network(
+                imageUrl,
+                height: 35,
+                width: 35,
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.asset(
+                    'assets/images/trovo.png',
+                    height: 35,
+                    width: 35,
+                  );
+                },
+              ),
+              SizedBox(width: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getblck,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      type,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: notifier.getblck,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          trailing: ElevatedButton(
+            onPressed: () async {
+              isSubscribed
+                  ? showUnSubscribePopup(
+                      context,
+                      onDone: () {},
+                    )
+                  : showSubscribePopup(
+                      context,
+                      onDone: () {},
+                      dropdownItems: getStandardWallets,
+                    );
+            },
+            style: ButtonStyle(
+              overlayColor:
+                  MaterialStateProperty.all<Color>(notifier.getsplashgrey),
+              backgroundColor:
+                  MaterialStateProperty.all<Color>(notifier.getbluewhitecolor),
+              side: MaterialStateProperty.all(
+                BorderSide(
+                    color: notifier.getbluewhitecolor,
+                    width: 1,
+                    style: BorderStyle.solid),
+              ),
+              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+            child: Container(
+              width: width / 4,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    isSubscribed ? 'Subscribed' : 'Subscribe',
+                    style: TextStyle(
+                        fontFamily: fontsemibold,
+                        fontSize: 11,
+                        color: notifier.getwihitecolor),
+                  ),
+                  Icon(
+                      isSubscribed
+                          ? Icons.check_circle
+                          : Icons.add_circle_rounded,
+                      size: 18,
+                      color: notifier.getwihitecolor),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<DropdownMenuItem<String>> get getStandardWallets {
+    List<DropdownMenuItem<String>> wallets = [];
+    appState.userInfo!.getStandardWallets.forEach((wallet) {
+      wallets.add(DropdownMenuItem(
+          child: Text(
+            wallet.alias!,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: wallet.publicKey));
+    });
+    return wallets;
   }
 
   Widget walletSlides(List<Wallet> wallets) {

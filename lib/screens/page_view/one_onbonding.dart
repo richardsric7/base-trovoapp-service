@@ -54,7 +54,7 @@ class _OneonbondingState extends State<Oneonbonding> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         color: notifier.getblck,
-                        fontSize: 25.sp,
+                        fontSize: 29.sp,
                         fontFamily: fontsemibold),
                   ),
                 ],

@@ -26,7 +26,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform(
-          await StoreData().storeGetData('walletMode') ?? "Testnet"));
+          await StoreData().storeGetData('walletMode') ?? "Mainnet"));
   print(
       '-----------------------------------------------this is the initialized app from main method:  ${DefaultFirebaseOptions.currentPlatform(await StoreData().storeGetData('walletMode') ?? "Testnet")}');
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
@@ -133,6 +133,8 @@ class _AppState extends State<App> {
         appState.currentAction =
             PageAction(state: PageState.replaceAll, page: OnboardingPageConfig);
       });
+    } else if (appState.restartedAfterSwitch) {
+      // do nothing
     } else {
       setState(() {
         appState.currentAction =

@@ -318,6 +318,7 @@ Future<bool?> accountNotFoundAfterSwitchPopup(
   required void Function() onContinueWithCredentials,
   required void Function() onImportNewCredential,
   required void Function() onGoBackToPrevEnvironment,
+  String? message,
 }) {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   var appState = Provider.of<DataProvider>(context, listen: false);
@@ -368,8 +369,10 @@ Future<bool?> accountNotFoundAfterSwitchPopup(
                             padding: const EdgeInsets.symmetric(
                                 vertical: 10.0, horizontal: 5.0),
                             child: Text(
-                              "accountnotfoundafterswitch"
-                                  .tr(args: [appState.walletMode]),
+                              message != null
+                                  ? message
+                                  : "accountnotfoundafterswitch"
+                                      .tr(args: [appState.walletMode]),
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w300,
@@ -382,47 +385,45 @@ Future<bool?> accountNotFoundAfterSwitchPopup(
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 5.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Navigator.of(context).pop();
-                        onContinueWithCredentials();
-                      },
-                      style: ButtonStyle(
-                        fixedSize: MaterialStateProperty.all(
-                          Size(width / 1.5, height / 20),
-                        ),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            notifier.getbluecolor),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                          const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
+                  if (message == null) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0, vertical: 5.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Navigator.of(context).pop();
+                          onContinueWithCredentials();
+                        },
+                        style: ButtonStyle(
+                          fixedSize: MaterialStateProperty.all(
+                            Size(width / 1.5, height / 20),
+                          ),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluecolor),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      child: Text(
-                        "continuewithcredentials".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: notifier.getwihitecolor,
-                            fontFamily: fontbody),
+                        child: Text(
+                          "continuewithcredentials".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: notifier.getwihitecolor,
+                              fontFamily: fontbody),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 10.0, vertical: 5.0),
                     child: ElevatedButton(
                       onPressed: () {
-                        // Navigator.of(context).pop();
-                        // appState.currentAction = PageAction(
-                        //     state: PageState.addPage,
-                        //     page: ImportWalletPageConfig);
                         onImportNewCredential();
                       },
                       style: ButtonStyle(

@@ -5,9 +5,13 @@ import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 
 Future<void> updateUserInfo(signer, secretKey, publicKey, username, appState,
-    {bool forceRefresh = false}) async {
+    {bool forceRefresh = false, String? pnt}) async {
   String uri = '/v1/users/$username';
   if (forceRefresh) uri += '?type=refresh';
+
+  if (pnt != null) uri += '?type=import&pnt=$pnt';
+
+  print('this is uri===============>>>>>>> $uri');
 
   Map responseData = await makeGetRequest(
     uri: uri,
@@ -36,10 +40,12 @@ storeUserInfo(userInfoMap, state) async {
       .storeInsertData('walletsSharedWithUser', walletsSharedWithUser);
   await StoreData().storeInsertData('isFirstTime', false);
   await StoreData().storeInsertData('defaultAssets', defaultAssets);
+  await StoreData().storeInsertData('restartedAfterSwitch', false);
 
   // save useInfo to appstate
   state.setUser = UserInfo()
       .deserializeJson(userInfo, walletsSharedWithUser, assetBalances);
+  state.activeWallet = state.primaryWallet;
   state.setNFTs = nfts;
   state.setSharedWallets = walletsSharedWithUser;
   state.setassetBalances = assetBalances;

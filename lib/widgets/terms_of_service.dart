@@ -10,8 +10,8 @@ import '../utils/medeiaqury/medeiaqury.dart';
 
 class TermsOfService extends StatefulWidget {
   final void Function(bool?)? onChanged;
-  bool value;
-  bool showError;
+  final bool value;
+  final bool showError;
 
   TermsOfService({
     Key? key,
@@ -33,7 +33,7 @@ class _TermsOfServiceState extends State<TermsOfService> {
     notifier = Provider.of<ColorNotifier>(context, listen: false);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
+    appState = Provider.of<DataProvider>(context, listen: false);
     return termsOfService();
   }
 

@@ -9,11 +9,11 @@ import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 
 class TopDropdowns extends StatefulWidget {
-  void Function(String newValue) onWalletChanged;
-  void Function(String newValue)? onAssetChanged;
-  List<Asset> claimedAssets;
-  String? selectedWallet;
-  String? selectedAsset;
+  final void Function(String newValue) onWalletChanged;
+  final void Function(String newValue)? onAssetChanged;
+  final List<Asset> claimedAssets;
+  final String? selectedWallet;
+  final String? selectedAsset;
 
   TopDropdowns({
     Key? key,

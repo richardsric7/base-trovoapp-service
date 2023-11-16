@@ -14,7 +14,6 @@ class WithdrawalTransactionModel {
   late double withdrawalServiceFee;
   late double amountSubmitted;
   late double amountToWithdraw;
-// nin, passport 1, efe church red anglican envelop.
   WithdrawalTransactionModel({
     required this.createdAt,
     required this.id,

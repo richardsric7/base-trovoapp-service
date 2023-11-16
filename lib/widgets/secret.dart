@@ -10,9 +10,9 @@ import 'package:trovo_wallet/widgets/utilities.dart';
 import '../custom_bloc_observer/fonts.dart';
 
 class Secret extends StatefulWidget {
-  late String alias;
-  late String secret;
-  late String publicKey;
+  late final String alias;
+  late final String secret;
+  late final String publicKey;
   Secret(
     this.alias,
     this.secret,

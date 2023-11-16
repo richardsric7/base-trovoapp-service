@@ -417,7 +417,6 @@ class _SecurityQuestions extends State<SecurityQuestions> {
       );
 
       print('response: $responseData');
-      hideLoader(context);
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(signer, secretKey, publicKey, username, appState);
@@ -441,9 +440,11 @@ class _SecurityQuestions extends State<SecurityQuestions> {
         popup(context,
             title: "error".tr(), message: responseData['data']['message']);
       }
+      hideLoader(context);
     } catch (e) {
       print(e);
       popup(context, title: "error".tr(), message: e.toString());
+      hideLoader(context);
     }
   }
 

@@ -13,19 +13,21 @@ import 'package:local_auth/error_codes.dart' as auth_error;
 import 'popups.dart';
 
 class WalletSlide extends StatefulWidget {
-  String alias;
-  String totalBalance;
-  String? fiatBalance;
-  Color backColor;
-  Color foreColor;
-  bool initialHiddenState;
-  void Function(bool)? onHiddenStateChanged;
+  final String alias;
+  final String totalBalance;
+  final String? fiatBalance;
+  final String? assetCount;
+  final Color backColor;
+  final Color foreColor;
+  final bool initialHiddenState;
+  final void Function(bool)? onHiddenStateChanged;
 
   WalletSlide({
     Key? key,
     required this.alias,
     required this.totalBalance,
     this.fiatBalance,
+    this.assetCount,
     required this.backColor,
     required this.foreColor,
     required this.initialHiddenState,
@@ -76,7 +78,7 @@ class _WalletSlideState extends State<WalletSlide> {
                       vertical: 35.0, horizontal: 20),
                   child: Image.asset(
                     'assets/images/trovo_white.png',
-                    width: 80,
+                    width: 40,
                   ),
                 ),
               ],
@@ -88,16 +90,33 @@ class _WalletSlideState extends State<WalletSlide> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Container(
-                    width: width / 2,
-                    child: Text(
-                      widget.alias,
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: widget.foreColor,
-                          fontFamily: fontsemibold),
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        width: width / 2.5,
+                        child: Text(
+                          widget.alias,
+                          style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: widget.foreColor,
+                              fontFamily: fontsemibold),
+                        ),
+                      ),
+                      if (widget.assetCount != null) ...[
+                        Container(
+                          child: Text(
+                            '${widget.assetCount} Assets',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: widget.foreColor,
+                                fontFamily: fontsemibold),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   SizedBox(
                     height: height / 90,

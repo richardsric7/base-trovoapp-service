@@ -41,22 +41,22 @@ class Custompasswordtextfild {
 }
 
 class CustomPasswordFormField extends StatefulWidget {
-  String? labelText;
-  Color? focusColor;
-  IconData? preIcon;
-  Color? labelColor;
-  Color? iconColor;
-  Color? textColor;
-  double? height;
-  double? width;
-  int? maxLength;
-  TextEditingController? controller;
+  final String? labelText;
+  final Color? focusColor;
+  final IconData? preIcon;
+  final Color? labelColor;
+  final Color? iconColor;
+  final Color? textColor;
+  final double? height;
+  final double? width;
+  final int? maxLength;
+  final TextEditingController? controller;
   final void Function(String?)? onChanged;
   final void Function(String?)? onSubmitted;
   final String? Function(String?)? validator;
   final void Function(String?)? onSaved;
-  TextInputAction? textInputAction;
-  FocusNode? focusNode;
+  final TextInputAction? textInputAction;
+  final FocusNode? focusNode;
 
   CustomPasswordFormField(
     this.labelText,

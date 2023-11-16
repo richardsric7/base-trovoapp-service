@@ -8,12 +8,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/functions/trovo-sdk.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/user.dart';
 import '../../router/page_actions.dart';
@@ -79,7 +81,9 @@ class _SplashScreenState extends State<SplashScreen>
   initializeAppData() async {
     try {
       fetchVersionInfo(appState);
-      bool restartedAfterSwitch =
+      appState.walletMode =
+          await StoreData().storeGetData('walletMode') ?? "Mainnet";
+      appState.restartedAfterSwitch =
           await StoreData().storeGetData('restartedAfterSwitch') ?? false;
       appState.isFirstTime =
           await StoreData().storeGetData('isFirstTime') ?? true;
@@ -115,8 +119,6 @@ class _SplashScreenState extends State<SplashScreen>
           assetBalances,
         );
         appState.setSecretKeys = await StoreData().storeGetData('secretKey');
-        appState.walletMode =
-            await StoreData().storeGetData('walletMode') ?? "Testnet";
         appState.setPassword = await StoreData().storeGetData('password');
         appState.biometricEnabled =
             await StoreData().storeGetData('biometricsEnabled') ?? false;
@@ -148,16 +150,23 @@ class _SplashScreenState extends State<SplashScreen>
             appState.setSplashFinished();
             appState.appIsOpen = true;
 
-            print('-------------> ${restartedAfterSwitch}');
-            if (restartedAfterSwitch) {
+            if (appState.restartedAfterSwitch) {
+              print('importing after switch......');
               await importWalletAfterSwitch(appState, context);
             } else {
+              String result = await FCM().getPushNotificationToken();
+
+              var token = result.split('|').first;
+              DateTime createdAt = DateTime.parse(result.split('|').last);
+              var dateDifference = DateTime.now().difference(createdAt);
+
               updateUserInfo(
                 primaryWallet.signer,
                 appState.secretKeys[0],
                 primaryWallet.publicKey,
                 appState.userInfo!.username!,
                 appState,
+                pnt: dateDifference.inDays > 10 ? token : null,
               );
               getFiatRates(
                 primaryWallet.signer,
@@ -228,7 +237,7 @@ class _SplashScreenState extends State<SplashScreen>
                   fontSize: 35.sp),
             ),
             Text(
-              "Wallet",
+              "App",
               style: TextStyle(
                   color: notifier.getdarkgrey,
                   fontFamily: 'Matahari_Semi_Bold',
@@ -248,28 +257,36 @@ class _SplashScreenState extends State<SplashScreen>
     var signer = appState.primaryWallet.signer!;
     var publicKey = appState.primaryWallet.publicKey!;
     var secretKey = appState.secretKeys[0];
-    String? token = await StoreData().storeGetData('token');
 
-    if (token == null) {
-      token = await FCM().getPushNotificationToken();
-    }
+    String result = await FCM().getPushNotificationToken();
+    var token = result.split('|').first;
+
     Map responseData = await makeGetRequest(
-        uri: '/v1/users/username?type=import&pnt=$token',
-        // uri: '/v1/users/${username}?type=import&pnt=$token',
+        uri: '/v1/users/${username}?type=import&pnt=$token',
         signer: signer,
         publicKey: publicKey,
         secretKey: secretKey);
+    // print('response==================> $responseData');
 
     if (responseData['statusCode'] == 200) {
+      appState.tempPublicKey = publicKey;
+      appState.tempSecretKey = secretKey;
+      appState.tempSigner = signer;
+      appState.tempPassword = appState.password!;
+
       fetchNotifications(appState);
       getFiatRates(signer, secretKey, publicKey, username, appState);
       storeUserInfo(responseData['data'], appState);
+      await StoreData()
+          .storeInsertData('biometricsEnabled', appState.biometricEnabled);
+
       appState.currentAction =
           PageAction(state: PageState.addPage, page: LoginPageConfig);
     } else if (responseData['statusCode'] == 404) {
       accountNotFoundAfterSwitchPopup(
         context,
-        onContinueWithCredentials: () => {},
+        onContinueWithCredentials: () async =>
+            await createUserAccountAfterSwitch(),
         onImportNewCredential: () => {
           appState.currentAction =
               PageAction(state: PageState.addPage, page: ImportWalletPageConfig)
@@ -284,20 +301,29 @@ class _SplashScreenState extends State<SplashScreen>
     } else {
       // must be some sort of server error
       // let's throw it
-      popup(context,
-          title: "error".tr(), message: responseData['data']['message']);
+      accountNotFoundAfterSwitchPopup(
+        context,
+        message: responseData['data']['message'],
+        onContinueWithCredentials: () {},
+        onImportNewCredential: () => {
+          appState.currentAction =
+              PageAction(state: PageState.addPage, page: ImportWalletPageConfig)
+        },
+        onGoBackToPrevEnvironment: () {
+          appState.changeWalletMode(
+            appState.walletMode == 'Testnet' ? 'Mainnet' : 'Testnet',
+            isReversed: true,
+          );
+        },
+      );
     }
   }
 
-  void createUserAccountAfterSwitch() async {
+  Future<void> createUserAccountAfterSwitch() async {
     try {
       showLoader(context);
-      String? token = await StoreData().storeGetData('token');
-
-      if (token == null) {
-        token = await FCM().getPushNotificationToken();
-      }
-
+      appState.userInfo!.pushNotificationToken =
+          await FCM().getPushNotificationToken();
       Map map = {
         'username': appState.userInfo!.username,
         'email': appState.userInfo!.email,
@@ -306,24 +332,33 @@ class _SplashScreenState extends State<SplashScreen>
         'mobile': appState.userInfo!.mobile,
         'mobileCountryCode': appState.userInfo!.countryCode,
         'referrer': appState.userInfo!.referrer,
-        'pushNotificationToken': token,
+        'pushNotificationToken': appState.userInfo!.pushNotificationToken,
         'corporate': appState.userInfo!.corporate,
         'verificationCode': '',
       };
+
+      Account? creds = parseKey(context, appState.secretKeys[0])!;
+
+      print('creating user account after switch... ${map}');
 
       String jsonBody = jsonEncode(map);
 
       Map responseData = await makePostRequest(
           uri: '/v1/users',
           body: jsonBody,
-          signer: appState.primaryWallet.signer!,
-          publicKey: appState.primaryWallet.publicKey!,
-          secretKey: appState.primaryWallet.secretKey![0]);
+          signer: creds.publicKey,
+          publicKey: creds.publicKey,
+          secretKey: creds.secretKey);
 
       // print('$responseData');
       hideLoader(context);
 
       if (responseData['statusCode'] == 202) {
+        appState.tempPublicKey = creds.publicKey;
+        appState.tempSecretKey = creds.secretKey;
+        appState.tempSigner = creds.publicKey;
+        appState.tempPassword = appState.password!;
+
         appState.currentAction =
             PageAction(state: PageState.addPage, page: VerificationPageConfig);
       } else {

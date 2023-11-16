@@ -1058,6 +1058,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                                     userItem('Pakistan', () {},
                                         foreColor: wihitecolor,
                                         backColor: notifier.getbluebackcolor)
+                                    // ignore: dead_code
                                   ] else ...[
                                     Text(
                                       'Name of exempted countries appear here',

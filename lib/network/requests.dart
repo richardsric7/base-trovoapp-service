@@ -4,55 +4,19 @@ import 'dart:io';
 import 'package:trovo_wallet/functions/helpers.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import '../functions/trovo-sdk.dart';
 
-//final String trovoBaseUrl = 'https://api-alpha.dev.bantupay.org'; // alpha
-//final String trovoBaseUrl = 'https://api-beta.dev.bantupay.org'; // beta
-//final String trovoBaseUrl = 'https://api-prod.bantupay.org'; // pre launch production
-//final String trovoBaseUrl = 'https://api.bantupay.org'; // Production
-
-//final String walletApiBaseUrl =
-//'https://api-wallet-alpha.dev.bantupay.org'; // alpha
-//final String walletApiBaseUrl = 'https://api-wallet-beta.dev.bantupay.org'; // beta
-//final String walletApiBaseUrl = 'https://api-wallet.bantupay.org'; // production
-
-String getTrovoBaseURL() {
-  // String trovoBaseURL;
-  // if (GlobalConfiguration().getString("network") == "Development") {
-  //   print('development...');
-  //   trovoBaseURL = 'https://api.trovotechnologies.com';
-  // } else {
-  //   print('not development...');
-  //   trovoBaseURL = 'https://api.trovotechnologies.com';
-  // }
-  // return trovoBaseURL;
-  return 'https://api.trovotechnologies.com';
-}
-
-String getTrovoTestnetBaseURL() {
-  // String trovoBaseURL;
-  // if (GlobalConfiguration().getString("network") == "Development") {
-  //   print('development...');
-  //   trovoBaseURL = 'https://api.trovotechnologies.com';
-  // } else {
-  //   print('not development...');
-  //   trovoBaseURL = 'https://api.trovotechnologies.com';
-  // }
-  // return trovoBaseURL;
-  return 'https://apidev.trovotechnologies.com';
-}
-
-String getTrovoWalletApiBaseURL() {
-  // String trovoWalletBaseURL;
-  // if (GlobalConfiguration().getString("network") == "Development") {
-  //   print('development...');
-  //   trovoWalletBaseURL = 'https://api.trovotechnologies.com';
-  // } else {
-  //   print('not development...');
-  //   trovoWalletBaseURL = 'https://api.trovotechnologies.com';
-  // }
-  // return trovoWalletBaseURL;
-  return 'https://api.trovotechnologies.com';
+Future<String> getTrovoAppBaseURL() async {
+  String trovoBaseURL;
+  if (await StoreData().storeGetData('walletMode') == "Testnet") {
+    trovoBaseURL = 'https://apidev.trovotechnologies.com';
+    print('testnet... $trovoBaseURL');
+  } else {
+    trovoBaseURL = 'https://api.trovotechnologies.com';
+    print('mainnet... $trovoBaseURL');
+  }
+  return trovoBaseURL;
 }
 
 Future<Map> makePostRequest({
@@ -73,7 +37,7 @@ Future<Map> makePostRequest({
 
   try {
     http.Response response = await http
-        .post(Uri.parse(getTrovoTestnetBaseURL() + uri),
+        .post(Uri.parse(await getTrovoAppBaseURL() + uri),
             body: body, headers: headers)
         .timeout(Duration(seconds: 60));
     // print("The statucode is: ${response.statusCode}");
@@ -154,7 +118,7 @@ Future<Map> makeGetRequest({
 
   try {
     http.Response response = await http
-        .get(Uri.parse(getTrovoTestnetBaseURL() + uri), headers: headers)
+        .get(Uri.parse(await getTrovoAppBaseURL() + uri), headers: headers)
         .timeout(Duration(seconds: 60));
     //  print("The statucode is: ${response.statusCode}");
     //  print("The Response Body is: ${response.body}");
@@ -238,7 +202,7 @@ Future<Map> makePutRequest({
 
   try {
     http.Response response = await http
-        .put(Uri.parse(getTrovoTestnetBaseURL() + uri),
+        .put(Uri.parse(await getTrovoAppBaseURL() + uri),
             body: body, headers: headers)
         .timeout(Duration(seconds: 60));
     // print("The statucode is: ${response.statusCode}");
@@ -308,7 +272,7 @@ Future<Map> makePutRequest({
 Future<Map> makeUnSecuredGetRequest(String path) async {
   try {
     http.Response response = await http
-        .get(Uri.parse(getTrovoTestnetBaseURL() + path))
+        .get(Uri.parse(await getTrovoAppBaseURL() + path))
         .timeout(Duration(seconds: 60));
     //  print("The statucode is: ${response.statusCode}");
     //  print("The Response Body is: ${response.body}");
@@ -392,7 +356,7 @@ Future<Map> makePutRequestForMultipartFile({
 
   try {
     var request = await http.MultipartRequest(
-        'PUT', Uri.parse(getTrovoTestnetBaseURL() + uri));
+        'PUT', Uri.parse(await getTrovoAppBaseURL() + uri));
     request.headers.addAll(headers);
     request.files.add(await http.MultipartFile.fromPath(
         'profilePicture', multipartFilePath,
@@ -481,7 +445,7 @@ Future<Map> makeDeleteRequest({
 
   try {
     http.Response response = await http
-        .delete(Uri.parse(getTrovoTestnetBaseURL() + uri),
+        .delete(Uri.parse(await getTrovoAppBaseURL() + uri),
             body: body, headers: headers)
         .timeout(Duration(seconds: 60));
     // print("The statucode is: ${response.statusCode}");
@@ -549,6 +513,7 @@ Future<Map> makeDeleteRequest({
 
 getRequestHeader({uri, signer, publicKey, secretKey}) async {
   var deviceID = await getDeviceDetails();
+  var appVersion = await getAppVersion();
   var ms = (new DateTime.now().toUtc()).millisecondsSinceEpoch;
   var serverTs = (ms / 1000).round().toString();
   var toSign = uri + signer + serverTs;
@@ -563,6 +528,7 @@ getRequestHeader({uri, signer, publicKey, secretKey}) async {
     "X-TW-PUBLIC-KEY": publicKey,
     "X-TW-SIGNER": signer,
     "X-TW-DEVICE-ID": deviceID,
+    "X-TW-APP-VERSION": appVersion,
     "X-TW-TIMESTAMP": serverTs
   };
 
