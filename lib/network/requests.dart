@@ -9,12 +9,11 @@ import '../functions/trovo-sdk.dart';
 
 Future<String> getTrovoAppBaseURL() async {
   String trovoBaseURL;
-  if (await StoreData().storeGetData('walletMode') == "Mainnet") {
-    trovoBaseURL = 'https://api.trovotechnologies.com';
-    print('mainnet... $trovoBaseURL');
-  } else {
-    print('testnet...');
+  if (await StoreData().storeGetData('walletMode') == "Testnet") {
     trovoBaseURL = 'https://apidev.trovotechnologies.com';
+    print('testnet... $trovoBaseURL');
+  } else {
+    trovoBaseURL = 'https://api.trovotechnologies.com';
     print('mainnet... $trovoBaseURL');
   }
   return trovoBaseURL;

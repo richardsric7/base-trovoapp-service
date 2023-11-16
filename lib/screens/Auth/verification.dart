@@ -171,10 +171,8 @@ class _VeryficationState extends State<Veryfication> {
         'firstName': state.userInfo!.firstName,
         'lastName': state.userInfo!.lastName,
         'mobile': state.userInfo!.mobile,
-        'mobileCountryCode': 'NG',
-        // 'mobileCountryCode': state.userInfo!.countryCode,
-        'referrer': 'ric',
-        // 'referrer': state.userInfo!.referrer,
+        'mobileCountryCode': state.userInfo!.countryCode,
+        'referrer': state.userInfo!.referrer,
         'pushNotificationToken': state.userInfo!.pushNotificationToken,
         'corporate': state.userInfo!.corporate,
         'verificationCode': otp,
@@ -277,6 +275,8 @@ class _VeryficationState extends State<Veryfication> {
     await StoreData()
         .storeInsertData('secretKey', <String>[state.tempSecretKey]);
     await StoreData().storeInsertData('restartedAfterSwitch', false);
+    await StoreData()
+        .storeInsertData('biometricsEnabled', state.biometricEnabled);
 
     // save useInfo to appstate
     state.setUser = UserInfo()
