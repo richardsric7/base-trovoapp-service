@@ -73,7 +73,7 @@ type TokenizedAssetSubSector struct {
 }
 
 type TokenizedAssetType struct {
-	ID                     string `gorm:"primaryKey" json:"id"`
-	TokenizedAssetSectorID string `gorm:"size:100;index:idx_asset_type_unique,unique" json:"assetSectorId"`
-	AssetType              string `gorm:"size:100;index:idx_asset_type_unique,unique" json:"assetType"`
+	ID                        uint64 `gorm:"primaryKey;autoIncrement" json:"id"`
+	TokenizedAssetSubSectorID string `gorm:"size:100;index:idx_asset_type_unique,unique" json:"assetSubSectorId"`
+	AssetType                 string `gorm:"size:100;index:idx_asset_type_unique,unique" json:"assetType"`
 }

@@ -29,7 +29,7 @@ func GetTokenizedAssetTypes(db *gorm.DB) (assetTypes []userModels.TokenizedAsset
 }
 func GetTokenizedAssetTypesBySubsectorId(subSectorID string, db *gorm.DB) (assetTypes []userModels.TokenizedAssetType) {
 	assetTypes = make([]userModels.TokenizedAssetType, 0)
-	db.Preload(clause.Associations).Where("tokenized_asset_sector_id = ?", subSectorID).Find(&assetTypes)
+	db.Preload(clause.Associations).Where("tokenized_asset_sub_sector_id = ?", subSectorID).Find(&assetTypes)
 
 	return
 }
