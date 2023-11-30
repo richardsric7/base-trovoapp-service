@@ -1,16 +1,8 @@
-package models
+package users
 
 import "time"
 
-const (
-	ProtectionInsurance        = "Insurance"
-	ProtectionAlarmSystem      = "Alarm System"
-	ProtectionSurveillance     = "Surveillance System"
-	ProtectionPhysicalSecurity = "Physical Security"
-	ProtectionInspection       = "Inspection and Management"
-)
-
-type TokenizeAsset struct {
+type TokenizedAsset struct {
 	ID                             string    `json:"id"`
 	CreatedAt                      time.Time `json:"createdAt"`
 	UpdatedAt                      time.Time `json:"updatedAt"`
@@ -71,13 +63,17 @@ type TokenizeAsset struct {
 	AssetStatus                    string    `json:"assetStatus"`
 }
 
-type AssetToken struct {
-	ID             string        `json:"id"`
-	CreatedAt      time.Time     `json:"createdAt"`
-	UpdatedAt      time.Time     `json:"updatedAt"`
-	TokenizedAsset TokenizeAsset `json:"tokenized_asset"`
-	UserID         string        `json:"userID"`
-	SubscriberID   string        `json:"subscriberID"`
-	HasSubscribed  bool          `json:"hasSubscribed"`
-	BuyerID        string        `json:"buyerID"`
+type TokenizedAssetSector struct {
+	ID string `gorm:"primaryKey;size:100" json:"sector"`
+}
+
+type TokenizedAssetSubSector struct {
+	ID            string `gorm:"primaryKey;size:100" json:"subSector"`
+	TokenizedAssetSectorID string `gorm:"size:100" json:"assetSectorId"`
+}
+
+type TokenizedAssetType struct {
+	ID            string `gorm:"primaryKey" json:"id"`
+	TokenizedAssetSectorID string `gorm:"size:100;index:idx_asset_type_unique,unique" json:"assetSectorId"`
+	AssetType     string `gorm:"size:100;index:idx_asset_type_unique,unique" json:"assetType"`
 }

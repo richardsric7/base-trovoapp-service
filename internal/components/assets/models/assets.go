@@ -28,6 +28,7 @@ type CuratedAsset struct {
 	DecimalPlaces               uint64     `gorm:"type:integer;not null;default:7" json:"decimalPlaces"`
 	RealAssetImageURL           *string    `gorm:"null;" json:"realAssetImageUrl"`
 	Inactive                    uint64     `gorm:"type:integer;not null;default:1" json:"-"`
+	ClosedGroup                 *string    `gorm:"null;" json:"closedGroup"`
 }
 
 // CuratedAsset model struct for CuratedAsset.
@@ -54,6 +55,7 @@ type CuratedSwapAsset struct {
 	DecimalPlaces               uint64     `gorm:"type:integer;not null;default:7" json:"decimalPlaces"`
 	RealAssetImageURL           string     `gorm:"null;" json:"realAssetImageUrl"`
 	Inactive                    uint64     `gorm:"type:integer;not null;default:1" json:"-"`
+	ClosedGroup                 string     `gorm:"null;" json:"closedGroup"`
 }
 
 // PaginatedCuratedAssets returns records sent for search

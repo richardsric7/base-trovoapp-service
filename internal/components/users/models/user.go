@@ -48,6 +48,7 @@ type User struct {
 	SuspensionReason         *string               `gorm:"null" json:"suspensionReason"`
 	WalletsSharedWithUser    []WalletPermission    `gorm:"foreignKey:TargetUsername;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	PatronMembership         *UserPatronMembership `gorm:"foreignKey:Username;references:Username;constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"patronMembership"`
+	UserClosedGroups         []UserClosedGroup     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"userClosedGroups"`
 }
 
 type UserWallet struct {

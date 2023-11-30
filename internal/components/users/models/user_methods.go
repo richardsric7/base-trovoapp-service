@@ -1542,6 +1542,9 @@ func (u *User) GetCuratedSwapList(gc *sharedconfig.GlobalConfig) (list []assets.
 		if a.RealAssetImageURL != nil {
 			item.RealAssetImageURL = *a.RealAssetImageURL
 		}
+		if a.ClosedGroup != nil {
+			item.ClosedGroup = *a.ClosedGroup
+		}
 		if a.ImageURL == nil {
 			item.ImageURL = defaultAssetImageURL
 		} else {

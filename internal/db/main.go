@@ -140,6 +140,18 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserWallet: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.ClosedGroup{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ClosedGroup: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.UserClosedGroup{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating UserClosedGroup: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.TokenizedAsset{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizedAsset: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.UserAccountRecoveryLog{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating UserAccountRecoveryLog: ", errMigrate)
@@ -284,6 +296,21 @@ func MigrateDB(gormDB *gorm.DB) {
 		errMigrate = gormDB.AutoMigrate(&assetModels.AssetClass{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating AssetClass: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetSector{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetSector: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetSubSector{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetSubSector: ", errMigrate)
+		}
+
+		errMigrate = gormDB.AutoMigrate(&users.TokenizedAssetType{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetType: ", errMigrate)
 		}
 
 		dberr := gormDB.First(&assetModels.AssetClass{}).Error

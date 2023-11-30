@@ -3970,4 +3970,46 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 	}
 
+	if os.Getenv("ENABLE_ASSET_TOKENIZATION") == "1" {
+		log.Println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ASSET TOKENIZATION is enabled!")
+
+		router.GET("/v1/tokenization", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error//true-client-ip
+
+			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+
+			_, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				return
+			}
+
+			sectorList := userServices.GetTokenizedAssetSectorList(gc.DB)
+			subsectorList := userServices.GetTokenizedAssetSubSectorList(gc.DB)
+			assetTypes := userServices.GetTokenizedAssetTypes(gc.DB)
+
+			c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes})
+
+		})
+
+	}
+
 }
