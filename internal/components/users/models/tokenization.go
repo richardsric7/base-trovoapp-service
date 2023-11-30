@@ -28,19 +28,19 @@ type TokenizedAsset struct {
 	AssetValue                     string    `json:"assetValue"`
 	AssetPercentageForTokenization string    `json:"assetPercentageForTokenization"`
 	ValueOfTokenizedAsset          string    `json:"valueOfTokenizedAsset"`
-	ProtectionMethods              []string  `json:"protectionMethods"`
+	ProtectionMethods              string    `json:"protectionMethods"`
 	InsuranceCompanyName           string    `json:"insuranceCompanyName"`
 	InsurancePolicyNumber          string    `json:"insurance_policy_number"`
 	InsurancePolicyHolder          string    `json:"insurancePolicyHolder"`
 	PercentageValueOfInsurance     string    `json:"percentageValueOfInsurance"`
-	IsFreeFromLiensAndEncumbrances bool      `json:"IsFreeFromLiensAndEncumbrances"`
-	ProofOfAssetsExistence         []string  `json:"proofOfAssetsExistence"`
-	ProofOfOwnership               []string  `json:"proofOfOwnership"`
-	AssetStatusVerification        []string  `json:"assetStatusVerification"`
-	AssetCustodianAgreement        []string  `json:"assetCustodianAgreement"`
-	ProofOfAssetManager            []string  `json:"proofOfAssetManager"`
-	AssetProtectionDocument        []string  `json:"assetProtectionDocument"`
-	AssetValuationCertificate      []string  `json:"assetValuationCertificate"`
+	IsFreeFromLiensAndEncumbrances int       `json:"IsFreeFromLiensAndEncumbrances"`
+	ProofOfAssetsExistence         string    `json:"proofOfAssetsExistence"`
+	ProofOfOwnership               string    `json:"proofOfOwnership"`
+	AssetStatusVerification        string    `json:"assetStatusVerification"`
+	AssetCustodianAgreement        string    `json:"assetCustodianAgreement"`
+	ProofOfAssetManager            string    `json:"proofOfAssetManager"`
+	AssetProtectionDocument        string    `json:"assetProtectionDocument"`
+	AssetValuationCertificate      string    `json:"assetValuationCertificate"`
 	AssetCode                      string    `json:"assetCode"`
 	AssetLogo                      string    `json:"assetLogo"`
 	NumberOfTokenToBeIssued        int       `json:"numberOfTokenToBeIssued"`
@@ -56,10 +56,10 @@ type TokenizedAsset struct {
 	CapDurationInDays              int       `json:"capDurationInDays"`
 	ProceedCycle                   string    `json:"proceedCycle"`
 	ProceedPayoutCurrency          string    `json:"proceedPayoutCurrency"`
-	ExemptedCountries              []string  `json:"exemptedCountries"`
-	HasAdditionalKYCRequirements   bool      `json:"hasAdditionalKYCRequirements"`
-	AdditionalKYCRequirements      []string  `json:"additionalKYCRequirements"`
-	InvestorAccreditationRequired  bool      `json:"investorAccreditationRequired"`
+	ExemptedCountries              string    `json:"exemptedCountries"`
+	HasAdditionalKYCRequirements   int       `json:"hasAdditionalKYCRequirements"`
+	AdditionalKYCRequirements      string    `json:"additionalKYCRequirements"`
+	InvestorAccreditationRequired  int       `json:"investorAccreditationRequired"`
 	AssetStatus                    string    `json:"assetStatus"`
 }
 
@@ -68,12 +68,12 @@ type TokenizedAssetSector struct {
 }
 
 type TokenizedAssetSubSector struct {
-	ID            string `gorm:"primaryKey;size:100" json:"subSector"`
+	ID                     string `gorm:"primaryKey;size:100" json:"subSector"`
 	TokenizedAssetSectorID string `gorm:"size:100" json:"assetSectorId"`
 }
 
 type TokenizedAssetType struct {
-	ID            string `gorm:"primaryKey" json:"id"`
+	ID                     string `gorm:"primaryKey" json:"id"`
 	TokenizedAssetSectorID string `gorm:"size:100;index:idx_asset_type_unique,unique" json:"assetSectorId"`
-	AssetType     string `gorm:"size:100;index:idx_asset_type_unique,unique" json:"assetType"`
+	AssetType              string `gorm:"size:100;index:idx_asset_type_unique,unique" json:"assetType"`
 }
