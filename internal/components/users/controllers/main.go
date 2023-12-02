@@ -4005,8 +4005,14 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			sectorList := userServices.GetTokenizedAssetSectorList(gc.DB)
 			subsectorList := userServices.GetTokenizedAssetSubSectorList(gc.DB)
 			assetTypes := userServices.GetTokenizedAssetTypes(gc.DB)
+			custdians := userServices.GetApprovedAssetCustodians(gc.DB)
+			fees := userServices.GetTokenizationFees(gc.DB)
+			currencies := userServices.GetTokenizationCurrencies(gc.DB)
+			apo := userServices.GetAssetProtectionOptions(gc.DB)
+			apc := userServices.GetAssetProceedCycle(gc.DB)
 
-			c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes})
+			c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians,
+				"tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc})
 
 		})
 
