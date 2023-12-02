@@ -312,10 +312,30 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating TokenizedAssetType: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.ApprovedAssetCustodian{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ApprovedAssetCustodian: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationCurrency{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationCurrency: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationFee{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationFee: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.AssetProtectionOption{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating AssetProtectionOption: ", errMigrate)
+		}
+		errMigrate = gormDB.AutoMigrate(&users.AssetTokenizationDocument{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating AssetTokenizationDocument: ", errMigrate)
+		}
 
 		dberr := gormDB.First(&assetModels.AssetClass{}).Error
 		if errors.Is(dberr, gorm.ErrRecordNotFound) {
-			assetClasses := []assetModels.AssetClass{{AssetClass: "Token"}, {AssetClass: "Stablecoin"}, {AssetClass: "Security Token (STO)"}, {AssetClass: "Non Fungible Token (NFT)"}, {AssetClass: "Reward"}}
+			assetClasses := []assetModels.AssetClass{{AssetClass: "Token"}, {AssetClass: "Stablecoin"}, {AssetClass: "Tokenized Asset"}, {AssetClass: "Non Fungible Token (NFT)"}, {AssetClass: "Reward"}}
 			gormDB.Create(&assetClasses)
 		}
 
