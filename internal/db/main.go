@@ -332,6 +332,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating AssetTokenizationDocument: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.ProceedCycle{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating ProceedCycle: ", errMigrate)
+		}
 
 		dberr := gormDB.First(&assetModels.AssetClass{}).Error
 		if errors.Is(dberr, gorm.ErrRecordNotFound) {
