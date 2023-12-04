@@ -50,6 +50,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   var noXbnBalance = false;
   late Asset gas;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
+  DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
+
+  Map<String, DashboardAssetListMode> listModes = {
+    'Tokenized Assets': DashboardAssetListMode.TokenizedAssets,
+    'Other Assets': DashboardAssetListMode.OtherAssets,
+  };
 
   @override
   void initState() {
@@ -69,6 +75,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     // Tab Changed swiping to a new tab
     activeTabIndex = _tabController.index;
     setState(() {});
+  }
+
+  List<DropdownMenuItem<DashboardAssetListMode>> get getItems {
+    List<DropdownMenuItem<DashboardAssetListMode>> items = [];
+    listModes.forEach((key, value) {
+      items.add(DropdownMenuItem(
+          child: Text(
+            key,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: value));
+    });
+    return items;
   }
 
   @override
@@ -102,26 +121,24 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       reOrderClaimedAssets(activeWallet!);
     }
 
-    // in order to make assets tab length dynamic we have to check
-    // for when we have pending asset and then change the tablength
-    // to 3 or back to 2 when we do not have pending assets.
-    // if (unclaimedAssets != null && unclaimedAssets!.length > 0) {
-    //   // if (activeTabIndex == _tabController.length - 1) activeTabIndex = 1;
-    //   tabLength = 2;
-    // } else {
-    //   tabLength = 1;
-    //   // if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
-    // }
+    if (listMode == DashboardAssetListMode.OtherAssets) {
+      // in order to make assets tab length dynamic we have to check
+      // for when we have pending asset and then change the tablength
+      // to 3 or back to 2 when we do not have pending assets.
+      if (unclaimedAssets != null && unclaimedAssets!.length > 0) {
+        tabLength = 2;
+      } else {
+        tabLength = 1;
+      }
+    } else if (listMode == DashboardAssetListMode.TokenizedAssets) {
+      tabLength = 2;
+    }
 
     if (tabLength != _tabController.length) {
       // change the length of tabController too or you will have an error
       _tabController = TabController(length: tabLength, vsync: this);
       _tabController.addListener(tabListener);
     }
-
-    // keep track of the active tab to avoid having it changed
-    // on each page rebuild
-    // _tabController.animateTo(activeTabIndex);
 
     return Scaffold(
       key: key,
@@ -141,10 +158,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     height: 45,
                   ),
                   firstRow(),
-                  SizedBox(
-                    height: height / 70,
-                  ),
                   if (userInfo.hasSecurityQuestions == 0) ...[
+                    SizedBox(
+                      height: 5,
+                    ),
                     GestureDetector(
                       onTap: () {
                         var primaryWallet = appState.userInfo!.wallets!
@@ -190,256 +207,299 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
                   ],
                   walletSlides(wallets),
                   SizedBox(
-                    height: height / 30,
+                    height: height / 50,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Asset Mode',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluecolor,
+                          ),
+                        ),
+                        Container(
+                          width: width / 2,
+                          child: dropdown(
+                            (value) {
+                              setState(() {
+                                listMode = value as DashboardAssetListMode;
+                              });
+                            },
+                            getItems,
+                            null,
+                            'Tokenized Assets',
+                            context,
+                            null,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 90,
                   ),
                   // check if the user's xbn balance is 0. This usually is the si-
                   // tuation when a new user signs up and has not funded their wallet
                   // yet
                   if (!noXbnBalance) ...[
-                    DefaultTabController(
-                      length: tabLength,
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: tabLength == 2 ? 0 : 100,
-                            ),
-                            child: TabBar(
-                              controller: _tabController,
-                              labelColor: notifier.getbluewhitecolor,
-                              indicatorColor: notifier.getbluewhitecolor,
-                              labelStyle: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: fontsemibold,
-                              ),
-                              tabs: [
-                                Tab(
-                                  height: 20,
-                                  text: "assets".tr(),
-                                ),
-                                if (unclaimedAssets != null &&
-                                    tabLength == 2) ...[
-                                  Tab(
-                                    height: 20,
-                                    text:
-                                        '${"pending".tr()} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
-                                  ),
-                                ],
-                                // Tab(
-                                //   height: 20,
-                                //   text: "nfts".tr(),
-                                // ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
-                    // assetsTabs(),
-                    // area of new screen
-                    // //////////////////
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  height: height / 12,
-                                  child: Card(
-                                      shadowColor: Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                      ),
-                                      color: notifier.isDark
-                                          ? notifier.getbluecolor90
-                                          : notifier.getaddsubwalletgrey,
-                                      child: TextButton(
-                                        onPressed: () {
-                                          appState.viewData = {
-                                            'assetCode': '',
-                                            'assetIssuer': '',
-                                            'walletPublicKey': activeWallet,
-                                          };
-
-                                          appState.currentAction = PageAction(
-                                              state: PageState.addPage,
-                                              page: AssetDetailsViewPageConfig);
-                                        },
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.local_gas_station,
-                                                  color: notifier.getbluecolor,
-                                                ),
-                                                Text(
-                                                  "Gas",
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontFamily: fontsemibold,
-                                                    color:
-                                                        notifier.getbluecolor,
-                                                    overflow:
-                                                        TextOverflow.visible,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  '${formatHistoryNumber(gas.amount!, 1000)} ${getAssetCode(gas.assetCode)}',
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontFamily: fontsemibold,
-                                                    color:
-                                                        notifier.getbluecolor,
-                                                    overflow:
-                                                        TextOverflow.visible,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                    if (listMode == DashboardAssetListMode.TokenizedAssets) ...[
+                      // area of new screen
+                      // //////////////////
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    height: height / 14,
+                                    child: Card(
+                                        shadowColor: Colors.black,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
                                         ),
-                                      )),
-                                ),
-                              ),
-                              Expanded(
-                                child: Container(
-                                  height: height / 12,
-                                  child: Card(
-                                      shadowColor: Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                      ),
-                                      color: notifier.isDark
-                                          ? notifier.getbluecolor90
-                                          : notifier.getaddsubwalletgrey,
-                                      child: TextButton(
-                                        onPressed: () {
-                                          changeTabPage(appState,
-                                              ButtomTabPage.Wallets.index);
-                                        },
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Card(
-                                                  shadowColor: Colors.black,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10.0),
-                                                  ),
-                                                  color:
-                                                      notifier.getbluecolor90,
-                                                  child: Icon(
-                                                    Icons.arrow_outward,
+                                        color: notifier.isDark
+                                            ? notifier.getbluecolor90
+                                            : notifier.getaddsubwalletgrey,
+                                        child: TextButton(
+                                          onPressed: () {
+                                            appState.viewData = {
+                                              'assetCode': '',
+                                              'assetIssuer': '',
+                                              'walletPublicKey': activeWallet,
+                                            };
+
+                                            appState.currentAction = PageAction(
+                                                state: PageState.addPage,
+                                                page:
+                                                    AssetDetailsViewPageConfig);
+                                          },
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceAround,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.local_gas_station,
                                                     color:
-                                                        notifier.getwihitecolor,
+                                                        notifier.getbluecolor,
                                                     size: 20,
                                                   ),
-                                                ),
-                                                Text(
-                                                  "See Assets",
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontFamily: fontsemibold,
-                                                    color:
-                                                        notifier.getbluecolor,
-                                                    overflow:
-                                                        TextOverflow.visible,
+                                                  Text(
+                                                    "Gas",
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontFamily: fontsemibold,
+                                                      color:
+                                                          notifier.getbluecolor,
+                                                      overflow:
+                                                          TextOverflow.visible,
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  "24 Assets",
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontFamily: fontsemibold,
-                                                    color:
-                                                        notifier.getbluecolor,
-                                                    overflow:
-                                                        TextOverflow.visible,
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    '${formatHistoryNumber(gas.amount!, 1000)} ${getAssetCode(gas.assetCode)}',
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontFamily: fontsemibold,
+                                                      color:
+                                                          notifier.getbluecolor,
+                                                      overflow:
+                                                          TextOverflow.visible,
+                                                    ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        )),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    height: height / 14,
+                                    child: Card(
+                                        shadowColor: Colors.black,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
                                         ),
-                                      )),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: height / 50),
-                          DefaultTabController(
-                            length: tabLength,
-                            child: Column(
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: tabLength == 2 ? 0 : 100,
+                                        color: notifier.isDark
+                                            ? notifier.getbluecolor90
+                                            : notifier.getaddsubwalletgrey,
+                                        child: TextButton(
+                                          onPressed: () {
+                                            changeTabPage(appState,
+                                                ButtomTabPage.Wallets.index);
+                                          },
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceAround,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Card(
+                                                    shadowColor: Colors.black,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10.0),
+                                                    ),
+                                                    color:
+                                                        notifier.getbluecolor90,
+                                                    child: Icon(
+                                                      Icons.arrow_outward,
+                                                      color: notifier
+                                                          .getwihitecolor,
+                                                      size: 15,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    "See Assets",
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontFamily: fontsemibold,
+                                                      color:
+                                                          notifier.getbluecolor,
+                                                      overflow:
+                                                          TextOverflow.visible,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    "24 Assets",
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontFamily: fontsemibold,
+                                                      color:
+                                                          notifier.getbluecolor,
+                                                      overflow:
+                                                          TextOverflow.visible,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        )),
                                   ),
-                                  child: TabBar(
-                                    controller: _tabController,
-                                    labelColor: notifier.getbluewhitecolor,
-                                    indicatorColor: notifier.getbluewhitecolor,
-                                    labelStyle: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      fontFamily: fontsemibold,
-                                    ),
-                                    tabs: [
-                                      Tab(
-                                        height: 20,
-                                        text: "Primary Listing".tr(),
-                                      ),
-                                      Tab(
-                                        height: 20,
-                                        text: "Secondary Listing".tr(),
-                                      ),
-                                    ],
-                                  ),
                                 ),
-                                listingTabs(),
                               ],
                             ),
-                          ),
-                          SizedBox(
-                            height: height / 70,
-                          ),
-                        ],
+                            SizedBox(height: height / 50),
+                            DefaultTabController(
+                              length: tabLength,
+                              child: Column(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: tabLength == 2 ? 0 : 100,
+                                    ),
+                                    child: TabBar(
+                                      controller: _tabController,
+                                      labelColor: notifier.getbluewhitecolor,
+                                      indicatorColor:
+                                          notifier.getbluewhitecolor,
+                                      labelStyle: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        fontFamily: fontsemibold,
+                                      ),
+                                      tabs: [
+                                        Tab(
+                                          height: 20,
+                                          text: "Primary Listing".tr(),
+                                        ),
+                                        Tab(
+                                          height: 20,
+                                          text: "Secondary Listing".tr(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  listingTabs(),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height: height / 70,
+                            ),
+                          ],
+                        ),
                       ),
-                    )
+                    ] else ...[
+                      DefaultTabController(
+                        length: tabLength,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: tabLength == 2 ? 0 : 100,
+                              ),
+                              child: TabBar(
+                                controller: _tabController,
+                                labelColor: notifier.getbluewhitecolor,
+                                indicatorColor: notifier.getbluewhitecolor,
+                                labelStyle: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: fontsemibold,
+                                ),
+                                tabs: [
+                                  Tab(
+                                    height: 20,
+                                    text: "assets".tr(),
+                                  ),
+                                  if (unclaimedAssets != null &&
+                                      tabLength == 2) ...[
+                                    Tab(
+                                      height: 20,
+                                      text:
+                                          '${"pending".tr()} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
+                                    ),
+                                  ],
+                                  // Tab(
+                                  //   height: 20,
+                                  //   text: "nfts".tr(),
+                                  // ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: height / 70,
+                      ),
+                      assetsTabs(),
+                    ],
                   ] else ...[
                     showFundWallet(),
                   ]
@@ -1122,7 +1182,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               ),
               reOrderClaimedAssets(activeWallet!),
             }),
-        height: height / 5.4,
+        height: height / 5.9,
         padEnds: false,
         enableInfiniteScroll: false,
         clipBehavior: Clip.antiAlias,
@@ -1479,3 +1539,5 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 }
+
+enum DashboardAssetListMode { TokenizedAssets, OtherAssets }

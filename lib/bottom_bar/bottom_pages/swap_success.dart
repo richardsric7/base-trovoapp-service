@@ -180,7 +180,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                               flex: 5,
                               child: GestureDetector(
                                 onTap: () => appState.goToWebView(
-                                    bantuBlockchainExplorerBaseUrl +
+                                    getExplorerBaseUrl(appState.walletMode) +
                                         transactionData['transactionId']),
                                 child: Text(
                                   transactionData['transactionId'],

@@ -181,7 +181,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                               flex: 5,
                               child: GestureDetector(
                                 onTap: () => appState.goToWebView(
-                                    bantuBlockchainExplorerBaseUrl +
+                                    getExplorerBaseUrl(appState.walletMode) +
                                         viewData['transactionId']),
                                 child: Text(
                                   viewData['transactionId'],

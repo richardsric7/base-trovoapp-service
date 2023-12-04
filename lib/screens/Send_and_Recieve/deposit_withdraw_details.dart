@@ -390,7 +390,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 flex: 5,
                 child: GestureDetector(
                   onTap: () => appState.goToWebView(
-                      bantuBlockchainExplorerBaseUrl +
+                      getExplorerBaseUrl(appState.walletMode) +
                           depositInfo.transactionId),
                   child: Text(
                     depositInfo.transactionId,
@@ -688,7 +688,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 flex: 5,
                 child: GestureDetector(
                   onTap: () => appState.goToWebView(
-                      bantuBlockchainExplorerBaseUrl +
+                      getExplorerBaseUrl(appState.walletMode) +
                           withdrawalInfo.transactionId),
                   child: Text(
                     withdrawalInfo.transactionId,

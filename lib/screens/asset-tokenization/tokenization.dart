@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
+import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -9,7 +8,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -38,17 +36,17 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     }
   }
 
-  List<DropdownMenuItem<String>> get getCurrencies {
-    List<DropdownMenuItem<String>> currencies = [];
-    appState.fiatRate.forEach((key, value) {
-      currencies.add(DropdownMenuItem(
+  List<DropdownMenuItem<String>> get getItems {
+    List<DropdownMenuItem<String>> items = [];
+    listMode.forEach((key) {
+      items.add(DropdownMenuItem(
           child: Text(
             key,
             overflow: TextOverflow.ellipsis,
           ),
           value: key));
     });
-    return currencies;
+    return items;
   }
 
   List<DropdownMenuItem<String>> get getStandardWallets {
@@ -101,6 +99,11 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       "assetClass": "Property",
       "status": "Approved",
     },
+  ];
+
+  List<String> listMode = [
+    'Tokenized Assets',
+    'Assets',
   ];
 
   @override
@@ -317,10 +320,17 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                       color: notifier.getbluecolor,
                     ),
                   ),
-                  Icon(
-                    Icons.filter_list_outlined,
-                    color: notifier.getbluecolor,
-                  )
+                  Container(
+                    width: width / 7,
+                    child: iconDropdown(
+                      (value) {},
+                      getItems,
+                      null,
+                      'Insurance',
+                      context,
+                      null,
+                    ),
+                  ),
                 ],
               ),
             ),

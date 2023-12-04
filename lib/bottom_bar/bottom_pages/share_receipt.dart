@@ -213,7 +213,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                                 flex: 3,
                                                 child: Padding(
                                                   padding: const EdgeInsets
-                                                          .symmetric(
+                                                      .symmetric(
                                                       horizontal: 20.0,
                                                       vertical: 5),
                                                   child: Text(
@@ -389,7 +389,8 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                           flex: 5,
                                           child: GestureDetector(
                                             onTap: () => appState.goToWebView(
-                                                bantuBlockchainExplorerBaseUrl +
+                                                getExplorerBaseUrl(
+                                                        appState.walletMode) +
                                                     viewData.transactionId!),
                                             child: Text(
                                               viewData.transactionId!,
@@ -465,7 +466,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                 wihitecolor,
                 onTap: () {
                   share(
-                      'Blockchain proof\n$bantuBlockchainExplorerBaseUrl${viewData.transactionId!}',
+                      'Blockchain proof\n${getExplorerBaseUrl(appState.walletMode)}${viewData.transactionId!}',
                       shareArea);
                 },
               ),
@@ -478,7 +479,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                 wihitecolor,
                 onTap: () {
                   sharePDF(
-                      '${"blockchainproof".tr()}\n${bantuBlockchainExplorerBaseUrl}${viewData.transactionId!}',
+                      '${"blockchainproof".tr()}\n${getExplorerBaseUrl(appState.walletMode)}${viewData.transactionId!}',
                       shareArea);
                 },
               ),
@@ -576,7 +577,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
           viewData.memo!,
           viewData.transactionId!.toLowerCase(),
           date!,
-          bantuBlockchainExplorerBaseUrl + viewData.transactionId!
+          getExplorerBaseUrl(appState.walletMode) + viewData.transactionId!
         ]);
         break;
       default:
@@ -587,7 +588,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
           viewData.memo!,
           viewData.transactionId!.toLowerCase(),
           date!,
-          bantuBlockchainExplorerBaseUrl + viewData.transactionId!
+          getExplorerBaseUrl(appState.walletMode) + viewData.transactionId!
         ]);
     }
 

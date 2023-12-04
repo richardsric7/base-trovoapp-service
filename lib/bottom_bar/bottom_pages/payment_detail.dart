@@ -460,7 +460,8 @@ class _PaymentDetails extends State<PaymentDetails>
                                   flex: 5,
                                   child: GestureDetector(
                                     onTap: () => appState.goToWebView(
-                                        bantuBlockchainExplorerBaseUrl +
+                                        getExplorerBaseUrl(
+                                                appState.walletMode) +
                                             viewData.transactionId!),
                                     child: Text(
                                       viewData.transactionId!,
