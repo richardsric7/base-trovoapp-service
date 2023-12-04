@@ -77,6 +77,7 @@ type TokenizedAssetSubSector struct {
 type TokenizationCurrency struct {
 	AssetCode   string `gorm:"primaryKey;size:12" json:"assetCode"`
 	AssetIssuer string `gorm:"size:68" json:"assetIssuer"`
+	Label       string `gorm:"size:12" json:"label"`
 }
 
 type TokenizationFee struct {
