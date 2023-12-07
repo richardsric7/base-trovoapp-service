@@ -4010,10 +4010,153 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			currencies := userServices.GetTokenizationCurrencies(gc.DB)
 			apo := userServices.GetAssetProtectionOptions(gc.DB)
 			apc := userServices.GetAssetProceedCycle(gc.DB)
+			ac := userServices.GetTokenizationPublicAssetAllowedCountries(gc.DB)
 
 			c.JSON(http.StatusOK, gin.H{"assetSectors": sectorList, "assetSubSectors": subsectorList, "assetTypes": assetTypes, "assetCustodians": custdians,
-				"tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc})
+				"tokenizationFees": fees, "tokenizationCurrencies": currencies, "assetProtectionOptions": apo, "assetProceedCycle": apc, "publicListingAllowedCountries": ac})
 
+		})
+
+		router.POST("/v1/tokenization", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			var err error
+			_, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+			// accountSignerUser, getUserError := userModels.UserSigner(middleware.ExtractSigner(c)).GetOwner(gc.DB, gc)
+
+			if getUserError != nil {
+				log.Printf("[GENERATE DEPOSIT ADDRESS] ERROR GETTING USER FROM DB from [%v], error: [%v]\n", middleware.ExtractSigner(c), getUserError)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = getUserError.(tErrors.GenericError)
+				if ok {
+					c.JSON(ex.HTTPCode(), ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": getUserError.Error()})
+				}
+				return
+			}
+
+			var tInput userModels.TokenizedAsset
+
+			data, _ := io.ReadAll(c.Request.Body)
+			// log.Println(string(data))
+			err = json.Unmarshal(data, &tInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+
+			c.JSON(http.StatusOK, tInput)
+
+		})
+
+		router.PUT("/v1/tokenization/document", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			var err error
+			f, err := c.FormFile("documentFile")
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+
+			if f.Size > 900000 {
+				//greater than 700kb
+				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size"})
+				return
+			}
+			blobFile, err := f.Open()
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded"})
+
+				return
+			}
+			// io.ReadAll(blobFile)
+			fnameSplit := strings.Split(f.Filename, ".")
+			fileExtension := fnameSplit[len(fnameSplit)-1]
+
+			{
+				//check for unsupported extension
+				if !strings.EqualFold(fileExtension, "jpg") && !strings.EqualFold(fileExtension, "jpeg") && !strings.EqualFold(fileExtension, "png") && !strings.EqualFold(fileExtension, "gif") && !strings.EqualFold(fileExtension, "pdf") {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Unsurported document format. Only jpg, jpeg, png, gif and pdf are supported"})
+
+					return
+				}
+			}
+
+			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				}
+				return
+			}
+
+			var tokenizationInput userModels.AssetTokenizationInputDocument
+
+			data, _ := io.ReadAll(c.Request.Body)
+			// log.Println(string(data))
+			err = json.Unmarshal(data, &tokenizationInput)
+
+			var invalidJSON tErrors.ErrorInvalidJSON
+
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
+			if tokenizationInput.DocumentType == 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified"})
+				return
+			}
+			if len(tokenizationInput.DocumentTitle) < 5 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Document title not valid. Must be at least 5 characters long"})
+				return
+			}
+
+			if len(tokenizationInput.TokenizedAssetID) < 5 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid"})
+				return
+			}
+
+			conDB.PrintDBStats(fmt.Sprintf("PUT /v1/tokenization/document %v", user.Username), gc.DB)
+
+			url, err := userServices.UploadTokenizationDocument(&user, blobFile, fmt.Sprintf("%s-%s-%s.%s", user.Username, tokenizationInput.DocumentTitle, tokenizationInput.TokenizedAssetID, fileExtension), &tokenizationInput, gc)
+
+			if err != nil {
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				if ok {
+					c.JSON(http.StatusBadRequest, ex.JSONError())
+				} else {
+					c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				}
+				return
+			}
+
+			if user.PushNotificationToken != nil && len(url) > 0 {
+				dataPayload := make(map[string]string)
+				dataPayload["route"] = ""
+				pns.SendFirebaseMessage(*user.PushNotificationToken, "Profile picture updated!", fmt.Sprintf("You have successfully updated profile picture on your account [%v].", user.Username), url, dataPayload, gc.PushNotificationClient, gc.PNSContext)
+			}
+
+			userCacheKey := fmt.Sprintf("[GET] /v1/users/%v", user.Username)
+
+			gc.RedisCache.InvalidateCachedHttpResponse(userCacheKey)
+
+			//At this point, there was no error.
+
+			c.JSON(http.StatusOK, url)
 		})
 
 	}

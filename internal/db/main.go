@@ -332,6 +332,10 @@ func MigrateDB(gormDB *gorm.DB) {
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating AssetTokenizationDocument: ", errMigrate)
 		}
+		errMigrate = gormDB.AutoMigrate(&users.TokenizationPublicAssetAllowedCountryCode{})
+		if errMigrate != nil {
+			log.Fatalln("[OpenDb]Error Migrating TokenizationPublicAssetAllowedCountryCode: ", errMigrate)
+		}
 		errMigrate = gormDB.AutoMigrate(&users.ProceedCycle{})
 		if errMigrate != nil {
 			log.Fatalln("[OpenDb]Error Migrating ProceedCycle: ", errMigrate)

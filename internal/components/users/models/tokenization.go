@@ -1,6 +1,8 @@
 package users
 
-import "time"
+import (
+	"time"
+)
 
 type TokenizedAsset struct {
 	ID                             string                      `json:"id"`
@@ -79,6 +81,9 @@ type TokenizationCurrency struct {
 	AssetIssuer string `gorm:"size:68" json:"assetIssuer"`
 	Label       string `gorm:"size:12" json:"label"`
 }
+type TokenizationPublicAssetAllowedCountryCode struct {
+	ID string `gorm:"size:3" json:"id"`
+}
 
 type TokenizationFee struct {
 	ID                 uint64  `gorm:"" json:"id"`
@@ -116,6 +121,14 @@ type AssetTokenizationDocument struct {
 	DocumentType     uint64 `json:"documentType"`
 	DocumentTitle    string `json:"documentTitle"`
 	DocumentUrl      string `json:"documentUrl"`
+}
+type AssetTokenizationInputDocument struct {
+	ID               uint64
+	CreatedAt        time.Time
+	TokenizedAssetID string `json:"tokenizedAssetID"`
+	DocumentType     uint64 `json:"documentType"`
+	DocumentTitle    string `json:"documentTitle"`
+	// DocumentFile     string `json:"-"`// this is not included in struct for input. already extracted by c.FormFile
 }
 
 /**
