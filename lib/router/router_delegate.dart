@@ -65,6 +65,7 @@ import 'package:trovo_wallet/screens/asset-tokenization/confirm_buy.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/liquidate_asset.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/my_asset_token.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/proceeds_payout.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/setup_and_compliance.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenize_asset_view.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenized_asset_details.dart';
@@ -449,6 +450,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.MarketPairsView:
           _addPageData(MarketPairs(), MarketPairsViewPageConfig);
           break;
+        case Pages.SetupAndComplianceView:
+          _addPageData(SetupAndCompliance(), SetupAndComplianceViewPageConfig);
+          break;
         default:
           break;
       }
@@ -739,6 +743,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.MarketPairsView:
         MarketPairsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.SetupAndComplianceView:
+        SetupAndComplianceViewPageConfig.currentPageAction = action;
         break;
       default:
         break;

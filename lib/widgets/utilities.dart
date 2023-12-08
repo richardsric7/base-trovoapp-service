@@ -880,7 +880,11 @@ Widget getDrawer(
           onTap: () {
             Navigator.pop(context);
             appState.currentAction = PageAction(
-                state: PageState.addPage, page: SharedAccessViewPageConfig);
+              state: PageState.addPage,
+              page: appState.introducedSharedAccess
+                  ? WelcomeToSharedAccessViewPageConfig
+                  : WelcomeToSharedAccessViewPageConfig,
+            );
           },
         ),
         ListTile(

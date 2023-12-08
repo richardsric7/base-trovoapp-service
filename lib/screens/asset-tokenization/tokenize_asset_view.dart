@@ -1,4 +1,3 @@
-import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -10,7 +9,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -26,19 +24,6 @@ class _TokenizeAssetState extends State<TokenizeAsset>
   late ColorNotifier notifier;
   late DataProvider appState;
   late TabController tabController;
-  String selectedCountry = 'Nigeria';
-  List<String> assetCategories = [
-    'Agriculture and Farming',
-    'Art and Collectibles',
-    'Automotive and Transportation',
-    'Commodities',
-    'Eduction and Learning',
-    'Environmental and Renewable Energy',
-    'Financing and Banking',
-    'Gaming and Virtual Reality',
-    'Healthcare and Medical',
-    'Real Estate',
-  ];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -48,19 +33,6 @@ class _TokenizeAssetState extends State<TokenizeAsset>
     } else {
       notifier.setIsDark = previusstate;
     }
-  }
-
-  List<DropdownMenuItem<String>> get getCategories {
-    List<DropdownMenuItem<String>> categories = [];
-    assetCategories.forEach((item) {
-      categories.add(DropdownMenuItem(
-          child: Text(
-            item,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: item));
-    });
-    return categories;
   }
 
   @override
@@ -85,7 +57,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
             CustomAppBar(
               context,
               notifier.getwihitecolor,
-              'Create Asset Token',
+              "assetdetails".tr(),
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
@@ -94,7 +66,6 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
                 "fillouttocreatetoken".tr(),
-                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
                   fontFamily: fontbody,
@@ -103,162 +74,12 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               ),
             ),
             SizedBox(
-              height: height / 30,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Asset Category',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Select the asset category from the list below ',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: dropdown(
-                (value) {},
-                getCategories,
-                null,
-                'Real Estate',
-                context,
-                null,
-              ),
-            ),
-            SizedBox(
-              height: height / 30,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Country',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Select Country where the asset is located',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Container(
-                child: Card(
-                  shadowColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  color: notifier.isDark
-                      ? notifier.getbluecolor90
-                      : notifier.getaddsubwalletgrey,
-                  child: TextButton(
-                    onPressed: () {
-                      showCountryPicker(
-                        context: context,
-                        onSelect: (Country country) {
-                          print('Select country: ${country.displayName}');
-                          setState(() {
-                            selectedCountry = country.name;
-                          });
-                        },
-                      );
-                    },
-                    style: ButtonStyle(
-                        elevation: MaterialStateProperty.all<double>(0)),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          selectedCountry,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                        Icon(Icons.keyboard_arrow_down_rounded),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(
-              height: height / 30,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Asset Details',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
               height: height / 50,
             ),
             detailItem(
-              'Asset Information',
-              'Provide the basic information about the asset you want to tokenize',
+              "assetinformation".tr(),
+              "providebasicinfo".tr(),
+              "1",
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
@@ -270,8 +91,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               height: height / 50,
             ),
             detailItem(
-              'Asset Verification Documents',
-              'Provide verification documents about the asset you want to tokenize',
+              "assetverificationdocs".tr(),
+              "provideverificationdocs".tr(),
+              "2",
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
@@ -283,8 +105,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               height: height / 50,
             ),
             detailItem(
-              'Asset Token Information',
-              'Provide information about the asset token you want to create',
+              "assettokeninfo".tr(),
+              "providetokeninfo".tr(),
+              "3",
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
@@ -296,7 +119,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               height: height / 30,
             ),
             Button(
-              'Complete Tokenization',
+              "completetokenization".tr(),
               notifier.getbluecolor,
               wihitecolor,
               onTap: () {
@@ -318,9 +141,10 @@ class _TokenizeAssetState extends State<TokenizeAsset>
     );
   }
 
-  Widget detailItem(String title, String description,
+  Widget detailItem(String title, String description, String number,
       {required void Function() onTap}) {
-    return Column(
+    return Stack(
+      alignment: AlignmentDirectional.centerStart,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
@@ -333,12 +157,11 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                   : notifier.getaddsubwalletgrey,
             ),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 15.0),
+              padding: const EdgeInsets.fromLTRB(25.0, 15.0, 5.0, 15.0),
               child: Row(
                 children: [
                   Container(
-                    width: width / 1.2,
+                    width: width / 1.27,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -367,7 +190,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                                       MaterialTapTargetSize.shrinkWrap,
                                   alignment: Alignment.centerLeft),
                               child: Text(
-                                'Start',
+                                "start".tr(),
                                 style: TextStyle(
                                   fontStyle: FontStyle.italic,
                                   fontSize: 15,
@@ -399,6 +222,30 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: notifier.getbluewhitecolor, width: 1.5),
+              shape: BoxShape.circle,
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Text(
+                number,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontsemibold,
+                ),
               ),
             ),
           ),
