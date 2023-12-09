@@ -70,7 +70,7 @@ func GetCuratedAssets(includeInactive bool, gc *sharedconfig.GlobalConfig) (asse
 	// tempAssets[":"] = models.CuratedAsset{
 	// 	ImageURL:     nativeLogo(),
 	// 	AssetName:    "Bantu Network Token",
-	// 	Description:  "Description: XBN is the native asset and network utility token issued by the Bantu Blockchain Foundation",
+	// 	Description:  "XBN is the native network utility token issued by the Bantu Blockchain Foundation, it is used as gas to power transactions on the blockchain network.",
 	// 	Website:      "www.bantufoundation.org",
 	// 	ContactEmail: "ops@bantufoundation.org",
 	// 	Priority:     1,
