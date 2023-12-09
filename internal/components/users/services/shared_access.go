@@ -354,7 +354,7 @@ func CreateSharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		return returnedWallet, &tErrors.CustomError{
 			Param:      "numberOfApprovalsNeeded",
 			Err:        "error-approvers-not-enough",
-			ErrMessage: fmt.Sprintf("Please ensure that your list of approvers are greater than the minimum number required to approve a transaction [%v]", accessInfo.NumberOfApprovalsNeeded),
+			ErrMessage: fmt.Sprintf("Please ensure that your list of approvers configured are greater than the minimum number required to approve a transaction [%v]", accessInfo.NumberOfApprovalsNeeded),
 			Code:       http.StatusForbidden,
 		}
 	}
@@ -917,7 +917,7 @@ func ModifySharedWalletAccess(signerUser *userModels.User, walletOwner *userMode
 		err = &tErrors.CustomError{
 			Param:      "numberOfApprovalsNeeded",
 			Err:        "error-approvers-not-enough",
-			ErrMessage: fmt.Sprintf("Please ensure that your list of approvers are greater than the minimum number required to approve a transaction [%v]", accessInfo.NumberOfApprovalsNeeded),
+			ErrMessage: fmt.Sprintf("Please ensure that your list of approvers configured are greater than the minimum number required to approve a transaction [%v]", accessInfo.NumberOfApprovalsNeeded),
 			Code:       http.StatusForbidden,
 		}
 		return
@@ -1289,7 +1289,7 @@ func generateCreateSharedAccessXdr(wallet *userModels.UserWallet, walletOwner *u
 		err = &tErrors.CustomError{
 			Param:      "publicKey",
 			Err:        "error-wallet-underfunded",
-			ErrMessage: fmt.Sprintf("Wallet %v does not have enough XBN balance to perform this operation", wallet.Alias),
+			ErrMessage: fmt.Sprintf("Wallet %v does not have enough %v balance to perform this operation", wallet.Alias, os.Getenv("NATIVE_ASSET_CODE")),
 			Code:       404,
 		}
 		return "", messages, walletMustSign, err
