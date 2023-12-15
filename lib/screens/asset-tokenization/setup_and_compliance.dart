@@ -12,6 +12,7 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/state.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -27,6 +28,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
+  late AssetTokenizationViewsState tokenizationState;
   String selectedCountry = 'Nigeria';
   bool hasCustodianAgreement = true;
   bool hasSecApproval = false;
@@ -37,6 +39,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   String selectedAssetSectorId = 'Real Estate Sector';
   String selectedAssetSubSectorId = 'Land';
   String selectedAssetTypeId = '';
+  String selectedAssetCustodian = '';
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -92,6 +95,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
+    tokenizationState =
+        Provider.of<AssetTokenizationViewsState>(context, listen: false);
     tokenizationData = fetchTokenizationData();
   }
 
@@ -178,8 +183,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       ),
                     );
                   } else if (snapshot.hasData) {
-                    print(snapshot.data);
-
+                    tokenizationState.tokenizationData = snapshot.data;
                     return setupAndCompliance(snapshot.data);
                   } else {
                     return Center(
@@ -222,6 +226,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
     List<DropdownMenuItem<String>> assetTypes =
         getAssetTypes(data, selectedAssetSubSectorId);
+
+    List<DropdownMenuItem<int>> assetCustodians = getAssetCustodians(data);
 
     return SingleChildScrollView(
       child: Column(
@@ -359,10 +365,14 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10.0),
             child: dropdown(
-              (value) {},
+              (value) {
+                setState(() {
+                  selectedAssetTypeId = value.toString();
+                });
+              },
               assetTypes,
               null,
-              '',
+              'Select asset type',
               context,
               null,
             ),
@@ -774,12 +784,15 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: dropdown(
-                  (value) {},
-                  getMintingWallets,
+                  (value) {
+                    setState(() {
+                      selectedAssetCustodian = value.toString();
+                      assetCustodians = getAssetCustodians(data);
+                    });
+                  },
+                  assetCustodians,
                   null,
-                  appState.userInfo!.getMintingWallets.length > 0
-                      ? appState.userInfo!.getMintingWallets.first.alias
-                      : '',
+                  'Select custodian',
                   context,
                   null,
                 ),
@@ -1031,7 +1044,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
   Future<Map> fetchTokenizationData() async {
     try {
-      print('fetching tokenization data...');
       var uri = '/v1/tokenization';
 
       Map responseData = await makeGetRequest(
@@ -1084,11 +1096,25 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
             value: data!['assetTypes'][i]['id'].toString(),
           ),
         );
-        print(
-            'object ${data!['assetTypes'][i]['id']} ${data!['assetTypes'][i]['assetType']}');
       }
     }
     return assetTypes;
+  }
+
+  List<DropdownMenuItem<int>> getAssetCustodians(data) {
+    List<DropdownMenuItem<int>> assetCustodians = [];
+    for (var i = 0; i < data!['assetCustodians'].length; i++) {
+      assetCustodians.add(
+        DropdownMenuItem(
+          child: Text(
+            '${data!['assetCustodians'][i]['assetCustodianName']}, ${data!['assetCustodians'][i]['assetCustodianAddress']} ${data!['assetCustodians'][i]['assetCustodianCountry']}',
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: data!['assetCustodians'][i]['id'],
+        ),
+      );
+    }
+    return assetCustodians;
   }
 
   Widget CheckItem(

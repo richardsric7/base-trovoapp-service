@@ -101,6 +101,7 @@ const String MarketTradeViewPath = '/MarketTradeView';
 const String MarketTradeInfoViewPath = '/MarketTradeInfoView';
 const String MarketPairsViewPath = '/MarketPairsView';
 const String SetupAndComplianceViewPath = '/SetupAndComplianceView';
+const String AllWalletsViewPath = '/AllWallets';
 
 enum Pages {
   Splash,
@@ -204,6 +205,7 @@ enum Pages {
   MarketTradeInfoView,
   MarketPairsView,
   SetupAndComplianceView,
+  AllWalletsView,
 }
 
 class PageConfiguration {
@@ -695,4 +697,9 @@ PageConfiguration SetupAndComplianceViewPageConfig = PageConfiguration(
     key: 'SetupAndComplianceView',
     path: SetupAndComplianceViewPath,
     uiPage: Pages.SetupAndComplianceView,
+    currentPageAction: null);
+PageConfiguration AllWalletsViewPageConfig = PageConfiguration(
+    key: 'AllWalletsView',
+    path: AllWalletsViewPath,
+    uiPage: Pages.AllWalletsView,
     currentPageAction: null);

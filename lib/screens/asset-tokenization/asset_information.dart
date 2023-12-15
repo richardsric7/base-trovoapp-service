@@ -9,6 +9,7 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/state.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -23,18 +24,11 @@ class AssetInformation extends StatefulWidget {
 class _AssetInformation extends State<AssetInformation>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
+  late AssetTokenizationViewsState tokenizationState;
   late DataProvider appState;
   bool assetExisting = false;
   int assetOwnership = 0;
   int thirdPartyOwnerType = 0; // individual = 0; 1 = organization
-  List<String> options = [
-    'Insurance',
-    'Alarm System',
-    'Surveillance System',
-    'Physical Security',
-    'Inspection and Management',
-    'Other',
-  ];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -46,17 +40,21 @@ class _AssetInformation extends State<AssetInformation>
     }
   }
 
-  List<DropdownMenuItem<String>> get getOptions {
-    List<DropdownMenuItem<String>> myOptions = [];
-    options.forEach((value) {
-      myOptions.add(DropdownMenuItem(
+  List<DropdownMenuItem<String>> get getAssetProtectionOptions {
+    List<DropdownMenuItem<String>> assetProtectionOptions = [];
+    var data = tokenizationState.tokenizationData!['assetProtectionOptions'];
+    for (var i = 0; i < data.length; i++) {
+      assetProtectionOptions.add(
+        DropdownMenuItem(
           child: Text(
-            value,
+            data![i]['id'],
             overflow: TextOverflow.ellipsis,
           ),
-          value: value));
-    });
-    return myOptions;
+          value: data![i]['id'],
+        ),
+      );
+    }
+    return assetProtectionOptions;
   }
 
   @override
@@ -71,6 +69,9 @@ class _AssetInformation extends State<AssetInformation>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    tokenizationState =
+        Provider.of<AssetTokenizationViewsState>(context, listen: false);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -1056,7 +1057,7 @@ class _AssetInformation extends State<AssetInformation>
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
                 (value) {},
-                getOptions,
+                getAssetProtectionOptions,
                 null,
                 'Insurance',
                 context,

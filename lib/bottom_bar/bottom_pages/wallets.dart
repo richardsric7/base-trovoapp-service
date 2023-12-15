@@ -167,7 +167,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
     return dropdownItems;
   }
 
-  List<DropdownMenuItem<String>> get accessModeDropdownItems {
+  List<DropdownMenuItem<String>> get walletModeDropdownItems {
     return walletListMode
         .map<DropdownMenuItem<String>>((item) => DropdownMenuItem(
             child: Text(
@@ -268,124 +268,96 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
           onRefresh: refreshData,
           child: ListView(
             children: [
-              if (appState.walletView.view == WalletView.listWallets) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Container(
-                      color: notifier.getfavorites,
-                      padding: EdgeInsets.all(8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField(
-                              isExpanded: true,
-                              dropdownColor: notifier.isDark
-                                  ? darktilewhitecolor
-                                  : notifier.getaddsubwalletgrey,
-                              decoration: InputDecoration(
-                                contentPadding: EdgeInsets.symmetric(
-                                    vertical: 0, horizontal: 20),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide.none,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide.none,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                filled: true,
-                                fillColor: notifier.isDark
-                                    ? darktilewhitecolor
-                                    : notifier.getaddsubwalletgrey,
-                              ),
-                              value: selectedWalletMode,
-                              icon: Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                              elevation: 0,
-                              style: TextStyle(
-                                  color: notifier.getbluewhitecolor,
-                                  fontSize: 15,
-                                  fontFamily: fontsemibold,
-                                  fontWeight: FontWeight.w500),
-                              onChanged: (newValue) {
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Container(
+                    color: notifier.getfavorites,
+                    padding: EdgeInsets.all(8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            width: width / 2,
+                            child: dropdown(
+                              (value) {
                                 setState(() {
-                                  selectedWalletMode = newValue.toString();
+                                  listMode = value as DashboardAssetListMode;
                                 });
                               },
-                              items: accessModeDropdownItems,
+                              getItems,
+                              null,
+                              "tokenizedassets".tr(),
+                              context,
+                              null,
                             ),
                           ),
-                          SizedBox(
-                            width: width / 15,
-                          ),
-                          Expanded(
-                            child: Container(
-                              child: Card(
-                                  shadowColor: Colors.black,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                  ),
-                                  color: notifier.isDark
-                                      ? notifier.getbluecolor90
-                                      : notifier.getaddsubwalletgrey,
-                                  child: TextButton(
-                                    onPressed: () {
-                                      appState.viewData = {
-                                        'assetCode': '',
-                                        'assetIssuer': '',
-                                        'walletPublicKey':
-                                            appState.primaryWallet.publicKey,
-                                      };
-                                      appState.currentAction = PageAction(
-                                          state: PageState.addPage,
-                                          page: AssetDetailsViewPageConfig);
-                                    },
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
-                                          children: [
-                                            Icon(
-                                              Icons.local_gas_station,
-                                              color: notifier.getbluecolor,
-                                            ),
-                                            Container(
-                                              width: 100,
-                                              child: Text(
-                                                '${formatHistoryNumber(gas.amount!, 1000)} ${getAssetCode(gas.assetCode)}',
+                        ),
+                        SizedBox(
+                          width: width / 15,
+                        ),
+                        Expanded(
+                          child: Container(
+                            child: Card(
+                                shadowColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                ),
+                                color: notifier.isDark
+                                    ? notifier.getbluecolor90
+                                    : notifier.getaddsubwalletgrey,
+                                child: TextButton(
+                                  onPressed: () {
+                                    appState.viewData = {
+                                      'assetCode': '',
+                                      'assetIssuer': '',
+                                      'walletPublicKey':
+                                          appState.primaryWallet.publicKey,
+                                    };
+                                    appState.currentAction = PageAction(
+                                        state: PageState.addPage,
+                                        page: AssetDetailsViewPageConfig);
+                                  },
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Icon(
+                                            Icons.local_gas_station,
+                                            color: notifier.getbluecolor,
+                                          ),
+                                          Container(
+                                            width: 100,
+                                            child: Text(
+                                              '${formatHistoryNumber(gas.amount!, 1000)} ${getAssetCode(gas.assetCode)}',
+                                              overflow: TextOverflow.visible,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: fontsemibold,
+                                                color: notifier.getbluecolor,
                                                 overflow: TextOverflow.visible,
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontFamily: fontsemibold,
-                                                  color: notifier.getbluecolor,
-                                                  overflow:
-                                                      TextOverflow.visible,
-                                                ),
                                               ),
                                             ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  )),
-                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                )),
                           ),
-                        ],
-                      )),
-                )
-              ] else ...[
-                SizedBox(
-                  height: height / 40,
-                )
-              ],
+                        ),
+                      ],
+                    )),
+              ),
               walletSlides(wallets),
+              SizedBox(
+                height: height / 70,
+              ),
               GestureDetector(
                 onTap: () {
                   if (appState.walletView.view == WalletView.listWallets) {
@@ -431,7 +403,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                 ),
               ),
               SizedBox(
-                height: height / 90,
+                height: height / 80,
               ),
               if (appState.walletView.view == WalletView.addSubWallet) ...[
                 addSubwallet()
@@ -439,38 +411,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                   WalletView.confirmAddSubWallet) ...[
                 confirmAddSubwallet()
               ] else ...[
-                // isTileView ? gridView() : walletListView(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Asset Mode',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluecolor,
-                        ),
-                      ),
-                      Container(
-                        width: width / 2,
-                        child: dropdown(
-                          (value) {
-                            setState(() {
-                              listMode = value as DashboardAssetListMode;
-                            });
-                          },
-                          getItems,
-                          null,
-                          'Tokenized Assets',
-                          context,
-                          null,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
                 listMode == DashboardAssetListMode.TokenizedAssets
                     ? showAssets()
                     : cryptoAssets(),
@@ -787,13 +727,16 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
 
   Widget listingTabs() {
     return Container(
-      height: height / 2.4,
+      height: height / 2.19,
       child: TabBarView(
         controller: _tabController,
         children: [
           SingleChildScrollView(
             child: Column(
               children: [
+                SizedBox(
+                  height: height / 90,
+                ),
                 for (var i = 0; i < listOfAssets.length; i++) ...[
                   GestureDetector(
                     onTap: () {
@@ -816,6 +759,9 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
           SingleChildScrollView(
             child: Column(
               children: [
+                SizedBox(
+                  height: height / 90,
+                ),
                 for (var i = 0; i < listOfAssets.length; i++) ...[
                   GestureDetector(
                     onTap: () {
@@ -872,35 +818,104 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
         var indexOfWallet = wallets.indexOf(wallet);
         return Builder(
           builder: (BuildContext context) {
+            if (indexOfWallet < 5) {
+              return GestureDetector(
+                onTap: () {
+                  appState.viewData = {
+                    'walletPublicKey': wallets[indexOfWallet].publicKey
+                  };
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: WalletDetailsViewPageConfig);
+                },
+                child: WalletSlide(
+                  backColor: colors[wallets.indexOf(wallet)],
+                  foreColor: getColor(context, indexOfWallet),
+                  alias: wallet.alias!.capitalizeFirst!,
+                  assetCount: wallet.claimedAssets?.length.toString(),
+                  totalBalance:
+                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallets[indexOfWallet].claimedAssets!)} ${appState.defaultCurrency}',
+                  fiatBalance: appState.defaultCurrency == 'USD'
+                      ? null
+                      : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallets[indexOfWallet].claimedAssets!)} USD',
+                  initialHiddenState: appState.hideWalletList[indexOfWallet],
+                  onHiddenStateChanged: (state) => {
+                    setState(
+                      () => {
+                        appState.hideWalletList[indexOfWallet] = state,
+                        StoreData().storeInsertData(
+                            'hideWalletList', appState.hideWalletList)
+                      },
+                    )
+                  },
+                ),
+              );
+            }
+
             return GestureDetector(
               onTap: () {
-                appState.viewData = {
-                  'walletPublicKey': wallets[indexOfWallet].publicKey
-                };
                 appState.currentAction = PageAction(
-                    state: PageState.addPage,
-                    page: WalletDetailsViewPageConfig);
+                  state: PageState.addPage,
+                  page: AllWalletsViewPageConfig,
+                );
+                setState(() {});
               },
-              child: WalletSlide(
-                backColor: colors[wallets.indexOf(wallet)],
-                foreColor: getColor(context, indexOfWallet),
-                alias: wallet.alias!.capitalizeFirst!,
-                assetCount: wallet.claimedAssets?.length.toString(),
-                totalBalance:
-                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallets[indexOfWallet].claimedAssets!)} ${appState.defaultCurrency}',
-                fiatBalance: appState.defaultCurrency == 'USD'
-                    ? null
-                    : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallets[indexOfWallet].claimedAssets!)} USD',
-                initialHiddenState: appState.hideWalletList[indexOfWallet],
-                onHiddenStateChanged: (state) => {
-                  setState(
-                    () => {
-                      appState.hideWalletList[indexOfWallet] = state,
-                      StoreData().storeInsertData(
-                          'hideWalletList', appState.hideWalletList)
-                    },
-                  )
-                },
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                    color: colors[0],
+                    // color: colors[wallets.indexOf(wallet)],
+                  ),
+                  child: Stack(
+                    alignment: AlignmentDirectional.centerEnd,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 35.0, horizontal: 20),
+                            child: Image.asset(
+                              'assets/images/trovo_white.png',
+                              width: 80,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20.0, vertical: 25.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "taptoviewall".tr(),
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: wihitecolor,
+                                      fontFamily: fontsemibold),
+                                ),
+                                SizedBox(
+                                  width: width / 50,
+                                ),
+                                Icon(
+                                  Icons.arrow_forward,
+                                  color: wihitecolor,
+                                )
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             );
           },
@@ -911,7 +926,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
 
   Widget assetsTabs() {
     return Container(
-      height: height / 2.4,
+      height: height / 2.2,
       child: TabBarView(
         controller: _tabController,
         children: [
@@ -1077,7 +1092,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
         children: [
           if (claimedAssets!.length > 0) ...[
             Container(
-              height: height / 2.4,
+              height: height / 2.2,
               child: ReorderableListView(
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
                 onReorder: (oldIndex, newIndex) {

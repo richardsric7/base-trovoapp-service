@@ -184,7 +184,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                             onPressed: () async {
                               appState.currentAction = PageAction(
                                 state: PageState.addPage,
-                                page: WalletPreparationViewPageConfig,
+                                page: SetupAndComplianceViewPageConfig,
                               );
                             },
                             style: ButtonStyle(

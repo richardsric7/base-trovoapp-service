@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:trovo_wallet/bottom_bar/bottom_pages/all_wallets.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/searchview.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/settings.dart';
 import 'package:trovo_wallet/custom_bloc_observer/swiper/swiper.dart';
@@ -453,6 +454,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.SetupAndComplianceView:
           _addPageData(SetupAndCompliance(), SetupAndComplianceViewPageConfig);
           break;
+        case Pages.AllWalletsView:
+          _addPageData(AllWalletsView(), AllWalletsViewPageConfig);
+          break;
         default:
           break;
       }
@@ -746,6 +750,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.SetupAndComplianceView:
         SetupAndComplianceViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.AllWalletsView:
+        AllWalletsViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
