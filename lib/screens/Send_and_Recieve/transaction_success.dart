@@ -235,7 +235,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                     to: '${viewData['destinationFirstName']} ${viewData['destinationLastName']}[${viewData['destination']}]',
                     toPublicKey: viewData['destinationPublicKey'],
                     transactionDirection: TransactionDirection.Send,
-                    assetCode: viewData['assetCode'],
+                    assetCode: getAssetCode(viewData['assetCode']),
                     assetIssuer: viewData['assetIssuer'].toString(),
                     amount: double.parse(viewData['amount']),
                     memo: viewData['memo'],

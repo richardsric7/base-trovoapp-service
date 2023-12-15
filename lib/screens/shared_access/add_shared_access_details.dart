@@ -624,7 +624,6 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
             callback: () {
           signAndSendToServerAgain(responseData['data']);
         });
-        hideLoader(context);
       } else {
         hideLoader(context);
         popup(context,

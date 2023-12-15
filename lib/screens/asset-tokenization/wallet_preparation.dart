@@ -5,7 +5,6 @@ import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
@@ -191,38 +190,6 @@ class _WalletPreparationState extends State<WalletPreparation>
             null,
           ),
         ),
-        Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: TextButton(
-                onPressed: () async {
-                  appState.returnView = PageAction(
-                      state: PageState.addAll,
-                      pages: [
-                        BottomHomePageConfig,
-                        WalletPreparationViewPageConfig
-                      ]);
-                  appState.currentAction =
-                      PageAction(state: PageState.addAll, pages: [
-                    BottomHomePageConfig,
-                  ]);
-                  changeTabPage(appState, ButtomTabPage.Wallets.index);
-                  setState(() {});
-                },
-                child: Text(
-                  "orcreateanewwallet".tr(),
-                  style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    fontSize: 12,
-                    fontFamily: fontbody,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
         SizedBox(
           height: height / 30,
         ),
@@ -266,38 +233,6 @@ class _WalletPreparationState extends State<WalletPreparation>
             context,
             null,
           ),
-        ),
-        Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: TextButton(
-                onPressed: () {
-                  appState.returnView = PageAction(
-                      state: PageState.addAll,
-                      pages: [
-                        BottomHomePageConfig,
-                        WalletPreparationViewPageConfig
-                      ]);
-                  appState.currentAction =
-                      PageAction(state: PageState.addAll, pages: [
-                    BottomHomePageConfig,
-                  ]);
-                  changeTabPage(appState, ButtomTabPage.Wallets.index);
-                  setState(() {});
-                },
-                child: Text(
-                  "orcreateanewwallet".tr(),
-                  style: TextStyle(
-                    decoration: TextDecoration.underline,
-                    fontSize: 12,
-                    fontFamily: fontbody,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ),
-            ),
-          ],
         ),
       ],
     );
