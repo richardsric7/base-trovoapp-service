@@ -50,6 +50,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   var noXbnBalance = false;
   late Asset gas;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
+  DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
+
+  Map<String, DashboardAssetListMode> listModes = {
+    'Tokenized Assets': DashboardAssetListMode.TokenizedAssets,
+    'Other Assets': DashboardAssetListMode.OtherAssets,
+  };
 
   @override
   void initState() {
@@ -69,6 +75,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     // Tab Changed swiping to a new tab
     activeTabIndex = _tabController.index;
     setState(() {});
+  }
+
+  List<DropdownMenuItem<DashboardAssetListMode>> get getItems {
+    List<DropdownMenuItem<DashboardAssetListMode>> items = [];
+    listModes.forEach((key, value) {
+      items.add(DropdownMenuItem(
+          child: Text(
+            key,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: value));
+    });
+    return items;
   }
 
   @override
@@ -102,15 +121,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       reOrderClaimedAssets(activeWallet!);
     }
 
-    // in order to make assets tab length dynamic we have to check
-    // for when we have pending asset and then change the tablength
-    // to 3 or back to 2 when we do not have pending assets.
-    // if (unclaimedAssets != null && unclaimedAssets!.length > 0) {
-    //   // if (activeTabIndex == _tabController.length - 1) activeTabIndex = 1;
+    // if (listMode == DashboardAssetListMode.OtherAssets) {
+    //   // in order to make assets tab length dynamic we have to check
+    //   // for when we have pending asset and then change the tablength
+    //   // to 3 or back to 2 when we do not have pending assets.
+    //   if (unclaimedAssets != null && unclaimedAssets!.length > 0) {
+    //     tabLength = 2;
+    //   } else {
+    //     tabLength = 1;
+    //   }
+    // } else if (listMode == DashboardAssetListMode.TokenizedAssets) {
     //   tabLength = 2;
-    // } else {
-    //   tabLength = 1;
-    //   // if (activeTabIndex > tabLength - 1) activeTabIndex = tabLength - 1;
     // }
 
     if (tabLength != _tabController.length) {
@@ -118,10 +139,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       _tabController = TabController(length: tabLength, vsync: this);
       _tabController.addListener(tabListener);
     }
-
-    // keep track of the active tab to avoid having it changed
-    // on each page rebuild
-    // _tabController.animateTo(activeTabIndex);
 
     return Scaffold(
       key: key,
@@ -141,10 +158,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     height: 45,
                   ),
                   firstRow(),
-                  SizedBox(
-                    height: height / 70,
-                  ),
                   if (userInfo.hasSecurityQuestions == 0) ...[
+                    SizedBox(
+                      height: 5,
+                    ),
                     GestureDetector(
                       onTap: () {
                         var primaryWallet = appState.userInfo!.wallets!
@@ -190,62 +207,15 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
                   ],
                   walletSlides(wallets),
                   SizedBox(
-                    height: height / 30,
+                    height: height / 50,
                   ),
                   // check if the user's xbn balance is 0. This usually is the si-
                   // tuation when a new user signs up and has not funded their wallet
                   // yet
                   if (!noXbnBalance) ...[
-                    DefaultTabController(
-                      length: tabLength,
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: tabLength == 2 ? 0 : 100,
-                            ),
-                            child: TabBar(
-                              controller: _tabController,
-                              labelColor: notifier.getbluewhitecolor,
-                              indicatorColor: notifier.getbluewhitecolor,
-                              labelStyle: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: fontsemibold,
-                              ),
-                              tabs: [
-                                Tab(
-                                  height: 20,
-                                  text: "assets".tr(),
-                                ),
-                                if (unclaimedAssets != null &&
-                                    tabLength == 2) ...[
-                                  Tab(
-                                    height: 20,
-                                    text:
-                                        '${"pending".tr()} (${unclaimedAssets == null ? 0 : unclaimedAssets!.length})',
-                                  ),
-                                ],
-                                // Tab(
-                                //   height: 20,
-                                //   text: "nfts".tr(),
-                                // ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 70,
-                    ),
-                    // assetsTabs(),
                     // area of new screen
                     // //////////////////
                     Padding(
@@ -257,7 +227,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             children: [
                               Expanded(
                                 child: Container(
-                                  height: height / 12,
+                                  height: height / 14,
                                   child: Card(
                                       shadowColor: Colors.black,
                                       shape: RoundedRectangleBorder(
@@ -288,6 +258,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                                 Icon(
                                                   Icons.local_gas_station,
                                                   color: notifier.getbluecolor,
+                                                  size: 20,
                                                 ),
                                                 Text(
                                                   "Gas",
@@ -308,7 +279,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                                 Text(
                                                   '${formatHistoryNumber(gas.amount!, 1000)} ${getAssetCode(gas.assetCode)}',
                                                   style: TextStyle(
-                                                    fontSize: 13,
+                                                    fontSize: 10,
                                                     fontWeight: FontWeight.bold,
                                                     fontFamily: fontsemibold,
                                                     color:
@@ -326,7 +297,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                               ),
                               Expanded(
                                 child: Container(
-                                  height: height / 12,
+                                  height: height / 14,
                                   child: Card(
                                       shadowColor: Colors.black,
                                       shape: RoundedRectangleBorder(
@@ -360,7 +331,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                                     Icons.arrow_outward,
                                                     color:
                                                         notifier.getwihitecolor,
-                                                    size: 20,
+                                                    size: 15,
                                                   ),
                                                 ),
                                                 Text(
@@ -382,7 +353,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                                 Text(
                                                   "24 Assets",
                                                   style: TextStyle(
-                                                    fontSize: 13,
+                                                    fontSize: 10,
                                                     fontWeight: FontWeight.bold,
                                                     fontFamily: fontsemibold,
                                                     color:
@@ -439,7 +410,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
-                    )
+                    ),
                   ] else ...[
                     showFundWallet(),
                   ]
@@ -461,7 +432,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Widget listingTabs() {
     return Container(
-      height: height / 2.21,
+      height: height / 2.0,
       child: TabBarView(
         controller: _tabController,
         children: [
@@ -892,89 +863,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  Widget gridView() {
-    return Container(
-      height: height / 2,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 28.0, 10, 0),
-        child: GridView(
-          padding: const EdgeInsets.fromLTRB(0, 0, 0, 70),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 20,
-              crossAxisSpacing: 20,
-              childAspectRatio: 1.05),
-          children: [
-            nftCard(
-              "assets/images/awka-paws.svg",
-              'AWKA PAWS',
-              'GBCVE....UJKKGA',
-              Colors.blue,
-            ),
-            nftCard(
-              "assets/images/warri-wolves.svg",
-              'WARRI WOLVES',
-              'GBCVE....UJKKGA',
-              Colors.green,
-            ),
-            nftCard(
-              "assets/images/accra-goats.svg",
-              'ACCRA GOATS',
-              'GBCVE....UJKKGA',
-              Colors.red,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget nftCard(image, title, subtitle, color) {
-    return Card(
-      elevation: 5,
-      shadowColor: Colors.black,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      color: color,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              image,
-              width: 75,
-              height: 75,
-            ),
-            SizedBox(
-              height: 10,
-            ),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                fontFamily: fontsemibold,
-                color: notifier.getblck,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-              child: Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontFamily: fontbody,
-                  color: notifier.getblck,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ), //SizedBox
-    );
-  }
-
   Widget assetTile(String imageUrl, String name, String type, isSubscribed) {
     return Card(
       elevation: notifier.isDark ? 0 : 5,
@@ -1122,7 +1010,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               ),
               reOrderClaimedAssets(activeWallet!),
             }),
-        height: height / 5.4,
+        height: height / 5.9,
         padEnds: false,
         enableInfiniteScroll: false,
         clipBehavior: Clip.antiAlias,
@@ -1479,3 +1367,5 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 }
+
+enum DashboardAssetListMode { TokenizedAssets, OtherAssets }

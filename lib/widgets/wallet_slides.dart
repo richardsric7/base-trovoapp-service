@@ -61,7 +61,7 @@ class _WalletSlideState extends State<WalletSlide> {
 
   Widget walletSlide() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 3),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(15.0)),

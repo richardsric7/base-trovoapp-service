@@ -22,7 +22,6 @@ import '../../functions/trovo-sdk.dart';
 import '../../router/page_actions.dart';
 import '../../storage/state.dart';
 import '../../network/requests.dart';
-import '../../storage/store.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 import '../../widgets/loader.dart';
 import '../../widgets/terms_of_service.dart';

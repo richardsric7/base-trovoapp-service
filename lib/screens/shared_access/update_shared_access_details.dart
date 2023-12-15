@@ -677,7 +677,6 @@ class _UpdateSharedAccessDetails extends State<UpdateSharedAccessDetails>
             callback: () {
           signAndCommitTransaction(responseData['data']);
         });
-        hideLoader(context);
       } else {
         popup(context,
             title: "error".tr(), message: responseData['data']['message']);

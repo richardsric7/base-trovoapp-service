@@ -6,7 +6,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/transaction.dart';
@@ -213,7 +212,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                                 flex: 3,
                                                 child: Padding(
                                                   padding: const EdgeInsets
-                                                          .symmetric(
+                                                      .symmetric(
                                                       horizontal: 20.0,
                                                       vertical: 5),
                                                   child: Text(
@@ -389,7 +388,8 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                                           flex: 5,
                                           child: GestureDetector(
                                             onTap: () => appState.goToWebView(
-                                                bantuBlockchainExplorerBaseUrl +
+                                                getExplorerBaseUrl(
+                                                        appState.walletMode) +
                                                     viewData.transactionId!),
                                             child: Text(
                                               viewData.transactionId!,
@@ -465,7 +465,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                 wihitecolor,
                 onTap: () {
                   share(
-                      'Blockchain proof\n$bantuBlockchainExplorerBaseUrl${viewData.transactionId!}',
+                      'Blockchain proof\n${getExplorerBaseUrl(appState.walletMode)}${viewData.transactionId!}',
                       shareArea);
                 },
               ),
@@ -478,7 +478,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
                 wihitecolor,
                 onTap: () {
                   sharePDF(
-                      '${"blockchainproof".tr()}\n${bantuBlockchainExplorerBaseUrl}${viewData.transactionId!}',
+                      '${"blockchainproof".tr()}\n${getExplorerBaseUrl(appState.walletMode)}${viewData.transactionId!}',
                       shareArea);
                 },
               ),
@@ -576,7 +576,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
           viewData.memo!,
           viewData.transactionId!.toLowerCase(),
           date!,
-          bantuBlockchainExplorerBaseUrl + viewData.transactionId!
+          getExplorerBaseUrl(appState.walletMode) + viewData.transactionId!
         ]);
         break;
       default:
@@ -587,7 +587,7 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
           viewData.memo!,
           viewData.transactionId!.toLowerCase(),
           date!,
-          bantuBlockchainExplorerBaseUrl + viewData.transactionId!
+          getExplorerBaseUrl(appState.walletMode) + viewData.transactionId!
         ]);
     }
 

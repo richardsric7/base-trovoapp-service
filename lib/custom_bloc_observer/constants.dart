@@ -6,6 +6,7 @@ String privacyPolicyUrl = 'https://trovotech.io/privacy-policy.html';
 String trovoP2pUrl = 'p2p-frontend-staging-8shkr.ondigitalocean.app';
 String nativeAssetCode = 'XBN';
 String nativeAssetIssuer = 'Native Token';
-String bantuBlockchainExplorerBaseUrl =
+String bantuBlockchainExplorerBaseUrl = 'https://explorer.bantu.network/tx/';
+String bantuBlockchainExplorerTestnetBaseUrl =
     'https://explorer-testnet.bantu.network/tx/';
 String hideBalanceText = '********';

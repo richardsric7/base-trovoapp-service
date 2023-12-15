@@ -9,6 +9,7 @@ import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/state.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -23,15 +24,11 @@ class AssetInformation extends StatefulWidget {
 class _AssetInformation extends State<AssetInformation>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
+  late AssetTokenizationViewsState tokenizationState;
   late DataProvider appState;
-  List<String> options = [
-    'Insurance',
-    'Alarm System',
-    'Surveillance System',
-    'Physical Security',
-    'Inspection and Management',
-    'Other',
-  ];
+  bool assetExisting = false;
+  int assetOwnership = 0;
+  int thirdPartyOwnerType = 0; // individual = 0; 1 = organization
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -43,17 +40,21 @@ class _AssetInformation extends State<AssetInformation>
     }
   }
 
-  List<DropdownMenuItem<String>> get getOptions {
-    List<DropdownMenuItem<String>> myOptions = [];
-    options.forEach((value) {
-      myOptions.add(DropdownMenuItem(
+  List<DropdownMenuItem<String>> get getAssetProtectionOptions {
+    List<DropdownMenuItem<String>> assetProtectionOptions = [];
+    var data = tokenizationState.tokenizationData!['assetProtectionOptions'];
+    for (var i = 0; i < data.length; i++) {
+      assetProtectionOptions.add(
+        DropdownMenuItem(
           child: Text(
-            value,
+            data![i]['id'],
             overflow: TextOverflow.ellipsis,
           ),
-          value: value));
-    });
-    return myOptions;
+          value: data![i]['id'],
+        ),
+      );
+    }
+    return assetProtectionOptions;
   }
 
   @override
@@ -68,6 +69,9 @@ class _AssetInformation extends State<AssetInformation>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    tokenizationState =
+        Provider.of<AssetTokenizationViewsState>(context, listen: false);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -77,19 +81,97 @@ class _AssetInformation extends State<AssetInformation>
             CustomAppBar(
               context,
               notifier.getwihitecolor,
-              'Asset Information',
+              "assetinformation".tr(),
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
             SizedBox(
               height: height / 30,
             ),
+            Container(
+              width: width,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Text(
+                  "selectwhatappliestoasset".tr(),
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    decoration: TextDecoration.underline,
+                    fontSize: 13,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+            ),
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Transform.scale(
+                      scale: 1,
+                      child: Radio<bool>(
+                        value: false,
+                        activeColor: notifier.getbluewhitecolor,
+                        fillColor: MaterialStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor),
+                        groupValue: assetExisting,
+                        onChanged: (value) => {
+                          setState(
+                            () {
+                              assetExisting = value!;
+                            },
+                          )
+                        },
+                      ),
+                    ),
+                    Text(
+                      "assetexisting".tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Transform.scale(
+                      scale: 1,
+                      child: Radio<bool>(
+                        value: true,
+                        groupValue: assetExisting,
+                        activeColor: notifier.getbluewhitecolor,
+                        fillColor: MaterialStateColor.resolveWith(
+                            (states) => notifier.getbluewhitecolor),
+                        onChanged: (value) => {
+                          setState(
+                            () {
+                              assetExisting = value!;
+                            },
+                          )
+                        },
+                      ),
+                    ),
+                    Text(
+                      "assetnotyetexisting".tr(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
             Row(
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Asset Description',
+                    "assetdescription".tr(),
                     style: TextStyle(
                       fontSize: 15,
                       fontFamily: fontsemibold,
@@ -113,7 +195,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     100.sp,
-                    300.sp,
+                    width / 1.12,
                     validator: (value) {
                       if (value.isEmpty) {
                         return "enterpassphraseempty".tr();
@@ -135,7 +217,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Enter Asset Physical Address',
+                    "enterassetphysicaladdress".tr(),
                     style: TextStyle(
                       fontSize: 15,
                       fontFamily: fontsemibold,
@@ -153,7 +235,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Asset Physical Address',
+                    "assetphysicaladdress".tr(),
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -161,7 +243,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     70.sp,
-                    300.sp,
+                    width / 1.12,
                     // controller: referrerController,
                     // validator: validateReferrer,
                     onSaved: (value) {},
@@ -177,7 +259,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Enter Asset Google Map Coordinates',
+                    "entergooglemapcords".tr(),
                     style: TextStyle(
                       fontSize: 15,
                       fontFamily: fontsemibold,
@@ -194,7 +276,7 @@ class _AssetInformation extends State<AssetInformation>
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 CustomTextFormField.textField(
-                  'Latitute',
+                  "latitude".tr(),
                   notifier.getbluecolor,
                   null,
                   notifier.getgrey,
@@ -212,7 +294,7 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ),
                 CustomTextFormField.textField(
-                  'Longitude',
+                  "longitude".tr(),
                   notifier.getbluecolor,
                   null,
                   notifier.getgrey,
@@ -239,7 +321,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Ownership',
+                    "ownership".tr(),
                     style: TextStyle(
                       fontSize: 15,
                       fontFamily: fontsemibold,
@@ -252,281 +334,278 @@ class _AssetInformation extends State<AssetInformation>
             SizedBox(
               height: height / 70,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                CheckItem(
-                  'Direct Ownership',
-                  () {},
-                  borderColor: notifier.getbluewhitecolor,
-                  foreColor: notifier.getwihitecolor,
-                  backColor: notifier.getbluewhitecolor,
-                ),
-                CheckItem(
-                  'Third Party',
-                  () {},
-                  borderColor: notifier.getbluewhitecolor,
-                  foreColor: notifier.getbluewhitecolor,
-                  backColor: notifier.getwihitecolor,
-                )
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                children: [
+                  CheckItem(
+                    "directownership".tr(),
+                    () {
+                      setState(() {
+                        assetOwnership = 0;
+                      });
+                    },
+                    borderColor: notifier.getbluewhitecolor,
+                    foreColor: notifier.getbluewhitecolor,
+                    backColor: assetOwnership == 0
+                        ? notifier.getbluecolor60
+                        : notifier.getwihitecolor,
+                  ),
+                  CheckItem(
+                    "thirdparty".tr(),
+                    () {
+                      setState(() {
+                        assetOwnership = 1;
+                      });
+                    },
+                    borderColor: notifier.getbluewhitecolor,
+                    foreColor: notifier.getbluewhitecolor,
+                    backColor: assetOwnership == 1
+                        ? notifier.getbluecolor60
+                        : notifier.getwihitecolor,
+                  )
+                ],
+              ),
             ),
             SizedBox(
               height: height / 50,
             ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Container(
-                    width: width / 1.17,
-                    child: Text(
-                      'Select what best describes the third party owner',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
+            if (assetOwnership == 1) ...[
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Container(
+                      width: width / 1.17,
+                      child: Text(
+                        "whatbestdescribesthirdparty".tr(),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                CheckItem(
-                  'Individual',
-                  () {},
-                  borderColor: notifier.getbluewhitecolor,
-                  foreColor: notifier.getwihitecolor,
-                  backColor: notifier.getbluewhitecolor,
-                ),
-                CheckItem(
-                  'Organization',
-                  () {},
-                  borderColor: notifier.getbluewhitecolor,
-                  foreColor: notifier.getbluewhitecolor,
-                  backColor: notifier.getwihitecolor,
-                )
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Name of Organization',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
+                ],
+              ),
+              SizedBox(
+                height: height / 70,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                child: Row(
+                  children: [
+                    CheckItem(
+                      "individual".tr(),
+                      () {
+                        setState(() {
+                          thirdPartyOwnerType = 0;
+                        });
+                      },
+                      borderColor: notifier.getbluewhitecolor,
+                      foreColor: notifier.getbluewhitecolor,
+                      backColor: thirdPartyOwnerType == 0
+                          ? notifier.getbluecolor60
+                          : notifier.getwihitecolor,
                     ),
-                  ),
+                    CheckItem(
+                      "organization".tr(),
+                      () {
+                        setState(() {
+                          thirdPartyOwnerType = 1;
+                        });
+                      },
+                      borderColor: notifier.getbluewhitecolor,
+                      foreColor: notifier.getbluewhitecolor,
+                      backColor: thirdPartyOwnerType == 1
+                          ? notifier.getbluecolor60
+                          : notifier.getwihitecolor,
+                    )
+                  ],
                 ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Name of Organization',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Address of Organization',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              if (thirdPartyOwnerType == 0) ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "nameofowner".tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Address of Organization',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
+                SizedBox(
+                  height: height / 50,
                 ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Asset Custodian',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "nameofowner".tr(),
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        70.sp,
+                        width / 1.12,
+                        // controller: referrerController,
+                        // validator: validateReferrer,
+                        onSaved: (value) {},
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Please provide the following information about the asset custodian ',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "addressofowner".tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'Who is the Asset Custodian?',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "addressofowner".tr(),
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        70.sp,
+                        width / 1.12,
+                        // controller: referrerController,
+                        // validator: validateReferrer,
+                        onSaved: (value) {},
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Asset Custodian',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
+                SizedBox(
+                  height: height / 50,
                 ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    'What is their address?',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
+              ] else ...[
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "nameoforg".tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "nameoforg".tr(),
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        70.sp,
+                        width / 1.12,
+                        // controller: referrerController,
+                        // validator: validateReferrer,
+                        onSaved: (value) {},
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        "addressoforg".tr(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: CustomTextFormField.textField(
+                        "addressoforg".tr(),
+                        notifier.getbluecolor,
+                        null,
+                        notifier.getgrey,
+                        null,
+                        notifier.getblck,
+                        notifier.getgrey,
+                        70.sp,
+                        width / 1.12,
+                        // controller: referrerController,
+                        // validator: validateReferrer,
+                        onSaved: (value) {},
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
                 ),
               ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Address',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 50,
-            ),
+            ],
             Row(
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Asset Manager',
+                    "assetcustodian".tr(),
                     style: TextStyle(
                       fontSize: 15,
                       fontFamily: fontsemibold,
@@ -544,7 +623,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Please provide the following information about the asset manager ',
+                    "provideinfoaboutcustodian".tr(),
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,
@@ -562,7 +641,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Who is the Asset Manager?',
+                    "whoiscustodian".tr(),
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -580,7 +659,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Asset Manager',
+                    "assetcustodian".tr(),
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -588,7 +667,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     70.sp,
-                    300.sp,
+                    width / 1.12,
                     // controller: referrerController,
                     // validator: validateReferrer,
                     onSaved: (value) {},
@@ -604,7 +683,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'What is their address?',
+                    "custodianaddress".tr(),
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -622,7 +701,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Address',
+                    "address".tr(),
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -630,7 +709,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     70.sp,
-                    300.sp,
+                    width / 1.12,
                     // controller: referrerController,
                     // validator: validateReferrer,
                     onSaved: (value) {},
@@ -646,7 +725,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Asset Value',
+                    "assetmanager".tr(),
                     style: TextStyle(
                       fontSize: 15,
                       fontFamily: fontsemibold,
@@ -664,7 +743,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Please provide the following information about the asset value ',
+                    "provideassetmanagerinfo".tr(),
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,
@@ -682,7 +761,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'What is the current value of the Asset?',
+                    "whoisassetmanager".tr(),
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -700,7 +779,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Current Value of Asset',
+                    "assetmanager".tr(),
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -708,7 +787,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     70.sp,
-                    300.sp,
+                    width / 1.12,
                     // controller: referrerController,
                     // validator: validateReferrer,
                     onSaved: (value) {},
@@ -724,7 +803,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Percentage of Asset to be Tokenized? (1%-100%)',
+                    "assetmanageraddress".tr(),
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -742,7 +821,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Percentage to be Tokenized',
+                    "address".tr(),
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -750,7 +829,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     70.sp,
-                    300.sp,
+                    width / 1.12,
                     // controller: referrerController,
                     // validator: validateReferrer,
                     onSaved: (value) {},
@@ -766,9 +845,9 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Value of tokenized asset',
+                    "assetvalue".tr(),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 15,
                       fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
@@ -777,35 +856,14 @@ class _AssetInformation extends State<AssetInformation>
               ],
             ),
             SizedBox(
-              height: height / 50,
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: CustomTextFormField.textField(
-                    'Value of tokenized asset',
-                    notifier.getbluecolor,
-                    null,
-                    notifier.getgrey,
-                    null,
-                    notifier.getblck,
-                    notifier.getgrey,
-                    70.sp,
-                    300.sp,
-                    // controller: referrerController,
-                    // validator: validateReferrer,
-                    onSaved: (value) {},
-                  ),
-                ),
-              ],
+              height: height / 70,
             ),
             Row(
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    '(asset value x asset percentage)',
+                    "provideassetvalueinfo".tr(),
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,
@@ -823,7 +881,148 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'What is the real asset protection in place?',
+                    "assetcurrentvalue".tr(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: CustomTextFormField.textField(
+                    "currentvalueofasset".tr(),
+                    notifier.getbluecolor,
+                    null,
+                    notifier.getgrey,
+                    null,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    70.sp,
+                    width / 1.12,
+                    // controller: referrerController,
+                    // validator: validateReferrer,
+                    onSaved: (value) {},
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    "tokenizedpercentage".tr(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: CustomTextFormField.textField(
+                    "percentagetobetokenized".tr(),
+                    notifier.getbluecolor,
+                    null,
+                    notifier.getgrey,
+                    null,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    70.sp,
+                    width / 1.12,
+                    // controller: referrerController,
+                    // validator: validateReferrer,
+                    onSaved: (value) {},
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    "valueoftokenizedasset".tr(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: CustomTextFormField.textField(
+                    "valueoftokenizedasset".tr(),
+                    notifier.getbluecolor,
+                    null,
+                    notifier.getgrey,
+                    null,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    70.sp,
+                    width / 1.12,
+                    // controller: referrerController,
+                    // validator: validateReferrer,
+                    onSaved: (value) {},
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    "valuexpercentage".tr(),
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    "assetprotectioninplace".tr(),
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -841,7 +1040,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Select one or more protection options',
+                    "selectprotectionoption".tr(),
                     style: TextStyle(
                       fontSize: 9,
                       fontFamily: fontbody,
@@ -858,7 +1057,7 @@ class _AssetInformation extends State<AssetInformation>
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: dropdown(
                 (value) {},
-                getOptions,
+                getAssetProtectionOptions,
                 null,
                 'Insurance',
                 context,
@@ -895,7 +1094,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Insurance Company Name',
+                    "insurancecompanyname".tr(),
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -913,7 +1112,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Company Name',
+                    "companyname".tr(),
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -921,7 +1120,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     70.sp,
-                    300.sp,
+                    width / 1.12,
                     // controller: referrerController,
                     // validator: validateReferrer,
                     onSaved: (value) {},
@@ -937,7 +1136,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Insurance Policy Number',
+                    "insurancypolicynumber".tr(),
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -955,7 +1154,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Insurance Policy Number',
+                    "insurancypolicynumber".tr(),
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -963,7 +1162,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     70.sp,
-                    300.sp,
+                    width / 1.12,
                     // controller: referrerController,
                     // validator: validateReferrer,
                     onSaved: (value) {},
@@ -979,7 +1178,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Insurance Policy Holder',
+                    "insurancypolicyholder".tr(),
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -997,7 +1196,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Insurance Policy Holder',
+                    "insurancypolicyholder".tr(),
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -1005,7 +1204,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     70.sp,
-                    300.sp,
+                    width / 1.12,
                     // controller: referrerController,
                     // validator: validateReferrer,
                     onSaved: (value) {},
@@ -1021,7 +1220,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: Text(
-                    'Percentage Value of Insurance',
+                    "percentagevalueofinsurance".tr(),
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: fontsemibold,
@@ -1039,7 +1238,7 @@ class _AssetInformation extends State<AssetInformation>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   child: CustomTextFormField.textField(
-                    'Percentage Value of Insurance',
+                    "percentagevalueofinsurance".tr(),
                     notifier.getbluecolor,
                     null,
                     notifier.getgrey,
@@ -1047,7 +1246,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getblck,
                     notifier.getgrey,
                     70.sp,
-                    300.sp,
+                    width / 1.12,
                     // controller: referrerController,
                     // validator: validateReferrer,
                     onSaved: (value) {},
@@ -1060,7 +1259,7 @@ class _AssetInformation extends State<AssetInformation>
               height: height / 30,
             ),
             Button(
-              'Save',
+              "save".tr(),
               notifier.getbluecolor,
               wihitecolor,
               onTap: () {
@@ -1077,64 +1276,210 @@ class _AssetInformation extends State<AssetInformation>
   }
 
   Widget confirmLiensAndEncumbrance() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+    return Column(
       children: [
-        Transform.scale(
-          scale: 1.sp,
-          child: Checkbox(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(
-                Radius.circular(5.sp),
+        Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Text(
+                "financialencumbrances".tr(),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                ),
               ),
             ),
-            activeColor: notifier.isDark
-                ? notifier.getbluecolor50
-                : notifier.getbluecolor90,
-            side: BorderSide(
-              color: notifier.isDark
-                  ? notifier.getbluecolor50
-                  : notifier.getbluecolor90,
-            ),
-            value: true,
-            onChanged: (bool? value) {
-              setState(() {});
-            },
-          ),
+          ],
         ),
-        Container(
-          width: width / 1.2,
-          child: Text(
-            'I confirm that this asset is completely free of all liens and encumbrance',
-            overflow: TextOverflow.visible,
-            style: TextStyle(
-                fontSize: 15,
-                color: notifier.getbluewhitecolor,
-                fontFamily: fontbody),
-          ),
+        SizedBox(
+          height: height / 50,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Transform.scale(
+              scale: 1.sp,
+              child: Checkbox(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(5.sp),
+                  ),
+                ),
+                activeColor: notifier.isDark
+                    ? notifier.getbluecolor50
+                    : notifier.getbluecolor90,
+                side: BorderSide(
+                  color: notifier.isDark
+                      ? notifier.getbluecolor50
+                      : notifier.getbluecolor90,
+                ),
+                value: true,
+                onChanged: (bool? value) {
+                  setState(() {});
+                },
+              ),
+            ),
+            Container(
+              width: width / 1.2,
+              child: Text(
+                "confirmfreeofencumbrances".tr(),
+                overflow: TextOverflow.visible,
+                style: TextStyle(
+                    fontSize: 15,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody),
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Transform.scale(
+              scale: 1.sp,
+              child: Checkbox(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(5.sp),
+                  ),
+                ),
+                activeColor: notifier.isDark
+                    ? notifier.getbluecolor50
+                    : notifier.getbluecolor90,
+                side: BorderSide(
+                  color: notifier.isDark
+                      ? notifier.getbluecolor50
+                      : notifier.getbluecolor90,
+                ),
+                value: true,
+                onChanged: (bool? value) {
+                  setState(() {});
+                },
+              ),
+            ),
+            Container(
+              width: width / 1.2,
+              child: Text(
+                "confirmfreeofmortgages".tr(),
+                overflow: TextOverflow.visible,
+                style: TextStyle(
+                    fontSize: 15,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody),
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Transform.scale(
+              scale: 1.sp,
+              child: Checkbox(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(5.sp),
+                  ),
+                ),
+                activeColor: notifier.isDark
+                    ? notifier.getbluecolor50
+                    : notifier.getbluecolor90,
+                side: BorderSide(
+                  color: notifier.isDark
+                      ? notifier.getbluecolor50
+                      : notifier.getbluecolor90,
+                ),
+                value: true,
+                onChanged: (bool? value) {
+                  setState(() {});
+                },
+              ),
+            ),
+            Container(
+              width: width / 1.2,
+              child: Text(
+                "confirmfreeofloans".tr(),
+                overflow: TextOverflow.visible,
+                style: TextStyle(
+                    fontSize: 15,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody),
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Transform.scale(
+              scale: 1.sp,
+              child: Checkbox(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(5.sp),
+                  ),
+                ),
+                activeColor: notifier.isDark
+                    ? notifier.getbluecolor50
+                    : notifier.getbluecolor90,
+                side: BorderSide(
+                  color: notifier.isDark
+                      ? notifier.getbluecolor50
+                      : notifier.getbluecolor90,
+                ),
+                value: true,
+                onChanged: (bool? value) {
+                  setState(() {});
+                },
+              ),
+            ),
+            Container(
+              width: width / 1.2,
+              child: Text(
+                "confirmfreeofdisputes".tr(),
+                overflow: TextOverflow.visible,
+                style: TextStyle(
+                    fontSize: 15,
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody),
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
-}
 
-Widget CheckItem(
-  String name,
-  void Function()? onClick, {
-  required Color backColor,
-  required Color foreColor,
-  required Color borderColor,
-  double? fontSize = 15,
-}) {
-  return Padding(
-    padding: const EdgeInsets.all(3.0),
-    child: Container(
-      decoration: BoxDecoration(
-          border: Border.all(color: borderColor, width: 1),
-          borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-          color: backColor),
-      child: Padding(
-        padding: const EdgeInsets.all(15.0),
+  Widget CheckItem(
+    String name,
+    void Function()? onClick, {
+    required Color backColor,
+    required Color foreColor,
+    required Color borderColor,
+    double? fontSize = 15,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(3.0),
+      child: ElevatedButton(
+        onPressed: onClick,
+        style: ButtonStyle(
+          overlayColor:
+              MaterialStateProperty.all<Color>(notifier.getsplashgrey),
+          elevation: MaterialStateProperty.all<double>(0),
+          backgroundColor: MaterialStateProperty.all<Color>(backColor),
+          side: MaterialStateProperty.all(
+            BorderSide(color: borderColor, width: 1, style: BorderStyle.solid),
+          ),
+          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+            const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(10),
+              ),
+            ),
+          ),
+        ),
         child: Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
@@ -1146,12 +1491,9 @@ Widget CheckItem(
               style: TextStyle(
                   color: foreColor, fontFamily: fontbody, fontSize: fontSize),
             ),
-            SizedBox(
-              width: width / 70,
-            ),
           ],
         ),
       ),
-    ),
-  );
+    );
+  }
 }

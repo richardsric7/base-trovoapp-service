@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart' hide Trans;
+import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
@@ -15,6 +16,7 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/wallet_slides.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -35,7 +37,66 @@ class _WalletDetailsState extends State<WalletDetails>
   int tabLength = 1;
   int activeTabIndex = 0;
   late bool localHideBalance;
+  DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
   String rel = '';
+
+  var listOfAssets = <Map<String, String>>[
+    {
+      "imageUrl": "",
+      "assetName": "Animal Farm",
+      "assetClass": "Agriculture",
+      "balance": "2049"
+    },
+    {
+      "imageUrl": "",
+      "assetName": "Beacon Homes",
+      "assetClass": "Property",
+      "balance": "3250"
+    },
+    {
+      "imageUrl": "",
+      "assetName": "C-Vitals",
+      "assetClass": "Health",
+      "balance": "100"
+    },
+    {
+      "imageUrl": "",
+      "assetName": "Drinkfly",
+      "assetClass": "Beverage",
+      "balance": "4000"
+    }
+  ];
+
+  Map<String, DashboardAssetListMode> listModes = {
+    'Tokenized Assets': DashboardAssetListMode.TokenizedAssets,
+    'Other Assets': DashboardAssetListMode.OtherAssets,
+  };
+
+  List<DropdownMenuItem<DashboardAssetListMode>> get getItems {
+    List<DropdownMenuItem<DashboardAssetListMode>> items = [];
+    listModes.forEach((key, value) {
+      items.add(DropdownMenuItem(
+          child: Text(
+            key,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: value));
+    });
+    return items;
+  }
+
+  List<DropdownMenuItem<String>> get getStandardWallets {
+    List<DropdownMenuItem<String>> wallets = [];
+    appState.userInfo!.getStandardWallets.forEach((wallet) {
+      wallets.add(DropdownMenuItem(
+          child: Text(
+            wallet.alias!,
+            overflow: TextOverflow.ellipsis,
+          ),
+          value: wallet.publicKey));
+    });
+    return wallets;
+  }
 
   @override
   void initState() {
@@ -71,10 +132,18 @@ class _WalletDetailsState extends State<WalletDetails>
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
 
-    if (wallet.unClaimedAssets != null && wallet.unClaimedAssets!.length > 0) {
+    if (listMode == DashboardAssetListMode.OtherAssets) {
+      // in order to make assets tab length dynamic we have to check
+      // for when we have pending asset and then change the tablength
+      // to 3 or back to 2 when we do not have pending assets.
+      if (wallet.unClaimedAssets != null &&
+          wallet.unClaimedAssets!.length > 0) {
+        tabLength = 2;
+      } else {
+        tabLength = 1;
+      }
+    } else if (listMode == DashboardAssetListMode.TokenizedAssets) {
       tabLength = 2;
-    } else {
-      tabLength = 1;
     }
 
     if (tabLength != _tabController.length) {
@@ -92,14 +161,72 @@ class _WalletDetailsState extends State<WalletDetails>
         appBar: CustomAppBar(
           context,
           notifier.getwihitecolor,
-          "",
+          wallet.alias!,
           notifier.getblck,
           height: height / 15,
         ).getBar(),
         body: SingleChildScrollView(
           child: Column(
             children: [
-              assetsTabs(),
+              SizedBox(
+                height: height / 50,
+              ),
+              WalletSlide(
+                backColor: notifier.getbluecolor,
+                foreColor: wihitecolor,
+                alias: wallet.alias!.capitalizeFirst!,
+                totalBalance:
+                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
+                fiatBalance: appState.defaultCurrency == 'USD'
+                    ? null
+                    : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallet.claimedAssets!)} USD',
+                initialHiddenState: appState.hideBalances,
+                onHiddenStateChanged: (state) => {
+                  setState(
+                    () => localHideBalance = state,
+                  )
+                },
+              ),
+              SizedBox(
+                height: height / 30,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "assetmode".tr(),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluecolor,
+                      ),
+                    ),
+                    Container(
+                      width: width / 2,
+                      child: dropdown(
+                        (value) {
+                          setState(() {
+                            listMode = value as DashboardAssetListMode;
+                          });
+                        },
+                        getItems,
+                        null,
+                        "tokenizedassets".tr(),
+                        context,
+                        null,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: height / 50,
+              ),
+              listMode == DashboardAssetListMode.TokenizedAssets
+                  ? showAssets()
+                  : cryptoAssets(),
             ],
           ),
         ),
@@ -117,11 +244,247 @@ class _WalletDetailsState extends State<WalletDetails>
     }
   }
 
-  Widget assetsTabs() {
+  Widget showAssets() {
+    return Column(
+      children: [
+        SizedBox(
+          height: height / 70,
+        ),
+        DefaultTabController(
+          length: tabLength,
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: tabLength == 2 ? 0 : 100,
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: notifier.getbluewhitecolor,
+                  indicatorColor: notifier.getbluewhitecolor,
+                  labelStyle: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: fontsemibold,
+                  ),
+                  tabs: [
+                    Tab(
+                      height: 20,
+                      text: "Primary Listing".tr(),
+                    ),
+                    Tab(
+                      height: 20,
+                      text: "Secondary Listing".tr(),
+                    ),
+                  ],
+                ),
+              ),
+              listingTabs(),
+            ],
+          ),
+        ),
+        // Row(
+        //   children: [
+        //     Padding(
+        //       padding: const EdgeInsets.symmetric(horizontal: 20),
+        //       child: Text(
+        //         'Sort by:',
+        //         style: TextStyle(
+        //           fontSize: 13,
+        //           fontFamily: fontbody,
+        //           color: notifier.getbluecolor,
+        //         ),
+        //       ),
+        //     ),
+        //     Text(
+        //       'Asset Tokens',
+        //       style: TextStyle(
+        //         fontSize: 13,
+        //         fontFamily: fontsemibold,
+        //         color: notifier.getbluecolor,
+        //       ),
+        //     ),
+        //   ],
+        // ),
+        // SizedBox(
+        //   height: height / 90,
+        // ),
+      ],
+    );
+  }
+
+  Widget listingTabs() {
     return Container(
-      height: height / 1.106,
-      child: Stack(
-        clipBehavior: Clip.none,
+      height: height / 1.68,
+      child: TabBarView(
+        controller: _tabController,
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                for (var i = 0; i < listOfAssets.length; i++) ...[
+                  GestureDetector(
+                    onTap: () {
+                      appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: TokenizedAssetDetailViewPageConfig,
+                      );
+                    },
+                    child: tokenizedAssetTile(
+                        listOfAssets[i]['imageUrl'] ?? '',
+                        listOfAssets[i]['assetName'] ?? '',
+                        'Property',
+                        i % 2 == 0),
+                  ),
+                ],
+                SizedBox(height: height / 20),
+              ],
+            ),
+          ),
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                for (var i = 0; i < listOfAssets.length; i++) ...[
+                  GestureDetector(
+                    onTap: () {
+                      appState.currentAction = PageAction(
+                        state: PageState.addPage,
+                        page: TokenizedAssetDetailViewPageConfig,
+                      );
+                    },
+                    child: tokenizedAssetTile(
+                        listOfAssets[i]['imageUrl'] ?? '',
+                        listOfAssets[i]['assetName'] ?? '',
+                        'Property',
+                        i % 2 == 0),
+                  ),
+                ],
+                SizedBox(height: height / 20),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget tokenizedAssetTile(
+      String imageUrl, String name, String type, isSubscribed) {
+    return Card(
+      elevation: notifier.isDark ? 0 : 5,
+      shadowColor: Colors.black,
+      color: notifier.gettilewihitecolor,
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: ListTile(
+          title: Row(
+            children: [
+              Image.network(
+                imageUrl,
+                height: 35,
+                width: 35,
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.asset(
+                    'assets/images/trovo.png',
+                    height: 35,
+                    width: 35,
+                  );
+                },
+              ),
+              SizedBox(width: 20),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: fontsemibold,
+                      color: notifier.getblck,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      type,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontbody,
+                        color: notifier.getblck,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          trailing: ElevatedButton(
+            onPressed: () async {
+              isSubscribed
+                  ? showUnSubscribePopup(
+                      context,
+                      onDone: () {},
+                    )
+                  : showSubscribePopup(
+                      context,
+                      onDone: () {},
+                      dropdownItems: getStandardWallets,
+                    );
+            },
+            style: ButtonStyle(
+              overlayColor:
+                  MaterialStateProperty.all<Color>(notifier.getsplashgrey),
+              backgroundColor:
+                  MaterialStateProperty.all<Color>(notifier.getbluewhitecolor),
+              side: MaterialStateProperty.all(
+                BorderSide(
+                    color: notifier.getbluewhitecolor,
+                    width: 1,
+                    style: BorderStyle.solid),
+              ),
+              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+            child: Container(
+              width: width / 4,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    isSubscribed ? 'Subscribed' : 'Subscribe',
+                    style: TextStyle(
+                        fontFamily: fontsemibold,
+                        fontSize: 11,
+                        color: notifier.getwihitecolor),
+                  ),
+                  Icon(
+                      isSubscribed
+                          ? Icons.check_circle
+                          : Icons.add_circle_rounded,
+                      size: 18,
+                      color: notifier.getwihitecolor),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget cryptoAssets() {
+    return Container(
+      height: height / 1.58,
+      child: Column(
         children: [
           Padding(
             padding:
@@ -147,10 +510,6 @@ class _WalletDetailsState extends State<WalletDetails>
                         '${"pending".tr()} (${wallet.unClaimedAssets == null ? 0 : wallet.unClaimedAssets!.length})',
                   ),
                 ],
-                // Tab(
-                //   height: 20,
-                //   text: "nfts".tr(),
-                // ),
               ],
             ),
           ),
@@ -161,7 +520,7 @@ class _WalletDetailsState extends State<WalletDetails>
                   height: height / 40,
                 ),
                 Container(
-                  height: height / 1.14,
+                  height: height / 1.72,
                   child: TabBarView(
                     controller: _tabController,
                     children: [
@@ -169,28 +528,9 @@ class _WalletDetailsState extends State<WalletDetails>
                         padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0),
                         child: Column(
                           children: [
-                            WalletSlide(
-                              backColor: notifier.getbluecolor,
-                              foreColor: wihitecolor,
-                              alias: wallet.alias!.capitalizeFirst!,
-                              totalBalance:
-                                  '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
-                              fiatBalance: appState.defaultCurrency == 'USD'
-                                  ? null
-                                  : '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallet.claimedAssets!)} USD',
-                              initialHiddenState: appState.hideBalances,
-                              onHiddenStateChanged: (state) => {
-                                setState(
-                                  () => localHideBalance = state,
-                                )
-                              },
-                            ),
-                            SizedBox(
-                              height: height / 30,
-                            ),
                             if (wallet.claimedAssets!.length > 0) ...[
                               Container(
-                                height: height / 1.54,
+                                height: height / 1.76,
                                 child: ReorderableListView(
                                   padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
                                   onReorder: (oldIndex, newIndex) {

@@ -1,10 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
-import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
@@ -24,20 +24,6 @@ class _WalletPreparationState extends State<WalletPreparation>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late TabController tabController;
-  String selectedCountry = 'Nigeria';
-  List<String> assetCategories = [
-    'Agriculture and Farming',
-    'Art and Collectibles',
-    'Automotive and Transportation',
-    'Commodities',
-    'Eduction and Learning',
-    'Environmental and Renewable Energy',
-    'Financing and Banking',
-    'Gaming and Virtual Reality',
-    'Healthcare and Medical',
-    'Real Estate',
-  ];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -92,7 +78,11 @@ class _WalletPreparationState extends State<WalletPreparation>
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
-    tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -110,256 +100,17 @@ class _WalletPreparationState extends State<WalletPreparation>
             CustomAppBar(
               context,
               notifier.getwihitecolor,
-              'Wallet Preparation',
+              'walletpreparation'.tr(),
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
             SizedBox(height: height / 50),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text(
-                'Please select wallets for your asset token in order to create an asset token',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontFamily: fontbody,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-            ),
-            SizedBox(
-              height: height / 30,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Select Minting Wallet',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  Text(
-                    'What does this mean?',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: dropdown(
-                (value) {},
-                getMintingWallets,
-                null,
-                appState.userInfo!.getMintingWallets.length > 0
-                    ? appState.userInfo!.getMintingWallets.first.alias
-                    : '',
-                context,
-                null,
-              ),
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: TextButton(
-                    onPressed: () async {
-                      appState.returnView = PageAction(
-                          state: PageState.addAll,
-                          pages: [
-                            BottomHomePageConfig,
-                            WalletPreparationViewPageConfig
-                          ]);
-                      appState.currentAction =
-                          PageAction(state: PageState.addAll, pages: [
-                        BottomHomePageConfig,
-                      ]);
-                      changeTabPage(appState, ButtomTabPage.Wallets.index);
-                      setState(() {});
-                    },
-                    child: Text(
-                      'Or create a new wallet for this',
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
-                        fontSize: 12,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 30,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Text(
-                    'Select Market Making Wallet',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  Text(
-                    'What does this mean?',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: dropdown(
-                (value) {},
-                getMarketMakingWallets,
-                null,
-                appState.userInfo!.getMarketMakingWallets.length > 0
-                    ? appState.userInfo!.getMarketMakingWallets.first.alias
-                    : '',
-                context,
-                null,
-              ),
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: TextButton(
-                    onPressed: () {
-                      appState.returnView = PageAction(
-                          state: PageState.addAll,
-                          pages: [
-                            BottomHomePageConfig,
-                            WalletPreparationViewPageConfig
-                          ]);
-                      appState.currentAction =
-                          PageAction(state: PageState.addAll, pages: [
-                        BottomHomePageConfig,
-                      ]);
-                      changeTabPage(appState, ButtomTabPage.Wallets.index);
-                      setState(() {});
-                    },
-                    child: Text(
-                      'Or create a new wallet for this',
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
-                        fontSize: 12,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(
-              height: height / 30,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Text(
-                    'Select Distribution Wallet',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  Text(
-                    'What does this mean?',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      fontSize: 12,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: height / 70,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: dropdown(
-                (value) {},
-                getStandardWallets,
-                null,
-                appState.userInfo!.getStandardWallets.length > 0
-                    ? appState.userInfo!.getStandardWallets.first.alias
-                    : '',
-                context,
-                null,
-              ),
-            ),
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: TextButton(
-                    onPressed: () {
-                      appState.returnView = PageAction(
-                          state: PageState.addAll,
-                          pages: [
-                            BottomHomePageConfig,
-                            WalletPreparationViewPageConfig
-                          ]);
-                      appState.currentAction =
-                          PageAction(state: PageState.addAll, pages: [
-                        BottomHomePageConfig,
-                      ]);
-                      changeTabPage(appState, ButtomTabPage.Wallets.index);
-                      setState(() {});
-                    },
-                    child: Text(
-                      'Or create a new wallet for this',
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
-                        fontSize: 12,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            walletPreparation(),
             SizedBox(
               height: height / 20,
             ),
             Button(
-              'Continue',
+              "continuee".tr(),
               notifier.getbluecolor,
               wihitecolor,
               onTap: () {
@@ -370,6 +121,163 @@ class _WalletPreparationState extends State<WalletPreparation>
             ),
             SizedBox(
               height: height / 10,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget walletPreparation() {
+    return Column(
+      children: [
+        SizedBox(
+          height: height / 50,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Text(
+            "selecttokenizationwallet".tr(),
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              fontSize: 15,
+              fontFamily: fontbody,
+              color: notifier.getbluewhitecolor,
+            ),
+          ),
+        ),
+        SizedBox(
+          height: height / 30,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "selectmintingwallet".tr(),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+              Text(
+                "whatdoesthismean".tr(),
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                  fontSize: 12,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: height / 70,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          child: dropdown(
+            (value) {},
+            getMintingWallets,
+            null,
+            appState.userInfo!.getMintingWallets.length > 0
+                ? appState.userInfo!.getMintingWallets.first.alias
+                : '',
+            context,
+            null,
+          ),
+        ),
+        SizedBox(
+          height: height / 30,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text(
+                "selectmarketmakingwallet".tr(),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+              Text(
+                "whatdoesthismean".tr(),
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                  fontSize: 12,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: height / 70,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          child: dropdown(
+            (value) {},
+            getMarketMakingWallets,
+            null,
+            appState.userInfo!.getMarketMakingWallets.length > 0
+                ? appState.userInfo!.getMarketMakingWallets.first.alias
+                : '',
+            context,
+            null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget CheckItem(
+    String name,
+    void Function()? onClick, {
+    required Color backColor,
+    required Color foreColor,
+    required Color borderColor,
+    required Icon icon,
+    double? fontSize = 15,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(3.0),
+      child: ElevatedButton(
+        onPressed: onClick,
+        style: ButtonStyle(
+          overlayColor:
+              MaterialStateProperty.all<Color>(notifier.getsplashgrey),
+          elevation: MaterialStateProperty.all<double>(0),
+          backgroundColor: MaterialStateProperty.all<Color>(backColor),
+          side: MaterialStateProperty.all(
+            BorderSide(color: borderColor, width: 1, style: BorderStyle.solid),
+          ),
+          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+            const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(10),
+              ),
+            ),
+          ),
+        ),
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            icon,
+            Text(
+              name,
+              textAlign: TextAlign.center,
+              softWrap: true,
+              style: TextStyle(
+                  color: foreColor, fontFamily: fontbody, fontSize: fontSize),
             ),
           ],
         ),
