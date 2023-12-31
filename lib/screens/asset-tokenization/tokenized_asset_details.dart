@@ -166,17 +166,17 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 )
               ],
             ),
-            SizedBox(height: height / 50),
+            SizedBox(height: height / 90),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Card(
-                shadowColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-                color: notifier.isDark
-                    ? notifier.getbluecolor90
-                    : notifier.getaddsubwalletgrey,
+              child: Container(
+                // shadowColor: Colors.black,
+                // shape: RoundedRectangleBorder(
+                //   borderRadius: BorderRadius.circular(15.0),
+                // ),
+                // color: notifier.isDark
+                //     ? notifier.getbluecolor90
+                //     : notifier.getaddsubwalletgrey,
                 child: Center(
                   child: Column(
                     children: [
@@ -204,41 +204,97 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ),
               ),
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                infoCard(
+                  label: 'Total Supply',
+                  value: '1000',
+                  extraValue: '',
+                ),
+                SizedBox(
+                  width: width / 50,
+                ),
+                infoCard(
+                  label: 'Total Subscribed',
+                  value: '800',
+                  extraValue: '',
+                ),
+              ],
+            ),
             SizedBox(height: height / 70),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                  child: Text(
-                    'Purchase with cNGN',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
+                infoCard(
+                  label: 'Price Per Asset',
+                  value: '100 cNGN',
+                  extraValue: '\$2,205',
+                ),
+                SizedBox(
+                  width: width / 50,
+                ),
+                infoCard(
+                  label: 'Funding Currency',
+                  value: 'cNGN',
+                  extraValue: '',
                 ),
               ],
             ),
+            SizedBox(height: height / 70),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'Tap to fund wallet now',
-                      style: TextStyle(
-                        decoration: TextDecoration.underline,
-                        fontSize: 15,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
+                infoCard(
+                  label: 'Subscription Amount',
+                  value: '0 cNGN',
+                  extraValue: '\$2,205',
+                ),
+                SizedBox(
+                  width: width / 50,
+                ),
+                infoCard(
+                  label: 'Amount Bought',
+                  value: '0 cNGN',
+                  extraValue: '',
                 ),
               ],
             ),
+            // SizedBox(height: height / 70),
+            // Row(
+            //   children: [
+            //     Padding(
+            //       padding: const EdgeInsets.symmetric(horizontal: 30.0),
+            //       child: Text(
+            //         'Purchase with cNGN',
+            //         style: TextStyle(
+            //           fontSize: 15,
+            //           fontFamily: fontsemibold,
+            //           color: notifier.getbluewhitecolor,
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // Row(
+            //   children: [
+            //     Padding(
+            //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            //       child: TextButton(
+            //         onPressed: () {},
+            //         child: Text(
+            //           'Tap to fund wallet now',
+            //           style: TextStyle(
+            //             decoration: TextDecoration.underline,
+            //             fontSize: 15,
+            //             fontFamily: fontbody,
+            //             color: notifier.getbluewhitecolor,
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
             SizedBox(height: height / 50),
             Row(
               children: [
@@ -478,6 +534,78 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             ),
             SizedBox(height: height / 20),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget infoCard(
+      {required String label, required String value, String? extraValue}) {
+    return Container(
+      width: width / 2.3,
+      // height: height / 5.5,
+      child: Card(
+        shadowColor: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        color: notifier.isDark
+            ? notifier.getbluecolor90
+            : notifier.getaddsubwalletgrey,
+        child: TextButton(
+          onPressed: () {
+            appState.currentAction = PageAction(
+              state: PageState.addPage,
+              page: TotalSalesViewPageConfig,
+            );
+          },
+          child: Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                  Text(
+                    label,
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                  Text(
+                    value,
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  if (extraValue != null) ...[
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    Text(
+                      extraValue,
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

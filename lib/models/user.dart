@@ -201,9 +201,8 @@ class UserInfo {
 
   List<Wallet> get mySolelyOwnedWallets {
     return wallets!
-        .where((wallet) =>
-            (!wallet.isSharedWallet || wallet.walletThreshold == 1) &&
-            !wallet.isPrimaryWallet)
+        .where(
+            (wallet) => (!wallet.isSharedWallet || wallet.walletThreshold == 1))
         .toList();
   }
 

@@ -3,7 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -66,6 +65,7 @@ class _AllWalletsView extends State<AllWalletsView>
   List<String> walletListMode = [
     'My wallets',
     'Shared wallets',
+    'All wallets',
   ];
   late List<WalletTileColor> colors;
   late List<String> walletTypes = [
@@ -95,7 +95,7 @@ class _AllWalletsView extends State<AllWalletsView>
     return dropdownItems;
   }
 
-  List<DropdownMenuItem<String>> get accessModeDropdownItems {
+  List<DropdownMenuItem<String>> get walletListModeDropdownItems {
     return walletListMode
         .map<DropdownMenuItem<String>>((item) => DropdownMenuItem(
             child: Text(
@@ -116,6 +116,8 @@ class _AllWalletsView extends State<AllWalletsView>
       appState.walletView.actionIcon = Icons.cancel_outlined;
       appState.walletView.actionText = "cancel".tr();
     }
+
+    selectedWalletMode = appState.viewData?['walletMode'] ?? 'My wallets';
   }
 
   @override
@@ -181,7 +183,7 @@ class _AllWalletsView extends State<AllWalletsView>
                             elevation: 0,
                             style: TextStyle(
                                 color: notifier.getbluewhitecolor,
-                                fontSize: 15.sp,
+                                fontSize: 15,
                                 fontFamily: fontsemibold,
                                 fontWeight: FontWeight.w500),
                             onChanged: (newValue) {
@@ -189,109 +191,19 @@ class _AllWalletsView extends State<AllWalletsView>
                                 selectedWalletMode = newValue.toString();
                               });
                             },
-                            items: accessModeDropdownItems,
+                            items: walletListModeDropdownItems,
                           ),
                         ),
-                        // SizedBox(
-                        //   width: width / 15,
-                        // ),
-                        // GestureDetector(
-                        //   onTap: () => setState(() {
-                        //     isTileView = !isTileView;
-                        //   }),
-                        //   child: Padding(
-                        //     padding: const EdgeInsets.all(8.0),
-                        //     child: SvgPicture.asset(
-                        //       isTileView
-                        //           ? "assets/images/listview.svg"
-                        //           : "assets/images/tileview.svg",
-                        //       color: notifier.getbluewhitecolor,
-                        //     ),
-                        //   ),
-                        // ),
                       ],
                     )),
               ),
-              GestureDetector(
-                onTap: () {
-                  appState.viewData = {
-                    'walletPublicKey': appState.primaryWallet.publicKey
-                  };
-                  appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: WalletDetailsViewPageConfig);
-                },
-                child: walletListItem(
-                  appState.primaryWallet.alias!.capitalizeFirst,
-                  '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, appState.primaryWallet.claimedAssets!)} USD',
-                  '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, appState.primaryWallet.claimedAssets!)} ${appState.defaultCurrency}',
-                  notifier.getstructuredbluecolor,
-                ),
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              SizedBox(
-                height: height / 50,
-              ),
-              if (appState.walletView.view == WalletView.addSubWallet) ...[
-                addSubwallet()
-              ] else if (appState.walletView.view ==
-                  WalletView.confirmAddSubWallet) ...[
-                confirmAddSubwallet()
-              ] else ...[
-                isTileView ? gridView() : walletListView(),
-              ],
+              walletListView(),
               Padding(
                   padding: EdgeInsets.only(
                       bottom: MediaQuery.of(context).viewInsets.bottom)),
             ],
           ),
         ));
-  }
-
-  Widget gridView() {
-    colors = [
-      notifier.getstructuredbluecolor,
-      notifier.getstructuredbluecolor90,
-      notifier.getstructuredbluecolor80,
-      notifier.getstructuredbluecolor70,
-      notifier.getstructuredbluecolor60,
-      notifier.getstructuredbluecolor50,
-      notifier.getstructuredgreencolor,
-      notifier.getstructuredgreencolor90,
-      notifier.getstructuredgreencolor80,
-      notifier.getstructuredgreencolor70,
-      notifier.getstructuredgreencolor60,
-      notifier.getstructuredgreencolor50,
-      notifier.getorangecolor,
-      notifier.getorangecolor90,
-      notifier.getorangecolor80,
-      notifier.getorangecolor70,
-      notifier.getorangecolor60,
-      notifier.getorangecolor50,
-      notifier.getpinkcolor,
-      notifier.getpinkcolor90,
-      notifier.getpinkcolor80,
-      notifier.getpinkcolor70,
-      notifier.getpinkcolor60,
-      notifier.getpinkcolor50,
-    ];
-
-    return Container(
-      height: height / 2,
-      child: GridView.count(
-        primary: true,
-        padding: const EdgeInsets.fromLTRB(15, 20, 15, 70),
-        crossAxisCount: 2,
-        mainAxisSpacing: 20,
-        crossAxisSpacing: 20,
-        childAspectRatio: 1.05,
-        children: selectedWalletMode == 'My wallets'
-            ? getWallets(userInfo.wallets!, true)
-            : getSharedWallets(userInfo.sharedWallets!, true),
-      ),
-    );
   }
 
   Widget walletTile(
@@ -415,9 +327,15 @@ class _AllWalletsView extends State<AllWalletsView>
       notifier.getpinkcolor50,
     ];
     return Column(
-      children: selectedWalletMode == 'My wallets'
-          ? getWallets(userInfo.wallets!, false)
-          : getSharedWallets(userInfo.sharedWallets!, false),
+      children: getWallets(
+          switch (selectedWalletMode) {
+                'My wallets' => userInfo.mySolelyOwnedWallets,
+                'Shared wallets' => userInfo.sharedWallets,
+                'All wallets' => userInfo.allWallets,
+                _ => [],
+              } ??
+              [],
+          false),
     );
   }
 
@@ -1025,88 +943,62 @@ class _AllWalletsView extends State<AllWalletsView>
   }
 
   List<Widget> getWallets(
-    List<Wallet> wallets,
+    List<Wallet> filteredWallets,
     isTileMode,
   ) {
-    List<Wallet> filteredWallets = appState.userInfo!.mySolelyOwnedWallets;
     return [
-      for (var i = 0; i < filteredWallets.length; i++) ...[
-        GestureDetector(
-            onTap: () {
-              appState.viewData = {
-                'walletPublicKey': filteredWallets[i].publicKey
-              };
-              appState.currentAction = PageAction(
-                  state: PageState.addPage, page: WalletDetailsViewPageConfig);
-            },
-            child: isTileMode
-                ? walletTile(
-                    filteredWallets[i].alias!.capitalizeFirst!,
-                    '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, filteredWallets[i].claimedAssets!)} USD',
-                    '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, filteredWallets[i].claimedAssets!)} ${appState.defaultCurrency}',
-                    i % 2 == 0
-                        ? colors[((i + 1) % colors.length)]
-                        : colors[((i) % colors.length)],
-                  )
-                : Column(children: [
-                    walletListItem(
+      if (filteredWallets.isNotEmpty) ...[
+        for (var i = 0; i < filteredWallets.length; i++) ...[
+          GestureDetector(
+              onTap: () {
+                appState.viewData = {
+                  'walletPublicKey': filteredWallets[i].publicKey
+                };
+                appState.currentAction = PageAction(
+                    state: PageState.addPage,
+                    page: WalletDetailsViewPageConfig);
+              },
+              child: isTileMode
+                  ? walletTile(
                       filteredWallets[i].alias!.capitalizeFirst!,
                       '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, filteredWallets[i].claimedAssets!)} USD',
                       '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, filteredWallets[i].claimedAssets!)} ${appState.defaultCurrency}',
-                      colors[((i + 1) % colors.length)],
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                  ])),
-      ]
-      // shared wallets
-    ];
-  }
-
-  List<Widget> getSharedWallets(List<Wallet> sharedWallets, isTileMode) {
-    var walletTiles = <Widget>[];
-    int i = 0;
-    sharedWallets.forEach((wallet) {
-      walletTiles.add(
-        GestureDetector(
-          onTap: () {
-            appState.viewData = {'walletPublicKey': wallet.publicKey};
-            appState.currentAction = PageAction(
-                state: PageState.addPage, page: WalletDetailsViewPageConfig);
-          },
-          child: isTileMode
-              ? walletTile(
-                  wallet.alias.toString().capitalizeFirst!,
-                  '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallet.claimedAssets!)} USD',
-                  '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
-                  i % 2 == 0
-                      ? colors[((i + 1) % colors.length)]
-                      : colors[((i) % colors.length)],
-                  isShared: true,
-                )
-              : Column(
-                  children: [
-                    walletListItem(
-                      wallet.alias.toString().capitalizeFirst!,
-                      '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, wallet.claimedAssets!)} USD',
-                      '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, wallet.claimedAssets!)} ${appState.defaultCurrency}',
                       i % 2 == 0
                           ? colors[((i + 1) % colors.length)]
                           : colors[((i) % colors.length)],
-                      isShared: true,
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                  ],
+                    )
+                  : Column(children: [
+                      walletListItem(
+                        filteredWallets[i].alias!.capitalizeFirst!,
+                        '${getTotalFiatBalanceOfAllAssetsInWallet('USD', appState, filteredWallets[i].claimedAssets!)} USD',
+                        '${getTotalFiatBalanceOfAllAssetsInWallet(appState.defaultCurrency, appState, filteredWallets[i].claimedAssets!)} ${appState.defaultCurrency}',
+                        colors[((i + 1) % colors.length)],
+                      ),
+                      SizedBox(
+                        height: height / 50,
+                      ),
+                    ])),
+        ]
+      ] else ...[
+        Container(
+          height: height / 2,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "nosharedwallets".tr(),
+                style: TextStyle(
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
                 ),
+              ),
+            ],
+          ),
         ),
-      );
-      i++;
-    });
+      ]
 
-    return walletTiles;
+      // shared wallets
+    ];
   }
 
   String? validatePassword(String? value) {

@@ -516,21 +516,17 @@ class _ShareReceipt extends State<ShareReceipt> with TickerProviderStateMixin {
             children: [
               Container(
                 width: width / 1.3,
-                child: Row(
-                  children: [
-                    Text(
-                      name.toString().isEmpty
-                          ? truncate(publicKey!, length: 5) +
-                              publicKey!.substring(publicKey!.length - 5)
-                          : name!,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: notifier.getbluewhitecolor,
-                        fontSize: 15,
-                        fontFamily: fontbody,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  name.toString().isEmpty
+                      ? truncate(publicKey!, length: 5) +
+                          publicKey!.substring(publicKey!.length - 5)
+                      : name!,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: notifier.getbluewhitecolor,
+                    fontSize: 15,
+                    fontFamily: fontbody,
+                  ),
                 ),
               ),
               Container(
