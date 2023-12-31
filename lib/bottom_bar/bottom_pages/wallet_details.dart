@@ -36,6 +36,7 @@ class _WalletDetailsState extends State<WalletDetails>
   late Wallet wallet;
   int tabLength = 1;
   int activeTabIndex = 0;
+  late Asset gas;
   late bool localHideBalance;
   DashboardAssetListMode listMode = DashboardAssetListMode.TokenizedAssets;
   String rel = '';
@@ -68,8 +69,8 @@ class _WalletDetailsState extends State<WalletDetails>
   ];
 
   Map<String, DashboardAssetListMode> listModes = {
-    'Tokenized Assets': DashboardAssetListMode.TokenizedAssets,
-    'Other Assets': DashboardAssetListMode.OtherAssets,
+    'Asset Tokens': DashboardAssetListMode.TokenizedAssets,
+    'Other Tokens': DashboardAssetListMode.OtherAssets,
   };
 
   List<DropdownMenuItem<DashboardAssetListMode>> get getItems {
@@ -108,6 +109,8 @@ class _WalletDetailsState extends State<WalletDetails>
     wallet = appState.userInfo!.getWallet(
       appState.viewData!['walletPublicKey'],
     );
+
+    gas = wallet.claimedAssets!.where((asset) => asset.assetCode == '').first;
 
     rel = appState.viewData!['rel'] != null ? appState.viewData!['rel'] : '';
   }
@@ -191,35 +194,91 @@ class _WalletDetailsState extends State<WalletDetails>
                 height: height / 30,
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "assetmode".tr(),
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluecolor,
-                      ),
-                    ),
-                    Container(
-                      width: width / 2,
-                      child: dropdown(
-                        (value) {
-                          setState(() {
-                            listMode = value as DashboardAssetListMode;
-                          });
-                        },
-                        getItems,
-                        null,
-                        "tokenizedassets".tr(),
-                        context,
-                        null,
-                      ),
-                    ),
-                  ],
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Container(
+                    color: notifier.getfavorites,
+                    // padding: EdgeInsets.all(5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            child: Card(
+                                // shadowColor: Colors.black,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                color: notifier.isDark
+                                    ? notifier.getbluecolor90
+                                    : notifier.getaddsubwalletgrey,
+                                child: TextButton(
+                                  onPressed: () {
+                                    appState.viewData = {
+                                      'assetCode': '',
+                                      'assetIssuer': '',
+                                      'walletPublicKey':
+                                          appState.primaryWallet.publicKey,
+                                    };
+                                    appState.currentAction = PageAction(
+                                        state: PageState.addPage,
+                                        page: AssetDetailsViewPageConfig);
+                                  },
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Icon(
+                                            Icons.local_gas_station,
+                                            color: notifier.getbluecolor,
+                                          ),
+                                          Container(
+                                            width: 100,
+                                            child: Text(
+                                              'Gas ${formatHistoryNumber(gas.amount!, 1000)}',
+                                              overflow: TextOverflow.visible,
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.bold,
+                                                fontFamily: fontsemibold,
+                                                color: notifier.getbluecolor,
+                                                overflow: TextOverflow.visible,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                )),
+                          ),
+                        ),
+                        SizedBox(
+                          width: width / 20,
+                        ),
+                        Expanded(
+                          child: Container(
+                            width: width / 2,
+                            child: dropdown(
+                              (value) {
+                                setState(() {
+                                  listMode = value as DashboardAssetListMode;
+                                });
+                              },
+                              getItems,
+                              null,
+                              "assettokens".tr(),
+                              context,
+                              null,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )),
               ),
               SizedBox(
                 height: height / 50,
@@ -482,6 +541,10 @@ class _WalletDetailsState extends State<WalletDetails>
   }
 
   Widget cryptoAssets() {
+    var assets = wallet.claimedAssets!
+        .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
+        .toList();
+    print('flsd--------------- $assets');
     return Container(
       height: height / 1.58,
       child: Column(
@@ -513,219 +576,201 @@ class _WalletDetailsState extends State<WalletDetails>
               ],
             ),
           ),
-          Positioned(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: height / 40,
-                ),
-                Container(
-                  height: height / 1.72,
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0),
-                        child: Column(
-                          children: [
-                            if (wallet.claimedAssets!.length > 0) ...[
-                              Container(
-                                height: height / 1.76,
-                                child: ReorderableListView(
-                                  padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
-                                  onReorder: (oldIndex, newIndex) {
-                                    if (oldIndex < newIndex) {
-                                      newIndex -= 1;
-                                    }
-                                    final Asset item = wallet.claimedAssets!
-                                        .removeAt(oldIndex);
-                                    wallet.claimedAssets!
-                                        .insert(newIndex, item);
-                                    setState(() {});
-                                  },
-                                  children: [
-                                    for (var i = 0;
-                                        i < wallet.claimedAssets!.length;
-                                        i++) ...[
-                                      ...[
-                                        GestureDetector(
-                                            key: Key(wallet.claimedAssets![i]
-                                                .assetIssuer!),
-                                            onTap: () {
-                                              appState.returnView = PageAction(
-                                                state: PageState.addAll,
-                                                pages: [
-                                                  BottomHomePageConfig,
-                                                  WalletDetailsViewPageConfig
-                                                ],
-                                              );
-
-                                              if (rel == 'sharedWalletView') {
-                                                appState.returnView =
-                                                    PageAction(
-                                                        state: PageState.addAll,
-                                                        pages: [
-                                                      BottomHomePageConfig,
-                                                      SharedAccessViewPageConfig,
-                                                      SharedWalletInfoViewPageConfig,
-                                                      WalletDetailsViewPageConfig
-                                                    ]);
-                                              }
-
-                                              appState.viewData = {
-                                                'assetCode': wallet
-                                                    .claimedAssets![i]
-                                                    .assetCode,
-                                                'assetIssuer': wallet
-                                                    .claimedAssets![i]
-                                                    .assetIssuer,
-                                                'walletPublicKey':
-                                                    wallet.publicKey,
-                                              };
-                                              appState.currentAction =
-                                                  PageAction(
-                                                state: PageState.addPage,
-                                                page:
-                                                    AssetDetailsViewPageConfig,
-                                              );
-                                            },
-                                            child: tiles(
-                                                wallet.claimedAssets![i], i)),
-                                      ],
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            ] else ...[
-                              Container(
-                                height: height / 3,
-                                child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                        10, 28.0, 10, 0),
-                                    child: Center(
-                                      child: Text(
-                                        "noassets".tr(),
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: fontsemibold,
-                                          color: notifier.getblck,
-                                        ),
-                                      ),
-                                    )),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      if (tabLength == 2) ...[
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-                          child: Container(
-                            child: SingleChildScrollView(
-                              child: Column(
+          Column(
+            children: [
+              SizedBox(
+                height: height / 40,
+              ),
+              Container(
+                height: height / 1.72,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 10.0, 0, 0),
+                      child: Column(
+                        children: [
+                          if (assets.length > 0) ...[
+                            Container(
+                              height: height / 1.76,
+                              child: ReorderableListView(
+                                padding: EdgeInsets.fromLTRB(0, 0, 0, 30),
+                                onReorder: (oldIndex, newIndex) {
+                                  if (oldIndex < newIndex) {
+                                    newIndex -= 1;
+                                  }
+                                  final Asset item = assets.removeAt(oldIndex);
+                                  assets.insert(newIndex, item);
+                                  setState(() {});
+                                },
                                 children: [
-                                  if (wallet.unClaimedAssets != null &&
-                                      wallet.unClaimedAssets!.length > 0) ...[
-                                    for (var asset
-                                        in wallet.unClaimedAssets!) ...[
-                                      GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            activeTabIndex =
-                                                _tabController.index;
-                                          });
+                                  for (var i = 0; i < assets.length; i++) ...[
+                                    GestureDetector(
+                                      key: Key(assets[i].assetIssuer!),
+                                      onTap: () {
+                                        appState.returnView = PageAction(
+                                          state: PageState.addAll,
+                                          pages: [
+                                            BottomHomePageConfig,
+                                            WalletDetailsViewPageConfig
+                                          ],
+                                        );
 
+                                        if (rel == 'sharedWalletView') {
                                           appState.returnView = PageAction(
-                                            state: PageState.addAll,
-                                            pages: [
-                                              BottomHomePageConfig,
-                                              WalletDetailsViewPageConfig
-                                            ],
-                                          );
+                                              state: PageState.addAll,
+                                              pages: [
+                                                BottomHomePageConfig,
+                                                SharedAccessViewPageConfig,
+                                                SharedWalletInfoViewPageConfig,
+                                                WalletDetailsViewPageConfig
+                                              ]);
+                                        }
 
-                                          if (rel == 'sharedWalletView') {
-                                            appState.returnView = PageAction(
-                                                state: PageState.addAll,
-                                                pages: [
-                                                  BottomHomePageConfig,
-                                                  SharedAccessViewPageConfig,
-                                                  SharedWalletInfoViewPageConfig,
-                                                  WalletDetailsViewPageConfig
-                                                ]);
-                                          }
-
-                                          appState.viewData = {
-                                            'assetCode': asset.assetCode,
-                                            'assetIssuer': asset.assetIssuer,
-                                            'walletPublicKey': wallet.publicKey,
-                                          };
-                                          appState.currentAction = PageAction(
-                                            state: PageState.addPage,
-                                            page:
-                                                PendingAssetDetailsViewPageConfig,
-                                          );
-                                        },
-                                        child: tiles(asset, null),
-                                      ),
-                                    ],
-                                  ] else ...[
-                                    Container(
-                                      height: height / 4,
-                                      child: Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              10, 28.0, 10, 0),
-                                          child: Center(
-                                            child: Text(
-                                              "nopendingassets".tr(),
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                fontFamily: fontsemibold,
-                                                color: notifier.getblck,
-                                              ),
-                                            ),
-                                          )),
+                                        appState.viewData = {
+                                          'assetCode': assets[i].assetCode,
+                                          'assetIssuer': assets[i].assetIssuer,
+                                          'walletPublicKey': wallet.publicKey,
+                                        };
+                                        appState.currentAction = PageAction(
+                                          state: PageState.addPage,
+                                          page: AssetDetailsViewPageConfig,
+                                        );
+                                      },
+                                      child: tiles(assets[i], i),
                                     ),
                                   ],
-                                  SizedBox(
-                                    height: height / 22,
-                                  ),
                                 ],
                               ),
                             ),
+                          ] else ...[
+                            Container(
+                              height: height / 3,
+                              child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                      10, 28.0, 10, 0),
+                                  child: Center(
+                                    child: Text(
+                                      "noassets".tr(),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: fontsemibold,
+                                        color: notifier.getblck,
+                                      ),
+                                    ),
+                                  )),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (tabLength == 2) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+                        child: Container(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                if (wallet.unClaimedAssets != null &&
+                                    wallet.unClaimedAssets!.length > 0) ...[
+                                  for (var asset
+                                      in wallet.unClaimedAssets!) ...[
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          activeTabIndex = _tabController.index;
+                                        });
+
+                                        appState.returnView = PageAction(
+                                          state: PageState.addAll,
+                                          pages: [
+                                            BottomHomePageConfig,
+                                            WalletDetailsViewPageConfig
+                                          ],
+                                        );
+
+                                        if (rel == 'sharedWalletView') {
+                                          appState.returnView = PageAction(
+                                              state: PageState.addAll,
+                                              pages: [
+                                                BottomHomePageConfig,
+                                                SharedAccessViewPageConfig,
+                                                SharedWalletInfoViewPageConfig,
+                                                WalletDetailsViewPageConfig
+                                              ]);
+                                        }
+
+                                        appState.viewData = {
+                                          'assetCode': asset.assetCode,
+                                          'assetIssuer': asset.assetIssuer,
+                                          'walletPublicKey': wallet.publicKey,
+                                        };
+                                        appState.currentAction = PageAction(
+                                          state: PageState.addPage,
+                                          page:
+                                              PendingAssetDetailsViewPageConfig,
+                                        );
+                                      },
+                                      child: tiles(asset, null),
+                                    ),
+                                  ],
+                                ] else ...[
+                                  Container(
+                                    height: height / 4,
+                                    child: Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            10, 28.0, 10, 0),
+                                        child: Center(
+                                          child: Text(
+                                            "nopendingassets".tr(),
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: fontsemibold,
+                                              color: notifier.getblck,
+                                            ),
+                                          ),
+                                        )),
+                                  ),
+                                ],
+                                SizedBox(
+                                  height: height / 22,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ],
-                      // Container(
-                      //   height: height / 2,
-                      //   child: SingleChildScrollView(
-                      //     child: Column(
-                      //       children: [
-                      //         // in situations where the blockchain has an issue,
-                      //         // some values can be returned as null or empty
-                      //         // so always null check for such situations
-                      //         // if (nfts != null && nfts != {}) ...[
-                      //         //   if (nfts[activeWallet!.publicKey] != null &&
-                      //         //       nfts[activeWallet!.publicKey].length >
-                      //         //           0) ...[
-                      //         gridView(),
-                      //         //     SizedBox(height: 600),
-                      //         //   ] else ...[
-                      //         //     showEmptyNFTs(),
-                      //         //   ]
-                      //         // ] else ...[
-                      //         //   showEmptyNFTs(),
-                      //         // ],
-                      //       ],
-                      //     ),
-                      //   ),
-                      // ),
+                      ),
                     ],
-                  ),
+                    // Container(
+                    //   height: height / 2,
+                    //   child: SingleChildScrollView(
+                    //     child: Column(
+                    //       children: [
+                    //         // in situations where the blockchain has an issue,
+                    //         // some values can be returned as null or empty
+                    //         // so always null check for such situations
+                    //         // if (nfts != null && nfts != {}) ...[
+                    //         //   if (nfts[activeWallet!.publicKey] != null &&
+                    //         //       nfts[activeWallet!.publicKey].length >
+                    //         //           0) ...[
+                    //         gridView(),
+                    //         //     SizedBox(height: 600),
+                    //         //   ] else ...[
+                    //         //     showEmptyNFTs(),
+                    //         //   ]
+                    //         // ] else ...[
+                    //         //   showEmptyNFTs(),
+                    //         // ],
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

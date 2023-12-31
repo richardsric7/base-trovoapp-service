@@ -37,6 +37,7 @@ class _LoginState extends State<Login> {
   String password = '';
   final _formKey = GlobalKey<FormState>();
   final Authenticator _authenticator = Authenticator();
+  final _dropDownKey = GlobalKey<FormFieldState>();
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -221,25 +222,28 @@ class _LoginState extends State<Login> {
                     ),
                   ],
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        appState.currentAction = PageAction(
-                            state: PageState.addPage,
-                            page: ImportWalletPageConfig);
-                      },
-                      child: Text(
-                        "forgotpassword".tr(),
-                        style: TextStyle(
-                            color: notifier.getdarkgrey,
-                            fontSize: 13.5.sp,
-                            fontFamily: fontbody),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: ImportWalletPageConfig);
+                        },
+                        child: Text(
+                          "forgotpassword".tr(),
+                          style: TextStyle(
+                              color: notifier.getdarkgrey,
+                              fontSize: 13.5.sp,
+                              fontFamily: fontbody),
+                        ),
                       ),
-                    ),
-                    SizedBox(width: width / 10),
-                  ],
+                      // SizedBox(width: width / 10),
+                    ],
+                  ),
                 ),
                 SizedBox(height: height / 25),
                 if (appState.biometricEnabled && password.isEmpty) ...[
@@ -422,6 +426,16 @@ class _LoginState extends State<Login> {
             'Trovo Wallet version $currentVersionRaw available for download',
             context);
       }
+    }
+  }
+
+  void handleEnvironmentSwitch(String? newValue) async {
+    if (newValue != appState.walletMode) {
+      showSwitchEnvironmentPopup(context, onProceed: () async {
+        await appState.changeWalletMode(newValue.toString());
+      }, onCancel: () {
+        _dropDownKey.currentState!.reset();
+      }, toEnvironment: newValue!);
     }
   }
 }

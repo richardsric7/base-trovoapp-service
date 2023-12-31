@@ -111,6 +111,8 @@ class Wallet {
 
   bool get isSharedWallet => sharedAccessEnabled == 1;
 
+  int get totalAssets => claimedAssets?.length ?? 0;
+
   bool get isSharedWalletAndCanInitiate =>
       sharedAccessEnabled == 1 &&
       walletThreshold == 2 &&
