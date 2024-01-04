@@ -2,3 +2,34 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
+@font-face {
+    font-family: "MatahariRegular";
+    src: url("../public/fonts/Matahari-400Regular.ttf");
+}
+
+@font-face {
+    font-family: "MatahariExtended";
+    src: url("../public/fonts/MatahariExtended-600ExtSemBd.ttf");
+}
+
+@font-face {
+    font-family: "MontserratMedium";
+    src: url("../public/fonts/Montserrat-Medium.ttf");
+}
+
+@font-face {
+    font-family: "MontserratRegular";
+    src: url("../public/fonts/Montserrat-Regular.ttf");
+}
+
+@font-face {
+    font-family: "MontserratSemiBold";
+    src: url("../public/fonts/Montserrat-SemiBold.ttf");
+}
+
+@layer base {
+    html {
+        font-family: "MontserratRegular", system-ui, sans-serif;
+    }
+}
