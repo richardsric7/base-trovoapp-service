@@ -63,7 +63,7 @@ function Welcome() {
             <Button
               label="Get Started"
               onclick={() => {
-                navigate('/welcome2');
+                navigate('/register');
               }}
             />
           </div>

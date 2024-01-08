@@ -5,6 +5,11 @@ import Welcome1 from '../pages/onboarding/welcome1';
 import Welcome2 from '../pages/onboarding/welcome2';
 import Welcome3 from '../pages/onboarding/welcome3';
 import ScrollToTop from '../components/scrollToTop';
+import CreateAccount from '../pages/createAccount/main';
+import RegistrationForm from '../pages/createAccount/registrationForm';
+import CreatePassword from '../pages/createAccount/createPassword';
+import AccountVerification from '../pages/createAccount/accountVerification';
+import Backup from '../pages/createAccount/backup';
 
 export default function AppRouter() {
   return (
@@ -16,6 +21,16 @@ export default function AppRouter() {
         <Route path="/welcome1" element={<Welcome1 />} />
         <Route path="/welcome2" element={<Welcome2 />} />
         <Route path="/welcome3" element={<Welcome3 />} />
+        <Route path="/register" element={<CreateAccount />}>
+          <Route index element={<CreatePassword />} />
+          <Route path="create-password" element={<CreatePassword />} />
+          <Route path="form" element={<RegistrationForm />} />
+        </Route>
+        <Route
+          path="/register/verification"
+          element={<AccountVerification />}
+        />
+        <Route path="/register/backup" element={<Backup />} />
         {/* <Route path="*" element={<Page404 />} /> */}
       </Routes>
     </BrowserRouter>
