@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { React, useState } from 'react';
 
-export default function PasswordInput({
+export default function TextInput({
   defaultValue,
   placeholder,
   label,
@@ -55,7 +55,7 @@ export default function PasswordInput({
   );
 }
 
-PasswordInput.propTypes = {
+TextInput.propTypes = {
   placeholder: PropTypes.string,
   inputType: PropTypes.string,
   leadingIcon: PropTypes.string,
@@ -64,7 +64,7 @@ PasswordInput.propTypes = {
   onInputChange: PropTypes.func.isRequired,
 };
 
-PasswordInput.defaultProps = {
+TextInput.defaultProps = {
   placeholder: 'Enter value',
   leadingIcon: null,
   inputType: 'text',

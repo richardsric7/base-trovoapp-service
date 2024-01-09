@@ -10,6 +10,9 @@ import RegistrationForm from '../pages/createAccount/registrationForm';
 import CreatePassword from '../pages/createAccount/createPassword';
 import AccountVerification from '../pages/createAccount/accountVerification';
 import Backup from '../pages/createAccount/backup';
+import ImportWallet from '../pages/importWallet/importWallet';
+import RecoveryMain from '../pages/accountRecovery/main';
+import Login from '../pages/login';
 
 export default function AppRouter() {
   return (
@@ -31,6 +34,9 @@ export default function AppRouter() {
           element={<AccountVerification />}
         />
         <Route path="/register/backup" element={<Backup />} />
+        <Route path="/import" element={<ImportWallet />} />
+        <Route path="/recovery" element={<RecoveryMain />} />
+        <Route path="/login" element={<Login />} />
         {/* <Route path="*" element={<Page404 />} /> */}
       </Routes>
     </BrowserRouter>

@@ -71,7 +71,7 @@ function Welcome() {
             <ButtonSecondary
               label="Import Wallet"
               onclick={() => {
-                navigate('/welcome2');
+                navigate('/import');
               }}
             />
           </div>
@@ -80,7 +80,7 @@ function Welcome() {
               label="Recover Account"
               additionalClasses="bg-primary-600 text-white ring-primary-600"
               onclick={() => {
-                navigate('/welcome2');
+                navigate('/recovery');
               }}
             />
           </div>

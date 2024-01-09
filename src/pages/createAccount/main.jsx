@@ -1,7 +1,5 @@
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-// import CreatePassword from './createPassword';
-// import RegistrationForm from './registrationForm';
 
 function AuthMain() {
   return (
