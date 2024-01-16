@@ -544,7 +544,6 @@ class _WalletDetailsState extends State<WalletDetails>
     var assets = wallet.claimedAssets!
         .where((asset) => asset.assetCode != '' && asset.assetIssuer != '')
         .toList();
-    print('flsd--------------- $assets');
     return Container(
       height: height / 1.58,
       child: Column(
