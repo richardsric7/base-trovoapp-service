@@ -6,7 +6,6 @@ import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
@@ -390,7 +389,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 flex: 5,
                 child: GestureDetector(
                   onTap: () => appState.goToWebView(
-                      bantuBlockchainExplorerBaseUrl +
+                      getExplorerBaseUrl(appState.walletMode) +
                           depositInfo.transactionId),
                   child: Text(
                     depositInfo.transactionId,
@@ -688,7 +687,7 @@ class _DepositWithdrawDetails extends State<DepositWithdrawDetails>
                 flex: 5,
                 child: GestureDetector(
                   onTap: () => appState.goToWebView(
-                      bantuBlockchainExplorerBaseUrl +
+                      getExplorerBaseUrl(appState.walletMode) +
                           withdrawalInfo.transactionId),
                   child: Text(
                     withdrawalInfo.transactionId,

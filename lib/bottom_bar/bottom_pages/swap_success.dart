@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/user.dart';
@@ -180,7 +179,7 @@ class _SwapSuccess extends State<SwapSuccess> with TickerProviderStateMixin {
                               flex: 5,
                               child: GestureDetector(
                                 onTap: () => appState.goToWebView(
-                                    bantuBlockchainExplorerBaseUrl +
+                                    getExplorerBaseUrl(appState.walletMode) +
                                         transactionData['transactionId']),
                                 child: Text(
                                   transactionData['transactionId'],

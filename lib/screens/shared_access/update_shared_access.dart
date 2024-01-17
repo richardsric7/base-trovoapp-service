@@ -92,6 +92,7 @@ class _UpdateSharedAccessState extends State<UpdateSharedAccess>
     appState = Provider.of<DataProvider>(context, listen: false);
     wallet =
         appState.userInfo!.getWallet(appState.viewData!['walletPublicKey']);
+    noOfApprovalsNeeded = wallet.numberOfApprovalsNeeded!;
 
     // since you can only pass around objects by reference in dart
     // and since we need to modify permissions without necessarily

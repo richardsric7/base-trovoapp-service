@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
-import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:trovo_wallet/models/transaction.dart';
@@ -181,7 +180,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                               flex: 5,
                               child: GestureDetector(
                                 onTap: () => appState.goToWebView(
-                                    bantuBlockchainExplorerBaseUrl +
+                                    getExplorerBaseUrl(appState.walletMode) +
                                         viewData['transactionId']),
                                 child: Text(
                                   viewData['transactionId'],
@@ -236,7 +235,7 @@ class _TransactionSuccess extends State<TransactionSuccess>
                     to: '${viewData['destinationFirstName']} ${viewData['destinationLastName']}[${viewData['destination']}]',
                     toPublicKey: viewData['destinationPublicKey'],
                     transactionDirection: TransactionDirection.Send,
-                    assetCode: viewData['assetCode'],
+                    assetCode: getAssetCode(viewData['assetCode']),
                     assetIssuer: viewData['assetIssuer'].toString(),
                     amount: double.parse(viewData['amount']),
                     memo: viewData['memo'],

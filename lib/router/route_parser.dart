@@ -191,6 +191,10 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return MarketTradeInfoViewPageConfig;
       case MarketPairsViewPath:
         return MarketPairsViewPageConfig;
+      case SetupAndComplianceViewPath:
+        return SetupAndComplianceViewPageConfig;
+      case AllWalletsViewPath:
+        return AllWalletsViewPageConfig;
       default:
         return SplashPageConfig;
     }
@@ -393,6 +397,10 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return RouteInformation(uri: Uri.parse(MarketTradeInfoViewPath));
       case Pages.MarketPairsView:
         return RouteInformation(uri: Uri.parse(MarketPairsViewPath));
+      case Pages.SetupAndComplianceView:
+        return RouteInformation(uri: Uri.parse(SetupAndComplianceViewPath));
+      case Pages.AllWalletsView:
+        return RouteInformation(uri: Uri.parse(AllWalletsViewPath));
       default:
         return RouteInformation(uri: Uri.parse(SplashPath));
     }

@@ -118,13 +118,13 @@ formatNumber(double number) =>
 formatNumberShort(double number) =>
     NumberFormat("#,##0.00", "en_US").format(number);
 
-formatHistoryNumber(double number, double trimNum) {
+formatHistoryNumber(double number, double trimNum, {bool isShort = false}) {
   // if number is greater than 1million return 1m or 1.2m
   if (number >= trimNum) {
     return NumberFormat.compact().format(number);
   }
 
-  return formatNumber(number);
+  return isShort ? formatNumberShort(number) : formatNumber(number);
 }
 
 truncatePublicKey(String? publicKey) {
@@ -410,6 +410,63 @@ String trimRight(String from, String pattern) {
 
 String trim(String from, String pattern) {
   return trimLeft(trimRight(from, pattern), pattern);
+}
+
+String getExplorerBaseUrl(String walletMode) {
+  return walletMode == 'Mainnet'
+      ? bantuBlockchainExplorerBaseUrl
+      : bantuBlockchainExplorerTestnetBaseUrl;
+}
+
+Widget iconDropdown(
+  void Function(Object?) onChanged,
+  List<DropdownMenuItem<Object>> items,
+  Object? value,
+  String? hint,
+  BuildContext context,
+  List<Widget> Function(BuildContext)? selectedItemBuilder,
+) {
+  var notifier = Provider.of<ColorNotifier>(context, listen: true);
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 5.0),
+    child: DropdownButtonFormField(
+      selectedItemBuilder: selectedItemBuilder,
+      isDense: true,
+      isExpanded: true,
+      dropdownColor:
+          notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+      decoration: InputDecoration(
+        contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        filled: true,
+        fillColor:
+            notifier.isDark ? darktilewhitecolor : notifier.getaddsubwalletgrey,
+      ),
+      value: value,
+      hint: Icon(
+        Icons.filter_list_outlined,
+        color: notifier.getbluewhitecolor,
+        size: 20,
+      ),
+      icon: Container(),
+      elevation: 0,
+      style: TextStyle(
+        color: notifier.getbluewhitecolor,
+        fontSize: 15,
+        fontFamily: fontsemibold,
+        fontWeight: FontWeight.w500,
+      ),
+      onChanged: onChanged,
+      items: items,
+    ),
+  );
 }
 
 Widget dropdown(
@@ -823,7 +880,11 @@ Widget getDrawer(
           onTap: () {
             Navigator.pop(context);
             appState.currentAction = PageAction(
-                state: PageState.addPage, page: SharedAccessViewPageConfig);
+              state: PageState.addPage,
+              page: appState.introducedSharedAccess
+                  ? WelcomeToSharedAccessViewPageConfig
+                  : WelcomeToSharedAccessViewPageConfig,
+            );
           },
         ),
         ListTile(
