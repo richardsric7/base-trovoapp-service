@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/utils/local_auth.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../custom_bloc_observer/constants.dart';
 import '../custom_bloc_observer/fonts.dart';
 import '../custom_bloc_observer/notifire_clor.dart';
@@ -96,7 +97,7 @@ class _WalletSlideState extends State<WalletSlide> {
                       Container(
                         width: width / 2.5,
                         child: Text(
-                          widget.alias,
+                          truncate(widget.alias, length: 12),
                           style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,

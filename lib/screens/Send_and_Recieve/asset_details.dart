@@ -415,6 +415,36 @@ class _AssetDetailsState extends State<AssetDetails>
                   SizedBox(
                     height: height / 50.0,
                   ),
+                  Text(
+                    'Price',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold),
+                  ),
+                  SizedBox(
+                    height: height / 90.0,
+                  ),
+                  SizedBox(
+                    width: width / 1.3,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        '1 ${getAssetCode(asset?.assetCode!)} = ${formatNumberShort(double.parse(getFiatRate(asset!.usdPrice.toString(), appState.defaultCurrency, appState, getUnFormatted: true)))} ${appState.defaultCurrency}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15.sp,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
                   if (asset!.assetIssuer.toString().isNotEmpty) ...[
                     Text(
                       "issuerpubkey".tr(),
@@ -570,6 +600,36 @@ class _AssetDetailsState extends State<AssetDetails>
                   SizedBox(
                     height: height / 50.0,
                   ),
+                  Text(
+                    'Price',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: notifier.getbluewhitecolor,
+                        fontFamily: fontsemibold),
+                  ),
+                  SizedBox(
+                    height: height / 90.0,
+                  ),
+                  SizedBox(
+                    width: width / 1.3,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        '1 ${asset?.assetCode?.toUpperCase()} = ${formatNumberShort(double.parse(getFiatRate(asset!.usdPrice.toString(), appState.defaultCurrency, appState, getUnFormatted: true)))} ${appState.defaultCurrency}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: notifier.getbluewhitecolor,
+                          fontSize: 15.sp,
+                          fontFamily: fontbody,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
                   if (asset!.assetIssuer!.toString().isNotEmpty) ...[
                     Text(
                       "issuerpubkey".tr(),
@@ -580,7 +640,7 @@ class _AssetDetailsState extends State<AssetDetails>
                           fontFamily: fontsemibold),
                     ),
                     SizedBox(
-                      width: width / 1.7,
+                      width: width / 1.5,
                       child: Row(
                         children: [
                           Expanded(
