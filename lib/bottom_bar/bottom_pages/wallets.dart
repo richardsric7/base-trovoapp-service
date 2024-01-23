@@ -1,37 +1,28 @@
-import 'dart:convert';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
-import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
-import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/consttom_textfild.dart';
-import 'package:trovo_wallet/custom_bloc_observer/custtom_textfild/custtom_password.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/models/asset.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
-import 'package:trovo_wallet/network/requests.dart';
+import 'package:trovo_wallet/models/wallets_list_view_data.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/storage/cache.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:provider/provider.dart';
-import 'package:trovo_wallet/utils/local_auth.dart';
-import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import 'package:trovo_wallet/widgets/wallet_slides.dart';
 import '../../custom_bloc_observer/notifire_clor.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
 
 class Wallets extends StatefulWidget {
   const Wallets({Key? key}) : super(key: key);
@@ -40,14 +31,9 @@ class Wallets extends StatefulWidget {
   State<Wallets> createState() => _WalletsState();
 }
 
-enum WalletAction { import, createNew }
-
-enum WalletView { listWallets, addSubWallet, confirmAddSubWallet }
-
 class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   WalletAction? action = WalletAction.createNew;
-  final Authenticator _authenticator = Authenticator();
   bool isTileView = false;
   bool isImport = true;
   String? tag;
@@ -69,8 +55,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   List<Asset>? unclaimedAssets;
   List<Asset>? claimedAssets;
   late UserInfo userInfo;
-  final _formKey = GlobalKey<FormState>();
-  final _formKey2 = GlobalKey<FormState>();
   final carouselController = CarouselController();
   int tabLength = 2;
   int activeTabIndex = 0;
@@ -257,21 +241,23 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
         resizeToAvoidBottomInset: false,
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            if (appState.walletView.view == WalletView.listWallets) {
-              appState.walletView.actionIcon = Icons.cancel_outlined;
-              appState.walletView.actionText = "cancel".tr();
-              appState.walletView.view = WalletView.addSubWallet;
-            } else if (appState.walletView.view == WalletView.addSubWallet) {
-              appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
-              appState.walletView.actionText = "addsubwallet".tr();
-              appState.walletView.view = WalletView.listWallets;
-              resetForm();
-            } else if (appState.walletView.view ==
-                WalletView.confirmAddSubWallet) {
-              appState.walletView.actionIcon = Icons.cancel_outlined;
-              appState.walletView.actionText = "cancel".tr();
-              appState.walletView.view = WalletView.addSubWallet;
-            }
+            // if (appState.walletView.view == WalletView.listWallets) {
+            //   appState.walletView.actionIcon = Icons.cancel_outlined;
+            //   appState.walletView.actionText = "cancel".tr();
+            //   appState.walletView.view = WalletView.addSubWallet;
+            // } else if (appState.walletView.view == WalletView.addSubWallet) {
+            //   appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
+            //   appState.walletView.actionText = "addsubwallet".tr();
+            //   appState.walletView.view = WalletView.listWallets;
+            //   resetForm();
+            // } else if (appState.walletView.view ==
+            //     WalletView.confirmAddSubWallet) {
+            //   appState.walletView.actionIcon = Icons.cancel_outlined;
+            //   appState.walletView.actionText = "cancel".tr();
+            //   appState.walletView.view = WalletView.addSubWallet;
+            // }
+
+            addSubWalletPopup(context);
 
             setState(() {});
           },
@@ -503,33 +489,26 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
               SizedBox(
                 height: height / 80,
               ),
-              if (appState.walletView.view == WalletView.addSubWallet) ...[
-                addSubwallet()
-              ] else if (appState.walletView.view ==
-                  WalletView.confirmAddSubWallet) ...[
-                confirmAddSubwallet()
+              if (wallets.isNotEmpty) ...[
+                listMode == DashboardAssetListMode.TokenizedAssets
+                    ? showAssets()
+                    : cryptoAssets(),
               ] else ...[
-                if (wallets.isNotEmpty) ...[
-                  listMode == DashboardAssetListMode.TokenizedAssets
-                      ? showAssets()
-                      : cryptoAssets(),
-                ] else ...[
-                  Container(
-                    height: height / 2,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "nosharedwallets".tr(),
-                          style: TextStyle(
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
+                Container(
+                  height: height / 2,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "nosharedwallets".tr(),
+                        style: TextStyle(
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ],
               Padding(
                   padding: EdgeInsets.only(
@@ -1300,736 +1279,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
       claimedAssets!
           .sort((a, b) => a.userPreferredIndex.compareTo(b.userPreferredIndex));
     }
-  }
-
-  // show the add subwallet view as if its a new page
-  // the app's back button dispatcher has been overriden to make this page
-  // behave as if is a new separate page when you press the back button
-  Widget addSubwallet() {
-    return Form(
-      key: _formKey2,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Card(
-              shadowColor: Colors.black,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15.0),
-              ),
-              color: notifier.isDark
-                  ? notifier.getbluecolor90
-                  : notifier.getaddsubwalletgrey,
-              child: Center(
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Container(
-                      width: width / 1.4,
-                      child: Text(
-                        "abouttocreatesubwallet".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Text(
-                      "chooseamethod".tr(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: width / 10,
-                        ),
-                        Transform.scale(
-                          scale: 1.5,
-                          child: Radio<WalletAction>(
-                            value: WalletAction.import,
-                            groupValue: action,
-                            activeColor: notifier.getbluewhitecolor,
-                            fillColor: MaterialStateColor.resolveWith(
-                                (states) => notifier.getbluewhitecolor),
-                            onChanged: (value) => {
-                              setState(
-                                () {
-                                  action = value;
-                                },
-                              )
-                            },
-                          ),
-                        ),
-                        Text(
-                          "importexistingwallet".tr(),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: width / 10,
-                        ),
-                        Transform.scale(
-                          scale: 1.5,
-                          child: Radio<WalletAction>(
-                            value: WalletAction.createNew,
-                            activeColor: notifier.getbluewhitecolor,
-                            fillColor: MaterialStateColor.resolveWith(
-                                (states) => notifier.getbluewhitecolor),
-                            groupValue: action,
-                            onChanged: (value) => {
-                              setState(
-                                () {
-                                  action = value;
-                                },
-                              )
-                            },
-                          ),
-                        ),
-                        Text(
-                          "createnewwallet".tr(),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontFamily: fontsemibold,
-                            color: notifier.getbluewhitecolor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: width / 1.3,
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: notifier.getbluecolor,
-                                ),
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(15.0)),
-                              ),
-                              child: dropdown(
-                                (newValue) async {
-                                  selectedWalletType =
-                                      int.parse(newValue.toString());
-                                },
-                                walletTypeDropdownItems,
-                                selectedWalletType.toString(),
-                                null,
-                                context,
-                                null,
-                              ),
-                            ),
-                          ],
-                        ),
-                        // SizedBox(
-                        //   height: height / 50,
-                        // ),
-                        // Row(
-                        //   children: [
-                        //     SizedBox(
-                        //       width: width / 4.4,
-                        //     ),
-                        //     GestureDetector(
-                        //       onTap: () {
-                        //         mintWalletExplainerPopup(context);
-                        //       },
-                        //       child: Text(
-                        //         'What does it mean?',
-                        //         style: TextStyle(
-                        //           decoration: TextDecoration.underline,
-                        //           color: notifier.getbluewhitecolor,
-                        //           fontSize: 12,
-                        //           fontWeight: FontWeight.w500,
-                        //           fontFamily: fontbody,
-                        //         ),
-                        //       ),
-                        //     ),
-                        //   ],
-                        // ),
-                        SizedBox(
-                          height: height / 50,
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: height / 30,
-          ),
-          // Tag name
-          CustomTextFormField.textField(
-            "tag".tr(),
-            notifier.getbluecolor,
-            Icons.tag,
-            notifier.getgrey,
-            notifier.getbluewhitecolor,
-            notifier.getblck,
-            notifier.getgrey,
-            70,
-            300,
-            initialValue: tag,
-            onChanged: (value) {
-              setState(() {
-                tag = value.trim().replaceAll(' ', '');
-              });
-            },
-            onSaved: (value) {
-              print('tag: $value');
-              tag = value.trim().replaceAll(' ', '');
-            },
-            keyboardtype: TextInputType.text,
-            maxLength: 12,
-            validator: validateTag,
-            helperText: tag == null || tag!.isEmpty
-                ? ''
-                : "${appState.userInfo!.username}_$tag",
-          ),
-          SizedBox(height: height / 50),
-          CustomTextFormField.textField(
-            "description".tr(),
-            notifier.getbluecolor,
-            Icons.description,
-            notifier.getgrey,
-            notifier.getbluewhitecolor,
-            notifier.getblck,
-            notifier.getgrey,
-            70,
-            300,
-            initialValue: description,
-            onSaved: (value) {
-              print('description: $value');
-              description = value;
-            },
-            keyboardtype: TextInputType.text,
-            maxLength: 100,
-            validator: validateDescription,
-          ),
-          if (action == WalletAction.import) ...[
-            SizedBox(height: height / 50),
-            // Secret Key
-            CustomPasswordFormField(
-              "secretkey".tr(),
-              notifier.getbluecolor,
-              Icons.lock,
-              notifier.getgrey,
-              notifier.getbluewhitecolor,
-              notifier.getblck,
-              70,
-              300,
-              validator: (value) {
-                var trimmedVal = value!.trim().replaceAll(' ', '');
-                if (trimmedVal.isEmpty) {
-                  return "entersecretkeyempty".tr();
-                }
-
-                if (trimmedVal.length < 56) {
-                  return "secretkeyinvalid".tr();
-                }
-
-                try {
-                  TrovoWalletSDK().parseSecretKey(value);
-                } catch (e) {
-                  return 'Secret Key is invalid';
-                }
-
-                return null;
-              },
-              onSaved: (value) {
-                print('${"email".tr()}: $value');
-                secretKey = value!.trim().replaceAll(' ', '');
-              },
-              maxLength: 56,
-            ),
-          ],
-          SizedBox(height: height / 30),
-          Button(
-            "continuee".tr(),
-            notifier.getbluecolor,
-            wihitecolor,
-            onTap: () => submitForm(),
-          ),
-          SizedBox(height: height / 20),
-        ],
-      ),
-    );
-  }
-
-  // show the confirm add subwallet view as if its a new page
-  // the app's back button dispatcher has been overriden to make this page
-  // behave as if is a separate page when you press the back button
-  Widget confirmAddSubwallet() {
-    return Column(children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: Card(
-          shadowColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0),
-          ),
-          color: notifier.isDark
-              ? notifier.getbluecolor90
-              : notifier.getaddsubwalletgrey,
-          child: Center(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Container(
-                    width: width / 1.4,
-                    child: Text(
-                      "requesttocreatesubwallet".tr(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontsemibold,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Text(
-                    "tag".tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  Text(
-                    "${userInfo.username!}_$tag",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Text(
-                    "description".tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  Text(
-                    description ?? '',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Text(
-                    "method".tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  Text(
-                    action == WalletAction.import
-                        ? "importsubwallet".tr()
-                        : "createnewsubwallet".tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Text(
-                    "wallettype".tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  Text(
-                    walletTypes[selectedWalletType],
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 50,
-                  ),
-                  Text(
-                    "publickey".tr(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Text(
-                      newSubWalletKeyPair.publicKey,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 20,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    child: Text(
-                      "willattractcharges".tr(),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontFamily: fontbody,
-                        color: notifier.getbluewhitecolor,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: height / 30,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-      SizedBox(height: height / 50),
-      // Secret Key
-      CustomPasswordFormField(
-        "password".tr(),
-        notifier.getbluecolor,
-        Icons.lock,
-        notifier.getgrey,
-        notifier.getbluewhitecolor,
-        notifier.getblck,
-        70,
-        300,
-        validator: validatePassword,
-        textInputAction: TextInputAction.done,
-        onChanged: (value) {
-          setState(() {
-            password = value!.trim().replaceAll(' ', '');
-          });
-        },
-        // onSubmitted: (value) {
-        //   print('email: $value');
-        //   secretKey = value!.trim().replaceAll(' ', '');
-        // },
-        onSaved: (value) {
-          print('email: $value');
-          secretKey = value!.trim().replaceAll(' ', '');
-        },
-      ),
-      SizedBox(height: height / 30),
-
-      if (appState.biometricEnabled && password.isEmpty) ...[
-        Button(
-          "authorizewithbiometrics".tr(),
-          notifier.getbluecolor,
-          wihitecolor,
-          onTap: toggleSwitch,
-        ),
-      ] else ...[
-        Button(
-          "authorize".tr(),
-          notifier.getbluecolor,
-          wihitecolor,
-          onTap: handleAuthorization,
-        ),
-      ],
-      SizedBox(height: height / 20),
-    ]);
-  }
-
-  String? validatePassword(String? value) {
-    if (value!.isEmpty) return "pleaseenteryourpassword".tr();
-
-    if (value.length < 6) return "use6charsormoreforpassword".tr();
-
-    return null;
-  }
-
-  submitForm() async {
-    var form = _formKey2.currentState;
-    if (!form!.validate()) {
-      return;
-    }
-    form.save();
-    generateKeyPairs();
-    setState(() {
-      appState.walletView.view = WalletView.confirmAddSubWallet;
-      appState.walletView.actionIcon = Icons.arrow_circle_left_outlined;
-      appState.walletView.actionText = "back".tr();
-      password = '';
-      secretKey = '';
-    });
-  }
-
-  generateKeyPairs() {
-    primaryWalletKeyPair =
-        TrovoWalletSDK().parseSecretKey(appState.secretKeys[0]);
-    setState(() {
-      if (action == WalletAction.import) {
-        try {
-          // parse supplied secret to get the keypair
-          newSubWalletKeyPair = TrovoWalletSDK().parseSecretKey(secretKey);
-        } catch (e) {
-          popup(context, title: "error".tr(), message: "invalidsecretkey".tr());
-        }
-      } else {
-        // generate keypair for the new subwallet
-        newSubWalletKeyPair = TrovoWalletSDK().createAccount();
-      }
-    });
-  }
-
-  String? validateTag(String? value) {
-    if (value!.isEmpty) return "enterwallettag".tr();
-
-    String pattern = r'^[a-zA-Z0-9\_]*$';
-    RegExp regex = new RegExp(pattern);
-
-    if (!regex.hasMatch(value.trim().replaceAll(' ', ''))) {
-      return "invalidtagname".tr();
-    }
-
-    return null;
-  }
-
-  String? validateDescription(String? value) {
-    if (value!.isEmpty) return "enterwalletdesc".tr();
-
-    return null;
-  }
-
-  void toggleSwitch() async {
-    try {
-      bool result = await _authenticator.authenticateMe();
-      if (result) {
-        sendDataToServer();
-      }
-    } on PlatformException catch (e) {
-      if (e.code == auth_error.notEnrolled ||
-          e.code == auth_error.notAvailable) {
-        biometricsErrorAlert(context);
-      }
-    }
-  }
-
-  void handleAuthorization() {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (password == appState.password!) {
-      sendDataToServer();
-    } else {
-      popup(context, title: "oops".tr(), message: "invalidpassword".tr());
-    }
-  }
-
-  void sendDataToServer() async {
-    showLoader(context);
-
-    try {
-      // make initial request to the server using the
-      // following credentials
-      Map map = {
-        "publickey": newSubWalletKeyPair.publicKey,
-        "walletTag": tag,
-        "WalletDescription": description,
-        // "assetIssuerWallet": isAssetIssuerWallet,
-        "walletType": selectedWalletType,
-      };
-      String requestBody = jsonEncode(map);
-
-      print(requestBody);
-
-      Map responseData = await makePostRequest(
-        uri: '/v1/users/subwallet',
-        body: requestBody,
-        signer: primaryWalletKeyPair.publicKey,
-        secretKey: primaryWalletKeyPair.secretKey,
-        publicKey: primaryWalletKeyPair.publicKey,
-      );
-
-      print('response: $responseData');
-
-      if (responseData['statusCode'] == 200) {
-        var messageLength = responseData['data']['messages'].length;
-        var messageShown = 0;
-
-        await postProcessData(
-            messageShown, messageLength, responseData['data']);
-        // print('sending full data to server.........');
-      } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['message']);
-      }
-    } catch (e) {
-      print(e);
-      popup(context, title: "error".tr(), message: e.toString());
-    }
-    hideLoader(context);
-  }
-
-  postProcessData(messageShown, messageLength, data) {
-    // we would like to display all messages returned from the initial
-    // request to server using a popup. In order to achieve that we
-    // employ the use of a little recursion here. Please recursive
-    // functions can turn into a nightmare fast so be carefull here.
-    if (messageShown <= messageLength - 1) {
-      showResponseMessage(
-          context,
-          data['messages'][messageShown],
-          () => {
-                print('postProcessData: $messageShown'),
-                postProcessData(messageShown, messageLength, data),
-              });
-
-      messageShown++;
-      return;
-    }
-
-    sendFullDataToServer(data);
-    return;
-  }
-
-  void sendFullDataToServer(responseBody) async {
-    showLoader(context);
-
-    try {
-      // get primary signature
-      var primarySignature = TrovoWalletSDK().signBase64Txn(
-        primaryWalletKeyPair.secretKey,
-        responseBody['transaction'],
-        responseBody['networkPassPhrase'],
-      );
-
-      // get secondary signature
-      var subWalletSignature = TrovoWalletSDK().signBase64Txn(
-        newSubWalletKeyPair.secretKey,
-        responseBody['transaction'],
-        responseBody['networkPassPhrase'],
-      );
-
-      responseBody['primarySignature'] = primarySignature;
-      responseBody['subWalletSignature'] = subWalletSignature;
-
-      String requestBody = jsonEncode(responseBody);
-
-      Map responseData = await makePostRequest(
-        uri: '/v1/users/subwallet',
-        body: requestBody,
-        signer: primaryWalletKeyPair.publicKey,
-        secretKey: primaryWalletKeyPair.secretKey,
-        publicKey: primaryWalletKeyPair.publicKey,
-      );
-
-      if (responseData['statusCode'] == 200) {
-        // add the secret key of this new subwallet to
-        // the existing list of secrets
-        appState.secretKeys.add(newSubWalletKeyPair.secretKey);
-        // store back the list of secret keys but this time it
-        // contains the secret key of the newly created subwallet
-        await StoreData().storeInsertData('secretKey', appState.secretKeys);
-        await updateUserInfo(
-          appState.primaryWallet.signer,
-          appState.secretKeys[0],
-          appState.primaryWallet.publicKey,
-          userInfo.username,
-          appState,
-          forceRefresh: true,
-        );
-        // add the new subwallet to appState and
-        // set the newly created subwallet as the activeWallet
-        appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
-            (wallet) => wallet.publicKey == newSubWalletKeyPair.publicKey);
-        appState.activeWallet!.secretKey = newSubWalletKeyPair.secretKey;
-        // move to next page
-        appState.currentAction = PageAction(
-            state: PageState.addPage, page: CongratulationsPageConfig);
-        resetForm();
-      } else {
-        popup(context,
-            title: "error".tr(), message: responseData['data']['error']);
-      }
-    } catch (e) {
-      print(e);
-      popup(context, title: "error".tr(), message: e.toString());
-    }
-
-    hideLoader(context);
-  }
-
-  void resetForm() {
-    tag = '';
-    description = '';
-    secretKey = '';
-    appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
-    appState.walletView.actionText = "addsubwallet".tr();
-    appState.walletView.view = WalletView.listWallets;
   }
 
   void refreshData() async {

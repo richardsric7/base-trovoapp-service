@@ -8,7 +8,6 @@ import 'package:trovo_wallet/models/deposit_transaction_model.dart';
 import 'package:trovo_wallet/models/transaction.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/models/wallets_list_view_data.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
 import 'package:trovo_wallet/models/withdrawal_transaction_model.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';

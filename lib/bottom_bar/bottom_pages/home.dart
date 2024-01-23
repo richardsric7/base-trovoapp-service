@@ -200,6 +200,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       ),
                     ),
                   ],
+                  SizedBox(
+                    height: height / 50,
+                  ),
                   GestureDetector(
                     onTap: () {
                       changeTabPage(appState, ButtomTabPage.Wallets.index);
@@ -233,7 +236,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 20.0, vertical: 15.0),
+                                  horizontal: 20.0, vertical: 20),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment:
@@ -281,7 +284,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     ],
                                   ),
                                   SizedBox(
-                                    height: height / 98.0,
+                                    height: height / 50,
                                   ),
                                   Container(
                                     width: width / 1.8,
@@ -297,7 +300,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   if (appState.defaultCurrency != 'USD') ...[
-                                    SizedBox(height: 2),
+                                    SizedBox(height: 10),
                                     Text(
                                       getBalance(
                                           '${totalAccountBalanceInUSD} USD'),
@@ -324,8 +327,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   // tuation when a new user signs up and has not funded their wallet
                   // yet
                   if (!noXbnBalance) ...[
-                    // area of new screen
-                    // //////////////////
+                    SizedBox(
+                      height: height / 50,
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: Column(
@@ -390,7 +394,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
   Widget listingTabs() {
     return Container(
-      height: height / 1.60,
+      height: height / 1.77,
       child: TabBarView(
         controller: _tabController,
         children: [
@@ -976,7 +980,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         }
       }
     }
-    return formatNumber(balance);
+    return formatHistoryNumber(double.parse(balance.toString()), 1000000);
   }
 
   String get totalAccountBalanceInUSD {
@@ -990,7 +994,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         }
       }
     }
-    return formatNumber(balance);
+    return formatHistoryNumber(double.parse(balance.toString()), 1000000);
   }
 }
 

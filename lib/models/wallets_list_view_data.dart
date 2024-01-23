@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:trovo_wallet/bottom_bar/bottom_pages/wallets.dart';
 
 class WalletsListViewData {
   WalletView view;
@@ -11,3 +10,7 @@ class WalletsListViewData {
     required this.actionText,
   });
 }
+
+enum WalletAction { import, createNew }
+
+enum WalletView { listWallets, addSubWallet, confirmAddSubWallet }

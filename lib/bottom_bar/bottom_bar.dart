@@ -7,6 +7,7 @@ import 'package:trovo_wallet/models/bottom_tab_page.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/home.dart';
 import 'package:trovo_wallet/bottom_bar/bottom_pages/payment_history.dart';
 import 'package:provider/provider.dart';
+import 'package:trovo_wallet/models/wallets_list_view_data.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';

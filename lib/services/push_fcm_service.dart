@@ -1,6 +1,4 @@
 import 'dart:async';
-
-import 'package:calendar_calendar/calendar_calendar.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:trovo_wallet/storage/store.dart';
 

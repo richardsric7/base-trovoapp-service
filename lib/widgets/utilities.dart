@@ -207,7 +207,7 @@ String getTotalFiatBalanceOfAllAssetsInWallet(
           .replaceAll(',', ''));
     }
   }
-  return formatNumber(balance);
+  return formatHistoryNumber(double.parse(balance.toString()), 1000000);
 }
 
 Widget buildExpandable(context) {
