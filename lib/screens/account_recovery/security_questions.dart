@@ -343,7 +343,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
             300.sp,
             // validator: validateEmail,
             onSaved: (value) {
-              print('email: $value');
+              // print('email: $value');
               questionsMap[rel]!['a'] = value.toString().trim();
             },
             validator: (value) {
@@ -362,7 +362,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
   List<DropdownMenuItem<String>> getQuestions(
       List<Map<dynamic, dynamic>> questionsList, int rel) {
     var filteredQuestions = questionsList.where((question) {
-      print('Q: ${questionsMap[1]!['q']} A: ${question['ID']}');
+      // print('Q: ${questionsMap[1]!['q']} A: ${question['ID']}');
       if (rel != 1 && questionsMap[1]!['q'] == question['ID'].toString())
         return false;
       if (rel != 2 && questionsMap[2]!['q'] == question['ID'].toString())
@@ -406,7 +406,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
         "a3": questionsMap[3]!['a']
       };
       String requestBody = jsonEncode(map);
-      print('this is request body $requestBody');
+      // print('this is request body $requestBody');
 
       Map responseData = await makePostRequest(
         uri: '/v1/security-questions',
@@ -416,7 +416,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
         publicKey: publicKey!,
       );
 
-      print('response: $responseData');
+      // print('response: $responseData');
 
       if (responseData['statusCode'] == 200) {
         await updateUserInfo(signer, secretKey, publicKey, username, appState);
@@ -442,7 +442,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
       }
       hideLoader(context);
     } catch (e) {
-      print(e);
+      // print(e);
       popup(context, title: "error".tr(), message: e.toString());
       hideLoader(context);
     }
@@ -457,7 +457,7 @@ class _SecurityQuestions extends State<SecurityQuestions> {
       publicKey: publicKey!,
     );
 
-    print('response: ${responseData}');
+    // print('response: ${responseData}');
     var questionsList = <Map>[];
 
     if (responseData['statusCode'] == 200) {
