@@ -1,4 +1,5 @@
 import { React, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Button from '../../components/button';
 import TextInput from '../../components/textInput';
@@ -178,7 +179,7 @@ function ShowEnterOTP({ onDone }) {
 
 function ShowAnswerSecurityQuestions() {
   const [showModal, setShowModal] = useState(false);
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col space-y-6 md:h-full items-center justify-center">
@@ -257,6 +258,7 @@ function ShowAnswerSecurityQuestions() {
             <Button
               label="Go to Dashboard"
               onclick={() => {
+                navigate('/home');
                 setShowModal(false);
               }}
             />
