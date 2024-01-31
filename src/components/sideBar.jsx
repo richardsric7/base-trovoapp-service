@@ -12,7 +12,7 @@ function SideBar() {
   return (
     <div className="flex flex-col rounded-3xl pb-10 overflow-y-scroll h-full bg-primary-800">
       <div className="m-3">
-        <TrovoBrand textColor="text-white" />
+        <TrovoBrand textColor="xl:text-sm 2xl:text-lg text-white" />
       </div>
       <div className="mx-3 2xl:mx-7 space-y-4 flex flex-col">
         <SideBarItem

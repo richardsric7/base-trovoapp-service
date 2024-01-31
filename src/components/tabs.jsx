@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 export default function Tabs({ tabList, children }) {
   const [openTab, setOpenTab] = React.useState(1);
   const tabItems = tabList.map((item, index) => (
-    <li className="-mb-px mr-2 last:mr-0 flex-auto text-center">
+    <li className="-mb-px mr-2 last:mr-0 flex-auto text-center md:text-lg">
       <a
         className={`font-bold px-5 py-3 block leading-normal
         ${openTab === index + 1 ? 'border-b-2 border-primary-800' : ''}`}
@@ -32,14 +32,11 @@ export default function Tabs({ tabList, children }) {
   return (
     <div className="flex flex-wrap font-matahariRegular">
       <div className="w-full">
-        <ul
-          className="flex mb-0 list-none flex-wrap pb-4 flex-row"
-          role="tablist"
-        >
+        <ul className="flex mb-0 list-none flex-wrap flex-row" role="tablist">
           {tabItems}
         </ul>
         <div className="relative flex flex-col min-w-0 w-full mb-6">
-          <div className="px-4 py-5 flex-auto">
+          <div className="px-2 py-5 flex-auto">
             <div className="tab-content tab-space">{tabBodies}</div>
           </div>
         </div>

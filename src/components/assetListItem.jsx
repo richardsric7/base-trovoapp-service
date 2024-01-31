@@ -10,15 +10,15 @@ function AssetListItem({
 }) {
   return (
     <button
-      className="rounded-2xl w-full bg-white flex justify-between items-center px-7 py-5"
+      className="rounded-2xl w-full bg-white flex justify-between items-center px-2 md:px-7 py-3 md:py-5"
       onClick={onclick}
       type="button"
     >
       <div className="flex space-x-5 items-center">
-        <img src={image} alt="atlantis 1" />
+        <img className="h-10" src={image} alt="atlantis 1" />
         <div className="flex items-start flex-col">
-          <p className="uppercase font-semibold text-xl">{assetName}</p>
-          <p>{assetClass}</p>
+          <p className="uppercase font-semibold md:text-xl">{assetName}</p>
+          <p className="text-xs">{assetClass}</p>
         </div>
       </div>
       {isSubscribed ? (
