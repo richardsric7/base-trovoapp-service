@@ -100,7 +100,7 @@ func CheckAndSendVerificationCode(userInfo users.UserRegistrationInfo) (bool, st
 	if len(userInfo.VerificationCode) == 0 {
 		//verification code not yet included
 
-		fmt.Printf("Verification code for %s is %s\n", userInfo.Email, expectedVerificationCode)
+		log.Printf("[CheckAndSendVerificationCode]Verification code for %s is %s\n", userInfo.Email, expectedVerificationCode)
 
 		_, _, errSendVerificationCode := tMail.SendEmailVerificationCode(userInfo.Email, expectedVerificationCode)
 
@@ -115,6 +115,8 @@ func CheckAndSendVerificationCode(userInfo users.UserRegistrationInfo) (bool, st
 
 	//verification code included.
 	if expectedVerificationCode != userInfo.VerificationCode {
+		log.Printf("[CheckAndSendVerificationCode]Error Verification code for %s is %s, got %v\n", userInfo.Email, expectedVerificationCode, userInfo.VerificationCode)
+
 		return false, expectedVerificationCode, &tErrors.ErrorInvalidVerificationCode{}
 	}
 
