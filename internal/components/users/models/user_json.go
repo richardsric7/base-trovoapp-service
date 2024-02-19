@@ -90,6 +90,7 @@ type AuthJSON struct {
 	ReasonForRejection  string    `json:"reasonForRejection"`
 	ApprovedBy          string    `json:"approvedBy"`
 	Transaction         string    `json:"transaction,omitempty"`
+	TransactionID       string    `json:"transactionId,omitempty"`
 }
 
 type PaginatedAuths struct {

@@ -213,6 +213,9 @@ func (a *PendingAuth) ToJSON(gc *sharedconfig.GlobalConfig) (jsonObj AuthJSON) {
 	if a.ReasonForRejection != nil {
 		jsonObj.ReasonForRejection = *a.ReasonForRejection
 	}
+	if a.TransactionID != nil {
+		jsonObj.TransactionID = *a.TransactionID
+	}
 
 	// if a.PendingTransactionSignatures != nil {
 	// 	if len(a.PendingTransactionSignatures) > 0 {

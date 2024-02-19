@@ -98,6 +98,47 @@ func (c *ClientUploader) UploadFile(fileInput multipart.File, fileName, imageThu
 	return newImageThumbnailName, nil
 }
 
+func (c *ClientUploader) DeleteFile(imageThumbnailURL string) error {
+
+	ctx := context.Background()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+	defer cancel()
+
+	sh, err := c.Client.Bucket(c.BucketName)
+	if err != nil {
+		//no bucket with that name exists
+		log.Printf("[UploadFile] error getting bucket handle %v: %v\n", c.BucketName, err)
+		return fmt.Errorf("error getting bucket handle %v: %v", c.BucketName, err)
+	}
+
+	_, err = sh.Attrs(ctx)
+
+	if err != nil {
+		//no bucket with that name exists, create it
+		rules := make([]cs.ACLRule, 0)
+		rules = append(rules, cs.ACLRule{Entity: "allUsers", Role: "READER"})
+		err := sh.Create(ctx, c.ProjectID, &cs.BucketAttrs{ACL: rules})
+		if err != nil {
+			log.Printf("[UploadFile] error creating bucket handle %v: %v\n", c.BucketName, err)
+			return fmt.Errorf("error creating bucket handle %v: %v", c.BucketName, err)
+		}
+	}
+
+	if len(imageThumbnailURL) > 3 {
+		// ImageThumbnailURL is full https url. strip the unnecessary portion
+		oldName := strings.ReplaceAll(imageThumbnailURL, fmt.Sprintf("https://storage.googleapis.com/%v/", c.BucketName), "")
+		oldObject := sh.Object(oldName)
+		//check if object already exists and delete it.
+		if _, err := oldObject.Attrs(ctx); err == nil {
+			oldObject.Delete(ctx)
+
+		}
+	}
+
+	return nil
+}
+
 func (c *ClientUploader) SaveQrCodeAsFileToCloud(fileInput *os.File, fileName, imageThumbnailURL string) (string, error) {
 	fileName = strings.ReplaceAll(fileName, "/tmp/", "")
 	fileName = strings.ReplaceAll(fileName, "/", "")

@@ -6,5 +6,5 @@ type UserInfo struct {
 	NFTs                  map[string][]NFT         `json:"nfts"`                  //map of nft wallet and nfts
 	WalletsSharedWithUser []WalletsSharedWithUser  `json:"walletsSharedWithUser"` //shows all the third party access granted to this user
 	DefaultAssets         []DefaultAsset           `json:"defaultAssets"`
-	TokenizedAssets       []TokenizedAsset         `json:"tokenizedAssets"`
+	TokenizedAssets       []TokenizedAssetJSON         `json:"tokenizedAssets"`
 }
