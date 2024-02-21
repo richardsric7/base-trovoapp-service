@@ -16,6 +16,7 @@ import Login from '../pages/login';
 import Dashboard from '../pages/dashboard/main';
 import Home from '../pages/dashboard/home';
 import Wallet from '../pages/dashboard/wallet';
+import TokenizedAsset from '../pages/dashboard/tokenizedAsset';
 
 export default function AppRouter() {
   return (
@@ -42,6 +43,7 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />}>
           <Route index element={<Dashboard />} />
+          <Route path="tokenized-asset" element={<TokenizedAsset />} />
           <Route path="home" element={<Home />} />
           <Route path="wallet" element={<Wallet />} />
         </Route>

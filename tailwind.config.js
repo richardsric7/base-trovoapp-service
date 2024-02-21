@@ -1,6 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  content: [
+    './index.html',
+    './src/**/*.{js,jsx,ts,tsx}',
+    './node_modules/tw-elements-react/dist/js/**/*.js',
+  ],
   theme: {
     extend: {
       colors: {
@@ -13,6 +17,10 @@ module.exports = {
           700: '#336DA0',
           800: '#004988',
         },
+        trovored: {
+          light: '#FFE7E2',
+          primary: '#BE3800',
+        },
       },
     },
     fontFamily: {
@@ -22,6 +30,9 @@ module.exports = {
       montserratRegular: ['MontserratRegular', 'sans-serif'],
       montserratSemiBold: ['MontserratSemiBold', 'sans-serif'],
     },
+    fontWeight: {
+      bold: '700', // Use '700' for Montserrat-Bold
+    },
   },
-  plugins: [],
+  plugins: [require('tw-elements-react/dist/plugin.cjs')],
 };

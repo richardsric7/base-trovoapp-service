@@ -58,8 +58,8 @@ TransactionItem.propTypes = {
   addressOrUsername: PropTypes.string.isRequired,
   transactionType: PropTypes.number.isRequired,
   amount: PropTypes.string.isRequired,
-  date: PropTypes.bool.isRequired,
-  assetCode: PropTypes.bool.isRequired,
+  date: PropTypes.string.isRequired,
+  assetCode: PropTypes.string.isRequired,
 };
 
 export default TransactionItem;

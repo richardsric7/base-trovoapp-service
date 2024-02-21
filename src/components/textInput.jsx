@@ -8,10 +8,10 @@ export default function TextInput({
   leadingIcon,
   inputType,
   onInputChange,
+  trailingIcon,
+  trailingText,
 }) {
   const [showPlainText, setShowPlainText] = useState(false);
-
-  const trailingIcon = '/images/eyeShow.png';
 
   const [value, setValue] = useState(defaultValue);
   const handleInputChange = (event) => {
@@ -23,7 +23,7 @@ export default function TextInput({
 
   return (
     <>
-      <label className="text-primary-800" htmlFor={label}>
+      <label className="text-primary-700" htmlFor={label}>
         {label}
       </label>
       <div
@@ -39,6 +39,12 @@ export default function TextInput({
           value={value}
           onChange={handleInputChange}
         />
+        {trailingIcon && (
+          <div className="flex space-x-2 items-center font-montserratSemiBold px-3">
+            <img src={trailingIcon} alt="" />
+            <span>{trailingText}</span>
+          </div>
+        )}
         {inputType === 'password' && (
           <button
             type="button"
@@ -47,7 +53,7 @@ export default function TextInput({
               setShowPlainText(!showPlainText);
             }}
           >
-            <img src={trailingIcon} alt="" />
+            <img src="/images/eyeShow.png" alt="" />
           </button>
         )}
       </div>
@@ -59,6 +65,8 @@ TextInput.propTypes = {
   placeholder: PropTypes.string,
   inputType: PropTypes.string,
   leadingIcon: PropTypes.string,
+  trailingIcon: PropTypes.string,
+  trailingText: PropTypes.string,
   label: PropTypes.string.isRequired,
   defaultValue: PropTypes.string,
   onInputChange: PropTypes.func.isRequired,
@@ -67,6 +75,8 @@ TextInput.propTypes = {
 TextInput.defaultProps = {
   placeholder: 'Enter value',
   leadingIcon: null,
+  trailingIcon: null,
+  trailingText: null,
   inputType: 'text',
   defaultValue: '',
 };

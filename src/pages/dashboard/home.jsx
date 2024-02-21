@@ -1,14 +1,361 @@
-import { React } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import TextInput from '../../components/textInput';
 import WidgetCard from '../../components/widgetCard';
 import Tabs from '../../components/tabs';
 import AssetListItem from '../../components/assetListItem';
 import TransactionItem from '../../components/transactionItem';
 import Button from '../../components/button';
+import ButtonSecondary from '../../components/buttonSecondary';
+import Modal from '../../components/modal';
+
+function ActivateWalletView() {
+  const [showCopiedModal, setShowCopiedModal] = useState(false);
+  const [showRequestXBNModal, setShowRequestXBNModal] = useState(false);
+  const [confirmRequestXBNModal, setConfirmRequestXBNModal] = useState(false);
+
+  return (
+    <div className="w-full">
+      <p className="text-primary-800 text-center text-lg md:text-xl font-montserratSemiBold">
+        Wallet Activation
+      </p>
+      <div className="md:px-5 w-full">
+        <div className="w-full flex flex-col items-center justify-center space-y-5 md:mb-10">
+          <img
+            className="self-center"
+            src="/images/activateWallet.png"
+            alt=""
+          />
+          <p className="font-montserratSemiBold text-md text-center">
+            Your Wallet is ready!
+          </p>
+          <div className="space-y-2">
+            <p className="text-md text-center">
+              But you cannot use it for any transaction just yet until it is
+              activated with atleast 10 Bantu tokens (XBN)
+            </p>
+            <p className="text-md text-center">
+              You can get Bantu tokens (XBN) for your wallet using either of the
+              3 easy ways displayed below
+            </p>
+          </div>
+          <div className="md:w-2/4 px-3 pb-5 space-y-3">
+            <Button
+              label="Request XBN from Trovo User"
+              additionalClasses="font-montserratSemiBold"
+              onclick={() => {
+                setShowRequestXBNModal(true);
+              }}
+            />
+            <ButtonSecondary
+              label="Send XBN to your wallet"
+              additionalClasses="bg-primary-600 text-white font-montserratSemiBold ring-primary-600"
+              onclick={() => {
+                setShowCopiedModal(true);
+              }}
+            />
+            <ButtonSecondary
+              label="Buy XBN on TrovoP2P"
+              additionalClasses="font-montserratSemiBold"
+              onclick={() => {
+                // navigate('/import');
+              }}
+            />
+          </div>
+        </div>
+      </div>
+      {/* Public key copied modal */}
+      <Modal
+        showModal={showCopiedModal}
+        onClose={() => {
+          setShowCopiedModal(false);
+        }}
+      >
+        <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
+          <img src="/images/success.png" alt="success" />
+          <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">
+            <p className="text-primary-800 text-md xl:text-lg font-montserratSemiBold">
+              Public Key Copied Successfully!
+            </p>
+          </div>
+        </div>
+      </Modal>
+      {/* Request XBN modal */}
+      <Modal
+        showModal={showRequestXBNModal}
+        onClose={() => {
+          setShowRequestXBNModal(false);
+        }}
+      >
+        <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
+          <p className="text-primary-800 w-full mb-5 text-lg md:text-xl font-montserratSemiBold">
+            Request XBN
+          </p>
+          <div className="w-full">
+            <TextInput
+              inputType="text"
+              label="Receiving Wallet"
+              placeholder="Efizee"
+              onInputChange={() => {
+                // console.log('input has changed', newValue);
+              }}
+            />
+          </div>
+          <div className="w-full">
+            <TextInput
+              inputType="text"
+              label="Amount"
+              placeholder="100"
+              onInputChange={() => {
+                // console.log('input has changed', newValue);
+              }}
+            />
+            <div className="flex justify-between text-primary-700 mt-2">
+              <span>0.0000 XBN</span>
+              <span>2,300,320.3214 XBN</span>
+            </div>
+          </div>
+          <div className="w-full">
+            <TextInput
+              inputType="text"
+              label="Add memo (optional)"
+              placeholder=""
+              onInputChange={() => {
+                // console.log('input has changed', newValue);
+              }}
+            />
+            <div className="flex justify-end text-primary-700 mt-2">
+              <span>0/28</span>
+            </div>
+          </div>
+          <div className="w-full md:w-2/4 space-y-3">
+            <Button
+              label="Proceed"
+              additionalClasses="font-montserratSemiBold"
+              onclick={() => {
+                setConfirmRequestXBNModal(true);
+                setShowRequestXBNModal(false);
+              }}
+            />
+          </div>
+          <div />
+        </div>
+      </Modal>
+      <Modal
+        showModal={confirmRequestXBNModal}
+        onClose={() => {
+          setConfirmRequestXBNModal(false);
+        }}
+      >
+        <div className="flex flex-col items-center w-full px-5 md:px-20 space-y-5 py-5 justify-center">
+          <p className="text-primary-800 w-full mb-5 text-lg text-center">
+            You are requesting for
+          </p>
+          <div className="flex w-full py-3 px-2 xl:px-5 xl:space-y-5 rounded-xl flex-col items-center bg-primary-100">
+            <div className="flex flex-col space-y-2 items-center w-full justify-between">
+              <p className="font-montserratSemiBold">45.0000 xbn</p>
+              <p className="text-xs text-primary-400">~3400 NGN</p>
+            </div>
+          </div>
+          <p className="text-primary-800 w-full mb-5 text-center">
+            Receiving Wallet
+          </p>
+          <div className="flex w-full py-3 px-2 xl:px-10 xl:space-y-5 rounded-xl justify-center items-center bg-primary-100">
+            <div className="flex flex-col space-y-2 items-center w-full justify-between">
+              <p className="font-montserratSemiBold">Obi</p>
+              <p className="text-xs text-primary-400">
+                0x71C7656EC7ab88b098defB751B7401B5f6d8976F
+              </p>
+            </div>
+            <button type="button">
+              <img src="/images/copy.png" alt="copy" />
+            </button>
+          </div>
+          <p className="text-primary-800 w-full mb-5 text-center">
+            Description/Memo
+          </p>
+          <div className="flex w-full py-5 px-2 xl:px-10 xl:space-y-5 rounded-xl mb-10 justify-center items-center bg-primary-100">
+            <div className="flex flex-col space-y-2 items-center w-full justify-between">
+              <p className="text-xs text-primary-400">test</p>
+            </div>
+          </div>
+          <div className="flex w-full py-5 px-2 xl:px-10 xl:space-y-5 rounded-xl mb-10 justify-center items-center bg-primary-100">
+            <div className="flex flex-col space-y-2 items-center w-full justify-between">
+              <img className="w-2/5" src="/images/qrcode.png" alt="QR Code" />
+            </div>
+          </div>
+          <div className="w-full flex space-x-3 pt-5">
+            <Button
+              label="Share"
+              additionalClasses="font-montserratSemiBold"
+              onclick={() => {
+                setConfirmRequestXBNModal(false);
+              }}
+            />
+            <ButtonSecondary
+              label="Back"
+              additionalClasses="font-montserratSemiBold"
+              onclick={() => {
+                setShowRequestXBNModal(true);
+                setConfirmRequestXBNModal(false);
+              }}
+            />
+          </div>
+          <div />
+        </div>
+      </Modal>
+    </div>
+  );
+}
+
+function WalletView(hasAssets) {
+  const navigate = useNavigate();
+
+  if (!hasAssets) {
+    return (
+      <div className="w-full">
+        <p className="text-primary-800 text-center text-lg md:text-xl font-montserratSemiBold">
+          Asset Offering
+        </p>
+        <div className="md:px-5 w-full">
+          <div className="w-full flex flex-col justify-center space-y-5 md:mb-10">
+            <img className="self-center" src="/images/empty.png" alt="" />
+            <p className="font-montserratSemiBold text-md text-center">
+              No Assets Yet
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full">
+      <p className="text-primary-800 text-center text-lg md:text-xl font-montserratSemiBold">
+        Asset Offering
+      </p>
+      <div className="md:px-5 w-full">
+        <Tabs tabList={['Primary Listing', 'Secondary Listing']}>
+          <div className="flex flex-col space-y-3">
+            <AssetListItem
+              image="/images/avatar.png"
+              assetName="Atlantis 1"
+              assetClass="Real Estate"
+              isSubscribed
+              onclick={() => {
+                navigate('/dashboard/tokenized-asset');
+              }}
+            />
+            <AssetListItem
+              image="/images/avatar.png"
+              assetName="Orchard Estate"
+              assetClass="Real Estate"
+              onclick={() => {
+                /* */
+              }}
+            />
+            <AssetListItem
+              image="/images/avatar.png"
+              assetName="Atlantis 1"
+              assetClass="Real Estate"
+              isSubscribed
+              onclick={() => {
+                /* */
+              }}
+            />
+            <AssetListItem
+              image="/images/avatar.png"
+              assetName="Orchard Estate"
+              assetClass="Real Estate"
+              onclick={() => {
+                /* */
+              }}
+            />
+            <AssetListItem
+              image="/images/avatar.png"
+              assetName="Atlantis 1"
+              assetClass="Real Estate"
+              isSubscribed
+              onclick={() => {
+                /* */
+              }}
+            />
+            <AssetListItem
+              image="/images/avatar.png"
+              assetName="Orchard Estate"
+              assetClass="Real Estate"
+              onclick={() => {
+                /* */
+              }}
+            />
+            <AssetListItem
+              image="/images/avatar.png"
+              assetName="Atlantis 1"
+              assetClass="Real Estate"
+              isSubscribed
+              onclick={() => {
+                /* */
+              }}
+            />
+            <AssetListItem
+              image="/images/avatar.png"
+              assetName="Orchard Estate"
+              assetClass="Real Estate"
+              onclick={() => {
+                /* */
+              }}
+            />
+            <AssetListItem
+              image="/images/avatar.png"
+              assetName="Atlantis 1"
+              assetClass="Real Estate"
+              isSubscribed
+              onclick={() => {
+                /* */
+              }}
+            />
+            <AssetListItem
+              image="/images/avatar.png"
+              assetName="Orchard Estate"
+              assetClass="Real Estate"
+              onclick={() => {
+                /* */
+              }}
+            />
+          </div>
+          <div className="tab-2">
+            <div className="flex flex-col space-y-3">
+              <AssetListItem
+                image="/images/avatar.png"
+                assetName="Metro Railings"
+                assetClass="Infrastructure"
+                isSubscribed
+                onclick={() => {
+                  /* */
+                }}
+              />
+              <AssetListItem
+                image="/images/avatar.png"
+                assetName="Mount"
+                assetClass="Infrastructure"
+                onclick={() => {
+                  /* */
+                }}
+              />
+            </div>
+          </div>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
+  const [isActivated, setIsActivated] = useState(false);
+  const [hasAssets, setHasAssets] = useState(false);
+
   return (
-    <div className="flex text-primary-800 text-sm md:text-md font-matahariRegular flex-col space-y-5 p-3">
+    <div className="flex text-primary-800 text-sm md:text-md flex-col space-y-5 p-3">
       <div className="flex w-full p-3 justify-between items-center">
         <p>
           Good day,
@@ -18,9 +365,10 @@ export default function Home() {
           <TextInput
             leadingIcon="/images/search.png"
             inputType="text"
+            label=""
             placeholder="Search"
-            onInputChange={(newValue) => {
-              console.log('input has changed', newValue);
+            onInputChange={() => {
+              // console.log('input has changed', newValue);
             }}
           />
         </div>
@@ -39,6 +387,27 @@ export default function Home() {
       </div>
       <div className="flex md:h-screen w-full items-center justify-center">
         <div className="h-full w-full md:p-3">
+          <div
+            className="bg-trovored-light flex justify-between mb-2 rounded-md ring-1 ring-trovored-primary
+            text-trovored-primary px-4 py-2 font-semibold"
+          >
+            <div className="flex space-x-5 items-center">
+              <img src="/images/alert.png" alt="" />
+              <p className="text-xs md:text-md">
+                You have not setup security questions yet. Tap to setup security
+                questions
+              </p>
+            </div>
+            <button
+              className="text-trovored-primary"
+              type="button"
+              onClick={() => {
+                setIsActivated(!isActivated);
+              }}
+            >
+              X
+            </button>
+          </div>
           <div className="md:hidden items-center px-5 mb-5 justify-center flex">
             <WidgetCard />
           </div>
@@ -46,97 +415,11 @@ export default function Home() {
             <div className="hidden w-full items-center px-5 justify-center md:flex">
               <WidgetCard />
             </div>
-            <p className="text-primary-800 text-center text-lg md:text-xl font-semibold">
-              Asset Offering
-            </p>
-            <div className="md:px-5 w-full">
-              <Tabs tabList={['Primary Listing', 'Secondary Listing']}>
-                <div className="flex flex-col space-y-3">
-                  <AssetListItem
-                    image="/images/avatar.png"
-                    assetName="Atlantis 1"
-                    assetClass="Real Estate"
-                    isSubscribed
-                    onclick={() => console.log('clicked!')}
-                  />
-                  <AssetListItem
-                    image="/images/avatar.png"
-                    assetName="Orchard Estate"
-                    assetClass="Real Estate"
-                    onclick={() => console.log('clicked!')}
-                  />
-                  <AssetListItem
-                    image="/images/avatar.png"
-                    assetName="Atlantis 1"
-                    assetClass="Real Estate"
-                    isSubscribed
-                    onclick={() => console.log('clicked!')}
-                  />
-                  <AssetListItem
-                    image="/images/avatar.png"
-                    assetName="Orchard Estate"
-                    assetClass="Real Estate"
-                    onclick={() => console.log('clicked!')}
-                  />
-                  <AssetListItem
-                    image="/images/avatar.png"
-                    assetName="Atlantis 1"
-                    assetClass="Real Estate"
-                    isSubscribed
-                    onclick={() => console.log('clicked!')}
-                  />
-                  <AssetListItem
-                    image="/images/avatar.png"
-                    assetName="Orchard Estate"
-                    assetClass="Real Estate"
-                    onclick={() => console.log('clicked!')}
-                  />
-                  <AssetListItem
-                    image="/images/avatar.png"
-                    assetName="Atlantis 1"
-                    assetClass="Real Estate"
-                    isSubscribed
-                    onclick={() => console.log('clicked!')}
-                  />
-                  <AssetListItem
-                    image="/images/avatar.png"
-                    assetName="Orchard Estate"
-                    assetClass="Real Estate"
-                    onclick={() => console.log('clicked!')}
-                  />
-                  <AssetListItem
-                    image="/images/avatar.png"
-                    assetName="Atlantis 1"
-                    assetClass="Real Estate"
-                    isSubscribed
-                    onclick={() => console.log('clicked!')}
-                  />
-                  <AssetListItem
-                    image="/images/avatar.png"
-                    assetName="Orchard Estate"
-                    assetClass="Real Estate"
-                    onclick={() => console.log('clicked!')}
-                  />
-                </div>
-                <div className="tab-2">
-                  <div className="flex flex-col space-y-3">
-                    <AssetListItem
-                      image="/images/avatar.png"
-                      assetName="Metro Railings"
-                      assetClass="Infrastructure"
-                      isSubscribed
-                      onclick={() => console.log('clicked!')}
-                    />
-                    <AssetListItem
-                      image="/images/avatar.png"
-                      assetName="Mount"
-                      assetClass="Infrastructure"
-                      onclick={() => console.log('clicked!')}
-                    />
-                  </div>
-                </div>
-              </Tabs>
-            </div>
+            {isActivated ? (
+              <WalletView hasAssets={hasAssets} />
+            ) : (
+              <ActivateWalletView />
+            )}
           </div>
         </div>
         <div className="hidden md:block w-3/6 flex flex-col space-y-5 h-full py-3 lg:px-3">
@@ -175,7 +458,9 @@ export default function Home() {
               amount="3,000.000"
               assetCode="XBN"
               date={new Date().toLocaleString()}
-              onclick={() => console.log('clicked!')}
+              onclick={() => {
+                setHasAssets(!hasAssets);
+              }}
             />
             <TransactionItem
               addressOrUsername="GH3Y8...ZX89O"
@@ -183,7 +468,9 @@ export default function Home() {
               amount="0.5000"
               assetCode="TROV"
               date={new Date().toLocaleString()}
-              onclick={() => console.log('clicked!')}
+              onclick={() => {
+                /* */
+              }}
             />
             <TransactionItem
               addressOrUsername="Tom"
@@ -191,7 +478,9 @@ export default function Home() {
               amount="3,000.000"
               assetCode="XBN"
               date={new Date().toLocaleString()}
-              onclick={() => console.log('clicked!')}
+              onclick={() => {
+                /* */
+              }}
             />
             <TransactionItem
               addressOrUsername="GH3Y8...ZX89O"
@@ -199,7 +488,9 @@ export default function Home() {
               amount="0.5000"
               assetCode="TROV"
               date={new Date().toLocaleString()}
-              onclick={() => console.log('clicked!')}
+              onclick={() => {
+                /* */
+              }}
             />
           </div>
           <div className="flex w-full space-y-3 py-7 px-5 xl:space-y-5 rounded-lg flex-col items-center bg-primary-100">
@@ -212,7 +503,7 @@ export default function Home() {
               <Button
                 label="Deposit/Withdraw"
                 onclick={() => {
-                  console.log('clicked!');
+                  /* */
                 }}
               />
             </div>

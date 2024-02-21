@@ -17,7 +17,7 @@ function AssetListItem({
       <div className="flex space-x-5 items-center">
         <img className="h-10" src={image} alt="atlantis 1" />
         <div className="flex items-start flex-col">
-          <p className="uppercase font-semibold md:text-xl">{assetName}</p>
+          <p className="font-semibold md:text-xl">{assetName}</p>
           <p className="text-xs">{assetClass}</p>
         </div>
       </div>
@@ -41,7 +41,11 @@ AssetListItem.propTypes = {
   assetName: PropTypes.string.isRequired,
   assetClass: PropTypes.string.isRequired,
   image: PropTypes.string.isRequired,
-  isSubscribed: PropTypes.bool.isRequired,
+  isSubscribed: PropTypes.bool,
+};
+
+AssetListItem.defaultProps = {
+  isSubscribed: false,
 };
 
 export default AssetListItem;
