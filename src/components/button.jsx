@@ -1,13 +1,10 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
-function Button({ onclick, label }) {
+function Button({ onclick, label, additionalClasses }) {
+  const classes = `bg-primary-800 rounded-lg w-full text-white h-12 ${additionalClasses}`;
   return (
-    <button
-      className="bg-primary-800 rounded-md w-full text-white h-12"
-      type="button"
-      onClick={onclick}
-    >
+    <button className={classes} type="button" onClick={onclick}>
       {label}
     </button>
   );
@@ -16,6 +13,11 @@ function Button({ onclick, label }) {
 Button.propTypes = {
   onclick: PropTypes.func.isRequired,
   label: PropTypes.string.isRequired,
+  additionalClasses: PropTypes.string,
+};
+
+Button.defaultProps = {
+  additionalClasses: '',
 };
 
 export default Button;

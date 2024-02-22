@@ -1,9 +1,11 @@
 import { React, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Button from '../../components/button';
 import TextInput from '../../components/textInput';
 import OtpInput from '../../components/otpInput';
 import Modal from '../../components/modal';
+import TrovoBrand from '../../components/trovoBrand';
 
 function RecoveryMain() {
   const [currentView, setCurrentView] = useState(0);
@@ -41,16 +43,7 @@ function RecoveryMain() {
     <div className="flex h-screen items-center justify-center ">
       <div className="hidden md:block w-3/5 h-full p-3">
         <div className="flex h-full space-y-3 xl:space-y-5 rounded-lg flex-col items-center bg-primary-100">
-          <div className="flex items-center space-x-3 mt-5 mb-10 px-3 w-full">
-            <img
-              className="h-10 w-10"
-              src="/images/trovoLogo.png"
-              alt="trovo logo"
-            />
-            <span className="text-primary-800 font-montserratMedium text-xl xl:text-2xl">
-              Trovo App
-            </span>
-          </div>
+          <TrovoBrand />
           <p className="text-primary-800 font-matahariExtended text-center text-3xl xl:text-4xl font-bold">
             Account
           </p>
@@ -186,7 +179,7 @@ function ShowEnterOTP({ onDone }) {
 
 function ShowAnswerSecurityQuestions() {
   const [showModal, setShowModal] = useState(false);
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col space-y-6 md:h-full items-center justify-center">
@@ -265,6 +258,7 @@ function ShowAnswerSecurityQuestions() {
             <Button
               label="Go to Dashboard"
               onclick={() => {
+                navigate('/dashboard/home');
                 setShowModal(false);
               }}
             />

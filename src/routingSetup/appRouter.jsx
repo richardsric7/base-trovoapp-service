@@ -13,6 +13,10 @@ import Backup from '../pages/createAccount/backup';
 import ImportWallet from '../pages/importWallet/importWallet';
 import RecoveryMain from '../pages/accountRecovery/main';
 import Login from '../pages/login';
+import Dashboard from '../pages/dashboard/main';
+import Home from '../pages/dashboard/home';
+import Wallet from '../pages/dashboard/wallet';
+import TokenizedAsset from '../pages/dashboard/tokenizedAsset';
 
 export default function AppRouter() {
   return (
@@ -37,6 +41,12 @@ export default function AppRouter() {
         <Route path="/import" element={<ImportWallet />} />
         <Route path="/recovery" element={<RecoveryMain />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />}>
+          <Route index element={<Dashboard />} />
+          <Route path="tokenized-asset" element={<TokenizedAsset />} />
+          <Route path="home" element={<Home />} />
+          <Route path="wallet" element={<Wallet />} />
+        </Route>
         {/* <Route path="*" element={<Page404 />} /> */}
       </Routes>
     </BrowserRouter>

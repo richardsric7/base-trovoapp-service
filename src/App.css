@@ -13,3 +13,9 @@
     -moz-appearance: textfield; 
     appearance: textfield; 
 } 
+
+@layer base {
+    html {
+        font-family: "MontserratRegular", system-ui, sans-serif;
+    }
+}
