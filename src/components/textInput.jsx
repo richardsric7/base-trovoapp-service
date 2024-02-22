@@ -27,7 +27,7 @@ export default function TextInput({
         {label}
       </label>
       <div
-        className="mt-2 ring-2 ring-gray-200 focus-within:ring-primary-600 rounded-md
+        className="mt-2 ring-1 md:ring-2 ring-gray-200 focus-within:ring-primary-600 rounded-md
           w-full h-12 py-1 px-2 focus-within:ring-2 flex items-center"
       >
         {leadingIcon && <img src={leadingIcon} alt="" />}
@@ -40,7 +40,7 @@ export default function TextInput({
           onChange={handleInputChange}
         />
         {trailingIcon && (
-          <div className="flex space-x-2 items-center font-montserratSemiBold px-3">
+          <div className="flex space-x-2 items-center font-montserratSemiBold pr-6">
             <img src={trailingIcon} alt="" />
             <span>{trailingText}</span>
           </div>

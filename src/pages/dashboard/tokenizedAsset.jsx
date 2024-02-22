@@ -6,13 +6,14 @@ import Button from '../../components/button';
 import Dropdown from '../../components/dropdown';
 import TextInput from '../../components/textInput';
 import Modal from '../../components/modal';
+import Header from '../../components/header';
 
 function GridItem({ title, value, value2 }) {
   return (
     <div className="flex h-full w-full py-5 px-2 xl:px-5 xl:space-y-5 rounded-xl mb-10 bg-primary-100">
       <div className="flex  flex-col space-y-2 w-full">
         <p className="text-primary-400">{title}</p>
-        <p className="font-montserratSemiBold text-xl">{value}</p>
+        <p className="font-montserratSemiBold text-lg md:text-xl">{value}</p>
         <p className="text-sm">{value2}</p>
       </div>
     </div>
@@ -24,7 +25,7 @@ function AssetDetailItem({ title, value, value2, value3 }) {
   return (
     <div className="rounded-2xl w-full bg-white px-4 py-3">
       <div className="flex  flex-col space-y-2 w-full">
-        <p className="font-montserratSemiBold text-primary-400 text-lg">
+        <p className="font-montserratSemiBold text-primary-400 md:text-lg">
           {title}
         </p>
         <p className="text-sm">{value}</p>
@@ -207,30 +208,21 @@ export default function TokenizedAsset() {
 
   return (
     <div className="flex text-primary-800 text-sm md:text-md flex-col space-y-5 p-3">
-      <div className="flex w-full p-3 justify-end items-center">
-        <div className="flex space-x-3 items-center">
-          <img
-            className="h-6"
-            src="/images/notification.png"
-            alt="notification bell"
-          />
-          <img className="h-10" src="/images/avatar.png" alt="avatar" />
-          <div className="flex flex-col hidden md:block space-y-2">
-            <p className="font-semibold">Obi Enechi</p>
-            <p>obienechi@gmail.com</p>
-          </div>
-        </div>
-      </div>
-      <div className="w-full px-5 pt-5 flex items-center justify-between">
-        <div className="flex space-x-5 items-center">
+      <Header
+        fullName="Obi Enechi"
+        avatar="/images/avatar.png"
+        email="obienechi@gmail.com"
+      />
+      <div className="w-full px-3 md:px-5 md:pt-5 flex flex-col md:flex-row space-y-5 md:space-y-0 items-center justify-between">
+        <div className="flex space-x-5 w-full md:w-auto items-center">
           <button type="button" onClick={() => navigate(-1)}>
             <img src="/images/arrowBack.png" alt="arrow back" />
           </button>
-          <p className="font-montserratSemiBold text-xl">
+          <p className="font-montserratSemiBold text-lg xl:text-xl">
             Atlantis Estate 1 Asset
           </p>
         </div>
-        <div className="flex w-2/6 space-x-5">
+        <div className="flex w-full md:w-2/6 space-x-5">
           <ButtonSecondary
             label="Buy"
             additionalClasses="bg-primary-600 text-white font-montserratSemiBold"
@@ -247,7 +239,7 @@ export default function TokenizedAsset() {
           />
         </div>
       </div>
-      <div className="w-full px-5 pt-5 flex space-x-3">
+      <div className="w-full px-3 md:px-5 md:pt-5 flex flex-col md:flex-row md:space-x-3 space-y-5 md:space-y-0">
         <div>
           <img src="/images/realEstate.png" alt="asset logo" />
         </div>
@@ -274,7 +266,7 @@ export default function TokenizedAsset() {
           </p>
         </div>
       </div>
-      <div className="px-5 pt-5 w-full grid grid-cols-3 gap-4">
+      <div className="px-3 md:px-5 pt-5 w-full grid grid-cols-2 md:grid-cols-3 gap-4">
         <GridItem title="Total Supply" value="10,000,000" value2="" />
         <GridItem title="Total Subscribed" value="800" value2="" />
         <GridItem title="Price per Asset" value="100 CNGN" value2="$2.20" />
@@ -282,10 +274,12 @@ export default function TokenizedAsset() {
         <GridItem title="Subscription Amount" value="0 CNGN" value2="" />
         <GridItem title="Actual Amount Bought" value="0 CNGN" value2="" />
       </div>
-      <div className="px-5">
+      <div className="px-3 md:px-5">
         <div className="flex w-full space-y-3 py-7 px-2 xl:px-5 xl:space-y-5 rounded-lg flex-col items-center bg-primary-100">
           <div className="flex items-center w-full justify-between">
-            <p className="font-montserratSemiBold text-xl">Other Details</p>
+            <p className="font-montserratSemiBold text-lg md:text-xl">
+              Other Details
+            </p>
           </div>
           <AssetDetailItem title="Asset Code" value="ATLANTIS 1" />
           <AssetDetailItem title="Sector" value="Real Estate" />

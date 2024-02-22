@@ -258,7 +258,7 @@ function ShowAnswerSecurityQuestions() {
             <Button
               label="Go to Dashboard"
               onclick={() => {
-                navigate('/home');
+                navigate('/dashboard/home');
                 setShowModal(false);
               }}
             />

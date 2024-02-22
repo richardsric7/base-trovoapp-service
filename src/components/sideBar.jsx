@@ -1,18 +1,27 @@
 import { React, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import PropTypes from 'prop-types';
 import TrovoBrand from './trovoBrand';
 import SideBarItem from './sidebarItem';
+import { toggle } from '../reducers/sidebarSlice';
 
-function SideBar() {
-  const location = useLocation();
-  const { pathname } = location;
+function SideBar({ mobileMode }) {
   const [activeItem, setActiveItem] = useState(1);
-  console.log('pathname: ', pathname);
-
+  const dispatch = useDispatch();
+  const classes = `flex flex-col pb-10 overflow-y-scroll h-full bg-primary-800 ${
+    mobileMode ? 'rounded-tr-3xl rounded-br-3xl' : 'rounded-3xl'
+  }`;
   return (
-    <div className="flex flex-col rounded-3xl pb-10 overflow-y-scroll h-full bg-primary-800">
-      <div className="m-3">
+    <div className={classes}>
+      <div className="m-3 flex justify-between items-center">
         <TrovoBrand textColor="xl:text-sm 2xl:text-lg text-white" />
+        <button
+          className="mt-5 mb-10 xl:hidden w-1/4"
+          type="button"
+          onClick={() => dispatch(toggle())}
+        >
+          <span className="text-white text-xl">X</span>
+        </button>
       </div>
       <div className="mx-3 2xl:mx-7 space-y-4 flex flex-col">
         <SideBarItem
@@ -192,12 +201,12 @@ function SideBar() {
   );
 }
 
-// SideBar.propTypes = {
-//   textColor: PropTypes.string,
-// };
+SideBar.propTypes = {
+  mobileMode: PropTypes.bool,
+};
 
-// SideBar.defaultProps = {
-//   textColor: 'text-primary-800',
-// };
+SideBar.defaultProps = {
+  mobileMode: false,
+};
 
 export default SideBar;

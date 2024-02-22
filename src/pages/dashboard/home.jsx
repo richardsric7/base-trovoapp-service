@@ -7,6 +7,7 @@ import AssetListItem from '../../components/assetListItem';
 import TransactionItem from '../../components/transactionItem';
 import Button from '../../components/button';
 import ButtonSecondary from '../../components/buttonSecondary';
+import Header from '../../components/header';
 import Modal from '../../components/modal';
 
 function ActivateWalletView() {
@@ -356,35 +357,12 @@ export default function Home() {
 
   return (
     <div className="flex text-primary-800 text-sm md:text-md flex-col space-y-5 p-3">
-      <div className="flex w-full p-3 justify-between items-center">
-        <p>
-          Good day,
-          <span className="font-semibold text-lg"> Osondu</span>
-        </p>
-        <div className="hidden md:block w-1/4">
-          <TextInput
-            leadingIcon="/images/search.png"
-            inputType="text"
-            label=""
-            placeholder="Search"
-            onInputChange={() => {
-              // console.log('input has changed', newValue);
-            }}
-          />
-        </div>
-        <div className="flex space-x-3 items-center">
-          <img
-            className="h-6"
-            src="/images/notification.png"
-            alt="notification bell"
-          />
-          <img className="h-10" src="/images/avatar.png" alt="avatar" />
-          <div className="flex flex-col hidden md:block space-y-2">
-            <p className="font-semibold">Obi Enechi</p>
-            <p>obienechi@gmail.com</p>
-          </div>
-        </div>
-      </div>
+      <Header
+        fullName="Obi Enechi"
+        avatar="/images/avatar.png"
+        email="obienechi@gmail.com"
+        isHomeView
+      />
       <div className="flex md:h-screen w-full items-center justify-center">
         <div className="h-full w-full md:p-3">
           <div
