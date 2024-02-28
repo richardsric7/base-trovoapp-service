@@ -4641,8 +4641,7 @@ showSwitchModePopup(context,
 
 late List<String> walletTypes = [
   'Standard',
-  'Minting/Asset Tokenization',
-  'Market Making/Trade',
+  'Issuing/Asset Tokenization',
   'Bulk Payment'
 ];
 
@@ -5240,10 +5239,11 @@ addSubWalletPopup(context) async {
                                     child: Text(
                                       "cancel".tr(),
                                       style: TextStyle(
-                                          fontSize: 14.0,
-                                          fontFamily: fontbody,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.teal),
+                                        fontSize: 14.0,
+                                        fontFamily: fontbody,
+                                        fontWeight: FontWeight.bold,
+                                        color: notifier.getbluecolor,
+                                      ),
                                     ),
                                     onPressed: () => Navigator.of(
                                       context,

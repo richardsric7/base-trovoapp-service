@@ -329,7 +329,11 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                                                       .price
                                                       .toString()
                                                 ])
-                                              : "lifetimeplan".tr(),
+                                              : "lifetimeplan".tr(args: [
+                                                  info.patronTiers[currentTab]
+                                                      .price
+                                                      .toString()
+                                                ]),
                                       style: TextStyle(
                                         fontSize: 19,
                                         fontWeight: FontWeight.w400,
@@ -409,7 +413,7 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
                 ),
                 SizedBox(height: 5),
                 if (info.patronTiers[currentTab].price !=
-                    appState.userInfo?.patronMembership?.price) ...[
+                    patronMembership?.price) ...[
                   ButtonOutlined(
                     getActionVerb(info),
                     notifier.getaddsubwalletgrey,
@@ -521,9 +525,11 @@ class _SubscriptionPlansState extends State<SubscriptionPlans> {
   }
 
   String getActionVerb(PatronInfo info) {
-    if (info.id > patronMembership!.id!) {
+    if (patronMembership != null &&
+        info.patronTiers[currentTab].price < patronMembership!.price!) {
       return '${"downgradeto".tr()}${info.patronPackage.capitalizeFirst!}';
-    } else if (info.id < patronMembership!.id!) {
+    } else if (patronMembership != null &&
+        info.patronTiers[currentTab].price > patronMembership!.price!) {
       return '${"upgradeto".tr()}${info.patronPackage.capitalizeFirst!}';
     } else
       return '${"subscribeto".tr()} ${info.patronPackage.capitalizeFirst!}';
