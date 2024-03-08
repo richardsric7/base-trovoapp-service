@@ -557,44 +557,45 @@ func main() {
 		}
 
 	}()
-if os.Getenv("ENABLE_CRYPTO_WITHDRAWAL_SERVICE")=="1"{
+	if os.Getenv("ENABLE_CRYPTO_WITHDRAWAL_SERVICE") == "1" {
 		go func() {
-		//LOAD WITHDRAWAL NETWORKS FROM 1L
-		cl := strings.Split(os.Getenv("ONELIQUIDITY_WITHDRAWAL_CURRENCY_LIST"), ",")
-		if len(cl) == 0 {
-			//exit routine
-			return
-		}
-		for {
+			//LOAD WITHDRAWAL NETWORKS FROM 1L
+			cl := strings.Split(os.Getenv("ONELIQUIDITY_WITHDRAWAL_CURRENCY_LIST"), ",")
+			if len(cl) == 0 {
+				//exit routine
+				return
+			}
+			for {
 
-			for _, c := range cl {
-				//fetching currency withdrawal network list
-				log.Println("<<<<<FETCHING/UPDATING WITHDRAWAL NETWORK PARAM FOR:", c)
-				cacheKey := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", c)
-				redisCache.DeleteFromCache(cacheKey)
-				userServices.GetWithdrawalNetworks(c, &globalConfig)
+				for _, c := range cl {
+					//fetching currency withdrawal network list
+					log.Println("<<<<<FETCHING/UPDATING WITHDRAWAL NETWORK PARAM FOR:", c)
+					cacheKey := fmt.Sprintf("%s/%s?currency=%s", os.Getenv("ONELIQUIDITY_BASE_URL"), "wallets/v1/withdrawal/networks", c)
+					redisCache.DeleteFromCache(cacheKey)
+					userServices.GetWithdrawalNetworks(c, &globalConfig)
+				}
+
+				time.Sleep(800 * time.Second)
 			}
 
-			time.Sleep(800 * time.Second)
-		}
+		}()
 
-	}()
-
-}
-
-	//ACTIVATES PENDING PATRON SUBSCRIPTION
-	if os.Getenv("ENABLE_PATRON_SERVICE")=="1"{
-			go func() {
-		err := UpdateUserPatronMemberships(database)
-		if err != nil {
-			log.Printf("[MAIN] error updating memberships: %v\n", err)
-			return
-		}
-		//clear the user cache
-
-	}()
 	}
 
+	//ACTIVATES PENDING PATRON SUBSCRIPTION
+	if os.Getenv("ENABLE_PATRON") == "1" {
+		go func() {
+			err := UpdateUserPatronMemberships(database)
+			if err != nil {
+				log.Printf("[MAIN] error updating memberships: %v\n", err)
+				//return
+			}
+			//clear the user cache
+			time.Sleep(40 * time.Second)
+	
+
+		}()
+	}
 
 	{
 		if os.Getenv("ENABLE_CRYPTO_DEPOSIT_MINTING") == "1" {

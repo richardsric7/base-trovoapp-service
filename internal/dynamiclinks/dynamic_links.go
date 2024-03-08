@@ -98,7 +98,7 @@ func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl str
 		ok, _, response := gc.RedisCache.CachedHttpResponse(cacheKey)
 
 		if ok {
-			// log.Printf("[GenerateDynamicLinkWithStaticService][%v], served from cache\n", cacheKey)
+			log.Printf("[GenerateDynamicLinkWithStaticService][%v], served from cache\n", cacheKey)
 			dynamicLink = response.(string)
 			return
 		}
@@ -169,7 +169,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 
 		if ok {
-			// log.Printf("[%v], served from cache\n", cacheKey)
+			log.Printf("[%v], served from cache\n", cacheKey)
 			dynamicLink = response.(string)
 			return
 		}
@@ -184,6 +184,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 		gc.DynamicLinkServiceURLChan <- baseUrl
 	}()
 	if len(link) == 0 {
+		log.Println("[GenerateDynamicLink] No link submitted for qrCode")
 		err = errors.New("no link submitted for QRCode")
 		return
 	}
@@ -214,7 +215,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("[GenerateDynamicLink]Reading Dynamics Links response Body failed with", err)
+		log.Println("[GenerateDynamicLink] Reading Dynamics Links response Body failed with", err, "\nbody:", body)
 		return
 	}
 	// log.Printf("[GenerateDynamicLink] Reading Dynamics Links response: %s\n", body)
@@ -222,7 +223,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 	var sr FBDLResponse
 	err = json.Unmarshal(body, &sr)
 	if err != nil {
-		log.Printf("[GenerateDynamicLink] Error: %v\n", err)
+		log.Printf("[GenerateDynamicLink] Error: %v\nbody: %s", err, body)
 		return "", err
 	}
 	// _, err = sling.New().Base(baseUrl).Post("v1/shortLinks?key="+apiKey).BodyJSON(shortLinkBody).Receive(p, e)
@@ -232,6 +233,8 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 	// }
 
 	if len(sr.DynamicLink) == 0 {
+		log.Println("[GenerateDynamicLink] No shortlinks Links generated", err, "\nbody:", body)
+
 		return "", errors.New("no short link generated")
 	}
 	// cache the link
