@@ -4076,7 +4076,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 
 			if issuingWallet.WalletType != 1 {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing/M wallets are allowed for tokenization operation."})
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-wallet-type-not-allowed", "message": "Only Issuing wallets are allowed for tokenization operation."})
 				return
 			}
 

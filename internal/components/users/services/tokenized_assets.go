@@ -177,7 +177,7 @@ func DeleteTokenizationDocument(user *userModels.User, documentID uint64, gc *sh
 func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *userModels.UserWallet, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	//check if existing
-	e := gc.DB.Where("asset_tokenization_ttatus = ?", 0).First(&ato).Error
+	e := gc.DB.Where("asset_tokenization_status = ?", 0).First(&ato).Error
 	if e == nil {
 		//update existing
 		ato.UpdateFromInput(input)
