@@ -557,8 +557,8 @@ func main() {
 		}
 
 	}()
-
-	go func() {
+if os.Getenv("ENABLE_CRYPTO_WITHDRAWAL_SERVICE")=="1"{
+		go func() {
 		//LOAD WITHDRAWAL NETWORKS FROM 1L
 		cl := strings.Split(os.Getenv("ONELIQUIDITY_WITHDRAWAL_CURRENCY_LIST"), ",")
 		if len(cl) == 0 {
@@ -580,8 +580,11 @@ func main() {
 
 	}()
 
+}
+
 	//ACTIVATES PENDING PATRON SUBSCRIPTION
-	go func() {
+	if os.Getenv("ENABLE_PATRON_SERVICE")=="1"{
+			go func() {
 		err := UpdateUserPatronMemberships(database)
 		if err != nil {
 			log.Printf("[MAIN] error updating memberships: %v\n", err)
@@ -590,6 +593,8 @@ func main() {
 		//clear the user cache
 
 	}()
+	}
+
 
 	{
 		if os.Getenv("ENABLE_CRYPTO_DEPOSIT_MINTING") == "1" {
