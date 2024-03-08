@@ -98,7 +98,7 @@ func GenerateDynamicLinkWithStaticService(link string, dynamicLinkServiceUrl str
 		ok, _, response := gc.RedisCache.CachedHttpResponse(cacheKey)
 
 		if ok {
-			log.Printf("[GenerateDynamicLinkWithStaticService][%v], served from cache\n", cacheKey)
+			// log.Printf("[GenerateDynamicLinkWithStaticService][%v], served from cache\n", cacheKey)
 			dynamicLink = response.(string)
 			return
 		}
@@ -169,7 +169,7 @@ func GenerateDynamicLink(link string, gc *sharedconfig.GlobalConfig) (dynamicLin
 		ok, response := gc.RedisCache.GetCachedResult(cacheKey)
 
 		if ok {
-			log.Printf("[%v], served from cache\n", cacheKey)
+			// log.Printf("[%v], served from cache\n", cacheKey)
 			dynamicLink = response.(string)
 			return
 		}
