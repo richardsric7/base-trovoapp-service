@@ -4198,6 +4198,12 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
+			log.Printf("FormFile: %+v\n\n", form.File)
+			for _, r := range form.File {
+				for _, r1 := range r {
+					log.Printf("r1: %+v\n", *r1)
+				}
+			}
 			files := form.File["documentFile"]
 			if len(files) == 0 {
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
