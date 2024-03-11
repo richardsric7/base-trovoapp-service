@@ -1,6 +1,7 @@
 package users
 
 import (
+	"mime/multipart"
 	"time"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -248,9 +249,10 @@ type AssetTokenizationDocument struct {
 type AssetTokenizationInputDocument struct {
 	ID               uint64
 	CreatedAt        time.Time
-	TokenizedAssetID string `json:"tokenizedAssetId"`
-	DocumentType     uint64 `json:"documentType"`
-	DocumentTitle    string `json:"documentTitle"`
+	TokenizedAssetID string          `form:"tokenizedAssetId"`
+	DocumentType     uint64          `form:"documentType"`
+	DocumentTitle    string          `form:"documentTitle"`
+	DocumentFile     *multipart.File `form:"documentFile"`
 	// DocumentFile     string `json:"-"`// this is not included in struct for input. already extracted by c.FormFile
 }
 

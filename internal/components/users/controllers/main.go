@@ -4225,16 +4225,17 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			var tokenizationInput userModels.AssetTokenizationInputDocument
 
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tokenizationInput)
+			c.ShouldBind(&tokenizationInput)
+			// data, _ := io.ReadAll(c.Request.Body)
+			// // log.Println(string(data))
+			// err = json.Unmarshal(data, &tokenizationInput)
 
-			var invalidJSON tErrors.ErrorInvalidJSON
+			// var invalidJSON tErrors.ErrorInvalidJSON
 
-			if err != nil {
-				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-				return
-			}
+			// if err != nil {
+			// 	c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+			// 	return
+			// }
 			if tokenizationInput.DocumentType == 0 {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified"})
 				return
