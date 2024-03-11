@@ -4186,9 +4186,15 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
 				return
 			}
-
+			s, e := c.GetPostForm("documentFile")
+			if !e {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+				return
+			}
+			log.Println("DocumentFile uploaded:", s)
 			f, err := c.FormFile("documentFile")
 			if err != nil {
+				log.Printf("Error Getting Uploaded file with param: %v\nDocumentFile:%v\nRequestBody: %s\n", err, c.DefaultPostForm("documentFile", "NOFILE"), c.Request.Body)
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
