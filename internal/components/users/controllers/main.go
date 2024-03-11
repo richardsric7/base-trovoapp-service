@@ -4194,7 +4194,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			log.Println("DocumentFile uploaded:", s)
 			f, err := c.FormFile("documentFile")
 			if err != nil {
-				log.Printf("Error Getting Uploaded file with param: %v\nDocumentFile:%v\nRequestBody: %s\n", err, c.DefaultPostForm("documentFile", "NOFILE"), c.Request.Body)
+				log.Printf("Error Getting Uploaded file with param: %v\nDocumentFile:%v\n", err, c.DefaultPostForm("documentFile", "NOFILE"))
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
