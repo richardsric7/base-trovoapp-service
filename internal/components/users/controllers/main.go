@@ -4192,13 +4192,18 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 			// log.Println("DocumentFile uploaded:", s)
-			f, err := c.FormFile("documentFile")
+			form, err := c.MultipartForm()
 			if err != nil {
-				log.Printf("Error Getting Uploaded file with param: %v\nDocumentFile:%v\n", err, c.DefaultPostForm("documentFile", "NOFILE"))
+				log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
-
+			files := form.File["documentFile"]
+			if len(files) == 0 {
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+				return
+			}
+			f := files[0]
 			if f.Size > 900000 {
 				//greater than 700kb
 				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size"})
