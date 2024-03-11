@@ -80,6 +80,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assetinformation".tr(),
               "providebasicinfo".tr(),
               "1",
+              "continuee".tr(),
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
@@ -94,6 +95,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assetverificationdocs".tr(),
               "provideverificationdocs".tr(),
               "2",
+              "start".tr(),
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
@@ -108,6 +110,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assettokeninfo".tr(),
               "providetokeninfo".tr(),
               "3",
+              "start".tr(),
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
@@ -141,7 +144,8 @@ class _TokenizeAssetState extends State<TokenizeAsset>
     );
   }
 
-  Widget detailItem(String title, String description, String number,
+  Widget detailItem(
+      String title, String description, String number, String status,
       {required void Function() onTap}) {
     return Stack(
       alignment: AlignmentDirectional.centerStart,
@@ -190,7 +194,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                                       MaterialTapTargetSize.shrinkWrap,
                                   alignment: Alignment.centerLeft),
                               child: Text(
-                                "start".tr(),
+                                status,
                                 style: TextStyle(
                                   fontStyle: FontStyle.italic,
                                   fontSize: 15,

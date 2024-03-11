@@ -7,6 +7,7 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -24,6 +25,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   late DataProvider appState;
   final GlobalKey<ScaffoldState> key = GlobalKey(); // Create a key
   late TabController tabController;
+  bool hasInitiatorAccess = false;
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -182,10 +184,13 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                         children: [
                           ElevatedButton(
                             onPressed: () async {
-                              appState.currentAction = PageAction(
-                                state: PageState.addPage,
-                                page: SetupAndComplianceViewPageConfig,
-                              );
+                              // appState.currentAction = PageAction(
+                              //   state: PageState.addPage,
+                              //   page: WalletPreparationViewPageConfig,
+                              // );
+                              setState(() {
+                                hasInitiatorAccess = !hasInitiatorAccess;
+                              });
                             },
                             style: ButtonStyle(
                               overlayColor: MaterialStateProperty.all<Color>(
@@ -242,227 +247,158 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
               ),
             ),
             SizedBox(height: height / 70),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 20),
-            //   child: Row(
-            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //     children: [
-            //       Text(
-            //         'Tokenized Assets',
-            //         style: TextStyle(
-            //           fontSize: 20,
-            //           fontFamily: fontsemibold,
-            //           color: notifier.getbluecolor,
-            //         ),
-            //       ),
-            //       Container(
-            //         width: width / 7,
-            //         child: iconDropdown(
-            //           (value) {},
-            //           getItems,
-            //           null,
-            //           'Insurance',
-            //           context,
-            //           null,
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
-            // Row(
-            //   children: [
-            //     Padding(
-            //       padding: const EdgeInsets.symmetric(horizontal: 20),
-            //       child: Text(
-            //         'Sort by:',
-            //         style: TextStyle(
-            //           fontSize: 13,
-            //           fontFamily: fontbody,
-            //           color: notifier.getbluecolor,
-            //         ),
-            //       ),
-            //     ),
-            //     Text(
-            //       'All',
-            //       style: TextStyle(
-            //         fontSize: 13,
-            //         fontFamily: fontsemibold,
-            //         color: notifier.getbluecolor,
-            //       ),
-            //     ),
-            //   ],
-            // ),
-            // SizedBox(
-            //   height: height / 50,
-            // ),
-            // Container(
-            //   height: height / 1.78,
-            //   child: SingleChildScrollView(
-            //     child: Column(
-            //       children: [
-            //         for (var i = 0; i < listOfAssets.length; i++) ...[
-            //           GestureDetector(
-            //             onTap: () {
-            //               appState.currentAction = PageAction(
-            //                 state: PageState.addPage,
-            //                 page: AssetDashboardViewPageConfig,
-            //               );
-            //             },
-            //             child: assetTile(
-            //               listOfAssets[i]['imageUrl'] ?? '',
-            //               listOfAssets[i]['assetName'] ?? '',
-            //               'Property',
-            //               listOfAssets[i]['status'] ?? '',
-            //             ),
-            //           ),
-            //         ],
-            //         SizedBox(height: height / 20),
-            //       ],
-            //     ),
-            //   ),
-            // ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Card(
-                shadowColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-                color: notifier.isDark
-                    ? notifier.getaddsubwalletgrey
-                    : notifier.getbluecolor50,
-                child: Center(
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                      Image.asset(
-                        'assets/images/tokenize.png',
-                        // height: 50,
-                        width: 250,
-                      ),
-                      SizedBox(
-                        height: height / 60,
-                      ),
-                      Text(
-                        "welcometoassettokenization4".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          // fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      Text(
-                        "welcometoassettokenization5".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.4,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      Text(
-                        "welcometoassettokenization6".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.4,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      Text(
-                        "welcometoassettokenization7".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.4,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () async {
-                              appState.currentAction = PageAction(
-                                state: PageState.addPage,
-                                page: SetupAndComplianceViewPageConfig,
-                              );
-                            },
-                            style: ButtonStyle(
-                              overlayColor: MaterialStateProperty.all<Color>(
-                                  notifier.getsplashgrey),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  notifier.getbluewhitecolor),
-                              side: MaterialStateProperty.all(
-                                BorderSide(
-                                    color: notifier.getbluewhitecolor,
-                                    width: 1,
-                                    style: BorderStyle.solid),
-                              ),
-                              shape: MaterialStateProperty.all<
-                                  RoundedRectangleBorder>(
-                                const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(10),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            child: Container(
-                              width: width / 1.5,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.add_circle_rounded,
-                                    size: 20,
-                                    color: notifier.getwihitecolor,
-                                  ),
-                                  SizedBox(
-                                    width: 4,
-                                  ),
-                                  Text(
-                                    "proceedtokenizeasset".tr(),
-                                    style: TextStyle(
-                                        fontFamily: fontsemibold,
-                                        fontSize: 12,
-                                        color: notifier.getwihitecolor),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: height / 50,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            ReadyToTokenizeView()
           ],
         ),
       ),
+    );
+  }
+
+  Widget ReadyToTokenizeView() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Card(
+            shadowColor: Colors.black,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15.0),
+            ),
+            color: notifier.isDark
+                ? notifier.getaddsubwalletgrey
+                : notifier.getbluecolor50,
+            child: Center(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                  Image.asset(
+                    'assets/images/tokenize.png',
+                    // height: 50,
+                    width: 250,
+                  ),
+                  SizedBox(
+                    height: height / 60,
+                  ),
+                  Text(
+                    "welcometoassettokenization4".tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      // fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                  Text(
+                    "welcometoassettokenization5".tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                  Text(
+                    "welcometoassettokenization6".tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                  Text(
+                    "welcometoassettokenization7".tr(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      height: 1.4,
+                      fontFamily: fontbody,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          hasInitiatorAccess
+                              ? showCreateTokenizationWalletPopup(context)
+                              : appState.currentAction = PageAction(
+                                  state: PageState.addPage,
+                                  page: WalletPreparationViewPageConfig,
+                                );
+                        },
+                        style: ButtonStyle(
+                          overlayColor: MaterialStateProperty.all<Color>(
+                              notifier.getsplashgrey),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              notifier.getbluewhitecolor),
+                          side: MaterialStateProperty.all(
+                            BorderSide(
+                                color: notifier.getbluewhitecolor,
+                                width: 1,
+                                style: BorderStyle.solid),
+                          ),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        child: Container(
+                          width: width / 1.5,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.add_circle_rounded,
+                                size: 20,
+                                color: notifier.getwihitecolor,
+                              ),
+                              SizedBox(
+                                width: 4,
+                              ),
+                              Text(
+                                "proceedtokenizeasset".tr(),
+                                style: TextStyle(
+                                    fontFamily: fontsemibold,
+                                    fontSize: 12,
+                                    color: notifier.getwihitecolor),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: height / 50,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

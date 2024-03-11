@@ -96,7 +96,6 @@ class _AssetInformation extends State<AssetInformation>
                   "selectwhatappliestoasset".tr(),
                   textAlign: TextAlign.left,
                   style: TextStyle(
-                    decoration: TextDecoration.underline,
                     fontSize: 13,
                     fontFamily: fontsemibold,
                     color: notifier.getbluewhitecolor,
@@ -620,14 +619,17 @@ class _AssetInformation extends State<AssetInformation>
             ),
             Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    "provideinfoaboutcustodian".tr(),
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
+                Container(
+                  width: width,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "provideinfoaboutcustodian".tr(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ),
@@ -740,14 +742,17 @@ class _AssetInformation extends State<AssetInformation>
             ),
             Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    "provideassetmanagerinfo".tr(),
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
+                Container(
+                  width: width,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "provideassetmanagerinfo".tr(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ),
@@ -860,14 +865,17 @@ class _AssetInformation extends State<AssetInformation>
             ),
             Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    "provideassetvalueinfo".tr(),
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
+                Container(
+                  width: width,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "provideassetvalueinfo".tr(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ),
@@ -1037,14 +1045,17 @@ class _AssetInformation extends State<AssetInformation>
             ),
             Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    "selectprotectionoption".tr(),
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
+                Container(
+                  width: width,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      "selectprotectionoption".tr(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ),

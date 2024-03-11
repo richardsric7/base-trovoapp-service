@@ -116,7 +116,7 @@ class _WalletPreparationState extends State<WalletPreparation>
               onTap: () {
                 appState.currentAction = PageAction(
                     state: PageState.addPage,
-                    page: TokenizeAssetViewPageConfig);
+                    page: SetupAndComplianceViewPageConfig);
               },
             ),
             SizedBox(
@@ -155,7 +155,7 @@ class _WalletPreparationState extends State<WalletPreparation>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "selectmintingwallet".tr(),
+                "selectissuingwallet".tr(),
                 style: TextStyle(
                   fontSize: 13,
                   fontFamily: fontsemibold,

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:country_picker/country_picker.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +15,8 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/state.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -40,6 +44,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   String selectedAssetSubSectorId = 'Land';
   String selectedAssetTypeId = '';
   String selectedAssetCustodian = '';
+  String secApprovalId = '';
+  final _formKey = GlobalKey<FormState>();
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -230,431 +236,19 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     List<DropdownMenuItem<int>> assetCustodians = getAssetCustodians(data);
 
     return SingleChildScrollView(
-      child: Column(
-        children: [
-          SizedBox(
-            height: height / 50,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Row(
-              children: [
-                Text(
-                  "assetclassification".tr(),
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Container(
-              child: Text(
-                "pleaseselectclassification".tr(),
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontFamily: fontbody,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: height / 50,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Container(
-              width: width,
-              child: Text(
-                textAlign: TextAlign.left,
-                "assetsector".tr(),
-                style: TextStyle(
-                  fontSize: 13,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: height / 70,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: dropdown(
-              (value) {
-                setState(() {
-                  selectedAssetSectorId = value.toString();
-                  assetSectors =
-                      getAssetSubsectorList(data, selectedAssetSectorId);
-                });
-              },
-              assetSectors,
-              null,
-              assetSectors.length > 0 ? assetSectors.first.value : '',
-              context,
-              null,
-            ),
-          ),
-          SizedBox(
-            height: height / 50,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "assetsubsector".tr(),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: height / 70,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: dropdown(
-              (value) {
-                setState(() {
-                  selectedAssetSubSectorId = value.toString();
-                  assetSectors = getAssetTypes(data, selectedAssetSubSectorId);
-                });
-              },
-              assetSubsectors,
-              null,
-              assetSubsectors.length > 0 ? assetSubsectors.first.value : '',
-              context,
-              null,
-            ),
-          ),
-          SizedBox(
-            height: height / 50,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "assettype".tr(),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: height / 70,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: dropdown(
-              (value) {
-                setState(() {
-                  selectedAssetTypeId = value.toString();
-                });
-              },
-              assetTypes,
-              null,
-              'Select asset type',
-              context,
-              null,
-            ),
-          ),
-          SizedBox(
-            height: height / 15,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Row(
-              children: [
-                Text(
-                  "offeringtype".tr(),
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Container(
-              width: width,
-              child: Text(
-                "selectofferingtype".tr(),
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontFamily: fontbody,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: height / 70,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Row(
-              children: [
-                CheckItem(
-                  "public".tr(),
-                  () {
-                    setState(() {
-                      offeringType = 0;
-                    });
-                  },
-                  borderColor: notifier.getbluewhitecolor,
-                  foreColor: notifier.getbluewhitecolor,
-                  backColor: offeringType == 0
-                      ? notifier.getbluecolor60
-                      : notifier.getwihitecolor,
-                  icon: Icon(
-                    Icons.public_rounded,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-                CheckItem(
-                  "private".tr(),
-                  () {
-                    setState(() {
-                      offeringType = 1;
-                    });
-                  },
-                  borderColor: notifier.getbluewhitecolor,
-                  foreColor: notifier.getbluewhitecolor,
-                  backColor: offeringType == 1
-                      ? notifier.getbluecolor60
-                      : notifier.getwihitecolor,
-                  icon: Icon(
-                    Icons.people_outline_outlined,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                )
-              ],
-            ),
-          ),
-          SizedBox(
-            height: height / 15,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Row(
-              children: [
-                Text(
-                  "assetlocation".tr(),
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Container(
-              width: width,
-              child: Text(
-                "pleaseselectcountry".tr(),
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontFamily: fontbody,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: height / 50,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "country".tr(),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontFamily: fontsemibold,
-                    color: notifier.getbluewhitecolor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: height / 70,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Container(
-              child: Card(
-                shadowColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                color: notifier.isDark
-                    ? notifier.getbluecolor90
-                    : notifier.getaddsubwalletgrey,
-                child: TextButton(
-                  onPressed: () {
-                    showCountryPicker(
-                      context: context,
-                      onSelect: (Country country) {
-                        setState(() {
-                          selectedCountry = country.name;
-                        });
-                      },
-                    );
-                  },
-                  style: ButtonStyle(
-                      elevation: MaterialStateProperty.all<double>(0)),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        selectedCountry,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                      Icon(Icons.keyboard_arrow_down_rounded),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SizedBox(
-            height: height / 30,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10.0),
-            child: TextButton(
-              onPressed: () async {
-                appState.returnView = PageAction(
-                    state: PageState.addAll,
-                    pages: [
-                      BottomHomePageConfig,
-                      WalletPreparationViewPageConfig
-                    ]);
-                appState.currentAction =
-                    PageAction(state: PageState.addAll, pages: [
-                  BottomHomePageConfig,
-                ]);
-                // changeTabPage(appState, ButtomTabPage.Wallets.index);
-                setState(() {});
-              },
-              child: Text(
-                "doyouhaveallrequireddocs".tr(),
-                style: TextStyle(
-                  decoration: TextDecoration.underline,
-                  fontSize: 13,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-            ),
-          ),
-          Row(
-            children: [
-              Row(
-                children: [
-                  Transform.scale(
-                    scale: 1,
-                    child: Radio<bool>(
-                      value: false,
-                      activeColor: notifier.getbluewhitecolor,
-                      fillColor: MaterialStateColor.resolveWith(
-                          (states) => notifier.getbluewhitecolor),
-                      groupValue: hasAllRequiredDocuments,
-                      onChanged: (value) => {
-                        setState(
-                          () {
-                            hasAllRequiredDocuments = value!;
-                          },
-                        )
-                      },
-                    ),
-                  ),
-                  Text(
-                    "no".tr(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Transform.scale(
-                    scale: 1,
-                    child: Radio<bool>(
-                      value: true,
-                      groupValue: hasAllRequiredDocuments,
-                      activeColor: notifier.getbluewhitecolor,
-                      fillColor: MaterialStateColor.resolveWith(
-                          (states) => notifier.getbluewhitecolor),
-                      onChanged: (value) => {
-                        setState(
-                          () {
-                            hasAllRequiredDocuments = value!;
-                          },
-                        )
-                      },
-                    ),
-                  ),
-                  Text(
-                    "yes".tr(),
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          if (hasAllRequiredDocuments) ...[
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: [
             SizedBox(
-              height: height / 30,
+              height: height / 50,
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Row(
                 children: [
                   Text(
-                    "custodianagreement".tr(),
+                    "assetclassification".tr(),
                     style: TextStyle(
                       fontSize: 18,
                       fontFamily: fontsemibold,
@@ -667,9 +261,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Container(
-                width: width,
                 child: Text(
-                  "entercustodianinformation".tr(),
+                  "pleaseselectclassification".tr(),
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     fontSize: 15,
@@ -687,8 +280,317 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               child: Container(
                 width: width,
                 child: Text(
-                  "doyouhavecustodianagreement".tr(),
+                  textAlign: TextAlign.left,
+                  "assetsector".tr(),
                   style: TextStyle(
+                    fontSize: 13,
+                    fontFamily: fontsemibold,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: dropdown(
+                (value) {
+                  setState(() {
+                    selectedAssetSectorId = value.toString();
+                    assetSectors =
+                        getAssetSubsectorList(data, selectedAssetSectorId);
+                  });
+                },
+                assetSectors,
+                null,
+                assetSectors.length > 0 ? assetSectors.first.value : '',
+                context,
+                null,
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "assetsubsector".tr(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: dropdown(
+                (value) {
+                  setState(() {
+                    selectedAssetSubSectorId = value.toString();
+                    assetSectors =
+                        getAssetTypes(data, selectedAssetSubSectorId);
+                  });
+                },
+                assetSubsectors,
+                null,
+                assetSubsectors.length > 0 ? assetSubsectors.first.value : '',
+                context,
+                null,
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "assettype".tr(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: dropdown(
+                (value) {
+                  setState(() {
+                    selectedAssetTypeId = value.toString();
+                  });
+                },
+                assetTypes,
+                null,
+                'Select asset type',
+                context,
+                null,
+                validator: (value) {
+                  if (selectedAssetTypeId.isEmpty) {
+                    return "pleaseselectassettype".tr();
+                  }
+                  return null;
+                },
+              ),
+            ),
+            SizedBox(
+              height: height / 15,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                children: [
+                  Text(
+                    "offeringtype".tr(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Container(
+                width: width,
+                child: Text(
+                  "selectofferingtype".tr(),
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontFamily: fontbody,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                children: [
+                  CheckItem(
+                    "public".tr(),
+                    () {
+                      setState(() {
+                        offeringType = 0;
+                      });
+                    },
+                    borderColor: notifier.getbluewhitecolor,
+                    foreColor: notifier.getbluewhitecolor,
+                    backColor: offeringType == 0
+                        ? notifier.getbluecolor60
+                        : notifier.getwihitecolor,
+                    icon: Icon(
+                      Icons.public_rounded,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                  CheckItem(
+                    "private".tr(),
+                    () {
+                      setState(() {
+                        offeringType = 1;
+                      });
+                    },
+                    borderColor: notifier.getbluewhitecolor,
+                    foreColor: notifier.getbluewhitecolor,
+                    backColor: offeringType == 1
+                        ? notifier.getbluecolor60
+                        : notifier.getwihitecolor,
+                    icon: Icon(
+                      Icons.people_outline_outlined,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  )
+                ],
+              ),
+            ),
+            SizedBox(
+              height: height / 15,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                children: [
+                  Text(
+                    "assetlocation".tr(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Container(
+                width: width,
+                child: Text(
+                  "pleaseselectcountry".tr(),
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontFamily: fontbody,
+                    color: notifier.getbluewhitecolor,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "country".tr(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontFamily: fontsemibold,
+                      color: notifier.getbluewhitecolor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: height / 70,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Container(
+                child: Card(
+                  shadowColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  color: notifier.isDark
+                      ? notifier.getbluecolor90
+                      : notifier.getaddsubwalletgrey,
+                  child: TextButton(
+                    onPressed: () {
+                      showCountryPicker(
+                        context: context,
+                        onSelect: (Country country) {
+                          setState(() {
+                            selectedCountry = country.name;
+                          });
+                        },
+                      );
+                    },
+                    style: ButtonStyle(
+                        elevation: MaterialStateProperty.all<double>(0)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          selectedCountry,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        Icon(Icons.keyboard_arrow_down_rounded),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: height / 30,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: TextButton(
+                onPressed: () async {
+                  appState.returnView = PageAction(
+                      state: PageState.addAll,
+                      pages: [
+                        BottomHomePageConfig,
+                        WalletPreparationViewPageConfig
+                      ]);
+                  appState.currentAction =
+                      PageAction(state: PageState.addAll, pages: [
+                    BottomHomePageConfig,
+                  ]);
+                  // changeTabPage(appState, ButtomTabPage.Wallets.index);
+                  setState(() {});
+                },
+                child: Text(
+                  "doyouhaveallrequireddocs".tr(),
+                  style: TextStyle(
+                    decoration: TextDecoration.underline,
                     fontSize: 13,
                     fontFamily: fontsemibold,
                     color: notifier.getbluewhitecolor,
@@ -704,14 +606,14 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       scale: 1,
                       child: Radio<bool>(
                         value: true,
-                        groupValue: hasCustodianAgreement,
+                        groupValue: hasAllRequiredDocuments,
                         activeColor: notifier.getbluewhitecolor,
                         fillColor: MaterialStateColor.resolveWith(
                             (states) => notifier.getbluewhitecolor),
                         onChanged: (value) => {
                           setState(
                             () {
-                              hasCustodianAgreement = value!;
+                              hasAllRequiredDocuments = value!;
                             },
                           )
                         },
@@ -736,11 +638,11 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                         activeColor: notifier.getbluewhitecolor,
                         fillColor: MaterialStateColor.resolveWith(
                             (states) => notifier.getbluewhitecolor),
-                        groupValue: hasCustodianAgreement,
+                        groupValue: hasAllRequiredDocuments,
                         onChanged: (value) => {
                           setState(
                             () {
-                              hasCustodianAgreement = value!;
+                              hasAllRequiredDocuments = value!;
                             },
                           )
                         },
@@ -758,19 +660,18 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 ),
               ],
             ),
-            SizedBox(
-              height: height / 50,
-            ),
-            if (hasCustodianAgreement) ...[
+            if (hasAllRequiredDocuments) ...[
+              SizedBox(
+                height: height / 30,
+              ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "selectapprovedcustodian".tr(),
+                      "custodianagreement".tr(),
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: 18,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
                       ),
@@ -778,84 +679,12 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   ],
                 ),
               ),
-              SizedBox(
-                height: height / 70,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: dropdown(
-                  (value) {
-                    setState(() {
-                      selectedAssetCustodian = value.toString();
-                      assetCustodians = getAssetCustodians(data);
-                    });
-                  },
-                  assetCustodians,
-                  null,
-                  'Select custodian',
-                  context,
-                  null,
-                ),
-              ),
-            ] else ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Container(
-                  width: width,
-                  child: Text(
-                    "reachouttoanapprovedcustodian".tr(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontsemibold,
-                      color: notifier.getbluewhitecolor,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: height / 70,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: dropdown(
-                  (value) {},
-                  getMintingWallets,
-                  null,
-                  appState.userInfo!.getMintingWallets.length > 0
-                      ? appState.userInfo!.getMintingWallets.first.alias
-                      : '',
-                  context,
-                  null,
-                ),
-              ),
-            ],
-            if (offeringType == 0) ...[
-              SizedBox(
-                height: height / 15,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                child: Row(
-                  children: [
-                    Container(
-                      child: Text(
-                        "secapproval".tr(),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15.0),
                 child: Container(
                   width: width,
                   child: Text(
-                    "pleasefillapprovalinfo".tr(),
+                    "entercustodianinformation".tr(),
                     textAlign: TextAlign.left,
                     style: TextStyle(
                       fontSize: 15,
@@ -873,7 +702,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 child: Container(
                   width: width,
                   child: Text(
-                    "isyourassetapproved".tr(),
+                    "doyouhavecustodianagreement".tr(),
                     style: TextStyle(
                       fontSize: 13,
                       fontFamily: fontsemibold,
@@ -947,14 +776,14 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               SizedBox(
                 height: height / 50,
               ),
-              if (hasSecApproval) ...[
+              if (hasCustodianAgreement) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "secapprovalid".tr(),
+                        "selectapprovedcustodian".tr(),
                         style: TextStyle(
                           fontSize: 13,
                           fontFamily: fontsemibold,
@@ -967,50 +796,37 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 SizedBox(
                   height: height / 70,
                 ),
-                Row(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                      child: CustomTextFormField.textField(
-                        'enterapprovalidnumber'.tr(),
-                        notifier.getbluecolor,
-                        null,
-                        notifier.getgrey,
-                        null,
-                        notifier.getblck,
-                        notifier.getgrey,
-                        55,
-                        width / 1.1,
-                        // controller: referrerController,
-                        // validator: validateReferrer,
-                        onSaved: (value) {},
-                      ),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: dropdown(
+                    (value) {
+                      setState(() {
+                        selectedAssetCustodian = value.toString();
+                        assetCustodians = getAssetCustodians(data);
+                      });
+                    },
+                    assetCustodians,
+                    null,
+                    'Select custodian',
+                    context,
+                    null,
+                    validator: (value) {
+                      if (hasCustodianAgreement &&
+                          selectedAssetCustodian.isEmpty) {
+                        return "pleaseselectassetcustodian".tr();
+                      }
+                      return null;
+                    },
+                  ),
                 ),
               ] else ...[
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: TextButton(
-                    onPressed: () async {
-                      appState.returnView = PageAction(
-                          state: PageState.addAll,
-                          pages: [
-                            BottomHomePageConfig,
-                            WalletPreparationViewPageConfig
-                          ]);
-                      appState.currentAction =
-                          PageAction(state: PageState.addAll, pages: [
-                        BottomHomePageConfig,
-                      ]);
-                      // changeTabPage(appState, ButtomTabPage.Wallets.index);
-                      setState(() {});
-                    },
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Container(
+                    width: width,
                     child: Text(
-                      "pleaseapplytosec".tr(),
-                      textAlign: TextAlign.left,
+                      "reachouttoanapprovedcustodian".tr(),
                       style: TextStyle(
-                        decoration: TextDecoration.underline,
                         fontSize: 13,
                         fontFamily: fontsemibold,
                         color: notifier.getbluewhitecolor,
@@ -1018,28 +834,284 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     ),
                   ),
                 ),
+                SizedBox(
+                  height: height / 70,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: dropdown(
+                    (value) {
+                      setState(() {
+                        selectedAssetCustodian = value.toString();
+                        assetCustodians = getAssetCustodians(data);
+                      });
+                    },
+                    assetCustodians,
+                    null,
+                    'Select custodian',
+                    context,
+                    null,
+                  ),
+                ),
+              ],
+              if (offeringType == 0) ...[
+                SizedBox(
+                  height: height / 15,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        child: Text(
+                          "secapproval".tr(),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                  child: Container(
+                    width: width,
+                    child: Text(
+                      "pleasefillapprovalinfo".tr(),
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Container(
+                    width: width,
+                    child: Text(
+                      "isyourassetapproved".tr(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Row(
+                      children: [
+                        Transform.scale(
+                          scale: 1,
+                          child: Radio<bool>(
+                            value: true,
+                            groupValue: hasSecApproval,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: MaterialStateColor.resolveWith(
+                                (states) => notifier.getbluewhitecolor),
+                            onChanged: (value) => {
+                              print('changed/// $value'),
+                              setState(
+                                () {
+                                  hasSecApproval = value!;
+                                },
+                              )
+                            },
+                          ),
+                        ),
+                        Text(
+                          "yes".tr(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Transform.scale(
+                          scale: 1,
+                          child: Radio<bool>(
+                            value: false,
+                            activeColor: notifier.getbluewhitecolor,
+                            fillColor: MaterialStateColor.resolveWith(
+                                (states) => notifier.getbluewhitecolor),
+                            groupValue: hasSecApproval,
+                            onChanged: (value) => {
+                              print('changed/// $value'),
+                              setState(
+                                () {
+                                  hasSecApproval = value!;
+                                },
+                              )
+                            },
+                          ),
+                        ),
+                        Text(
+                          "no".tr(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
+                if (hasSecApproval) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "secapprovalid".tr(),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: height / 70,
+                  ),
+                  CustomTextFormField.textField(
+                    'enterapprovalidnumber'.tr(),
+                    notifier.getbluecolor,
+                    null,
+                    notifier.getgrey,
+                    notifier.getprefixicon,
+                    notifier.getblck,
+                    notifier.getgrey,
+                    70,
+                    350,
+                    validator: (value) {
+                      if (hasSecApproval && secApprovalId.isEmpty) {
+                        return "pleaseentersecapprovalid".tr();
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      secApprovalId = value.trim().replaceAll(' ', '');
+                    },
+                    keyboardtype: TextInputType.emailAddress,
+                  ),
+                ] else ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                    child: TextButton(
+                      onPressed: () async {
+                        appState.returnView = PageAction(
+                            state: PageState.addAll,
+                            pages: [
+                              BottomHomePageConfig,
+                              WalletPreparationViewPageConfig
+                            ]);
+                        appState.currentAction =
+                            PageAction(state: PageState.addAll, pages: [
+                          BottomHomePageConfig,
+                        ]);
+                        // changeTabPage(appState, ButtomTabPage.Wallets.index);
+                        setState(() {});
+                      },
+                      child: Text(
+                        "pleaseapplytosec".tr(),
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          decoration: TextDecoration.underline,
+                          fontSize: 13,
+                          fontFamily: fontsemibold,
+                          color: notifier.getbluewhitecolor,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ],
+            SizedBox(
+              height: height / 20,
+            ),
+            Button(
+              "saveandcontinuee".tr(),
+              notifier.getbluecolor,
+              wihitecolor,
+              onTap: () {
+                submit();
+              },
+            ),
+            SizedBox(
+              height: height / 10,
+            ),
           ],
-          SizedBox(
-            height: height / 20,
-          ),
-          Button(
-            "continuee".tr(),
-            notifier.getbluecolor,
-            wihitecolor,
-            onTap: () {
-              appState.currentAction = PageAction(
-                  state: PageState.addPage,
-                  page: WalletPreparationViewPageConfig);
-            },
-          ),
-          SizedBox(
-            height: height / 10,
-          ),
-        ],
+        ),
       ),
     );
+  }
+
+  submit() async {
+    final form = _formKey.currentState;
+    if (!form!.validate()) return;
+
+    try {
+      showLoader(context);
+      // make initial request to the server using the
+      // following credential
+      var mintingWallet = appState.userInfo!.getMintingWallets[0];
+      var marketMakingWallet = appState.userInfo!.getMarketMakingWallets[0];
+      Map map = {
+        "assetSector": selectedAssetSectorId,
+        "assetSubSector": selectedAssetSubSectorId,
+        "assetType": selectedAssetTypeId,
+        "offeringType": offeringType == 1 ? 'private' : 'public',
+        "approvedAssetCustodianId": int.parse(selectedAssetCustodian),
+        "marketMakingWallet": marketMakingWallet.publicKey,
+      };
+      String requestBody = jsonEncode(map);
+      print('requestBody =======> $requestBody');
+      Map responseData = await makePostRequest(
+        uri: '/v1/tokenization',
+        body: requestBody,
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: mintingWallet.publicKey!,
+      );
+
+      hideLoader(context);
+
+      print('responseData $responseData');
+
+      if (responseData['statusCode'] == 200) {
+        appState.viewData = responseData['data'];
+        appState.currentAction = PageAction(
+            state: PageState.addPage, page: TokenizeAssetViewPageConfig);
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+      }
+    } catch (e) {
+      hideLoader(context);
+      popup(context, title: "error".tr(), message: e.toString());
+    }
   }
 
   Future<Map> fetchTokenizationData() async {

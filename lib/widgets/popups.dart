@@ -1,12 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -3717,11 +3721,16 @@ void viewOnlySharedWalletOptions(
 }
 
 showDocumentUploadPopup(context, String title,
-    {required void Function() onDone,
+    {required void Function(
+            String selectedOption, String uploadedFileName, PlatformFile file)
+        onDone,
     required List<DropdownMenuItem<String>> dropdownItems}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
+  String selectedOption = '';
+  String uploadedFileName = '';
+  PlatformFile? file = null;
   return showDialog(
       context: context,
       barrierDismissible: true,
@@ -3761,7 +3770,9 @@ showDocumentUploadPopup(context, String title,
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: dropdown(
-                        (value) {},
+                        (value) {
+                          selectedOption = value.toString();
+                        },
                         dropdownItems,
                         null,
                         "purchasereceipt".tr(),
@@ -3788,7 +3799,10 @@ showDocumentUploadPopup(context, String title,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               TextButton(
-                                onPressed: () => {},
+                                onPressed: () async {
+                                  file = await getFile(
+                                      context, ImageSource.gallery);
+                                },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -3817,83 +3831,11 @@ showDocumentUploadPopup(context, String title,
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(3.0),
-                      child: Container(
-                        width: width / 2.5,
-                        decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10.0)),
-                          color: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
-                        ),
-                        child: Container(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              TextButton(
-                                onPressed: () => {},
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.camera,
-                                      size: 20,
-                                      // color: notifier.getbluewhitecolor,
-                                    ),
-                                    SizedBox(
-                                      width: width / 50,
-                                    ),
-                                    Text(
-                                      "takephoto".tr(),
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontFamily: fontbody,
-                                        color: notifier.getbluewhitecolor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: CustomTextFormField.textField(
-                            "urltofile".tr(),
-                            notifier.getbluecolor,
-                            null,
-                            notifier.getgrey,
-                            null,
-                            notifier.getblck,
-                            notifier.getgrey,
-                            70.sp,
-                            200.sp,
-                            // controller: referrerController,
-                            // validator: validateReferrer,
-                            onSaved: (value) {},
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop(); // dismiss dialog,
-                          onDone();
+                          // Navigator.of(context).pop(); // dismiss dialog,
+                          onDone(selectedOption, uploadedFileName, file!);
                         },
                         style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(
@@ -3923,6 +3865,29 @@ showDocumentUploadPopup(context, String title,
               ));
         });
       });
+}
+
+Future<PlatformFile?>? getFile(context, ImageSource source) async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['jpg', 'jpeg', 'gif', 'png', 'pdf'],
+    withData: true,
+  );
+
+  if (result == null) {
+    print('User canceled the picker');
+    return null;
+  }
+
+  PlatformFile file = result.files.single;
+  print('file picked... $file');
+
+  if (file.size > 900000) {
+    print('file size must be < 900000bytes');
+    return null;
+  }
+
+  return file;
 }
 
 showSubscribePopup(context,
@@ -5516,4 +5481,135 @@ addSubWalletPopup(context) async {
       });
 
   return show;
+}
+
+showCreateTokenizationWalletPopup(context) async {
+  var notifier = Provider.of<ColorNotifier>(context, listen: false);
+  height = MediaQuery.of(context).size.height;
+  width = MediaQuery.of(context).size.width;
+  return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setStateForDialog) {
+          return AlertDialog(
+              // scrollable: true,
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.all(20),
+              content: Container(
+                width: width / 1.1,
+                decoration: BoxDecoration(
+                  color: notifier.getwihitecolor,
+                  borderRadius: BorderRadius.all(
+                    Radius.circular(23),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/images/empty_folder.png',
+                      // height: 50,
+                      width: 250,
+                    ),
+                    Text(
+                      "youhavenoinitiatoraccess1".tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        // fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    Text(
+                      "youhavenoinitiatoraccess2".tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    Text(
+                      "youhavenoinitiatoraccess3".tr(),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.4,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: height / 70,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            addSubWalletPopup(context);
+                          },
+                          style: ButtonStyle(
+                            overlayColor: MaterialStateProperty.all<Color>(
+                                notifier.getsplashgrey),
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                notifier.getbluewhitecolor),
+                            side: MaterialStateProperty.all(
+                              BorderSide(
+                                  color: notifier.getbluewhitecolor,
+                                  width: 1,
+                                  style: BorderStyle.solid),
+                            ),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                          child: Container(
+                            width: width / 1.5,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_circle_rounded,
+                                  size: 20,
+                                  color: notifier.getwihitecolor,
+                                ),
+                                SizedBox(
+                                  width: 4,
+                                ),
+                                Text(
+                                  "createnewwallet".tr(),
+                                  style: TextStyle(
+                                      fontFamily: fontsemibold,
+                                      fontSize: 12,
+                                      color: notifier.getwihitecolor),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: height / 50,
+                    ),
+                  ],
+                ),
+              ));
+        });
+      });
 }
