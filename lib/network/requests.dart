@@ -456,13 +456,14 @@ Future<Map> makePutRequestForMultipartDocumentUpload({
       "documentType": documentType.toString(),
       "documentTitle": documentTitle,
     };
+    print('mappppppppppp $map');
     request.headers.addAll(headers);
-    request.fields.addAll(map);
+    // request.fields.addAll(map);
     final mimeType = lookupMimeType(file.path!);
     final contentType = mimeType != null ? MediaType.parse(mimeType) : null;
-    request.files.add(await http.MultipartFile.fromBytes(
+    request.files.add(await http.MultipartFile.fromPath(
       'documentFile',
-      file.bytes as List<int>,
+      file.path!,
       contentType: contentType,
     ));
     var response = await request.send();
