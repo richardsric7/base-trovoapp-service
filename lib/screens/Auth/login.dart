@@ -225,8 +225,61 @@ class _LoginState extends State<Login> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      Container(
+                        width: width / 4.5,
+                        height: 20,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: DropdownButtonFormField(
+                                isExpanded: true,
+                                key: _dropDownKey,
+                                dropdownColor: notifier.isDark
+                                    ? darktilewhitecolor
+                                    : notifier.getaddsubwalletgrey,
+                                value: appState.walletMode,
+                                icon: Visibility(
+                                    visible: false,
+                                    child: Icon(Icons.arrow_downward)),
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(
+                                      vertical: 0, horizontal: 10),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide.none,
+                                  ),
+                                ),
+                                elevation: 0,
+                                style: TextStyle(
+                                    color: notifier.getdarkgrey,
+                                    fontSize: 13.5.sp,
+                                    fontFamily: fontbody),
+                                onChanged: handleEnvironmentSwitch,
+                                items: <DropdownMenuItem<String>>[
+                                  DropdownMenuItem(
+                                    child: Text(
+                                      "testnet".tr(),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    value: 'Testnet',
+                                  ),
+                                  DropdownMenuItem(
+                                    child: Text(
+                                      "mainnet".tr(),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    value: 'Mainnet',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       TextButton(
                         onPressed: () {
                           appState.currentAction = PageAction(
