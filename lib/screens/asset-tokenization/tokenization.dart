@@ -332,63 +332,57 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   SizedBox(
                     height: height / 70,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () async {
-                          hasInitiatorAccess
-                              ? showCreateTokenizationWalletPopup(context)
-                              : appState.currentAction = PageAction(
-                                  state: PageState.addPage,
-                                  page: WalletPreparationViewPageConfig,
-                                );
-                        },
-                        style: ButtonStyle(
-                          overlayColor: MaterialStateProperty.all<Color>(
-                              notifier.getsplashgrey),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluewhitecolor),
-                          side: MaterialStateProperty.all(
-                            BorderSide(
-                                color: notifier.getbluewhitecolor,
-                                width: 1,
-                                style: BorderStyle.solid),
-                          ),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: Container(
-                          width: width / 1.5,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_circle_rounded,
-                                size: 20,
-                                color: notifier.getwihitecolor,
-                              ),
-                              SizedBox(
-                                width: 4,
-                              ),
-                              Text(
-                                "proceedtokenizeasset".tr(),
-                                style: TextStyle(
-                                    fontFamily: fontsemibold,
-                                    fontSize: 12,
-                                    color: notifier.getwihitecolor),
-                              ),
-                            ],
+                  ElevatedButton(
+                    onPressed: () async {
+                      hasInitiatorAccess
+                          ? showCreateTokenizationWalletPopup(context)
+                          : appState.currentAction = PageAction(
+                              state: PageState.addPage,
+                              page: WalletPreparationViewPageConfig,
+                            );
+                    },
+                    style: ButtonStyle(
+                      overlayColor: MaterialStateProperty.all<Color>(
+                          notifier.getsplashgrey),
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                          notifier.getbluewhitecolor),
+                      side: MaterialStateProperty.all(
+                        BorderSide(
+                            color: notifier.getbluewhitecolor,
+                            width: 1,
+                            style: BorderStyle.solid),
+                      ),
+                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                        const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(10),
                           ),
                         ),
                       ),
-                    ],
+                    ),
+                    child: Container(
+                      width: width / 1.5,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_circle_rounded,
+                            size: 20,
+                            color: notifier.getwihitecolor,
+                          ),
+                          SizedBox(
+                            width: 4,
+                          ),
+                          Text(
+                            "proceedtokenizeasset".tr(),
+                            style: TextStyle(
+                                fontFamily: fontsemibold,
+                                fontSize: 12,
+                                color: notifier.getwihitecolor),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   SizedBox(
                     height: height / 50,

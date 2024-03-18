@@ -573,20 +573,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: TextButton(
-                onPressed: () async {
-                  appState.returnView = PageAction(
-                      state: PageState.addAll,
-                      pages: [
-                        BottomHomePageConfig,
-                        WalletPreparationViewPageConfig
-                      ]);
-                  appState.currentAction =
-                      PageAction(state: PageState.addAll, pages: [
-                    BottomHomePageConfig,
-                  ]);
-                  // changeTabPage(appState, ButtomTabPage.Wallets.index);
-                  setState(() {});
-                },
+                onPressed: () async {},
                 child: Text(
                   "doyouhaveallrequireddocs".tr(),
                   style: TextStyle(
@@ -1019,20 +1006,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: TextButton(
-                      onPressed: () async {
-                        appState.returnView = PageAction(
-                            state: PageState.addAll,
-                            pages: [
-                              BottomHomePageConfig,
-                              WalletPreparationViewPageConfig
-                            ]);
-                        appState.currentAction =
-                            PageAction(state: PageState.addAll, pages: [
-                          BottomHomePageConfig,
-                        ]);
-                        // changeTabPage(appState, ButtomTabPage.Wallets.index);
-                        setState(() {});
-                      },
+                      onPressed: () async {},
                       child: Text(
                         "pleaseapplytosec".tr(),
                         textAlign: TextAlign.left,
