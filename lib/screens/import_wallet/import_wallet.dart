@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:toggle_switch/toggle_switch.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -37,6 +38,7 @@ class _ImportWalletState extends State<ImportWallet> {
   bool hasAgreed = false;
   bool showTermsError = false;
   bool usePassPhrase = false;
+  late int walletMode = 0; // mainnet by default;
   late FocusNode passPhraseFocusNode;
   late FocusNode secretKeyFocusNode;
   final _formKey = GlobalKey<FormState>();
@@ -62,6 +64,8 @@ class _ImportWalletState extends State<ImportWallet> {
     getdarkmodepreviousstate();
     passPhraseFocusNode = FocusNode();
     secretKeyFocusNode = FocusNode();
+    appState = Provider.of<DataProvider>(context, listen: false);
+    walletMode = appState.walletMode.toLowerCase() == 'mainnet' ? 0 : 1;
   }
 
   @override
@@ -69,7 +73,7 @@ class _ImportWalletState extends State<ImportWallet> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
+
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
         resizeToAvoidBottomInset: false,
@@ -82,7 +86,6 @@ class _ImportWalletState extends State<ImportWallet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: height / 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -111,7 +114,52 @@ class _ImportWalletState extends State<ImportWallet> {
                             ),
                           ],
                         ),
-                        SizedBox(height: height / 15),
+                        SizedBox(
+                          height: height / 20,
+                        ),
+                        ToggleSwitch(
+                          minHeight: height / 16,
+                          customWidths: [
+                            width / 2.4,
+                            width / 2.4,
+                          ],
+                          customTextStyles: [
+                            TextStyle(
+                                fontSize: height / 55,
+                                color: walletMode == 0
+                                    ? notifier.getwihitecolor
+                                    : notifier.getblck,
+                                fontFamily: fontbody),
+                            TextStyle(
+                                fontSize: height / 55,
+                                color: walletMode == 1
+                                    ? notifier.getwihitecolor
+                                    : notifier.getblck,
+                                fontFamily: fontbody),
+                          ],
+                          fontSize: 16.0,
+                          initialLabelIndex: walletMode,
+                          activeBgColor: [
+                            notifier.isDark
+                                ? notifier.getbluecolor50
+                                : notifier.getbluecolor,
+                          ],
+                          inactiveBgColor: notifier.getsplashgrey,
+                          inactiveFgColor: notifier.getblck,
+                          totalSwitches: 2,
+                          labels: ['Mainnet', 'Testnet'],
+                          onToggle: (index) {
+                            setState(() {
+                              // walletMode = index!;
+                              handleEnvironmentSwitch(
+                                  index == 0 ? 'Mainnet' : 'Testnet');
+                            });
+                            print('dkjflsdklsd ${appState.walletMode} $index');
+                          },
+                        ),
+                        SizedBox(
+                          height: height / 30,
+                        ),
                         // Email address
                         CustomTextFormField.textField(
                           "usernameoremail".tr(),
@@ -258,6 +306,18 @@ class _ImportWalletState extends State<ImportWallet> {
         ),
       ),
     );
+  }
+
+  void handleEnvironmentSwitch(String? newValue) async {
+    if (newValue != appState.walletMode) {
+      showSwitchEnvironmentPopup(context, onProceed: () async {
+        await appState.changeWalletMode(newValue.toString());
+      }, onCancel: () {
+        setState(() {
+          walletMode = appState.walletMode.toLowerCase() == 'mainnet' ? 0 : 1;
+        });
+      }, toEnvironment: newValue!);
+    }
   }
 
   Widget checkUsePassphrase() {

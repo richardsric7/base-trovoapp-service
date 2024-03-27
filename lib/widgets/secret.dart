@@ -1,9 +1,13 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/drive/v3.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/functions/google_drive_client.dart';
 import 'package:trovo_wallet/utils/medeiaqury/medeiaqury.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 
@@ -176,7 +180,45 @@ class _SecretState extends State<Secret> {
                     fontFamily: fontsemibold,
                   ),
                 ),
-              )
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final googleSignIn =
+                      GoogleSignIn.standard(scopes: [DriveApi.driveFileScope]);
+                  var account = await googleSignIn.signIn();
+                  final GoogleSignInAuthentication? auth =
+                      await account?.authentication;
+                  print(
+                      'auth===================> ${account?.displayName} ${account?.email} ${account}');
+                  final String accessToken = auth!.accessToken!;
+                  var client = await GoogleDriveClient.create(
+                      googleSignIn.currentUser!, accessToken);
+
+                  var fileContent = await client.downloadFile();
+                  print('file content... $fileContent');
+
+                  if (fileContent == null ||
+                      !fileContent.contains(
+                          "${widget.alias}|${widget.secret}|${widget.publicKey}")) {
+                    client.uploadFile(
+                        '${fileContent ?? ''}\n${widget.alias}|${widget.secret}|${widget.publicKey}');
+                  } else {
+                    print("Wallet already backed up.");
+                  }
+
+                  googleSignIn.signOut();
+                },
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                      notifier.getbluecolor80!),
+                ),
+                child: Text(
+                  "backupongoogledrive".tr(),
+                  style: TextStyle(
+                    fontFamily: fontsemibold,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

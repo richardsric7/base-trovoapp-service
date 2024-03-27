@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "572371578875",
+    "project_id": "trovotech-website",
+    "storage_bucket": "trovotech-website.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:572371578875:android:213ad7583e9ea30244255e",
+        "android_client_info": {
+          "package_name": "com.trovo.wallet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "572371578875-g0jke0h8h1b05ksntqt1j1s7ua3e28g0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.trovo.wallet",
+            "certificate_hash": "c5088c4b2b5c7a0786f515bee82f0d3785194469"
+          }
+        },
+        {
+          "client_id": "572371578875-urn7vtckfggk29c9qbat0v83ssfa0squ.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKdXjdmZDCNUkNn45nPf6T9BRtCROG0UE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "572371578875-914b2q1fvgvm5t4pqhs38o2rc1bp46j5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "572371578875-77l0rtotog2kslqaqvtfi2tnrrt7r6ke.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.trovo.wallet"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

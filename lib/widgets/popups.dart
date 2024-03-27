@@ -1,15 +1,11 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:app_settings/app_settings.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
