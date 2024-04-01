@@ -4,7 +4,7 @@ import TrovoBrand from '../../components/trovoBrand';
 
 function AuthMain() {
   return (
-    <div className="flex h-screen items-center justify-center ">
+    <div className="flex h-full items-center justify-center ">
       <div className="hidden md:block w-3/5 h-full p-3">
         <div className="flex h-full space-y-3 xl:space-y-5 rounded-lg flex-col items-center bg-primary-100">
           <TrovoBrand />

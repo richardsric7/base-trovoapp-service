@@ -363,7 +363,7 @@ export default function Home() {
         email="obienechi@gmail.com"
         isHomeView
       />
-      <div className="flex md:h-screen w-full items-center justify-center">
+      <div className="flex md:h-full w-full items-center justify-center">
         <div className="h-full w-full md:p-3">
           <div
             className="bg-trovored-light flex justify-between mb-2 rounded-md ring-1 ring-trovored-primary

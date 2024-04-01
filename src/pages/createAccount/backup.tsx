@@ -9,7 +9,7 @@ export default function Backup() {
   const [showCreds, setShowCredentials] = useState(false);
 
   return (
-    <div className="flex md:h-screen items-center justify-center">
+    <div className="flex md:h-full items-center justify-center">
       <div className="hidden md:block w-3/5 h-full p-3">
         <div className="flex h-full space-y-3 xl:space-y-5 rounded-lg flex-col items-center bg-primary-100">
           <TrovoBrand />

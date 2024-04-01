@@ -5,7 +5,7 @@ import Button from '../../components/button';
 function Welcome1() {
   const navigate = useNavigate();
   return (
-    <div className="flex flex-col h-3/4 lg:h-screen space-y-3 lg:space-y-5 items-center justify-center ">
+    <div className="flex flex-col h-3/4 lg:h-full space-y-3 lg:space-y-5 items-center justify-center ">
       <span className="rounded-full inline-block h-16" />
       <p className="text-primary-800 font-matahariExtended text-2xl md:text-4xl font-bold">
         Welcome to
