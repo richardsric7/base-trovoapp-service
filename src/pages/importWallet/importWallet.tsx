@@ -1,4 +1,4 @@
-import { React, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
 import TextInput from '../../components/textInput';
@@ -55,7 +55,7 @@ export default function ImportWallet() {
                 className="mt-2 ring-2 ring-gray-200 focus-within:ring-primary-600 rounded-md
               w-full h-12 py-1 px-2 focus-within:ring-2 flex items-center focus:outline-none"
                 placeholder="Enter Pass phrase"
-                rows="6"
+                rows={6}
                 onChange={(newValue) => {
                   console.log('input has changed', newValue);
                 }}

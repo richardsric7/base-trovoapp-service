@@ -1,5 +1,4 @@
 import React from 'react';
-// import PropTypes from 'prop-types';
 
 function WalletCard() {
   return (
@@ -16,13 +15,5 @@ function WalletCard() {
     </div>
   );
 }
-
-// WidgetCard.propTypes = {
-//   textColor: PropTypes.string,
-// };
-
-// WidgetCard.defaultProps = {
-//   textColor: 'text-primary-800',
-// };
 
 export default WalletCard;

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import ButtonSecondary from '../../components/buttonSecondary';
 import Button from '../../components/button';
 import Dropdown from '../../components/dropdown';
@@ -8,7 +7,13 @@ import TextInput from '../../components/textInput';
 import Modal from '../../components/modal';
 import Header from '../../components/header';
 
-function GridItem({ title, value, value2 }) {
+type GridItemProps = {
+  title: string;
+  value: string;
+  value2: string;
+};
+
+function GridItem({ title, value, value2 }: GridItemProps) {
   return (
     <div className="flex h-full w-full py-5 px-2 xl:px-5 xl:space-y-5 rounded-xl mb-10 bg-primary-100">
       <div className="flex  flex-col space-y-2 w-full">
@@ -20,8 +25,20 @@ function GridItem({ title, value, value2 }) {
   );
 }
 
+type AssetDetailItemProps = {
+  title: string;
+  value: string;
+  value2?: string;
+  value3?: string;
+};
+
 // eslint-disable-next-line
-function AssetDetailItem({ title, value, value2, value3 }) {
+function AssetDetailItem({
+  title,
+  value,
+  value2,
+  value3,
+}: AssetDetailItemProps) {
   return (
     <div className="rounded-2xl w-full bg-white px-4 py-3">
       <div className="flex  flex-col space-y-2 w-full">
@@ -36,22 +53,9 @@ function AssetDetailItem({ title, value, value2, value3 }) {
   );
 }
 
-AssetDetailItem.propTypes = {
-  title: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
-  value2: PropTypes.string,
-  value3: PropTypes.string,
-};
-
 AssetDetailItem.defaultProps = {
   value2: '',
   value3: '',
-};
-
-GridItem.propTypes = {
-  title: PropTypes.string.isRequired,
-  value: PropTypes.string.isRequired,
-  value2: PropTypes.string.isRequired,
 };
 
 export default function TokenizedAsset() {
@@ -384,7 +388,7 @@ export default function TokenizedAsset() {
           setBuyTokenStep(1);
         }}
       >
-        {renderBuyTokenSteps(buyTokenStep)}
+        {renderBuyTokenSteps()}
       </Modal>
     </div>
   );

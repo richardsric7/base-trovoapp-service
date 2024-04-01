@@ -1,13 +1,20 @@
-import PropTypes from 'prop-types';
 import React from 'react';
+
+type Props = {
+  image: string;
+  assetName: string;
+  assetClass: string;
+  isSubscribed?: boolean;
+  onclick: () => void;
+};
 
 function AssetListItem({
   image,
   assetName,
   assetClass,
-  isSubscribed,
+  isSubscribed = false,
   onclick,
-}) {
+}: Props) {
   return (
     <button
       className="rounded-2xl w-full bg-white flex justify-between items-center px-2 md:px-7 py-3 md:py-5"
@@ -35,17 +42,5 @@ function AssetListItem({
     </button>
   );
 }
-
-AssetListItem.propTypes = {
-  onclick: PropTypes.func.isRequired,
-  assetName: PropTypes.string.isRequired,
-  assetClass: PropTypes.string.isRequired,
-  image: PropTypes.string.isRequired,
-  isSubscribed: PropTypes.bool,
-};
-
-AssetListItem.defaultProps = {
-  isSubscribed: false,
-};
 
 export default AssetListItem;

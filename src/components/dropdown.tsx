@@ -1,4 +1,5 @@
-import { React, useState } from 'react';
+import React from 'react';
+import { useState } from 'react';
 import {
   TEDropdown,
   TEDropdownToggle,
@@ -6,12 +7,17 @@ import {
   TEDropdownItem,
   TERipple,
 } from 'tw-elements-react';
-import PropTypes from 'prop-types';
 
-export default function Dropdown({ label, options, onSelect }) {
+type Props = {
+  label: string;
+  options: string[];
+  onSelect: (item: any) => void;
+};
+
+export default function Dropdown({ label, options, onSelect }: Props) {
   const [selectedItem, setSelectedItem] = useState(null);
 
-  const dropdownItems = options.map((item) => (
+  const dropdownItems = options.map((item: any) => (
     <TEDropdownItem
       key={`${new Date().getTime()}${item.replace(' ', '')}`}
       id={`${new Date().getTime()}${item.replace(' ', '')}`}
@@ -55,13 +61,3 @@ export default function Dropdown({ label, options, onSelect }) {
     </TEDropdown>
   );
 }
-
-Dropdown.propTypes = {
-  label: PropTypes.string.isRequired,
-  options: PropTypes.arrayOf(PropTypes.string).isRequired,
-  onSelect: PropTypes.func.isRequired,
-};
-
-//   Dropdown.defaultProps = {
-//     additionalClasses: '',
-//   };

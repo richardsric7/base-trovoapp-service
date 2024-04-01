@@ -1,4 +1,5 @@
-import { React, useState } from 'react';
+import React from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OtpInput from '../../components/otpInput';
 import Button from '../../components/button';
@@ -41,7 +42,7 @@ function AccountVerification() {
           <div className="w-auto flex justify-center">
             <OtpInput numberOfDigits={6} />
           </div>
-          <Modal showModal={showModal}>
+          <Modal showModal={showModal} onClose={() => {}}>
             <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
               <img src="/images/launch.png" alt="success" />
               <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">

@@ -1,7 +1,12 @@
-import PropTypes from 'prop-types';
-import { React } from 'react';
+import React from 'react';
 
-export default function Modal({ children, showModal, onClose }) {
+type Props = {
+  children: React.ReactNode;
+  showModal: boolean;
+  onClose: () => void;
+};
+
+export default function Modal({ children, showModal, onClose }: Props) {
   return (
     <div>
       {showModal ? (
@@ -32,9 +37,3 @@ export default function Modal({ children, showModal, onClose }) {
     </div>
   );
 }
-
-Modal.propTypes = {
-  children: PropTypes.node.isRequired,
-  showModal: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-};

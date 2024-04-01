@@ -209,7 +209,7 @@ function ActivateWalletView() {
   );
 }
 
-function WalletView(hasAssets) {
+function WalletView({ hasAssets }: { hasAssets: boolean }) {
   const navigate = useNavigate();
 
   if (!hasAssets) {
@@ -237,7 +237,7 @@ function WalletView(hasAssets) {
       </p>
       <div className="md:px-5 w-full">
         <Tabs tabList={['Primary Listing', 'Secondary Listing']}>
-          <div className="flex flex-col space-y-3">
+          <div className="tab-1 flex flex-col space-y-3">
             <AssetListItem
               image="/images/avatar.png"
               assetName="Atlantis 1"

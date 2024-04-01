@@ -2,9 +2,10 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { Outlet } from 'react-router-dom';
 import SideBar from '../../components/sideBar';
+import { RootState } from '../../store';
 
 function Dashboard() {
-  const sidebarState = useSelector((state) => {
+  const sidebarState = useSelector((state: RootState) => {
     console.log('state', state.sidebar.value);
     return state.sidebar.value;
   });

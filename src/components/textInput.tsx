@@ -1,20 +1,31 @@
-import PropTypes from 'prop-types';
-import { React, useState } from 'react';
+import React from 'react';
+import { useState } from 'react';
+
+type Props = {
+  defaultValue?: string;
+  placeholder?: string;
+  label: string;
+  leadingIcon?: string;
+  inputType: string;
+  onInputChange: (newValue: string) => void;
+  trailingIcon?: string;
+  trailingText?: string;
+};
 
 export default function TextInput({
-  defaultValue,
-  placeholder,
+  defaultValue = '',
+  placeholder = 'Enter value',
   label,
   leadingIcon,
-  inputType,
+  inputType = 'text',
   onInputChange,
   trailingIcon,
   trailingText,
-}) {
+}: Props) {
   const [showPlainText, setShowPlainText] = useState(false);
 
   const [value, setValue] = useState(defaultValue);
-  const handleInputChange = (event) => {
+  const handleInputChange = (event: { target: { value: any } }) => {
     const newValue = event.target.value;
     setValue(newValue);
     console.log('input changed...', newValue);
@@ -60,23 +71,3 @@ export default function TextInput({
     </>
   );
 }
-
-TextInput.propTypes = {
-  placeholder: PropTypes.string,
-  inputType: PropTypes.string,
-  leadingIcon: PropTypes.string,
-  trailingIcon: PropTypes.string,
-  trailingText: PropTypes.string,
-  label: PropTypes.string.isRequired,
-  defaultValue: PropTypes.string,
-  onInputChange: PropTypes.func.isRequired,
-};
-
-TextInput.defaultProps = {
-  placeholder: 'Enter value',
-  leadingIcon: null,
-  trailingIcon: null,
-  trailingText: null,
-  inputType: 'text',
-  defaultValue: '',
-};

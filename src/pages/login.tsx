@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React from 'react';
 import Button from '../components/button';
 import TextInput from '../components/textInput';
 import ButtonSecondary from '../components/buttonSecondary';
@@ -36,7 +36,7 @@ export default function Login() {
                 leadingIcon="/images/lock.png"
                 inputType="password"
                 placeholder="Enter answer"
-                onInputChange={(newValue) => {
+                onInputChange={(newValue: string) => {
                   console.log('input has changed', newValue);
                 }}
               />

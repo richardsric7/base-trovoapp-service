@@ -1,7 +1,11 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 
-export default function Tabs({ tabList, children }) {
+type Props = {
+  tabList: string[];
+  children: React.ReactNode[];
+};
+
+export default function Tabs({ tabList, children = [] }: Props) {
   const [openTab, setOpenTab] = React.useState(1);
   const tabItems = tabList.map((item, index) => (
     <li
@@ -25,7 +29,7 @@ export default function Tabs({ tabList, children }) {
     </li>
   ));
 
-  const tabBodies = children.map((body, index) => (
+  const tabBodies = children?.map((body, index) => (
     <div
       className={openTab === index + 1 ? 'block' : 'hidden'}
       id={`link${index + 1}`}
@@ -49,11 +53,6 @@ export default function Tabs({ tabList, children }) {
     </div>
   );
 }
-
-Tabs.propTypes = {
-  tabList: PropTypes.arrayOf(PropTypes.string).isRequired,
-  children: PropTypes.node,
-};
 
 Tabs.defaultProps = {
   children: [],

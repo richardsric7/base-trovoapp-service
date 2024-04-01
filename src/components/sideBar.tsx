@@ -1,11 +1,15 @@
-import { React, useState } from 'react';
+import React from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import PropTypes from 'prop-types';
 import TrovoBrand from './trovoBrand';
 import SideBarItem from './sidebarItem';
 import { toggle } from '../reducers/sidebarSlice';
 
-function SideBar({ mobileMode }) {
+type Props = {
+  mobileMode?: boolean;
+};
+
+function SideBar({ mobileMode = false }: Props) {
   const [activeItem, setActiveItem] = useState(1);
   const dispatch = useDispatch();
   const classes = `flex flex-col pb-10 overflow-y-scroll h-full bg-primary-800 ${
@@ -200,13 +204,5 @@ function SideBar({ mobileMode }) {
     </div>
   );
 }
-
-SideBar.propTypes = {
-  mobileMode: PropTypes.bool,
-};
-
-SideBar.defaultProps = {
-  mobileMode: false,
-};
 
 export default SideBar;

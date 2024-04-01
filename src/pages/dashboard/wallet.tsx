@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React from 'react';
 import Button from '../../components/button';
 import TransactionItem from '../../components/transactionItem';
 import WidgetCard from '../../components/widgetCard';

@@ -1,4 +1,5 @@
-import { React, useState } from 'react';
+import React from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
@@ -43,7 +44,11 @@ export default function Backup() {
   );
 }
 
-function ShowPreliminary({ onInputChange }) {
+function ShowPreliminary({
+  onInputChange,
+}: {
+  onInputChange: (value: boolean) => void;
+}) {
   return (
     <div className="text-primary-800 space-y-5 text-md text-justify">
       <p>
@@ -66,7 +71,7 @@ function ShowPreliminary({ onInputChange }) {
           type="checkbox"
           name="import"
           onChange={(e) => {
-            onInputChange(e.target.value);
+            onInputChange(e.target.value as unknown as boolean);
           }}
         />
         <p className="text-gray-500">

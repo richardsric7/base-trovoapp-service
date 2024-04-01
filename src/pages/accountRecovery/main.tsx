@@ -1,4 +1,5 @@
-import { React, useState } from 'react';
+import React from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Button from '../../components/button';
@@ -9,7 +10,7 @@ import TrovoBrand from '../../components/trovoBrand';
 
 function RecoveryMain() {
   const [currentView, setCurrentView] = useState(0);
-  function renderSwitch(view) {
+  function renderSwitch(view: number) {
     switch (view) {
       case 1:
         return (
@@ -66,7 +67,7 @@ function RecoveryMain() {
   );
 }
 
-function ShowPreliminary({ onDone }) {
+function ShowPreliminary({ onDone }: { onDone: () => void }) {
   return (
     <>
       <div className="px-10 text-primary-800 space-y-5 text-md text-justify">
@@ -105,7 +106,7 @@ function ShowPreliminary({ onDone }) {
   );
 }
 
-function ShowEnterUsername({ onDone }) {
+function ShowEnterUsername({ onDone }: { onDone: () => void }) {
   return (
     <>
       <p className="text-center w-full text-primary-800 text-2xl font-bold">
@@ -139,7 +140,7 @@ function ShowEnterUsername({ onDone }) {
   );
 }
 
-function ShowEnterOTP({ onDone }) {
+function ShowEnterOTP({ onDone }: { onDone: () => void }) {
   return (
     <div className="flex flex-col space-y-6 md:h-full items-center justify-center">
       <p className="text-center w-full text-primary-800 text-2xl font-bold">
@@ -225,7 +226,7 @@ function ShowAnswerSecurityQuestions() {
           }}
         />
       </div>
-      <Modal showModal={showModal}>
+      <Modal showModal={showModal} onClose={() => {}}>
         <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
           <img src="/images/launch.png" alt="success" />
           <div className="flex flex-col text-center space-y-5 items-center w-2/3 mb-5 md:px-10 justify-center">

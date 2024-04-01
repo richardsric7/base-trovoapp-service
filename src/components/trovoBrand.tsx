@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-function TrovoBrand({ textColor }) {
+function TrovoBrand({ textColor }: { textColor: string }) {
   const textClasses = `text-primary-800 font-montserratMedium text-xl xl:text-2xl ${textColor}`;
   return (
     <div className="flex items-center space-x-3 mt-5 mb-10 px-3 w-full">
@@ -10,10 +10,6 @@ function TrovoBrand({ textColor }) {
     </div>
   );
 }
-
-TrovoBrand.propTypes = {
-  textColor: PropTypes.string,
-};
 
 TrovoBrand.defaultProps = {
   textColor: 'text-primary-800',

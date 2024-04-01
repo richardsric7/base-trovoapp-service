@@ -1,9 +1,13 @@
 /** @type {import('tailwindcss').Config} */
+const path = require('path');
+
 module.exports = {
   content: [
     './index.html',
     './src/**/*.{js,jsx,ts,tsx}',
     './node_modules/tw-elements-react/dist/js/**/*.js',
+    path.join(__dirname, './pages/**/*.{js,ts,jsx,tsx}'),
+    path.join(__dirname, './components/**/*.{js,ts,jsx,tsx}'),
   ],
   theme: {
     extend: {

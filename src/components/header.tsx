@@ -1,11 +1,17 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { useDispatch } from 'react-redux';
 import { toggle } from '../reducers/sidebarSlice';
 import TextInput from './textInput';
 
+type Props = {
+  fullName: string;
+  email: string;
+  avatar: string;
+  isHomeView?: boolean;
+};
+
 // eslint-disable-next-line
-function Header({ fullName, email, avatar, isHomeView }) {
+function Header({ fullName, email, avatar, isHomeView = false }: Props) {
   const dispatch = useDispatch();
   const classes = `flex w-full p-3 items-center ${
     isHomeView ? 'justify-between' : 'justify-between xl:justify-end'
@@ -33,7 +39,7 @@ function Header({ fullName, email, avatar, isHomeView }) {
               inputType="text"
               label=""
               placeholder="Search"
-              onInputChange={() => {
+              onInputChange={(newValue: string) => {
                 // console.log('input has changed', newValue);
               }}
             />
@@ -63,16 +69,5 @@ function Header({ fullName, email, avatar, isHomeView }) {
     </div>
   );
 }
-
-Header.propTypes = {
-  fullName: PropTypes.string.isRequired,
-  email: PropTypes.string.isRequired,
-  avatar: PropTypes.string.isRequired,
-  isHomeView: PropTypes.bool,
-};
-
-Header.defaultProps = {
-  isHomeView: false,
-};
 
 export default Header;

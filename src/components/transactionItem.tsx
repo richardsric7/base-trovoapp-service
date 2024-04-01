@@ -1,6 +1,15 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 
+type Props = {
+  onclick: () => void;
+  addressOrUsername: string;
+  transactionType: number;
+  amount: string;
+  date: string;
+  assetCode: string;
+};
+
 function TransactionItem({
   addressOrUsername,
   transactionType,
@@ -8,7 +17,7 @@ function TransactionItem({
   assetCode,
   date,
   onclick,
-}) {
+}: Props) {
   const amountClasses = `text-sm ${
     transactionType === 0 ? 'text-red-500' : 'text-green-500'
   }`;
@@ -52,14 +61,5 @@ function TransactionItem({
     </button>
   );
 }
-
-TransactionItem.propTypes = {
-  onclick: PropTypes.func.isRequired,
-  addressOrUsername: PropTypes.string.isRequired,
-  transactionType: PropTypes.number.isRequired,
-  amount: PropTypes.string.isRequired,
-  date: PropTypes.string.isRequired,
-  assetCode: PropTypes.string.isRequired,
-};
 
 export default TransactionItem;
