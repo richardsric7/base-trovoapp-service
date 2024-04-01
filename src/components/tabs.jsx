@@ -33,13 +33,14 @@ export default function Tabs({ tabList, children }) {
       {body}
     </div>
   ));
+
   return (
     <div className="flex flex-wrap font-matahariRegular">
       <div className="w-full">
         <ul className="flex mb-0 list-none flex-wrap flex-row" role="tablist">
           {tabItems}
         </ul>
-        <div className="relative flex flex-col min-w-0 w-full mb-6">
+        <div className="relative flex flex-col min-w-0 w-full">
           <div className="px-2 py-5 flex-auto">
             <div className="tab-content tab-space">{tabBodies}</div>
           </div>
@@ -51,5 +52,9 @@ export default function Tabs({ tabList, children }) {
 
 Tabs.propTypes = {
   tabList: PropTypes.arrayOf(PropTypes.string).isRequired,
-  children: PropTypes.node.isRequired,
+  children: PropTypes.node,
+};
+
+Tabs.defaultProps = {
+  children: [],
 };

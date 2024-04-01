@@ -14,9 +14,9 @@ function Dashboard() {
       <div className="xl:block hidden h-full w-1/6">
         <SideBar />
       </div>
-      <div className="flex w-4/6 w-full xl:rounded-3xl h-full bg-white">
+      <div className="flex w-4/6 w-full xl:rounded-3xl overflow-x-hidden h-full bg-white">
         {sidebarState && (
-          <div className="xl:hidden fixed 2md:relative h-full w-3/4">
+          <div className="xl:hidden fixed 2md:relative h-full w-3/4 sm:w-1/4">
             <SideBar mobileMode />
           </div>
         )}
