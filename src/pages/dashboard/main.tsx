@@ -2,12 +2,11 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { Outlet } from 'react-router-dom';
 import SideBar from '../../components/sideBar';
-import { RootState } from '../../store';
+import { RootState } from '../../store/reduxStore';
 
 function Dashboard() {
   const sidebarState = useSelector((state: RootState) => {
-    console.log('state', state.sidebar.value);
-    return state.sidebar.value;
+    return state.sidebarSlice.value;
   });
 
   return (

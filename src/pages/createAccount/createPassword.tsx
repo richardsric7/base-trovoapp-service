@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
 import TextInput from '../../components/textInput';
 
 export default function CreatePassword() {
   const navigate = useNavigate();
+  const [userName, setUsername] = useState(false);
+
   return (
     <>
       <p className="text-primary-800 text-lg xl:text-xl">

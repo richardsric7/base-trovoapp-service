@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import TrovoBrand from './trovoBrand';
 import SideBarItem from './sidebarItem';
-import { toggle } from '../reducers/sidebarSlice';
+import { toggle } from '../store/sidebarSlice';
 
 type Props = {
   mobileMode?: boolean;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
-import { toggle } from '../reducers/sidebarSlice';
+import { toggle } from '../store/sidebarSlice';
 import TextInput from './textInput';
 
 type Props = {
