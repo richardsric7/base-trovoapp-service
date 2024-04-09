@@ -1,12 +1,16 @@
+import { Payload } from '../../types/payload';
 import { baseApi } from './baseapi';
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation({
-      query: (payload) => ({
+      query: (payload: Payload) => ({
         url: '/v1/login',
         method: 'POST',
-        data: payload,
+        signer: payload.signer,
+        publicKey: payload.publicKey,
+        secretKey: payload.secretKey,
+        data: payload.body,
       }),
     }),
     verifyLogin: builder.query({

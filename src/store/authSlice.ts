@@ -1,21 +1,40 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { TOKEN, USER_DETAILS } from './constants';
+import { USER_DETAILS } from './constants';
 import { authApi } from './api/authApi';
+import { User } from '../types/user';
 
-const initialState = {
-  user: null,
-  token: { accessToken: null, refreshToken: null },
+type AuthState = {
+  user: User,
+  regFormInfo: {
+    usePassphrase: boolean,
+    importExistingWallet: boolean,
+    secretKey: string,
+    agreesToTerms: boolean
+  }
+}
+
+const initialState: AuthState = {
+  user: {
+    username: 'Kent',
+    password: 'K@nt2cky',
+    firstName: 'Kennis',
+    lastName: 'Maduka',
+    email: 'madukakennis@gmail.com',
+    phoneNumber: '+2347065027384',
+    referrer: 'kenmaddy',
+    isCorporateUser: false,
+  },
+  regFormInfo: {
+    usePassphrase: false,
+    importExistingWallet: false,
+    secretKey: '',
+    agreesToTerms: true
+  }
 };
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setToken: (state, action) => {
-      state.token.accessToken = action.payload;
-      const storage = localStorage;
-      storage.setItem(TOKEN, JSON.stringify(state.token.accessToken));
-      return state;
-    },
     setUser: (state, action) => {
       const storage = localStorage;
       if (action.payload) {
@@ -25,6 +44,18 @@ export const authSlice = createSlice({
         state = initialState;
         storage.clear();
       }
+      return state;
+    },
+    setTempUser: (state, action) => {
+      if (action.payload) {
+        return {...state, user: action.payload};
+      } 
+      return state;
+    },
+    setFormState: (state, action) => {
+      if (action.payload) {
+        return {...state, regFormInfo: action.payload};
+      } 
       return state;
     },
   },
@@ -39,4 +70,4 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setUser, setToken } = authSlice.actions;
+export const { setUser, setTempUser, setFormState } = authSlice.actions;

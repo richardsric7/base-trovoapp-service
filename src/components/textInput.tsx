@@ -28,7 +28,6 @@ export default function TextInput({
   const handleInputChange = (event: { target: { value: any } }) => {
     const newValue = event.target.value;
     setValue(newValue);
-    console.log('input changed...', newValue);
     onInputChange(newValue);
   };
 

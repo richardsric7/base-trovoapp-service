@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
-import { toggle } from '../store/sidebarSlice';
+import { toggleSidebar } from '../store/sidebarSlice';
 import TextInput from './textInput';
 
 type Props = {
@@ -24,7 +24,7 @@ function Header({ fullName, email, avatar, isHomeView = false }: Props) {
             <button
               className="xl:hidden"
               type="button"
-              onClick={() => dispatch(toggle())}
+              onClick={() => dispatch(toggleSidebar())}
             >
               <img src="/images/hamburgerMenu.png" alt="copy" className="w-8" />
             </button>
@@ -49,7 +49,7 @@ function Header({ fullName, email, avatar, isHomeView = false }: Props) {
         <button
           className="xl:hidden"
           type="button"
-          onClick={() => dispatch(toggle())}
+          onClick={() => dispatch(toggleSidebar())}
         >
           <img src="/images/hamburgerMenu.png" alt="copy" className="w-8" />
         </button>

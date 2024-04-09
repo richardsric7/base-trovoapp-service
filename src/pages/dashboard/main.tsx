@@ -6,7 +6,7 @@ import { RootState } from '../../store/reduxStore';
 
 function Dashboard() {
   const sidebarState = useSelector((state: RootState) => {
-    return state.sidebarSlice.value;
+    return state.sidebarSlice.showSidebar;
   });
 
   return (

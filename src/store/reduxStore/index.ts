@@ -2,10 +2,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import axios from "axios";
 import { baseApi } from "../api/baseapi";
-import { authSlice, setToken, setUser } from "../authSlice";
-import { getPreloadedState } from "./getPreloadedState";
+import { authSlice, setUser } from "../authSlice";
 import { refreshAccessToken } from "../refreshAccessToken";
-import { clearStorage } from "../../utils/storage";
 import { sidebarSlice } from '../sidebarSlice';
 
 export const store = configureStore({
@@ -16,7 +14,6 @@ export const store = configureStore({
     },
     middleware:(getDefaultMiddleware) => 
     getDefaultMiddleware().concat(baseApi.middleware),
-    preloadedState: getPreloadedState()
 });
 setupListeners(store.dispatch);
 
@@ -35,11 +32,11 @@ setupListeners(store.dispatch);
           axios.defaults.headers.common['Authorization'] = `${access_token}`;
           return await axios(originalRequest);
         }
-        if (error.response.status === 422) {
-            store.dispatch(setToken({accessToken: null, refreshToken: null}))
-            store.dispatch(setUser(null));
-            clearStorage()
-        }
+        // if (error.response.status === 422) {
+        //     store.dispatch(setToken({accessToken: null, refreshToken: null}))
+        //     store.dispatch(setUser(null));
+        //     clearStorage()
+        // }
         return Promise.reject(error);
     },
   );

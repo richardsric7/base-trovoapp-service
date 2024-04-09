@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import TrovoBrand from './trovoBrand';
 import SideBarItem from './sidebarItem';
-import { toggle } from '../store/sidebarSlice';
+import { toggleSidebar } from '../store/sidebarSlice';
 
 type Props = {
   mobileMode?: boolean;
@@ -22,7 +22,7 @@ function SideBar({ mobileMode = false }: Props) {
         <button
           className="mt-5 mb-10 xl:hidden w-1/4"
           type="button"
-          onClick={() => dispatch(toggle())}
+          onClick={() => dispatch(toggleSidebar())}
         >
           <span className="text-white text-xl">X</span>
         </button>
