@@ -1,19 +1,23 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 type Props = {
   numberOfDigits: number;
+  onInputChange: (newValue: string) => void;
 };
 
-function OtpInputWithValidation({ numberOfDigits }: Props) {
-  const [otp, setOtp] = useState(new Array(numberOfDigits).fill(''));
+function OtpInputWithValidation({ numberOfDigits, onInputChange }: Props) {
+  const [otp, setOtp] = useState<string[]>(new Array(numberOfDigits).fill(''));
   const otpBoxReference = useRef<HTMLInputElement[]>([]);
+
+  useEffect(() => {
+    onInputChange(otp.join(''));
+  }, [otp]);
 
   function handleChange(value: string, index: number) {
     const newArr = [...otp];
     newArr[index] = value;
     setOtp(newArr);
 
-    console.log('fsds', value, index);
     if (value && index < numberOfDigits - 1) {
       otpBoxReference.current[index + 1].focus();
     }

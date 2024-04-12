@@ -7,26 +7,30 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/reduxStore';
 import { setFormState, setTempUser } from '../../store/authSlice';
 import 'react-phone-number-input/style.css';
-import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
-import { useLoginMutation } from '../../store/api/authApi';
+import PhoneInput, {
+  getCountries,
+  isValidPhoneNumber,
+} from 'react-phone-number-input';
+import { useRegisterMutation } from '../../store/api/authApi';
+import { createAccount, signHTTP } from '../../utils/trovoSDK';
+import { showNotification, toggleLoader } from '../../utils/showToaster';
 import {
-  hideToaster,
-  showToaster,
-  toggleLoader,
-} from '../../store/sidebarSlice';
+  ErrorResponse,
+  SuccessResponse,
+} from '../../store/api/baseapi/axiosBaseQuery';
 
 export default function RegistrationForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [userLogin] = useLoginMutation();
+  const [userRegister] = useRegisterMutation();
   const appUser = useSelector((state: RootState) => state.auth.user!);
   const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
   const [user, setUser] = useState<User>(appUser);
   const [isCorporate, setIsCorporate] = useState(user.isCorporateUser);
-  const [importExistingWallet, setImportExistingWallet] = useState(
-    formInfo.importExistingWallet,
-  );
-  const [usePassphrase, setUsePassphrase] = useState(formInfo.usePassphrase);
+  // const [importExistingWallet, setImportExistingWallet] = useState(
+  //   formInfo.importExistingWallet,
+  // );
+  // const [usePassphrase, setUsePassphrase] = useState(formInfo.usePassphrase);
   const [secretKey, setSecretKey] = useState(formInfo.secretKey);
   const [agreesToTerms, setAgreesToTerms] = useState(formInfo.agreesToTerms);
   const [errorObj, setErrorObj] = useState({
@@ -123,10 +127,10 @@ export default function RegistrationForm() {
       };
     }
 
-    if (!user.phoneNumber) {
+    if (!user.mobile) {
       newObj = { ...newObj, phoneNumber: 'Please enter phone number' };
       isValid = false;
-    } else if (!isValidPhoneNumber(user.phoneNumber)) {
+    } else if (!isValidPhoneNumber(user.mobile)) {
       newObj = {
         ...newObj,
         phoneNumber: 'This phone number is invalid.',
@@ -162,30 +166,30 @@ export default function RegistrationForm() {
       };
     }
 
-    if (importExistingWallet && !secretKey) {
-      newObj = {
-        ...newObj,
-        secretKey: usePassphrase
-          ? 'Please enter passphrase'
-          : 'Please enter secret key',
-      };
-      isValid = false;
-    } else if (
-      importExistingWallet &&
-      !usePassphrase &&
-      secretKey.trim().replaceAll(' ', '').length < 56
-    ) {
-      newObj = {
-        ...newObj,
-        secretKey: 'Secret key must be 56 characters long',
-      };
-      isValid = false;
-    } else {
-      newObj = {
-        ...newObj,
-        secretKey: '',
-      };
-    }
+    // if (importExistingWallet && !secretKey) {
+    //   newObj = {
+    //     ...newObj,
+    //     secretKey: usePassphrase
+    //       ? 'Please enter passphrase'
+    //       : 'Please enter secret key',
+    //   };
+    //   isValid = false;
+    // } else if (
+    //   importExistingWallet &&
+    //   !usePassphrase &&
+    //   secretKey.trim().replaceAll(' ', '').length < 56
+    // ) {
+    //   newObj = {
+    //     ...newObj,
+    //     secretKey: 'Secret key must be 56 characters long',
+    //   };
+    //   isValid = false;
+    // } else {
+    //   newObj = {
+    //     ...newObj,
+    //     secretKey: '',
+    //   };
+    // }
 
     if (!agreesToTerms) {
       newObj = {
@@ -207,29 +211,50 @@ export default function RegistrationForm() {
   const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
-      dispatch(setTempUser({ ...user }));
-      dispatch(
-        setFormState({
-          ...formInfo,
-          importExistingWallet,
-          agreesToTerms,
-          usePassphrase,
-          secretKey,
-        }),
-      );
-      dispatch(toggleLoader());
-      const res = await userLogin({
-        signer: '',
-        publicKey: '',
-        secretKey: '',
-        body: formInfo,
-      });
-      dispatch(toggleLoader());
-      dispatch(
-        showToaster({ type: 'success', message: 'What a wonderful world!' }),
-      );
-      console.log('res', res);
-      // navigate('/register/verification');
+      try {
+        const account = createAccount();
+        setSecretKey(account.secretKey);
+        dispatch(setTempUser({ ...user, publicKey: account.publicKey }));
+        dispatch(
+          setFormState({
+            ...formInfo,
+            // importExistingWallet,
+            agreesToTerms,
+            // usePassphrase,
+            secretKey,
+          }),
+        );
+
+        toggleLoader();
+
+        const res = await userRegister({
+          signer: account.publicKey,
+          publicKey: account.publicKey,
+          secretKey: account.secretKey,
+          body: user,
+        });
+
+        toggleLoader();
+        console.log('res', res);
+
+        if ('data' in res) {
+          const successResponse = res as SuccessResponse;
+          showNotification('success', successResponse.data.message);
+          navigate('/register/verification');
+        } else if ('error' in res) {
+          const errorResponse = res as ErrorResponse;
+          showNotification(
+            'error',
+            errorResponse.error.data.message ??
+              'Sorry we could not complete the request. Please try again.',
+          );
+        }
+      } catch (error: any) {
+        showNotification(
+          'error',
+          'Sorry something went wrong. Please try again.',
+        );
+      }
     }
   };
 
@@ -355,12 +380,21 @@ export default function RegistrationForm() {
         </label>
         <PhoneInput
           placeholder="Enter phone number"
-          value={user.phoneNumber}
+          value={user.mobile}
           international
-          onChange={(newValue) => {
+          onCountryChange={(newValue) => {
+            console.log('set country code ', newValue);
             const newUser = {
               ...user,
-              phoneNumber: newValue?.toString() ?? '',
+              mobileCountryCode: newValue?.toString() ?? '',
+            };
+            setUser(newUser);
+          }}
+          onChange={(newValue) => {
+            console.log('set value ', newValue);
+            const newUser = {
+              ...user,
+              mobile: newValue?.toString() ?? '',
             };
             setUser(newUser);
           }}
@@ -393,7 +427,7 @@ export default function RegistrationForm() {
           <p className="text-red-500 text-sm">{errorObj.referrer}</p>
         )}
       </div>
-      <div className="w-3/4 flex space-x-3">
+      {/* <div className="w-3/4 flex space-x-3">
         <input
           type="checkbox"
           name="import"
@@ -450,7 +484,7 @@ export default function RegistrationForm() {
             <p className="text-gray-500">Use passphrase instead </p>
           </div>
         </div>
-      )}
+      )} */}
       <div className="w-3/4 space-y-1">
         <div className="flex space-x-3">
           <input
@@ -497,4 +531,7 @@ export default function RegistrationForm() {
       <div />
     </form>
   );
+}
+function showToaster(arg0: { type: string; message: string }) {
+  throw new Error('Function not implemented.');
 }

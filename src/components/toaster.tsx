@@ -25,6 +25,19 @@ export default function Toaster({
     }
   };
 
+  const getTypeColor = (): string => {
+    switch (type) {
+      case 'success':
+        return 'bg-success-100 text-success-700 border-success-200';
+      case 'info':
+        return 'bg-primary-100 text-primary-700 border-primary-200';
+      case 'error':
+        return 'bg-danger-100 text-danger-700 border-danger-200';
+      default:
+        return '';
+    }
+  };
+
   return (
     <div>
       <TEToast
@@ -32,14 +45,10 @@ export default function Toaster({
         delay={3000}
         autohide={true}
         onClose={onClose}
-        color={`bg-${type === 'info' ? 'primary' : type}-100 text-${
-          type === 'info' ? 'primary' : type
-        }-700`}
+        color={getTypeColor()}
       >
         <div
-          className={`flex items-center justify-between rounded-t-lg border-b-2 border-${
-            type === 'info' ? 'primary' : type
-          }/20 border-opacity-100 bg-clip-padding px-4 pb-2 pt-2.5`}
+          className={`flex items-center justify-between rounded-t-lg border-b-2 ${getTypeColor()} border-opacity-100 bg-clip-padding px-4 pb-2 pt-2.5`}
         >
           <p className="font-bold">{getTypeHeader()}</p>
           <div className="flex items-center">

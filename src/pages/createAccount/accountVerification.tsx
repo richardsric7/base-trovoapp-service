@@ -6,10 +6,67 @@ import Button from '../../components/button';
 import Modal from '../../components/modal';
 import ButtonSecondary from '../../components/buttonSecondary';
 import TrovoBrand from '../../components/trovoBrand';
+import { showNotification, toggleLoader } from '../../utils/showToaster';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRegisterMutation } from '../../store/api/authApi';
+import { RootState } from '../../store/reduxStore';
+import {
+  ErrorResponse,
+  SuccessResponse,
+} from '../../store/api/baseapi/axiosBaseQuery';
 
 function AccountVerification() {
   const navigate = useNavigate();
+  const [verificationCode, setVerificationCode] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const dispatch = useDispatch();
+  const [userRegister] = useRegisterMutation();
+  const appUser = useSelector((state: RootState) => state.auth.user!);
+  const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
+
+  const handleSubmit = async () => {
+    console.log(
+      'input has changed',
+      verificationCode.length,
+      isNaN(Number(verificationCode)),
+    );
+    if (verificationCode.length !== 6 || isNaN(Number(verificationCode))) {
+      showNotification('error', 'Please enter a valid 6 digits otp');
+      return;
+    }
+
+    try {
+      toggleLoader();
+
+      const res = await userRegister({
+        signer: appUser.publicKey,
+        publicKey: appUser.publicKey,
+        secretKey: formInfo.secretKey,
+        body: { ...appUser, verificationCode },
+      });
+
+      toggleLoader();
+      console.log('res', res);
+
+      if ('data' in res) {
+        // const successResponse = res as SuccessResponse;
+        // showNotification('success', successResponse.data.message);
+        setShowModal(true);
+      } else if ('error' in res) {
+        const errorResponse = res as ErrorResponse;
+        showNotification(
+          'error',
+          errorResponse.error.data.message ??
+            'Something went wrong. Please try again.',
+        );
+      }
+
+      // navigate('/register/verification');
+    } catch (error: any) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="flex h-full items-center justify-center ">
       <div className="hidden md:block w-3/5 h-full p-3">
@@ -40,7 +97,13 @@ function AccountVerification() {
             Enter OTP
           </p>
           <div className="w-auto flex justify-center">
-            <OtpInput numberOfDigits={6} />
+            <OtpInput
+              numberOfDigits={6}
+              onInputChange={(newValue) => {
+                console.log('input has changed', newValue);
+                setVerificationCode(newValue);
+              }}
+            />
           </div>
           <Modal showModal={showModal} onClose={() => {}}>
             <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
@@ -86,7 +149,8 @@ function AccountVerification() {
               label="Verify"
               onclick={() => {
                 // navigate('/register/backup');
-                setShowModal(true);
+                // setShowModal(true);
+                handleSubmit();
               }}
             />
           </div>

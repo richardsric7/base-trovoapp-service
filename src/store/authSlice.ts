@@ -1,6 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { USER_DETAILS } from './constants';
-import { authApi } from './api/authApi';
 import { User } from '../types/user';
 
 type AuthState = {
@@ -15,20 +14,22 @@ type AuthState = {
 
 const initialState: AuthState = {
   user: {
-    username: 'Kent',
-    password: 'K@nt2cky',
-    firstName: 'Kennis',
-    lastName: 'Maduka',
-    email: 'madukakennis@gmail.com',
-    phoneNumber: '+2347065027384',
-    referrer: 'kenmaddy',
+    username: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    mobileCountryCode: 'NG',
+    mobile: '',
+    referrer: '',
     isCorporateUser: false,
+    publicKey: '',
   },
   regFormInfo: {
     usePassphrase: false,
     importExistingWallet: false,
     secretKey: '',
-    agreesToTerms: true
+    agreesToTerms: false
   }
 };
 export const authSlice = createSlice({
@@ -58,15 +59,6 @@ export const authSlice = createSlice({
       } 
       return state;
     },
-  },
-  extraReducers: (builder) => {
-    builder.addMatcher(
-      authApi.endpoints.toggleUserAvailability.matchFulfilled,
-      (state, { payload }) => {
-        localStorage.setItem(USER_DETAILS, JSON.stringify(payload));
-        return { ...state, user: payload };
-      },
-    );    
   },
 });
 

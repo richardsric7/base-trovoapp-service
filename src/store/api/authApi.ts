@@ -3,14 +3,18 @@ import { baseApi } from './baseapi';
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation({
+    register: builder.mutation({
       query: (payload: Payload) => ({
-        url: '/v1/login',
-        method: 'POST',
-        signer: payload.signer,
-        publicKey: payload.publicKey,
-        secretKey: payload.secretKey,
-        data: payload.body,
+        url: '/v1/users',
+        method: 'POST',        
+        data: {
+          payload: payload.body,
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        }, 
       }),
     }),
     verifyLogin: builder.query({
@@ -38,7 +42,7 @@ export const authApi = baseApi.injectEndpoints({
 });
 
 export const {
-  useLoginMutation,
+  useRegisterMutation,
   useGetUserInfoQuery,
   useVerifyLoginQuery,
   useToggleUserAvailabilityMutation,

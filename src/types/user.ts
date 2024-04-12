@@ -4,7 +4,9 @@ export type User = {
     firstName: string,
     lastName: string,
     email: string,
-    phoneNumber: string,
+    mobileCountryCode: string,
+    mobile: string,
     referrer: string,
     isCorporateUser: boolean,
+    publicKey: string,
 }
