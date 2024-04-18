@@ -7,12 +7,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/reduxStore';
 import { setFormState, setTempUser } from '../../store/authSlice';
 import 'react-phone-number-input/style.css';
-import PhoneInput, {
-  getCountries,
-  isValidPhoneNumber,
-} from 'react-phone-number-input';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 import { useRegisterMutation } from '../../store/api/authApi';
-import { createAccount, signHTTP } from '../../utils/trovoSDK';
+import {
+  createAccount,
+  getCredsFromPassPhrase,
+  parseSecretKey,
+  signHTTP,
+} from '../../utils/trovoSDK';
 import { showNotification, toggleLoader } from '../../utils/showToaster';
 import {
   ErrorResponse,
@@ -22,15 +24,33 @@ import {
 export default function RegistrationForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const defaultUser: User = {
+    username: 'Kent',
+    firstName: 'Kennis',
+    lastName: 'Maduka',
+    email: 'madukakennis@gmail.com',
+    mobileCountryCode: 'NG',
+    mobile: '+234 706 502 7384',
+    referrer: 'kenmaddy',
+    isCorporateUser: false,
+    publicKey: '',
+    secretKeys: [],
+    isLoggedIn: false,
+  };
+
   const [userRegister] = useRegisterMutation();
-  const appUser = useSelector((state: RootState) => state.auth.user!);
+  const appUser = useSelector(
+    (state: RootState) => state.auth.user ?? defaultUser,
+  );
   const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
   const [user, setUser] = useState<User>(appUser);
-  const [isCorporate, setIsCorporate] = useState(user.isCorporateUser);
-  // const [importExistingWallet, setImportExistingWallet] = useState(
-  //   formInfo.importExistingWallet,
-  // );
-  // const [usePassphrase, setUsePassphrase] = useState(formInfo.usePassphrase);
+  const [isCorporate, setIsCorporate] = useState(user?.isCorporateUser);
+  const [importExistingWallet, setImportExistingWallet] = useState(
+    formInfo.importExistingWallet,
+  );
+  const [usePassphrase, setUsePassphrase] = useState(formInfo.usePassphrase);
+  const [passphrase, setPassphrase] = useState(formInfo.passphrase);
   const [secretKey, setSecretKey] = useState(formInfo.secretKey);
   const [agreesToTerms, setAgreesToTerms] = useState(formInfo.agreesToTerms);
   const [errorObj, setErrorObj] = useState({
@@ -166,30 +186,45 @@ export default function RegistrationForm() {
       };
     }
 
-    // if (importExistingWallet && !secretKey) {
-    //   newObj = {
-    //     ...newObj,
-    //     secretKey: usePassphrase
-    //       ? 'Please enter passphrase'
-    //       : 'Please enter secret key',
-    //   };
-    //   isValid = false;
-    // } else if (
-    //   importExistingWallet &&
-    //   !usePassphrase &&
-    //   secretKey.trim().replaceAll(' ', '').length < 56
-    // ) {
-    //   newObj = {
-    //     ...newObj,
-    //     secretKey: 'Secret key must be 56 characters long',
-    //   };
-    //   isValid = false;
-    // } else {
-    //   newObj = {
-    //     ...newObj,
-    //     secretKey: '',
-    //   };
-    // }
+    if (importExistingWallet && usePassphrase && !passphrase) {
+      newObj = {
+        ...newObj,
+        passphrase: 'Please enter passphrase',
+      };
+      isValid = false;
+    } else if (
+      importExistingWallet &&
+      usePassphrase &&
+      getCredsFromPassPhrase(passphrase) === null
+    ) {
+      newObj = {
+        ...newObj,
+        passphrase: 'Passphrase is invalid!',
+      };
+      isValid = false;
+    } else {
+      newObj = {
+        ...newObj,
+        passphrase: '',
+      };
+    }
+
+    if (
+      importExistingWallet &&
+      !usePassphrase &&
+      secretKey.trim().replaceAll(' ', '').length < 56
+    ) {
+      newObj = {
+        ...newObj,
+        secretKey: 'Secret key must be 56 characters long',
+      };
+      isValid = false;
+    } else {
+      newObj = {
+        ...newObj,
+        secretKey: '',
+      };
+    }
 
     if (!agreesToTerms) {
       newObj = {
@@ -208,48 +243,62 @@ export default function RegistrationForm() {
     return isValid;
   };
 
+  const getAccountFromExistingInfo = () =>
+    usePassphrase
+      ? getCredsFromPassPhrase(passphrase)!
+      : parseSecretKey(secretKey);
+
   const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        const account = createAccount();
-        setSecretKey(account.secretKey);
-        dispatch(setTempUser({ ...user, publicKey: account.publicKey }));
-        dispatch(
-          setFormState({
-            ...formInfo,
-            // importExistingWallet,
-            agreesToTerms,
-            // usePassphrase,
-            secretKey: account.secretKey,
-          }),
+        const account = importExistingWallet
+          ? getAccountFromExistingInfo()
+          : createAccount();
+        console.log(
+          'account',
+          importExistingWallet,
+          account.publicKey,
+          account.secretKey,
         );
+        // setSecretKey(account.secretKey);
+        // dispatch(setTempUser({ ...user, publicKey: account.publicKey }));
+        // dispatch(
+        //   setFormState({
+        //     ...formInfo,
+        //     importExistingWallet,
+        //     agreesToTerms,
+        //     usePassphrase,
+        //     secretKey: account.secretKey,
+        //   }),
+        // );
 
         toggleLoader();
 
-        const res = await userRegister({
-          signer: account.publicKey,
-          publicKey: account.publicKey,
-          secretKey: account.secretKey,
-          body: user,
-        });
+        // const res = await userRegister({
+        //   signer: account.publicKey,
+        //   publicKey: account.publicKey,
+        //   secretKey: account.secretKey,
+        //   body: user,
+        // });
 
         toggleLoader();
-        console.log('res', res);
+        // console.log('res', res);
 
-        if ('data' in res) {
-          const successResponse = res as SuccessResponse;
-          showNotification('success', successResponse.data.message);
-          navigate('/register/verification');
-        } else if ('error' in res) {
-          const errorResponse = res as ErrorResponse;
-          showNotification(
-            'error',
-            errorResponse.error.data.message ??
-              'Sorry we could not complete the request. Please try again.',
-          );
-        }
+        // if ('data' in res) {
+        //   const successResponse = res as SuccessResponse;
+        //   showNotification('success', successResponse.data.message);
+        //   navigate('/register/verification');
+        // } else if ('error' in res) {
+        //   const errorResponse = res as ErrorResponse;
+        //   showNotification(
+        //     'error',
+        //     errorResponse.error.data.message ??
+        //       'Sorry we could not complete the request. Please try again.',
+        //   );
+        // }
       } catch (error: any) {
+        console.log(error);
         showNotification(
           'error',
           'Sorry something went wrong. Please try again.',
@@ -425,7 +474,7 @@ export default function RegistrationForm() {
           <p className="text-red-500 text-sm">{errorObj.referrer}</p>
         )}
       </div>
-      {/* <div className="w-3/4 flex space-x-3">
+      <div className="w-3/4 flex space-x-3">
         <input
           type="checkbox"
           name="import"
@@ -440,18 +489,21 @@ export default function RegistrationForm() {
         <div className="w-3/4 space-y-5">
           {usePassphrase ? (
             <div className="space-y-1">
+              <label className="text-primary-700" htmlFor="Phone Input">
+                Enter Passphrase
+              </label>
               <textarea
                 className="mt-2 ring-2 ring-gray-200 focus-within:ring-primary-600 rounded-md
               w-full h-12 py-1 px-2 focus-within:ring-2 flex items-center focus:outline-none"
                 placeholder="Enter Passphrase"
                 rows={8}
-                defaultValue={secretKey}
+                defaultValue={passphrase}
                 onChange={(evt) => {
-                  setSecretKey(evt.target.value);
+                  setPassphrase(evt.target.value);
                 }}
               />
-              {errorObj.secretKey && (
-                <p className="text-red-500 text-sm">{errorObj.secretKey}</p>
+              {errorObj.passphrase && (
+                <p className="text-red-500 text-sm">{errorObj.passphrase}</p>
               )}
             </div>
           ) : (
@@ -482,7 +534,7 @@ export default function RegistrationForm() {
             <p className="text-gray-500">Use passphrase instead </p>
           </div>
         </div>
-      )} */}
+      )}
       <div className="w-3/4 space-y-1">
         <div className="flex space-x-3">
           <input

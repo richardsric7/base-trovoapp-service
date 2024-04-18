@@ -20,7 +20,6 @@ interface FormFieldGuide {
 export default function CreatePassword() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const isFirst = useRef(true);
   const initialGuidesState = [
     {
       info: 'Password must not contain whitespaces',

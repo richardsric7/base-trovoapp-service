@@ -4,15 +4,16 @@ import { USER_DETAILS } from '../constants';
 
 
 export const getPreloadedState = ()  => {
-  const userDetails = getStorage(USER_DETAILS) as User;
+  const userDetails = getStorage(USER_DETAILS) as User ?? null;
   const defalutValue = {
     auth: {
       user: userDetails,
+      isAuthenticated: false,
       regFormInfo: {
         usePassphrase: false,
         importExistingWallet: false,
-        secretKey: '',
-        password: '',
+        secretKey: 'SAZA4CU34762KCGWDAGGARTMWUBLYEXFGYQ34CK2LIXXLA5264AFLNJ5',
+        password: 'K@nt2cky',
         agreesToTerms: false
       }      
     },

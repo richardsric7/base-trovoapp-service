@@ -1,5 +1,7 @@
 import * as StellarSdk from '@stellar/stellar-sdk';
+import { generateMnemonic, mnemonicToSeedSync } from 'bip39';
 import {Buffer} from "buffer";
+import { buffer } from 'stream/consumers';
 
 const createAccount = (): Account => {
     // create a completely new and unique pair of keys.
@@ -59,4 +61,16 @@ const parseSecretKey = (secretKey: string): Account => {
     return {publicKey: keypair.publicKey(), secretKey: keypair.secret()};
 };
 
-export {createAccount, signHTTP, importAccount, signBase64Txn, parseSecretKey};
+const getCredsFromPassPhrase = (passphrase: string): Account | null => {
+    try {    
+        const seed = mnemonicToSeedSync(passphrase);
+        const keypair = StellarSdk.Keypair.fromRawEd25519Seed(Buffer.alloc(32, seed));
+
+        return {publicKey: keypair.publicKey(), secretKey: keypair.secret()};
+    } catch (error: any) {
+        console.log(error);
+        return null;        
+    }
+};
+
+export {createAccount, signHTTP, importAccount, signBase64Txn, parseSecretKey, getCredsFromPassPhrase};

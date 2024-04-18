@@ -9,4 +9,5 @@ export type User = {
     isCorporateUser: boolean,
     publicKey: string,
     secretKeys: string[],
+    isLoggedIn: boolean,
 }

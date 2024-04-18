@@ -3,9 +3,10 @@ import { USER_DETAILS } from './constants';
 import { User } from '../types/user';
 
 export type AuthState = {
-  user: User,
+  user?: User,
   regFormInfo: {
     usePassphrase: boolean,
+    passphrase: string,
     importExistingWallet: boolean,
     secretKey: string,
     password: string,
@@ -14,24 +15,14 @@ export type AuthState = {
 }
 
 const initialState: AuthState = {
-  user: {
-    username: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    mobileCountryCode: 'NG',
-    mobile: '',
-    referrer: '',
-    isCorporateUser: false,
-    publicKey: '',
-    secretKeys: [],
-  },
+  user: undefined,
   regFormInfo: {
     usePassphrase: false,
-    importExistingWallet: false,
-    secretKey: '',
+    importExistingWallet: true,
+    secretKey: 'SAZA4CU34762KCGWDAGGARTMWUBLYEXFGYQ34CK2LIXXLA5264AFLNJ5',
     password: '',
-    agreesToTerms: false
+    passphrase: '',
+    agreesToTerms: true
   }
 };
 export const authSlice = createSlice({

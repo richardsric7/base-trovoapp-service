@@ -17,6 +17,9 @@ import Dashboard from '../pages/dashboard/main';
 import Home from '../pages/dashboard/home';
 import Wallet from '../pages/dashboard/wallet';
 import TokenizedAsset from '../pages/dashboard/tokenizedAsset';
+import { ProtectedRoutes } from './routeGuard';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/reduxStore';
 
 export default function AppRouter() {
   return (
@@ -28,6 +31,9 @@ export default function AppRouter() {
         <Route path="/welcome1" element={<Welcome1 />} />
         <Route path="/welcome2" element={<Welcome2 />} />
         <Route path="/welcome3" element={<Welcome3 />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/import" element={<ImportWallet />} />
+        <Route path="/recovery" element={<RecoveryMain />} />
         <Route path="/register" element={<CreateAccount />}>
           <Route index element={<CreatePassword />} />
           <Route path="create-password" element={<CreatePassword />} />
@@ -37,15 +43,14 @@ export default function AppRouter() {
           path="/register/verification"
           element={<AccountVerification />}
         />
-        <Route path="/register/backup" element={<Backup />} />
-        <Route path="/import" element={<ImportWallet />} />
-        <Route path="/recovery" element={<RecoveryMain />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />}>
-          <Route index element={<Dashboard />} />
-          <Route path="tokenized-asset" element={<TokenizedAsset />} />
-          <Route path="home" element={<Home />} />
-          <Route path="wallet" element={<Wallet />} />
+        <Route element={<ProtectedRoutes />}>
+          <Route path="/backup" element={<Backup />} />
+          <Route path="/dashboard" element={<Dashboard />}>
+            <Route index element={<Dashboard />} />
+            <Route path="tokenized-asset" element={<TokenizedAsset />} />
+            <Route path="home" element={<Home />} />
+            <Route path="wallet" element={<Wallet />} />
+          </Route>
         </Route>
         {/* <Route path="*" element={<Page404 />} /> */}
       </Routes>

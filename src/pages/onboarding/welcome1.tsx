@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/reduxStore';
 
 function Welcome1() {
   const navigate = useNavigate();
+  const { user } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/login');
+    }
+  }, []);
+
   return (
     <div className="flex flex-col h-3/4 lg:h-full space-y-3 lg:space-y-5 items-center justify-center ">
       <span className="rounded-full inline-block h-16" />
