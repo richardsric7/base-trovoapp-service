@@ -19,7 +19,7 @@ const initialState: AuthState = {
   regFormInfo: {
     usePassphrase: false,
     importExistingWallet: true,
-    secretKey: 'SAZA4CU34762KCGWDAGGARTMWUBLYEXFGYQ34CK2LIXXLA5264AFLNJ5',
+    secretKey: '',
     password: '',
     passphrase: '',
     agreesToTerms: true

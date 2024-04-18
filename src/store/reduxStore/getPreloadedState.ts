@@ -12,8 +12,8 @@ export const getPreloadedState = ()  => {
       regFormInfo: {
         usePassphrase: false,
         importExistingWallet: false,
-        secretKey: 'SAZA4CU34762KCGWDAGGARTMWUBLYEXFGYQ34CK2LIXXLA5264AFLNJ5',
-        password: 'K@nt2cky',
+        secretKey: '',
+        password: '',
         agreesToTerms: false
       }      
     },

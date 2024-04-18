@@ -26,13 +26,13 @@ export default function RegistrationForm() {
   const dispatch = useDispatch();
 
   const defaultUser: User = {
-    username: 'Kent',
-    firstName: 'Kennis',
-    lastName: 'Maduka',
-    email: 'madukakennis@gmail.com',
+    username: '',
+    firstName: '',
+    lastName: '',
+    email: '',
     mobileCountryCode: 'NG',
-    mobile: '+234 706 502 7384',
-    referrer: 'kenmaddy',
+    mobile: '',
+    referrer: '',
     isCorporateUser: false,
     publicKey: '',
     secretKeys: [],
@@ -63,7 +63,6 @@ export default function RegistrationForm() {
     secretKey: '',
     passphrase: '',
     termsOfUse: '',
-    general: '',
   });
 
   useEffect(() => {
@@ -255,50 +254,44 @@ export default function RegistrationForm() {
         const account = importExistingWallet
           ? getAccountFromExistingInfo()
           : createAccount();
-        console.log(
-          'account',
-          importExistingWallet,
-          account.publicKey,
-          account.secretKey,
+
+        setSecretKey(account.secretKey);
+        dispatch(setTempUser({ ...user, publicKey: account.publicKey }));
+        dispatch(
+          setFormState({
+            ...formInfo,
+            importExistingWallet,
+            agreesToTerms,
+            usePassphrase,
+            secretKey: account.secretKey,
+          }),
         );
-        // setSecretKey(account.secretKey);
-        // dispatch(setTempUser({ ...user, publicKey: account.publicKey }));
-        // dispatch(
-        //   setFormState({
-        //     ...formInfo,
-        //     importExistingWallet,
-        //     agreesToTerms,
-        //     usePassphrase,
-        //     secretKey: account.secretKey,
-        //   }),
-        // );
 
         toggleLoader();
 
-        // const res = await userRegister({
-        //   signer: account.publicKey,
-        //   publicKey: account.publicKey,
-        //   secretKey: account.secretKey,
-        //   body: user,
-        // });
+        const res = await userRegister({
+          signer: account.publicKey,
+          publicKey: account.publicKey,
+          secretKey: account.secretKey,
+          body: user,
+        });
 
         toggleLoader();
-        // console.log('res', res);
+        console.log('res', res);
 
-        // if ('data' in res) {
-        //   const successResponse = res as SuccessResponse;
-        //   showNotification('success', successResponse.data.message);
-        //   navigate('/register/verification');
-        // } else if ('error' in res) {
-        //   const errorResponse = res as ErrorResponse;
-        //   showNotification(
-        //     'error',
-        //     errorResponse.error.data.message ??
-        //       'Sorry we could not complete the request. Please try again.',
-        //   );
-        // }
+        if ('data' in res) {
+          const successResponse = res as SuccessResponse;
+          showNotification('success', successResponse.data.message);
+          navigate('/register/verification');
+        } else if ('error' in res) {
+          const errorResponse = res as ErrorResponse;
+          showNotification(
+            'error',
+            errorResponse.error.data.message ??
+              'Sorry we could not complete the request. Please try again.',
+          );
+        }
       } catch (error: any) {
-        console.log(error);
         showNotification(
           'error',
           'Sorry something went wrong. Please try again.',

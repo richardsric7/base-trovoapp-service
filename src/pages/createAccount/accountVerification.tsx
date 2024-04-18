@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useRegisterMutation } from '../../store/api/authApi';
 import { RootState } from '../../store/reduxStore';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
-import { setUser } from '../../store/authSlice';
+import { setFormState, setUser } from '../../store/authSlice';
 import { Encryptor } from '../../types/encryptor';
 
 function AccountVerification() {
@@ -59,7 +59,19 @@ function AccountVerification() {
         dispatch(
           setUser({
             ...appUser,
+            isLoggedIn: true,
             secretKeys: [base64EncryptedData],
+          }),
+        );
+        dispatch(
+          setFormState({
+            ...formInfo,
+            importExistingWallet: false,
+            agreesToTerms: false,
+            usePassphrase: false,
+            secretKey: '',
+            password: '',
+            passphrase: '',
           }),
         );
         setShowModal(true);
@@ -142,8 +154,7 @@ function AccountVerification() {
                 <Button
                   label="Backup"
                   onclick={() => {
-                    navigate('/register/backup');
-                    // setShowModal(true);
+                    navigate('/backup');
                   }}
                 />
               </div>
@@ -151,7 +162,6 @@ function AccountVerification() {
                 <ButtonSecondary
                   label="Skip"
                   onclick={() => {
-                    // navigate('/register/backup');
                     setShowModal(false);
                   }}
                 />
@@ -162,8 +172,6 @@ function AccountVerification() {
             <Button
               label="Verify"
               onclick={() => {
-                // navigate('/register/backup');
-                // setShowModal(true);
                 handleSubmit();
               }}
             />
