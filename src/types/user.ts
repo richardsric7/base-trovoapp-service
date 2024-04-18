@@ -1,6 +1,5 @@
 export type User = {
     username: string,
-    password: string,
     firstName: string,
     lastName: string,
     email: string,
@@ -9,4 +8,5 @@ export type User = {
     referrer: string,
     isCorporateUser: boolean,
     publicKey: string,
+    secretKeys: string[],
 }

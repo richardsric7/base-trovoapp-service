@@ -5,6 +5,7 @@ import { baseApi } from "../api/baseapi";
 import { authSlice, setUser } from "../authSlice";
 import { refreshAccessToken } from "../refreshAccessToken";
 import { sidebarSlice } from '../sidebarSlice';
+import { getPreloadedState } from "./getPreloadedState";
 
 export const store = configureStore({
     reducer:{
@@ -14,6 +15,7 @@ export const store = configureStore({
     },
     middleware:(getDefaultMiddleware) => 
     getDefaultMiddleware().concat(baseApi.middleware),
+    preloadedState: getPreloadedState(),
 });
 setupListeners(store.dispatch);
 

@@ -4,9 +4,145 @@ import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
 import TrovoBrand from '../../components/trovoBrand';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/reduxStore';
+import { Encryptor } from '../../types/encryptor';
+import { showNotification } from '../../utils/showToaster';
+import { PasswordInputModal } from '../../components/passwordModal';
 
 export default function Backup() {
   const [showCreds, setShowCredentials] = useState(false);
+  const [showEnterPassword, setShowEnterPassword] = useState(false);
+  const appUser = useSelector((state: RootState) => state.auth.user!);
+  const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
+  const [password, setPassword] = useState(formInfo.password ?? '');
+  const [secret, setSecret] = useState('');
+  const navigate = useNavigate();
+
+  function ShowCredentials() {
+    return (
+      <div className="text-primary-800 space-y-5 text-md w-full text-justify">
+        <p>
+          Please copy the following details correctly and store in a safe place
+        </p>
+        <p>You can copy your secret key as displayed below:</p>
+        <div className="flex flex-col space-y-5">
+          <p className="text-left w-full text-primary-800 text-md font-bold">
+            Alias:
+          </p>
+          <div className="flex justify-between">
+            <p>{appUser.username}</p>
+            <button
+              type="button"
+              onClick={() =>
+                navigator.clipboard.writeText(appUser.username).then(() => {
+                  showNotification('info', 'Username copied!');
+                })
+              }
+            >
+              <img src="/images/copy.png" alt="copy" />
+            </button>
+          </div>
+        </div>
+        <div className="flex flex-col space-y-5 w-full">
+          <p className="text-left w-full text-primary-800 text-md font-bold">
+            Public Key:
+          </p>
+          <div className="flex w-full justify-between">
+            <div className="w-4/5 h-full break-all">{appUser.publicKey}</div>
+            <button
+              type="button"
+              onClick={() =>
+                navigator.clipboard.writeText(appUser.publicKey).then(() => {
+                  showNotification('info', 'Public key copied!');
+                })
+              }
+            >
+              <img src="/images/copy.png" alt="copy" />
+            </button>
+          </div>
+        </div>
+        <div className="flex flex-col space-y-5 w-full">
+          <p className="text-left w-full text-primary-800 text-md font-bold">
+            Secret Key:
+          </p>
+          <div className="flex w-full justify-between">
+            <div className="w-4/5 h-full break-all">
+              {secret ? secret : '***********'}
+            </div>
+            <div className="flex justify-between space-x-5">
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!secret) {
+                    const encryptor = new Encryptor();
+                    const decryptedData = await encryptor.decryptData(
+                      appUser.secretKeys[0],
+                      password,
+                      appUser.publicKey,
+                    );
+
+                    setSecret(decryptedData);
+                  } else {
+                    setSecret('');
+                  }
+                }}
+              >
+                <img src="/images/eyeShow.png" alt="copy" />
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const encryptor = new Encryptor();
+                  const decryptedData = await encryptor.decryptData(
+                    appUser.secretKeys[0],
+                    password,
+                    appUser.publicKey,
+                  );
+                  navigator.clipboard.writeText(decryptedData).then(() => {
+                    showNotification('info', 'Secret key copied!');
+                  });
+                }}
+              >
+                <img src="/images/copy.png" alt="copy" />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end w-full">
+          <button
+            type="button"
+            onClick={async () => {
+              const encryptor = new Encryptor();
+              const decryptedData = await encryptor.decryptData(
+                appUser.secretKeys[0],
+                password,
+                appUser.publicKey,
+              );
+
+              navigator.clipboard
+                .writeText(
+                  `Wallet alias: ${appUser.username}\nPublic key: ${appUser.publicKey}\nSecret key: ${decryptedData}`,
+                )
+                .then(() => {
+                  showNotification('info', 'Wallet info copied!');
+                });
+            }}
+          >
+            Copy All
+          </button>
+        </div>
+        <div className="w-3/4">
+          <Button
+            label="Continue"
+            onclick={() => {
+              navigate('/dashboard/home');
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex md:h-full items-center justify-center">
@@ -32,12 +168,30 @@ export default function Backup() {
             <ShowCredentials />
           ) : (
             <ShowPreliminary
+              value={showCreds}
               onInputChange={(value) => {
                 console.log('changed to: ', value);
-                setShowCredentials(value);
+                if (password) {
+                  setShowCredentials(true);
+                  return;
+                }
+
+                setShowCredentials(false);
+                setShowEnterPassword(true);
               }}
             />
           )}
+          <PasswordInputModal
+            show={showEnterPassword}
+            onClose={() => {
+              setShowEnterPassword(false);
+            }}
+            onDone={(value) => {
+              setPassword(value);
+              setShowEnterPassword(false);
+              setShowCredentials(true);
+            }}
+          />
         </div>
       </div>
     </div>
@@ -46,8 +200,10 @@ export default function Backup() {
 
 function ShowPreliminary({
   onInputChange,
+  value,
 }: {
   onInputChange: (value: boolean) => void;
+  value: boolean;
 }) {
   return (
     <div className="text-primary-800 space-y-5 text-md text-justify">
@@ -70,6 +226,7 @@ function ShowPreliminary({
         <input
           type="checkbox"
           name="import"
+          checked={value}
           onChange={(e) => {
             onInputChange(e.target.value as unknown as boolean);
           }}
@@ -81,70 +238,3 @@ function ShowPreliminary({
     </div>
   );
 }
-
-function ShowCredentials() {
-  const navigate = useNavigate();
-  return (
-    <div className="text-primary-800 space-y-5 text-md w-full text-justify">
-      <p>
-        Please copy the following details correctly and store in a safe place
-      </p>
-      <p>You can copy your secret key as displayed below:</p>
-      <div className="flex flex-col space-y-5">
-        <p className="text-left w-full text-primary-800 text-md font-bold">
-          Alias:
-        </p>
-        <div className="flex justify-between">
-          <p>Obi</p>
-          <button type="button">
-            <img src="/images/copy.png" alt="copy" />
-          </button>
-        </div>
-      </div>
-      <div className="flex flex-col space-y-5 w-full">
-        <p className="text-left w-full text-primary-800 text-md font-bold">
-          Public Key:
-        </p>
-        <div className="flex w-full justify-between">
-          <div className="w-4/5 h-full break-all">
-            AS6HFTRHVU9876YNHGDLJFUEVSMKEFIEUIE75SDCVBNMU70453EHNKKKNLOJHDSSO98
-          </div>
-          <button type="button">
-            <img src="/images/copy.png" alt="copy" />
-          </button>
-        </div>
-      </div>
-      <div className="flex flex-col space-y-5 w-full">
-        <p className="text-left w-full text-primary-800 text-md font-bold">
-          Secret Key:
-        </p>
-        <div className="flex w-full justify-between">
-          <div className="w-4/5 h-full break-all">***********</div>
-          <div className="flex justify-between space-x-5">
-            <button type="button">
-              <img src="/images/eyeShow.png" alt="copy" />
-            </button>
-            <button type="button">
-              <img src="/images/copy.png" alt="copy" />
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="flex justify-end w-full">
-        <button type="button">Copy All</button>
-      </div>
-      <div className="w-3/4">
-        <Button
-          label="Continue"
-          onclick={() => {
-            navigate('/register/backup');
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
-ShowPreliminary.propTypes = {
-  onInputChange: PropTypes.func.isRequired,
-};

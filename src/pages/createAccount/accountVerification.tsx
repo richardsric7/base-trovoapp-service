@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OtpInput from '../../components/otpInput';
@@ -10,10 +10,9 @@ import { showNotification, toggleLoader } from '../../utils/showToaster';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRegisterMutation } from '../../store/api/authApi';
 import { RootState } from '../../store/reduxStore';
-import {
-  ErrorResponse,
-  SuccessResponse,
-} from '../../store/api/baseapi/axiosBaseQuery';
+import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
+import { setUser } from '../../store/authSlice';
+import { Encryptor } from '../../types/encryptor';
 
 function AccountVerification() {
   const navigate = useNavigate();
@@ -24,12 +23,13 @@ function AccountVerification() {
   const appUser = useSelector((state: RootState) => state.auth.user!);
   const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
 
+  useEffect(() => {
+    if (!formInfo.password) {
+      navigate('/register');
+    }
+  }, []);
+
   const handleSubmit = async () => {
-    console.log(
-      'input has changed',
-      verificationCode.length,
-      isNaN(Number(verificationCode)),
-    );
     if (verificationCode.length !== 6 || isNaN(Number(verificationCode))) {
       showNotification('error', 'Please enter a valid 6 digits otp');
       return;
@@ -49,8 +49,19 @@ function AccountVerification() {
       console.log('res', res);
 
       if ('data' in res) {
-        // const successResponse = res as SuccessResponse;
-        // showNotification('success', successResponse.data.message);
+        const encryptor = new Encryptor();
+        const base64EncryptedData = await encryptor.encryptData(
+          formInfo.secretKey,
+          formInfo.password,
+          appUser.publicKey,
+        );
+
+        dispatch(
+          setUser({
+            ...appUser,
+            secretKeys: [base64EncryptedData],
+          }),
+        );
         setShowModal(true);
       } else if ('error' in res) {
         const errorResponse = res as ErrorResponse;
@@ -60,8 +71,6 @@ function AccountVerification() {
             'Something went wrong. Please try again.',
         );
       }
-
-      // navigate('/register/verification');
     } catch (error: any) {
       console.log(error);
     }
@@ -90,7 +99,7 @@ function AccountVerification() {
           <div className="w-3/4 text-center px-5 md:px-10 py-5 bg-primary-100 rounded-xl">
             <p className="text-primary-800 text-md">
               Enter 6-digit code we just sent to your email address:
-              <span className="font-semibold"> nancy@gmail.com</span>
+              <span className="font-semibold"> {appUser.email}</span>
             </p>
           </div>
           <p className="text-primary-800 text-md xl:text-lg font-semibold">
@@ -105,7 +114,12 @@ function AccountVerification() {
               }}
             />
           </div>
-          <Modal showModal={showModal} onClose={() => {}}>
+          <Modal
+            showModal={showModal}
+            onClose={() => {
+              setShowModal(false);
+            }}
+          >
             <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
               <img src="/images/launch.png" alt="success" />
               <div className="flex flex-col text-center space-y-5 items-center w-2/3 md:px-10 justify-center">

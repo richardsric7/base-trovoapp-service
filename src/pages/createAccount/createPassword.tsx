@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
 import TextInput from '../../components/textInput';
 import { useDispatch, useSelector } from 'react-redux';
-import { setTempUser } from '../../store/authSlice';
+import { setFormState, setTempUser } from '../../store/authSlice';
 import { RootState } from '../../store/reduxStore';
 
 enum FieldState {
@@ -47,9 +47,9 @@ export default function CreatePassword() {
       fieldState: FieldState.pristine,
     },
   ];
-  const user = useSelector((state: RootState) => state.auth.user);
-  const [password, setPassword] = useState(user.password);
-  const [confirmPassword, setConfirmPassword] = useState(user.password);
+  const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
+  const [password, setPassword] = useState(formInfo.password);
+  const [confirmPassword, setConfirmPassword] = useState(formInfo.password);
   const [confirmPasswordErr, setConfirmPasswordErr] = useState('');
   const [passwordGuides, setPasswordGuide] =
     useState<FormFieldGuide[]>(initialGuidesState);
@@ -129,7 +129,6 @@ export default function CreatePassword() {
   });
 
   useEffect(() => {
-    console.log('lsdksds', isFirst.current);
     if (password) {
       validatePassword();
     } else {
@@ -183,8 +182,8 @@ export default function CreatePassword() {
             }
 
             if (validatePassword() && isValid) {
-              const newUser = { ...user, password: password };
-              dispatch(setTempUser(newUser));
+              const formState = { ...formInfo, password: password };
+              dispatch(setFormState(formState));
               navigate('/register/form');
             }
           }}

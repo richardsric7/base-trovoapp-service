@@ -2,12 +2,13 @@ import { createSlice } from '@reduxjs/toolkit';
 import { USER_DETAILS } from './constants';
 import { User } from '../types/user';
 
-type AuthState = {
+export type AuthState = {
   user: User,
   regFormInfo: {
     usePassphrase: boolean,
     importExistingWallet: boolean,
     secretKey: string,
+    password: string,
     agreesToTerms: boolean
   }
 }
@@ -15,7 +16,6 @@ type AuthState = {
 const initialState: AuthState = {
   user: {
     username: '',
-    password: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -24,11 +24,13 @@ const initialState: AuthState = {
     referrer: '',
     isCorporateUser: false,
     publicKey: '',
+    secretKeys: [],
   },
   regFormInfo: {
     usePassphrase: false,
     importExistingWallet: false,
     secretKey: '',
+    password: '',
     agreesToTerms: false
   }
 };
@@ -40,7 +42,7 @@ export const authSlice = createSlice({
       const storage = localStorage;
       if (action.payload) {
         state.user = action.payload;
-        storage.setItem(USER_DETAILS, JSON.stringify(state.user));
+        storage.setItem(USER_DETAILS, JSON.stringify(state.user));        
       } else {
         state = initialState;
         storage.clear();

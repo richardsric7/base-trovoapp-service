@@ -47,7 +47,7 @@ export default function RegistrationForm() {
   });
 
   useEffect(() => {
-    if (!user.password) {
+    if (!formInfo.password) {
       navigate('/register');
     }
   }, [user, secretKey, errorObj]);
@@ -221,7 +221,7 @@ export default function RegistrationForm() {
             // importExistingWallet,
             agreesToTerms,
             // usePassphrase,
-            secretKey,
+            secretKey: account.secretKey,
           }),
         );
 
@@ -383,7 +383,6 @@ export default function RegistrationForm() {
           value={user.mobile}
           international
           onCountryChange={(newValue) => {
-            console.log('set country code ', newValue);
             const newUser = {
               ...user,
               mobileCountryCode: newValue?.toString() ?? '',
@@ -391,7 +390,6 @@ export default function RegistrationForm() {
             setUser(newUser);
           }}
           onChange={(newValue) => {
-            console.log('set value ', newValue);
             const newUser = {
               ...user,
               mobile: newValue?.toString() ?? '',
@@ -531,7 +529,4 @@ export default function RegistrationForm() {
       <div />
     </form>
   );
-}
-function showToaster(arg0: { type: string; message: string }) {
-  throw new Error('Function not implemented.');
 }
