@@ -1,14 +1,287 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
 import TextInput from '../../components/textInput';
 import TrovoBrand from '../../components/trovoBrand';
+import ButtonSecondary from '../../components/buttonSecondary';
+import { FieldState, FormFieldGuide, User } from '../../types/user';
+import { getCredsFromPassPhrase, parseSecretKey } from '../../utils/trovoSDK';
+import { showNotification, toggleLoader } from '../../utils/showToaster';
+import { useLazyGetUserQuery } from '../../store/api/authApi';
+import { useDispatch } from 'react-redux';
+import { Encryptor } from '../../types/encryptor';
+import { setUser } from '../../store/authSlice';
+import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
 
 export default function ImportWallet() {
   const [usePassphrase, setUsePassphrase] = useState(false);
+  const [agreesToTerms, setAgreesToTerms] = useState(true);
+
+  const [formInfo, setFormInfo] = useState({
+    userId: '',
+    secret: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  const [getUser, {}] = useLazyGetUserQuery();
+
+  const dispatch = useDispatch();
+  const [errorObj, setErrorObj] = useState({
+    userId: '',
+    secret: '',
+    password: '',
+    termsOfUse: '',
+    confirmPassword: '',
+  });
   const navigate = useNavigate();
+
+  const initialGuidesState = [
+    {
+      info: 'Password must not contain whitespaces',
+      fieldState: FieldState.pristine,
+    },
+    {
+      info: 'Password must have at least one uppercase character',
+      fieldState: FieldState.pristine,
+    },
+    {
+      info: 'Password must have at least one lowercase character',
+      fieldState: FieldState.pristine,
+    },
+    {
+      info: 'Password must contain at least one digit',
+      fieldState: FieldState.pristine,
+    },
+    {
+      info: 'Password must contain at least one special symbol',
+      fieldState: FieldState.pristine,
+    },
+    {
+      info: 'Password length be minimum of 6 and maximimum of 16',
+      fieldState: FieldState.pristine,
+    },
+  ];
+  const [passwordGuides, setPasswordGuide] =
+    useState<FormFieldGuide[]>(initialGuidesState);
+
+  const validatePassword = (): boolean => {
+    let isValid = true;
+    let newGuides = [...passwordGuides];
+
+    const isWhitespace = /^(?=.*\s)/;
+    if (isWhitespace.test(formInfo.password)) {
+      newGuides[0].fieldState = FieldState.error;
+      isValid = false;
+    } else {
+      newGuides[0].fieldState = FieldState.ok;
+    }
+
+    const isContainsUppercase = /^(?=.*[A-Z])/;
+    if (!isContainsUppercase.test(formInfo.password)) {
+      newGuides[1].fieldState = FieldState.error;
+      isValid = false;
+    } else {
+      newGuides[1].fieldState = FieldState.ok;
+    }
+
+    const isContainsLowercase = /^(?=.*[a-z])/;
+    if (!isContainsLowercase.test(formInfo.password)) {
+      newGuides[2].fieldState = FieldState.error;
+      isValid = false;
+    } else {
+      newGuides[2].fieldState = FieldState.ok;
+    }
+
+    const isContainsNumber = /^(?=.*[0-9])/;
+    if (!isContainsNumber.test(formInfo.password)) {
+      newGuides[3].fieldState = FieldState.error;
+      isValid = false;
+    } else {
+      newGuides[3].fieldState = FieldState.ok;
+    }
+
+    // eslint-disable-next-line
+    const isContainsSymbol = /^(?=.*[~`!@#$%^&*()--+={}\[\]|\\:;"'<>,.?/_₹])/;
+    if (!isContainsSymbol.test(formInfo.password)) {
+      newGuides[4].fieldState = FieldState.error;
+      isValid = false;
+    } else {
+      newGuides[4].fieldState = FieldState.ok;
+    }
+
+    // const isValidLength = /^.{6,16}$/;
+    if (formInfo.password.length < 6 || formInfo.password.length > 16) {
+      newGuides[5].fieldState = FieldState.error;
+      isValid = false;
+    } else {
+      newGuides[5].fieldState = FieldState.ok;
+    }
+
+    setPasswordGuide(newGuides);
+    return isValid;
+  };
+
+  const guides = passwordGuides.map((guide, index) => {
+    const additionalClasses =
+      guide.fieldState == FieldState.error
+        ? 'text-red-500'
+        : guide.fieldState == FieldState.ok
+        ? 'text-green-500'
+        : '';
+    return (
+      <p
+        key={`${new Date().getTime()}${guide.info.replace(' ', '')}`}
+        className={`text-gray-400 text-left mt-1 ${additionalClasses}`}
+      >
+        - {guide.info}
+      </p>
+    );
+  });
+
+  useEffect(() => {
+    if (formInfo.password) {
+      validatePassword();
+    } else {
+      setPasswordGuide([...initialGuidesState]);
+    }
+  }, [formInfo, errorObj]);
+
+  const validateForm = (): boolean => {
+    let isValid = true;
+    let newObj = errorObj;
+
+    if (!formInfo.userId) {
+      newObj = {
+        ...newObj,
+        userId: 'Please enter your username or email address.',
+      };
+      isValid = false;
+    } else if (
+      formInfo.userId.trim().replaceAll(' ', '').length < 3 ||
+      formInfo.userId.trim().replaceAll(' ', '').length > 16
+    ) {
+      newObj = {
+        ...newObj,
+        userId: 'Username/Email must be between 3 and 16 characters long',
+      };
+      isValid = false;
+    } else {
+      newObj = {
+        ...newObj,
+        userId: '',
+      };
+    }
+    if (!formInfo.secret) {
+      newObj = {
+        ...newObj,
+        secret: usePassphrase
+          ? 'Please enter passphrase'
+          : 'Please enter secret key',
+      };
+      isValid = false;
+    } else {
+      newObj = {
+        ...newObj,
+        secret: '',
+      };
+    }
+
+    if (!validatePassword()) {
+      isValid = false;
+    }
+
+    if (!formInfo.password) {
+      newObj = {
+        ...newObj,
+        password: 'Please enter your password!',
+      };
+      isValid = false;
+    }
+
+    if (!formInfo.confirmPassword) {
+      newObj = {
+        ...newObj,
+        confirmPassword: 'Please confirm your password!',
+      };
+      isValid = false;
+    }
+
+    if (!agreesToTerms) {
+      newObj = {
+        ...newObj,
+        termsOfUse: 'You need to accept terms',
+      };
+      isValid = false;
+    } else {
+      newObj = {
+        ...newObj,
+        termsOfUse: '',
+      };
+    }
+
+    setErrorObj({ ...newObj });
+    return isValid;
+  };
+
+  const getAccountFromExistingInfo = () =>
+    usePassphrase
+      ? getCredsFromPassPhrase(formInfo.secret)!
+      : parseSecretKey(formInfo.secret);
+
+  const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (validateForm()) {
+      try {
+        const account = getAccountFromExistingInfo();
+
+        const payload = {
+          signer: account.publicKey,
+          publicKey: account.publicKey,
+          secretKey: account.secretKey,
+          body: { userId: formInfo.userId, import: 1 },
+        };
+
+        toggleLoader();
+        const { data, error } = await getUser(payload);
+        toggleLoader();
+
+        if (data) {
+          const response = data.userData as unknown as User;
+          showNotification('success', 'Wallet successfully imported!');
+          navigate('/dashboard');
+          const encryptor = new Encryptor();
+          const base64EncryptedData = await encryptor.encryptData(
+            account.secretKey,
+            formInfo.password,
+            account.publicKey,
+          );
+          dispatch(
+            setUser({
+              ...response,
+              isLoggedIn: true,
+              secretKeys: [base64EncryptedData],
+            }),
+          );
+        } else if (error) {
+          const err = error as ErrorResponse;
+          showNotification(
+            'error',
+            err.data.message ??
+              'Sorry we could not complete the request. Please try again.',
+          );
+        }
+      } catch (error: any) {
+        showNotification(
+          'error',
+          'Sorry something went wrong. Please check your inputs try again.',
+        );
+      }
+    }
+  };
+
   return (
-    <div className="flex md:h-screen items-center justify-center">
+    <div className="flex h-full items-center justify-center ">
       <div className="hidden md:block w-3/5 h-full p-3">
         <div className="flex h-full space-y-3 xl:space-y-5 rounded-lg flex-col items-center bg-primary-100">
           <TrovoBrand />
@@ -27,102 +300,142 @@ export default function ImportWallet() {
           />
         </div>
       </div>
-      <div className="w-full md:w-2/5 pt-20">
-        <div className="flex flex-col space-y-6 h-full overflow-y-scroll items-center md:justify-center">
-          <div className="w-3/4">
+      <div className="w-full md:w-2/5 h-full overflow-y-scroll">
+        <form
+          id="import-form"
+          onSubmit={handleSubmit}
+          className="flex flex-col space-y-6 h-full overflow-y-scroll items-center md:justify-center"
+        >
+          <div className="w-3/4 space-y-1">
             <TextInput
               label="Username or Email Address"
               leadingIcon="/images/email.png"
               inputType="text"
               onInputChange={(newValue) => {
-                console.log('input has changed', newValue);
+                setFormInfo({ ...formInfo, userId: newValue });
               }}
             />
+            {errorObj.userId && (
+              <p className="text-red-500 text-sm">{errorObj.userId}</p>
+            )}
           </div>
-          <div className="w-3/4 flex space-x-3">
-            <input
-              type="checkbox"
-              onChange={() => {
-                setUsePassphrase(!usePassphrase);
-              }}
-              name="import"
-            />
-            <p className="text-gray-500">Enter pass phrase instead</p>
-          </div>
-          <div className="w-3/4">
+          <div className="w-3/4 space-y-3">
             {usePassphrase ? (
-              <textarea
-                className="mt-2 ring-2 ring-gray-200 focus-within:ring-primary-600 rounded-md
+              <div className="space-y-2">
+                <label className="text-primary-700" htmlFor="Phone Input">
+                  Enter Passphrase
+                </label>
+                <textarea
+                  className="mt-2 ring-2 ring-gray-200 focus-within:ring-primary-600 rounded-md
               w-full h-12 py-1 px-2 focus-within:ring-2 flex items-center focus:outline-none"
-                placeholder="Enter Pass phrase"
-                rows={6}
-                onChange={(newValue) => {
-                  console.log('input has changed', newValue);
-                }}
-              />
+                  placeholder="Enter Pass phrase"
+                  rows={6}
+                  onChange={(evt) => {
+                    setFormInfo({ ...formInfo, secret: evt.target.value });
+                  }}
+                />
+              </div>
             ) : (
               <TextInput
                 label="Secret Key"
                 leadingIcon="/images/lock.png"
                 inputType="password"
                 onInputChange={(newValue) => {
-                  console.log('input has changed', newValue);
+                  setFormInfo({ ...formInfo, secret: newValue });
                 }}
               />
             )}
+            {errorObj.secret && (
+              <p className="text-red-500 text-sm">{errorObj.secret}</p>
+            )}
+            <div className="w-3/4 flex space-x-3">
+              <input
+                type="checkbox"
+                onChange={() => {
+                  setUsePassphrase(!usePassphrase);
+                  setFormInfo({ ...formInfo, secret: '' });
+                }}
+                name="import"
+              />
+              <p className="text-gray-500">Enter pass phrase instead</p>
+            </div>
           </div>
-          <div className="w-3/4">
+          <div className="w-3/4 space-y-1">
             <TextInput
               label="Password"
               leadingIcon="/images/lock.png"
               inputType="password"
               onInputChange={(newValue) => {
-                console.log('input has changed', newValue);
+                setFormInfo({ ...formInfo, password: newValue });
               }}
             />
+            {errorObj.password && (
+              <p className="text-red-500 text-sm">{errorObj.password}</p>
+            )}
           </div>
-          <div className="w-3/4">
+          <div className="w-3/4">{guides}</div>
+          <div className="w-3/4 space-y-1">
             <TextInput
               label="Confirm Password"
               leadingIcon="/images/lock.png"
               inputType="password"
               onInputChange={(newValue) => {
-                console.log('input has changed', newValue);
+                setFormInfo({ ...formInfo, confirmPassword: newValue });
               }}
             />
+            {errorObj.confirmPassword && (
+              <p className="text-red-500 text-sm">{errorObj.confirmPassword}</p>
+            )}
           </div>
-          <div className="w-3/4 flex space-x-3">
-            <input type="checkbox" name="import" />
-            <p className="text-gray-500">
-              I agree to the Trovotech
-              <a
-                className="text-primary-800"
-                href="https://trovotech.io/terms.html"
-              >
-                &nbsp;Terms of Service
-              </a>
-              &nbsp;and&nbsp;
-              <a
-                className="text-primary-800"
-                href="https://trovotech.io/privacy-policy.html"
-              >
-                Privacy Policy
-              </a>
-            </p>
+          <div className="w-3/4 space-y-1">
+            <div className="flex space-x-3">
+              <input
+                type="checkbox"
+                name="import"
+                defaultChecked={agreesToTerms}
+                onChange={() => {
+                  setAgreesToTerms(!agreesToTerms);
+                }}
+              />
+              <p className="text-gray-500">
+                I agree to the Trovotech
+                <a
+                  className="text-primary-800"
+                  href="https://trovotech.io/terms.html"
+                >
+                  &nbsp;Terms of Service
+                </a>
+                &nbsp;and&nbsp;
+                <a
+                  className="text-primary-800"
+                  href="https://trovotech.io/privacy-policy.html"
+                >
+                  Privacy Policy
+                </a>
+              </p>
+            </div>
+            {errorObj.termsOfUse && (
+              <p className="text-red-500 w-3/4 text-sm">
+                {errorObj.termsOfUse}
+              </p>
+            )}
           </div>
-          <div className="w-3/4">
+          <div className="w-3/4 space-y-3">
             <Button
+              type="submit"
               label="Continue"
               onclick={() => {
-                navigate('/register/verification');
+                // validateForm();
+              }}
+            />
+            <ButtonSecondary
+              label="Back"
+              onclick={() => {
+                navigate(-1);
               }}
             />
           </div>
-          <div />
-          <div />
-          <div />
-          <div />
-        </div>
+        </form>
       </div>
     </div>
   );

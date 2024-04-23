@@ -1,13 +1,59 @@
+import { Asset } from "./asset";
+import { CuratedAsset } from "./curatedAsset";
+import { PatronMembership } from "./patronMembership";
+import { Wallet } from "./wallet";
+
 export type User = {
     username: string,
+    email: string,
+    imageThumbnailURL: string,
     firstName: string,
     lastName: string,
-    email: string,
-    mobileCountryCode: string,
     mobile: string,
-    referrer: string,
-    isCorporateUser: boolean,
     publicKey: string,
+    primarySigner: string,
+    referrer: string,
+    referralLink: string,
+    referralQrCode: string,
+    pushNotificationToken: string,
+    corporate: number,
+    mobileVerified: boolean,
+    countryCode: string,
+    membershipType: number,
+    membershipExpiry: Date,
+    kycVerified: boolean,
+    accountRecoveryEnabled: boolean,
+    userWallets: Wallet[],
+    verified: boolean,
+    suspended: boolean,
+    hasSecurityQuestions: boolean,
+    curatedSwapList: CuratedAsset,
+    patronMembership?: PatronMembership,
+    downlines: {
+        level1: string,
+        level2: string,
+        level3: string,
+    },
+    uplines: {
+        level1: string,
+        level2: string,
+        level3: string,
+    },
+    walletsSharedWithUser: Wallet[],
+    defaultAssets: Asset[],
+    tokenizedAssets: Asset[],
     secretKeys: string[],
     isLoggedIn: boolean,
 }
+
+export enum FieldState {
+    error,
+    pristine,
+    ok,
+}
+  
+export interface FormFieldGuide {
+    info: string;
+    fieldState: FieldState;
+}
+  

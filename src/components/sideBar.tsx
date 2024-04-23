@@ -31,7 +31,7 @@ function SideBar({ mobileMode = false }: Props) {
         <SideBarItem
           label="Home"
           icon={activeItem === 1 ? '/images/home.svg' : '/images/homeGray.svg'}
-          url="/dashboard/home"
+          url="/dashboard"
           isActive={activeItem === 1}
           onSidebarClicked={() => {
             setActiveItem(1);
@@ -194,7 +194,7 @@ function SideBar({ mobileMode = false }: Props) {
         <SideBarItem
           label="Logout"
           icon={activeItem === 1 ? '/images/logout.png' : '/images/logout.png'}
-          url="/dashboard/home"
+          url="/login"
           isActive={false}
           onSidebarClicked={() => {
             setActiveItem(13);

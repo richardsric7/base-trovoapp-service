@@ -42,12 +42,13 @@ export default function TextInput({
       >
         {leadingIcon && <img src={leadingIcon} alt="" />}
         <input
-          name={label}
+          name={`${label}-input`}
           className="h-full px-2 focus:outline-none w-full"
           placeholder={placeholder}
           type={inputType !== 'password' || showPlainText ? 'text' : 'password'}
           value={value}
           onChange={handleInputChange}
+          autoComplete="off"
         />
         {trailingIcon && (
           <div className="flex space-x-2 items-center font-montserratSemiBold pr-6">

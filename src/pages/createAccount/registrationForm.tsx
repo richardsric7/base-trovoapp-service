@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
 import TextInput from '../../components/textInput';
 import { User } from '../../types/user';
@@ -13,7 +13,6 @@ import {
   createAccount,
   getCredsFromPassPhrase,
   parseSecretKey,
-  signHTTP,
 } from '../../utils/trovoSDK';
 import { showNotification, toggleLoader } from '../../utils/showToaster';
 import {
@@ -25,27 +24,25 @@ export default function RegistrationForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const defaultUser: User = {
+  const defaultUser = {
     username: '',
     firstName: '',
     lastName: '',
     email: '',
     mobileCountryCode: 'NG',
+    countryCode: 'NG',
     mobile: '',
     referrer: '',
-    isCorporateUser: false,
-    publicKey: '',
-    secretKeys: [],
-    isLoggedIn: false,
+    corporate: 0,
   };
 
   const [userRegister] = useRegisterMutation();
   const appUser = useSelector(
-    (state: RootState) => state.auth.user ?? defaultUser,
+    (state: RootState) => state.auth.user ?? (defaultUser as unknown as User),
   );
   const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
-  const [user, setUser] = useState<User>(appUser);
-  const [isCorporate, setIsCorporate] = useState(user?.isCorporateUser);
+  const [user, setUser] = useState(appUser);
+  const [isCorporate, setIsCorporate] = useState(user?.corporate);
   const [importExistingWallet, setImportExistingWallet] = useState(
     formInfo.importExistingWallet,
   );
@@ -255,6 +252,8 @@ export default function RegistrationForm() {
           ? getAccountFromExistingInfo()
           : createAccount();
 
+        console.log('creds', account);
+
         setSecretKey(account.secretKey);
         dispatch(setTempUser({ ...user, publicKey: account.publicKey }));
         dispatch(
@@ -268,7 +267,7 @@ export default function RegistrationForm() {
         );
 
         toggleLoader();
-
+        console.log('user', user);
         const res = await userRegister({
           signer: account.publicKey,
           publicKey: account.publicKey,
@@ -284,10 +283,10 @@ export default function RegistrationForm() {
           showNotification('success', successResponse.data.message);
           navigate('/register/verification');
         } else if ('error' in res) {
-          const errorResponse = res as ErrorResponse;
+          const errorResponse = res.error as ErrorResponse;
           showNotification(
             'error',
-            errorResponse.error.data.message ??
+            errorResponse.data.message ??
               'Sorry we could not complete the request. Please try again.',
           );
         }
@@ -313,8 +312,8 @@ export default function RegistrationForm() {
         <button
           type="button"
           onClick={() => {
-            setIsCorporate(false);
-            const newUser = { ...user, isCorporateUser: false };
+            setIsCorporate(0);
+            const newUser = { ...user, corporate: 0 };
             setUser(newUser);
           }}
           className={`px-2 py-3 w-full rounded-l-md ${
@@ -328,8 +327,8 @@ export default function RegistrationForm() {
         <button
           type="button"
           onClick={() => {
-            setIsCorporate(true);
-            const newUser = { ...user, isCorporateUser: true };
+            setIsCorporate(1);
+            const newUser = { ...user, corporate: 1 };
             setUser(newUser);
           }}
           className={`px-2 py-3 w-full rounded-r-md ${
@@ -427,7 +426,7 @@ export default function RegistrationForm() {
           onCountryChange={(newValue) => {
             const newUser = {
               ...user,
-              mobileCountryCode: newValue?.toString() ?? '',
+              countryCode: newValue?.toString() ?? '',
             };
             setUser(newUser);
           }}
@@ -564,9 +563,9 @@ export default function RegistrationForm() {
       </div>
       <p className="text-gray-500">
         Already have an account?
-        <a className="text-primary-800" href="https://trovotech.io/terms.html">
+        <Link className="text-primary-800" to="/login">
           &nbsp;Sign In
-        </a>
+        </Link>
       </p>
       <div />
       <div />

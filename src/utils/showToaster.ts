@@ -1,6 +1,6 @@
 // import { useDispatch } from "react-redux";
 import {store} from '../store/reduxStore'; 
-import { showToaster, toggleLoader as toggle } from '../store/sidebarSlice';
+import { showToaster, showHideLoader as toggle } from '../store/sidebarSlice';
 
 // const dispatch = useDispatch();
 

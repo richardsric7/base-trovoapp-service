@@ -1,0 +1,25 @@
+export type CuratedAsset = {
+    assetIssuer: string,
+    assetCode: string,
+    assetName: string,
+    description: string,
+    imageUrl: string,
+    website: string,
+    assetConditions: string,
+    assetLimit: number,
+    assetRedemptionInstructions: string,
+    contactEmail: string,
+    assetClassId: number,
+    assetClass: {
+        assetClass: string,
+    },    
+    organization: string,
+    withdrawable: number,
+    generateDepositAddress: number,
+    decimalPlaces: number,
+    realAssetImageUrl: string,
+    closedGroup: string,
+    isRemovable: boolean,
+    isCustom: boolean,
+}
+  

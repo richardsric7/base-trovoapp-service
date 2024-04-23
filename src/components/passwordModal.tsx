@@ -62,6 +62,8 @@ export function PasswordInputModal({ show, onClose, onDone }: Props) {
           <Button
             label="Ok"
             onclick={async () => {
+              setPasswordErr('');
+
               if (!password) {
                 setPasswordErr('Please enter a password!');
                 return;

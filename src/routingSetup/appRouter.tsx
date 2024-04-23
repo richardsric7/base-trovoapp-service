@@ -46,9 +46,9 @@ export default function AppRouter() {
         <Route element={<ProtectedRoutes />}>
           <Route path="/backup" element={<Backup />} />
           <Route path="/dashboard" element={<Dashboard />}>
-            <Route index element={<Dashboard />} />
+            <Route index element={<Home />} />
             <Route path="tokenized-asset" element={<TokenizedAsset />} />
-            <Route path="home" element={<Home />} />
+            {/* <Route path="home" element={<Home />} /> */}
             <Route path="wallet" element={<Wallet />} />
           </Route>
         </Route>

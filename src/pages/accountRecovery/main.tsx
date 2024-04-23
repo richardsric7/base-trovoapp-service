@@ -161,7 +161,7 @@ function ShowEnterOTP({ onDone }: { onDone: () => void }) {
         <span className="font-semibold">&nbsp;nancy</span>
       </p>
       <div className="w-auto flex justify-center">
-        <OtpInput numberOfDigits={6} />
+        <OtpInput onInputChange={() => {}} numberOfDigits={6} />
       </div>
       <div className="flex justify-center text-primary-800 w-full">
         <button type="button">Resend OTP?</button>
@@ -259,7 +259,7 @@ function ShowAnswerSecurityQuestions() {
             <Button
               label="Go to Dashboard"
               onclick={() => {
-                navigate('/dashboard/home');
+                navigate('/dashboard');
                 setShowModal(false);
               }}
             />

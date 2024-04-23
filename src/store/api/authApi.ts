@@ -17,33 +17,31 @@ export const authApi = baseApi.injectEndpoints({
         }, 
       }),
     }),
-    verifyLogin: builder.query({
-      query: (payload) => ({
-        url: `/v1/users/verify/${payload.username}/${payload.loginId}`,
-        method: 'GET',
-      }),
-    }),
-    getUserInfo: builder.query({
-      query: (payload) => ({
-        url: `/v1/users/detail/${payload}`,
-        method: 'GET',
-      }),
-      providesTags: ['user'],
-    }),
-    toggleUserAvailability: builder.mutation({
-      query: (payload) => ({
-        url: '/v1/users/toggle',
-        method: 'PUT',
-        data: payload,
-      }),
-      invalidatesTags: ['user'],
-    }),
+    getUser: builder.query({
+      query: (payload: Payload) => {
+        let url = `/v1/users/${payload.body.userId}`;
+        
+        if(payload.body.import){
+          url = `${url}?type=import`;
+        }
+
+        return ({
+          url: url,
+          method: 'GET',        
+          data: {
+            creds: {
+              signer: payload.signer,
+              publicKey: payload.publicKey,
+              secretKey: payload.secretKey,
+            }
+          }, 
+        })
+      },
+    }),    
   }),
 });
 
 export const {
   useRegisterMutation,
-  useGetUserInfoQuery,
-  useVerifyLoginQuery,
-  useToggleUserAvailabilityMutation,
+  useLazyGetUserQuery,
 } = authApi;

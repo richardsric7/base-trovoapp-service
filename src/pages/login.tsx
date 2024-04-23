@@ -1,10 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Button from '../components/button';
 import TextInput from '../components/textInput';
 import ButtonSecondary from '../components/buttonSecondary';
 import TrovoBrand from '../components/trovoBrand';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/reduxStore';
+import { Encryptor } from '../types/encryptor';
 
 export default function Login() {
+  const navigate = useNavigate();
+  const appUser = useSelector((state: RootState) => state.auth.user!);
+  const [password, setPassword] = useState('');
+  const [passwordErr, setPasswordErr] = useState('');
+
+  const isValidPassword = async () => {
+    try {
+      const encryptor = new Encryptor();
+      await encryptor.decryptData(
+        appUser.secretKeys[0],
+        password,
+        appUser.publicKey,
+      );
+      return true;
+    } catch (error: any) {
+      return false;
+    }
+  };
+
   return (
     <div className="flex h-full items-center justify-center ">
       <div className="hidden md:block w-3/5 h-full p-3">
@@ -25,30 +48,47 @@ export default function Login() {
           <div className="flex flex-col px-10 w-full space-y-6 md:h-full items-center md:items-start justify-center">
             <p className="text-left w-full text-primary-800 text-3xl font-bold">
               Welcome back
-              <span className="text-primary-700">&nbsp;Obi!</span>
+              <span className="text-primary-700">
+                &nbsp;{appUser.firstName}
+              </span>
             </p>
             <p className="text-left w-full text-primary-800 text-md">
               You have been missed
             </p>
-            <div className="md:w-3/4">
+            <div className="md:w-3/4 space-y-1">
               <TextInput
                 label="Password"
                 leadingIcon="/images/lock.png"
                 inputType="password"
                 placeholder="Enter answer"
                 onInputChange={(newValue: string) => {
-                  console.log('input has changed', newValue);
+                  setPassword(newValue);
                 }}
               />
+              {passwordErr && (
+                <p className="text-red-500 text-sm">{passwordErr}</p>
+              )}
             </div>
             <div className="flex justify-end w-full md:w-3/4 text-primary-800">
-              <button type="button">Forgot Password?</button>
+              <Link to="/import">Forgot Password?</Link>
             </div>
             <div className="w-full md:w-3/4">
               <Button
                 label="Sign In"
-                onclick={() => {
-                  // navigate('/register/backup');
+                onclick={async () => {
+                  setPasswordErr('');
+
+                  if (!password) {
+                    setPasswordErr('Please enter a password!');
+                    return;
+                  }
+
+                  if (!(await isValidPassword())) {
+                    setPasswordErr('Password is invalid!');
+                    return;
+                  }
+
+                  navigate('/dashboard');
                 }}
               />
             </div>
@@ -56,7 +96,7 @@ export default function Login() {
               <ButtonSecondary
                 label="Create Account"
                 onclick={() => {
-                  // navigate('/register/backup');
+                  navigate('/register');
                 }}
               />
             </div>
@@ -65,7 +105,7 @@ export default function Login() {
                 label="Recover Account"
                 additionalClasses="bg-primary-600 text-white ring-primary-600"
                 onclick={() => {
-                  // navigate('/register/backup');
+                  // navigate('/backup');
                 }}
               />
             </div>

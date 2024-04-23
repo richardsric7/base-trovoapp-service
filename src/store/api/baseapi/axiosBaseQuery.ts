@@ -29,11 +29,9 @@ export interface SuccessResponse {
   data: any;
 }
 
-export interface ErrorResponse {
-  error: {
+export interface ErrorResponse {  
       status: any;
       data: any;
-  };
 }
 
 export const axiosBaseQuery =
@@ -53,7 +51,7 @@ export const axiosBaseQuery =
       });
       return { data: result.data };
     } catch (axiosError: any) {
-      let err = axiosError;
+      let err = axiosError as AxiosError;
       return {
         error: {
           status: err.response?.status,

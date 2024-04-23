@@ -67,7 +67,7 @@ function Welcome() {
               }}
             />
           </div>
-          <a className="underline text-primary-800" href="/dashboard/home">
+          <a className="underline text-primary-800" href="/dashboard">
             Go to Dashboard
           </a>
         </div>

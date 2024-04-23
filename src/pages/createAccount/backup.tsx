@@ -136,7 +136,7 @@ export default function Backup() {
           <Button
             label="Continue"
             onclick={() => {
-              navigate('/dashboard/home');
+              navigate('/dashboard');
             }}
           />
         </div>

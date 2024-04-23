@@ -3,19 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
 import TextInput from '../../components/textInput';
 import { useDispatch, useSelector } from 'react-redux';
-import { setFormState, setTempUser } from '../../store/authSlice';
+import { setFormState } from '../../store/authSlice';
 import { RootState } from '../../store/reduxStore';
-
-enum FieldState {
-  error,
-  pristine,
-  ok,
-}
-
-interface FormFieldGuide {
-  info: string;
-  fieldState: FieldState;
-}
+import { FieldState, FormFieldGuide } from '../../types/user';
 
 export default function CreatePassword() {
   const navigate = useNavigate();

@@ -76,10 +76,10 @@ function AccountVerification() {
         );
         setShowModal(true);
       } else if ('error' in res) {
-        const errorResponse = res as ErrorResponse;
+        const errorResponse = res.error as ErrorResponse;
         showNotification(
           'error',
-          errorResponse.error.data.message ??
+          errorResponse.data.message ??
             'Something went wrong. Please try again.',
         );
       }
@@ -163,6 +163,7 @@ function AccountVerification() {
                   label="Skip"
                   onclick={() => {
                     setShowModal(false);
+                    navigate('/dashboard');
                   }}
                 />
               </div>
