@@ -1,4 +1,3 @@
-import React from 'react';
 import './App.css';
 import AppRouter from './routingSetup/appRouter';
 import Toaster from './components/toaster';

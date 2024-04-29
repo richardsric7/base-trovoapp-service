@@ -1,5 +1,3 @@
-import React from 'react';
-
 type Props = {
   additionalClasses?: string;
   label: string;

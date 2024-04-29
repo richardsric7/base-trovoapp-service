@@ -122,7 +122,7 @@ export default function ImportWallet() {
     return isValid;
   };
 
-  const guides = passwordGuides.map((guide, index) => {
+  const guides = passwordGuides.map((guide) => {
     const additionalClasses =
       guide.fieldState == FieldState.error
         ? 'text-red-500'
