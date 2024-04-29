@@ -32,8 +32,8 @@ export const authSlice = createSlice({
     setUser: (state, action) => {
       const storage = localStorage;
       if (action.payload) {
-        state.user = action.payload;
-        storage.setItem(USER_DETAILS, JSON.stringify(state.user));        
+        state.user = action.payload.user;
+        storage.setItem(USER_DETAILS, action.payload.encryptedUser);               
       } else {
         state = initialState;
         storage.clear();

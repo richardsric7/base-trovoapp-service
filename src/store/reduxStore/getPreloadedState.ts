@@ -8,9 +8,9 @@ export const getPreloadedState = ()  => {
   const defalutValue = {
     auth: {
       user: userDetails,
-      isAuthenticated: false,
       regFormInfo: {
         usePassphrase: false,
+        passphrase: '',
         importExistingWallet: false,
         secretKey: '',
         password: '',
