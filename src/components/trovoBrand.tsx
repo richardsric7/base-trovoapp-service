@@ -1,6 +1,3 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-
 function TrovoBrand({ textColor }: { textColor: string }) {
   const textClasses = `text-primary-800 font-montserratMedium text-xl xl:text-2xl ${textColor}`;
   return (

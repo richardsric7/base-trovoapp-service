@@ -2,7 +2,6 @@ import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import { getStorage } from '../../../utils/storage';
 import { TOKEN } from '../../constants';
 import { signHTTP } from '../../../utils/trovoSDK';
-import { SerializedError } from '@reduxjs/toolkit';
 
 
 axios.interceptors.request.use(

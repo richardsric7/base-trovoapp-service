@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
 import TextInput from '../../components/textInput';
@@ -100,7 +100,7 @@ export default function CreatePassword() {
     return isValid;
   };
 
-  const guides = passwordGuides.map((guide, index) => {
+  const guides = passwordGuides.map((guide) => {
     const additionalClasses =
       guide.fieldState == FieldState.error
         ? 'text-red-500'

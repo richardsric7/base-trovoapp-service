@@ -1,7 +1,6 @@
 import * as StellarSdk from '@stellar/stellar-sdk';
-import { generateMnemonic, mnemonicToSeedSync } from 'bip39';
+import { mnemonicToSeedSync } from 'bip39';
 import {Buffer} from "buffer";
-import { buffer } from 'stream/consumers';
 
 const createAccount = (): Account => {
     // create a completely new and unique pair of keys.

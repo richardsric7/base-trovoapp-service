@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Welcome from '../pages/onboarding/welcome';
 import Welcome1 from '../pages/onboarding/welcome1';
@@ -18,8 +17,6 @@ import Home from '../pages/dashboard/home';
 import Wallet from '../pages/dashboard/wallet';
 import TokenizedAsset from '../pages/dashboard/tokenizedAsset';
 import { ProtectedRoutes } from './routeGuard';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/reduxStore';
 
 export default function AppRouter() {
   return (

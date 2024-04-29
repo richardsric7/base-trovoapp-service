@@ -1,4 +1,3 @@
-import React from 'react';
 import { TEToast } from 'tw-elements-react';
 
 type Props = {

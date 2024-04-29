@@ -1,4 +1,3 @@
-import React from 'react';
 import { useDispatch } from 'react-redux';
 import { toggleSidebar } from '../store/sidebarSlice';
 import TextInput from './textInput';
@@ -40,7 +39,7 @@ function Header({ fullName, email, avatar, isHomeView = false }: Props) {
               label=""
               placeholder="Search"
               onInputChange={(newValue: string) => {
-                // console.log('input has changed', newValue);
+                console.log('input has changed', newValue);
               }}
             />
           </div>

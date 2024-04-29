@@ -1,6 +1,4 @@
-import React from 'react';
 import { useState } from 'react';
-import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
 import TrovoBrand from '../../components/trovoBrand';

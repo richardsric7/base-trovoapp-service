@@ -1,4 +1,3 @@
-import React from 'react';
 import { TECarousel, TECarouselItem } from 'tw-elements-react';
 
 export default function CarouselBasicExample() {

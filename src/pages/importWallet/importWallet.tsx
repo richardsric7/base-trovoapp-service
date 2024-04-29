@@ -122,7 +122,7 @@ export default function ImportWallet() {
     return isValid;
   };
 
-  const guides = passwordGuides.map((guide, index) => {
+  const guides = passwordGuides.map((guide) => {
     const additionalClasses =
       guide.fieldState == FieldState.error
         ? 'text-red-500'
@@ -247,22 +247,30 @@ export default function ImportWallet() {
         toggleLoader();
 
         if (data) {
-          const response = data.userData as unknown as User;
-          showNotification('success', 'Wallet successfully imported!');
-          navigate('/dashboard');
-          const encryptor = new Encryptor();
-          const base64EncryptedData = await encryptor.encryptData(
-            account.secretKey,
-            formInfo.password,
-            account.publicKey,
-          );
-          dispatch(
-            setUser({
+          try {
+            const response = data.userData as unknown as User;
+            showNotification('success', 'Wallet successfully imported!');
+            navigate('/dashboard');
+            const encryptor = new Encryptor();
+            const userInfo = {
               ...response,
+              secretKeys: [account.secretKey],
               isLoggedIn: true,
-              secretKeys: [base64EncryptedData],
-            }),
-          );
+            };
+            const base64EncryptedData = await encryptor.encryptData(
+              JSON.stringify(userInfo),
+              formInfo.password,
+              account.publicKey,
+            );
+            dispatch(
+              setUser({
+                user: userInfo,
+                encryptedUser: base64EncryptedData,
+              }),
+            );
+          } catch (error: any) {
+            console.log('err', error);
+          }
         } else if (error) {
           const err = error as ErrorResponse;
           showNotification(

@@ -2,7 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import axios from "axios";
 import { baseApi } from "../api/baseapi";
-import { authSlice, setUser } from "../authSlice";
+import { authSlice } from "../authSlice";
 import { refreshAccessToken } from "../refreshAccessToken";
 import { sidebarSlice } from '../sidebarSlice';
 import { getPreloadedState } from "./getPreloadedState";

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Button from '../components/button';
 import TextInput from '../components/textInput';
 import ButtonSecondary from '../components/buttonSecondary';
@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/reduxStore';
 import { Encryptor } from '../types/encryptor';
+import { USER_DETAILS } from '../store/constants';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -104,8 +105,24 @@ export default function Login() {
               <ButtonSecondary
                 label="Recover Account"
                 additionalClasses="bg-primary-600 text-white ring-primary-600"
-                onclick={() => {
-                  // navigate('/backup');
+                onclick={async () => {
+                  try {
+                    const encryptedUserData =
+                      localStorage.getItem(USER_DETAILS)!;
+                    const encryptor = new Encryptor();
+                    const decryptedData = await encryptor.decryptData(
+                      encryptedUserData,
+                      password,
+                      appUser.publicKey,
+                    );
+                    // console.log('decryptedData', decryptedData);
+                    const userObj = JSON.parse(decryptedData);
+                    console.log('user obj', userObj.secretKeys);
+                    console.log('user obj', userObj.isLoggedIn);
+                    return true;
+                  } catch (error: any) {
+                    return false;
+                  }
                 }}
               />
             </div>

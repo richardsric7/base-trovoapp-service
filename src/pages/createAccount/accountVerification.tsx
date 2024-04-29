@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OtpInput from '../../components/otpInput';
@@ -8,14 +8,19 @@ import ButtonSecondary from '../../components/buttonSecondary';
 import TrovoBrand from '../../components/trovoBrand';
 import { showNotification, toggleLoader } from '../../utils/showToaster';
 import { useDispatch, useSelector } from 'react-redux';
-import { useRegisterMutation } from '../../store/api/authApi';
+import {
+  useLazyGetUserQuery,
+  useRegisterMutation,
+} from '../../store/api/authApi';
 import { RootState } from '../../store/reduxStore';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
 import { setFormState, setUser } from '../../store/authSlice';
 import { Encryptor } from '../../types/encryptor';
+import { User } from '../../types/user';
 
 function AccountVerification() {
   const navigate = useNavigate();
+  const [getUser] = useLazyGetUserQuery();
   const [verificationCode, setVerificationCode] = useState('');
   const [showModal, setShowModal] = useState(false);
   const dispatch = useDispatch();
@@ -49,32 +54,51 @@ function AccountVerification() {
       console.log('res', res);
 
       if ('data' in res) {
-        const encryptor = new Encryptor();
-        const base64EncryptedData = await encryptor.encryptData(
-          formInfo.secretKey,
-          formInfo.password,
-          appUser.publicKey,
-        );
+        const payload = {
+          signer: appUser.publicKey,
+          publicKey: appUser.publicKey,
+          secretKey: formInfo.secretKey,
+          body: { userId: appUser.username, import: 1 },
+        };
 
-        dispatch(
-          setUser({
-            ...appUser,
-            isLoggedIn: true,
-            secretKeys: [base64EncryptedData],
-          }),
-        );
-        dispatch(
-          setFormState({
-            ...formInfo,
-            importExistingWallet: false,
-            agreesToTerms: false,
-            usePassphrase: false,
-            secretKey: '',
-            password: '',
-            passphrase: '',
-          }),
-        );
-        setShowModal(true);
+        const { data, error } = await getUser(payload);
+
+        if (data) {
+          const response = data.userData as unknown as User;
+          const encryptor = new Encryptor();
+          const base64EncryptedData = await encryptor.encryptData(
+            formInfo.secretKey,
+            formInfo.password,
+            appUser.publicKey,
+          );
+          dispatch(
+            setUser({
+              ...response,
+              isLoggedIn: true,
+              secretKeys: [base64EncryptedData],
+            }),
+          );
+
+          dispatch(
+            setFormState({
+              ...formInfo,
+              importExistingWallet: false,
+              agreesToTerms: false,
+              usePassphrase: false,
+              secretKey: '',
+              password: '',
+              passphrase: '',
+            }),
+          );
+          setShowModal(true);
+        } else if (error) {
+          const err = error as ErrorResponse;
+          showNotification(
+            'error',
+            err.data.message ??
+              'Sorry we could not complete the request. Please try again.',
+          );
+        }
       } else if ('error' in res) {
         const errorResponse = res.error as ErrorResponse;
         showNotification(
