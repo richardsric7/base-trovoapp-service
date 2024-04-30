@@ -2,7 +2,6 @@ import './App.css';
 import AppRouter from './routingSetup/appRouter';
 import Toaster from './components/toaster';
 import Loader from './components/loader';
-import { useNavigate } from 'react-router-dom';
 import { RootState } from './store/reduxStore';
 import { useDispatch, useSelector } from 'react-redux';
 import { hideToaster } from './store/sidebarSlice';
