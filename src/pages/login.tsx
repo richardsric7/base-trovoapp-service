@@ -6,12 +6,14 @@ import TrovoBrand from '../components/trovoBrand';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/reduxStore';
-import { Encryptor } from '../types/encryptor';
+import { Encryptor } from '../utils/encryptor';
 import { USER_DETAILS } from '../store/constants';
 
 export default function Login() {
   const navigate = useNavigate();
+  console.log('getting appuser');
   const appUser = useSelector((state: RootState) => state.auth.user!);
+  console.log('appuser', appUser);
   const [password, setPassword] = useState('');
   const [passwordErr, setPasswordErr] = useState('');
 

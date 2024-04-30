@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { USER_DETAILS } from './constants';
 import { User } from '../types/user';
+import { setStorage } from '../utils/storage';
 
 export type AuthState = {
   user?: User,
@@ -33,7 +34,7 @@ export const authSlice = createSlice({
       const storage = localStorage;
       if (action.payload) {
         state.user = action.payload.user;
-        storage.setItem(USER_DETAILS, action.payload.encryptedUser);               
+        setStorage(USER_DETAILS, {__slw31H408: action.payload.encryptedUser, __39deR7sx4: action.payload.key, __i34dcY9Mn: state.user!.publicKey});               
       } else {
         state = initialState;
         storage.clear();

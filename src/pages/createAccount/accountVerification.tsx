@@ -15,7 +15,7 @@ import {
 import { RootState } from '../../store/reduxStore';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
 import { setFormState, setUser } from '../../store/authSlice';
-import { Encryptor } from '../../types/encryptor';
+import { Encryptor } from '../../utils/encryptor';
 import { User } from '../../types/user';
 
 function AccountVerification() {
@@ -26,6 +26,17 @@ function AccountVerification() {
   const dispatch = useDispatch();
   const [userRegister] = useRegisterMutation();
   const appUser = useSelector((state: RootState) => state.auth.user!);
+  const registrationUser = {
+    username: appUser?.username ?? '',
+    firstName: appUser?.firstName ?? '',
+    lastName: appUser?.lastName ?? '',
+    email: appUser?.email ?? '',
+    mobileCountryCode: appUser?.countryCode ?? 'NG',
+    countryCode: appUser?.countryCode ?? 'NG',
+    mobile: appUser?.mobile ?? '',
+    referrer: appUser?.referrer ?? '',
+    corporate: appUser?.corporate ?? 0,
+  };
   const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
 
   useEffect(() => {
@@ -47,7 +58,7 @@ function AccountVerification() {
         signer: appUser.publicKey,
         publicKey: appUser.publicKey,
         secretKey: formInfo.secretKey,
-        body: { ...appUser, verificationCode },
+        body: { ...registrationUser, verificationCode },
       });
 
       toggleLoader();
@@ -66,16 +77,27 @@ function AccountVerification() {
         if (data) {
           const response = data.userData as unknown as User;
           const encryptor = new Encryptor();
-          const base64EncryptedData = await encryptor.encryptData(
+          const base64EncryptedSecretKey = await encryptor.encryptData(
             formInfo.secretKey,
             formInfo.password,
             appUser.publicKey,
           );
+          const user = {
+            ...response,
+            isLoggedIn: true,
+            secretKeys: [base64EncryptedSecretKey],
+          };
+          const hash = await encryptor.createHash(appUser.username);
+          const base64EncryptedUserData = await encryptor.encryptData(
+            JSON.stringify(user),
+            hash,
+            user.publicKey,
+          );
           dispatch(
             setUser({
-              ...response,
-              isLoggedIn: true,
-              secretKeys: [base64EncryptedData],
+              key: hash,
+              user,
+              encryptedUser: base64EncryptedUserData,
             }),
           );
 

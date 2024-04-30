@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { HashRouter, Route, Routes } from 'react-router-dom';
 import Welcome from '../pages/onboarding/welcome';
 import Welcome1 from '../pages/onboarding/welcome1';
 import Welcome2 from '../pages/onboarding/welcome2';
@@ -20,7 +20,7 @@ import { ProtectedRoutes } from './routeGuard';
 
 export default function AppRouter() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Welcome1 />} />
@@ -51,6 +51,6 @@ export default function AppRouter() {
         </Route>
         {/* <Route path="*" element={<Page404 />} /> */}
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
