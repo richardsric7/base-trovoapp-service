@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
 import TextInput from '../../components/textInput';
-import { User } from '../../types/user';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store/reduxStore';
 import { setFormState, setTempUser } from '../../store/authSlice';
@@ -24,24 +23,23 @@ export default function RegistrationForm() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const [userRegister] = useRegisterMutation();
+  const appUser = useSelector((state: RootState) => state.auth.user);
+
   const defaultUser = {
-    username: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    mobileCountryCode: 'NG',
-    countryCode: 'NG',
-    mobile: '',
-    referrer: '',
-    corporate: 0,
+    username: appUser?.username ?? '',
+    firstName: appUser?.firstName ?? '',
+    lastName: appUser?.lastName ?? '',
+    email: appUser?.email ?? '',
+    mobileCountryCode: appUser?.countryCode ?? 'NG',
+    countryCode: appUser?.countryCode ?? 'NG',
+    mobile: appUser?.mobile ?? '',
+    referrer: appUser?.referrer ?? '',
+    corporate: appUser?.corporate ?? 0,
   };
 
-  const [userRegister] = useRegisterMutation();
-  const appUser = useSelector(
-    (state: RootState) => state.auth.user ?? (defaultUser as unknown as User),
-  );
   const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
-  const [user, setUser] = useState(appUser);
+  const [user, setUser] = useState(defaultUser);
   const [isCorporate, setIsCorporate] = useState(user?.corporate);
   const [importExistingWallet, setImportExistingWallet] = useState(
     formInfo.importExistingWallet,

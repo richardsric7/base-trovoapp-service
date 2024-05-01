@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Modal from './modal';
 import TextInput from './textInput';
 import Button from './button';
-import { Encryptor } from '../types/encryptor';
+import { Encryptor } from '../utils/encryptor';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/reduxStore';
 

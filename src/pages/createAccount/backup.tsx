@@ -4,7 +4,7 @@ import Button from '../../components/button';
 import TrovoBrand from '../../components/trovoBrand';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/reduxStore';
-import { Encryptor } from '../../types/encryptor';
+import { Encryptor } from '../../utils/encryptor';
 import { showNotification } from '../../utils/showToaster';
 import { PasswordInputModal } from '../../components/passwordModal';
 

@@ -9,7 +9,7 @@ import { getCredsFromPassPhrase, parseSecretKey } from '../../utils/trovoSDK';
 import { showNotification, toggleLoader } from '../../utils/showToaster';
 import { useLazyGetUserQuery } from '../../store/api/authApi';
 import { useDispatch } from 'react-redux';
-import { Encryptor } from '../../types/encryptor';
+import { Encryptor } from '../../utils/encryptor';
 import { setUser } from '../../store/authSlice';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
 
@@ -252,20 +252,27 @@ export default function ImportWallet() {
             showNotification('success', 'Wallet successfully imported!');
             navigate('/dashboard');
             const encryptor = new Encryptor();
-            const userInfo = {
-              ...response,
-              secretKeys: [account.secretKey],
-              isLoggedIn: true,
-            };
-            const base64EncryptedData = await encryptor.encryptData(
-              JSON.stringify(userInfo),
+            const base64EncryptedSecretKey = await encryptor.encryptData(
+              account.secretKey,
               formInfo.password,
               account.publicKey,
             );
+            const user = {
+              ...response,
+              isLoggedIn: true,
+              secretKeys: [base64EncryptedSecretKey],
+            };
+            const hash = await encryptor.createHash(user.username);
+            const base64EncryptedUserData = await encryptor.encryptData(
+              JSON.stringify(user),
+              hash,
+              user.publicKey,
+            );
             dispatch(
               setUser({
-                user: userInfo,
-                encryptedUser: base64EncryptedData,
+                key: hash,
+                user,
+                encryptedUser: base64EncryptedUserData,
               }),
             );
           } catch (error: any) {
