@@ -1,3 +1,9 @@
+import { setUser, setTempUser } from "../store/authSlice";
+import { USER_DETAILS } from "../store/constants";
+import { store } from "../store/reduxStore";
+import { User } from "../types/user";
+import { getStorage } from "./storage";
+
 export class Encryptor {  
     async deriveKeyFromPassword(password: string, mySalt: string): Promise<CryptoKey> {
       const salt = new TextEncoder().encode(mySalt);
@@ -72,6 +78,42 @@ export class Encryptor {
         .map((bytes) => bytes.toString(16).padStart(2, '0'))
         .join('');
       return hashHex;      
+    }
+
+    async encryptUserData(user: User): Promise<void> {
+      const hash = await this.createHash(user.username);
+      const base64EncryptedUserData = await this.encryptData(
+        JSON.stringify(user),
+        hash,
+        user.publicKey,
+      );
+      store.dispatch(
+        setUser({
+          key: hash,
+          user,
+          encryptedUser: base64EncryptedUserData,
+        }),
+      );
+    }
+
+    async decryptUserData(): Promise<User|undefined> {
+      const storedInfo = getStorage(USER_DETAILS);
+      if (!storedInfo) {
+        return undefined;
+      }
+      const result = await this.decryptData(
+        storedInfo.__slw31H408,
+        storedInfo.__39deR7sx4,
+        storedInfo.__i34dcY9Mn,
+      );
+      const user = JSON.parse(result) as User;
+      store.dispatch(
+        setTempUser({
+          ...user,
+        }),
+      );
+
+      return user;
     }
   }
   

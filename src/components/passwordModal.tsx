@@ -7,12 +7,18 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store/reduxStore';
 
 type Props = {
+  additionalMessage?: string;
   show: boolean;
   onClose: () => void;
   onDone: (password: string) => void;
 };
 
-export function PasswordInputModal({ show, onClose, onDone }: Props) {
+export function PasswordInputModal({
+  show,
+  onClose,
+  onDone,
+  additionalMessage = '',
+}: Props) {
   const appUser = useSelector((state: RootState) => state.auth.user!);
   const [password, setPassword] = useState('');
   const [passwordErr, setPasswordErr] = useState('');
@@ -46,6 +52,9 @@ export function PasswordInputModal({ show, onClose, onDone }: Props) {
           src="/images/welcome.png"
           alt="Enter password to authorize"
         />
+        <p className="text-center w-full text-primary-800 font-semibold">
+          {additionalMessage}
+        </p>
         <div className="w-3/4 space-y-1">
           <TextInput
             label=""

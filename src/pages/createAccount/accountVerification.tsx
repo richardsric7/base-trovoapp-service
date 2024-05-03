@@ -93,6 +93,7 @@ function AccountVerification() {
             hash,
             user.publicKey,
           );
+
           dispatch(
             setUser({
               key: hash,

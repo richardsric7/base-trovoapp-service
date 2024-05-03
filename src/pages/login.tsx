@@ -4,16 +4,16 @@ import TextInput from '../components/textInput';
 import ButtonSecondary from '../components/buttonSecondary';
 import TrovoBrand from '../components/trovoBrand';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store/reduxStore';
+import { setUser, setTempUser } from '../store/authSlice';
 import { Encryptor } from '../utils/encryptor';
 import { USER_DETAILS } from '../store/constants';
 
 export default function Login() {
   const navigate = useNavigate();
-  console.log('getting appuser');
+  const dispatch = useDispatch();
   const appUser = useSelector((state: RootState) => state.auth.user!);
-  console.log('appuser', appUser);
   const [password, setPassword] = useState('');
   const [passwordErr, setPasswordErr] = useState('');
 
@@ -91,6 +91,13 @@ export default function Login() {
                     return;
                   }
 
+                  const user = {
+                    ...appUser,
+                    isLoggedIn: true,
+                  };
+                  const encryptor = new Encryptor();
+                  await encryptor.encryptUserData(user);
+
                   navigate('/dashboard');
                 }}
               />
@@ -117,10 +124,8 @@ export default function Login() {
                       password,
                       appUser.publicKey,
                     );
-                    // console.log('decryptedData', decryptedData);
-                    const userObj = JSON.parse(decryptedData);
-                    console.log('user obj', userObj.secretKeys);
-                    console.log('user obj', userObj.isLoggedIn);
+                    const user = JSON.parse(decryptedData);
+                    dispatch(setTempUser({ ...user }));
                     return true;
                   } catch (error: any) {
                     return false;
