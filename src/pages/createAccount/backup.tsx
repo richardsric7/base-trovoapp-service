@@ -12,8 +12,8 @@ export default function Backup() {
   const [showCreds, setShowCredentials] = useState(false);
   const [showEnterPassword, setShowEnterPassword] = useState(false);
   const appUser = useSelector((state: RootState) => state.auth.user!);
-  const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
-  const [password, setPassword] = useState(formInfo.password ?? '');
+  const tempData = useSelector((state: RootState) => state.auth.tempData);
+  const [password, setPassword] = useState(tempData.password ?? '');
   const [secret, setSecret] = useState('');
   const navigate = useNavigate();
 

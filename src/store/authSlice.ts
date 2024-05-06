@@ -5,7 +5,7 @@ import { setStorage } from '../utils/storage';
 
 export type AuthState = {
   user?: User,
-  regFormInfo: {
+  tempData: {
     usePassphrase: boolean,
     passphrase: string,
     importExistingWallet: boolean,
@@ -17,7 +17,7 @@ export type AuthState = {
 
 const initialState: AuthState = {
   user: undefined,
-  regFormInfo: {
+  tempData: {
     usePassphrase: false,
     importExistingWallet: true,
     secretKey: '',
@@ -49,7 +49,7 @@ export const authSlice = createSlice({
     },
     setFormState: (state, action) => {
       if (action.payload) {
-        return {...state, regFormInfo: action.payload};
+        return {...state, tempData: action.payload};
       } 
       return state;
     },

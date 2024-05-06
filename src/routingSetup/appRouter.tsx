@@ -17,6 +17,7 @@ import Home from '../pages/dashboard/home';
 import Wallet from '../pages/dashboard/wallet';
 import TokenizedAsset from '../pages/dashboard/tokenizedAsset';
 import { ProtectedRoutes } from './routeGuard';
+import AnswerSecurityQuestions from '../pages/accountRecovery/answerSecurityQuestions';
 
 export default function AppRouter() {
   return (
@@ -31,6 +32,10 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/import" element={<ImportWallet />} />
         <Route path="/recovery" element={<RecoveryMain />} />
+        <Route
+          path="/answer-security-questions"
+          element={<AnswerSecurityQuestions />}
+        />
         <Route path="/register" element={<CreateAccount />}>
           <Route index element={<CreatePassword />} />
           <Route path="create-password" element={<CreatePassword />} />

@@ -37,10 +37,10 @@ function AccountVerification() {
     referrer: appUser?.referrer ?? '',
     corporate: appUser?.corporate ?? 0,
   };
-  const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
+  const tempData = useSelector((state: RootState) => state.auth.tempData);
 
   useEffect(() => {
-    if (!formInfo.password) {
+    if (!tempData.password) {
       navigate('/register');
     }
   }, []);
@@ -57,7 +57,7 @@ function AccountVerification() {
       const res = await userRegister({
         signer: appUser.publicKey,
         publicKey: appUser.publicKey,
-        secretKey: formInfo.secretKey,
+        secretKey: tempData.secretKey,
         body: { ...registrationUser, verificationCode },
       });
 
@@ -68,7 +68,7 @@ function AccountVerification() {
         const payload = {
           signer: appUser.publicKey,
           publicKey: appUser.publicKey,
-          secretKey: formInfo.secretKey,
+          secretKey: tempData.secretKey,
           body: { userId: appUser.username, import: 1 },
         };
 
@@ -78,8 +78,8 @@ function AccountVerification() {
           const response = data.userData as unknown as User;
           const encryptor = new Encryptor();
           const base64EncryptedSecretKey = await encryptor.encryptData(
-            formInfo.secretKey,
-            formInfo.password,
+            tempData.secretKey,
+            tempData.password,
             appUser.publicKey,
           );
           const user = {
@@ -104,7 +104,7 @@ function AccountVerification() {
 
           dispatch(
             setFormState({
-              ...formInfo,
+              ...tempData,
               importExistingWallet: false,
               agreesToTerms: false,
               usePassphrase: false,

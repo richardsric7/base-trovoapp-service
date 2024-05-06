@@ -4,15 +4,12 @@ import TextInput from '../components/textInput';
 import ButtonSecondary from '../components/buttonSecondary';
 import TrovoBrand from '../components/trovoBrand';
 import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { RootState } from '../store/reduxStore';
-import { setUser, setTempUser } from '../store/authSlice';
 import { Encryptor } from '../utils/encryptor';
-import { USER_DETAILS } from '../store/constants';
 
 export default function Login() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const appUser = useSelector((state: RootState) => state.auth.user!);
   const [password, setPassword] = useState('');
   const [passwordErr, setPasswordErr] = useState('');
@@ -115,21 +112,7 @@ export default function Login() {
                 label="Recover Account"
                 additionalClasses="bg-primary-600 text-white ring-primary-600"
                 onclick={async () => {
-                  try {
-                    const encryptedUserData =
-                      localStorage.getItem(USER_DETAILS)!;
-                    const encryptor = new Encryptor();
-                    const decryptedData = await encryptor.decryptData(
-                      encryptedUserData,
-                      password,
-                      appUser.publicKey,
-                    );
-                    const user = JSON.parse(decryptedData);
-                    dispatch(setTempUser({ ...user }));
-                    return true;
-                  } catch (error: any) {
-                    return false;
-                  }
+                  navigate('/recovery');
                 }}
               />
             </div>

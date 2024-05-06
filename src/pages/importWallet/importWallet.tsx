@@ -17,7 +17,7 @@ export default function ImportWallet() {
   const [usePassphrase, setUsePassphrase] = useState(false);
   const [agreesToTerms, setAgreesToTerms] = useState(true);
 
-  const [formInfo, setFormInfo] = useState({
+  const [tempData, setTempData] = useState({
     userId: '',
     secret: '',
     password: '',
@@ -70,7 +70,7 @@ export default function ImportWallet() {
     let newGuides = [...passwordGuides];
 
     const isWhitespace = /^(?=.*\s)/;
-    if (isWhitespace.test(formInfo.password)) {
+    if (isWhitespace.test(tempData.password)) {
       newGuides[0].fieldState = FieldState.error;
       isValid = false;
     } else {
@@ -78,7 +78,7 @@ export default function ImportWallet() {
     }
 
     const isContainsUppercase = /^(?=.*[A-Z])/;
-    if (!isContainsUppercase.test(formInfo.password)) {
+    if (!isContainsUppercase.test(tempData.password)) {
       newGuides[1].fieldState = FieldState.error;
       isValid = false;
     } else {
@@ -86,7 +86,7 @@ export default function ImportWallet() {
     }
 
     const isContainsLowercase = /^(?=.*[a-z])/;
-    if (!isContainsLowercase.test(formInfo.password)) {
+    if (!isContainsLowercase.test(tempData.password)) {
       newGuides[2].fieldState = FieldState.error;
       isValid = false;
     } else {
@@ -94,7 +94,7 @@ export default function ImportWallet() {
     }
 
     const isContainsNumber = /^(?=.*[0-9])/;
-    if (!isContainsNumber.test(formInfo.password)) {
+    if (!isContainsNumber.test(tempData.password)) {
       newGuides[3].fieldState = FieldState.error;
       isValid = false;
     } else {
@@ -103,7 +103,7 @@ export default function ImportWallet() {
 
     // eslint-disable-next-line
     const isContainsSymbol = /^(?=.*[~`!@#$%^&*()--+={}\[\]|\\:;"'<>,.?/_₹])/;
-    if (!isContainsSymbol.test(formInfo.password)) {
+    if (!isContainsSymbol.test(tempData.password)) {
       newGuides[4].fieldState = FieldState.error;
       isValid = false;
     } else {
@@ -111,7 +111,7 @@ export default function ImportWallet() {
     }
 
     // const isValidLength = /^.{6,16}$/;
-    if (formInfo.password.length < 6 || formInfo.password.length > 16) {
+    if (tempData.password.length < 6 || tempData.password.length > 16) {
       newGuides[5].fieldState = FieldState.error;
       isValid = false;
     } else {
@@ -140,26 +140,26 @@ export default function ImportWallet() {
   });
 
   useEffect(() => {
-    if (formInfo.password) {
+    if (tempData.password) {
       validatePassword();
     } else {
       setPasswordGuide([...initialGuidesState]);
     }
-  }, [formInfo, errorObj]);
+  }, [tempData, errorObj]);
 
   const validateForm = (): boolean => {
     let isValid = true;
     let newObj = errorObj;
 
-    if (!formInfo.userId) {
+    if (!tempData.userId) {
       newObj = {
         ...newObj,
         userId: 'Please enter your username or email address.',
       };
       isValid = false;
     } else if (
-      formInfo.userId.trim().replaceAll(' ', '').length < 3 ||
-      formInfo.userId.trim().replaceAll(' ', '').length > 16
+      tempData.userId.trim().replaceAll(' ', '').length < 3 ||
+      tempData.userId.trim().replaceAll(' ', '').length > 16
     ) {
       newObj = {
         ...newObj,
@@ -172,7 +172,7 @@ export default function ImportWallet() {
         userId: '',
       };
     }
-    if (!formInfo.secret) {
+    if (!tempData.secret) {
       newObj = {
         ...newObj,
         secret: usePassphrase
@@ -191,7 +191,7 @@ export default function ImportWallet() {
       isValid = false;
     }
 
-    if (!formInfo.password) {
+    if (!tempData.password) {
       newObj = {
         ...newObj,
         password: 'Please enter your password!',
@@ -199,7 +199,7 @@ export default function ImportWallet() {
       isValid = false;
     }
 
-    if (!formInfo.confirmPassword) {
+    if (!tempData.confirmPassword) {
       newObj = {
         ...newObj,
         confirmPassword: 'Please confirm your password!',
@@ -226,8 +226,8 @@ export default function ImportWallet() {
 
   const getAccountFromExistingInfo = () =>
     usePassphrase
-      ? getCredsFromPassPhrase(formInfo.secret)!
-      : parseSecretKey(formInfo.secret);
+      ? getCredsFromPassPhrase(tempData.secret)!
+      : parseSecretKey(tempData.secret);
 
   const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -239,7 +239,7 @@ export default function ImportWallet() {
           signer: account.publicKey,
           publicKey: account.publicKey,
           secretKey: account.secretKey,
-          body: { userId: formInfo.userId, import: 1 },
+          body: { userId: tempData.userId, import: 1 },
         };
 
         toggleLoader();
@@ -254,7 +254,7 @@ export default function ImportWallet() {
             const encryptor = new Encryptor();
             const base64EncryptedSecretKey = await encryptor.encryptData(
               account.secretKey,
-              formInfo.password,
+              tempData.password,
               account.publicKey,
             );
             const user = {
@@ -327,7 +327,7 @@ export default function ImportWallet() {
               leadingIcon="/images/email.png"
               inputType="text"
               onInputChange={(newValue) => {
-                setFormInfo({ ...formInfo, userId: newValue });
+                setTempData({ ...tempData, userId: newValue });
               }}
             />
             {errorObj.userId && (
@@ -346,7 +346,7 @@ export default function ImportWallet() {
                   placeholder="Enter Pass phrase"
                   rows={6}
                   onChange={(evt) => {
-                    setFormInfo({ ...formInfo, secret: evt.target.value });
+                    setTempData({ ...tempData, secret: evt.target.value });
                   }}
                 />
               </div>
@@ -356,7 +356,7 @@ export default function ImportWallet() {
                 leadingIcon="/images/lock.png"
                 inputType="password"
                 onInputChange={(newValue) => {
-                  setFormInfo({ ...formInfo, secret: newValue });
+                  setTempData({ ...tempData, secret: newValue });
                 }}
               />
             )}
@@ -368,7 +368,7 @@ export default function ImportWallet() {
                 type="checkbox"
                 onChange={() => {
                   setUsePassphrase(!usePassphrase);
-                  setFormInfo({ ...formInfo, secret: '' });
+                  setTempData({ ...tempData, secret: '' });
                 }}
                 name="import"
               />
@@ -381,7 +381,7 @@ export default function ImportWallet() {
               leadingIcon="/images/lock.png"
               inputType="password"
               onInputChange={(newValue) => {
-                setFormInfo({ ...formInfo, password: newValue });
+                setTempData({ ...tempData, password: newValue });
               }}
             />
             {errorObj.password && (
@@ -395,7 +395,7 @@ export default function ImportWallet() {
               leadingIcon="/images/lock.png"
               inputType="password"
               onInputChange={(newValue) => {
-                setFormInfo({ ...formInfo, confirmPassword: newValue });
+                setTempData({ ...tempData, confirmPassword: newValue });
               }}
             />
             {errorObj.confirmPassword && (

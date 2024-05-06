@@ -2,7 +2,7 @@ export const getPreloadedState = ()  => {
    const defalutValue = {
     auth: {
       user: undefined,
-      regFormInfo: {
+      tempData: {
         usePassphrase: false,
         passphrase: '',
         importExistingWallet: false,
