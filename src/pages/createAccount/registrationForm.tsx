@@ -38,16 +38,16 @@ export default function RegistrationForm() {
     corporate: appUser?.corporate ?? 0,
   };
 
-  const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
+  const tempData = useSelector((state: RootState) => state.auth.tempData);
   const [user, setUser] = useState(defaultUser);
   const [isCorporate, setIsCorporate] = useState(user?.corporate);
   const [importExistingWallet, setImportExistingWallet] = useState(
-    formInfo.importExistingWallet,
+    tempData.importExistingWallet,
   );
-  const [usePassphrase, setUsePassphrase] = useState(formInfo.usePassphrase);
-  const [passphrase, setPassphrase] = useState(formInfo.passphrase);
-  const [secretKey, setSecretKey] = useState(formInfo.secretKey);
-  const [agreesToTerms, setAgreesToTerms] = useState(formInfo.agreesToTerms);
+  const [usePassphrase, setUsePassphrase] = useState(tempData.usePassphrase);
+  const [passphrase, setPassphrase] = useState(tempData.passphrase);
+  const [secretKey, setSecretKey] = useState(tempData.secretKey);
+  const [agreesToTerms, setAgreesToTerms] = useState(tempData.agreesToTerms);
   const [errorObj, setErrorObj] = useState({
     firstName: '',
     lastName: '',
@@ -61,7 +61,7 @@ export default function RegistrationForm() {
   });
 
   useEffect(() => {
-    if (!formInfo.password) {
+    if (!tempData.password) {
       navigate('/register');
     }
   }, [user, secretKey, errorObj]);
@@ -256,7 +256,7 @@ export default function RegistrationForm() {
         dispatch(setTempUser({ ...user, publicKey: account.publicKey }));
         dispatch(
           setFormState({
-            ...formInfo,
+            ...tempData,
             importExistingWallet,
             agreesToTerms,
             usePassphrase,

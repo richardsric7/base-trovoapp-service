@@ -6,6 +6,7 @@ type Props = {
   label: string;
   leadingIcon?: string;
   inputType: string;
+  error?: string;
   onInputChange: (newValue: string) => void;
   trailingIcon?: string;
   trailingText?: string;
@@ -17,6 +18,7 @@ export default function TextInput({
   label,
   leadingIcon,
   inputType = 'text',
+  error = '',
   onInputChange,
   trailingIcon,
   trailingText,
@@ -67,6 +69,7 @@ export default function TextInput({
           </button>
         )}
       </div>
+      {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
     </>
   );
 }

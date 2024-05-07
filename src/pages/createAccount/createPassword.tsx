@@ -36,9 +36,9 @@ export default function CreatePassword() {
       fieldState: FieldState.pristine,
     },
   ];
-  const formInfo = useSelector((state: RootState) => state.auth.regFormInfo);
-  const [password, setPassword] = useState(formInfo.password);
-  const [confirmPassword, setConfirmPassword] = useState(formInfo.password);
+  const tempData = useSelector((state: RootState) => state.auth.tempData);
+  const [password, setPassword] = useState(tempData.password);
+  const [confirmPassword, setConfirmPassword] = useState(tempData.password);
   const [confirmPasswordErr, setConfirmPasswordErr] = useState('');
   const [passwordGuides, setPasswordGuide] =
     useState<FormFieldGuide[]>(initialGuidesState);
@@ -171,7 +171,7 @@ export default function CreatePassword() {
             }
 
             if (validatePassword() && isValid) {
-              const formState = { ...formInfo, password: password };
+              const formState = { ...tempData, password: password };
               dispatch(setFormState(formState));
               navigate('/register/form');
             }
