@@ -13,6 +13,9 @@ import {
 } from '../../store/api/authApi';
 import { createAccount } from '../../utils/trovoSDK';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
+import { setFormState } from '../../store/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store/reduxStore';
 
 function RecoveryMain() {
   const [currentView, setCurrentView] = useState(0);
@@ -27,8 +30,11 @@ function RecoveryMain() {
   const navigate = useNavigate();
   const [verifyEmailOtp] = useVerifyEmailOtpMutation();
   const [recoveryOtp] = useRecoveryOtpMutation();
+  const tempData = useSelector((state: RootState) => state.auth.tempData);
+  const dispatch = useDispatch();
 
-  const verifyOtp = async () => {
+  const verifyOtp = async (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (!otp) {
       showNotification('error', 'Please enter a valid 6 digits otp');
       return;
@@ -62,7 +68,8 @@ function RecoveryMain() {
     }
   };
 
-  const requestOtp = async () => {
+  const requestOtp = async (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (!username) {
       showNotification('error', 'Please enter your username to proceed');
       return;
@@ -109,7 +116,11 @@ function RecoveryMain() {
                 ensure a successful account recovery process
               </p>
             </div>
-            <div className="w-3/4">
+            <form
+              id="security-answers"
+              onSubmit={requestOtp}
+              className="w-3/4 space-y-6"
+            >
               <TextInput
                 label="Username"
                 leadingIcon="/images/iconUser.png"
@@ -118,15 +129,8 @@ function RecoveryMain() {
                   setUsername(newValue);
                 }}
               />
-            </div>
-            <div className="w-3/4">
-              <Button
-                label="Continue"
-                onclick={() => {
-                  requestOtp();
-                }}
-              />
-            </div>
+              <Button type="submit" label="Continue" onclick={() => {}} />
+            </form>
             {showAlreadySentOtp && (
               <button
                 onClick={() => {
@@ -146,8 +150,7 @@ function RecoveryMain() {
             </p>
             <div className="w-3/4 text-center px-5 md:px-10 py-5 bg-primary-100 rounded-xl">
               <p className="text-primary-800 text-md">
-                An OTP has successfully been sent to your email&nbsp;
-                <span className="font-semibold"> obixxx@gmail.com.</span>
+                An OTP has successfully been sent to your email.
                 <span>
                   &nbsp;Please check your inbox (possibly the spam folder) to
                   get the OTP and then enter it into the text fields below.
@@ -158,17 +161,22 @@ function RecoveryMain() {
               Enter OTP for user:
               <span className="font-semibold">&nbsp;{username}</span>
             </p>
-            <div className="w-auto flex justify-center">
-              <OtpInput
-                onInputChange={(newValue) => {
-                  setOtp(newValue);
-                }}
-                numberOfDigits={6}
-              />
-            </div>
-            <div className="w-3/4">
-              <Button label="Verify" onclick={verifyOtp} />
-            </div>
+            <form
+              id="security-answers"
+              onSubmit={verifyOtp}
+              className="space-y-6"
+            >
+              <div className="w-auto flex justify-center">
+                <OtpInput
+                  onInputChange={(newValue) => {
+                    setOtp(newValue);
+                  }}
+                  numberOfDigits={6}
+                />
+              </div>
+              <Button type="submit" label="Verify" onclick={() => {}} />
+            </form>
+            <div className="w-3/4"></div>
             <div className="flex justify-center text-primary-800 w-full">
               <button type="button">Resend OTP?</button>
             </div>
@@ -189,6 +197,15 @@ function RecoveryMain() {
                   <Button
                     label="Yes, I have setup security questions"
                     onclick={() => {
+                      dispatch(
+                        setFormState({
+                          ...tempData,
+                          secretKey: tempAccount.secretKey,
+                          publicKey: tempAccount.publicKey,
+                          emailOtp: otp,
+                          username: username,
+                        }),
+                      );
                       navigate('/answer-security-questions');
                     }}
                   />
@@ -197,6 +214,14 @@ function RecoveryMain() {
                   <ButtonSecondary
                     label="No, I have not setup security questions"
                     onclick={async () => {
+                      dispatch(
+                        setFormState({
+                          ...tempData,
+                          secretKey: tempAccount.secretKey,
+                          publicKey: tempAccount.publicKey,
+                          username: username,
+                        }),
+                      );
                       navigate('/recovery');
                     }}
                   />

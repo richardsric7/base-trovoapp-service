@@ -10,6 +10,9 @@ export type AuthState = {
     passphrase: string,
     importExistingWallet: boolean,
     secretKey: string,
+    publicKey: string,
+    username: string,
+    emailOtp: string,
     password: string,
     agreesToTerms: boolean
   }
@@ -21,8 +24,11 @@ const initialState: AuthState = {
     usePassphrase: false,
     importExistingWallet: true,
     secretKey: '',
+    publicKey: '',
+    username: '',
     password: '',
     passphrase: '',
+    emailOtp: '',
     agreesToTerms: true
   }
 };

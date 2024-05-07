@@ -6,7 +6,10 @@ export const getPreloadedState = ()  => {
         usePassphrase: false,
         passphrase: '',
         importExistingWallet: false,
+        username: '',
         secretKey: '',
+        emailOtp: '',
+        publicKey: '',
         password: '',
         agreesToTerms: false
       }      

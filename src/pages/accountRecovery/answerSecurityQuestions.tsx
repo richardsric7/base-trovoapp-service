@@ -1,21 +1,174 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+// import { useNavigate } from 'react-router-dom';
 import Button from '../../components/button';
+import ButtonSecondary from '../../components/buttonSecondary';
 import TextInput from '../../components/textInput';
 import Modal from '../../components/modal';
 import TrovoBrand from '../../components/trovoBrand';
-import { useFetchSecurityQuestionsQuery } from '../../store/api/authApi';
-import { createAccount } from '../../utils/trovoSDK';
+import { useSelector } from 'react-redux';
+import {
+  useFetchSecurityQuestionsQuery,
+  useSubmitSecurityAnswersMutation,
+  useRequestAccountRecoveryMutation,
+} from '../../store/api/authApi';
+import { RootState } from '../../store/reduxStore';
+import { showNotification, toggleLoader } from '../../utils/showToaster';
+import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
+
 function AnswerSecurityQuestions() {
+  type SecurityQuestion = {
+    id: number;
+    question: string;
+    answer: string;
+    error: string;
+  };
+
   const [showModal, setShowModal] = useState(false);
-  const [tempAccount] = useState<Account>(createAccount());
-  // const [fetchSecurityQuestions] = useFetchSecurityQuestionsQuery({
-  //   signer: tempAccount.publicKey,
-  //   publicKey: tempAccount.publicKey,
-  //   secretKey: formInfo.secretKey,
-  //   body: { userId: tempAccount.username, import: 1 },
-  // });
-  const navigate = useNavigate();
+  const [showSecret, setShowSecret] = useState(false);
+  const [backupDone, setBackupDone] = useState(false);
+  const [showEnsureBackupModal, setShowEnsureBackupModal] = useState(false);
+  const [invalidateOldSigner, setInvalidateOldSigner] = useState(false);
+  const [questions, setQuestions] = useState<SecurityQuestion[]>([]);
+  const tempData = useSelector((state: RootState) => state.auth.tempData);
+  const [requestAccountRecovery] = useRequestAccountRecoveryMutation();
+  const [submitSecurityAnswers] = useSubmitSecurityAnswersMutation();
+  // const navigate = useNavigate();
+
+  const { data, isLoading } = useFetchSecurityQuestionsQuery({
+    signer: tempData.publicKey,
+    publicKey: tempData.publicKey,
+    secretKey: tempData.secretKey,
+    body: { username: tempData.username },
+  });
+
+  useEffect(() => {
+    if (!isLoading) {
+      const securityAnswers: {
+        a1: '';
+        a2: '';
+        a3: '';
+        id: number;
+        q1: number;
+        q2: number;
+        q3: number;
+      } = data?.userSecurityAnswers;
+      const questions: SecurityQuestion[] = [];
+
+      data.securityQuestions?.map((q: any) => {
+        if (
+          q.ID === securityAnswers.q1 ||
+          q.ID === securityAnswers.q2 ||
+          q.ID === securityAnswers.q3
+        ) {
+          questions.push({
+            id: q.ID,
+            question: q.Question,
+            answer: '',
+            error: '',
+          });
+        }
+      });
+      setQuestions(questions);
+    }
+  }, [isLoading]);
+
+  const submitAnswers = async (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    let hasError = false;
+    for (const q of questions) {
+      if (!q.answer) {
+        showNotification('error', 'Please enter all your security answers!');
+        q.error = 'Please enter your answer';
+        hasError = true;
+      } else {
+        q.error = '';
+      }
+    }
+
+    if (hasError) return;
+
+    try {
+      toggleLoader();
+
+      const data = {
+        q1: questions[0].id,
+        a1: questions[0].answer,
+        q2: questions[1].id,
+        a2: questions[1].answer,
+        q3: questions[2].id,
+        a3: questions[2].answer,
+      };
+
+      const res = await submitSecurityAnswers({
+        signer: tempData.publicKey,
+        publicKey: tempData.publicKey,
+        secretKey: tempData.secretKey,
+        body: { username: tempData.username, answers: data },
+      });
+
+      toggleLoader();
+      console.log('res', res);
+      if ('data' in res) {
+        // navigate('/backup');
+        setShowModal(true);
+      } else if ('error' in res) {
+        const errorResponse = res.error as ErrorResponse;
+        showNotification(
+          'error',
+          errorResponse.data.error ?? 'Something went wrong. Please try again.',
+        );
+      }
+    } catch (error: any) {
+      console.log(error);
+      toggleLoader();
+    }
+  };
+
+  const submitRequestAccountRecovery = async (commit: number) => {
+    try {
+      toggleLoader();
+
+      const body = {
+        newSignerPublicKey: tempData.publicKey,
+        disableOldSignerFromPrimaryWallet: invalidateOldSigner ? 1 : 0,
+        commit,
+        emailOtp: tempData.emailOtp,
+        username: tempData.username,
+        transactionId: '',
+        securityAnswers: {
+          q1: questions[0].id,
+          a1: questions[0].answer,
+          q2: questions[1].id,
+          a2: questions[1].answer,
+          q3: questions[2].id,
+          a3: questions[2].answer,
+        },
+      };
+
+      const res = await requestAccountRecovery({
+        signer: tempData.publicKey,
+        publicKey: tempData.publicKey,
+        secretKey: tempData.secretKey,
+        body,
+      });
+
+      toggleLoader();
+      console.log('res', res);
+      if ('data' in res) {
+        setShowModal(false);
+        setShowEnsureBackupModal(true);
+      } else if ('error' in res) {
+        const errorResponse = res.error as ErrorResponse;
+        showNotification(
+          'error',
+          errorResponse.data.error ?? 'Something went wrong. Please try again.',
+        );
+      }
+    } catch (error: any) {
+      console.log(error);
+      toggleLoader();
+    }
+  };
 
   return (
     <div className="flex h-screen items-center justify-center ">
@@ -47,40 +200,46 @@ function AnswerSecurityQuestions() {
                 next step.
               </p>
             </div>
-            <div className="w-3/4">
-              <TextInput
-                label="What is your mother’s maiden name?"
-                leadingIcon="/images/question.png"
-                inputType="text"
-                placeholder="Enter answer"
-                onInputChange={(newValue) => {
-                  console.log('input has changed', newValue);
-                }}
-              />
-            </div>
-            <div className="w-3/4">
-              <TextInput
-                label="What is the name of the first street you lived at?"
-                leadingIcon="/images/question.png"
-                inputType="text"
-                placeholder="Enter answer"
-                onInputChange={(newValue) => {
-                  console.log('input has changed', newValue);
-                }}
-              />
-            </div>
-            <div className="w-3/4">
-              <TextInput
-                label="What is your mother’s maiden name?"
-                leadingIcon="/images/question.png"
-                inputType="text"
-                placeholder="Enter answer"
-                onInputChange={(newValue) => {
-                  console.log('input has changed', newValue);
-                }}
-              />
-            </div>
-            <Modal showModal={showModal} onClose={() => {}}>
+            <form
+              id="security-answers"
+              onSubmit={submitAnswers}
+              className="w-3/4 space-y-6"
+            >
+              {questions &&
+                questions.map((q) => (
+                  <div
+                    className="w-full"
+                    key={`${new Date().getTime()}${q.id}`}
+                  >
+                    <TextInput
+                      label={q.question}
+                      leadingIcon="/images/question.png"
+                      inputType="text"
+                      placeholder="Enter answer"
+                      defaultValue={q.answer}
+                      error={q.error}
+                      onInputChange={(newValue) => {
+                        q.answer = newValue;
+                      }}
+                    />
+                  </div>
+                ))}
+              <div className="w-full">
+                <Button
+                  type="submit"
+                  label="Verify"
+                  onclick={() => {
+                    console.log(questions);
+                  }}
+                />
+              </div>
+            </form>
+            <Modal
+              showModal={showModal}
+              onClose={() => {
+                setShowModal(false);
+              }}
+            >
               <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
                 <img src="/images/launch.png" alt="success" />
                 <div className="flex flex-col text-center space-y-5 items-center w-2/3 mb-5 md:px-10 justify-center">
@@ -88,48 +247,161 @@ function AnswerSecurityQuestions() {
                     Congratulations!
                   </p>
                   <p className="text-primary-800 text-md xl:text-lg">
-                    You have successfully recovered your account. Please copy
-                    your secret key below to import your wallet afresh from your
-                    device.
+                    We have generated a new credentials for your account. Please
+                    copy your new secret key below to import your wallet afresh
+                    from your device.
                   </p>
                 </div>
                 <div className="w-3/4 text-justify space-y-5 px-5 md:px-10 mb-5 py-5 bg-primary-100 rounded-xl">
+                  <div className="flex flex-col space-y-5">
+                    <p className="text-left w-full text-primary-800 text-md font-bold">
+                      Alias:
+                    </p>
+                    <div className="flex justify-between">
+                      <p>{tempData.username}</p>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigator.clipboard
+                            .writeText(tempData.username)
+                            .then(() => {
+                              showNotification('info', 'Username copied!');
+                            })
+                        }
+                      >
+                        <img src="/images/copy.png" alt="copy" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col space-y-5 w-full">
+                    <p className="text-left w-full text-primary-800 text-md font-bold">
+                      Public Key:
+                    </p>
+                    <div className="flex w-full justify-between">
+                      <div className="w-4/5 h-full break-all">
+                        {tempData.publicKey}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigator.clipboard
+                            .writeText(tempData.publicKey)
+                            .then(() => {
+                              showNotification('info', 'Public key copied!');
+                            })
+                        }
+                      >
+                        <img src="/images/copy.png" alt="copy" />
+                      </button>
+                    </div>
+                  </div>
                   <p className="text-primary-800 text-md xl:text-lg font-semibold">
-                    Secret key for Ogbonge Wallet
-                  </p>
-                  <p className="text-primary-800 text-md break-all">
-                    {/* eslint-disable-next-line */}
-                    ASKONRWINOT-949I0IWRINEKLNFSKNFSDPG0J3-9JGRNKNGKN0J34INORGSDFW4W4WWEKLNDKLSFWKLNREKONELN4T4U48T53UONGKNGKLNK34T34WRKLGNKLGNREGKLNRKENGKLRNGEL
+                    Secret key
                   </p>
                   <div className="flex justify-between w-full">
-                    <button type="button">
-                      <img src="/images/copy.png" alt="copy" />
-                    </button>
-                    <button type="button">
-                      <img src="/images/eyeShow.png" alt="show/hide" />
-                    </button>
+                    <p className="w-4/5 text-md break-all">
+                      {/* eslint-disable-next-line */}
+                      {showSecret ? tempData.secretKey : '***********'}
+                    </p>
+                    <div className="flex justify-between space-x-5">
+                      <button
+                        onClick={async () => {
+                          navigator.clipboard
+                            .writeText(tempData.secretKey)
+                            .then(() => {
+                              showNotification('info', 'Secret key copied!');
+                            });
+                        }}
+                        type="button"
+                      >
+                        <img src="/images/copy.png" alt="copy" />
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setShowSecret(!showSecret);
+                        }}
+                        type="button"
+                      >
+                        <img src="/images/eyeShow.png" alt="show/hide" />
+                      </button>
+                    </div>
                   </div>
+                </div>
+                <div className="w-3/4 flex justify-center space-x-3">
+                  <input
+                    type="checkbox"
+                    name="import"
+                    defaultChecked={invalidateOldSigner}
+                    onChange={() => {
+                      setInvalidateOldSigner(!invalidateOldSigner);
+                    }}
+                  />
+                  <p className="text-gray-500">
+                    Invalidate old signer from primary wallet?
+                  </p>
                 </div>
                 <div className="w-3/4">
                   <Button
-                    label="Go to Dashboard"
+                    label="Continue"
                     onclick={() => {
-                      navigate('/dashboard');
-                      setShowModal(false);
+                      submitRequestAccountRecovery(0); // 0 = dry run
                     }}
                   />
                 </div>
               </div>
             </Modal>
-            <div className="w-3/4">
-              <Button
-                label="Verify"
-                onclick={() => {
-                  // navigate('/register/backup');
-                  setShowModal(true);
-                }}
-              />
-            </div>
+            <Modal
+              showModal={showEnsureBackupModal}
+              onClose={() => {
+                setShowEnsureBackupModal(false);
+              }}
+            >
+              <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
+                <img src="/images/launch.png" alt="success" />
+                <div className="flex flex-col text-center space-y-5 items-center w-2/3 mb-5 md:px-10 justify-center">
+                  <p className="text-primary-800 text-md xl:text-xl font-bold">
+                    Account Recovery
+                  </p>
+                  <p className="text-primary-800 text-md xl:text-lg">
+                    Before completing account recovery please confirm that you
+                    have backed up the new account information. If you have not
+                    backed it up, kindly tap the back button and back it up.
+                  </p>
+                </div>
+                <div className="w-3/4 flex justify-center space-x-3">
+                  <input
+                    type="checkbox"
+                    name="import"
+                    defaultChecked={backupDone}
+                    onChange={() => {
+                      setBackupDone(!backupDone);
+                    }}
+                  />
+                  <p className="text-gray-500">
+                    I have securely backed up my new account information.
+                  </p>
+                </div>
+                <div className="w-3/4">
+                  <ButtonSecondary
+                    label="Go back and backup"
+                    onclick={() => {
+                      setShowModal(true);
+                      setShowEnsureBackupModal(false);
+                    }}
+                  />
+                </div>
+                <div className="w-3/4">
+                  <Button
+                    label="Complete account recovery"
+                    disabled={!backupDone}
+                    onclick={() => {
+                      // setShowModal(false);
+                      submitRequestAccountRecovery(1); // 1 = final commit
+                    }}
+                  />
+                </div>
+              </div>
+            </Modal>
           </div>
         </div>
       </div>
