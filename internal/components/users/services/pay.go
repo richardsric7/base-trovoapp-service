@@ -843,6 +843,10 @@ func generateMintingXdr(client *horizonclient.Client, owner *userModels.User, so
 
 	}
 
+	{
+		owner.InvalidateUserCache(gc)
+	}
+
 	return xdrBase64, &destinationInfo, nil
 
 }
@@ -1182,6 +1186,9 @@ func generatePaymentXdrWithChannelAccountPK(owner *userModels.User, sourceWallet
 	}
 	if publicKeyPayment {
 		return xdrBase64, nil, nil
+	}
+	{
+		owner.InvalidateUserCache(gc)
 	}
 	return xdrBase64, &destinationInfo, nil
 }
