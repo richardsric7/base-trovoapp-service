@@ -817,8 +817,11 @@ func DoAccountRecovery(user *userModels.User, payload *userModels.AccountRecover
 			//remove from wallets
 			if len(deletingPermissions) > 0 {
 				e := dbtx.Where("id IN (?)", deletingPermissions).Delete(&userModels.WalletPermission{}).Error
-				log.Println("[DoAccountRecovery]error deleting permissions from shared wallets database status ", e)
-				return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
+				if e != nil {
+					log.Printf("[DoAccountRecovery]error deleting permissions [%+v] from shared wallets database status. Error: %v\n", e, deletingPermissions)
+					return multiAccessWallets, sharedApproverWallets, &tErrors.ErrorTemporaryServerError{}
+				}
+
 			}
 
 		}
