@@ -88,7 +88,7 @@ function RecoveryMain() {
       console.log('res', res);
       setShowAlreadySentOtp(true);
       if ('data' in res) {
-        setCurrentView(2);
+        setCurrentView(1);
       } else if ('error' in res) {
         const errorResponse = res.error as ErrorResponse;
         showNotification(
@@ -105,44 +105,6 @@ function RecoveryMain() {
   function renderSwitch(view: number) {
     switch (view) {
       case 1:
-        return (
-          <>
-            <p className="text-center w-full text-primary-800 text-2xl font-bold">
-              Account Recovery
-            </p>
-            <div className="w-3/4 text-center px-5 md:px-10 py-5 bg-primary-100 rounded-xl">
-              <p className="text-primary-800 text-md">
-                Please provide accurate information in the fields below to
-                ensure a successful account recovery process
-              </p>
-            </div>
-            <form
-              id="security-answers"
-              onSubmit={requestOtp}
-              className="w-3/4 space-y-6"
-            >
-              <TextInput
-                label="Username"
-                leadingIcon="/images/iconUser.png"
-                inputType="text"
-                onInputChange={(newValue) => {
-                  setUsername(newValue);
-                }}
-              />
-              <Button type="submit" label="Continue" onclick={() => {}} />
-            </form>
-            {showAlreadySentOtp && (
-              <button
-                onClick={() => {
-                  setCurrentView(2);
-                }}
-              >
-                Already recieved OTP?
-              </button>
-            )}
-          </>
-        );
-      case 2:
         return (
           <div className="flex flex-col space-y-6 md:h-full items-center justify-center">
             <p className="text-center w-full text-primary-800 text-2xl font-bold">
@@ -177,9 +139,6 @@ function RecoveryMain() {
               <Button type="submit" label="Verify" onclick={() => {}} />
             </form>
             <div className="w-3/4"></div>
-            <div className="flex justify-center text-primary-800 w-full">
-              <button type="button">Resend OTP?</button>
-            </div>
             <Modal
               showModal={showHaveYouSetupSecurityQuestion}
               onClose={() => {}}
@@ -233,40 +192,39 @@ function RecoveryMain() {
       default:
         return (
           <>
-            <div className="px-10 text-primary-800 space-y-5 text-md text-justify">
-              <p className="text-center w-full text-primary-800 text-2xl font-bold">
-                Account Recovery
-              </p>
-              <p>
-                You are about to opt in for and enable account recovery service,
-                once account recovery service is enabled on your account,
-                Trovotech will be able to recover your account should you loose
-                your secret key within the time the recovery service is active
-                on your account.
-              </p>
-              <p>
-                The account recovery is a paid service and is only limited to
-                recovery of your account and the wallet(s) on your account, the
-                payment for this service is renewable on an annual basis.
-              </p>
-              <p>
-                Trovotech des not have access to your secret key, therefore will
-                not be liable for any missing asset in your wallet(s).
-              </p>
-              <p>
-                As long as your secret key remains safe on your side, your
-                assets are safe. Therefore, ensure that you keep your secret key
-                safe always.
+            <p className="text-center w-full text-primary-800 text-2xl font-bold">
+              Account Recovery
+            </p>
+            <div className="w-3/4 text-center px-5 md:px-10 py-5 bg-primary-100 rounded-xl">
+              <p className="text-primary-800 text-md">
+                Please provide accurate information in the fields below to
+                ensure a successful account recovery process
               </p>
             </div>
-            <div className="w-full px-10 pt-10">
-              <Button
-                label="Continue"
-                onclick={() => {
-                  setCurrentView(1);
+            <form
+              id="security-answers"
+              onSubmit={requestOtp}
+              className="w-3/4 space-y-6"
+            >
+              <TextInput
+                label="Username"
+                leadingIcon="/images/iconUser.png"
+                inputType="text"
+                onInputChange={(newValue) => {
+                  setUsername(newValue);
                 }}
               />
-            </div>
+              <Button type="submit" label="Continue" onclick={() => {}} />
+            </form>
+            {showAlreadySentOtp && (
+              <button
+                onClick={() => {
+                  setCurrentView(1);
+                }}
+              >
+                Already recieved OTP?
+              </button>
+            )}
           </>
         );
     }

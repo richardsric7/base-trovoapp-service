@@ -85,6 +85,7 @@ function App() {
       <Toaster
         type={toasterInfo.type}
         message={toasterInfo.message}
+        delay={toasterInfo.delay}
         onClose={() => {
           dispatch(hideToaster());
         }}

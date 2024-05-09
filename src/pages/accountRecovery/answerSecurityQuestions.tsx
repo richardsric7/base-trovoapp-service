@@ -5,7 +5,8 @@ import ButtonSecondary from '../../components/buttonSecondary';
 import TextInput from '../../components/textInput';
 import Modal from '../../components/modal';
 import TrovoBrand from '../../components/trovoBrand';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { setFormState } from '../../store/authSlice';
 import {
   useFetchSecurityQuestionsQuery,
   useSubmitSecurityAnswersMutation,
@@ -14,6 +15,7 @@ import {
 import { RootState } from '../../store/reduxStore';
 import { showNotification, toggleLoader } from '../../utils/showToaster';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
+import { useNavigate } from 'react-router-dom';
 
 function AnswerSecurityQuestions() {
   type SecurityQuestion = {
@@ -25,6 +27,7 @@ function AnswerSecurityQuestions() {
 
   const [showModal, setShowModal] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
+  const [messages, setMessages] = useState([]);
   const [backupDone, setBackupDone] = useState(false);
   const [showEnsureBackupModal, setShowEnsureBackupModal] = useState(false);
   const [invalidateOldSigner, setInvalidateOldSigner] = useState(false);
@@ -32,7 +35,8 @@ function AnswerSecurityQuestions() {
   const tempData = useSelector((state: RootState) => state.auth.tempData);
   const [requestAccountRecovery] = useRequestAccountRecoveryMutation();
   const [submitSecurityAnswers] = useSubmitSecurityAnswersMutation();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const { data, isLoading } = useFetchSecurityQuestionsQuery({
     signer: tempData.publicKey,
@@ -42,6 +46,11 @@ function AnswerSecurityQuestions() {
   });
 
   useEffect(() => {
+    if (!tempData.emailOtp) {
+      navigate('/recovery');
+      return;
+    }
+
     if (!isLoading) {
       const securityAnswers: {
         a1: '';
@@ -156,7 +165,27 @@ function AnswerSecurityQuestions() {
       console.log('res', res);
       if ('data' in res) {
         setShowModal(false);
-        setShowEnsureBackupModal(true);
+        setMessages(res.data.messages);
+        if (commit === 0) {
+          setShowEnsureBackupModal(true);
+        } else {
+          setShowEnsureBackupModal(false);
+          navigate('/import');
+          showNotification(
+            'success',
+            'Your account has successfully been recovered. You can now import your account with the new secret key.',
+            5000, // delay for 5secs
+          );
+          dispatch(
+            setFormState({
+              ...tempData,
+              emailOtp: '',
+              username: '',
+              secretKey: '',
+              publicKey: '',
+            }),
+          );
+        }
       } else if ('error' in res) {
         const errorResponse = res.error as ErrorResponse;
         showNotification(
@@ -247,7 +276,7 @@ function AnswerSecurityQuestions() {
                     Congratulations!
                   </p>
                   <p className="text-primary-800 text-md xl:text-lg">
-                    We have generated a new credentials for your account. Please
+                    We have generated new credentials for your account. Please
                     copy your new secret key below to import your wallet afresh
                     from your device.
                   </p>
@@ -358,47 +387,61 @@ function AnswerSecurityQuestions() {
             >
               <div className="flex flex-col space-y-5 items-center w-full py-10 justify-center">
                 <img src="/images/launch.png" alt="success" />
-                <div className="flex flex-col text-center space-y-5 items-center w-2/3 mb-5 md:px-10 justify-center">
+                <div className="flex flex-col text-center space-y-5 items-center w-3/4 mb-5 md:px-10 justify-center">
                   <p className="text-primary-800 text-md xl:text-xl font-bold">
                     Account Recovery
                   </p>
-                  <p className="text-primary-800 text-md xl:text-lg">
-                    Before completing account recovery please confirm that you
-                    have backed up the new account information. If you have not
-                    backed it up, kindly tap the back button and back it up.
-                  </p>
-                </div>
-                <div className="w-3/4 flex justify-center space-x-3">
-                  <input
-                    type="checkbox"
-                    name="import"
-                    defaultChecked={backupDone}
-                    onChange={() => {
-                      setBackupDone(!backupDone);
-                    }}
-                  />
-                  <p className="text-gray-500">
-                    I have securely backed up my new account information.
-                  </p>
-                </div>
-                <div className="w-3/4">
-                  <ButtonSecondary
-                    label="Go back and backup"
-                    onclick={() => {
-                      setShowModal(true);
-                      setShowEnsureBackupModal(false);
-                    }}
-                  />
-                </div>
-                <div className="w-3/4">
-                  <Button
-                    label="Complete account recovery"
-                    disabled={!backupDone}
-                    onclick={() => {
-                      // setShowModal(false);
-                      submitRequestAccountRecovery(1); // 1 = final commit
-                    }}
-                  />
+                  {!backupDone && (
+                    <>
+                      <p className="text-primary-800 text-md xl:text-lg">
+                        Before completing account recovery please confirm that
+                        you have backed up the new account information. If you
+                        have not backed it up, kindly tap the back button and
+                        back it up.
+                      </p>
+                      <ButtonSecondary
+                        label="Go back and backup"
+                        onclick={() => {
+                          setShowModal(true);
+                          setShowEnsureBackupModal(false);
+                        }}
+                      />
+                      <Button
+                        label="Continue, I have backed up"
+                        onclick={() => {
+                          // setShowModal(false);
+                          setBackupDone(!backupDone);
+                        }}
+                      />
+                    </>
+                  )}
+                  {backupDone && (
+                    <>
+                      {messages.map((m, index) => (
+                        <p
+                          className="text-danger text-md xl:text-lg"
+                          key={`${new Date().getTime()}${index}`}
+                        >
+                          {m}
+                        </p>
+                      ))}
+                      <Button
+                        label="Ok, complete account recovery"
+                        onclick={() => {
+                          setShowModal(false);
+                          submitRequestAccountRecovery(1); // 1 = final commit
+                        }}
+                      />
+                      <ButtonSecondary
+                        label="No, cancel"
+                        onclick={() => {
+                          setShowModal(false);
+                          setBackupDone(false);
+                          setShowEnsureBackupModal(false);
+                        }}
+                      />
+                    </>
+                  )}
                 </div>
               </div>
             </Modal>

@@ -2,7 +2,8 @@ import { createSlice } from '@reduxjs/toolkit';
 
 type ToasterInfo = {
   type: 'success' | 'error' | 'info' | undefined,
-  message: string
+  message: string,
+  delay?: number,
 }
 
 type GlobalUIState = {
@@ -14,7 +15,7 @@ type GlobalUIState = {
 const initialState: GlobalUIState = {  
     showSidebar: false,
     showLoader: false,
-    showToaster: {type: undefined, message: ''},  
+    showToaster: {type: undefined, message: '', delay: 2000},  
 };
 
 export const sidebarSlice = createSlice({
@@ -31,7 +32,7 @@ export const sidebarSlice = createSlice({
     },
     showToaster: (state, action) => {
       // eslint-disable-next-line
-      return {...state, showToaster: {...state.showToaster, type: action.payload.type, message: action.payload.message}}
+      return {...state, showToaster: {...state.showToaster, type: action.payload.type, message: action.payload.message, delay: action.payload.delay}}
     },
     hideToaster: (state) => {
       // eslint-disable-next-line
