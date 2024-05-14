@@ -178,10 +178,11 @@ function RecoveryMain() {
                           ...tempData,
                           secretKey: tempAccount.secretKey,
                           publicKey: tempAccount.publicKey,
+                          emailOtp: otp,
                           username: username,
                         }),
                       );
-                      navigate('/recovery');
+                      navigate('/setup-security-questions');
                     }}
                   />
                 </div>

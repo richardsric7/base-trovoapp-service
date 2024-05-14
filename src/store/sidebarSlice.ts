@@ -30,6 +30,14 @@ export const sidebarSlice = createSlice({
       // eslint-disable-next-line
       return {...state, showLoader: !state.showLoader}
     },
+    showLoader: (state) => {
+      // eslint-disable-next-line
+      return {...state, showLoader: true}
+    },
+    hideLoader: (state) => {
+      // eslint-disable-next-line
+      return {...state, showLoader: false}
+    },
     showToaster: (state, action) => {
       // eslint-disable-next-line
       return {...state, showToaster: {...state.showToaster, type: action.payload.type, message: action.payload.message, delay: action.payload.delay}}
@@ -42,6 +50,6 @@ export const sidebarSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { toggleSidebar, showHideLoader, showToaster, hideToaster} = sidebarSlice.actions;
+export const { toggleSidebar, showHideLoader, showLoader, hideLoader, showToaster, hideToaster} = sidebarSlice.actions;
 
 export default sidebarSlice.reducer;

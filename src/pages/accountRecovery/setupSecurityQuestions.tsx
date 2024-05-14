@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setFormState } from '../../store/authSlice';
 import {
   useFetchSecurityQuestionsQuery,
-  useSubmitSecurityAnswersMutation,
+  useRestoreInactiveAccountMutation,
   useRequestAccountRecoveryMutation,
 } from '../../store/api/authApi';
 import { RootState } from '../../store/reduxStore';
@@ -21,8 +21,9 @@ import {
 } from '../../utils/showToaster';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
 import { useNavigate } from 'react-router-dom';
+import Dropdown from '../../components/dropdown';
 
-function AnswerSecurityQuestions() {
+function SetupSecurityQuestions() {
   type SecurityQuestion = {
     id: number;
     question: string;
@@ -30,16 +31,41 @@ function AnswerSecurityQuestions() {
     error: string;
   };
 
+  type SecurityAnswers = {
+    a1: string;
+    a2: string;
+    a3: string;
+    q1: number;
+    q2: number;
+    q3: number;
+  };
+
   const [showModal, setShowModal] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [errors, setErrors] = useState({
+    a1: '',
+    a2: '',
+    a3: '',
+    q1: '',
+    q2: '',
+    q3: '',
+  });
   const [backupDone, setBackupDone] = useState(false);
   const [showEnsureBackupModal, setShowEnsureBackupModal] = useState(false);
   const [invalidateOldSigner, setInvalidateOldSigner] = useState(false);
   const [questions, setQuestions] = useState<SecurityQuestion[]>([]);
+  const [securityAnswers, setSecurityAnswers] = useState<SecurityAnswers>({
+    a1: '',
+    a2: '',
+    a3: '',
+    q1: 0,
+    q2: 0,
+    q3: 0,
+  });
   const tempData = useSelector((state: RootState) => state.auth.tempData);
   const [requestAccountRecovery] = useRequestAccountRecoveryMutation();
-  const [submitSecurityAnswers] = useSubmitSecurityAnswersMutation();
+  const [restoreInactiveAccount] = useRestoreInactiveAccountMutation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -58,30 +84,15 @@ function AnswerSecurityQuestions() {
 
     if (!isLoading) {
       hideLoader();
-      const securityAnswers: {
-        a1: '';
-        a2: '';
-        a3: '';
-        id: number;
-        q1: number;
-        q2: number;
-        q3: number;
-      } = data?.userSecurityAnswers;
       const questions: SecurityQuestion[] = [];
 
       data.securityQuestions?.map((q: any) => {
-        if (
-          q.ID === securityAnswers.q1 ||
-          q.ID === securityAnswers.q2 ||
-          q.ID === securityAnswers.q3
-        ) {
-          questions.push({
-            id: q.ID,
-            question: q.Question,
-            answer: '',
-            error: '',
-          });
-        }
+        questions.push({
+          id: q.ID,
+          question: q.Question,
+          answer: '',
+          error: '',
+        });
       });
       setQuestions(questions);
     } else {
@@ -89,80 +100,57 @@ function AnswerSecurityQuestions() {
     }
   }, [isLoading]);
 
-  const submitAnswers = async (e: React.ChangeEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    let hasError = false;
-    for (const q of questions) {
-      if (!q.answer) {
-        showNotification('error', 'Please enter all your security answers!');
-        q.error = 'Please enter your answer';
-        hasError = true;
-      } else {
-        q.error = '';
-      }
+  const submitAnswers = async () => {
+    const err = {
+      a1: '',
+      a2: '',
+      a3: '',
+      q1: '',
+      q2: '',
+      q3: '',
+    };
+
+    if (!securityAnswers.q1) {
+      err.q1 = 'Please choose security question 1';
     }
 
-    if (hasError) return;
-
-    try {
-      toggleLoader();
-
-      const data = {
-        q1: questions[0].id,
-        a1: questions[0].answer,
-        q2: questions[1].id,
-        a2: questions[1].answer,
-        q3: questions[2].id,
-        a3: questions[2].answer,
-      };
-
-      const res = await submitSecurityAnswers({
-        signer: tempData.publicKey,
-        publicKey: tempData.publicKey,
-        secretKey: tempData.secretKey,
-        body: { username: tempData.username, answers: data },
-      });
-
-      toggleLoader();
-      console.log('res', res);
-      if ('data' in res) {
-        // navigate('/backup');
-        setShowModal(true);
-      } else if ('error' in res) {
-        const errorResponse = res.error as ErrorResponse;
-        showNotification(
-          'error',
-          errorResponse.data.error ?? 'Something went wrong. Please try again.',
-        );
-      }
-    } catch (error: any) {
-      console.log(error);
-      toggleLoader();
+    if (!securityAnswers.q2) {
+      err.q2 = 'Please choose security question 2';
     }
-  };
 
-  const submitRequestAccountRecovery = async (commit: number) => {
+    if (!securityAnswers.q3) {
+      err.q3 = 'Please choose security question 3';
+    }
+
+    if (!securityAnswers.a1) {
+      err.a1 = 'Please enter your answer';
+    }
+
+    if (!securityAnswers.a2) {
+      err.a2 = 'Please enter your answer';
+    }
+
+    if (!securityAnswers.a3) {
+      err.a3 = 'Please enter your answer';
+    }
+
+    setErrors({ ...err });
+    // if there is no selected security question then there is no answer
+    if (!securityAnswers.a1 || !securityAnswers.a2 || !securityAnswers.a3) {
+      return;
+    }
+
     try {
       toggleLoader();
 
       const body = {
         newSignerPublicKey: tempData.publicKey,
-        disableOldSignerFromPrimaryWallet: invalidateOldSigner ? 1 : 0,
-        commit,
         emailOtp: tempData.emailOtp,
         username: tempData.username,
-        transactionId: '',
-        securityAnswers: {
-          q1: questions[0].id,
-          a1: questions[0].answer,
-          q2: questions[1].id,
-          a2: questions[1].answer,
-          q3: questions[2].id,
-          a3: questions[2].answer,
-        },
+        securityAnswers,
       };
 
-      const res = await requestAccountRecovery({
+      const res = await restoreInactiveAccount({
         signer: tempData.publicKey,
         publicKey: tempData.publicKey,
         secretKey: tempData.secretKey,
@@ -172,33 +160,14 @@ function AnswerSecurityQuestions() {
       toggleLoader();
       console.log('res', res);
       if ('data' in res) {
-        setShowModal(false);
-        setMessages(res.data.messages);
-        if (commit === 0) {
-          setShowEnsureBackupModal(true);
-        } else {
-          setShowEnsureBackupModal(false);
-          navigate('/import');
-          showNotification(
-            'success',
-            'Your account has successfully been recovered. You can now import your account with the new secret key.',
-            5000, // delay for 5secs
-          );
-          dispatch(
-            setFormState({
-              ...tempData,
-              emailOtp: '',
-              username: '',
-              secretKey: '',
-              publicKey: '',
-            }),
-          );
-        }
+        setShowModal(true);
       } else if ('error' in res) {
         const errorResponse = res.error as ErrorResponse;
         showNotification(
           'error',
-          errorResponse.data.error ?? 'Something went wrong. Please try again.',
+          errorResponse.data.message ??
+            'Something went wrong. Please try again.',
+          5000,
         );
       }
     } catch (error: any) {
@@ -229,45 +198,158 @@ function AnswerSecurityQuestions() {
         <div className="flex flex-col md:px-20 py-20 md:py-0 space-y-6 h-full items-center md:justify-center">
           <div className="flex flex-col space-y-6 md:h-full items-center justify-center">
             <p className="text-center w-full text-primary-800 text-2xl font-bold">
-              Answer Security Questions
+              Setup Security Questions
             </p>
             {questions.length > 0 ? (
               <form
                 id="security-answers"
-                onSubmit={submitAnswers}
-                className="w-3/4 space-y-6"
+                onSubmit={(e: React.FormEvent<HTMLFormElement>) =>
+                  e.preventDefault()
+                }
+                className="w-full space-y-6"
               >
-                <div className="w-full text-center px-5 md:px-10 py-5 bg-primary-100 rounded-xl">
+                <div className="w-full text-center px-5 md:px-10 py-5 bg-primary-100 space-y-10 rounded-xl">
                   <p className="text-primary-800 text-md">
-                    Please answer the following security questions to proceed to
-                    the next step.
+                    This will be required if you wish to make modifications to
+                    your account in the future, and if you ever wish to opt in
+                    for our account recovery service.
+                  </p>
+                  <p className="text-primary-800 text-md">
+                    PLEASE DO NOT FORGET THE ANSWERS YOU PROVIDED FOR FUTURE
+                    USE.
                   </p>
                 </div>
-                {questions.map((q) => (
-                  <div
-                    className="w-full"
-                    key={`${new Date().getTime()}${q.id}`}
-                  >
+                <div className="w-full">
+                  <Dropdown
+                    label="Choose question 1"
+                    options={[
+                      ...questions
+                        .filter(
+                          (q) =>
+                            q.id !== securityAnswers.q2 &&
+                            q.id !== securityAnswers.q3,
+                        )
+                        .map((q) => ({
+                          text: q.question,
+                          value: q.id,
+                        })),
+                    ]}
+                    onSelect={(selectedItem) => {
+                      setSecurityAnswers({
+                        ...securityAnswers,
+                        q1: selectedItem.value,
+                      });
+                      setErrors({ ...errors, q1: '', a1: '' });
+                    }}
+                  />
+                  {errors.q1 && (
+                    <p className="text-red-500 text-sm mt-1">{errors.q1}</p>
+                  )}
+                </div>
+                {securityAnswers.q1 !== 0 && (
+                  <div className="w-full">
                     <TextInput
-                      label={q.question}
+                      label=""
                       leadingIcon="/images/question.png"
                       inputType="text"
                       placeholder="Enter answer"
-                      defaultValue={q.answer}
-                      error={q.error}
+                      defaultValue={securityAnswers.a1}
+                      error={errors.a1}
                       onInputChange={(newValue) => {
-                        q.answer = newValue;
+                        securityAnswers.a1 = newValue;
                       }}
                     />
                   </div>
-                ))}
+                )}
+                <div className="w-full">
+                  <Dropdown
+                    label="Choose question 2"
+                    options={[
+                      ...questions
+                        .filter(
+                          (q) =>
+                            q.id !== securityAnswers.q1 &&
+                            q.id !== securityAnswers.q3,
+                        )
+                        .map((q) => ({
+                          text: q.question,
+                          value: q.id,
+                        })),
+                    ]}
+                    onSelect={(selectedItem) => {
+                      setSecurityAnswers({
+                        ...securityAnswers,
+                        q2: selectedItem.value,
+                      });
+                      setErrors({ ...errors, q2: '', a2: '' });
+                    }}
+                  />
+                  {errors.q2 && (
+                    <p className="text-red-500 text-sm mt-1">{errors.q2}</p>
+                  )}
+                </div>
+                {securityAnswers.q2 !== 0 && (
+                  <div className="w-full">
+                    <TextInput
+                      label=""
+                      leadingIcon="/images/question.png"
+                      inputType="text"
+                      placeholder="Enter answer"
+                      defaultValue={securityAnswers.a2}
+                      error={errors.a2}
+                      onInputChange={(newValue) => {
+                        securityAnswers.a2 = newValue;
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="w-full">
+                  <Dropdown
+                    label="Choose question 3"
+                    options={[
+                      ...questions
+                        .filter(
+                          (q) =>
+                            q.id !== securityAnswers.q1 &&
+                            q.id !== securityAnswers.q2,
+                        )
+                        .map((q) => ({
+                          text: q.question,
+                          value: q.id,
+                        })),
+                    ]}
+                    onSelect={(selectedItem) => {
+                      setSecurityAnswers({
+                        ...securityAnswers,
+                        q3: selectedItem.value,
+                      });
+                      setErrors({ ...errors, q3: '', a3: '' });
+                    }}
+                  />
+                  {errors.q3 && (
+                    <p className="text-red-500 text-sm mt-1">{errors.q3}</p>
+                  )}
+                </div>
+                {securityAnswers.q3 !== 0 && (
+                  <div className="w-full">
+                    <TextInput
+                      label=""
+                      leadingIcon="/images/question.png"
+                      inputType="text"
+                      placeholder="Enter answer"
+                      defaultValue={securityAnswers.a3}
+                      error={errors.a3}
+                      onInputChange={(newValue) => {
+                        securityAnswers.a3 = newValue;
+                      }}
+                    />
+                  </div>
+                )}
                 <div className="w-full">
                   <Button
-                    type="submit"
-                    label="Verify"
-                    onclick={() => {
-                      console.log(questions);
-                    }}
+                    type="button"
+                    label="Submit"
+                    onclick={submitAnswers}
                   />
                 </div>
               </form>
@@ -381,24 +463,12 @@ function AnswerSecurityQuestions() {
                     </div>
                   </div>
                 </div>
-                <div className="w-3/4 flex justify-center space-x-3">
-                  <input
-                    type="checkbox"
-                    name="import"
-                    defaultChecked={invalidateOldSigner}
-                    onChange={() => {
-                      setInvalidateOldSigner(!invalidateOldSigner);
-                    }}
-                  />
-                  <p className="text-gray-500">
-                    Invalidate old signer from primary wallet?
-                  </p>
-                </div>
                 <div className="w-3/4">
                   <Button
                     label="Continue"
                     onclick={() => {
-                      submitRequestAccountRecovery(0); // 0 = dry run
+                      setShowModal(false);
+                      setShowEnsureBackupModal(true);
                     }}
                   />
                 </div>
@@ -416,57 +486,34 @@ function AnswerSecurityQuestions() {
                   <p className="text-primary-800 text-md xl:text-xl font-bold">
                     Account Recovery
                   </p>
-                  {!backupDone && (
-                    <>
-                      <p className="text-primary-800 text-md xl:text-lg">
-                        Before completing account recovery please confirm that
-                        you have backed up the new account information. If you
-                        have not backed it up, kindly tap the back button and
-                        back it up.
-                      </p>
-                      <ButtonSecondary
-                        label="Go back and backup"
-                        onclick={() => {
-                          setShowModal(true);
-                          setShowEnsureBackupModal(false);
-                        }}
-                      />
-                      <Button
-                        label="Continue, I have backed up"
-                        onclick={() => {
-                          // setShowModal(false);
-                          setBackupDone(!backupDone);
-                        }}
-                      />
-                    </>
-                  )}
-                  {backupDone && (
-                    <>
-                      {messages.map((m, index) => (
-                        <p
-                          className="text-danger text-md xl:text-lg"
-                          key={`${new Date().getTime()}${index}`}
-                        >
-                          {m}
-                        </p>
-                      ))}
-                      <Button
-                        label="Ok, complete account recovery"
-                        onclick={() => {
-                          setShowModal(false);
-                          submitRequestAccountRecovery(1); // 1 = final commit
-                        }}
-                      />
-                      <ButtonSecondary
-                        label="No, cancel"
-                        onclick={() => {
-                          setShowModal(false);
-                          setBackupDone(false);
-                          setShowEnsureBackupModal(false);
-                        }}
-                      />
-                    </>
-                  )}
+                  <>
+                    <p className="text-primary-800 text-md xl:text-lg">
+                      Your account has been successfully recovered. Before
+                      proceeding to import your account please confirm that you
+                      have backed up the new account information. If you have
+                      not backed it up, kindly tap the back button and back it
+                      up.
+                    </p>
+                    <ButtonSecondary
+                      label="Go back and backup"
+                      onclick={() => {
+                        setShowModal(true);
+                        setShowEnsureBackupModal(false);
+                      }}
+                    />
+                    <Button
+                      label="Continue, I have backed up"
+                      onclick={() => {
+                        setShowEnsureBackupModal(false);
+                        showNotification(
+                          'success',
+                          'Your account has successfully been recovered. You can now import your account with the new secret key.',
+                          5000, // delay for 5secs
+                        );
+                        navigate('/import');
+                      }}
+                    />
+                  </>
                 </div>
               </div>
             </Modal>
@@ -477,4 +524,4 @@ function AnswerSecurityQuestions() {
   );
 }
 
-export default AnswerSecurityQuestions;
+export default SetupSecurityQuestions;

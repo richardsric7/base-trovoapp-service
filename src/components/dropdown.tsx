@@ -7,30 +7,33 @@ import {
   TERipple,
 } from 'tw-elements-react';
 
+type DropdownItem = { text: string; value: any };
+
 type Props = {
   label: string;
-  options: string[];
+  options: DropdownItem[];
   onSelect: (item: any) => void;
 };
 
 export default function Dropdown({ label, options, onSelect }: Props) {
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState<DropdownItem | null>(null);
 
-  const dropdownItems = options.map((item: any) => (
+  const dropdownItems = options.map((item: DropdownItem) => (
     <TEDropdownItem
-      key={`${new Date().getTime()}${item.replace(' ', '')}`}
-      id={`${new Date().getTime()}${item.replace(' ', '')}`}
+      key={`${new Date().getTime()}${item.text.replace(' ', '')}`}
+      id={`${new Date().getTime()}${item.text.replace(' ', '')}`}
       className="bg-primary-200"
     >
       <button
         type="button"
         className="block w-full cursor-pointer hover:bg-primary-200 bg-primary-100 whitespace-nowrap px-8 py-2 text-sm text-left font-normal pointer-events-auto active:text-primary-800 focus:hover:bg-primary-200 focus:text-primary-800 focus:outline-none active:no-underline"
-        onClick={() => {
+        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+          e.preventDefault;
           onSelect(item);
           setSelectedItem(item);
         }}
       >
-        {item}
+        {item.text}
       </button>
     </TEDropdownItem>
   ));
@@ -39,7 +42,7 @@ export default function Dropdown({ label, options, onSelect }: Props) {
     <TEDropdown className="flex justify-center w-full">
       <TERipple className="w-full" rippleColor="light">
         <TEDropdownToggle className="flex items-center whitespace-nowrap rounded bg-primary-100 hover:bg-primary-200 text-primary-800 px-8 justify-between py-3 rounded-xl w-full">
-          {selectedItem ?? label}
+          {selectedItem?.text ?? label}
           <span className="ml-2 [&>svg]:w-5 w-2">
             <svg
               width="10"

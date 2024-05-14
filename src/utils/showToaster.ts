@@ -1,6 +1,6 @@
 // import { useDispatch } from "react-redux";
 import {store} from '../store/reduxStore'; 
-import { showToaster, showHideLoader as toggle } from '../store/sidebarSlice';
+import { showToaster, showHideLoader as toggle, showLoader as showL, hideLoader as hideL } from '../store/sidebarSlice';
 
 // const dispatch = useDispatch();
 
@@ -9,4 +9,12 @@ export const showNotification = (type: 'success' | 'info' | 'error' | undefined,
 };
 export const toggleLoader = () => {
     store.dispatch(toggle());
+};
+
+export const showLoader = () => {
+    store.dispatch(showL());
+};
+
+export const hideLoader = () => {
+    store.dispatch(hideL());
 };
