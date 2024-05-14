@@ -5,12 +5,10 @@ import ButtonSecondary from '../../components/buttonSecondary';
 import TextInput from '../../components/textInput';
 import Modal from '../../components/modal';
 import TrovoBrand from '../../components/trovoBrand';
-import { useDispatch, useSelector } from 'react-redux';
-import { setFormState } from '../../store/authSlice';
+import { useSelector } from 'react-redux';
 import {
   useFetchSecurityQuestionsQuery,
   useRestoreInactiveAccountMutation,
-  useRequestAccountRecoveryMutation,
 } from '../../store/api/authApi';
 import { RootState } from '../../store/reduxStore';
 import {
@@ -42,7 +40,6 @@ function SetupSecurityQuestions() {
 
   const [showModal, setShowModal] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
-  const [messages, setMessages] = useState([]);
   const [errors, setErrors] = useState({
     a1: '',
     a2: '',
@@ -51,9 +48,7 @@ function SetupSecurityQuestions() {
     q2: '',
     q3: '',
   });
-  const [backupDone, setBackupDone] = useState(false);
   const [showEnsureBackupModal, setShowEnsureBackupModal] = useState(false);
-  const [invalidateOldSigner, setInvalidateOldSigner] = useState(false);
   const [questions, setQuestions] = useState<SecurityQuestion[]>([]);
   const [securityAnswers, setSecurityAnswers] = useState<SecurityAnswers>({
     a1: '',
@@ -64,10 +59,8 @@ function SetupSecurityQuestions() {
     q3: 0,
   });
   const tempData = useSelector((state: RootState) => state.auth.tempData);
-  const [requestAccountRecovery] = useRequestAccountRecoveryMutation();
   const [restoreInactiveAccount] = useRestoreInactiveAccountMutation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   const { data, isLoading } = useFetchSecurityQuestionsQuery({
     signer: tempData.publicKey,
