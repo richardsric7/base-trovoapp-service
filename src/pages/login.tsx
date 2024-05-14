@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Button from '../components/button';
 import TextInput from '../components/textInput';
 import ButtonSecondary from '../components/buttonSecondary';
@@ -14,13 +14,19 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [passwordErr, setPasswordErr] = useState('');
 
+  useEffect(() => {
+    if (!appUser) {
+      navigate('/welcome');
+    }
+  }, [appUser]);
+
   const isValidPassword = async () => {
     try {
       const encryptor = new Encryptor();
       await encryptor.decryptData(
-        appUser.secretKeys[0],
+        appUser?.secretKeys[0],
         password,
-        appUser.primarySigner,
+        appUser?.primarySigner,
       );
       return true;
     } catch (error: any) {
@@ -49,7 +55,7 @@ export default function Login() {
             <p className="text-left w-full text-primary-800 text-3xl font-bold">
               Welcome back
               <span className="text-primary-700">
-                &nbsp;{appUser.firstName}
+                &nbsp;{appUser?.firstName}
               </span>
             </p>
             <p className="text-left w-full text-primary-800 text-md">

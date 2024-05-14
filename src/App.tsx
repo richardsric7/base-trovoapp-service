@@ -67,7 +67,6 @@ function App() {
       //Implementing the setInterval method
       const interval = setInterval(() => {
         setCount(Math.floor(idleTimer.getRemainingTime() / 1000));
-        console.log('user is not logged in.xxx');
       }, 1000);
 
       //Clearing the interval
