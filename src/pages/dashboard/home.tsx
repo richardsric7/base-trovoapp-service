@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import TextInput from '../../components/textInput';
 import WidgetCard from '../../components/widgetCard';
 import Tabs from '../../components/tabs';
@@ -9,6 +9,8 @@ import Button from '../../components/button';
 import ButtonSecondary from '../../components/buttonSecondary';
 import Header from '../../components/header';
 import Modal from '../../components/modal';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/reduxStore';
 
 function ActivateWalletView() {
   const [showCopiedModal, setShowCopiedModal] = useState(false);
@@ -352,40 +354,40 @@ function WalletView({ hasAssets }: { hasAssets: boolean }) {
 }
 
 export default function Home() {
-  const [isActivated, setIsActivated] = useState(false);
   const [hasAssets, setHasAssets] = useState(false);
+  const appUser = useSelector((state: RootState) => state.auth.user!);
+  const primaryWallet = appUser.userWallets.find((w) => w.primaryWallet);
+
+  // const [isActivated] = useState(
+  //   Number(
+  //     primaryWallet?.claimedAssets.find((a) => !a.assetCode && !a.assetIssuer)
+  //       ?.amount,
+  //   ) !== 0,
+  // );
+
+  // console.log('primary wallet ', appUser);
 
   return (
     <div className="flex text-primary-800 text-sm md:text-md flex-col space-y-5 p-3">
-      <Header
-        fullName="Obi Enechi"
-        avatar="/images/avatar.png"
-        email="obienechi@gmail.com"
-        isHomeView
-      />
+      <Header isHomeView />
       <div className="flex md:h-full w-full items-center justify-center">
         <div className="h-full w-full md:p-3">
-          <div
-            className="bg-trovored-light flex justify-between mb-2 rounded-md ring-1 ring-trovored-primary
+          {!appUser.hasSecurityQuestions && (
+            <div
+              className="bg-trovored-light flex justify-between mb-2 rounded-md ring-1 ring-trovored-primary
             text-trovored-primary px-4 py-2 font-semibold"
-          >
-            <div className="flex space-x-5 items-center">
-              <img src="/images/alert.png" alt="" />
-              <p className="text-xs md:text-md">
-                You have not setup security questions yet. Tap to setup security
-                questions
-              </p>
-            </div>
-            <button
-              className="text-trovored-primary"
-              type="button"
-              onClick={() => {
-                setIsActivated(!isActivated);
-              }}
             >
-              X
-            </button>
-          </div>
+              <div className="flex space-x-5 items-center">
+                <Link className="flex space-x-5 items-center" to={'/welcome'}>
+                  <img src="/images/alert.png" alt="" />
+                  <p className="text-xs md:text-md">
+                    You have not setup security questions yet. Tap to setup
+                    security questions
+                  </p>
+                </Link>
+              </div>
+            </div>
+          )}
           <div className="md:hidden items-center px-5 mb-5 justify-center flex">
             <WidgetCard />
           </div>
@@ -393,11 +395,11 @@ export default function Home() {
             <div className="hidden w-full items-center px-5 justify-center md:flex">
               <WidgetCard />
             </div>
-            {isActivated ? (
+            {/* {isActivated ? (
               <WalletView hasAssets={hasAssets} />
             ) : (
               <ActivateWalletView />
-            )}
+            )} */}
           </div>
         </div>
         <div className="hidden md:block w-3/6 flex flex-col space-y-5 h-full py-3 lg:px-3">

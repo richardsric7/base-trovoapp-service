@@ -40,7 +40,7 @@ function App() {
         console.log('user is not logged in.');
       }
     },
-    idleTime: 60,
+    idleTime: 260,
   });
 
   const toasterInfo = useSelector((state: RootState) => {

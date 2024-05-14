@@ -12,6 +12,7 @@ import { useDispatch } from 'react-redux';
 import { Encryptor } from '../../utils/encryptor';
 import { setUser } from '../../store/authSlice';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
+import { Asset } from 'stellar-base';
 
 export default function ImportWallet() {
   const [usePassphrase, setUsePassphrase] = useState(false);
@@ -248,8 +249,14 @@ export default function ImportWallet() {
 
         if (data) {
           try {
-            const response = data.userData as unknown as User;
+            console.log('data', data);
+            const userData = data.userData as unknown as User;
             showNotification('success', 'Wallet successfully imported!');
+            for (var assetKey in data.assetBalances) {
+              const asset = data.assetBalances[assetKey] as unknown as Asset;
+              // userData.userWallets
+              console.log('asset here', asset);
+            }
             const encryptor = new Encryptor();
             const base64EncryptedSecretKey = await encryptor.encryptData(
               account.secretKey,
@@ -257,7 +264,7 @@ export default function ImportWallet() {
               account.publicKey,
             );
             const user = {
-              ...response,
+              ...userData,
               isLoggedIn: true,
               secretKeys: [base64EncryptedSecretKey],
             };
@@ -274,7 +281,7 @@ export default function ImportWallet() {
                 encryptedUser: base64EncryptedUserData,
               }),
             );
-            navigate('/dashboard');
+            // navigate('/dashboard');
           } catch (error: any) {
             console.log('err', error);
           }
