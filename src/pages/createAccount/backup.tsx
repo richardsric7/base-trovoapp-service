@@ -77,7 +77,7 @@ export default function Backup() {
                     const decryptedData = await encryptor.decryptData(
                       appUser.secretKeys[0],
                       password,
-                      appUser.publicKey,
+                      appUser.primarySigner,
                     );
 
                     setSecret(decryptedData);
@@ -95,7 +95,7 @@ export default function Backup() {
                   const decryptedData = await encryptor.decryptData(
                     appUser.secretKeys[0],
                     password,
-                    appUser.publicKey,
+                    appUser.primarySigner,
                   );
                   navigator.clipboard.writeText(decryptedData).then(() => {
                     showNotification('info', 'Secret key copied!');
@@ -115,7 +115,7 @@ export default function Backup() {
               const decryptedData = await encryptor.decryptData(
                 appUser.secretKeys[0],
                 password,
-                appUser.publicKey,
+                appUser.primarySigner,
               );
 
               navigator.clipboard

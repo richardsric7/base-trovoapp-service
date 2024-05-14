@@ -250,7 +250,6 @@ export default function ImportWallet() {
           try {
             const response = data.userData as unknown as User;
             showNotification('success', 'Wallet successfully imported!');
-            navigate('/dashboard');
             const encryptor = new Encryptor();
             const base64EncryptedSecretKey = await encryptor.encryptData(
               account.secretKey,
@@ -275,6 +274,7 @@ export default function ImportWallet() {
                 encryptedUser: base64EncryptedUserData,
               }),
             );
+            navigate('/dashboard');
           } catch (error: any) {
             console.log('err', error);
           }

@@ -67,7 +67,6 @@ function App() {
       //Implementing the setInterval method
       const interval = setInterval(() => {
         setCount(Math.floor(idleTimer.getRemainingTime() / 1000));
-        console.log('user is not logged in.xxx');
       }, 1000);
 
       //Clearing the interval
@@ -85,6 +84,7 @@ function App() {
       <Toaster
         type={toasterInfo.type}
         message={toasterInfo.message}
+        delay={toasterInfo.delay}
         onClose={() => {
           dispatch(hideToaster());
         }}

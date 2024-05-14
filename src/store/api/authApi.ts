@@ -76,6 +76,20 @@ export const authApi = baseApi.injectEndpoints({
         }, 
       }),
     }),
+    restoreInactiveAccount: builder.mutation({
+      query: (payload: Payload) => ({
+        url: '/v1/users/inactive-account/recover',
+        method: 'POST',        
+        data: {
+          payload: payload.body,
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        }, 
+      }),
+    }),
     requestAccountRecovery: builder.mutation({
       query: (payload: Payload) => ({
         url: `/v1/users/account/recover`,
@@ -95,7 +109,7 @@ export const authApi = baseApi.injectEndpoints({
         let url = `/v1/users/${payload.body.userId}`;
         
         if(payload.body.import){
-          url = `${url}?type=import`;
+          url = `${url}?type=import&type=refresh`;
         }
 
         return ({
@@ -118,6 +132,7 @@ export const {
   useRegisterMutation,
   useRecoveryOtpMutation,
   useVerifyEmailOtpMutation,
+  useRestoreInactiveAccountMutation,
   useFetchSecurityQuestionsQuery,
   useSubmitSecurityAnswersMutation,
   useRequestAccountRecoveryMutation,

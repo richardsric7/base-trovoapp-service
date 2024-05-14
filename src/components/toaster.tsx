@@ -3,6 +3,7 @@ import { TEToast } from 'tw-elements-react';
 type Props = {
   type: 'success' | 'info' | 'error' | undefined;
   message: string;
+  delay?: number;
   onClose: () => void;
 };
 
@@ -10,6 +11,7 @@ export default function Toaster({
   type,
   onClose,
   message = '',
+  delay = 3000,
 }: Props): JSX.Element {
   const getTypeHeader = (): string => {
     switch (type) {
@@ -41,7 +43,7 @@ export default function Toaster({
     <div>
       <TEToast
         open={type !== undefined}
-        delay={3000}
+        delay={delay}
         autohide={true}
         onClose={onClose}
         color={getTypeColor()}
