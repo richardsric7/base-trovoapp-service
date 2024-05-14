@@ -20,7 +20,7 @@ export default function Login() {
       await encryptor.decryptData(
         appUser.secretKeys[0],
         password,
-        appUser.publicKey,
+        appUser.primarySigner,
       );
       return true;
     } catch (error: any) {

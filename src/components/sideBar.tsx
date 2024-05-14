@@ -142,7 +142,7 @@ function SideBar({ mobileMode = false }: Props) {
           icon={
             activeItem === 10 ? '/images/backupWhite.svg' : '/images/backup.svg'
           }
-          url="/dashboard/backup-wallet"
+          url="/backup"
           isActive={activeItem === 10}
           onSidebarClicked={() => {
             setActiveItem(10);
