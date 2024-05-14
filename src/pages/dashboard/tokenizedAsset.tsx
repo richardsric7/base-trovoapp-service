@@ -76,12 +76,14 @@ export default function TokenizedAsset() {
             <p>Do you want to buy AE1 Tokens with the following wallet?</p>
             <Dropdown
               label="Choose wallet"
-              options={[
-                'atlantis_issuer',
-                'atlantis_distro',
-                'Ephizee',
-                'Odogwu_assets',
-              ]}
+              options={
+                [
+                  // 'atlantis_issuer',
+                  // 'atlantis_distro',
+                  // 'Ephizee',
+                  // 'Odogwu_assets',
+                ]
+              }
               onSelect={(selectedItem) => {
                 console.log('selected item here...', selectedItem);
               }}
@@ -105,12 +107,14 @@ export default function TokenizedAsset() {
             <p className="text-sm">Select Currency</p>
             <Dropdown
               label="CNGN"
-              options={[
-                'atlantis_issuer',
-                'atlantis_distro',
-                'Ephizee',
-                'Odogwu_assets',
-              ]}
+              options={
+                [
+                  // 'atlantis_issuer',
+                  // 'atlantis_distro',
+                  // 'Ephizee',
+                  // 'Odogwu_assets',
+                ]
+              }
               onSelect={(selectedItem) => {
                 console.log('selected item here...', selectedItem);
               }}
@@ -342,12 +346,14 @@ export default function TokenizedAsset() {
           </p>
           <Dropdown
             label="Choose wallet"
-            options={[
-              'atlantis_issuer',
-              'atlantis_distro',
-              'Ephizee',
-              'Odogwu_assets',
-            ]}
+            options={
+              [
+                // 'atlantis_issuer',
+                // 'atlantis_distro',
+                // 'Ephizee',
+                // 'Odogwu_assets',
+              ]
+            }
             onSelect={(selectedItem) => {
               console.log('selected item here...', selectedItem);
             }}
