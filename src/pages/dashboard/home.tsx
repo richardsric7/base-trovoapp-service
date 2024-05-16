@@ -356,7 +356,6 @@ function WalletView({ hasAssets }: { hasAssets: boolean }) {
 export default function Home() {
   const [hasAssets, setHasAssets] = useState(false);
   const appUser = useSelector((state: RootState) => state.auth.user!);
-  const primaryWallet = appUser.userWallets.find((w) => w.primaryWallet);
 
   // const [isActivated] = useState(
   //   Number(

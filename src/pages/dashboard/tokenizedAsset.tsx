@@ -216,11 +216,7 @@ export default function TokenizedAsset() {
 
   return (
     <div className="flex text-primary-800 text-sm md:text-md flex-col space-y-5 p-3">
-      <Header
-        fullName="Obi Enechi"
-        avatar="/images/avatar.png"
-        email="obienechi@gmail.com"
-      />
+      <Header isHomeView />
       <div className="w-full px-3 md:px-5 md:pt-5 flex flex-col md:flex-row space-y-5 md:space-y-0 items-center justify-between">
         <div className="flex space-x-5 w-full md:w-auto items-center">
           <button type="button" onClick={() => navigate(-1)}>

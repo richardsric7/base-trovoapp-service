@@ -1,6 +1,8 @@
 import { Asset } from "./asset";
 import { CuratedAsset } from "./curatedAsset";
+import { DefaultAsset } from "./defaultAsset";
 import { PatronMembership } from "./patronMembership";
+import { SharedWallet } from "./sharedWallet";
 import { Wallet } from "./wallet";
 
 export type User = {
@@ -39,8 +41,8 @@ export type User = {
         level2: string,
         level3: string,
     },
-    walletsSharedWithUser: Wallet[],
-    defaultAssets: Asset[],
+    walletsSharedWithUser: SharedWallet[],
+    defaultAssets: DefaultAsset[],
     tokenizedAssets: Asset[],
     secretKeys: string[],
     isLoggedIn: boolean,

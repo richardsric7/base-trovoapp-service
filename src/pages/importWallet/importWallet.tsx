@@ -4,7 +4,7 @@ import Button from '../../components/button';
 import TextInput from '../../components/textInput';
 import TrovoBrand from '../../components/trovoBrand';
 import ButtonSecondary from '../../components/buttonSecondary';
-import { FieldState, FormFieldGuide, User } from '../../types/user';
+import { FieldState, FormFieldGuide } from '../../types/user';
 import { getCredsFromPassPhrase, parseSecretKey } from '../../utils/trovoSDK';
 import { showNotification, toggleLoader } from '../../utils/showToaster';
 import { useLazyGetUserQuery } from '../../store/api/authApi';
@@ -12,7 +12,7 @@ import { useDispatch } from 'react-redux';
 import { Encryptor } from '../../utils/encryptor';
 import { setUser } from '../../store/authSlice';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
-import { Asset } from 'stellar-base';
+import { deserializeUserData } from '../../utils/deserializeAndStoreUserData';
 
 export default function ImportWallet() {
   const [usePassphrase, setUsePassphrase] = useState(false);
@@ -250,24 +250,23 @@ export default function ImportWallet() {
         if (data) {
           try {
             console.log('data', data);
-            const userData = data.userData as unknown as User;
             showNotification('success', 'Wallet successfully imported!');
-            for (var assetKey in data.assetBalances) {
-              const asset = data.assetBalances[assetKey] as unknown as Asset;
-              // userData.userWallets
-              console.log('asset here', asset);
-            }
+            const userData = deserializeUserData(data);
+
             const encryptor = new Encryptor();
             const base64EncryptedSecretKey = await encryptor.encryptData(
               account.secretKey,
               tempData.password,
               account.publicKey,
             );
+
             const user = {
               ...userData,
               isLoggedIn: true,
               secretKeys: [base64EncryptedSecretKey],
             };
+
+            console.log('wallets', user);
             const hash = await encryptor.createHash(user.username);
             const base64EncryptedUserData = await encryptor.encryptData(
               JSON.stringify(user),
@@ -281,7 +280,8 @@ export default function ImportWallet() {
                 encryptedUser: base64EncryptedUserData,
               }),
             );
-            // navigate('/dashboard');
+
+            navigate('/dashboard');
           } catch (error: any) {
             console.log('err', error);
           }

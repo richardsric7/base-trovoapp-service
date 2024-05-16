@@ -17,6 +17,7 @@ export type Wallet = {
     permissions: Permission[],
     sharedAccessCreatedAt: Date,
     sharedAccessUpdatedAt: Date,
+    nfts: any[],
     claimedAssets: Asset[],
     unclaimedAssets: Asset[],
 }
