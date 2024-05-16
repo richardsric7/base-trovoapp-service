@@ -56,7 +56,7 @@ export default function Login() {
             <p className="text-left w-full text-primary-800 text-3xl font-bold">
               Welcome back
               <span className="text-primary-700">
-                &nbsp;{capitalizeFirstLetter(appUser.firstName)}
+                &nbsp;{capitalizeFirstLetter(appUser?.firstName)}
               </span>
             </p>
             <p className="text-left w-full text-primary-800 text-md">

@@ -249,7 +249,6 @@ export default function ImportWallet() {
 
         if (data) {
           try {
-            console.log('data', data);
             showNotification('success', 'Wallet successfully imported!');
             const userData = deserializeUserData(data);
 
@@ -266,7 +265,6 @@ export default function ImportWallet() {
               secretKeys: [base64EncryptedSecretKey],
             };
 
-            console.log('wallets', user);
             const hash = await encryptor.createHash(user.username);
             const base64EncryptedUserData = await encryptor.encryptData(
               JSON.stringify(user),
