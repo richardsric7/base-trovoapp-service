@@ -48,7 +48,8 @@ function AccountVerification() {
     }
   }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (verificationCode.length !== 6 || isNaN(Number(verificationCode))) {
       showNotification('error', 'Please enter a valid 6 digits otp');
       return;
@@ -169,15 +170,21 @@ function AccountVerification() {
           <p className="text-primary-800 text-md xl:text-lg font-semibold">
             Enter OTP
           </p>
-          <div className="w-auto flex justify-center">
-            <OtpInput
-              numberOfDigits={6}
-              onInputChange={(newValue) => {
-                console.log('input has changed', newValue);
-                setVerificationCode(newValue);
-              }}
-            />
-          </div>
+          <form
+            id="otp-form"
+            onSubmit={handleSubmit}
+            className="space-y-6 w-3/4"
+          >
+            <div className="w-auto flex justify-center">
+              <OtpInput
+                numberOfDigits={6}
+                onInputChange={(newValue) => {
+                  setVerificationCode(newValue);
+                }}
+              />
+            </div>
+            <Button type="submit" label="Verify" onclick={() => {}} />
+          </form>
           <Modal
             showModal={showModal}
             onClose={() => {
@@ -221,14 +228,6 @@ function AccountVerification() {
               </div>
             </div>
           </Modal>
-          <div className="w-3/4">
-            <Button
-              label="Verify"
-              onclick={() => {
-                handleSubmit();
-              }}
-            />
-          </div>
         </div>
       </div>
     </div>

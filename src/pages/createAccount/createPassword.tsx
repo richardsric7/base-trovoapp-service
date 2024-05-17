@@ -127,10 +127,32 @@ export default function CreatePassword() {
 
   return (
     <>
-      <p className="text-primary-800 text-lg xl:text-xl">
-        Create password to secure your account
-      </p>
-      <div className="w-3/4">
+      <form
+        id="otp-form"
+        onSubmit={async (e: React.ChangeEvent<HTMLFormElement>) => {
+          e.preventDefault();
+          let isValid = true;
+          setConfirmPasswordErr('');
+
+          if (!confirmPassword) {
+            setConfirmPasswordErr('Re-enter your password');
+            isValid = false;
+          } else if (password != confirmPassword) {
+            setConfirmPasswordErr('Both passwords didn’t match. Try again.');
+            isValid = false;
+          }
+
+          if (validatePassword() && isValid) {
+            const formState = { ...tempData, password: password };
+            dispatch(setFormState(formState));
+            navigate('/register/form');
+          }
+        }}
+        className="space-y-6"
+      >
+        <p className="text-primary-800 text-lg xl:text-xl">
+          Create password to secure your account
+        </p>
         <TextInput
           label="Password"
           leadingIcon="/images/lock.png"
@@ -140,9 +162,7 @@ export default function CreatePassword() {
             setPassword(newValue);
           }}
         />
-      </div>
-      <div className="w-3/4">{guides}</div>
-      <div className="w-3/4">
+        <div>{guides}</div>
         <TextInput
           label="Confirm Password"
           leadingIcon="/images/lock.png"
@@ -154,30 +174,8 @@ export default function CreatePassword() {
           }}
         />
         <p className="text-red-500 text-sm">{confirmPasswordErr}</p>
-      </div>
-      <div className="w-3/4">
-        <Button
-          label="Continue"
-          onclick={() => {
-            let isValid = true;
-            setConfirmPasswordErr('');
-
-            if (!confirmPassword) {
-              setConfirmPasswordErr('Re-enter your password');
-              isValid = false;
-            } else if (password != confirmPassword) {
-              setConfirmPasswordErr('Both passwords didn’t match. Try again.');
-              isValid = false;
-            }
-
-            if (validatePassword() && isValid) {
-              const formState = { ...tempData, password: password };
-              dispatch(setFormState(formState));
-              navigate('/register/form');
-            }
-          }}
-        />
-      </div>
+        <Button type="submit" label="Continue" onclick={() => {}} />
+      </form>
     </>
   );
 }

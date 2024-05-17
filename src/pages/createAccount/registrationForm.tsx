@@ -250,8 +250,6 @@ export default function RegistrationForm() {
           ? getAccountFromExistingInfo()
           : createAccount();
 
-        console.log('creds', account);
-
         setSecretKey(account.secretKey);
         dispatch(setTempUser({ ...user, publicKey: account.publicKey }));
         dispatch(
@@ -265,7 +263,6 @@ export default function RegistrationForm() {
         );
 
         toggleLoader();
-        console.log('user', user);
         const res = await userRegister({
           signer: account.publicKey,
           publicKey: account.publicKey,
@@ -274,7 +271,6 @@ export default function RegistrationForm() {
         });
 
         toggleLoader();
-        console.log('res', res);
 
         if ('data' in res) {
           const successResponse = res as SuccessResponse;
