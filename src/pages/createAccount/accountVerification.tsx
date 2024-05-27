@@ -89,6 +89,7 @@ function AccountVerification() {
           const user = {
             ...userData,
             isLoggedIn: true,
+            currency: 'USD',
             secretKeys: [base64EncryptedSecretKey],
           };
 

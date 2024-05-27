@@ -46,6 +46,7 @@ export type User = {
     tokenizedAssets: Asset[],
     secretKeys: string[],
     isLoggedIn: boolean,
+    currency: string,
 }
 
 export enum FieldState {

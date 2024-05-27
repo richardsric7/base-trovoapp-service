@@ -262,6 +262,7 @@ export default function ImportWallet() {
             const user = {
               ...userData,
               isLoggedIn: true,
+              currency: 'USD',
               secretKeys: [base64EncryptedSecretKey],
             };
 

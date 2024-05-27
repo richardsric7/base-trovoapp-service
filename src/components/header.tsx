@@ -64,7 +64,11 @@ function Header({ isHomeView = false }: Props) {
         />
         <img
           className="h-10 rounded-full"
-          src={appUser.imageThumbnailURL}
+          src={
+            appUser.imageThumbnailURL.length > 0
+              ? appUser.imageThumbnailURL
+              : '/images/avatar.png'
+          }
           alt="avatar"
         />
         <div className="flex w-64 flex-col hidden w-56 md:block space-y-2">
