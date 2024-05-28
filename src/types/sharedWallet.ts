@@ -7,7 +7,7 @@ export type SharedWallet = {
     walletAlias: string,
     walletDescription: string,
     walletPublicKey: string,
-    walletSettings: WalletSettings,    
+    walletSettings?: WalletSettings,    
     assetBalances: {
         claimed: Asset[],
         unclaimed: Asset[],

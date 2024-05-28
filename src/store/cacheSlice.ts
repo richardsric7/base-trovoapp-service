@@ -35,8 +35,8 @@ export const cacheSlice = createSlice({
     },
     setAppVersion: (state, action) => {
       if (action.payload) {
-        state.fiatRates = action.payload;
-        setStorage(APP_VERSION, state.fiatRates);               
+        state.appVersion = action.payload;
+        setStorage(APP_VERSION, state.appVersion ?? {});               
       }
       return state;
     },

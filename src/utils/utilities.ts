@@ -1,25 +1,41 @@
-// const calculateFiatValue = (assetBalance: string, usdPrice: string, currency: string) =>
-// formatNumber(double.parse(getFiatRate(usdPrice, currency, getUnFormatted: true)) *
-//         double.parse(assetBalance))
-//     .toString();
+import { Wallet } from "../types/wallet";
 
-// const getFiatRate = (usdPrice: number, currency: string, fiatRate: number, getUnFormatted: boolean = false) => {
-//   usdPrice = !usdPrice ? 0 : usdPrice;
-//   if (getUnFormatted)
-//     return (fiatRate * usdPrice).toString();
+const calculateFiatValue = (assetBalance: number, fiatRate: number, usdPrice: number) =>
+    getFiatRate(usdPrice, fiatRate) * assetBalance;
 
-//   return formatToCurrency("#,##0.00000", "en_US")
-//       .format(appState.fiatRate[currency] * double.parse(usdPrice))
-//       .toString();
-// }
+const getFiatRate = (usdPrice: number, fiatRate: number): number => {
+  usdPrice = !usdPrice ? 0 : usdPrice;
+  return (fiatRate * usdPrice);  
+}
 
-// const formatToCurrency = (amount: number, currencySymbol: string) => `
-// ${currencySymbol}${amount.toLocaleString('en-NG', {
-//   // style: 'currency',
-//   // currency: 'GBP',
-//   minimumFractionDigits: 2,
-//   maximumFractionDigits: 2,
-// })}`;
+const formatToCurrency = (amount: number, currency: string) => `
+${amount.toLocaleString('en-NG', {
+  style: 'currency',
+  currency,
+  currencyDisplay: 'code',
+  minimumFractionDigits: 7,
+  maximumFractionDigits: 7,
+})}`;
 
-// export {calculateFiatValue}
+const shareWallets = (wallets: Wallet[]) => {
+    return wallets.filter((w) => w.sharedAccessEnabled);
+}
+
+const totalAccountBalanceInCurrency = (allWallets: Wallet[], fiatRate: number) => {
+    let balance = 0;
+    allWallets.map((w) => {
+        w.claimedAssets.map((a) => {
+            balance += calculateFiatValue(a.amount, fiatRate, a.usdPrice);
+        });
+    });
+
+    return balance;
+}
+
+export {
+    calculateFiatValue,
+    shareWallets,
+    totalAccountBalanceInCurrency, 
+    formatToCurrency
+}
 

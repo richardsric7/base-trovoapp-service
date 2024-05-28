@@ -12,6 +12,11 @@ import Modal from '../../components/modal';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/reduxStore';
 import capitalizeFirstLetter from '../../utils/capitalizeFirst';
+import {
+  totalAccountBalanceInCurrency,
+  shareWallets,
+  formatToCurrency,
+} from '../../utils/utilities';
 
 export default function Home() {
   const appUser = useSelector((state: RootState) => state.auth.user!);
@@ -20,7 +25,11 @@ export default function Home() {
     (state: RootState) => state.cache.announcements,
   );
 
-  console.log('dfkasldkf', fiatRates, announcements);
+  console.log(
+    'shared',
+    (fiatRates as { NGN: number }).NGN,
+    shareWallets(appUser.userWallets),
+  );
   const primaryWallet = appUser.userWallets.find((w) => w.primaryWallet)!;
   const navigate = useNavigate();
   const [isActivated] = useState(
@@ -373,8 +382,20 @@ export default function Home() {
             <div className="hidden w-full items-center px-5 justify-center md:flex">
               <WidgetCard
                 label="Total Account Balance"
-                localCurrencyBalance="2,082,898 NGN"
-                usdBalance="4,014 USD"
+                localCurrencyBalance={formatToCurrency(
+                  totalAccountBalanceInCurrency(
+                    appUser.userWallets,
+                    (fiatRates as { NGN: number }).NGN,
+                  ),
+                  'NGN',
+                )}
+                usdBalance={formatToCurrency(
+                  totalAccountBalanceInCurrency(
+                    appUser.userWallets,
+                    (fiatRates as { USD: number }).USD,
+                  ),
+                  'USD',
+                )}
               />
             </div>
             {isActivated ? <WalletView /> : <ActivateWalletView />}
