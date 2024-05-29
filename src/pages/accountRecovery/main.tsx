@@ -51,7 +51,6 @@ function RecoveryMain() {
       });
 
       toggleLoader();
-      console.log('res', res);
       setShowAlreadySentOtp(true);
       if ('data' in res) {
         setShowHaveYouSetupSecurityQuestion(true);
@@ -85,7 +84,6 @@ function RecoveryMain() {
       });
 
       toggleLoader();
-      console.log('res', res);
       setShowAlreadySentOtp(true);
       if ('data' in res) {
         setCurrentView(1);

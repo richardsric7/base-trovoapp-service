@@ -1,5 +1,6 @@
 import { Asset } from "./asset";
 import { CuratedAsset } from "./curatedAsset";
+import { DefaultAsset } from "./defaultAsset";
 import { PatronMembership } from "./patronMembership";
 import { Wallet } from "./wallet";
 
@@ -39,11 +40,11 @@ export type User = {
         level2: string,
         level3: string,
     },
-    walletsSharedWithUser: Wallet[],
-    defaultAssets: Asset[],
+    defaultAssets: DefaultAsset[],
     tokenizedAssets: Asset[],
     secretKeys: string[],
     isLoggedIn: boolean,
+    currency: string,
 }
 
 export enum FieldState {

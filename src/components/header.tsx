@@ -1,17 +1,17 @@
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { toggleSidebar } from '../store/sidebarSlice';
 import TextInput from './textInput';
+import { RootState } from '../store/reduxStore';
+import capitalizeFirstLetter from '../utils/capitalizeFirst';
 
 type Props = {
-  fullName: string;
-  email: string;
-  avatar: string;
   isHomeView?: boolean;
 };
 
 // eslint-disable-next-line
-function Header({ fullName, email, avatar, isHomeView = false }: Props) {
+function Header({ isHomeView = false }: Props) {
   const dispatch = useDispatch();
+  const appUser = useSelector((state: RootState) => state.auth.user!);
   const classes = `flex w-full p-3 items-center ${
     isHomeView ? 'justify-between' : 'justify-between xl:justify-end'
   }`;
@@ -29,7 +29,10 @@ function Header({ fullName, email, avatar, isHomeView = false }: Props) {
             </button>
             <p>
               Good day,
-              <span className="font-semibold text-lg"> Osondu</span>
+              <span className="font-semibold text-lg">
+                {' '}
+                {capitalizeFirstLetter(appUser.firstName)}
+              </span>
             </p>
           </div>
           <div className="hidden md:block w-1/4">
@@ -53,16 +56,27 @@ function Header({ fullName, email, avatar, isHomeView = false }: Props) {
           <img src="/images/hamburgerMenu.png" alt="copy" className="w-8" />
         </button>
       )}
-      <div className="flex space-x-3 items-center">
+      <div className="flex space-x-3 w-1/5 items-center">
         <img
           className="h-6"
           src="/images/notification.png"
           alt="notification bell"
         />
-        <img className="h-10" src={avatar} alt="avatar" />
-        <div className="flex flex-col hidden md:block space-y-2">
-          <p className="font-semibold">{fullName}</p>
-          <p>{email}</p>
+        <img
+          className="h-10 rounded-full"
+          src={
+            appUser.imageThumbnailURL.length > 0
+              ? appUser.imageThumbnailURL
+              : '/images/avatar.png'
+          }
+          alt="avatar"
+        />
+        <div className="flex w-64 flex-col hidden w-56 md:block space-y-2">
+          <p className="font-semibold truncate">
+            {capitalizeFirstLetter(appUser.firstName)}{' '}
+            {capitalizeFirstLetter(appUser.lastName)}
+          </p>
+          <p className="truncate">{appUser.email}</p>
         </div>
       </div>
     </div>

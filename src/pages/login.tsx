@@ -7,6 +7,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/reduxStore';
 import { Encryptor } from '../utils/encryptor';
+import capitalizeFirstLetter from '../utils/capitalizeFirst';
+import { hideLoader } from '../utils/showToaster';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ export default function Login() {
   useEffect(() => {
     if (!appUser) {
       navigate('/welcome');
+      hideLoader();
     }
   }, [appUser]);
 
@@ -55,7 +58,7 @@ export default function Login() {
             <p className="text-left w-full text-primary-800 text-3xl font-bold">
               Welcome back
               <span className="text-primary-700">
-                &nbsp;{appUser?.firstName}
+                &nbsp;{capitalizeFirstLetter(appUser?.firstName)}
               </span>
             </p>
             <p className="text-left w-full text-primary-800 text-md">

@@ -1,15 +1,15 @@
 export type Asset = {
     assetIssuer: string,
     assetCode: string,
-    amount: string,
+    amount: number,
     inTrade: {
-        sellingLiabilities: string,
-        buyingLiabilities: string,
+        sellingLiabilities: number,
+        buyingLiabilities: number,
     },
     qrCode: string,
     imageUrl: string,
-    usdPrice: string,
-    nativePrice: string,
+    usdPrice: number,
+    nativePrice: number,
     cryptoWalletDepositAddresses: string,
     closedGroup: string,
 }

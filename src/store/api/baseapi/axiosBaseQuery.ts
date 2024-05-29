@@ -39,14 +39,15 @@ export const axiosBaseQuery =
     baseHeaders = {}
   }) =>
   async ({ url, method, data, headers = {} }: AxiosRequestConfig<any>) => {
-    const creds = data.creds as Credentials;
-    const payload = data.payload;
+    const creds = data?.creds as Credentials;
+    const payload = data?.payload;
     try {
       const result = await axios({
         url: baseUrl + url,
         method,
         data: payload,
-        headers: { ...baseHeaders, ...headers, ...getRequestHeaders(url!, creds.signer, creds.publicKey, creds.secretKey) },
+        headers: creds ? { ...baseHeaders, ...headers, ...getRequestHeaders(url!, creds.signer, creds.publicKey, creds.secretKey) } 
+                      : { ...baseHeaders, ...headers},
       });
       return { data: result.data };
     } catch (axiosError: any) {

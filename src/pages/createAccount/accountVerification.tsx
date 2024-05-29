@@ -16,6 +16,7 @@ import { RootState } from '../../store/reduxStore';
 import { ErrorResponse } from '../../store/api/baseapi/axiosBaseQuery';
 import { setFormState, setUser } from '../../store/authSlice';
 import { Encryptor } from '../../utils/encryptor';
+import { deserializeUserData } from '../../utils/deserializeAndStoreUserData';
 import { User } from '../../types/user';
 
 function AccountVerification() {
@@ -25,7 +26,9 @@ function AccountVerification() {
   const [showModal, setShowModal] = useState(false);
   const dispatch = useDispatch();
   const [userRegister] = useRegisterMutation();
-  const appUser = useSelector((state: RootState) => state.auth.user!);
+  const appUser: User | undefined = useSelector(
+    (state: RootState) => state.auth.user!,
+  );
   const registrationUser = {
     username: appUser?.username ?? '',
     firstName: appUser?.firstName ?? '',
@@ -45,7 +48,8 @@ function AccountVerification() {
     }
   }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.ChangeEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (verificationCode.length !== 6 || isNaN(Number(verificationCode))) {
       showNotification('error', 'Please enter a valid 6 digits otp');
       return;
@@ -62,7 +66,6 @@ function AccountVerification() {
       });
 
       toggleLoader();
-      console.log('res', res);
 
       if ('data' in res) {
         const payload = {
@@ -75,7 +78,8 @@ function AccountVerification() {
         const { data, error } = await getUser(payload);
 
         if (data) {
-          const response = data.userData as unknown as User;
+          console.log('userdata', data);
+          const userData = deserializeUserData(data);
           const encryptor = new Encryptor();
           const base64EncryptedSecretKey = await encryptor.encryptData(
             tempData.secretKey,
@@ -83,11 +87,14 @@ function AccountVerification() {
             appUser.publicKey,
           );
           const user = {
-            ...response,
+            ...userData,
             isLoggedIn: true,
+            currency: 'USD',
             secretKeys: [base64EncryptedSecretKey],
           };
-          const hash = await encryptor.createHash(appUser.username);
+
+          console.log('user', user);
+          const hash = await encryptor.createHash(user.username);
           const base64EncryptedUserData = await encryptor.encryptData(
             JSON.stringify(user),
             hash,
@@ -158,21 +165,27 @@ function AccountVerification() {
           <div className="w-3/4 text-center px-5 md:px-10 py-5 bg-primary-100 rounded-xl">
             <p className="text-primary-800 text-md">
               Enter 6-digit code we just sent to your email address:
-              <span className="font-semibold"> {appUser.email}</span>
+              <span className="font-semibold"> {appUser?.email}</span>
             </p>
           </div>
           <p className="text-primary-800 text-md xl:text-lg font-semibold">
             Enter OTP
           </p>
-          <div className="w-auto flex justify-center">
-            <OtpInput
-              numberOfDigits={6}
-              onInputChange={(newValue) => {
-                console.log('input has changed', newValue);
-                setVerificationCode(newValue);
-              }}
-            />
-          </div>
+          <form
+            id="otp-form"
+            onSubmit={handleSubmit}
+            className="space-y-6 w-3/4"
+          >
+            <div className="w-auto flex justify-center">
+              <OtpInput
+                numberOfDigits={6}
+                onInputChange={(newValue) => {
+                  setVerificationCode(newValue);
+                }}
+              />
+            </div>
+            <Button type="submit" label="Verify" onclick={() => {}} />
+          </form>
           <Modal
             showModal={showModal}
             onClose={() => {
@@ -216,14 +229,6 @@ function AccountVerification() {
               </div>
             </div>
           </Modal>
-          <div className="w-3/4">
-            <Button
-              label="Verify"
-              onclick={() => {
-                handleSubmit();
-              }}
-            />
-          </div>
         </div>
       </div>
     </div>

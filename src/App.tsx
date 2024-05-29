@@ -10,6 +10,19 @@ import { Encryptor } from './utils/encryptor';
 import Modal from './components/modal';
 import { User } from './types/user';
 import useIdle from './utils/useIdleTimeout';
+import {
+  useFetchAnnouncementsQuery,
+  useFetchFiatRatesQuery,
+  useFetchVersionInfoQuery,
+} from './store/api/cacheApi';
+import { hideLoader, showLoader } from './utils/showToaster';
+import {
+  setAnnouncements,
+  setAppVersion,
+  setFiatRates,
+} from './store/cacheSlice';
+import { getStorage } from './utils/storage';
+import { ANNOUNCEMENTS, APP_VERSION, FIAT_RATES } from './store/constants';
 
 function App() {
   const dispatch = useDispatch();
@@ -32,7 +45,6 @@ function App() {
     },
     onPrompt: async () => {
       let user = await decryptData();
-      console.log('appUser', user?.isLoggedIn);
       if (user?.isLoggedIn) {
         setCount(Math.floor(idleTimer.getRemainingTime() / 1000));
         setShowPromptModal(true);
@@ -40,7 +52,7 @@ function App() {
         console.log('user is not logged in.');
       }
     },
-    idleTime: 60,
+    idleTime: 260,
   });
 
   const toasterInfo = useSelector((state: RootState) => {
@@ -73,6 +85,43 @@ function App() {
       return () => clearInterval(interval);
     }
   }, [count]);
+
+  const { data: rates, isLoading: loadingFiatRates } = useFetchFiatRatesQuery(
+    {},
+  );
+  const { data: version, isLoading: loadingVersionInfo } =
+    useFetchVersionInfoQuery({});
+  const { data: announcements, isLoading: loadingAnnouncements } =
+    useFetchAnnouncementsQuery({});
+
+  useEffect(() => {
+    if (!loadingAnnouncements && !loadingVersionInfo && !loadingFiatRates) {
+      hideLoader();
+      if (rates) {
+        dispatch(setFiatRates({ ...rates }));
+      } else {
+        const cachedRates = getStorage(FIAT_RATES);
+        if (cachedRates) dispatch(setFiatRates({ ...cachedRates }));
+      }
+
+      if (version) {
+        dispatch(setAppVersion({ ...version }));
+      } else {
+        const cachedVersion = getStorage(APP_VERSION);
+        if (cachedVersion) dispatch(setAppVersion({ ...cachedVersion }));
+      }
+
+      if (announcements) {
+        dispatch(setAnnouncements({ ...announcements }));
+      } else {
+        const cachedAnnouncements = getStorage(ANNOUNCEMENTS);
+        if (cachedAnnouncements)
+          dispatch(setAnnouncements({ ...cachedAnnouncements }));
+      }
+    } else {
+      showLoader();
+    }
+  }, [loadingFiatRates, loadingVersionInfo, loadingAnnouncements]);
 
   return isLoading ? (
     <div className="App min-h-[900px] h-screen">
