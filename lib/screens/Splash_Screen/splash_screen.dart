@@ -132,6 +132,7 @@ class _SplashScreenState extends State<SplashScreen>
             await StoreData().storeGetData('assetOrderings');
         appState.setNFTs = await StoreData().storeGetData('nfts');
         appState.setFiatRate = await StoreData().storeGetData('fiatRate') ?? {};
+        print('fiatRates ${appState.fiatRate['NGN']}');
         appState.introducedSharedAccess =
             await StoreData().storeGetData('introducedSharedAccess') ?? false;
         appState.sethideWalletList =
@@ -167,13 +168,6 @@ class _SplashScreenState extends State<SplashScreen>
                 appState.userInfo!.username!,
                 appState,
                 pnt: dateDifference.inDays > 10 ? token : null,
-              );
-              getFiatRates(
-                primaryWallet.signer,
-                appState.secretKeys[0],
-                primaryWallet.publicKey,
-                appState.userInfo!.username!,
-                appState,
               );
               fetchNotifications(appState);
 
@@ -275,7 +269,7 @@ class _SplashScreenState extends State<SplashScreen>
       appState.tempPassword = appState.password!;
 
       fetchNotifications(appState);
-      getFiatRates(signer, secretKey, publicKey, username, appState);
+      getFiatRates(appState);
       storeUserInfo(responseData['data'], appState);
       await StoreData()
           .storeInsertData('biometricsEnabled', appState.biometricEnabled);

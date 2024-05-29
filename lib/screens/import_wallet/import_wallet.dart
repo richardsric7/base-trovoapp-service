@@ -415,8 +415,7 @@ class _ImportWalletState extends State<ImportWallet> {
 
         if (responseData['statusCode'] == 200) {
           fetchNotifications(appState);
-          getFiatRates(creds.publicKey, creds.secretKey, creds.publicKey,
-              username, appState);
+          getFiatRates(appState);
           storeUserInfo(responseData['data']);
           appState.currentAction =
               PageAction(state: PageState.addPage, page: FingerprintPageConfig);
