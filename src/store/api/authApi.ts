@@ -90,6 +90,20 @@ export const authApi = baseApi.injectEndpoints({
         }, 
       }),
     }),
+    SetupSecurityQuestions: builder.mutation({
+      query: (payload: Payload) => ({
+        url: '/v1/security-questions',
+        method: 'POST',        
+        data: {
+          payload: payload.body,
+          creds: {
+            signer: payload.signer,
+            publicKey: payload.publicKey,
+            secretKey: payload.secretKey,
+          }
+        }, 
+      }),
+    }),
     requestAccountRecovery: builder.mutation({
       query: (payload: Payload) => ({
         url: `/v1/users/account/recover`,
@@ -133,6 +147,7 @@ export const {
   useRecoveryOtpMutation,
   useVerifyEmailOtpMutation,
   useRestoreInactiveAccountMutation,
+  useSetupSecurityQuestionsMutation,
   useFetchSecurityQuestionsQuery,
   useSubmitSecurityAnswersMutation,
   useRequestAccountRecoveryMutation,

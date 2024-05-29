@@ -19,6 +19,7 @@ import TokenizedAsset from '../pages/dashboard/tokenizedAsset';
 import { ProtectedRoutes } from './routeGuard';
 import AnswerSecurityQuestions from '../pages/accountRecovery/answerSecurityQuestions';
 import SetupSecurityQuestions from '../pages/accountRecovery/setupSecurityQuestions';
+import RestoreInactiveAccount from '../pages/accountRecovery/restoreInactiveAccount';
 
 export default function AppRouter() {
   return (
@@ -38,8 +39,8 @@ export default function AppRouter() {
           element={<AnswerSecurityQuestions />}
         />
         <Route
-          path="/setup-security-questions"
-          element={<SetupSecurityQuestions />}
+          path="/restore-inactive-account"
+          element={<RestoreInactiveAccount />}
         />
         <Route path="/register" element={<CreateAccount />}>
           <Route index element={<CreatePassword />} />
@@ -55,8 +56,11 @@ export default function AppRouter() {
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<Home />} />
             <Route path="tokenized-asset" element={<TokenizedAsset />} />
-            {/* <Route path="home" element={<Home />} /> */}
             <Route path="wallet" element={<Wallet />} />
+            <Route
+              path="setup-security-questions"
+              element={<SetupSecurityQuestions />}
+            />
           </Route>
         </Route>
         {/* <Route path="*" element={<Page404 />} /> */}

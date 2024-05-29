@@ -112,7 +112,6 @@ export class Encryptor {
           ...user,
         }),
       );
-      console.log(user);
       return user;
     }
   }

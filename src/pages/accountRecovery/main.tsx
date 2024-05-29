@@ -180,7 +180,7 @@ function RecoveryMain() {
                           username: username,
                         }),
                       );
-                      navigate('/setup-security-questions');
+                      navigate('/restore-inactive-account');
                     }}
                   />
                 </div>
