@@ -51,20 +51,17 @@ storeUserInfo(userInfoMap, state) async {
   state.setassetBalances = assetBalances;
 }
 
-Future<void> getFiatRates(
-    signer, secretKey, publicKey, username, appState) async {
-  Map responseData = await makeGetRequest(
-    uri: '/v1/rates',
-    signer: signer,
-    secretKey: secretKey, // the primary wallet secret key
-    publicKey: publicKey!,
+Future<void> getFiatRates(appState) async {
+  print('======>>>>>>>>>>>>>fetching fiat rates...:');
+  Map responseData = await makeUnSecuredGetRequest(
+    '/v1/rates',
   );
-
-  // print('response: ${responseData}');
+  print('======>>>>>>>>>>>>>response: ${responseData}');
 
   if (responseData['statusCode'] == 200) {
     appState.setFiatRate = responseData['data'];
     await StoreData().storeInsertData('fiatRate', responseData['data']);
+    print('======>>>>>>>>>>>>>response: ${responseData}');
   }
 }
 

@@ -11,6 +11,7 @@ import 'package:trovo_wallet/models/wallets_list_view_data.dart';
 import 'package:trovo_wallet/models/withdrawal_transaction_model.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
+import 'package:trovo_wallet/services/push_fcm_service.dart';
 import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
@@ -440,6 +441,12 @@ class DataProvider with ChangeNotifier {
 
   Future<void> refreshData() async {
     try {
+      String result = await FCM().getPushNotificationToken();
+
+      var token = result.split('|').first;
+      DateTime createdAt = DateTime.parse(result.split('|').last);
+      var dateDifference = DateTime.now().difference(createdAt);
+
       await updateUserInfo(
         userInfo!.wallets![0].signer,
         secretKeys[0],
@@ -447,7 +454,10 @@ class DataProvider with ChangeNotifier {
         userInfo!.username,
         this,
         forceRefresh: true,
+        pnt: dateDifference.inDays > 10 ? token : null,
       );
+      await getFiatRates(this);
+      print('fiatRates ${fiatRate['NGN']}');
       notifyListeners();
     } catch (e) {
       // print(e);

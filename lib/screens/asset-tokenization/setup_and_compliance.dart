@@ -907,7 +907,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                             fillColor: MaterialStateColor.resolveWith(
                                 (states) => notifier.getbluewhitecolor),
                             onChanged: (value) => {
-                              print('changed/// $value'),
                               setState(
                                 () {
                                   hasSecApproval = value!;
@@ -937,7 +936,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                                 (states) => notifier.getbluewhitecolor),
                             groupValue: hasSecApproval,
                             onChanged: (value) => {
-                              print('changed/// $value'),
                               setState(
                                 () {
                                   hasSecApproval = value!;
@@ -1052,14 +1050,17 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       // following credential
       var mintingWallet = appState.userInfo!.getMintingWallets[0];
       var marketMakingWallet = appState.userInfo!.getMarketMakingWallets[0];
+      print('map here d $selectedAssetCustodian');
       Map map = {
         "assetSector": selectedAssetSectorId,
         "assetSubSector": selectedAssetSubSectorId,
         "assetType": selectedAssetTypeId,
         "offeringType": offeringType == 1 ? 'private' : 'public',
-        "approvedAssetCustodianId": int.parse(selectedAssetCustodian),
+        "approvedAssetCustodianId":
+            hasCustodianAgreement ? int.parse(selectedAssetCustodian) : '',
         "marketMakingWallet": marketMakingWallet.publicKey,
       };
+      print('map here $map');
       String requestBody = jsonEncode(map);
       print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
@@ -1099,8 +1100,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         publicKey: appState.primaryWallet.signer!,
       );
       if (responseData['statusCode'] == 200) {
+        print('success');
         return responseData['data'];
       } else {
+        print('success');
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
