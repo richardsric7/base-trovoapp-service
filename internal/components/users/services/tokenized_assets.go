@@ -86,6 +86,22 @@ func GetTokenizationDocumentById(id string, db *gorm.DB) (documents []userModels
 
 	return
 }
+func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAssetJSON, err error) {
+	var ta userModels.TokenizedAsset
+	err = db.Preload(clause.Associations).Where("id = ?", id).First(&ta).Error
+
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			//critical database error occured
+			log.Printf("[GetTokenizedAssetByID]error fetching existing tokenization with id %v from database  [%v]", id, err)
+			return
+
+		}
+	}
+	ta.ToJSON()
+
+	return
+}
 
 func UploadTokenizationDocument(user *userModels.User, file multipart.File, fileNameWithExt string, input *userModels.AssetTokenizationInputDocument, gc *sharedconfig.GlobalConfig) (string, error) {
 

@@ -495,3 +495,32 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) {
 	t.InvestorAccreditationRequired = ti.InvestorAccreditationRequired
 
 }
+
+func (ti *TokenizedAsset) ToJSON() (t *TokenizedAssetJSON) {
+
+	t.ID = ti.ID
+	t.CreatedAt = ti.CreatedAt
+	t.UpdatedAt = ti.UpdatedAt
+	t.InitiatorUsername = ti.InitiatorUsername
+
+	if ti.AdditionalKYCRequirements != nil {
+
+		t.AdditionalKYCRequirements = *ti.AdditionalKYCRequirements
+
+	}
+	if ti.AssetSector != nil {
+
+		t.AssetSector = *ti.AssetSector
+	}
+
+	if ti.AssetSubSector != nil {
+
+		t.AssetSubSector = *ti.AssetSubSector
+	}
+	if ti.AssetType != nil {
+
+		t.AssetType = *ti.AssetType
+	}
+	return
+
+}
