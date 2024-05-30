@@ -1,7 +1,6 @@
 package users
 
 import (
-	"mime/multipart"
 	"time"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -247,19 +246,19 @@ type AssetTokenizationDocument struct {
 	DocumentUrl      string `json:"documentUrl"`
 }
 type AssetTokenizationInputDocument struct {
-	ID               uint64
-	CreatedAt        time.Time
-	TokenizedAssetID string          `form:"tokenizedAssetId"`
-	DocumentType     uint64          `form:"documentType"`
-	DocumentTitle    string          `form:"documentTitle"`
-	DocumentFile     *multipart.File `form:"documentFile"`
+	ID               uint64    `json:"-" form:"-"`
+	CreatedAt        time.Time `json:"-" form:"-"`
+	TokenizedAssetID string    `json:"tokenizedAssetId" form:"tokenizedAssetId"`
+	DocumentType     uint64    `json:"documentType" form:"documentType"`
+	DocumentTitle    string    `json:"documentTitle" form:"documentTitle"`
+	// DocumentFile     *multipart.File `form:"documentFile"`
 	// DocumentFile     string `json:"-"`// this is not included in struct for input. already extracted by c.FormFile
 }
 
 type IssuingWalletPublicKey string
 
 func (i IssuingWalletPublicKey) GetTokenization(gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
-	gc.DB.Where("issuing_wallet = ?", string(i)).First(&t)
+	gc.DB.Where("issuing_wallet_public_key = ?", string(i)).First(&t)
 	return
 }
 

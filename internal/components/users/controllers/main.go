@@ -4225,14 +4225,16 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			var tokenizationInput userModels.AssetTokenizationInputDocument
 
-			// c.ShouldBind(&tokenizationInput)
-			data, _ := io.ReadAll(c.Request.Body)
-			// log.Println(string(data))
-			err = json.Unmarshal(data, &tokenizationInput)
+			err = c.ShouldBind(&tokenizationInput)
+			// data, _ := io.ReadAll(c.Request.Body)
+			// // log.Println(string(data))
+			// err = json.Unmarshal(data, &tokenizationInput)
 
 			var invalidJSON tErrors.ErrorInvalidJSON
 
 			if err != nil {
+				log.Printf("Error Getting Uploaded file with param DocumentFile:%+v\n error: %v", r.Body, err)
+
 				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
 				return
 			}
