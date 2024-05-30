@@ -4187,7 +4187,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
-			r:= c.Request
+			r := c.Request
 			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
 			if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size"})
@@ -4203,7 +4203,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			}
 			defer f.Close()
 			blobFile, err := fileHeader.Open()
-		
+
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded"})
 
@@ -4225,17 +4225,17 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 			var tokenizationInput userModels.AssetTokenizationInputDocument
 
-			c.ShouldBind(&tokenizationInput)
-			// data, _ := io.ReadAll(c.Request.Body)
-			// // log.Println(string(data))
-			// err = json.Unmarshal(data, &tokenizationInput)
+			// c.ShouldBind(&tokenizationInput)
+			data, _ := io.ReadAll(c.Request.Body)
+			// log.Println(string(data))
+			err = json.Unmarshal(data, &tokenizationInput)
 
-			// var invalidJSON tErrors.ErrorInvalidJSON
+			var invalidJSON tErrors.ErrorInvalidJSON
 
-			// if err != nil {
-			// 	c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
-			// 	return
-			// }
+			if err != nil {
+				c.JSON(http.StatusBadRequest, invalidJSON.JSONError())
+				return
+			}
 			if tokenizationInput.DocumentType == 0 {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "document type not specified"})
 				return
