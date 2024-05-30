@@ -99,7 +99,7 @@ func UploadTokenizationDocument(user *userModels.User, file multipart.File, file
 	//check if document already saved and then retireve it:
 	var documentUpload userModels.AssetTokenizationDocument
 	e := gc.DB.Where("tokenized_asset_id = ? AND document_type = ? AND document_title = ?", input.TokenizedAssetID, input.DocumentType, input.DocumentTitle).First(&documentUpload).Error
-	if err == nil {
+	if e == nil {
 		//existing record match, update
 		documentUpload.DocumentUrl = url
 		es := gc.DB.Create(&documentUpload).Error
