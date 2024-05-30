@@ -102,7 +102,7 @@ func UploadTokenizationDocument(user *userModels.User, file multipart.File, file
 	if e == nil {
 		//existing record match, update
 		documentUpload.DocumentUrl = url
-		es := gc.DB.Create(&documentUpload).Error
+		es := gc.DB.Save(&documentUpload).Error
 		if es != nil {
 
 			log.Printf("[UploadTokenizationDocument]error saving existing document in database  [%v] for %v: %v\n", input, user.Username, e)
