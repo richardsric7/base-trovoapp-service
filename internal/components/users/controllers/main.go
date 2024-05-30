@@ -4018,7 +4018,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 
 		})
 
-		router.GET("/v1/tokenization/:tid", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+		router.GET("/v1/tokenization/detail/:tid", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
 			// var err error//true-client-ip
 
 			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
@@ -4048,7 +4048,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			tokenizedAssetJson, err := userServices.GetTokenizedAssetByID(tid, gc.DB)
+			tokenizedAsset, err := userServices.GetTokenizedAssetByID(tid, gc.DB)
 			if err != nil {
 
 				var ex tErrors.GenericError
@@ -4063,7 +4063,77 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			c.JSON(http.StatusOK, tokenizedAssetJson)
+			c.JSON(http.StatusOK, tokenizedAsset.ToJSON())
+
+		})
+
+		router.GET("/v1/tokenization/list", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error//true-client-ip
+
+			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+			// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
+			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				return
+			}
+
+			tokenizationList := userServices.GetTokenizationList(&user, gc, c)
+
+			c.JSON(http.StatusOK, tokenizationList)
+
+		})
+
+		router.GET("/v1/tokenization/subscriptions", middleware.AuthenticationMiddlewareUsingTimestamp(), func(c *gin.Context) {
+			// var err error//true-client-ip
+
+			// cacheKey := fmt.Sprintf("[GET] /v1/patron/%v", identifier)
+			// tokenizationID, _ := strconv.ParseUint(tid, 10, 64)
+			user, err := usersDB.GetUserFromPrimarySigner(middleware.ExtractSigner(c), gc.DB, gc)
+
+			if err != nil {
+				log.Println("[GET USERINFO] error for user:", middleware.ExtractSigner(c), "error: ", err)
+
+				var ex tErrors.GenericError
+				var ok bool
+
+				ex, ok = err.(tErrors.GenericError)
+				var statusCode int = 0
+				var response interface{}
+
+				if ok {
+					statusCode = ex.HTTPCode()
+					response = ex.JSONError()
+				} else {
+					statusCode = http.StatusBadRequest
+					response = gin.H{"error": err.Error(), "message": err.Error()}
+				}
+
+				c.JSON(statusCode, response)
+				return
+			}
+
+			tokenizationList := userServices.GetTokenizationList(&user, gc, c)
+
+			c.JSON(http.StatusOK, tokenizationList)
 
 		})
 

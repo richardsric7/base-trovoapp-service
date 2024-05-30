@@ -143,7 +143,7 @@ type TokenizedAssetJSON struct {
 	SecApprovalIdNumber            string                      `json:"secApprovalIdNumber"`
 	IssuingWalletPublicKey         string                      `gorm:"size:60" json:"issuingWalletPublicKey"`
 	IssuingWalletAlias             string                      `gorm:"size:60" json:"issuingWalletAlias"`
-	MarketMakingWalletPublicKey    string                      `json:"marketMakingWalletPublicKey"`
+	MarketMakingWallet             string                      `json:"marketMakingWallet"`
 	AssetDescription               string                      `json:"assetDescription"`
 	AssetCountryLocation           string                      `json:"assetCountryLocation"`
 	AssetPhysicalAddress           string                      `json:"assetPhysicalAddress"`
@@ -163,7 +163,7 @@ type TokenizedAssetJSON struct {
 	InsuranceCompanyName           string                      `json:"insuranceCompanyName"`
 	InsurancePolicyNumber          string                      `json:"insurance_policy_number"`
 	InsurancePolicyHolder          string                      `json:"insurancePolicyHolder"`
-	PercentageValueOfInsurance     string                      `gorm:"default:0" json:"percentageValueOfInsurance"`
+	PercentageValueOfInsurance     float64                     `gorm:"default:0" json:"percentageValueOfInsurance"`
 	IsFreeFromLiensAndEncumbrances int                         `gorm:"default:0" json:"IsFreeFromLiensAndEncumbrances"`
 	AssetAlreadyExists             int                         `gorm:"default:1" json:"assetAlreadyExists"`
 	AssetTokenizationDocuments     []AssetTokenizationDocument `json:"AssetTokenizationDocuments"`
@@ -289,9 +289,10 @@ Proof of legal dispute or encumbrances on asset = 21
 **/
 
 func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) {
-	if len(ti.AdditionalKYCRequirements) > 0 {
+	if ti.HasAdditionalKYCRequirements > 0 && len(ti.AdditionalKYCRequirements) > 0 {
 
 		t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
+
 	}
 
 	if len(ti.AssetSector) > 0 {
@@ -326,9 +327,9 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) {
 		t.ClosedGroupID = &ti.ClosedGroupID
 	}
 
-	t.SecApproval = ti.SecApproval
+	if len(ti.SecApprovalIdNumber) > 0 && ti.SecApproval > 0 {
 
-	if len(ti.SecApprovalIdNumber) > 0 {
+		t.SecApproval = ti.SecApproval
 
 		t.SecApprovalIdNumber = &ti.SecApprovalIdNumber
 	}
@@ -521,6 +522,147 @@ func (ti *TokenizedAsset) ToJSON() (t TokenizedAssetJSON) {
 
 		t.AssetType = *ti.AssetType
 	}
+	if ti.AssetName != nil {
+		t.AssetName = *ti.AssetName
+
+	}
+
+	if ti.AssetCode != nil {
+		t.AssetCode = *ti.AssetCode
+
+	}
+	if ti.AssetLogo != nil {
+		t.AssetLogo = *ti.AssetLogo
+
+	}
+
+	if ti.ApprovedAssetCustodianID > 0 {
+		t.ApprovedAssetCustodianID = ti.ApprovedAssetCustodianID
+		t.ApprovedAssetCustodian = ti.ApprovedAssetCustodian
+	}
+	if ti.OfferingType != nil {
+		t.OfferingType = *ti.OfferingType
+	}
+	if ti.ClosedGroupID != nil {
+		t.ClosedGroupID = *ti.ClosedGroupID
+		t.ClosedGroup = ti.ClosedGroup
+	}
+
+	if ti.SecApproval > 0 {
+		t.SecApproval = ti.SecApproval
+		t.SecApprovalIdNumber = *ti.SecApprovalIdNumber
+	}
+	t.IssuingWalletPublicKey = ti.IssuingWalletPublicKey
+	t.IssuingWalletAlias = ti.IssuingWalletAlias
+
+	if ti.MarketMakingWallet != nil {
+		t.MarketMakingWallet = *ti.MarketMakingWallet
+	}
+	if ti.AssetDescription != nil {
+		t.AssetDescription = *ti.AssetDescription
+	}
+	if ti.AssetCountryLocation != nil {
+		t.AssetCountryLocation = *ti.AssetCountryLocation
+	}
+	if ti.AssetPhysicalAddress != nil {
+		t.AssetPhysicalAddress = *ti.AssetPhysicalAddress
+	}
+	if ti.AssetLongitude != nil {
+		t.AssetLongitude = *ti.AssetLongitude
+	}
+
+	if ti.AssetLatitude != nil {
+		t.AssetLatitude = *ti.AssetLatitude
+	}
+	if ti.OwnershipType != nil {
+		t.OwnershipType = *ti.OwnershipType
+	}
+	if ti.OwnershipKind != nil {
+		t.OwnershipKind = *ti.OwnershipKind
+	}
+	if ti.AssetOwnerName != nil {
+		t.AssetOwnerName = *ti.AssetOwnerName
+	}
+	if ti.AssetOwnerAddress != nil {
+		t.AssetOwnerAddress = *ti.AssetOwnerAddress
+	}
+	if ti.AssetManagerName != nil {
+		t.AssetManagerName = *ti.AssetManagerName
+	}
+	if ti.AssetManagerAddress != nil {
+		t.AssetManagerAddress = *ti.AssetManagerAddress
+	}
+	if ti.AssetQuoteCurrency != nil {
+		t.AssetQuoteCurrency = *ti.AssetQuoteCurrency
+	}
+	t.AssetCurrentValue = ti.AssetCurrentValue
+
+	t.AssetPercentageForTokenization = ti.AssetPercentageForTokenization
+	t.ValueOfTokenizedAsset = ti.ValueOfTokenizedAsset
+
+	if ti.ProtectionMethods != nil {
+		t.ProtectionMethods = *ti.ProtectionMethods
+	}
+	if ti.InsuranceCompanyName != nil {
+		t.InsuranceCompanyName = *ti.InsuranceCompanyName
+	}
+	if ti.InsurancePolicyHolder != nil {
+		t.InsurancePolicyHolder = *ti.InsurancePolicyHolder
+	}
+	if ti.InsurancePolicyNumber != nil {
+		t.InsurancePolicyNumber = *ti.InsurancePolicyNumber
+	}
+	t.PercentageValueOfInsurance = ti.PercentageValueOfInsurance
+	t.IsFreeFromLiensAndEncumbrances = ti.IsFreeFromLiensAndEncumbrances
+	t.AssetAlreadyExists = ti.AssetAlreadyExists
+	t.AssetTokenizationDocuments = ti.AssetTokenizationDocuments
+	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
+	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
+	t.TotalTokenHeldByManager = ti.TotalTokenHeldByManager
+
+	if ti.WalletToHoldAssetsNotForSale != nil {
+		t.WalletToHoldAssetsNotForSale = *ti.WalletToHoldAssetsNotForSale
+	}
+	t.PricePerToken = ti.PricePerToken
+	t.SalesStart = ti.SalesStart
+	t.SalesEnd = ti.SalesEnd
+	t.CapOnPurchase = ti.CapOnPurchase
+	t.CapQuantity = ti.CapQuantity
+	t.CapDurationInDays = ti.CapDurationInDays
+
+	if ti.ProceedCycle != nil {
+		t.ProceedCycle = *ti.ProceedCycle
+	}
+	if ti.ProceedPayoutCurrency != nil {
+		t.ProceedPayoutCurrency = *ti.ProceedPayoutCurrency
+	}
+	if ti.TokenizationFeeID != nil {
+		t.TokenizationFeeID = *ti.TokenizationFeeID
+	}
+	if ti.ExemptedCountries != nil {
+		t.ExemptedCountries = *ti.ExemptedCountries
+	}
+
+	if ti.AdditionalKYCRequirements != nil {
+
+		t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
+		t.AdditionalKYCRequirements = *ti.AdditionalKYCRequirements
+	}
+
+	t.InvestorAccreditationRequired = ti.InvestorAccreditationRequired
+	if ti.LastUpdatedBy != nil {
+		t.LastUpdatedBy = *ti.LastUpdatedBy
+	}
+	t.AssetTokenizationStatus = ti.AssetTokenizationStatus
+
 	return
 
+}
+
+type PaginatedTokenizedAssets struct {
+	Pages        int                  `json:"pages"`
+	CurrentPage  int                  `json:"currentPage"`
+	TotalRecords int                  `json:"totalRecords"`
+	Limit        int                  `json:"limit"`
+	Records      []TokenizedAssetJSON `json:"records"`
 }
