@@ -4186,43 +4186,32 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				c.JSON(http.StatusForbidden, gin.H{"error": "error-unauthorized-access", "message": "You do not have an initiator permission on this wallet."})
 				return
 			}
-			_, e := c.GetPostForm("documentFile")
-			if !e {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
-				return
-			}
-			// log.Println("DocumentFile uploaded:", s)
-			form, err := c.MultipartForm()
-			if err != nil {
-				log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-				return
-			}
-			log.Printf("FormFile: %+v\n\n", form.File)
-			for _, r := range form.File {
-				for _, r1 := range r {
-					log.Printf("r1: %+v\n", *r1)
-				}
-			}
-			files := form.File["documentFile"]
-			if len(files) == 0 {
-				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
-				return
-			}
-			f := files[0]
-			if f.Size > 900000 {
-				//greater than 700kb
+			const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
+			r:= c.Request
+			// r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+			if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "document cannot be more than 900kb in file size"})
 				return
 			}
-			blobFile, err := f.Open()
+
+			f, fileHeader, err := r.FormFile("documentFile")
+
+			if err != nil {
+				log.Printf("Error Getting Uploaded file with param DocumentFile:%v\n", err)
+				c.JSON(http.StatusForbidden, gin.H{"error": "error-no-ducument-file", "message": "There is no documentFile attached with request"})
+				return
+			}
+			defer f.Close()
+			blobFile, err := fileHeader.Open()
+		
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "error attempting to validate the document uploaded"})
 
 				return
 			}
-			// io.ReadAll(blobFile)
-			fnameSplit := strings.Split(f.Filename, ".")
+			defer blobFile.Close()
+
+			fnameSplit := strings.Split(fileHeader.Filename, ".")
 			fileExtension := fnameSplit[len(fnameSplit)-1]
 
 			{
