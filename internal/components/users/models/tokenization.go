@@ -496,7 +496,7 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) {
 
 }
 
-func (ti *TokenizedAsset) ToJSON() (t *TokenizedAssetJSON) {
+func (ti *TokenizedAsset) ToJSON() (t TokenizedAssetJSON) {
 
 	t.ID = ti.ID
 	t.CreatedAt = ti.CreatedAt

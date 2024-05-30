@@ -98,7 +98,7 @@ func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.To
 
 		}
 	}
-	ta.ToJSON()
+	tokenizedAsset = ta.ToJSON()
 
 	return
 }
