@@ -190,50 +190,50 @@ class _WalletPreparationState extends State<WalletPreparation>
             null,
           ),
         ),
-        SizedBox(
-          height: height / 30,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Text(
-                "selectmarketmakingwallet".tr(),
-                style: TextStyle(
-                  fontSize: 13,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-              Text(
-                "whatdoesthismean".tr(),
-                style: TextStyle(
-                  decoration: TextDecoration.underline,
-                  fontSize: 12,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: height / 70,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          child: dropdown(
-            (value) {},
-            getMarketMakingWallets,
-            null,
-            appState.userInfo!.getMarketMakingWallets.length > 0
-                ? appState.userInfo!.getMarketMakingWallets.first.alias
-                : '',
-            context,
-            null,
-          ),
-        ),
+        // SizedBox(
+        //   height: height / 30,
+        // ),
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(horizontal: 12),
+        //   child: Row(
+        //     mainAxisAlignment: MainAxisAlignment.spaceAround,
+        //     children: [
+        //       Text(
+        //         "selectmarketmakingwallet".tr(),
+        //         style: TextStyle(
+        //           fontSize: 13,
+        //           fontFamily: fontsemibold,
+        //           color: notifier.getbluewhitecolor,
+        //         ),
+        //       ),
+        //       Text(
+        //         "whatdoesthismean".tr(),
+        //         style: TextStyle(
+        //           decoration: TextDecoration.underline,
+        //           fontSize: 12,
+        //           fontFamily: fontsemibold,
+        //           color: notifier.getbluewhitecolor,
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        // SizedBox(
+        //   height: height / 70,
+        // ),
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+        //   child: dropdown(
+        //     (value) {},
+        //     getMarketMakingWallets,
+        //     null,
+        //     appState.userInfo!.getMarketMakingWallets.length > 0
+        //         ? appState.userInfo!.getMarketMakingWallets.first.alias
+        //         : '',
+        //     context,
+        //     null,
+        //   ),
+        // ),
       ],
     );
   }

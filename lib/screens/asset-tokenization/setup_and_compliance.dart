@@ -990,7 +990,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     70,
                     350,
                     validator: (value) {
-                      if (hasSecApproval && secApprovalId.isEmpty) {
+                      if (hasSecApproval && value.isEmpty) {
                         return "pleaseentersecapprovalid".tr();
                       }
                       return null;
@@ -998,7 +998,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     onSaved: (value) {
                       secApprovalId = value.trim().replaceAll(' ', '');
                     },
-                    keyboardtype: TextInputType.emailAddress,
                   ),
                 ] else ...[
                   Padding(
@@ -1031,8 +1030,10 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 submit();
               },
             ),
-            SizedBox(
-              height: height / 10,
+            SizedBox(height: height / 10),
+            Padding(
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom),
             ),
           ],
         ),
@@ -1041,6 +1042,22 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   }
 
   submit() async {
+    // var message = "";
+    // if (!hasAllRequiredDocuments) {
+    //   message +=
+    //       "You need to acquire all the documents in the required documents list before you can proceed.\n\n";
+    // }
+
+    // if (offeringType == 0 && !hasCustodianAgreement) {
+    //   message +=
+    //       "An asset custodian agreement is needed in this process. You need to obtain an agreement with an asset custodian to proceed.\n\n";
+    // }
+
+    // if (message.isNotEmpty) {
+    //   popup(context, title: "info".tr(), message: message);
+    //   return;
+    // }
+
     final form = _formKey.currentState;
     if (!form!.validate()) return;
 
@@ -1050,15 +1067,18 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       // following credential
       var mintingWallet = appState.userInfo!.getMintingWallets[0];
       var marketMakingWallet = appState.userInfo!.getMarketMakingWallets[0];
-      print('map here d $selectedAssetCustodian');
+
       Map map = {
         "assetSector": selectedAssetSectorId,
         "assetSubSector": selectedAssetSubSectorId,
         "assetType": selectedAssetTypeId,
         "offeringType": offeringType == 1 ? 'private' : 'public',
-        "approvedAssetCustodianId":
-            hasCustodianAgreement ? int.parse(selectedAssetCustodian) : '',
+        "approvedAssetCustodianId": selectedAssetCustodian.length > 0
+            ? int.parse(selectedAssetCustodian)
+            : 1,
         "marketMakingWallet": marketMakingWallet.publicKey,
+        "secApprovalIdNumber": secApprovalId,
+        "assetCountryLocation": selectedCountry,
       };
       print('map here $map');
       String requestBody = jsonEncode(map);
@@ -1073,7 +1093,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
       hideLoader(context);
 
-      print('responseData $responseData');
+      print(
+          'responseData ${responseData['data']['assetTokenizationDocuments']}');
 
       if (responseData['statusCode'] == 200) {
         appState.viewData = responseData['data'];
