@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:app_settings/app_settings.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
+import 'package:get/state_manager.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -3717,15 +3719,15 @@ void viewOnlySharedWalletOptions(
 }
 
 showDocumentUploadPopup(context, String title,
-    {required void Function(
-            String selectedOption, String uploadedFileName, PlatformFile file)
-        onDone,
+    {required void Function(String selectedOption, PlatformFile file) onDone,
     required List<DropdownMenuItem<String>> dropdownItems}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
-  String selectedOption = '';
-  String uploadedFileName = '';
+  final _formKey = GlobalKey<FormState>();
+  String selectedOption =
+      dropdownItems.length > 0 ? dropdownItems.first.value! : "";
+  String errorMsg = '';
   PlatformFile? file = null;
   return showDialog(
       context: context,
@@ -3744,119 +3746,216 @@ showDocumentUploadPopup(context, String title,
                     Radius.circular(23),
                   ),
                 ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Center(
-                        child: Text(
-                          title,
-                          style: TextStyle(
-                              color: notifier.getbluewhitecolor,
-                              fontSize: 15,
-                              fontFamily: fontsemibold),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Center(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                                color: notifier.getbluewhitecolor,
+                                fontSize: 15,
+                                fontFamily: fontsemibold),
+                          ),
                         ),
                       ),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: dropdown(
-                        (value) {
-                          selectedOption = value.toString();
-                        },
-                        dropdownItems,
-                        null,
-                        "purchasereceipt".tr(),
-                        context,
-                        null,
-                      ),
-                    ),
-                    SizedBox(
-                      height: height / 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(3.0),
-                      child: Container(
-                        width: width / 2.5,
-                        decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10.0)),
-                          color: notifier.isDark
-                              ? darktilewhitecolor
-                              : notifier.getaddsubwalletgrey,
+                      if (dropdownItems.length > 0) ...[
+                        SizedBox(
+                          height: height / 50,
                         ),
-                        child: Container(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: dropdown(
+                            (value) {
+                              selectedOption = value.toString();
+                              setStateForDialog(() {});
+                            },
+                            dropdownItems,
+                            null,
+                            selectedOption,
+                            context,
+                            null,
+                          ),
+                        ),
+                      ],
+                      if (selectedOption == "Other") ...[
+                        SizedBox(
+                          height: height / 70,
+                        ),
+                        CustomTextFormField.textField(
+                          'enterfiletitle'.tr(),
+                          notifier.getbluecolor,
+                          null,
+                          notifier.getgrey,
+                          notifier.getprefixicon,
+                          notifier.getblck,
+                          notifier.getgrey,
+                          50,
+                          270,
+                          validator: (value) {
+                            if (selectedOption == "Other" &&
+                                value.toString().isEmpty) {
+                              return "pleaseenterfiletitle".tr();
+                            }
+                            return null;
+                          },
+                          onSaved: (value) {
+                            setStateForDialog(() {
+                              selectedOption = value.trim();
+                            });
+                          },
+                        ),
+                      ],
+                      if (file != null) ...[
+                        Container(
+                          width: width / 2.0,
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              TextButton(
-                                onPressed: () async {
-                                  file = await getFile(
-                                      context, ImageSource.gallery);
-                                },
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.file_copy_outlined,
-                                      size: 20,
-                                      // color: notifier.getbluewhitecolor,
-                                    ),
-                                    SizedBox(
-                                      width: width / 50,
-                                    ),
-                                    Text(
-                                      "selectfile".tr(),
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontFamily: fontbody,
-                                        color: notifier.getbluewhitecolor,
-                                      ),
-                                    ),
-                                  ],
+                              Text(
+                                truncate(file!.name, length: 15),
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
                                 ),
                               ),
+                              IconButton(
+                                icon: Icon(
+                                  CupertinoIcons.delete,
+                                  size: 20,
+                                ),
+                                onPressed: (() {
+                                  setStateForDialog(() {
+                                    file = null;
+                                  });
+                                }),
+                              )
                             ],
                           ),
                         ),
+                      ],
+                      SizedBox(
+                        height: height / 50,
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Navigator.of(context).pop(); // dismiss dialog,
-                          onDone(selectedOption, uploadedFileName, file!);
-                        },
-                        style: ButtonStyle(
-                          fixedSize: MaterialStateProperty.all(
-                            Size(width / 1.5, height / 20),
+                      Padding(
+                        padding: const EdgeInsets.all(3.0),
+                        child: Container(
+                          width: width / 2.5,
+                          decoration: BoxDecoration(
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(10.0)),
+                            color: notifier.isDark
+                                ? darktilewhitecolor
+                                : notifier.getaddsubwalletgrey,
                           ),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluecolor),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
+                          child: Container(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                TextButton(
+                                  onPressed: () async {
+                                    errorMsg = '';
+                                    file = await getFile(
+                                        context, ImageSource.gallery);
+                                    if (file != null && file!.size > 900000) {
+                                      errorMsg = "filesizeerror".tr();
+                                      file = null;
+                                    }
+                                    setStateForDialog(() {});
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.file_copy_outlined,
+                                        size: 20,
+                                        // color: notifier.getbluewhitecolor,
+                                      ),
+                                      SizedBox(
+                                        width: width / 50,
+                                      ),
+                                      Text(
+                                        "selectfile".tr(),
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontFamily: fontbody,
+                                          color: notifier.getbluewhitecolor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                        child: Text(
-                          "upload".tr(),
-                          style: TextStyle(
-                              color: wihitecolor, fontFamily: fontbody),
+                      ),
+                      Container(
+                        width: width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              errorMsg,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: fontbody,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    SizedBox(height: height / 50),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final form = _formKey.currentState;
+                            if (!form!.validate()) return;
+
+                            if (file == null) {
+                              errorMsg = 'selectfiletoupload'.tr();
+                              setStateForDialog(() {});
+                              return;
+                            }
+
+                            form.save();
+
+                            Navigator.of(context).pop(); // dismiss dialog,
+                            onDone(selectedOption, file!);
+                          },
+                          style: ButtonStyle(
+                            fixedSize: MaterialStateProperty.all(
+                              Size(width / 1.5, height / 20),
+                            ),
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                notifier.getbluecolor),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            "upload".tr(),
+                            style: TextStyle(
+                                color: wihitecolor, fontFamily: fontbody),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: height / 50),
+                    ],
+                  ),
                 ),
               ));
         });
@@ -3876,12 +3975,6 @@ Future<PlatformFile?>? getFile(context, ImageSource source) async {
   }
 
   PlatformFile file = result.files.single;
-  print('file picked... $file');
-
-  if (file.size > 900000) {
-    print('file size must be < 900000bytes');
-    return null;
-  }
 
   return file;
 }

@@ -1,10 +1,7 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_connect.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -15,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
+import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -30,71 +28,124 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  String? imageThumbnail;
-  bool addAdditionalKyc = false;
+  Map<String, List<String>> documentOptions = {
+    "proofOfExistenceFiles": <String>[
+      "Purchase Receipt",
+      "Proof of Address",
+      "Other",
+    ],
+    "proofOfOwnershipFiles": <String>[
+      "Title Deed",
+      "Bill of sale",
+      "Signed transfer of ownership",
+      "Certificate of ownership",
+      "Other",
+    ],
+    "assetStatusVerificationFiles": <String>[
+      "Inspection reports",
+      "Maintenance/repair reports",
+      "Photos",
+      "Other",
+    ],
+    "assetCustodianAgreementFiles": <String>[
+      "Asset Custodian Agreement",
+      "Other",
+    ],
+    "proofOfAssetManagerFiles": <String>[
+      "Asset Management Agreement",
+      "Other",
+    ],
+    "assetProtectionDocumentFiles": <String>[
+      "Insurance Policy Document",
+      "Bill of sale",
+      "Premium payment receipts",
+      "Inspection/maintenance report",
+      "Other",
+    ],
+    "assetValuationCertificateFiles": <String>[
+      "Asset valaution report",
+      "Asset valaution certificate",
+      "Other",
+    ],
+  };
+
+  List<DropdownMenuItem<String>> getDocumentOptions(String rel) {
+    List<DropdownMenuItem<String>> documentOption = [];
+    if (documentOptions[rel] != null) {
+      documentOptions[rel]!.forEach((item) {
+        documentOption.add(DropdownMenuItem(
+            child: Text(
+              item,
+              overflow: TextOverflow.ellipsis,
+            ),
+            value: item));
+      });
+    }
+    return documentOption;
+  }
 
   String selectedProofOfExistenceOption = '';
-  String proofOfExistenceFileName = '';
+  Map<String, String> proofOfExistenceFiles = {};
 
   String selectedProofOfOwnershipOption = '';
-  String proofOfOwnershipFileName = '';
+  Map<String, String> proofOfOwnershipFiles = {};
 
   String selectedAssetStatusVerificationOption = '';
-  String assetStatusVerificationFileName = '';
+  Map<String, String> assetStatusVerificationFiles = {};
 
   String selectedAssetCustodianAgreementOption = '';
-  String assetCustodianAgreementFileName = '';
+  Map<String, String> assetCustodianAgreementFiles = {};
 
   String selectedProofOfAssetManagerOption = '';
-  String proofOfAssetManagerFileName = '';
+  Map<String, String> proofOfAssetManagerFiles = {};
 
   String selectedAssetProtectionDocumentOption = '';
-  String assetProtectionDocumentFileName = '';
+  Map<String, String> assetProtectionDocumentFiles = {};
 
   String selectedAssetValuationCertificateOption = '';
-  String assetValuationCertificateFileName = '';
+  Map<String, String> assetValuationCertificateFiles = {};
 
   String selectedProofOfAdditionalCostOutsideValuationOption = '';
-  String additionalCostOutsideValuationFileName = '';
+  Map<String, String> additionalCostOutsideValuationFiles = {};
 
   String selectedProofOfAssetConditionOption = '';
-  String proofOfAssetConditionFileName = '';
+  Map<String, String> proofOfAssetConditionFiles = {};
 
   String selectedThirdPartyTokenizationAgreementOption = '';
-  String thirdPartyTokenizationAgreementFileName = '';
+  Map<String, String> thirdPartyTokenizationAgreementFiles = {};
 
   String selectedThirdPartyAssetOwnerBusinessRegOption = '';
-  String thirdPartyAssetOwnerBusinessRegFileName = '';
+  Map<String, String> thirdPartyAssetOwnerBusinessRegFiles = {};
 
   String selectedThirdPartyAssetOwnerProofOfAddressOption = '';
-  String thirdPartyAssetOwnerProofOfAddressFileName = '';
+  Map<String, String> thirdPartyAssetOwnerProofOfAddressFiles = {};
 
   String selectedSecApprovalOption = '';
-  String secRegFileName = '';
+  Map<String, String> secRegFiles = {};
 
   String selectedProofOfComplianceOption = '';
-  String proofOfComplianceFileName = '';
+  Map<String, String> proofOfComplianceFiles = {};
 
   String selectedProofOfEnvComplianceOption = '';
-  String proofOfEnvComplianceFileName = '';
+  Map<String, String> proofOfEnvComplianceFiles = {};
 
   String selectedEnvImpactAssessmentReportOption = '';
-  String envImpactAssessmentReportFileName = '';
+  Map<String, String> envImpactAssessmentReportFiles = {};
 
   String selectedProofofLegalCounselOption = '';
-  String proofOfLegalCounselFileName = '';
+  Map<String, String> proofOfLegalCounselFiles = {};
 
   String selectedLegalAdvisorsContactOption = '';
-  String legalAdvisorsContactFileName = '';
+  Map<String, String> legalAdvisorsContactFiles = {};
 
   String selectedProofofMortgagesorLiensOption = '';
-  String proofofMortgagesorLiensFileName = '';
+  Map<String, String> proofofMortgagesorLiensFiles = {};
 
   String selectedProofofOutstandingLoansOption = '';
-  String proofofOutstandingLoansFileName = '';
+  Map<String, String> proofofOutstandingLoansFiles = {};
 
   String selectedProofofLegalDisputesOnAssetOption = '';
-  String proofofLegalDisputesOnAssetFileName = '';
+  Map<String, String> proofofLegalDisputesOnAssetFiles = {};
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -104,19 +155,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     } else {
       notifier.setIsDark = previusstate;
     }
-  }
-
-  List<DropdownMenuItem<String>> get getCurrencies {
-    List<DropdownMenuItem<String>> currencies = [];
-    appState.fiatRate.forEach((key, value) {
-      currencies.add(DropdownMenuItem(
-          child: Text(
-            key,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: key));
-    });
-    return currencies;
   }
 
   @override
@@ -147,266 +185,254 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
             SizedBox(
               height: height / 30,
             ),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   uploadFile(file, 1, 'ProofOfAssetExistence');
                   setState(() {
                     selectedProofOfExistenceOption = selectedOption;
-                    proofOfExistenceFileName = uploadedFileName;
+                    proofOfExistenceFiles[selectedOption] = file.name;
                   });
                 },
                 label: 'Proof of Asset Existence',
                 selectedOption: selectedProofOfExistenceOption,
-                uploadedFileName: proofOfExistenceFileName,
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                uploadedFiles: proofOfExistenceFiles,
+                documentOptions: getDocumentOptions('proofOfExistenceFiles')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedProofOfOwnershipOption = selectedOption;
-                    proofOfOwnershipFileName = uploadedFileName;
+                    proofOfOwnershipFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedProofOfOwnershipOption,
-                uploadedFileName: proofOfOwnershipFileName,
+                uploadedFiles: proofOfOwnershipFiles,
                 label: 'Proof of Ownership',
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('proofOfOwnershipFiles')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedAssetStatusVerificationOption = selectedOption;
-                    assetStatusVerificationFileName = uploadedFileName;
+                    assetStatusVerificationFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedAssetStatusVerificationOption,
-                uploadedFileName: assetStatusVerificationFileName,
+                uploadedFiles: assetStatusVerificationFiles,
                 label: 'Asset Status Verification',
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions:
+                    getDocumentOptions('assetStatusVerificationFiles')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedAssetCustodianAgreementOption = selectedOption;
-                    assetCustodianAgreementFileName = uploadedFileName;
+                    assetCustodianAgreementFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedAssetCustodianAgreementOption,
-                uploadedFileName: assetCustodianAgreementFileName,
+                uploadedFiles: assetCustodianAgreementFiles,
                 label: 'Asset Custodian Agreement',
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions:
+                    getDocumentOptions('assetCustodianAgreementFiles')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedProofOfAssetManagerOption = selectedOption;
-                    proofOfAssetManagerFileName = uploadedFileName;
+                    proofOfAssetManagerFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedProofOfAssetManagerOption,
-                uploadedFileName: proofOfAssetManagerFileName,
+                uploadedFiles: proofOfAssetManagerFiles,
                 label: 'Proof of Asset Manager',
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions:
+                    getDocumentOptions('proofOfAssetManagerFiles')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedAssetProtectionDocumentOption = selectedOption;
-                    assetProtectionDocumentFileName = uploadedFileName;
+                    assetProtectionDocumentFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedAssetProtectionDocumentOption,
-                uploadedFileName: assetProtectionDocumentFileName,
+                uploadedFiles: assetProtectionDocumentFiles,
                 label: 'Asset Protection Document',
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions:
+                    getDocumentOptions('assetProtectionDocumentFiles')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedAssetValuationCertificateOption = selectedOption;
-                    assetValuationCertificateFileName = uploadedFileName;
+                    assetValuationCertificateFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedAssetValuationCertificateOption,
-                uploadedFileName: assetValuationCertificateFileName,
+                uploadedFiles: assetValuationCertificateFiles,
                 label: 'Asset Valuation Certificate',
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions:
+                    getDocumentOptions('assetValuationCertificateFiles')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedProofOfAdditionalCostOutsideValuationOption =
                         selectedOption;
-                    additionalCostOutsideValuationFileName = uploadedFileName;
+                    additionalCostOutsideValuationFiles[selectedOption] =
+                        file.name;
                   });
                 },
                 selectedOption:
                     selectedProofOfAdditionalCostOutsideValuationOption,
-                uploadedFileName: additionalCostOutsideValuationFileName,
+                uploadedFiles: additionalCostOutsideValuationFiles,
                 label: 'Proof of Additional Cost Outside Valuation',
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedProofOfAssetConditionOption = selectedOption;
-                    proofOfAssetConditionFileName = uploadedFileName;
+                    proofOfAssetConditionFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedProofOfAssetConditionOption,
-                uploadedFileName: proofOfAssetConditionFileName,
+                uploadedFiles: proofOfAssetConditionFiles,
                 label: "Proof of Asset's Condition",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedThirdPartyTokenizationAgreementOption =
                         selectedOption;
-                    thirdPartyTokenizationAgreementFileName = uploadedFileName;
+                    thirdPartyTokenizationAgreementFiles[selectedOption] =
+                        file.name;
                   });
                 },
                 selectedOption: selectedThirdPartyTokenizationAgreementOption,
-                uploadedFileName: thirdPartyTokenizationAgreementFileName,
+                uploadedFiles: thirdPartyTokenizationAgreementFiles,
                 label: "Third Party Tokenization Agreement",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedThirdPartyAssetOwnerBusinessRegOption =
                         selectedOption;
-                    thirdPartyAssetOwnerBusinessRegFileName = uploadedFileName;
+                    thirdPartyAssetOwnerBusinessRegFiles[selectedOption] =
+                        file.name;
                   });
                 },
                 selectedOption: selectedThirdPartyAssetOwnerBusinessRegOption,
-                uploadedFileName: thirdPartyAssetOwnerBusinessRegFileName,
+                uploadedFiles: thirdPartyAssetOwnerBusinessRegFiles,
                 label: "Third Party Asset Owner’s Business Registration",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedThirdPartyAssetOwnerProofOfAddressOption =
                         selectedOption;
-                    thirdPartyAssetOwnerProofOfAddressFileName =
-                        uploadedFileName;
+                    thirdPartyAssetOwnerProofOfAddressFiles[selectedOption] =
+                        file.name;
                   });
                 },
                 selectedOption:
                     selectedThirdPartyAssetOwnerProofOfAddressOption,
-                uploadedFileName: thirdPartyAssetOwnerProofOfAddressFileName,
+                uploadedFiles: thirdPartyAssetOwnerProofOfAddressFiles,
                 label: "Third Party Asset Owner’s Proof of Address",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedSecApprovalOption = selectedOption;
-                    secRegFileName = uploadedFileName;
+                    secRegFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedSecApprovalOption,
-                uploadedFileName: secRegFileName,
+                uploadedFiles: secRegFiles,
                 label: "SEC Registration/Tokenization Approval",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedProofOfComplianceOption = selectedOption;
-                    proofOfComplianceFileName = uploadedFileName;
+                    proofOfComplianceFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedProofOfComplianceOption,
-                uploadedFileName: proofOfComplianceFileName,
+                uploadedFiles: proofOfComplianceFiles,
                 label: "Proof of Compliance with Local Laws and Regulations",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedProofOfEnvComplianceOption = selectedOption;
-                    proofOfEnvComplianceFileName = uploadedFileName;
+                    proofOfEnvComplianceFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedProofOfEnvComplianceOption,
-                uploadedFileName: proofOfEnvComplianceFileName,
+                uploadedFiles: proofOfEnvComplianceFiles,
                 label: "Proof of Compliance with Environmental Standards",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedEnvImpactAssessmentReportOption = selectedOption;
-                    envImpactAssessmentReportFileName = uploadedFileName;
+                    envImpactAssessmentReportFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedEnvImpactAssessmentReportOption,
-                uploadedFileName: envImpactAssessmentReportFileName,
+                uploadedFiles: envImpactAssessmentReportFiles,
                 label: "Environmental Impact Assessment Report",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedProofofLegalCounselOption = selectedOption;
-                    proofOfLegalCounselFileName = uploadedFileName;
+                    proofOfLegalCounselFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedProofofLegalCounselOption,
-                uploadedFileName: proofOfLegalCounselFileName,
+                uploadedFiles: proofOfLegalCounselFiles,
                 label: "Proof of Legal/Financial Counsel",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedProofofLegalCounselOption = selectedOption;
-                    proofOfLegalCounselFileName = uploadedFileName;
+                    proofOfLegalCounselFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedProofofLegalCounselOption,
-                uploadedFileName: proofOfLegalCounselFileName,
+                uploadedFiles: proofOfLegalCounselFiles,
                 label: "Legal/Financial Advisors Contact",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedProofofMortgagesorLiensOption = selectedOption;
-                    proofofMortgagesorLiensFileName = uploadedFileName;
+                    proofofMortgagesorLiensFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedProofofMortgagesorLiensOption,
-                uploadedFileName: proofofMortgagesorLiensFileName,
+                uploadedFiles: proofofMortgagesorLiensFiles,
                 label: "Proof of Existing Mortgages or Liens on Asset",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedProofofOutstandingLoansOption = selectedOption;
-                    proofofOutstandingLoansFileName = uploadedFileName;
+                    proofofOutstandingLoansFiles[selectedOption] = file.name;
                   });
                 },
                 selectedOption: selectedProofofOutstandingLoansOption,
-                uploadedFileName: proofofOutstandingLoansFileName,
+                uploadedFiles: proofofOutstandingLoansFiles,
                 label: "Proof of Outstanding Loans on Asset",
-                documentOptions: getCurrencies),
-            myContainer(
-                onDone: (String selectedOption, String uploadedFileName,
-                    PlatformFile file) {
+                documentOptions: getDocumentOptions('String rel')),
+            proofDocumentItem(
+                onDone: (String selectedOption, PlatformFile file) {
                   setState(() {
                     selectedProofofLegalDisputesOnAssetOption = selectedOption;
-                    proofofLegalDisputesOnAssetFileName = uploadedFileName;
+                    proofofLegalDisputesOnAssetFiles[selectedOption] =
+                        file.name;
                   });
                 },
                 selectedOption: selectedProofofLegalDisputesOnAssetOption,
-                uploadedFileName: proofofLegalDisputesOnAssetFileName,
+                uploadedFiles: proofofLegalDisputesOnAssetFiles,
                 label: "Proof of  Legal Disputes or Encumbrances on Asset",
-                documentOptions: getCurrencies),
+                documentOptions: getDocumentOptions('String rel')),
             SizedBox(
               height: height / 30,
             ),
@@ -427,14 +453,12 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     );
   }
 
-  Widget myContainer({
+  Widget proofDocumentItem({
     required String label,
     required List<DropdownMenuItem<String>> documentOptions,
     required String selectedOption,
-    required String uploadedFileName,
-    required void Function(
-            String selectedOption, String uploadedFileName, PlatformFile file)
-        onDone,
+    required Map<String, String> uploadedFiles,
+    required void Function(String selectedOption, PlatformFile file) onDone,
   }) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
@@ -474,37 +498,46 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                       SizedBox(
                         height: height / 70,
                       ),
-                      Container(
-                        width: width / 1.27,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              selectedOption,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
+                      for (var item in uploadedFiles.keys) ...[
+                        Container(
+                          width: width / 1.27,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              if (item.isNotEmpty) ...[
+                                Text(
+                                  item,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: fontbody,
+                                    color: notifier.getbluewhitecolor,
+                                  ),
+                                ),
+                              ],
+                              Text(
+                                truncate(uploadedFiles[item]!, length: 15),
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
                               ),
-                            ),
-                            Text(
-                              uploadedFileName,
-                              style: TextStyle(
-                                decoration: TextDecoration.underline,
-                                fontSize: 12,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                            if (uploadedFileName.isNotEmpty) ...[
-                              Icon(
-                                CupertinoIcons.delete,
-                                size: 20,
-                              ),
-                            ]
-                          ],
+                              IconButton(
+                                icon: Icon(
+                                  CupertinoIcons.delete,
+                                  size: 20,
+                                ),
+                                onPressed: (() {
+                                  setState(() {
+                                    uploadedFiles.remove(item);
+                                  });
+                                }),
+                              )
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                       Container(
                         width: width / 1.27,
                         child: Row(
@@ -513,7 +546,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                             TextButton(
                               onPressed: () => showDocumentUploadPopup(
                                 context,
-                                'Proof of Asset Existence',
+                                label,
                                 onDone: onDone,
                                 dropdownItems: documentOptions,
                               ),
