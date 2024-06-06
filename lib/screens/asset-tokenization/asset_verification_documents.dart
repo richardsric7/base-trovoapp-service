@@ -661,7 +661,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
               height: height / 30,
             ),
             Button(
-              'Save',
+              'Continue',
               notifier.getbluecolor,
               wihitecolor,
               onTap: () {
@@ -739,7 +739,21 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                                 ),
                               ],
                               TextButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  var fileUrl = uploadedFiles[item].toString();
+                                  if (fileUrl.isNotEmpty &&
+                                      fileUrl.endsWith('.pdf')) {
+                                    appState.viewData!['pdfUrl'] =
+                                        uploadedFiles[item];
+                                    appState.currentAction = PageAction(
+                                        state: PageState.addPage,
+                                        page: PdfViewPageConfig);
+
+                                    return;
+                                  }
+
+                                  appState.goToWebView(fileUrl);
+                                },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -826,7 +840,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     required void Function(String documentUrl) onDone,
   }) async {
     try {
-      print('requestBody =======> $file');
+      // print('requestBody =======> $file');
       showLoader(context);
       var mintingWallet = appState.userInfo!.getMintingWallets[0];
 
@@ -841,11 +855,11 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         documentType: documentType,
       );
 
-      print('imageUpload response=========>$responseData');
+      // print('imageUpload response=========>$responseData');
 
       if (responseData['statusCode'] == 200) {
         String imageUrl = responseData['data'].toString().replaceAll('"', '');
-        print('imageUpload response=========>$imageUrl');
+        // print('imageUpload response=========>$imageUrl');
         onDone(imageUrl);
         hideLoader(context);
       } else {

@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_utils/src/extensions/string_extensions.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
@@ -3861,8 +3860,7 @@ showDocumentUploadPopup(context, String title,
                                 TextButton(
                                   onPressed: () async {
                                     errorMsg = '';
-                                    file = await getFile(
-                                        context, ImageSource.gallery);
+                                    file = await getFile();
                                     if (file != null && file!.size > 900000) {
                                       errorMsg = "filesizeerror".tr();
                                       file = null;
@@ -3961,7 +3959,7 @@ showDocumentUploadPopup(context, String title,
       });
 }
 
-Future<PlatformFile?>? getFile(context, ImageSource source) async {
+Future<PlatformFile?>? getFile() async {
   FilePickerResult? result = await FilePicker.platform.pickFiles(
     type: FileType.custom,
     allowedExtensions: ['jpg', 'jpeg', 'gif', 'png', 'pdf'],
