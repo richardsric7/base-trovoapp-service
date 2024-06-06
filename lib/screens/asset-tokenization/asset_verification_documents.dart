@@ -10,6 +10,8 @@ import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trovo_wallet/network/requests.dart';
+import 'package:trovo_wallet/router/page_actions.dart';
+import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -67,6 +69,30 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
       "Asset valaution certificate",
       "Other",
     ],
+  };
+
+  Map<String, int> documentTypeAndCodes = {
+    "proofOfAssetExistence": 1,
+    "proofOfAssetOwnership": 2,
+    "proofOfAssetStatusVerification": 3,
+    "assetCustodianAgreement": 4,
+    "proofOfAssetManager": 5,
+    "assetProtectionDocument": 6,
+    "assetValuationCertificate": 7,
+    "assetOwnerGovernmentID": 8,
+    "proofOfAssetCondition": 9,
+    "thirdPartyTokenizationAgreement": 10,
+    "thirdPartyAssetOwnerBusinessRegistration": 11,
+    "thirdPartyAssetOwnerProofOfAddress": 12,
+    "secApproval": 13,
+    "proofOfCompliance": 14,
+    "proofOfEnvCompliance": 15,
+    "envImpactAssessmentReport": 16,
+    "proofOfLegalCounsel": 17,
+    "legalAdvisorsContract": 18,
+    "proofofMortgagesorLiens": 19,
+    "proofofOutstandingLoans": 20,
+    "proofofLegalDisputesOnAsset": 21,
   };
 
   List<DropdownMenuItem<String>> getDocumentOptions(String rel) {
@@ -187,11 +213,19 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
             ),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  uploadFile(file, 1, 'ProofOfAssetExistence');
-                  setState(() {
-                    selectedProofOfExistenceOption = selectedOption;
-                    proofOfExistenceFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['proofOfAssetExistence']!,
+                    selectedOption.isEmpty
+                        ? "Proof Of Asset Existence"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofOfExistenceOption = selectedOption;
+                        proofOfExistenceFiles[selectedOption] = documentUrl;
+                      });
+                    },
+                  );
                 },
                 label: 'Proof of Asset Existence',
                 selectedOption: selectedProofOfExistenceOption,
@@ -199,10 +233,19 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('proofOfExistenceFiles')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedProofOfOwnershipOption = selectedOption;
-                    proofOfOwnershipFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['proofOfAssetOwnership']!,
+                    selectedOption.isEmpty
+                        ? "Proof Of Asset Ownership"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofOfOwnershipOption = selectedOption;
+                        proofOfOwnershipFiles[selectedOption] = documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedProofOfOwnershipOption,
                 uploadedFiles: proofOfOwnershipFiles,
@@ -210,10 +253,20 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('proofOfOwnershipFiles')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedAssetStatusVerificationOption = selectedOption;
-                    assetStatusVerificationFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['proofOfAssetStatusVerification']!,
+                    selectedOption.isEmpty
+                        ? "Proof Of Asset Status Verification"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedAssetStatusVerificationOption = selectedOption;
+                        assetStatusVerificationFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedAssetStatusVerificationOption,
                 uploadedFiles: assetStatusVerificationFiles,
@@ -222,10 +275,20 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     getDocumentOptions('assetStatusVerificationFiles')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedAssetCustodianAgreementOption = selectedOption;
-                    assetCustodianAgreementFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['assetCustodianAgreement']!,
+                    selectedOption.isEmpty
+                        ? "Asset Custodian Agreement"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedAssetCustodianAgreementOption = selectedOption;
+                        assetCustodianAgreementFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedAssetCustodianAgreementOption,
                 uploadedFiles: assetCustodianAgreementFiles,
@@ -234,10 +297,19 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     getDocumentOptions('assetCustodianAgreementFiles')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedProofOfAssetManagerOption = selectedOption;
-                    proofOfAssetManagerFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['proofOfAssetManager']!,
+                    selectedOption.isEmpty
+                        ? "Proof Of Asset Manager"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofOfAssetManagerOption = selectedOption;
+                        proofOfAssetManagerFiles[selectedOption] = documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedProofOfAssetManagerOption,
                 uploadedFiles: proofOfAssetManagerFiles,
@@ -246,10 +318,20 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     getDocumentOptions('proofOfAssetManagerFiles')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedAssetProtectionDocumentOption = selectedOption;
-                    assetProtectionDocumentFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['assetProtectionDocument']!,
+                    selectedOption.isEmpty
+                        ? "Asset Protection Document"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedAssetProtectionDocumentOption = selectedOption;
+                        assetProtectionDocumentFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedAssetProtectionDocumentOption,
                 uploadedFiles: assetProtectionDocumentFiles,
@@ -258,10 +340,21 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     getDocumentOptions('assetProtectionDocumentFiles')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedAssetValuationCertificateOption = selectedOption;
-                    assetValuationCertificateFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['assetValuationCertificate']!,
+                    selectedOption.isEmpty
+                        ? "Asset Valuation Certificate"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedAssetValuationCertificateOption =
+                            selectedOption;
+                        assetValuationCertificateFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedAssetValuationCertificateOption,
                 uploadedFiles: assetValuationCertificateFiles,
@@ -270,12 +363,21 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     getDocumentOptions('assetValuationCertificateFiles')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedProofOfAdditionalCostOutsideValuationOption =
-                        selectedOption;
-                    additionalCostOutsideValuationFiles[selectedOption] =
-                        file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['assetOwnerGovernmentID']!,
+                    selectedOption.isEmpty
+                        ? "Asset Owner Government ID"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofOfAdditionalCostOutsideValuationOption =
+                            selectedOption;
+                        additionalCostOutsideValuationFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption:
                     selectedProofOfAdditionalCostOutsideValuationOption,
@@ -284,10 +386,20 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedProofOfAssetConditionOption = selectedOption;
-                    proofOfAssetConditionFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['proofOfAssetCondition']!,
+                    selectedOption.isEmpty
+                        ? "Proof Of Asset Condition"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofOfAssetConditionOption = selectedOption;
+                        proofOfAssetConditionFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedProofOfAssetConditionOption,
                 uploadedFiles: proofOfAssetConditionFiles,
@@ -295,12 +407,21 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedThirdPartyTokenizationAgreementOption =
-                        selectedOption;
-                    thirdPartyTokenizationAgreementFiles[selectedOption] =
-                        file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['thirdPartyTokenizationAgreement']!,
+                    selectedOption.isEmpty
+                        ? "Third Party Tokenization Agreement"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedThirdPartyTokenizationAgreementOption =
+                            selectedOption;
+                        thirdPartyTokenizationAgreementFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedThirdPartyTokenizationAgreementOption,
                 uploadedFiles: thirdPartyTokenizationAgreementFiles,
@@ -308,12 +429,22 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedThirdPartyAssetOwnerBusinessRegOption =
-                        selectedOption;
-                    thirdPartyAssetOwnerBusinessRegFiles[selectedOption] =
-                        file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes[
+                        'thirdPartyAssetOwnerBusinessRegistration']!,
+                    selectedOption.isEmpty
+                        ? "Third Party Asset Owner Business Registration"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedThirdPartyAssetOwnerBusinessRegOption =
+                            selectedOption;
+                        thirdPartyAssetOwnerBusinessRegFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedThirdPartyAssetOwnerBusinessRegOption,
                 uploadedFiles: thirdPartyAssetOwnerBusinessRegFiles,
@@ -321,12 +452,21 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedThirdPartyAssetOwnerProofOfAddressOption =
-                        selectedOption;
-                    thirdPartyAssetOwnerProofOfAddressFiles[selectedOption] =
-                        file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['thirdPartyAssetOwnerProofOfAddress']!,
+                    selectedOption.isEmpty
+                        ? "Third Party Asset Owner Proof Of Address"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedThirdPartyAssetOwnerProofOfAddressOption =
+                            selectedOption;
+                        thirdPartyAssetOwnerProofOfAddressFiles[
+                            selectedOption] = documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption:
                     selectedThirdPartyAssetOwnerProofOfAddressOption,
@@ -335,10 +475,17 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedSecApprovalOption = selectedOption;
-                    secRegFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['secApproval']!,
+                    selectedOption.isEmpty ? "SEC Approval" : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedSecApprovalOption = selectedOption;
+                        secRegFiles[selectedOption] = documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedSecApprovalOption,
                 uploadedFiles: secRegFiles,
@@ -346,10 +493,19 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedProofOfComplianceOption = selectedOption;
-                    proofOfComplianceFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['proofOfCompliance']!,
+                    selectedOption.isEmpty
+                        ? "Proof Of Compliance"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofOfComplianceOption = selectedOption;
+                        proofOfComplianceFiles[selectedOption] = documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedProofOfComplianceOption,
                 uploadedFiles: proofOfComplianceFiles,
@@ -357,10 +513,19 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedProofOfEnvComplianceOption = selectedOption;
-                    proofOfEnvComplianceFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['proofOfEnvCompliance']!,
+                    selectedOption.isEmpty
+                        ? "Proof Of Env. Compliance"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofOfEnvComplianceOption = selectedOption;
+                        proofOfEnvComplianceFiles[selectedOption] = documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedProofOfEnvComplianceOption,
                 uploadedFiles: proofOfEnvComplianceFiles,
@@ -368,10 +533,21 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedEnvImpactAssessmentReportOption = selectedOption;
-                    envImpactAssessmentReportFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['envImpactAssessmentReport']!,
+                    selectedOption.isEmpty
+                        ? "Env. Impact Assessment Report"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedEnvImpactAssessmentReportOption =
+                            selectedOption;
+                        envImpactAssessmentReportFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedEnvImpactAssessmentReportOption,
                 uploadedFiles: envImpactAssessmentReportFiles,
@@ -379,10 +555,19 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedProofofLegalCounselOption = selectedOption;
-                    proofOfLegalCounselFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['proofOfLegalCounsel']!,
+                    selectedOption.isEmpty
+                        ? "Proof Of Legal Counsel"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofofLegalCounselOption = selectedOption;
+                        proofOfLegalCounselFiles[selectedOption] = documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedProofofLegalCounselOption,
                 uploadedFiles: proofOfLegalCounselFiles,
@@ -390,10 +575,19 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedProofofLegalCounselOption = selectedOption;
-                    proofOfLegalCounselFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['legalAdvisorsContract']!,
+                    selectedOption.isEmpty
+                        ? "Legal Advisors Contract"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofofLegalCounselOption = selectedOption;
+                        proofOfLegalCounselFiles[selectedOption] = documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedProofofLegalCounselOption,
                 uploadedFiles: proofOfLegalCounselFiles,
@@ -401,10 +595,20 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedProofofMortgagesorLiensOption = selectedOption;
-                    proofofMortgagesorLiensFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['proofofMortgagesorLiens']!,
+                    selectedOption.isEmpty
+                        ? "Proof of Mortgages or Liens"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofofMortgagesorLiensOption = selectedOption;
+                        proofofMortgagesorLiensFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedProofofMortgagesorLiensOption,
                 uploadedFiles: proofofMortgagesorLiensFiles,
@@ -412,10 +616,20 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedProofofOutstandingLoansOption = selectedOption;
-                    proofofOutstandingLoansFiles[selectedOption] = file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['proofofOutstandingLoans']!,
+                    selectedOption.isEmpty
+                        ? "Proof of Outstanding Loans"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofofOutstandingLoansOption = selectedOption;
+                        proofofOutstandingLoansFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedProofofOutstandingLoansOption,
                 uploadedFiles: proofofOutstandingLoansFiles,
@@ -423,11 +637,21 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                 documentOptions: getDocumentOptions('String rel')),
             proofDocumentItem(
                 onDone: (String selectedOption, PlatformFile file) {
-                  setState(() {
-                    selectedProofofLegalDisputesOnAssetOption = selectedOption;
-                    proofofLegalDisputesOnAssetFiles[selectedOption] =
-                        file.name;
-                  });
+                  uploadFile(
+                    file,
+                    documentTypeAndCodes['proofofLegalDisputesOnAsset']!,
+                    selectedOption.isEmpty
+                        ? "Proof of Legal Disputes On Asset"
+                        : selectedOption,
+                    onDone: (documentUrl) {
+                      setState(() {
+                        selectedProofofLegalDisputesOnAssetOption =
+                            selectedOption;
+                        proofofLegalDisputesOnAssetFiles[selectedOption] =
+                            documentUrl;
+                      });
+                    },
+                  );
                 },
                 selectedOption: selectedProofofLegalDisputesOnAssetOption,
                 uploadedFiles: proofofLegalDisputesOnAssetFiles,
@@ -506,7 +730,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                             children: [
                               if (item.isNotEmpty) ...[
                                 Text(
-                                  item,
+                                  truncate(item, length: 20),
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontFamily: fontbody,
@@ -514,13 +738,21 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                                   ),
                                 ),
                               ],
-                              Text(
-                                truncate(uploadedFiles[item]!, length: 15),
-                                style: TextStyle(
-                                  decoration: TextDecoration.underline,
-                                  fontSize: 12,
-                                  fontFamily: fontbody,
-                                  color: notifier.getbluewhitecolor,
+                              TextButton(
+                                onPressed: () {},
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      truncatePublicKey(uploadedFiles[item]!),
+                                      style: TextStyle(
+                                        decoration: TextDecoration.underline,
+                                        fontSize: 12,
+                                        fontFamily: fontbody,
+                                        color: notifier.getbluewhitecolor,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               IconButton(
@@ -587,8 +819,12 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     );
   }
 
-  void uploadFile(
-      PlatformFile file, int documentType, String documentTitle) async {
+  Future<void> uploadFile(
+    PlatformFile file,
+    int documentType,
+    String documentTitle, {
+    required void Function(String documentUrl) onDone,
+  }) async {
     try {
       print('requestBody =======> $file');
       showLoader(context);
@@ -601,7 +837,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         publicKey: mintingWallet.publicKey!,
         file: file,
         tokenizedAssetId: appState.viewData!['id'],
-        documentTitle: documentTitle,
+        documentTitle: documentTitle.toLowerCase().replaceAll(' ', '-'),
         documentType: documentType,
       );
 
@@ -610,6 +846,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
       if (responseData['statusCode'] == 200) {
         String imageUrl = responseData['data'].toString().replaceAll('"', '');
         print('imageUpload response=========>$imageUrl');
+        onDone(imageUrl);
         hideLoader(context);
       } else {
         popup(context,
@@ -619,7 +856,11 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     } catch (e) {
       print(e);
       hideLoader(context);
-      popup(context, title: "error".tr(), message: e.toString());
+      popup(
+        context,
+        title: "error".tr(),
+        message: "Sorry, something went wrong. Please try again.",
+      );
     }
   }
 }

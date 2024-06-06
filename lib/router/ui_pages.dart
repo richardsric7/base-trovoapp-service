@@ -13,6 +13,7 @@ const String BackupPath = '/backup';
 const String FingerprintPath = '/fingerprint';
 const String BottomHomePath = '/home';
 const String WebViewPath = '/webview';
+const String PdfViewPath = '/pdfview';
 const String QrScannerPath = '/qrScanner';
 const String SearchViewPath = '/searchview';
 const String NotificationsViewPath = '/notificationsview';
@@ -117,6 +118,7 @@ enum Pages {
   Fingerprint,
   BottomHome,
   WebView,
+  PdfView,
   QrScanner,
   SearchView,
   NotificationsView,
@@ -285,6 +287,11 @@ PageConfiguration WebViewPageConfig = PageConfiguration(
     key: 'WebView',
     path: WebViewPath,
     uiPage: Pages.WebView,
+    currentPageAction: null);
+PageConfiguration PdfViewPageConfig = PageConfiguration(
+    key: 'PdfView',
+    path: PdfViewPath,
+    uiPage: Pages.PdfView,
     currentPageAction: null);
 PageConfiguration QrScannerPageConfig = PageConfiguration(
     key: 'QrScanner',
