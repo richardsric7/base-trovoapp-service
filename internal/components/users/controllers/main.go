@@ -4486,7 +4486,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 			t := userModels.IssuingWalletPublicKey(issuingWallet.ID).GetTokenization(gc)
 
 			if len(t.ID) < 5 {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Tokenized Asset not valid"})
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Wallet Public Key "+issuingWallet.ID+ " does not have a valid tokenized asset."})
 				return
 			}
 			if t.AssetTokenizationStatus > 0 {

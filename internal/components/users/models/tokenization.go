@@ -1,6 +1,7 @@
 package users
 
 import (
+	"log"
 	"time"
 	"trovo-wallet-api/internal/sharedconfig"
 
@@ -258,7 +259,10 @@ type AssetTokenizationInputDocument struct {
 type IssuingWalletPublicKey string
 
 func (i IssuingWalletPublicKey) GetTokenization(gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
-	gc.DB.Where("issuing_wallet_public_key = ?", string(i)).First(&t)
+	e := gc.DB.Where("issuing_wallet_public_key = ?", string(i)).First(&t).Error
+	if e != nil {
+		log.Printf("[IssuingWalletPublicKey::GetTokenization] Error getting tokeinzed asset for %v, %v\n", string(i), e)
+	}
 	return
 }
 
