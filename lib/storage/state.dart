@@ -255,6 +255,12 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  dynamic tokenizationData = {};
+  set setTokenizationData(data) {
+    tokenizationData = data;
+    notifyListeners();
+  }
+
   set setNFTs(newNfts) {
     nfts = newNfts;
     notifyListeners();

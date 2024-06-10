@@ -14,7 +14,6 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trovo_wallet/screens/asset-tokenization/state.dart';
 import 'package:trovo_wallet/widgets/loader.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
@@ -32,7 +31,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
-  late AssetTokenizationViewsState tokenizationState;
   String selectedCountry = 'Nigeria';
   bool hasCustodianAgreement = true;
   bool hasSecApproval = false;
@@ -101,8 +99,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
-    tokenizationState =
-        Provider.of<AssetTokenizationViewsState>(context, listen: false);
     tokenizationData = fetchTokenizationData();
   }
 
@@ -189,7 +185,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       ),
                     );
                   } else if (snapshot.hasData) {
-                    tokenizationState.tokenizationData = snapshot.data;
+                    appState.tokenizationData = snapshot.data;
                     return setupAndCompliance(snapshot.data);
                   } else {
                     return Center(
@@ -1093,8 +1089,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
       hideLoader(context);
 
-      print(
-          'responseData ${responseData['data']['assetTokenizationDocuments']}');
+      print('responseData ${responseData['data']}');
 
       if (responseData['statusCode'] == 200) {
         appState.viewData = responseData['data'];

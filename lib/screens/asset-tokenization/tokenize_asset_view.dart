@@ -80,7 +80,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assetinformation".tr(),
               "providebasicinfo".tr(),
               "1",
-              "continuee".tr(),
+              appState.viewData!['assetDescription'].length > 0
+                  ? "continuee".tr()
+                  : "start".tr(),
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
@@ -95,7 +97,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assetverificationdocs".tr(),
               "provideverificationdocs".tr(),
               "2",
-              "start".tr(),
+              appState.viewData!['AssetTokenizationDocuments'].length > 0
+                  ? "continuee".tr()
+                  : "start".tr(),
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
@@ -110,7 +114,9 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "assettokeninfo".tr(),
               "providetokeninfo".tr(),
               "3",
-              "start".tr(),
+              appState.viewData!['assetCode'].length > 0
+                  ? "continuee".tr()
+                  : "start".tr(),
               onTap: () {
                 appState.currentAction = PageAction(
                   state: PageState.addPage,
@@ -197,7 +203,7 @@ class _TokenizeAssetState extends State<TokenizeAsset>
                                 status,
                                 style: TextStyle(
                                   fontStyle: FontStyle.italic,
-                                  fontSize: 15,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w400,
                                   color: notifier.getbluewhitecolor,
                                   fontFamily: fontsemibold,
