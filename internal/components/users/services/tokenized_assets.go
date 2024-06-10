@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -199,7 +200,7 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 	e := gc.DB.Where("asset_tokenization_status = ?", 0).First(&ato).Error
 	if e == nil {
 		//update existing
-		ato.UpdateFromInput(input)
+		UpdateFromInput(&ato, input)
 
 		ato.LastUpdatedBy = &initiator.Username
 
@@ -219,7 +220,7 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 			IssuingWalletPublicKey: issuingWallet.ID,
 			IssuingWalletAlias:     issuingWallet.Alias,
 		}
-		ato.UpdateFromInput(input)
+		UpdateFromInput(&ato, input)
 
 	}
 
@@ -407,4 +408,213 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	records = userModels.PaginatedTokenizedAssets{CurrentPage: page, Pages: pages, TotalRecords: count, Limit: limit, Records: tListJSON}
 
 	return records
+}
+
+func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAssetJSONInput) {
+	if ti.HasAdditionalKYCRequirements > 0 && len(ti.AdditionalKYCRequirements) > 0 {
+
+		t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
+
+	}
+
+	if len(ti.AssetSector) > 0 {
+
+		t.AssetSector = &ti.AssetSector
+	}
+
+	if len(ti.AssetSubSector) > 0 {
+
+		t.AssetSubSector = &ti.AssetSubSector
+	}
+
+	if len(ti.AssetType) > 0 {
+
+		t.AssetType = &ti.AssetType
+	}
+
+	if len(ti.AssetName) > 0 {
+
+		t.AssetName = &ti.AssetName
+	}
+
+	t.ApprovedAssetCustodianID = ti.ApprovedAssetCustodianID
+
+	if len(ti.OfferingType) > 0 {
+
+		t.OfferingType = &ti.OfferingType
+	}
+
+	if len(ti.ClosedGroupID) > 0 {
+
+		t.ClosedGroupID = &ti.ClosedGroupID
+	}
+
+	if len(ti.SecApprovalIdNumber) > 0 && ti.SecApproval > 0 {
+
+		t.SecApproval = ti.SecApproval
+
+		t.SecApprovalIdNumber = &ti.SecApprovalIdNumber
+	}
+
+	if len(ti.MarketMakingWallet) > 0 {
+
+		t.MarketMakingWallet = &ti.MarketMakingWallet
+	}
+
+	if len(ti.AssetDescription) > 0 {
+
+		t.AssetDescription = &ti.AssetDescription
+	}
+
+	if len(ti.AssetCountryLocation) > 0 {
+
+		t.AssetCountryLocation = &ti.AssetCountryLocation
+	}
+
+	if len(ti.AssetPhysicalAddress) > 0 {
+
+		t.AssetPhysicalAddress = &ti.AssetPhysicalAddress
+	}
+
+	if len(ti.AssetLongitude) > 0 {
+
+		t.AssetLongitude = &ti.AssetLongitude
+	}
+
+	if len(ti.AssetLatitude) > 0 {
+
+		t.AssetLatitude = &ti.AssetLatitude
+	}
+
+	if len(ti.OwnershipType) > 0 {
+
+		t.OwnershipType = &ti.OwnershipType
+	}
+
+	if len(ti.OwnershipKind) > 0 {
+
+		t.OwnershipKind = &ti.OwnershipKind
+	}
+
+	if len(ti.AssetOwnerName) > 0 {
+
+		t.AssetOwnerName = &ti.AssetOwnerName
+	}
+
+	if len(ti.AssetOwnerAddress) > 0 {
+
+		t.AssetOwnerAddress = &ti.AssetOwnerAddress
+	}
+
+	if len(ti.AssetManagerName) > 0 {
+
+		t.AssetManagerName = &ti.AssetManagerName
+	}
+
+	if len(ti.AssetManagerAddress) > 0 {
+
+		t.AssetManagerAddress = &ti.AssetManagerAddress
+	}
+	if len(ti.AssetQuoteCurrency) > 0 {
+
+		t.AssetQuoteCurrency = &ti.AssetQuoteCurrency
+	}
+
+	t.AssetCurrentValue = ti.AssetCurrentValue
+	t.AssetPercentageForTokenization = ti.AssetPercentageForTokenization
+	t.ValueOfTokenizedAsset = ti.ValueOfTokenizedAsset
+
+	if len(ti.ProtectionMethods) > 0 {
+
+		t.ProtectionMethods = &ti.ProtectionMethods
+	}
+
+	if len(ti.InsuranceCompanyName) > 0 {
+
+		t.InsuranceCompanyName = &ti.InsuranceCompanyName
+	}
+
+	if len(ti.InsurancePolicyHolder) > 0 {
+
+		t.InsurancePolicyHolder = &ti.InsurancePolicyHolder
+	}
+
+	if len(ti.InsurancePolicyNumber) > 0 {
+
+		t.InsurancePolicyNumber = &ti.InsurancePolicyNumber
+	}
+
+	t.PercentageValueOfInsurance = ti.PercentageValueOfInsurance
+	t.IsFreeFromLiensAndEncumbrances = ti.IsFreeFromLiensAndEncumbrances
+	t.AssetAlreadyExists = ti.AssetAlreadyExists
+
+	if len(ti.AssetCode) > 0 {
+
+		t.AssetCode = &ti.AssetCode
+	}
+
+	if len(ti.AssetLogo) > 0 {
+
+		t.AssetLogo = &ti.AssetLogo
+	}
+	var fee, feeFactor float64
+	{
+		// Calculate Fees
+		fee = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * feeFactor).Truncate(7).InexactFloat64()
+
+	}
+	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
+	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
+	// auto calculate, token to be held is less the fee
+	t.TotalTokenHeldByManager = t.NumberOfTokenToBeIssued - t.NumberOfTokenToBeSold - fee
+
+	if len(ti.WalletToHoldAssetsNotForSale) > 0 {
+
+		t.WalletToHoldAssetsNotForSale = &ti.WalletToHoldAssetsNotForSale
+	}
+
+	/**
+
+
+
+	**/
+
+	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
+		t.PricePerToken = decimal.NewFromFloat(ti.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
+	}
+	t.SalesStart = ti.SalesStart
+	t.SalesEnd = ti.SalesEnd
+	t.CapOnPurchase = ti.CapOnPurchase
+	t.CapQuantity = ti.CapQuantity
+	t.CapDurationInDays = ti.CapDurationInDays
+
+	if len(ti.ProceedCycle) > 0 {
+
+		t.ProceedCycle = &ti.ProceedCycle
+	}
+
+	if ti.TokenizationFeeID > 0 {
+
+		t.TokenizationFeeID = &ti.TokenizationFeeID
+	}
+
+	if len(ti.ProceedPayoutCurrency) > 0 {
+
+		t.ProceedPayoutCurrency = &ti.ProceedPayoutCurrency
+	}
+
+	if len(ti.ExemptedCountries) > 0 {
+
+		t.ExemptedCountries = &ti.ExemptedCountries
+	}
+
+	t.HasAdditionalKYCRequirements = ti.HasAdditionalKYCRequirements
+
+	if len(ti.AdditionalKYCRequirements) > 0 && t.HasAdditionalKYCRequirements > 0 {
+
+		t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
+	}
+
+	t.InvestorAccreditationRequired = ti.InvestorAccreditationRequired
+
 }
