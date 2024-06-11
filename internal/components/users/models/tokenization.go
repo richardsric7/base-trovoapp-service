@@ -292,7 +292,7 @@ Proof of legal dispute or encumbrances on asset = 21
 
 **/
 
-func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) {
+func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) TokenizedAsset {
 	if ti.HasAdditionalKYCRequirements > 0 && len(ti.AdditionalKYCRequirements) > 0 {
 
 		t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
@@ -498,6 +498,7 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) {
 	}
 
 	t.InvestorAccreditationRequired = ti.InvestorAccreditationRequired
+	return *t
 
 }
 
@@ -659,7 +660,7 @@ func (ti *TokenizedAsset) ToJSON() (t TokenizedAssetJSON) {
 	}
 	t.AssetTokenizationStatus = ti.AssetTokenizationStatus
 
-	return
+	return t
 
 }
 

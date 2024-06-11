@@ -197,10 +197,10 @@ func DeleteTokenizationDocument(user *userModels.User, documentID uint64, gc *sh
 func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *userModels.UserWallet, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
 	//check if existing
-	e := gc.DB.Where("asset_tokenization_status = ?", 0).First(&ato).Error
+	e := gc.DB.Where("asset_tokenization_status < ?", 1).First(&ato).Error
 	if e == nil {
 		//update existing
-		UpdateFromInput(&ato, input)
+		ato = UpdateFromInput(&ato, input)
 
 		ato.LastUpdatedBy = &initiator.Username
 
@@ -220,18 +220,19 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 			IssuingWalletPublicKey: issuingWallet.ID,
 			IssuingWalletAlias:     issuingWallet.Alias,
 		}
-		UpdateFromInput(&ato, input)
+		ato = UpdateFromInput(&ato, input)
 
 	}
 
 	e = gc.DB.Save(&ato).Error
 	if e != nil {
-		log.Printf("[SubmitTokenizationAssetInfo]error saving  tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
+		log.Printf("[SubmitTokenizationAssetInfo] error saving tokenization to database  [%v] for %v: %v\n", input, initiator.Username, e)
 
 		err = &tErrors.ErrorTemporaryServerError{}
+
 	}
 	ato, _ = GetTokenizedAssetByID(ato.ID, gc.DB)
-	return
+	return ato, err
 }
 
 func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c *gin.Context) (records userModels.PaginatedTokenizedAssets) {
@@ -410,7 +411,7 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	return records
 }
 
-func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAssetJSONInput) {
+func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAssetJSONInput) userModels.TokenizedAsset {
 	if ti.HasAdditionalKYCRequirements > 0 && len(ti.AdditionalKYCRequirements) > 0 {
 
 		t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
@@ -617,4 +618,5 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 
 	t.InvestorAccreditationRequired = ti.InvestorAccreditationRequired
 
+	return *t
 }
