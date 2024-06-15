@@ -253,6 +253,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       100.sp,
                       width / 1.12,
+                      initialValue: assetDescription,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -306,6 +307,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
+                      initialValue: assetPhysicalAddress,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -355,6 +357,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getgrey,
                     50.sp,
                     width / 2.7,
+                    initialValue: latitude.toString(),
                     validator: (value) {
                       if (value.isEmpty) {
                         return "fieldcannotbeempty".tr();
@@ -363,7 +366,7 @@ class _AssetInformation extends State<AssetInformation>
                     },
                     onSaved: (value) {
                       setState(() {
-                        latitude = value!;
+                        latitude = double.parse(value!.toString());
                       });
                     },
                     keyboardtype: TextInputType.numberWithOptions(
@@ -381,6 +384,7 @@ class _AssetInformation extends State<AssetInformation>
                     notifier.getgrey,
                     50.sp,
                     width / 2.5,
+                    initialValue: longitude.toString(),
                     validator: (value) {
                       if (value.isEmpty) {
                         return "fieldcannotbeempty".tr();
@@ -389,7 +393,7 @@ class _AssetInformation extends State<AssetInformation>
                     },
                     onSaved: (value) {
                       setState(() {
-                        longitude = value;
+                        longitude = double.parse(value!.toString());
                       });
                     },
                     keyboardtype: TextInputType.numberWithOptions(
@@ -547,6 +551,7 @@ class _AssetInformation extends State<AssetInformation>
                           notifier.getgrey,
                           70.sp,
                           width / 1.12,
+                          initialValue: nameOfOwner,
                           validator: (value) {
                             if (value.isEmpty) {
                               return "fieldcannotbeempty".tr();
@@ -597,6 +602,7 @@ class _AssetInformation extends State<AssetInformation>
                           notifier.getgrey,
                           70.sp,
                           width / 1.12,
+                          initialValue: addressOfOwner,
                           validator: (value) {
                             if (value.isEmpty) {
                               return "fieldcannotbeempty".tr();
@@ -648,6 +654,7 @@ class _AssetInformation extends State<AssetInformation>
                           notifier.getgrey,
                           70.sp,
                           width / 1.12,
+                          initialValue: nameOfOwner,
                           validator: (value) {
                             if (value.isEmpty) {
                               return "fieldcannotbeempty".tr();
@@ -698,6 +705,7 @@ class _AssetInformation extends State<AssetInformation>
                           notifier.getgrey,
                           70.sp,
                           width / 1.12,
+                          initialValue: addressOfOwner,
                           validator: (value) {
                             if (value.isEmpty) {
                               return "fieldcannotbeempty".tr();
@@ -789,6 +797,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
+                      initialValue: assetManager,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -839,6 +848,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
+                      initialValue: assetManagerAddress,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -928,6 +938,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
+                      initialValue: currentValueOfAsset.toString(),
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -935,7 +946,7 @@ class _AssetInformation extends State<AssetInformation>
                         return null;
                       },
                       onSaved: (value) {
-                        currentValueOfAsset = value!;
+                        currentValueOfAsset = double.parse(value!.toString());
                       },
                       keyboardtype: TextInputType.numberWithOptions(
                         decimal: true,
@@ -980,6 +991,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
+                      initialValue: tokenizedPercentage.toString(),
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -988,7 +1000,7 @@ class _AssetInformation extends State<AssetInformation>
                       },
                       onSaved: (value) {
                         setState(() {
-                          tokenizedPercentage = value!;
+                          tokenizedPercentage = double.parse(value!.toString());
                         });
                       },
                       keyboardtype: TextInputType.numberWithOptions(
@@ -1034,6 +1046,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
+                      initialValue: valueOfTokenizedAsset.toString(),
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1042,7 +1055,8 @@ class _AssetInformation extends State<AssetInformation>
                       },
                       onSaved: (value) {
                         setState(() {
-                          valueOfTokenizedAsset = value!;
+                          valueOfTokenizedAsset =
+                              double.parse(value!.toString());
                         });
                       },
                       keyboardtype: TextInputType.numberWithOptions(
@@ -1122,7 +1136,7 @@ class _AssetInformation extends State<AssetInformation>
                   },
                   getAssetProtectionOptions,
                   null,
-                  'Insurance',
+                  assetProtectionInPlace.last,
                   context,
                   null,
                 ),
@@ -1189,6 +1203,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
+                      initialValue: insuranceCompanyName,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1239,6 +1254,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
+                      initialValue: insurancePolicyHolder,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1289,6 +1305,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
+                      initialValue: insurancePolicyHolder,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1339,6 +1356,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
+                      initialValue: percentageValueOfInsurance.toString(),
                       validator: (value) {
                         if (value.isEmpty) {
                           return "enterassetdescription".tr();
@@ -1369,6 +1387,7 @@ class _AssetInformation extends State<AssetInformation>
                 onTap: () {
                   var form = _formKey.currentState;
                   if (form!.validate()) {
+                    form.save();
                     submitForm();
                   }
                 },
@@ -1391,31 +1410,31 @@ class _AssetInformation extends State<AssetInformation>
       // make initial request to the server using the
       // following credential
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
+      var newData = {...data as Map};
 
-      data['assetAlreadyExists'] = assetExisting ? 1 : 0;
-      data['ownershipType'] = assetOwnership;
-      data['ownershipKind'] = thirdPartyOwnerType;
-      data['assetDescription'] = assetDescription;
-      data['assetPhysicalAddress'] = assetPhysicalAddress;
-      data['assetLatitude'] = latitude.toString();
-      data['assetLongitude'] = longitude.toString();
-      data['assetOwnerName'] = nameOfOwner;
-      data['assetOwnerAddress'] = addressOfOwner;
-      data['assetManagerName'] = assetManager;
-      data['assetManagerAddress'] = assetManagerAddress;
-      data['assetCurrentValue'] = currentValueOfAsset;
-      data['assetPercentageForTokenization'] = tokenizedPercentage;
-      data['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
-      data['protectionMethods'] = assetProtectionInPlace.join(',');
-      data['insuranceCompanyName'] = insuranceCompanyName;
-      data['insurance_policy_number'] = insurancePolicyNumber;
-      data['insurancePolicyHolder'] = insurancePolicyHolder;
-      data['percentageValueOfInsurance'] = percentageValueOfInsurance;
-      data['IsFreeFromLiensAndEncumbrances'] =
+      newData['assetAlreadyExists'] = assetExisting ? 1 : 0;
+      newData['ownershipType'] = assetOwnership;
+      newData['ownershipKind'] = thirdPartyOwnerType;
+      newData['assetDescription'] = assetDescription;
+      newData['assetPhysicalAddress'] = assetPhysicalAddress;
+      newData['assetLatitude'] = latitude.toString();
+      newData['assetLongitude'] = longitude.toString();
+      newData['assetOwnerName'] = nameOfOwner;
+      newData['assetOwnerAddress'] = addressOfOwner;
+      newData['assetManagerName'] = assetManager;
+      newData['assetManagerAddress'] = assetManagerAddress;
+      newData['assetCurrentValue'] = currentValueOfAsset;
+      newData['assetPercentageForTokenization'] = tokenizedPercentage;
+      newData['valueOfTokenizedAsset'] = valueOfTokenizedAsset;
+      newData['protectionMethods'] = assetProtectionInPlace.join(',');
+      newData['insuranceCompanyName'] = insuranceCompanyName;
+      newData['insurance_policy_number'] = insurancePolicyNumber;
+      newData['insurancePolicyHolder'] = insurancePolicyHolder;
+      newData['percentageValueOfInsurance'] = percentageValueOfInsurance;
+      newData['IsFreeFromLiensAndEncumbrances'] =
           freeOfLiensAndEncumbrances ? 1 : 0;
 
-      inspect(data);
-      String requestBody = jsonEncode(data);
+      String requestBody = jsonEncode(newData);
       print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
@@ -1425,20 +1444,43 @@ class _AssetInformation extends State<AssetInformation>
         publicKey: mintingWalletPublicKey,
       );
 
-      hideLoader(context);
-
       print('responseData ${responseData['data']}');
       inspect(responseData['data']);
 
       if (responseData['statusCode'] == 200) {
+        await refreshCurrentTokenizationInfo();
         Navigator.of(context).pop();
       } else {
         popup(context,
             title: "error".tr(), message: responseData['data']['message']);
       }
+      hideLoader(context);
     } catch (e) {
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
+    }
+  }
+
+  Future<void> refreshCurrentTokenizationInfo() async {
+    try {
+      var uri = '/v1/tokenization/detail/${appState.viewData!['id']}';
+
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        print('success');
+        appState.viewData = responseData['data'];
+        await inspect(appState.viewData);
+      } else {
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      return Future.error('Error! ${e}');
     }
   }
 

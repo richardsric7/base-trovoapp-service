@@ -41,7 +41,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late int numberOfTokenToBeSold;
   late int numberOfTokenToBeIssued;
   late int totalTokenHeldByManager;
-  late int pricePerToken;
+  late double pricePerToken;
   late String assetCode;
   late DateTime? salesStart;
   late DateTime? salesEnd;
@@ -659,37 +659,67 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               SizedBox(
                 height: height / 50,
               ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              //       child: CustomTextFormField.textField(
+              //         "pricepertoken".tr(),
+              //         notifier.getbluecolor,
+              //         null,
+              //         notifier.getgrey,
+              //         null,
+              //         notifier.getblck,
+              //         notifier.getgrey,
+              //         70.sp,
+              //         300.sp,
+              //         validator: (value) {
+              //           if (value.isEmpty) {
+              //             return "fieldcannotbeempty".tr();
+              //           }
+              //           return null;
+              //         },
+              //         onSaved: (value) {
+              //           setState(() {
+              //             pricePerToken = double.parse(value!);
+              //           });
+              //         },
+              //         keyboardtype: TextInputType.numberWithOptions(
+              //           decimal: true,
+              //           signed: true,
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
               Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "pricepertoken".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      300.sp,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          pricePerToken = int.parse(value!);
-                        });
-                      },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: 300.sp,
+                      height: 55.sp,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Text(
+                              pricePerToken.toString(),
+                              style: TextStyle(fontSize: 15),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                        ],
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
               Row(
@@ -1259,8 +1289,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         children: [
                           Text(
                             exemptedCountries.length > 0
-                                ? exemptedCountries.first
-                                : 'Pakistan',
+                                ? exemptedCountries.last
+                                : '',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 15,
@@ -1534,6 +1564,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['additionalKYCRequirements'] = additionalKYCRequirements;
       newData['investorAccreditationRequired'] =
           investorAccreditationRequired ? 1 : 0;
+      newData['tokenizationFeeId'] = tokenizationFeeId;
 
       String requestBody = jsonEncode(newData);
       print('requestBody =======> $requestBody');
@@ -1552,7 +1583,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       inspect(responseData);
 
       if (responseData['statusCode'] == 200) {
-        // Navigator.of(context).pop();
+        Navigator.of(context).pop();
         await refreshCurrentTokenizationInfo();
       } else {
         popup(context,
