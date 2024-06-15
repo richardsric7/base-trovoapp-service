@@ -9,6 +9,7 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -114,6 +115,13 @@ class _WalletPreparationState extends State<WalletPreparation>
               notifier.getbluecolor,
               wihitecolor,
               onTap: () {
+                if (appState.activeTokenizationWalletPublicKey == null) {
+                  popup(context,
+                      title: 'Error',
+                      message: 'Please select your asset tokenization wallet');
+                  return;
+                }
+
                 appState.currentAction = PageAction(
                     state: PageState.addPage,
                     page: SetupAndComplianceViewPageConfig);
@@ -180,7 +188,9 @@ class _WalletPreparationState extends State<WalletPreparation>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: dropdown(
-            (value) {},
+            (value) {
+              appState.setActiveTokenizationWalletPublicKey = value;
+            },
             getMintingWallets,
             null,
             appState.userInfo!.getMintingWallets.length > 0

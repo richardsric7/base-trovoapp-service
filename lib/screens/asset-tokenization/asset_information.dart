@@ -1390,7 +1390,7 @@ class _AssetInformation extends State<AssetInformation>
       showLoader(context);
       // make initial request to the server using the
       // following credential
-      var mintingWallet = appState.userInfo!.getMintingWallets[0];
+      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
 
       data['assetAlreadyExists'] = assetExisting ? 1 : 0;
       data['ownershipType'] = assetOwnership;
@@ -1422,7 +1422,7 @@ class _AssetInformation extends State<AssetInformation>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: mintingWallet.publicKey!,
+        publicKey: mintingWalletPublicKey,
       );
 
       hideLoader(context);

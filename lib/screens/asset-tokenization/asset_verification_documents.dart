@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -111,67 +114,69 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
   }
 
   String selectedProofOfExistenceOption = '';
-  Map<String, String> proofOfExistenceFiles = {};
+  Map<String, dynamic> proofOfExistenceFiles = {};
 
   String selectedProofOfOwnershipOption = '';
-  Map<String, String> proofOfOwnershipFiles = {};
+  Map<String, dynamic> proofOfOwnershipFiles = {};
 
   String selectedAssetStatusVerificationOption = '';
-  Map<String, String> assetStatusVerificationFiles = {};
+  Map<String, dynamic> assetStatusVerificationFiles = {};
 
   String selectedAssetCustodianAgreementOption = '';
-  Map<String, String> assetCustodianAgreementFiles = {};
+  Map<String, dynamic> assetCustodianAgreementFiles = {};
 
   String selectedProofOfAssetManagerOption = '';
-  Map<String, String> proofOfAssetManagerFiles = {};
+  Map<String, dynamic> proofOfAssetManagerFiles = {};
 
   String selectedAssetProtectionDocumentOption = '';
-  Map<String, String> assetProtectionDocumentFiles = {};
+  Map<String, dynamic> assetProtectionDocumentFiles = {};
 
   String selectedAssetValuationCertificateOption = '';
-  Map<String, String> assetValuationCertificateFiles = {};
+  Map<String, dynamic> assetValuationCertificateFiles = {};
 
   String selectedProofOfAdditionalCostOutsideValuationOption = '';
-  Map<String, String> additionalCostOutsideValuationFiles = {};
+  Map<String, dynamic> additionalCostOutsideValuationFiles = {};
 
   String selectedProofOfAssetConditionOption = '';
-  Map<String, String> proofOfAssetConditionFiles = {};
+  Map<String, dynamic> proofOfAssetConditionFiles = {};
 
   String selectedThirdPartyTokenizationAgreementOption = '';
-  Map<String, String> thirdPartyTokenizationAgreementFiles = {};
+  Map<String, dynamic> thirdPartyTokenizationAgreementFiles = {};
 
   String selectedThirdPartyAssetOwnerBusinessRegOption = '';
-  Map<String, String> thirdPartyAssetOwnerBusinessRegFiles = {};
+  Map<String, dynamic> thirdPartyAssetOwnerBusinessRegFiles = {};
 
   String selectedThirdPartyAssetOwnerProofOfAddressOption = '';
-  Map<String, String> thirdPartyAssetOwnerProofOfAddressFiles = {};
+  Map<String, dynamic> thirdPartyAssetOwnerProofOfAddressFiles = {};
 
   String selectedSecApprovalOption = '';
-  Map<String, String> secRegFiles = {};
+  Map<String, dynamic> secRegFiles = {};
 
   String selectedProofOfComplianceOption = '';
-  Map<String, String> proofOfComplianceFiles = {};
+  Map<String, dynamic> proofOfComplianceFiles = {};
 
   String selectedProofOfEnvComplianceOption = '';
-  Map<String, String> proofOfEnvComplianceFiles = {};
+  Map<String, dynamic> proofOfEnvComplianceFiles = {};
 
   String selectedEnvImpactAssessmentReportOption = '';
-  Map<String, String> envImpactAssessmentReportFiles = {};
+  Map<String, dynamic> envImpactAssessmentReportFiles = {};
 
   String selectedProofofLegalCounselOption = '';
-  Map<String, String> proofOfLegalCounselFiles = {};
+  Map<String, dynamic> proofOfLegalCounselFiles = {};
 
   String selectedLegalAdvisorsContactOption = '';
-  Map<String, String> legalAdvisorsContactFiles = {};
+  Map<String, dynamic> legalAdvisorsContactFiles = {};
 
   String selectedProofofMortgagesorLiensOption = '';
-  Map<String, String> proofofMortgagesorLiensFiles = {};
+  Map<String, dynamic> proofofMortgagesorLiensFiles = {};
 
   String selectedProofofOutstandingLoansOption = '';
-  Map<String, String> proofofOutstandingLoansFiles = {};
+  Map<String, dynamic> proofofOutstandingLoansFiles = {};
 
   String selectedProofofLegalDisputesOnAssetOption = '';
-  Map<String, String> proofofLegalDisputesOnAssetFiles = {};
+  Map<String, dynamic> proofofLegalDisputesOnAssetFiles = {};
+
+  late dynamic documents = {};
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -185,6 +190,8 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
 
   @override
   void initState() {
+    appState = Provider.of<DataProvider>(context, listen: false);
+    initializeData();
     super.initState();
     getdarkmodepreviousstate();
   }
@@ -194,7 +201,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    appState = Provider.of<DataProvider>(context, listen: true);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -681,7 +688,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     required String label,
     required List<DropdownMenuItem<String>> documentOptions,
     required String selectedOption,
-    required Map<String, String> uploadedFiles,
+    required Map<String, dynamic> uploadedFiles,
     required void Function(String selectedOption, PlatformFile file) onDone,
   }) {
     return Padding(
@@ -730,7 +737,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                             children: [
                               if (item.isNotEmpty) ...[
                                 Text(
-                                  truncate(item, length: 20),
+                                  truncate(item, length: 18),
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontFamily: fontbody,
@@ -740,7 +747,9 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                               ],
                               TextButton(
                                 onPressed: () {
-                                  var fileUrl = uploadedFiles[item].toString();
+                                  var fileUrl = uploadedFiles[item]
+                                          ['documentUrl']
+                                      .toString();
                                   if (fileUrl.isNotEmpty &&
                                       fileUrl.endsWith('.pdf')) {
                                     appState.viewData!['pdfUrl'] =
@@ -758,7 +767,8 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      truncatePublicKey(uploadedFiles[item]!),
+                                      truncatePublicKey(
+                                          uploadedFiles[item]['documentUrl']!),
                                       style: TextStyle(
                                         decoration: TextDecoration.underline,
                                         fontSize: 12,
@@ -774,10 +784,13 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                                   CupertinoIcons.delete,
                                   size: 20,
                                 ),
-                                onPressed: (() {
-                                  setState(() {
-                                    uploadedFiles.remove(item);
-                                  });
+                                onPressed: (() async {
+                                  // setState(() async {
+                                  deleteFile(
+                                      uploadedFiles[item]['id'].toString());
+                                  // uploadedFiles.remove(item);
+                                  // await fetchTokenizationData();
+                                  // });
                                 }),
                               )
                             ],
@@ -790,12 +803,15 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             TextButton(
-                              onPressed: () => showDocumentUploadPopup(
-                                context,
-                                label,
-                                onDone: onDone,
-                                dropdownItems: documentOptions,
-                              ),
+                              onPressed: () {
+                                // showDocumentUploadPopup(
+                                //   context,
+                                //   label,
+                                //   onDone: onDone,
+                                //   dropdownItems: documentOptions,
+                                // );
+                                fetchCurrentTokenizationInfo();
+                              },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -833,6 +849,103 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     );
   }
 
+  void initializeData() {
+    inspect(appState.viewData);
+    documents = appState.viewData!['AssetTokenizationDocuments'];
+    inspect(documents);
+    for (var item in documents) {
+      switch (item['documentType']) {
+        case 1:
+          proofOfExistenceFiles[item['documentTitle']] = item;
+          break;
+        case 2:
+          proofOfOwnershipFiles[item['documentTitle']] = item;
+          break;
+        case 3:
+          assetStatusVerificationFiles[item['documentTitle']] = item;
+          break;
+        case 4:
+          assetCustodianAgreementFiles[item['documentTitle']] = item;
+          break;
+        case 5:
+          proofOfAssetManagerFiles[item['documentTitle']] = item;
+          break;
+        case 6:
+          assetProtectionDocumentFiles[item['documentTitle']] = item;
+          break;
+        case 7:
+          assetValuationCertificateFiles[item['documentTitle']] = item;
+          break;
+        case 8:
+          additionalCostOutsideValuationFiles[item['documentTitle']] = item;
+          break;
+        case 9:
+          proofOfAssetConditionFiles[item['documentTitle']] = item;
+          break;
+        case 10:
+          thirdPartyTokenizationAgreementFiles[item['documentTitle']] = item;
+          break;
+        case 11:
+          thirdPartyAssetOwnerBusinessRegFiles[item['documentTitle']] = item;
+          break;
+        case 12:
+          thirdPartyAssetOwnerProofOfAddressFiles[item['documentTitle']] = item;
+          break;
+        case 13:
+          secRegFiles[item['documentTitle']] = item;
+          break;
+        case 14:
+          proofOfComplianceFiles[item['documentTitle']] = item;
+          break;
+        case 15:
+          proofOfEnvComplianceFiles[item['documentTitle']] = item;
+          break;
+        case 16:
+          envImpactAssessmentReportFiles[item['documentTitle']] = item;
+          break;
+        case 17:
+          proofOfLegalCounselFiles[item['documentTitle']] = item;
+          break;
+        case 18:
+          legalAdvisorsContactFiles[item['documentTitle']] = item;
+          break;
+        case 19:
+          proofofMortgagesorLiensFiles[item['documentTitle']] = item;
+          break;
+        case 20:
+          proofofOutstandingLoansFiles[item['documentTitle']] = item;
+          break;
+        case 21:
+          proofofLegalDisputesOnAssetFiles[item['documentTitle']] = item;
+          break;
+        default:
+      }
+    }
+  }
+
+  Future<Map> fetchCurrentTokenizationInfo() async {
+    try {
+      var uri = '/v1/tokenization/detail/${appState.viewData!['id']}';
+
+      Map responseData = await makeGetRequest(
+        uri: Uri.encodeFull(uri),
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0], // the primary wallet secret key
+        publicKey: appState.primaryWallet.signer!,
+      );
+      print('===============> response ${responseData}');
+      if (responseData['statusCode'] == 200) {
+        print('success');
+        return responseData['data'];
+      } else {
+        print('success');
+        return Future.error('Error! Something went wrong.');
+      }
+    } catch (e) {
+      return Future.error('Error! ${e}');
+    }
+  }
+
   Future<void> uploadFile(
     PlatformFile file,
     int documentType,
@@ -842,13 +955,13 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     try {
       // print('requestBody =======> $file');
       showLoader(context);
-      var mintingWallet = appState.userInfo!.getMintingWallets[0];
+      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
 
       Map responseData = await makePutRequestForMultipartDocumentUpload(
         uri: '/v1/tokenization/document',
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0],
-        publicKey: mintingWallet.publicKey!,
+        publicKey: mintingWalletPublicKey,
         file: file,
         tokenizedAssetId: appState.viewData!['id'],
         documentTitle: documentTitle.toLowerCase().replaceAll(' ', '-'),
@@ -861,6 +974,41 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         String imageUrl = responseData['data'].toString().replaceAll('"', '');
         // print('imageUpload response=========>$imageUrl');
         onDone(imageUrl);
+        // appState.viewData = await fetchTokenizationData();
+        hideLoader(context);
+      } else {
+        popup(context,
+            title: "error".tr(), message: responseData['data']['message']);
+        hideLoader(context);
+      }
+    } catch (e) {
+      print(e);
+      hideLoader(context);
+      popup(
+        context,
+        title: "error".tr(),
+        message: "Sorry, something went wrong. Please try again.",
+      );
+    }
+  }
+
+  Future<void> deleteFile(String documentId) async {
+    try {
+      showLoader(context);
+      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
+      Map requestBody = {};
+      print('object ${mintingWalletPublicKey}');
+      Map responseData = await makeDeleteRequest(
+        uri: '/v1/tokenization/document/$documentId',
+        signer: appState.primaryWallet.signer!,
+        secretKey: appState.secretKeys[0],
+        publicKey: mintingWalletPublicKey,
+        body: jsonEncode(requestBody),
+      );
+
+      print("response ============> ${responseData}");
+      if (responseData['statusCode'] == 200) {
+        print("response ============> ${responseData['data']}");
         hideLoader(context);
       } else {
         popup(context,

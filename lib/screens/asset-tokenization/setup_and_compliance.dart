@@ -55,35 +55,9 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     }
   }
 
-  List<DropdownMenuItem<String>> get getMintingWallets {
-    List<DropdownMenuItem<String>> wallets = [];
-    appState.userInfo!.getMintingWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
-    });
-    return wallets;
-  }
-
   List<DropdownMenuItem<String>> get getMarketMakingWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getMarketMakingWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
-    });
-    return wallets;
-  }
-
-  List<DropdownMenuItem<String>> get getStandardWallets {
-    List<DropdownMenuItem<String>> wallets = [];
-    appState.userInfo!.getStandardWallets.forEach((wallet) {
       wallets.add(DropdownMenuItem(
           child: Text(
             wallet.alias!,
@@ -1061,7 +1035,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       showLoader(context);
       // make initial request to the server using the
       // following credential
-      var mintingWallet = appState.userInfo!.getMintingWallets[0];
+      var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       var marketMakingWallet = appState.userInfo!.getMarketMakingWallets[0];
 
       Map map = {
@@ -1084,7 +1058,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         body: requestBody,
         signer: appState.primaryWallet.signer!,
         secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: mintingWallet.publicKey!,
+        publicKey: mintingWalletPublicKey,
       );
 
       hideLoader(context);

@@ -185,6 +185,12 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  String? activeTokenizationWalletPublicKey;
+  set setActiveTokenizationWalletPublicKey(value) {
+    activeTokenizationWalletPublicKey = value;
+    notifyListeners();
+  }
+
   String tempUsername = '';
   set setTempUsername(value) {
     tempUsername = value;
