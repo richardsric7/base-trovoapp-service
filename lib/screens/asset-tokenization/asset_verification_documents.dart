@@ -226,12 +226,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Proof Of Asset Existence"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofOfExistenceOption = selectedOption;
-                        proofOfExistenceFiles[selectedOption] = documentUrl;
-                      });
-                    },
                   );
                 },
                 label: 'Proof of Asset Existence',
@@ -246,12 +240,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Proof Of Asset Ownership"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofOfOwnershipOption = selectedOption;
-                        proofOfOwnershipFiles[selectedOption] = documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedProofOfOwnershipOption,
@@ -266,13 +254,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Proof Of Asset Status Verification"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedAssetStatusVerificationOption = selectedOption;
-                        assetStatusVerificationFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedAssetStatusVerificationOption,
@@ -288,13 +269,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Asset Custodian Agreement"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedAssetCustodianAgreementOption = selectedOption;
-                        assetCustodianAgreementFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedAssetCustodianAgreementOption,
@@ -310,12 +284,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Proof Of Asset Manager"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofOfAssetManagerOption = selectedOption;
-                        proofOfAssetManagerFiles[selectedOption] = documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedProofOfAssetManagerOption,
@@ -331,13 +299,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Asset Protection Document"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedAssetProtectionDocumentOption = selectedOption;
-                        assetProtectionDocumentFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedAssetProtectionDocumentOption,
@@ -353,14 +314,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Asset Valuation Certificate"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedAssetValuationCertificateOption =
-                            selectedOption;
-                        assetValuationCertificateFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedAssetValuationCertificateOption,
@@ -376,14 +329,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Asset Owner Government ID"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofOfAdditionalCostOutsideValuationOption =
-                            selectedOption;
-                        additionalCostOutsideValuationFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption:
@@ -399,13 +344,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Proof Of Asset Condition"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofOfAssetConditionOption = selectedOption;
-                        proofOfAssetConditionFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedProofOfAssetConditionOption,
@@ -420,14 +358,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Third Party Tokenization Agreement"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedThirdPartyTokenizationAgreementOption =
-                            selectedOption;
-                        thirdPartyTokenizationAgreementFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedThirdPartyTokenizationAgreementOption,
@@ -443,14 +373,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Third Party Asset Owner Business Registration"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedThirdPartyAssetOwnerBusinessRegOption =
-                            selectedOption;
-                        thirdPartyAssetOwnerBusinessRegFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedThirdPartyAssetOwnerBusinessRegOption,
@@ -465,14 +387,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Third Party Asset Owner Proof Of Address"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedThirdPartyAssetOwnerProofOfAddressOption =
-                            selectedOption;
-                        thirdPartyAssetOwnerProofOfAddressFiles[
-                            selectedOption] = documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption:
@@ -486,12 +400,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     file,
                     documentTypeAndCodes['secApproval']!,
                     selectedOption.isEmpty ? "SEC Approval" : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedSecApprovalOption = selectedOption;
-                        secRegFiles[selectedOption] = documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedSecApprovalOption,
@@ -506,12 +414,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Proof Of Compliance"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofOfComplianceOption = selectedOption;
-                        proofOfComplianceFiles[selectedOption] = documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedProofOfComplianceOption,
@@ -526,12 +428,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Proof Of Env. Compliance"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofOfEnvComplianceOption = selectedOption;
-                        proofOfEnvComplianceFiles[selectedOption] = documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedProofOfEnvComplianceOption,
@@ -546,14 +442,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Env. Impact Assessment Report"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedEnvImpactAssessmentReportOption =
-                            selectedOption;
-                        envImpactAssessmentReportFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedEnvImpactAssessmentReportOption,
@@ -568,12 +456,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Proof Of Legal Counsel"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofofLegalCounselOption = selectedOption;
-                        proofOfLegalCounselFiles[selectedOption] = documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedProofofLegalCounselOption,
@@ -588,12 +470,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Legal Advisors Contract"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofofLegalCounselOption = selectedOption;
-                        proofOfLegalCounselFiles[selectedOption] = documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedProofofLegalCounselOption,
@@ -608,13 +484,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Proof of Mortgages or Liens"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofofMortgagesorLiensOption = selectedOption;
-                        proofofMortgagesorLiensFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedProofofMortgagesorLiensOption,
@@ -629,13 +498,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Proof of Outstanding Loans"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofofOutstandingLoansOption = selectedOption;
-                        proofofOutstandingLoansFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedProofofOutstandingLoansOption,
@@ -650,14 +512,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                     selectedOption.isEmpty
                         ? "Proof of Legal Disputes On Asset"
                         : selectedOption,
-                    onDone: (documentUrl) {
-                      setState(() {
-                        selectedProofofLegalDisputesOnAssetOption =
-                            selectedOption;
-                        proofofLegalDisputesOnAssetFiles[selectedOption] =
-                            documentUrl;
-                      });
-                    },
                   );
                 },
                 selectedOption: selectedProofofLegalDisputesOnAssetOption,
@@ -752,8 +606,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                                       .toString();
                                   if (fileUrl.isNotEmpty &&
                                       fileUrl.endsWith('.pdf')) {
-                                    appState.viewData!['pdfUrl'] =
-                                        uploadedFiles[item];
+                                    appState.viewData!['pdfUrl'] = fileUrl;
                                     appState.currentAction = PageAction(
                                         state: PageState.addPage,
                                         page: PdfViewPageConfig);
@@ -785,12 +638,8 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                                   size: 20,
                                 ),
                                 onPressed: (() async {
-                                  // setState(() async {
                                   deleteFile(
                                       uploadedFiles[item]['id'].toString());
-                                  // uploadedFiles.remove(item);
-                                  // await fetchTokenizationData();
-                                  // });
                                 }),
                               )
                             ],
@@ -804,13 +653,12 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
                           children: [
                             TextButton(
                               onPressed: () {
-                                // showDocumentUploadPopup(
-                                //   context,
-                                //   label,
-                                //   onDone: onDone,
-                                //   dropdownItems: documentOptions,
-                                // );
-                                fetchCurrentTokenizationInfo();
+                                showDocumentUploadPopup(
+                                  context,
+                                  label,
+                                  onDone: onDone,
+                                  dropdownItems: documentOptions,
+                                );
                               },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -850,9 +698,30 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
   }
 
   void initializeData() {
+    proofOfExistenceFiles = {};
+    proofOfOwnershipFiles = {};
+    assetStatusVerificationFiles = {};
+    assetCustodianAgreementFiles = {};
+    proofOfAssetManagerFiles = {};
+    assetProtectionDocumentFiles = {};
+    assetValuationCertificateFiles = {};
+    additionalCostOutsideValuationFiles = {};
+    proofOfAssetConditionFiles = {};
+    thirdPartyTokenizationAgreementFiles = {};
+    thirdPartyAssetOwnerBusinessRegFiles = {};
+    thirdPartyAssetOwnerProofOfAddressFiles = {};
+    secRegFiles = {};
+    proofOfComplianceFiles = {};
+    proofOfEnvComplianceFiles = {};
+    envImpactAssessmentReportFiles = {};
+    proofOfLegalCounselFiles = {};
+    legalAdvisorsContactFiles = {};
+    proofofMortgagesorLiensFiles = {};
+    proofofOutstandingLoansFiles = {};
+    proofofLegalDisputesOnAssetFiles = {};
+
     inspect(appState.viewData);
     documents = appState.viewData!['AssetTokenizationDocuments'];
-    inspect(documents);
     for (var item in documents) {
       switch (item['documentType']) {
         case 1:
@@ -923,7 +792,7 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
     }
   }
 
-  Future<Map> fetchCurrentTokenizationInfo() async {
+  Future<void> refreshCurrentTokenizationInfo() async {
     try {
       var uri = '/v1/tokenization/detail/${appState.viewData!['id']}';
 
@@ -936,9 +805,11 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
       print('===============> response ${responseData}');
       if (responseData['statusCode'] == 200) {
         print('success');
-        return responseData['data'];
+        appState.viewData = responseData['data'];
+        inspect(appState.viewData);
+        initializeData();
+        setState(() {});
       } else {
-        print('success');
         return Future.error('Error! Something went wrong.');
       }
     } catch (e) {
@@ -949,11 +820,9 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
   Future<void> uploadFile(
     PlatformFile file,
     int documentType,
-    String documentTitle, {
-    required void Function(String documentUrl) onDone,
-  }) async {
+    String documentTitle,
+  ) async {
     try {
-      // print('requestBody =======> $file');
       showLoader(context);
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
 
@@ -968,13 +837,8 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
         documentType: documentType,
       );
 
-      // print('imageUpload response=========>$responseData');
-
       if (responseData['statusCode'] == 200) {
-        String imageUrl = responseData['data'].toString().replaceAll('"', '');
-        // print('imageUpload response=========>$imageUrl');
-        onDone(imageUrl);
-        // appState.viewData = await fetchTokenizationData();
+        await refreshCurrentTokenizationInfo();
         hideLoader(context);
       } else {
         popup(context,
@@ -997,7 +861,6 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
       showLoader(context);
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       Map requestBody = {};
-      print('object ${mintingWalletPublicKey}');
       Map responseData = await makeDeleteRequest(
         uri: '/v1/tokenization/document/$documentId',
         signer: appState.primaryWallet.signer!,
@@ -1008,13 +871,12 @@ class _AssetVerificationDocuments extends State<AssetVerificationDocuments>
 
       print("response ============> ${responseData}");
       if (responseData['statusCode'] == 200) {
-        print("response ============> ${responseData['data']}");
-        hideLoader(context);
+        await refreshCurrentTokenizationInfo();
       } else {
         popup(context,
             title: "error".tr(), message: responseData['data']['message']);
-        hideLoader(context);
       }
+      hideLoader(context);
     } catch (e) {
       print(e);
       hideLoader(context);

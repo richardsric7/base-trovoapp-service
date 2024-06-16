@@ -1067,6 +1067,36 @@ class _AssetInformation extends State<AssetInformation>
                   ),
                 ],
               ),
+              // Row(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 20),
+              //       child: Container(
+              //         width: 300.sp,
+              //         height: 55.sp,
+              //         decoration: BoxDecoration(
+              //           borderRadius:
+              //               const BorderRadius.all(Radius.circular(15.0)),
+              //           color: notifier.getaddsubwalletgrey,
+              //         ),
+              //         child: Column(
+              //           mainAxisAlignment: MainAxisAlignment.center,
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //             Padding(
+              //               padding: const EdgeInsets.symmetric(horizontal: 10),
+              //               child: Text(
+              //                 valueOfTokenizedAsset.toString(),
+              //                 style: TextStyle(fontSize: 15),
+              //               ),
+              //             ),
+              //             const SizedBox(height: 2),
+              //           ],
+              //         ),
+              //       ),
+              //     )
+              //   ],
+              // ),
               Row(
                 children: [
                   Padding(

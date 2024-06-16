@@ -127,8 +127,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
         data["tokenizationFeeId"] == 0 ? 1 : data["tokenizationFeeId"];
     numberOfTokenToBeSold = data['numberOfTokenToBeSold'];
     numberOfTokenToBeIssued = data['numberOfTokenToBeIssued'];
+    walletToHoldAssetsNotForSale =
+        data['walletToHoldAssetsNotForSale'].toString().isEmpty
+            ? getStandardWallets.last.value!
+            : data['walletToHoldAssetsNotForSale'].toString();
     totalTokenHeldByManager = data['totalTokenHeldByManager'];
-    pricePerToken = data['pricePerToken'];
+    pricePerToken = double.parse(data['pricePerToken'].toString());
     assetCode = data['assetCode'];
     salesStart = DateTime.parse(data['salesStart'].toString());
     salesEnd = DateTime.parse(data['salesEnd'].toString());
@@ -514,7 +518,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     });
                   },
                   getStandardWallets,
-                  null,
+                  walletToHoldAssetsNotForSale,
                   appState.userInfo!.getStandardWallets.length > 0
                       ? appState.userInfo!.getStandardWallets.first.alias
                       : '',
@@ -659,39 +663,6 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
               SizedBox(
                 height: height / 50,
               ),
-              // Row(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              //       child: CustomTextFormField.textField(
-              //         "pricepertoken".tr(),
-              //         notifier.getbluecolor,
-              //         null,
-              //         notifier.getgrey,
-              //         null,
-              //         notifier.getblck,
-              //         notifier.getgrey,
-              //         70.sp,
-              //         300.sp,
-              //         validator: (value) {
-              //           if (value.isEmpty) {
-              //             return "fieldcannotbeempty".tr();
-              //           }
-              //           return null;
-              //         },
-              //         onSaved: (value) {
-              //           setState(() {
-              //             pricePerToken = double.parse(value!);
-              //           });
-              //         },
-              //         keyboardtype: TextInputType.numberWithOptions(
-              //           decimal: true,
-              //           signed: true,
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
               Row(
                 children: [
                   Padding(
@@ -1556,6 +1527,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['capQuantity'] = capQuantity;
       newData['capDurationInDays'] = capDurationInDays;
       newData['proceedCycle'] = proceedCycle;
+      newData['walletToHoldAssetsNotForSale'] = walletToHoldAssetsNotForSale;
       newData['assetLogo'] = assetLogo;
       newData['exemptedCountries'] = exemptedCountries.join(',');
       newData['hasAdditionalKYCRequirements'] =
