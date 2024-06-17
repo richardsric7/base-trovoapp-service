@@ -568,6 +568,9 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
 	// auto calculate, token to be held is less the fee
 	t.TotalTokenHeldByManager = t.NumberOfTokenToBeIssued - t.NumberOfTokenToBeSold - fee
+	if t.TotalTokenHeldByManager < 0 {
+		t.TotalTokenHeldByManager = 0
+	}
 
 	if len(ti.WalletToHoldAssetsNotForSale) > 0 {
 
