@@ -39,25 +39,14 @@ class _WalletPreparationState extends State<WalletPreparation>
   List<DropdownMenuItem<String>> get getMintingWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getMintingWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
-    });
-    return wallets;
-  }
-
-  List<DropdownMenuItem<String>> get getMarketMakingWallets {
-    List<DropdownMenuItem<String>> wallets = [];
-    appState.userInfo!.getMarketMakingWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
+      if (wallet.isInitiator) {
+        wallets.add(DropdownMenuItem(
+            child: Text(
+              wallet.alias!,
+              overflow: TextOverflow.ellipsis,
+            ),
+            value: wallet.publicKey));
+      }
     });
     return wallets;
   }
@@ -193,57 +182,18 @@ class _WalletPreparationState extends State<WalletPreparation>
             },
             getMintingWallets,
             null,
-            appState.userInfo!.getMintingWallets.length > 0
-                ? appState.userInfo!.getMintingWallets.first.alias
-                : '',
+            appState.activeTokenizationWalletPublicKey != null
+                ? appState.userInfo!.getMintingWallets
+                    .where((w) =>
+                        w.publicKey ==
+                        appState.activeTokenizationWalletPublicKey)
+                    .first
+                    .alias
+                : 'Select tokenization wallet',
             context,
             null,
           ),
         ),
-        // SizedBox(
-        //   height: height / 30,
-        // ),
-        // Padding(
-        //   padding: const EdgeInsets.symmetric(horizontal: 12),
-        //   child: Row(
-        //     mainAxisAlignment: MainAxisAlignment.spaceAround,
-        //     children: [
-        //       Text(
-        //         "selectmarketmakingwallet".tr(),
-        //         style: TextStyle(
-        //           fontSize: 13,
-        //           fontFamily: fontsemibold,
-        //           color: notifier.getbluewhitecolor,
-        //         ),
-        //       ),
-        //       Text(
-        //         "whatdoesthismean".tr(),
-        //         style: TextStyle(
-        //           decoration: TextDecoration.underline,
-        //           fontSize: 12,
-        //           fontFamily: fontsemibold,
-        //           color: notifier.getbluewhitecolor,
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
-        // SizedBox(
-        //   height: height / 70,
-        // ),
-        // Padding(
-        //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-        //   child: dropdown(
-        //     (value) {},
-        //     getMarketMakingWallets,
-        //     null,
-        //     appState.userInfo!.getMarketMakingWallets.length > 0
-        //         ? appState.userInfo!.getMarketMakingWallets.first.alias
-        //         : '',
-        //     context,
-        //     null,
-        //   ),
-        // ),
       ],
     );
   }

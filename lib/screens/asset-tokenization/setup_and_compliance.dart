@@ -37,12 +37,12 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   bool hasSecApprovalId = false;
   bool hasAllRequiredDocuments = false;
   int offeringType = 0;
-  late Future<Map> tokenizationData;
   String selectedAssetSectorId = 'Real Estate Sector';
   String selectedAssetSubSectorId = 'Land';
   String selectedAssetTypeId = '';
   String selectedAssetCustodian = '';
   String secApprovalId = '';
+  late dynamic data = {};
   final _formKey = GlobalKey<FormState>();
 
   getdarkmodepreviousstate() async {
@@ -55,25 +55,21 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     }
   }
 
-  List<DropdownMenuItem<String>> get getMarketMakingWallets {
-    List<DropdownMenuItem<String>> wallets = [];
-    appState.userInfo!.getMarketMakingWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
-    });
-    return wallets;
-  }
-
   @override
   void initState() {
     super.initState();
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
-    tokenizationData = fetchTokenizationData();
+    data = appState.viewData;
+
+    selectedAssetSectorId = data!["assetSector"];
+    selectedAssetSubSectorId = data!["assetSubSector"];
+    selectedAssetTypeId = data!["assetType"];
+    offeringType = data!["offeringType"].toString() == 'private' ? 1 : 0;
+    secApprovalId = data!["secApprovalIdNumber"];
+    hasSecApproval = data!["secApproval"] == 1;
+    selectedCountry = data!["assetCountryLocation"];
+    selectedAssetCustodian = data!["approvedAssetCustodianId"].toString();
   }
 
   @override
@@ -100,110 +96,32 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
-            FutureBuilder<Map>(
-              future: tokenizationData,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Container(
-                    height: height / 1.5,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          backgroundColor: notifier.getbluecolor,
-                          valueColor: new AlwaysStoppedAnimation<Color>(
-                            notifier.getgreencolor,
-                          ),
-                          strokeWidth: 3.0,
-                        ),
-                      ],
-                    ),
-                  );
-                } else if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) {
-                    return Container(
-                      height: height / 1.5,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "somethingwentwrong".tr(),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  color: notifier.getbluewhitecolor,
-                                  fontFamily: fontbody),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  tokenizationData = fetchTokenizationData();
-                                });
-                              },
-                              style: ButtonStyle(
-                                backgroundColor:
-                                    MaterialStateProperty.all<Color>(
-                                        notifier.getbluecolor!),
-                              ),
-                              child: Text(
-                                "retry".tr(),
-                                style: TextStyle(
-                                  fontFamily: fontsemibold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  } else if (snapshot.hasData) {
-                    appState.tokenizationData = snapshot.data;
-                    return setupAndCompliance(snapshot.data);
-                  } else {
-                    return Center(
-                      child: Text(
-                        "errorfetchingdata".tr(),
-                        overflow: TextOverflow.visible,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontFamily: fontsemibold,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                    );
-                  }
-                } else {
-                  return Text('${"state".tr()}: ${snapshot.connectionState}');
-                }
-              },
-            ),
+            setupAndCompliance(appState.tokenizationData),
           ],
         ),
       ),
     );
   }
 
-  Widget setupAndCompliance(dynamic data) {
+  Widget setupAndCompliance(dynamic tokenizationData) {
     List<DropdownMenuItem<String>> assetSectors = [];
-    for (var i = 0; i < data!['assetSectors'].length; i++) {
+    for (var i = 0; i < tokenizationData!['assetSectors'].length; i++) {
       assetSectors.add(DropdownMenuItem(
           child: Text(
-            data!['assetSectors'][i]['sector'].toString(),
+            tokenizationData!['assetSectors'][i]['sector'].toString(),
             overflow: TextOverflow.ellipsis,
           ),
-          value: data!['assetSectors'][i]['sector'].toString()));
+          value: tokenizationData!['assetSectors'][i]['sector'].toString()));
     }
 
     List<DropdownMenuItem<String>> assetSubsectors =
-        getAssetSubsectorList(data, selectedAssetSectorId);
+        getAssetSubsectorList(tokenizationData, selectedAssetSectorId);
 
     List<DropdownMenuItem<String>> assetTypes =
-        getAssetTypes(data, selectedAssetSubSectorId);
+        getAssetTypes(tokenizationData, selectedAssetSubSectorId);
 
-    List<DropdownMenuItem<int>> assetCustodians = getAssetCustodians(data);
+    List<DropdownMenuItem<int>> assetCustodians =
+        getAssetCustodians(tokenizationData);
 
     return SingleChildScrollView(
       child: Form(
@@ -269,8 +187,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 (value) {
                   setState(() {
                     selectedAssetSectorId = value.toString();
-                    assetSectors =
-                        getAssetSubsectorList(data, selectedAssetSectorId);
+                    assetSectors = getAssetSubsectorList(
+                        tokenizationData, selectedAssetSectorId);
                   });
                 },
                 assetSectors,
@@ -308,8 +226,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 (value) {
                   setState(() {
                     selectedAssetSubSectorId = value.toString();
-                    assetSectors =
-                        getAssetTypes(data, selectedAssetSubSectorId);
+                    assetSectors = getAssetTypes(
+                        tokenizationData, selectedAssetSubSectorId);
                   });
                 },
                 assetSubsectors,
@@ -759,7 +677,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     (value) {
                       setState(() {
                         selectedAssetCustodian = value.toString();
-                        assetCustodians = getAssetCustodians(data);
+                        assetCustodians = getAssetCustodians(tokenizationData);
                       });
                     },
                     assetCustodians,
@@ -800,7 +718,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     (value) {
                       setState(() {
                         selectedAssetCustodian = value.toString();
-                        assetCustodians = getAssetCustodians(data);
+                        assetCustodians = getAssetCustodians(tokenizationData);
                       });
                     },
                     assetCustodians,
@@ -1037,21 +955,36 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       // following credential
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       var marketMakingWallet = appState.userInfo!.getMarketMakingWallets[0];
+      var newData = {...data as Map};
 
-      Map map = {
-        "assetSector": selectedAssetSectorId,
-        "assetSubSector": selectedAssetSubSectorId,
-        "assetType": selectedAssetTypeId,
-        "offeringType": offeringType == 1 ? 'private' : 'public',
-        "approvedAssetCustodianId": selectedAssetCustodian.length > 0
-            ? int.parse(selectedAssetCustodian)
-            : 1,
-        "marketMakingWallet": marketMakingWallet.publicKey,
-        "secApprovalIdNumber": secApprovalId,
-        "assetCountryLocation": selectedCountry,
-      };
-      print('map here $map');
-      String requestBody = jsonEncode(map);
+      newData["assetSector"] = selectedAssetSectorId;
+      newData["assetSubSector"] = selectedAssetSubSectorId;
+      newData["assetType"] = selectedAssetTypeId;
+      newData["offeringType"] = offeringType == 1 ? 'private' : 'public';
+      newData["approvedAssetCustodianId"] = selectedAssetCustodian.length > 0
+          ? int.parse(selectedAssetCustodian)
+          : 1;
+      newData["marketMakingWallet"] = marketMakingWallet.publicKey;
+      newData["secApprovalIdNumber"] = secApprovalId;
+      newData["secApproval"] = hasSecApproval;
+      newData["assetCountryLocation"] = selectedCountry;
+
+      print('map here $newData');
+      String requestBody = jsonEncode(newData);
+      // Map map = {
+      //   "assetSector": selectedAssetSectorId,
+      //   "assetSubSector": selectedAssetSubSectorId,
+      //   "assetType": selectedAssetTypeId,
+      //   "offeringType": offeringType == 1 ? 'private' : 'public',
+      //   "approvedAssetCustodianId": selectedAssetCustodian.length > 0
+      //       ? int.parse(selectedAssetCustodian)
+      //       : 1,
+      //   "marketMakingWallet": marketMakingWallet.publicKey,
+      //   "secApprovalIdNumber": secApprovalId,
+      //   "assetCountryLocation": selectedCountry,
+      // };
+      // print('map here $map');
+      // String requestBody = jsonEncode(map);
       print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
@@ -1076,28 +1009,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     } catch (e) {
       hideLoader(context);
       popup(context, title: "error".tr(), message: e.toString());
-    }
-  }
-
-  Future<Map> fetchTokenizationData() async {
-    try {
-      var uri = '/v1/tokenization';
-
-      Map responseData = await makeGetRequest(
-        uri: Uri.encodeFull(uri),
-        signer: appState.primaryWallet.signer!,
-        secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
-      );
-      if (responseData['statusCode'] == 200) {
-        print('success');
-        return responseData['data'];
-      } else {
-        print('success');
-        return Future.error('Error! Something went wrong.');
-      }
-    } catch (e) {
-      return Future.error('Error! ${e}');
     }
   }
 
