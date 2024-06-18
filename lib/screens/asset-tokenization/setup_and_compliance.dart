@@ -70,6 +70,8 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     hasSecApproval = data!["secApproval"] == 1;
     selectedCountry = data!["assetCountryLocation"];
     selectedAssetCustodian = data!["approvedAssetCustodianId"].toString();
+    hasAllRequiredDocuments = data!["approvedAssetCustodianId"] != 0;
+    hasCustodianAgreement = data!["approvedAssetCustodianInfo"].length != 0;
   }
 
   @override
@@ -268,7 +270,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   });
                 },
                 assetTypes,
-                null,
+                selectedAssetTypeId,
                 'Select asset type',
                 context,
                 null,
@@ -681,8 +683,17 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       });
                     },
                     assetCustodians,
-                    null,
-                    'Select custodian',
+                    assetCustodians
+                        .where((element) {
+                          return element.value.toString() ==
+                              selectedAssetCustodian;
+                        })
+                        .first
+                        .value,
+                    selectedAssetCustodian.isNotEmpty
+                        ? getSelectedAssetCustodianLabel(
+                            selectedAssetCustodian, tokenizationData)
+                        : selectedAssetCustodian,
                     context,
                     null,
                     validator: (value) {
@@ -712,24 +723,48 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                 SizedBox(
                   height: height / 70,
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: dropdown(
-                    (value) {
-                      setState(() {
-                        selectedAssetCustodian = value.toString();
-                        assetCustodians = getAssetCustodians(tokenizationData);
-                      });
-                    },
-                    assetCustodians,
-                    null,
-                    'Select custodian',
-                    context,
-                    null,
-                  ),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Container(
+                        width: width / 1.07,
+                        decoration: BoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(15.0)),
+                          color: notifier.getaddsubwalletgrey,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (var item
+                                  in getAssetCustodians(tokenizationData)) ...[
+                                Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text('- '),
+                                        item.child,
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
                 ),
               ],
-              if (offeringType == 0) ...[
+              if (offeringType == 0 && hasCustodianAgreement) ...[
                 SizedBox(
                   height: height / 15,
                 ),
@@ -877,6 +912,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                     notifier.getgrey,
                     70,
                     350,
+                    initialValue: secApprovalId,
                     validator: (value) {
                       if (hasSecApproval && value.isEmpty) {
                         return "pleaseentersecapprovalid".tr();
@@ -930,21 +966,21 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
   }
 
   submit() async {
-    // var message = "";
-    // if (!hasAllRequiredDocuments) {
-    //   message +=
-    //       "You need to acquire all the documents in the required documents list before you can proceed.\n\n";
-    // }
+    var message = "";
+    if (!hasAllRequiredDocuments) {
+      message +=
+          "You need to acquire all the documents in the required documents list before you can proceed.\n\n";
+    }
 
-    // if (offeringType == 0 && !hasCustodianAgreement) {
-    //   message +=
-    //       "An asset custodian agreement is needed in this process. You need to obtain an agreement with an asset custodian to proceed.\n\n";
-    // }
+    if (offeringType == 0 && !hasCustodianAgreement) {
+      message +=
+          "An asset custodian agreement is needed in this process. You need to obtain an agreement with an asset custodian to proceed.\n\n";
+    }
 
-    // if (message.isNotEmpty) {
-    //   popup(context, title: "info".tr(), message: message);
-    //   return;
-    // }
+    if (message.isNotEmpty) {
+      popup(context, title: "info".tr(), message: message);
+      return;
+    }
 
     final form = _formKey.currentState;
     if (!form!.validate()) return;
@@ -955,36 +991,37 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       // following credential
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
       var marketMakingWallet = appState.userInfo!.getMarketMakingWallets[0];
-      var newData = {...data as Map};
+      // var newData = {...data as Map};
 
-      newData["assetSector"] = selectedAssetSectorId;
-      newData["assetSubSector"] = selectedAssetSubSectorId;
-      newData["assetType"] = selectedAssetTypeId;
-      newData["offeringType"] = offeringType == 1 ? 'private' : 'public';
-      newData["approvedAssetCustodianId"] = selectedAssetCustodian.length > 0
-          ? int.parse(selectedAssetCustodian)
-          : 1;
-      newData["marketMakingWallet"] = marketMakingWallet.publicKey;
-      newData["secApprovalIdNumber"] = secApprovalId;
-      newData["secApproval"] = hasSecApproval;
-      newData["assetCountryLocation"] = selectedCountry;
+      // newData["assetSector"] = selectedAssetSectorId;
+      // newData["assetSubSector"] = selectedAssetSubSectorId;
+      // newData["assetType"] = selectedAssetTypeId;
+      // newData["offeringType"] = offeringType == 1 ? 'private' : 'public';
+      // newData["approvedAssetCustodianId"] = selectedAssetCustodian.length > 0
+      //     ? int.parse(selectedAssetCustodian)
+      //     : 1;
+      // newData["marketMakingWallet"] = marketMakingWallet.publicKey;
+      // newData["secApprovalIdNumber"] = secApprovalId;
+      // newData["secApproval"] = hasSecApproval;
+      // newData["assetCountryLocation"] = selectedCountry;
 
-      print('map here $newData');
-      String requestBody = jsonEncode(newData);
-      // Map map = {
-      //   "assetSector": selectedAssetSectorId,
-      //   "assetSubSector": selectedAssetSubSectorId,
-      //   "assetType": selectedAssetTypeId,
-      //   "offeringType": offeringType == 1 ? 'private' : 'public',
-      //   "approvedAssetCustodianId": selectedAssetCustodian.length > 0
-      //       ? int.parse(selectedAssetCustodian)
-      //       : 1,
-      //   "marketMakingWallet": marketMakingWallet.publicKey,
-      //   "secApprovalIdNumber": secApprovalId,
-      //   "assetCountryLocation": selectedCountry,
-      // };
-      // print('map here $map');
-      // String requestBody = jsonEncode(map);
+      // print('map here $newData');
+      // String requestBody = jsonEncode(newData);
+      Map map = {
+        "assetSector": selectedAssetSectorId,
+        "assetSubSector": selectedAssetSubSectorId,
+        "assetType": selectedAssetTypeId,
+        "offeringType": offeringType == 1 ? 'private' : 'public',
+        "approvedAssetCustodianId": selectedAssetCustodian.length > 0
+            ? int.parse(selectedAssetCustodian)
+            : 1,
+        "marketMakingWallet": marketMakingWallet.publicKey,
+        "secApproval": hasSecApproval ? 1 : 0,
+        "secApprovalIdNumber": secApprovalId,
+        "assetCountryLocation": selectedCountry,
+      };
+      print('map here $map');
+      String requestBody = jsonEncode(map);
       print('requestBody =======> $requestBody');
       Map responseData = await makePostRequest(
         uri: '/v1/tokenization',
@@ -993,7 +1030,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         secretKey: appState.secretKeys[0], // the primary wallet secret key
         publicKey: mintingWalletPublicKey,
       );
-
       hideLoader(context);
 
       print('responseData ${responseData['data']}');
@@ -1065,6 +1101,18 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       );
     }
     return assetCustodians;
+  }
+
+  String getSelectedAssetCustodianLabel(id, data) {
+    var label = "";
+    for (var i = 0; i < data!['assetCustodians'].length; i++) {
+      if (data!['assetCustodians'][i]['id'] == id) {
+        label =
+            '${data!['assetCustodians'][i]['assetCustodianName']}, ${data!['assetCustodians'][i]['assetCustodianAddress']} ${data!['assetCustodians'][i]['assetCustodianCountry']}';
+        break;
+      }
+    }
+    return label;
   }
 
   Widget CheckItem(
