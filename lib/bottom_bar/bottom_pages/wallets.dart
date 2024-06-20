@@ -33,12 +33,7 @@ class Wallets extends StatefulWidget {
 
 class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   late ColorNotifier notifier;
-  WalletAction? action = WalletAction.createNew;
   bool isTileView = false;
-  bool isImport = true;
-  String? tag;
-  String? description;
-  String? secretKey;
   late List<Wallet> carouselWallets;
   late List<Wallet> wallets;
   String? activeWallet;
@@ -63,12 +58,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   String selectedWalletMode = "My wallets";
   List<String> walletListMode = ['My wallets', 'Shared wallets', 'All wallets'];
   late List<WalletTileColor> colors;
-  late List<String> walletTypes = [
-    'Standard',
-    'Minting/Asset Tokenization',
-    'Market Making/Trade',
-    'Bulk Payment'
-  ];
 
   var listOfAssets = <Map<String, String>>[
     {
@@ -126,27 +115,6 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
           value: value));
     });
     return items;
-  }
-
-  int selectedWalletType = 0;
-
-  List<DropdownMenuItem<String>> get walletTypeDropdownItems {
-    var dropdownItems = walletTypes
-        .map<DropdownMenuItem<String>>((wallet) => DropdownMenuItem(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  wallet,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-            value: walletTypes.indexOf(wallet).toString()))
-        .toList();
-
-    return dropdownItems;
   }
 
   List<DropdownMenuItem<String>> get walletListModeDropdownItems {
@@ -241,24 +209,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
         resizeToAvoidBottomInset: false,
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            // if (appState.walletView.view == WalletView.listWallets) {
-            //   appState.walletView.actionIcon = Icons.cancel_outlined;
-            //   appState.walletView.actionText = "cancel".tr();
-            //   appState.walletView.view = WalletView.addSubWallet;
-            // } else if (appState.walletView.view == WalletView.addSubWallet) {
-            //   appState.walletView.actionIcon = Icons.add_circle_outline_sharp;
-            //   appState.walletView.actionText = "addsubwallet".tr();
-            //   appState.walletView.view = WalletView.listWallets;
-            //   resetForm();
-            // } else if (appState.walletView.view ==
-            //     WalletView.confirmAddSubWallet) {
-            //   appState.walletView.actionIcon = Icons.cancel_outlined;
-            //   appState.walletView.actionText = "cancel".tr();
-            //   appState.walletView.view = WalletView.addSubWallet;
-            // }
-
             addSubWalletPopup(context);
-
             setState(() {});
           },
           backgroundColor: notifier.getbluecolor,

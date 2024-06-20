@@ -1610,7 +1610,31 @@ class _SharedAccessState extends State<SharedAccess>
           ),
         ),
         SizedBox(
-          height: height / 30,
+          height: height / 90,
+        ),
+        Container(
+          width: width / 1.1,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
+          ),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+            child: Text(
+              "describevieweraccesspersonal".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 12.sp),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: height / 50,
         ),
         Container(
           width: width / 1.1,
@@ -2024,16 +2048,6 @@ class _SharedAccessState extends State<SharedAccess>
           SizedBox(
             height: height / 30,
           ),
-          Container(
-            child: Text(
-              "enteraccountsusernameapprovers".tr(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: notifier.getbluewhitecolor,
-                  fontFamily: fontbody,
-                  fontSize: 15.sp),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
             child: Container(
@@ -2087,6 +2101,43 @@ class _SharedAccessState extends State<SharedAccess>
                   ),
                 ],
               ),
+            ),
+          ),
+          SizedBox(
+            height: height / 90,
+          ),
+          Container(
+            width: width / 1.1,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+              color: notifier.isDark
+                  ? darktilewhitecolor
+                  : notifier.getaddsubwalletgrey,
+            ),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+              child: Text(
+                "describeapproveraccesspersonal".tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: notifier.getbluewhitecolor,
+                    fontFamily: fontbody,
+                    fontSize: 12.sp),
+              ),
+            ),
+          ),
+          SizedBox(
+            height: height / 50,
+          ),
+          Container(
+            child: Text(
+              "enteraccountsusernameapprovers".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 15.sp),
             ),
           ),
           SizedBox(
@@ -2306,6 +2357,30 @@ class _SharedAccessState extends State<SharedAccess>
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+        SizedBox(
+          height: height / 90,
+        ),
+        Container(
+          width: width / 1.1,
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+            color: notifier.isDark
+                ? darktilewhitecolor
+                : notifier.getaddsubwalletgrey,
+          ),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+            child: Text(
+              "describeinitiatoraccesspersonal".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: notifier.getbluewhitecolor,
+                  fontFamily: fontbody,
+                  fontSize: 12.sp),
             ),
           ),
         ),

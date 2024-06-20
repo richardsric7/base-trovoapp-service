@@ -13,7 +13,6 @@ import 'package:trovo_wallet/router/back_dispatcher.dart';
 import 'package:trovo_wallet/router/route_parser.dart';
 import 'package:trovo_wallet/router/router_delegate.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
-import 'package:trovo_wallet/screens/asset-tokenization/state.dart';
 import 'package:trovo_wallet/screens/notifications/firebase_dynamic_links.dart';
 import 'package:trovo_wallet/screens/notifications/firebase_notifications.dart';
 import 'package:trovo_wallet/storage/state.dart';
@@ -26,6 +25,7 @@ void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
+      name: await StoreData().storeGetData('walletMode') ?? "Mainnet",
       options: DefaultFirebaseOptions.currentPlatform(
           await StoreData().storeGetData('walletMode') ?? "Mainnet"));
   print(
@@ -87,8 +87,6 @@ class _AppState extends State<App> {
       providers: [
         ChangeNotifierProvider<ColorNotifier>(create: (_) => ColorNotifier()),
         ChangeNotifierProvider<DataProvider>(create: (_) => appState),
-        ChangeNotifierProvider<AssetTokenizationViewsState>(
-            create: (_) => AssetTokenizationViewsState())
       ],
       child: GestureDetector(
         onTap: _initializeTimer,

@@ -59,7 +59,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     'Other Tokens': DashboardAssetListMode.OtherAssets,
   };
   final Authenticator _authenticator = Authenticator();
-  bool hideBalance = false;
 
   @override
   void initState() {
@@ -264,11 +263,25 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                             SizedBox(),
                                             GestureDetector(
                                               onTap: () {
-                                                if (hideBalance) {
+                                                if (appState.hideBalances) {
                                                   authenticateAndToggle();
                                                 } else
                                                   setState(() {
-                                                    hideBalance = !hideBalance;
+                                                    appState.hideBalances =
+                                                        !appState.hideBalances;
+                                                    for (var i = 0;
+                                                        i <
+                                                            appState
+                                                                .hideWalletList
+                                                                .length;
+                                                        i++) {
+                                                      appState.hideWalletList[
+                                                          i] = true;
+                                                    }
+                                                    StoreData().storeInsertData(
+                                                        'hideWalletList',
+                                                        appState
+                                                            .hideWalletList);
                                                   });
                                               },
                                               child: Icon(
@@ -920,7 +933,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     IconData icon;
     if (appState.hideBalances) icon = CupertinoIcons.eye;
 
-    if (hideBalance)
+    if (appState.hideBalances)
       icon = CupertinoIcons.eye;
     else
       icon = CupertinoIcons.eye_slash;
@@ -936,7 +949,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
     showPasswordDialog(context, () {
       setState(() {
-        hideBalance = !hideBalance;
+        appState.hideBalances = !appState.hideBalances;
       });
     });
   }
@@ -946,7 +959,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       bool result = await _authenticator.authenticateMe();
       if (result) {
         setState(() {
-          hideBalance = !hideBalance;
+          appState.hideBalances = !appState.hideBalances;
         });
       }
     } on PlatformException catch (e) {
@@ -961,7 +974,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     String text;
     if (appState.hideBalances) text = hideBalanceText;
 
-    if (hideBalance)
+    if (appState.hideBalances)
       text = hideBalanceText;
     else
       text = balance;

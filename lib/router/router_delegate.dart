@@ -77,6 +77,7 @@ import 'package:trovo_wallet/screens/import_wallet/import_wallet.dart';
 import 'package:trovo_wallet/screens/market_trade/market_pairs.dart';
 import 'package:trovo_wallet/screens/market_trade/market_trade.dart';
 import 'package:trovo_wallet/screens/market_trade/market_trade_info.dart';
+import 'package:trovo_wallet/screens/page_view/pdf_view.dart';
 import 'package:trovo_wallet/screens/page_view/success_view.dart';
 import 'package:trovo_wallet/screens/page_view/web_view.dart';
 import 'package:trovo_wallet/screens/shared_access/add_shared_access_details.dart';
@@ -179,6 +180,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
           break;
         case Pages.WebView:
           _addPageData(TrovoWebView(), WebViewPageConfig);
+          break;
+        case Pages.PdfView:
+          _addPageData(PdfViewer(), PdfViewPageConfig);
           break;
         case Pages.QrScanner:
           _addPageData(QrScanner(), QrScannerPageConfig);
@@ -503,6 +507,9 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.WebView:
         WebViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.PdfView:
+        PdfViewPageConfig.currentPageAction = action;
         break;
       case Pages.QrScanner:
         QrScannerPageConfig.currentPageAction = action;

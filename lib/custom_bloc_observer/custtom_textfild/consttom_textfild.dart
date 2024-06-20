@@ -210,6 +210,7 @@ Widget multilineInput(
   onSaved,
   keyboardtype,
   focusNode,
+  initialValue,
 }) {
   return Container(
     height: h,
@@ -219,6 +220,7 @@ Widget multilineInput(
       maxLength: maxLength,
       minLines: minLines,
       maxLines: maxLines,
+      initialValue: initialValue,
       style: TextStyle(color: textcolor, fontFamily: fontbody),
       cursorColor: lablecolor,
       onChanged: onChanged,

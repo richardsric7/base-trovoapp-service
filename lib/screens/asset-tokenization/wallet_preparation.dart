@@ -9,6 +9,7 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -38,25 +39,14 @@ class _WalletPreparationState extends State<WalletPreparation>
   List<DropdownMenuItem<String>> get getMintingWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getMintingWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
-    });
-    return wallets;
-  }
-
-  List<DropdownMenuItem<String>> get getMarketMakingWallets {
-    List<DropdownMenuItem<String>> wallets = [];
-    appState.userInfo!.getMarketMakingWallets.forEach((wallet) {
-      wallets.add(DropdownMenuItem(
-          child: Text(
-            wallet.alias!,
-            overflow: TextOverflow.ellipsis,
-          ),
-          value: wallet.publicKey));
+      if (wallet.isInitiator) {
+        wallets.add(DropdownMenuItem(
+            child: Text(
+              wallet.alias!,
+              overflow: TextOverflow.ellipsis,
+            ),
+            value: wallet.publicKey));
+      }
     });
     return wallets;
   }
@@ -114,9 +104,16 @@ class _WalletPreparationState extends State<WalletPreparation>
               notifier.getbluecolor,
               wihitecolor,
               onTap: () {
+                if (appState.activeTokenizationWalletPublicKey == null) {
+                  popup(context,
+                      title: 'Error',
+                      message: 'Please select your asset tokenization wallet');
+                  return;
+                }
+
                 appState.currentAction = PageAction(
                     state: PageState.addPage,
-                    page: TokenizeAssetViewPageConfig);
+                    page: SetupAndComplianceViewPageConfig);
               },
             ),
             SizedBox(
@@ -155,7 +152,7 @@ class _WalletPreparationState extends State<WalletPreparation>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "selectmintingwallet".tr(),
+                "selectissuingwallet".tr(),
                 style: TextStyle(
                   fontSize: 13,
                   fontFamily: fontsemibold,
@@ -180,56 +177,19 @@ class _WalletPreparationState extends State<WalletPreparation>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10.0),
           child: dropdown(
-            (value) {},
+            (value) {
+              appState.setActiveTokenizationWalletPublicKey = value;
+            },
             getMintingWallets,
             null,
-            appState.userInfo!.getMintingWallets.length > 0
-                ? appState.userInfo!.getMintingWallets.first.alias
-                : '',
-            context,
-            null,
-          ),
-        ),
-        SizedBox(
-          height: height / 30,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Text(
-                "selectmarketmakingwallet".tr(),
-                style: TextStyle(
-                  fontSize: 13,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-              Text(
-                "whatdoesthismean".tr(),
-                style: TextStyle(
-                  decoration: TextDecoration.underline,
-                  fontSize: 12,
-                  fontFamily: fontsemibold,
-                  color: notifier.getbluewhitecolor,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: height / 70,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0),
-          child: dropdown(
-            (value) {},
-            getMarketMakingWallets,
-            null,
-            appState.userInfo!.getMarketMakingWallets.length > 0
-                ? appState.userInfo!.getMarketMakingWallets.first.alias
-                : '',
+            appState.activeTokenizationWalletPublicKey != null
+                ? appState.userInfo!.getMintingWallets
+                    .where((w) =>
+                        w.publicKey ==
+                        appState.activeTokenizationWalletPublicKey)
+                    .first
+                    .alias
+                : 'Select tokenization wallet',
             context,
             null,
           ),

@@ -618,7 +618,7 @@ class _AddSharedAccessDetails extends State<AddSharedAccessDetails>
       if (responseData['statusCode'] == 202) {
         var messageLength = responseData['data']['messages'].length;
         var messageShown = 0;
-        // print('messagelenth: $messageLength');
+        hideLoader(context);
         postProcessData(
             context, messageShown, messageLength, responseData['data'],
             callback: () {
