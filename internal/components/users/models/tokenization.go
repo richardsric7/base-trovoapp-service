@@ -1,11 +1,13 @@
 package users
 
 import (
+	"fmt"
 	"log"
 	"time"
 	"trovo-wallet-api/internal/sharedconfig"
 
 	"github.com/shopspring/decimal"
+	"gorm.io/gorm/clause"
 )
 
 type TokenizedAsset struct {
@@ -64,6 +66,7 @@ type TokenizedAsset struct {
 	CapDurationInDays              int                         `gorm:"default:0" json:"capDurationInDays"`
 	ProceedCycle                   *string                     `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID              *uint64                     `gorm:"default:0" json:"tokenizationFeeId"`
+	TokenizationFee                TokenizationFee             `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
 	ProceedPayoutCurrency          *string                     `json:"proceedPayoutCurrency"`
 	ExemptedCountries              *string                     `json:"exemptedCountries"`
 	HasAdditionalKYCRequirements   int                         `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
@@ -125,6 +128,7 @@ type TokenizedAssetJSONInput struct {
 	HasAdditionalKYCRequirements   int       `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
 	AdditionalKYCRequirements      string    `json:"additionalKYCRequirements"`
 	InvestorAccreditationRequired  int       `gorm:"default:0" json:"investorAccreditationRequired"`
+	Messages                       []string  `json:"messages"`
 }
 type TokenizedAssetJSON struct {
 	ID                             string                      `json:"id"`
@@ -182,6 +186,7 @@ type TokenizedAssetJSON struct {
 	CapDurationInDays              int                         `gorm:"default:0" json:"capDurationInDays"`
 	ProceedCycle                   string                      `gorm:"size:50" json:"proceedCycle"`
 	TokenizationFeeID              uint64                      `json:"tokenizationFeeId"`
+	TokenizationFee                TokenizationFee             `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"tokenizationFee"`
 	ProceedPayoutCurrency          string                      `json:"proceedPayoutCurrency"`
 	ExemptedCountries              string                      `json:"exemptedCountries"`
 	HasAdditionalKYCRequirements   int                         `gorm:"default:0" json:"hasAdditionalKYCRequirements"`
@@ -214,7 +219,8 @@ type TokenizationFee struct {
 	FeeFiatPercentage  float64 `json:"feeFiatPercentage"`
 	FeeFiatCap         float64 `json:"feeFiatCap"`
 	FeeAssetPercentage float64 `json:"feeAssetPercentage"`
-	FeeAssetCap        float64 `json:"feeAssetCap"`
+	// FeeAssetCap        float64 `json:"feeAssetCap"`
+	FeeDescription string `json:"feeDescription"`
 }
 
 type TokenizedAssetType struct {
@@ -259,10 +265,16 @@ type AssetTokenizationInputDocument struct {
 type IssuingWalletPublicKey string
 
 func (i IssuingWalletPublicKey) GetTokenization(gc *sharedconfig.GlobalConfig) (t TokenizedAsset) {
-	e := gc.DB.Where("issuing_wallet_public_key = ?", string(i)).First(&t).Error
+	e := gc.DB.Preload(clause.Associations).Where("issuing_wallet_public_key = ?", string(i)).First(&t).Error
 	if e != nil {
-		log.Printf("[IssuingWalletPublicKey::GetTokenization] Error getting tokeinzed asset for %v, %v\n", string(i), e)
+		log.Printf("[IssuingWalletPublicKey::GetTokenization] Error getting tokenized asset for %v, %v\n", string(i), e)
 	}
+	return
+}
+
+func (i IssuingWalletPublicKey) GetTokenizationFeeByID(feeID uint64, gc *sharedconfig.GlobalConfig) (fee TokenizationFee) {
+	gc.DB.Preload(clause.Associations).Where("id = ?", feeID).First(&fee)
+
 	return
 }
 
@@ -292,7 +304,27 @@ Proof of legal dispute or encumbrances on asset = 21
 
 **/
 
-func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) TokenizedAsset {
+func (t *TokenizedAsset) GetTokenizationFeeByID(feeID uint64, gc *sharedconfig.GlobalConfig) (fee TokenizationFee) {
+	gc.DB.Preload(clause.Associations).Where("id = ?", feeID).First(&fee)
+
+	return
+}
+
+func (t *TokenizedAsset) UpdateTokenizationFeeByID(feeID uint64, gc *sharedconfig.GlobalConfig) (fee TokenizationFee) {
+	if feeID == 0 {
+		return
+	}
+	gc.DB.Preload(clause.Associations).Where("id = ?", feeID).First(&fee)
+
+	if fee.ID > 0 {
+		t.TokenizationFee = fee
+		t.TokenizationFeeID = &feeID
+	}
+
+	return
+}
+
+func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) TokenizedAsset {
 	if ti.HasAdditionalKYCRequirements > 0 && len(ti.AdditionalKYCRequirements) > 0 {
 
 		t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
@@ -439,17 +471,41 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) TokenizedA
 
 		t.AssetLogo = &ti.AssetLogo
 	}
-	var fee, feeFactor float64
-	{
-		// Calculate Fees
-		fee = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * feeFactor).Truncate(7).InexactFloat64()
+	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
+		t.PricePerToken = decimal.NewFromFloat(ti.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
+	}
+	var feeCompo TokenizationFee
+	var assetFee float64
+
+	if ti.TokenizationFeeID > 0 {
+		// fee has been selected
+		t.TokenizationFeeID = &ti.TokenizationFeeID
+		t.UpdateTokenizationFeeByID(ti.TokenizationFeeID, gc)
+
+		{
+			// Calculate Fees
+			assetFee = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
+
+		}
 
 	}
+
 	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
 	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
 	// auto calculate, token to be held is less the fee
-	t.TotalTokenHeldByManager = t.NumberOfTokenToBeIssued - t.NumberOfTokenToBeSold - fee
 
+	{
+		//ensure correct the number of token to be sold.
+		maxTokenToBeSold := t.NumberOfTokenToBeIssued - assetFee
+
+		if t.NumberOfTokenToBeSold > maxTokenToBeSold {
+			t.NumberOfTokenToBeSold = maxTokenToBeSold
+			ti.NumberOfTokenToBeSold = maxTokenToBeSold
+			ti.Messages = append(ti.Messages, fmt.Sprintf("Submitted Number of tokens to be sold has been adjusted to %v to account for deduction of the asset fee of %v. You may wish to adjust your fee option and then adjust the amount to be sold manually again.", maxTokenToBeSold, assetFee))
+
+		}
+	}
+	t.TotalTokenHeldByManager = t.NumberOfTokenToBeIssued - t.NumberOfTokenToBeSold - assetFee
 	if len(ti.WalletToHoldAssetsNotForSale) > 0 {
 
 		t.WalletToHoldAssetsNotForSale = &ti.WalletToHoldAssetsNotForSale
@@ -461,9 +517,6 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) TokenizedA
 
 	**/
 
-	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
-		t.PricePerToken = decimal.NewFromFloat(ti.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
-	}
 	t.SalesStart = ti.SalesStart
 	t.SalesEnd = ti.SalesEnd
 	t.CapOnPurchase = ti.CapOnPurchase
@@ -473,11 +526,6 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) TokenizedA
 	if len(ti.ProceedCycle) > 0 {
 
 		t.ProceedCycle = &ti.ProceedCycle
-	}
-
-	if ti.TokenizationFeeID > 0 {
-
-		t.TokenizationFeeID = &ti.TokenizationFeeID
 	}
 
 	if len(ti.ProceedPayoutCurrency) > 0 {
@@ -502,7 +550,7 @@ func (t *TokenizedAsset) UpdateFromInput(ti *TokenizedAssetJSONInput) TokenizedA
 
 }
 
-func (ti *TokenizedAsset) ToJSON() (t TokenizedAssetJSON) {
+func (ti *TokenizedAsset) ToJSON(gc *sharedconfig.GlobalConfig) (t TokenizedAssetJSON) {
 
 	t.ID = ti.ID
 	t.CreatedAt = ti.CreatedAt
@@ -643,6 +691,7 @@ func (ti *TokenizedAsset) ToJSON() (t TokenizedAssetJSON) {
 	}
 	if ti.TokenizationFeeID != nil {
 		t.TokenizationFeeID = *ti.TokenizationFeeID
+		t.TokenizationFee = ti.TokenizationFee
 	}
 	if ti.ExemptedCountries != nil {
 		t.ExemptedCountries = *ti.ExemptedCountries

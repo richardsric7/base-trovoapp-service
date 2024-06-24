@@ -66,6 +66,11 @@ func GetTokenizationFees(db *gorm.DB) (fees []userModels.TokenizationFee) {
 
 	return
 }
+func GetTokenizationFeeByID(feeID uint64, db *gorm.DB) (fee []userModels.TokenizationFee) {
+	db.Preload(clause.Associations).Where("id = ?", feeID).First(&fee)
+
+	return
+}
 func GetTokenizationCurrencies(db *gorm.DB) (currencies []userModels.TokenizationCurrency) {
 	currencies = make([]userModels.TokenizationCurrency, 0)
 	db.Preload(clause.Associations).Order("asset_code").Find(&currencies)
@@ -102,6 +107,23 @@ func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.To
 			return
 
 		}
+	}
+
+	return
+}
+
+func GetTokenizedAssetByIssuingWallet(issuingWalletPublicKey string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, NotFound bool, err error) {
+	// var ta userModels.TokenizedAsset
+	err = db.Preload(clause.Associations).Where("issuing_wallet_public_key = ?", issuingWalletPublicKey).First(&tokenizedAsset).Error
+
+	if err != nil {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			//critical database error occured
+			log.Printf("[GetTokenizedAssetByIssuingWallet]error fetching existing tokenization with issuing wallet %v from database  [%v]", issuingWalletPublicKey, err)
+			return
+
+		}
+		NotFound = true
 	}
 
 	return
@@ -196,16 +218,27 @@ func DeleteTokenizationDocument(user *userModels.User, documentID uint64, gc *sh
 
 func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *userModels.UserWallet, input *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) (ato userModels.TokenizedAsset, err error) {
 
+	// initialize message array
+	input.Messages = make([]string, 0)
+
 	//check if existing
-	e := gc.DB.Where("asset_tokenization_status < ?", 1).First(&ato).Error
+	ato, NotFound, e := GetTokenizedAssetByIssuingWallet(issuingWallet.ID, gc.DB)
+
 	if e == nil {
-		//update existing
+		//tokenization existing
+		if ato.AssetTokenizationStatus > 0 {
+			// error tokenization is already in progress
+			log.Printf("[SubmitTokenizationAssetInfo] Error tokenization procesing is in progress and cannot be modified: %v\n", issuingWallet.ID)
+			err = &tErrors.CustomError{Param: "issuingWalletPublicKey", Err: "error-tokenization-cannot-be-modified-by-this-method", ErrMessage: "Tokenization cannot be modified by this method."}
+			return
+
+		}
 		ato = UpdateFromInput(&ato, input)
 
 		ato.LastUpdatedBy = &initiator.Username
 
 	} else {
-		if !errors.Is(e, gorm.ErrRecordNotFound) {
+		if !NotFound {
 			//critical database error occured
 			log.Printf("[SubmitTokenizationAssetInfo]error fetching existing document from database  [%v] for %v: %v\n", input, initiator.Username, e)
 			err = &tErrors.ErrorTemporaryServerError{}
@@ -401,7 +434,7 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	tListJSON := make([]userModels.TokenizedAssetJSON, 0)
 
 	for _, v := range tokenizedAssetList {
-		j := v.ToJSON()
+		j := v.ToJSON(gc)
 		tListJSON = append(tListJSON, j)
 
 	}

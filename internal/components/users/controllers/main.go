@@ -4063,7 +4063,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			c.JSON(http.StatusOK, tokenizedAsset.ToJSON())
+			c.JSON(http.StatusOK, tokenizedAsset.ToJSON(gc))
 
 		})
 
@@ -4234,7 +4234,7 @@ func Init(router *gin.Engine, callBackRetryChan chan userModels.RetryCallbacks, 
 				return
 			}
 
-			c.JSON(http.StatusOK, ta.ToJSON())
+			c.JSON(http.StatusOK, ta.ToJSON(gc))
 
 		})
 
