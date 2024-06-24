@@ -233,7 +233,7 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 			return
 
 		}
-		ato = ato.UpdateFromInput(input, gc)
+		ato = UpdateFromInput(&ato, input, gc)
 
 		ato.LastUpdatedBy = &initiator.Username
 
@@ -253,7 +253,7 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 			IssuingWalletPublicKey: issuingWallet.ID,
 			IssuingWalletAlias:     issuingWallet.Alias,
 		}
-		ato = ato.UpdateFromInput(input, gc)
+		ato = UpdateFromInput(&ato, input, gc)
 
 	}
 
@@ -444,7 +444,7 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	return records
 }
 
-func UpdateFromInput1(t *userModels.TokenizedAsset, ti *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) userModels.TokenizedAsset {
+func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) userModels.TokenizedAsset {
 	if ti.HasAdditionalKYCRequirements > 0 && len(ti.AdditionalKYCRequirements) > 0 {
 
 		t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
