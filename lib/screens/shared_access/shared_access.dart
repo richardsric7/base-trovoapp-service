@@ -1395,7 +1395,7 @@ class _SharedAccessState extends State<SharedAccess>
       Step(
         state: currentStep > 0 ? StepState.complete : StepState.indexed,
         isActive: currentStep >= 0,
-        title: Text("addvieweraccess",
+        title: Text("addvieweraccess".tr(),
             style: TextStyle(
                 color: notifier.getbluewhitecolor,
                 fontFamily: fontsemibold,

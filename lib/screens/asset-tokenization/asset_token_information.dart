@@ -518,7 +518,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                     });
                   },
                   getStandardWallets,
-                  walletToHoldAssetsNotForSale,
+                  getStandardWallets
+                          .where((wallet) =>
+                              wallet.value == walletToHoldAssetsNotForSale)
+                          .isEmpty
+                      ? null
+                      : walletToHoldAssetsNotForSale,
                   appState.userInfo!.getStandardWallets.length > 0
                       ? appState.userInfo!.getStandardWallets.first.alias
                       : '',

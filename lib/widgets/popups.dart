@@ -130,6 +130,7 @@ popup(context,
 }
 
 Future<bool?> biometricsErrorAlert(BuildContext context) {
+  var appState = Provider.of<DataProvider>(context, listen: false);
   return showDialog<bool>(
       context: context,
       builder: (context) {
@@ -143,7 +144,7 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
                     fontSize: 14.0,
                     fontFamily: fontbody,
                     fontWeight: FontWeight.bold,
-                    color: Colors.teal),
+                    color: Colors.blue[900]),
               ),
               onPressed: () => Navigator.of(
                 context,
@@ -157,10 +158,23 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
                       fontSize: 14.0,
                       fontFamily: fontbody,
                       fontWeight: FontWeight.bold,
-                      color: Colors.teal),
+                      color: Colors.blue[900]),
                 ),
                 onPressed: () async {
                   await AppSettings.openAppSettings();
+                }),
+            TextButton(
+                child: Text(
+                  "Disable biometrics",
+                  style: TextStyle(
+                      fontSize: 14.0,
+                      fontFamily: fontbody,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue[900]),
+                ),
+                onPressed: () async {
+                  appState.currentAction = PageAction(
+                      state: PageState.addPage, page: SettingsViewPageConfig);
                 }),
           ],
           content: Container(
@@ -4726,7 +4740,6 @@ addSubWalletPopup(context) async {
           appState.returnView!.pages!.contains(WalletPreparationViewPageConfig))
       ? 1
       : 0;
-  print('this is selected wallet type $selectedWalletType');
   String? tag;
   String password = '';
   String? description;
@@ -5555,7 +5568,7 @@ addSubWalletPopup(context) async {
                                     fontSize: 14.0,
                                     fontFamily: fontbody,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.teal),
+                                    color: notifier.getbluewhitecolor),
                               ),
                               onPressed: () {
                                 print('clicked 0o');
@@ -5597,130 +5610,140 @@ showCreateTokenizationWalletPopup(context) async {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Image.asset(
-                        'assets/images/empty_folder.png',
-                        // height: 50,
-                        width: 250,
-                      ),
-                      Text(
-                        "youhavenoinitiatoraccess1".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.4,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/empty_folder.png',
+                          // height: 50,
+                          width: 250,
                         ),
-                      ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      Text(
-                        "youhavenoinitiatoraccess2".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.4,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      Text(
-                        "youhavenoinitiatoraccess3".tr(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.4,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      ElevatedButton(
-                        onPressed: () async {
-                          appState.returnView = PageAction(
-                              state: PageState.addAll,
-                              pages: [
-                                BottomHomePageConfig,
-                                WalletPreparationViewPageConfig
-                              ]);
-                          addSubWalletPopup(context);
-                        },
-                        style: ButtonStyle(
-                          overlayColor: MaterialStateProperty.all<Color>(
-                              notifier.getsplashgrey),
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              notifier.getbluewhitecolor),
-                          side: MaterialStateProperty.all(
-                            BorderSide(
-                                color: notifier.getbluewhitecolor,
-                                width: 1,
-                                style: BorderStyle.solid),
+                        Text(
+                          "To proceed with tokenization, kindly follow the following steps:",
+                          textAlign: TextAlign.justify,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.4,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
                           ),
-                          shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                            const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                        ),
+                        SizedBox(
+                          height: height / 70,
+                        ),
+                        Text(
+                          // "youhavenoinitiatoraccess2".tr(),
+                          "1. Create a Tokenization Wallet ",
+                          textAlign: TextAlign.justify,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.4,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 70,
+                        ),
+                        Text(
+                          // "youhavenoinitiatoraccess3".tr(),
+                          "2. Add the relevant accounts to the Wallet with the appropriate access for each account",
+                          textAlign: TextAlign.justify,
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.4,
+                            fontFamily: fontbody,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 70,
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            appState.returnView = PageAction(
+                                state: PageState.addAll,
+                                pages: [
+                                  BottomHomePageConfig,
+                                  WalletPreparationViewPageConfig
+                                ]);
+                            addSubWalletPopup(context);
+                          },
+                          style: ButtonStyle(
+                            overlayColor: MaterialStateProperty.all<Color>(
+                                notifier.getsplashgrey),
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                notifier.getbluewhitecolor),
+                            side: MaterialStateProperty.all(
+                              BorderSide(
+                                  color: notifier.getbluewhitecolor,
+                                  width: 1,
+                                  style: BorderStyle.solid),
+                            ),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        child: Container(
-                          // width: width / 1.5,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_circle_rounded,
-                                size: 20,
-                                color: notifier.getwihitecolor,
-                              ),
-                              SizedBox(
-                                width: 4,
-                              ),
-                              Text(
-                                "createnewwallet".tr(),
-                                style: TextStyle(
-                                    fontFamily: fontsemibold,
-                                    fontSize: 12,
-                                    color: notifier.getwihitecolor),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        height: height / 90,
-                      ),
-                      TextButton(
-                          child: Text(
-                            "close".tr(),
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              fontFamily: fontbody,
-                              fontWeight: FontWeight.bold,
-                              color: notifier.getbluecolor,
+                          child: Container(
+                            // width: width / 1.5,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add_circle_rounded,
+                                  size: 20,
+                                  color: notifier.getwihitecolor,
+                                ),
+                                SizedBox(
+                                  width: 4,
+                                ),
+                                Text(
+                                  "createnewwallet".tr(),
+                                  style: TextStyle(
+                                      fontFamily: fontsemibold,
+                                      fontSize: 12,
+                                      color: notifier.getwihitecolor),
+                                ),
+                              ],
                             ),
                           ),
-                          onPressed: () {
-                            appState.returnView = null;
-                            Navigator.of(
-                              context,
-                              rootNavigator: true,
-                            ).pop(false);
-                          }),
-                      SizedBox(height: height / 50),
-                    ],
+                        ),
+                        SizedBox(
+                          height: height / 90,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton(
+                                child: Text(
+                                  "close".tr(),
+                                  style: TextStyle(
+                                    fontSize: 14.0,
+                                    fontFamily: fontbody,
+                                    fontWeight: FontWeight.bold,
+                                    color: notifier.getbluecolor,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  appState.returnView = null;
+                                  Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop(false);
+                                }),
+                          ],
+                        ),
+                        SizedBox(height: height / 50),
+                      ],
+                    ),
                   ),
                 ),
               ));
