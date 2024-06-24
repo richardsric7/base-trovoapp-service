@@ -233,7 +233,7 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 			return
 
 		}
-		ato = UpdateFromInput(&ato, input)
+		ato = ato.UpdateFromInput(input, gc)
 
 		ato.LastUpdatedBy = &initiator.Username
 
@@ -253,7 +253,7 @@ func SubmitTokenizationAssetInfo(initiator *userModels.User, issuingWallet *user
 			IssuingWalletPublicKey: issuingWallet.ID,
 			IssuingWalletAlias:     issuingWallet.Alias,
 		}
-		ato = UpdateFromInput(&ato, input)
+		ato = ato.UpdateFromInput(input, gc)
 
 	}
 
@@ -444,7 +444,7 @@ func GetTokenizationList(user *userModels.User, gc *sharedconfig.GlobalConfig, c
 	return records
 }
 
-func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAssetJSONInput) userModels.TokenizedAsset {
+func UpdateFromInput1(t *userModels.TokenizedAsset, ti *userModels.TokenizedAssetJSONInput, gc *sharedconfig.GlobalConfig) userModels.TokenizedAsset {
 	if ti.HasAdditionalKYCRequirements > 0 && len(ti.AdditionalKYCRequirements) > 0 {
 
 		t.AdditionalKYCRequirements = &ti.AdditionalKYCRequirements
@@ -591,20 +591,41 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 
 		t.AssetLogo = &ti.AssetLogo
 	}
-	var fee, feeFactor float64
-	{
-		// Calculate Fees
-		fee = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * feeFactor).Truncate(7).InexactFloat64()
+	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
+		t.PricePerToken = decimal.NewFromFloat(ti.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
+	}
+	var feeCompo userModels.TokenizationFee
+	var assetFee float64
+
+	if ti.TokenizationFeeID > 0 {
+		// fee has been selected
+		t.TokenizationFeeID = &ti.TokenizationFeeID
+		t.UpdateTokenizationFeeByID(ti.TokenizationFeeID, gc)
+
+		{
+			// Calculate Fees
+			assetFee = decimal.NewFromFloat(t.NumberOfTokenToBeIssued * (feeCompo.FeeAssetPercentage / 100)).Truncate(7).InexactFloat64()
+
+		}
 
 	}
+
 	t.NumberOfTokenToBeIssued = ti.NumberOfTokenToBeIssued
 	t.NumberOfTokenToBeSold = ti.NumberOfTokenToBeSold
 	// auto calculate, token to be held is less the fee
-	t.TotalTokenHeldByManager = t.NumberOfTokenToBeIssued - t.NumberOfTokenToBeSold - fee
-	if t.TotalTokenHeldByManager < 0 {
-		t.TotalTokenHeldByManager = 0
-	}
 
+	{
+		//ensure correct the number of token to be sold.
+		maxTokenToBeSold := t.NumberOfTokenToBeIssued - assetFee
+
+		if t.NumberOfTokenToBeSold > maxTokenToBeSold {
+			t.NumberOfTokenToBeSold = maxTokenToBeSold
+			ti.NumberOfTokenToBeSold = maxTokenToBeSold
+			ti.Messages = append(ti.Messages, fmt.Sprintf("Submitted Number of tokens to be sold has been adjusted to %v to account for deduction of the asset fee of %v. You may wish to adjust your fee option and then adjust the amount to be sold manually again.", maxTokenToBeSold, assetFee))
+
+		}
+	}
+	t.TotalTokenHeldByManager = t.NumberOfTokenToBeIssued - t.NumberOfTokenToBeSold - assetFee
 	if len(ti.WalletToHoldAssetsNotForSale) > 0 {
 
 		t.WalletToHoldAssetsNotForSale = &ti.WalletToHoldAssetsNotForSale
@@ -616,9 +637,6 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 
 	**/
 
-	if t.NumberOfTokenToBeIssued > 0 && t.ValueOfTokenizedAsset > 0 {
-		t.PricePerToken = decimal.NewFromFloat(ti.ValueOfTokenizedAsset / t.NumberOfTokenToBeIssued).Truncate(7).InexactFloat64()
-	}
 	t.SalesStart = ti.SalesStart
 	t.SalesEnd = ti.SalesEnd
 	t.CapOnPurchase = ti.CapOnPurchase
@@ -628,11 +646,6 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 	if len(ti.ProceedCycle) > 0 {
 
 		t.ProceedCycle = &ti.ProceedCycle
-	}
-
-	if ti.TokenizationFeeID > 0 {
-
-		t.TokenizationFeeID = &ti.TokenizationFeeID
 	}
 
 	if len(ti.ProceedPayoutCurrency) > 0 {
@@ -653,6 +666,5 @@ func UpdateFromInput(t *userModels.TokenizedAsset, ti *userModels.TokenizedAsset
 	}
 
 	t.InvestorAccreditationRequired = ti.InvestorAccreditationRequired
-
 	return *t
 }
