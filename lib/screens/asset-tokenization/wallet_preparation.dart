@@ -111,6 +111,7 @@ class _WalletPreparationState extends State<WalletPreparation>
                   return;
                 }
 
+                appState.viewData = null;
                 appState.currentAction = PageAction(
                     state: PageState.addPage,
                     page: SetupAndComplianceViewPageConfig);
@@ -126,6 +127,8 @@ class _WalletPreparationState extends State<WalletPreparation>
   }
 
   Widget walletPreparation() {
+    print('wlaldfjaskldkfls ${appState.activeTokenizationWalletPublicKey}');
+
     return Column(
       children: [
         SizedBox(
@@ -182,20 +185,22 @@ class _WalletPreparationState extends State<WalletPreparation>
             },
             getMintingWallets,
             null,
-            appState.activeTokenizationWalletPublicKey != null
-                ? appState.userInfo!.getMintingWallets
-                    .where((w) =>
-                        w.publicKey ==
-                        appState.activeTokenizationWalletPublicKey)
-                    .first
-                    .alias
-                : 'Select tokenization wallet',
+            getHintText(),
             context,
             null,
           ),
         ),
       ],
     );
+  }
+
+  String getHintText() {
+    var wallet = appState.userInfo!.getMintingWallets.where(
+        (w) => w.publicKey == appState.activeTokenizationWalletPublicKey);
+
+    return wallet.length > 0
+        ? wallet.first.alias!
+        : 'Select tokenization wallet';
   }
 
   Widget CheckItem(

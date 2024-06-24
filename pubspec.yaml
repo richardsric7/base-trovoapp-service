@@ -181,6 +181,12 @@ flutter:
     - family: Montserrat_Medium
       fonts:
         - asset: assets/fonts/Montserrat-Medium.ttf
+    - family: WorldIcon
+      fonts:
+        - asset: assets/fonts/World-Icon.ttf
+    - family: WorldIconOutlined
+      fonts:
+        - asset: assets/fonts/World-Icon-Outlined.ttf
 
   #
   # For details regarding fonts from package dependencies,

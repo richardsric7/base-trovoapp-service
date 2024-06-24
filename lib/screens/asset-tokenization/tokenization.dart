@@ -45,7 +45,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   bool checkHasInitiatorAccess() {
     var hasAccess = false;
     appState.userInfo!.getMintingWallets.forEach((wallet) {
-      hasAccess = wallet.isInitiator;
+      hasAccess = wallet.isSharedWalletAndCanInitiate;
     });
     return hasAccess;
   }
@@ -88,7 +88,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     tabController = TabController(length: 2, vsync: this);
     appState = Provider.of<DataProvider>(context, listen: false);
     listOfTokenizations = fetchTokenizationList();
-    hasInitiatorAccess = checkHasInitiatorAccess();
+    // hasInitiatorAccess = checkHasInitiatorAccess();
   }
 
   @override
@@ -161,11 +161,11 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                           ElevatedButton(
                             onPressed: () async {
                               hasInitiatorAccess
-                                  ? showCreateTokenizationWalletPopup(context)
-                                  : appState.currentAction = PageAction(
+                                  ? appState.currentAction = PageAction(
                                       state: PageState.addPage,
                                       page: WalletPreparationViewPageConfig,
-                                    );
+                                    )
+                                  : showCreateTokenizationWalletPopup(context);
                             },
                             style: ButtonStyle(
                               overlayColor: MaterialStateProperty.all<Color>(
@@ -241,34 +241,39 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   if (snapshot.hasError) {
                     return Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            "somethingwentwrong".tr(),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: notifier.getbluewhitecolor,
-                                fontFamily: fontbody),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                listOfTokenizations = fetchTokenizationList();
-                              });
-                            },
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  notifier.getbluecolor!),
-                            ),
-                            child: Text(
-                              "retry".tr(),
+                      child: SizedBox(
+                        height: height / 2,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "somethingwentwrong".tr(),
+                              textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontFamily: fontsemibold,
+                                  fontSize: 16,
+                                  color: notifier.getbluewhitecolor,
+                                  fontFamily: fontbody),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  listOfTokenizations = fetchTokenizationList();
+                                });
+                              },
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        notifier.getbluecolor!),
+                              ),
+                              child: Text(
+                                "retry".tr(),
+                                style: TextStyle(
+                                  fontFamily: fontsemibold,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   } else if (snapshot.hasData) {
@@ -465,7 +470,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.4,
-                      fontFamily: fontbody,
+                      fontFamily: fontsemibold,
                       color: notifier.getbluewhitecolor,
                     ),
                   ),
@@ -475,11 +480,11 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                   ElevatedButton(
                     onPressed: () async {
                       hasInitiatorAccess
-                          ? showCreateTokenizationWalletPopup(context)
-                          : appState.currentAction = PageAction(
+                          ? appState.currentAction = PageAction(
                               state: PageState.addPage,
                               page: WalletPreparationViewPageConfig,
-                            );
+                            )
+                          : showCreateTokenizationWalletPopup(context);
                     },
                     style: ButtonStyle(
                       overlayColor: MaterialStateProperty.all<Color>(
@@ -646,6 +651,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
       var uri = '/v1/tokenization/list';
       print('fetching .... .... $uri');
 
+      fetchTokenizationData();
       Map responseData = await makeGetRequest(
         uri: Uri.encodeFull(uri),
         signer: appState.primaryWallet.signer!,

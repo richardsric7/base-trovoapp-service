@@ -61,17 +61,19 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
     getdarkmodepreviousstate();
     appState = Provider.of<DataProvider>(context, listen: false);
     data = appState.viewData;
-
-    selectedAssetSectorId = data!["assetSector"];
-    selectedAssetSubSectorId = data!["assetSubSector"];
-    selectedAssetTypeId = data!["assetType"];
-    offeringType = data!["offeringType"].toString() == 'private' ? 1 : 0;
-    secApprovalId = data!["secApprovalIdNumber"];
-    hasSecApproval = data!["secApproval"] == 1;
-    selectedCountry = data!["assetCountryLocation"];
-    selectedAssetCustodian = data!["approvedAssetCustodianId"].toString();
-    hasAllRequiredDocuments = data!["approvedAssetCustodianId"] != 0;
-    hasCustodianAgreement = data!["approvedAssetCustodianInfo"].length != 0;
+    print(appState.viewData);
+    if (data != null) {
+      selectedAssetSectorId = data!["assetSector"];
+      selectedAssetSubSectorId = data!["assetSubSector"];
+      selectedAssetTypeId = data!["assetType"];
+      offeringType = data!["offeringType"].toString() == 'private' ? 1 : 0;
+      secApprovalId = data!["secApprovalIdNumber"];
+      hasSecApproval = data!["secApproval"] == 1;
+      selectedCountry = data!["assetCountryLocation"];
+      selectedAssetCustodian = data!["approvedAssetCustodianId"].toString();
+      hasAllRequiredDocuments = data!["approvedAssetCustodianId"] != 0;
+      hasCustodianAgreement = data!["approvedAssetCustodianInfo"].length != 0;
+    }
   }
 
   @override
@@ -270,7 +272,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                   });
                 },
                 assetTypes,
-                selectedAssetTypeId,
+                selectedAssetTypeId.isEmpty ? null : selectedAssetTypeId,
                 'Select asset type',
                 context,
                 null,
@@ -683,13 +685,15 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
                       });
                     },
                     assetCustodians,
-                    assetCustodians
-                        .where((element) {
-                          return element.value.toString() ==
-                              selectedAssetCustodian;
-                        })
-                        .first
-                        .value,
+                    selectedAssetCustodian.isNotEmpty
+                        ? assetCustodians
+                            .where((element) {
+                              return element.value.toString() ==
+                                  selectedAssetCustodian;
+                            })
+                            .first
+                            .value
+                        : null,
                     selectedAssetCustodian.isNotEmpty
                         ? getSelectedAssetCustodianLabel(
                             selectedAssetCustodian, tokenizationData)
@@ -990,7 +994,6 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
       // make initial request to the server using the
       // following credential
       var mintingWalletPublicKey = appState.activeTokenizationWalletPublicKey!;
-      var marketMakingWallet = appState.userInfo!.getMarketMakingWallets[0];
       // var newData = {...data as Map};
 
       // newData["assetSector"] = selectedAssetSectorId;
@@ -1007,6 +1010,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
 
       // print('map here $newData');
       // String requestBody = jsonEncode(newData);
+      print('selected asset custodian $selectedAssetCustodian');
       Map map = {
         "assetSector": selectedAssetSectorId,
         "assetSubSector": selectedAssetSubSectorId,
@@ -1015,7 +1019,7 @@ class _SetupAndComplianceState extends State<SetupAndCompliance>
         "approvedAssetCustodianId": selectedAssetCustodian.length > 0
             ? int.parse(selectedAssetCustodian)
             : 1,
-        "marketMakingWallet": marketMakingWallet.publicKey,
+        // "marketMakingWallet": marketMakingWallet.publicKey,
         "secApproval": hasSecApproval ? 1 : 0,
         "secApprovalIdNumber": secApprovalId,
         "assetCountryLocation": selectedCountry,

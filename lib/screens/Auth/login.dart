@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:trovo_wallet/Icons/my_flutter_app_icons.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -167,7 +169,100 @@ class _LoginState extends State<Login> {
             ),
             Column(
               children: [
-                SizedBox(height: height / 7),
+                SizedBox(height: height / 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        width: width / 3,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: DropdownButtonFormField(
+                                isExpanded: true,
+                                key: _dropDownKey,
+                                dropdownColor: notifier.isDark
+                                    ? darktilewhitecolor
+                                    : notifier.getaddsubwalletgrey,
+                                value: appState.walletMode,
+                                icon: Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                ),
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.symmetric(
+                                      vertical: 8.0, horizontal: 10),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide.lerp(
+                                        BorderSide(color: notifier.getgrey),
+                                        BorderSide(color: notifier.getgrey),
+                                        1.0),
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(20.0)),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide.lerp(
+                                        BorderSide(color: notifier.getgrey),
+                                        BorderSide(color: notifier.getgrey),
+                                        1.0),
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(20.0)),
+                                  ),
+                                ),
+                                elevation: 0,
+                                style: TextStyle(
+                                    color: notifier.getdarkgrey,
+                                    fontSize: 13.5.sp,
+                                    fontFamily: fontbody),
+                                onChanged: handleEnvironmentSwitch,
+                                items: <DropdownMenuItem<String>>[
+                                  DropdownMenuItem(
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          CustomIcon.globeOutlined,
+                                          size: 18,
+                                        ),
+                                        SizedBox(
+                                          width: 6,
+                                        ),
+                                        Text(
+                                          "testnet".tr(),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                    value: 'Testnet',
+                                  ),
+                                  DropdownMenuItem(
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          CustomIcon.globeOutlined,
+                                          size: 18,
+                                        ),
+                                        SizedBox(
+                                          width: 6,
+                                        ),
+                                        Text(
+                                          "mainnet".tr(),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                    value: 'Mainnet',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: height / 15),
                 Column(
                   children: [
                     Column(
@@ -225,61 +320,8 @@ class _LoginState extends State<Login> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Container(
-                        width: width / 4.5,
-                        height: 20,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: DropdownButtonFormField(
-                                isExpanded: true,
-                                key: _dropDownKey,
-                                dropdownColor: notifier.isDark
-                                    ? darktilewhitecolor
-                                    : notifier.getaddsubwalletgrey,
-                                value: appState.walletMode,
-                                icon: Visibility(
-                                    visible: false,
-                                    child: Icon(Icons.arrow_downward)),
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.symmetric(
-                                      vertical: 0, horizontal: 10),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                                elevation: 0,
-                                style: TextStyle(
-                                    color: notifier.getdarkgrey,
-                                    fontSize: 13.5.sp,
-                                    fontFamily: fontbody),
-                                onChanged: handleEnvironmentSwitch,
-                                items: <DropdownMenuItem<String>>[
-                                  DropdownMenuItem(
-                                    child: Text(
-                                      "testnet".tr(),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    value: 'Testnet',
-                                  ),
-                                  DropdownMenuItem(
-                                    child: Text(
-                                      "mainnet".tr(),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    value: 'Mainnet',
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                       TextButton(
                         onPressed: () {
                           appState.currentAction = PageAction(

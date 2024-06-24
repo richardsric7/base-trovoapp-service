@@ -207,6 +207,7 @@ class _SecretState extends State<Secret> {
                   }
 
                   googleSignIn.signOut();
+                  showSnackBarForInfo("backupsuccess".tr(), context);
                 },
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
