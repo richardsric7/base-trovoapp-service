@@ -514,6 +514,7 @@ class _ImportWalletState extends State<ImportWallet> {
     await StoreData().storeInsertData('isFirstTime', false);
     await StoreData().storeInsertData('password', appState.tempPassword);
     await StoreData().storeInsertData('publicKey', appState.tempPublicKey);
+    await StoreData().storeInsertData('walletMode', appState.walletMode);
     await StoreData()
         .storeInsertData('secretKey', <String>[appState.tempSecretKey]);
 

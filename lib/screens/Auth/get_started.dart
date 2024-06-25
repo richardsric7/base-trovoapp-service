@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:trovo_wallet/Icons/my_flutter_app_icons.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
@@ -9,6 +10,7 @@ import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:trovo_wallet/storage/state.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/widgets/popups.dart';
 
 import '../../custom_bloc_observer/fonts.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
@@ -22,6 +24,8 @@ class GetStarted extends StatefulWidget {
 
 class _GetStartedState extends State<GetStarted> {
   late ColorNotifier notifier;
+  late DataProvider appState;
+  final _dropDownKey = GlobalKey<FormFieldState>();
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -43,7 +47,7 @@ class _GetStartedState extends State<GetStarted> {
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    var appState = Provider.of<DataProvider>(context, listen: true);
+    appState = Provider.of<DataProvider>(context, listen: true);
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -51,10 +55,102 @@ class _GetStartedState extends State<GetStarted> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: height / 10.5),
+              SizedBox(height: height / 20.5),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      width: width / 2.8,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField(
+                              isExpanded: true,
+                              key: _dropDownKey,
+                              dropdownColor: notifier.isDark
+                                  ? darktilewhitecolor
+                                  : notifier.getaddsubwalletgrey,
+                              value: appState.walletMode,
+                              icon: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                              ),
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 10),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide.lerp(
+                                      BorderSide(color: notifier.getgrey),
+                                      BorderSide(color: notifier.getgrey),
+                                      1.0),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(20.0)),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide.lerp(
+                                      BorderSide(color: notifier.getgrey),
+                                      BorderSide(color: notifier.getgrey),
+                                      1.0),
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(20.0)),
+                                ),
+                              ),
+                              elevation: 0,
+                              style: TextStyle(
+                                  color: notifier.getdarkgrey,
+                                  fontSize: 13.5.sp,
+                                  fontFamily: fontbody),
+                              onChanged: handleEnvironmentSwitch,
+                              items: <DropdownMenuItem<String>>[
+                                DropdownMenuItem(
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        CustomIcon.globeOutlined,
+                                        size: 18,
+                                      ),
+                                      SizedBox(
+                                        width: 6,
+                                      ),
+                                      Text(
+                                        "testnet".tr(),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                  value: 'Testnet',
+                                ),
+                                DropdownMenuItem(
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        CustomIcon.globeOutlined,
+                                        size: 18,
+                                      ),
+                                      SizedBox(
+                                        width: 6,
+                                      ),
+                                      Text(
+                                        "mainnet".tr(),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                  value: 'Mainnet',
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Image.asset("assets/images/palm-recognition.png",
                   height: height / 2.3),
-              SizedBox(height: height / 20),
+              SizedBox(height: height / 30),
               Text(
                 "whatwouldyou".tr(),
                 textAlign: TextAlign.center,
@@ -108,5 +204,15 @@ class _GetStartedState extends State<GetStarted> {
         ),
       ),
     );
+  }
+
+  void handleEnvironmentSwitch(String? newValue) async {
+    if (newValue != appState.walletMode) {
+      showSwitchEnvironmentPopup(context, onProceed: () async {
+        await appState.changeWalletMode(newValue.toString());
+      }, onCancel: () {
+        _dropDownKey.currentState!.reset();
+      }, toEnvironment: newValue!);
+    }
   }
 }

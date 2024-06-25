@@ -25,9 +25,9 @@ void main() async {
   await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-      name: await StoreData().storeGetData('walletMode') ?? "Mainnet",
+      name: await StoreData().storeGetData('walletMode') ?? "Testnet",
       options: DefaultFirebaseOptions.currentPlatform(
-          await StoreData().storeGetData('walletMode') ?? "Mainnet"));
+          await StoreData().storeGetData('walletMode') ?? "Testnet"));
   print(
       '-----------------------------------------------this is the initialized app from main method:  ${DefaultFirebaseOptions.currentPlatform(await StoreData().storeGetData('walletMode') ?? "Testnet")}');
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);

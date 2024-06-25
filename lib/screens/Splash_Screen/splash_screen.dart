@@ -81,8 +81,10 @@ class _SplashScreenState extends State<SplashScreen>
   initializeAppData() async {
     try {
       fetchVersionInfo(appState);
-      appState.walletMode =
-          await StoreData().storeGetData('walletMode') ?? "Mainnet";
+      if (await StoreData().storeGetData('walletMode') == null) {
+        await StoreData().storeInsertData('walletMode', "Testnet");
+      }
+      appState.walletMode = await StoreData().storeGetData('walletMode');
       appState.restartedAfterSwitch =
           await StoreData().storeGetData('restartedAfterSwitch') ?? false;
       appState.isFirstTime =
