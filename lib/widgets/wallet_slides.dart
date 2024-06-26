@@ -137,11 +137,10 @@ class _WalletSlideState extends State<WalletSlide> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          // if (localHideBalance) {
-                          //   authenticateAndToggle();
-                          // } else
-                          //   toggleHideBalance();
-                          biometricsErrorAlert(context);
+                          if (localHideBalance) {
+                            authenticateAndToggle();
+                          } else
+                            toggleHideBalance();
                         },
                         child: Icon(
                           getIcon(),
@@ -219,7 +218,7 @@ class _WalletSlideState extends State<WalletSlide> {
     } on PlatformException catch (e) {
       if (e.code == auth_error.notEnrolled ||
           e.code == auth_error.notAvailable) {
-        biometricsErrorAlert(context);
+        biometricsErrorAlert(context, callback: toggleHideBalance);
       }
     }
   }

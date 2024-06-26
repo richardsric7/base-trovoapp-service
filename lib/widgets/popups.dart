@@ -129,7 +129,8 @@ popup(context,
       });
 }
 
-Future<bool?> biometricsErrorAlert(BuildContext context) {
+Future<bool?> biometricsErrorAlert(BuildContext context,
+    {void Function()? callback}) {
   var appState = Provider.of<DataProvider>(context, listen: false);
   return showDialog<bool>(
       context: context,
@@ -161,7 +162,8 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
                       color: Colors.blue[900]),
                 ),
                 onPressed: () async {
-                  await AppSettings.openAppSettings();
+                  await AppSettings.openAppSettings(
+                      type: AppSettingsType.security);
                 }),
             TextButton(
                 child: Text(
@@ -176,6 +178,23 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
                   appState.currentAction = PageAction(
                       state: PageState.addPage, page: SettingsViewPageConfig);
                 }),
+            if (callback != null) ...[
+              TextButton(
+                  child: Text(
+                    "usepasswordinstead".tr(),
+                    style: TextStyle(
+                        fontSize: 14.0,
+                        fontFamily: fontbody,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[900]),
+                  ),
+                  onPressed: () async {
+                    showPasswordDialog(context, () {
+                      callback();
+                      Navigator.of(context).pop();
+                    });
+                  }),
+            ],
           ],
           content: Container(
             decoration: const BoxDecoration(
