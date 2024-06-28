@@ -4748,12 +4748,30 @@ List<DropdownMenuItem<String>> get walletTypeDropdownItems {
   return dropdownItems;
 }
 
+class SubwalletInfo {
+  String publicKey;
+  String secretKey;
+  String description;
+  bool isImport;
+  String tag;
+  int walletType;
+
+  SubwalletInfo({
+    required this.publicKey,
+    required this.secretKey,
+    required this.tag,
+    this.isImport = false,
+    required this.description,
+    required this.walletType,
+  });
+}
+
 addSubWalletPopup(context) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   var appState = Provider.of<DataProvider>(context, listen: false);
   final Authenticator _authenticator = Authenticator();
   late Account primaryWalletKeyPair;
-  late Account newSubWalletKeyPair;
+  List<SubwalletInfo> newSubWalletKeyPairs = [];
   int selectedWalletType = ((appState.returnView != null &&
               appState.returnView!.pages != null) &&
           appState.returnView!.pages!.contains(WalletPreparationViewPageConfig))
@@ -4766,6 +4784,10 @@ addSubWalletPopup(context) async {
   width = MediaQuery.of(context).size.width;
   final _formKey = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
+  final descriptionController = TextEditingController();
+  final tagController = TextEditingController();
+  FocusNode tagFocusNode = FocusNode();
+
   WalletAction? action = WalletAction.createNew;
   String? secretKey;
   var userInfo = appState.userInfo!;
@@ -4775,7 +4797,8 @@ addSubWalletPopup(context) async {
   password = '';
   description = '';
 
-  void sendFullDataToServer(responseBody, context) async {
+  void sendFullDataToServer(
+      responseBody, context, SubwalletInfo subWallet) async {
     showLoader(context);
     var appState = Provider.of<DataProvider>(context, listen: false);
     var userInfo = appState.userInfo!;
@@ -4790,7 +4813,7 @@ addSubWalletPopup(context) async {
 
       // get secondary signature
       var subWalletSignature = TrovoWalletSDK().signBase64Txn(
-        newSubWalletKeyPair.secretKey,
+        subWallet.secretKey,
         responseBody['transaction'],
         responseBody['networkPassPhrase'],
       );
@@ -4811,10 +4834,15 @@ addSubWalletPopup(context) async {
       if (responseData['statusCode'] == 200) {
         // add the secret key of this new subwallet to
         // the existing list of secrets
-        appState.secretKeys.add(newSubWalletKeyPair.secretKey);
+        appState.secretKeys.add(subWallet.secretKey);
         // store back the list of secret keys but this time it
         // contains the secret key of the newly created subwallet
         await StoreData().storeInsertData('secretKey', appState.secretKeys);
+
+        if (subWallet.walletType == 1) {
+          return;
+        }
+
         await updateUserInfo(
           appState.primaryWallet.signer,
           appState.secretKeys[0],
@@ -4825,9 +4853,9 @@ addSubWalletPopup(context) async {
         );
         // add the new subwallet to appState and
         // set the newly created subwallet as the activeWallet
-        appState.activeWallet = appState.userInfo!.wallets!.firstWhere(
-            (wallet) => wallet.publicKey == newSubWalletKeyPair.publicKey);
-        appState.activeWallet!.secretKey = newSubWalletKeyPair.secretKey;
+        appState.activeWallet = appState.userInfo!.wallets!
+            .firstWhere((wallet) => wallet.publicKey == subWallet.publicKey);
+        appState.activeWallet!.secretKey = subWallet.secretKey;
         // move to next page
         appState.currentAction = PageAction(
             state: PageState.addPage, page: CongratulationsPageConfig);
@@ -4847,7 +4875,8 @@ addSubWalletPopup(context) async {
     hideLoader(context);
   }
 
-  postProcessSubwalletData(messageShown, messageLength, data, context) {
+  postProcessSubwalletData(
+      messageShown, messageLength, data, context, SubwalletInfo subWallet) {
     // we would like to display all messages returned from the initial
     // request to server using a popup. In order to achieve that we
     // employ the use of a little recursion here. Please recursive
@@ -4859,27 +4888,25 @@ addSubWalletPopup(context) async {
           () => {
                 print('postProcessData: $messageShown'),
                 postProcessSubwalletData(
-                    messageShown, messageLength, data, context),
+                    messageShown, messageLength, data, context, subWallet),
               });
 
       messageShown++;
       return;
     }
 
-    sendFullDataToServer(data, context);
+    sendFullDataToServer(data, context, subWallet);
     return;
   }
 
-  void sendDataToServer(
-    context,
-  ) async {
+  Future sendDataToServer(context, SubwalletInfo subWallet) async {
     showLoader(context);
 
     try {
       // make initial request to the server using the
       // following credentials
       Map map = {
-        "publickey": newSubWalletKeyPair.publicKey,
+        "publickey": subWallet.publicKey,
         "walletTag": tag,
         "WalletDescription": description,
         // "assetIssuerWallet": isAssetIssuerWallet,
@@ -4904,7 +4931,12 @@ addSubWalletPopup(context) async {
         var messageShown = 0;
 
         await postProcessSubwalletData(
-            messageShown, messageLength, responseData['data'], context);
+          messageShown,
+          messageLength,
+          responseData['data'],
+          context,
+          subWallet,
+        );
         // print('sending full data to server.........');
       } else {
         popup(context,
@@ -4917,13 +4949,15 @@ addSubWalletPopup(context) async {
     hideLoader(context);
   }
 
-  void handleAuthorization(_formKey, appState, context) {
+  void handleAuthorization(_formKey, appState, context) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     if (password == appState.password!) {
-      sendDataToServer(context);
+      for (var item in newSubWalletKeyPairs) {
+        await sendDataToServer(context, item);
+      }
     } else {
       popup(context, title: "oops".tr(), message: "invalidpassword".tr());
     }
@@ -4933,7 +4967,9 @@ addSubWalletPopup(context) async {
     try {
       bool result = await _authenticator.authenticateMe();
       if (result) {
-        sendDataToServer(context);
+        for (var item in newSubWalletKeyPairs) {
+          await sendDataToServer(context, item);
+        }
       }
     } on PlatformException catch (e) {
       if (e.code == auth_error.notEnrolled ||
@@ -4970,6 +5006,629 @@ addSubWalletPopup(context) async {
     return null;
   }
 
+  Widget walletDetailCard(SubwalletInfo subwallet) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Card(
+        shadowColor: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        color: notifier.isDark
+            ? notifier.getbluecolor90
+            : notifier.getaddsubwalletgrey,
+        child: Center(
+            child: Column(
+          children: [
+            SizedBox(
+              height: height / 50,
+            ),
+            Container(
+              width: width / 1.4,
+              child: Text(
+                "requesttocreatesubwallet".tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Text(
+              "tag".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontFamily: fontsemibold,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+            Text(
+              "${userInfo.username!}_${subwallet.tag}",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontFamily: fontbody,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Text(
+              "description".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontFamily: fontsemibold,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+            Text(
+              subwallet.description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontFamily: fontbody,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Text(
+              "method".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontFamily: fontsemibold,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+            Text(
+              action == WalletAction.import
+                  ? "importsubwallet".tr()
+                  : "createnewsubwallet".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontFamily: fontbody,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Text(
+              "wallettype".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontFamily: fontsemibold,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+            Text(
+              walletTypes[subwallet.walletType],
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontFamily: fontbody,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+            SizedBox(
+              height: height / 50,
+            ),
+            Text(
+              "publickey".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                fontFamily: fontsemibold,
+                color: notifier.getbluewhitecolor,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Text(
+                subwallet.publicKey,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: fontbody,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: height / 20,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Text(
+                "willattractcharges".tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontFamily: fontbody,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: height / 30,
+            ),
+          ],
+        )),
+      ),
+    );
+  }
+
+  Widget showAddSubwalletView(setStateForDialog) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Center(
+            child: Text(
+              "addsubwallet".tr(),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: notifier.getbluewhitecolor,
+                fontSize: 20,
+                fontFamily: fontsemibold,
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: height / 50,
+        ),
+        Form(
+          key: _formKey2,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Card(
+                  shadowColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
+                  color: notifier.isDark
+                      ? notifier.getbluecolor90
+                      : notifier.getaddsubwalletgrey,
+                  child: Center(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: height / 50,
+                        ),
+                        Container(
+                          width: width / 1.4,
+                          child: Text(
+                            "abouttocreatesubwallet".tr(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontFamily: fontsemibold,
+                              color: notifier.getbluewhitecolor,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 50,
+                        ),
+                        Text(
+                          "chooseamethod".tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: fontsemibold,
+                            color: notifier.getbluewhitecolor,
+                          ),
+                        ),
+                        SizedBox(
+                          height: height / 50,
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: width / 10,
+                            ),
+                            Transform.scale(
+                              scale: 1.5,
+                              child: Radio<WalletAction>(
+                                value: WalletAction.import,
+                                groupValue: action,
+                                activeColor: notifier.getbluewhitecolor,
+                                fillColor: MaterialStateColor.resolveWith(
+                                    (states) => notifier.getbluewhitecolor),
+                                onChanged: (value) => {
+                                  setStateForDialog(
+                                    () {
+                                      action = value;
+                                    },
+                                  )
+                                },
+                              ),
+                            ),
+                            Text(
+                              "importexistingwallet".tr(),
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            SizedBox(
+                              width: width / 10,
+                            ),
+                            Transform.scale(
+                              scale: 1.5,
+                              child: Radio<WalletAction>(
+                                value: WalletAction.createNew,
+                                activeColor: notifier.getbluewhitecolor,
+                                fillColor: MaterialStateColor.resolveWith(
+                                    (states) => notifier.getbluewhitecolor),
+                                groupValue: action,
+                                onChanged: (value) => {
+                                  setStateForDialog(
+                                    () {
+                                      action = value;
+                                    },
+                                  )
+                                },
+                              ),
+                            ),
+                            Text(
+                              "createnewwallet".tr(),
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontFamily: fontsemibold,
+                                color: notifier.getbluewhitecolor,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: height / 50,
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: width / 1.5,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: notifier.getbluecolor,
+                                    ),
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(15.0)),
+                                  ),
+                                  child: dropdown(
+                                    (newValue) async {
+                                      setStateForDialog(() {
+                                        selectedWalletType =
+                                            int.parse(newValue.toString());
+                                      });
+                                    },
+                                    walletTypeDropdownItems,
+                                    selectedWalletType.toString(),
+                                    walletTypes[selectedWalletType],
+                                    context,
+                                    null,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: height / 50,
+                            ),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: height / 30,
+              ),
+              // Tag name
+              CustomTextFormField.textField(
+                "tag".tr(),
+                notifier.getbluecolor,
+                Icons.tag,
+                notifier.getgrey,
+                notifier.getbluewhitecolor,
+                notifier.getblck,
+                notifier.getgrey,
+                70,
+                300,
+                onChanged: (value) {
+                  // setState(() {
+                  //   tag = value.trim().replaceAll(' ', '');
+                  // });
+                },
+                onSaved: (value) {
+                  print('tag: $value');
+                  tag = value.trim().replaceAll(' ', '');
+                },
+                keyboardtype: TextInputType.text,
+                maxLength: 12,
+                controller: tagController,
+                focusNode: tagFocusNode,
+                validator: validateTag,
+                helperText: tag == null || tag!.isEmpty
+                    ? ''
+                    : "${appState.userInfo!.username}_$tag",
+              ),
+              SizedBox(height: height / 50),
+              CustomTextFormField.textField(
+                "description".tr(),
+                notifier.getbluecolor,
+                Icons.description,
+                notifier.getgrey,
+                notifier.getbluewhitecolor,
+                notifier.getblck,
+                notifier.getgrey,
+                70,
+                300,
+                onSaved: (value) {
+                  print('description: $value');
+                  description = value;
+                },
+                keyboardtype: TextInputType.text,
+                maxLength: 100,
+                controller: descriptionController,
+                validator: validateDescription,
+              ),
+              if (action == WalletAction.import) ...[
+                SizedBox(height: height / 50),
+                // Secret Key
+                CustomPasswordFormField(
+                  "secretkey".tr(),
+                  notifier.getbluecolor,
+                  Icons.lock,
+                  notifier.getgrey,
+                  notifier.getbluewhitecolor,
+                  notifier.getblck,
+                  70,
+                  300,
+                  validator: (value) {
+                    var trimmedVal = value!.trim().replaceAll(' ', '');
+                    if (trimmedVal.isEmpty) {
+                      return "entersecretkeyempty".tr();
+                    }
+
+                    if (trimmedVal.length < 56) {
+                      return "secretkeyinvalid".tr();
+                    }
+
+                    try {
+                      TrovoWalletSDK().parseSecretKey(value);
+                    } catch (e) {
+                      return 'Secret Key is invalid';
+                    }
+
+                    return null;
+                  },
+                  onSaved: (value) {
+                    print('${"email".tr()}: $value');
+                    secretKey = value!.trim().replaceAll(' ', '');
+                  },
+                  maxLength: 56,
+                ),
+              ],
+              SizedBox(height: height / 30),
+              Button(
+                "continuee".tr(),
+                notifier.getbluecolor,
+                wihitecolor,
+                width: width / 1.5,
+                onTap: () {
+                  var form = _formKey2.currentState;
+                  if (!form!.validate()) {
+                    return;
+                  }
+
+                  form.save();
+
+                  primaryWalletKeyPair =
+                      TrovoWalletSDK().parseSecretKey(appState.secretKeys[0]);
+
+                  setStateForDialog(() {
+                    if (action == WalletAction.import) {
+                      try {
+                        // parse supplied secret to get the keypair
+                        var ac = TrovoWalletSDK().parseSecretKey(secretKey);
+
+                        newSubWalletKeyPairs.add(
+                          SubwalletInfo(
+                            publicKey: ac.publicKey,
+                            secretKey: ac.secretKey,
+                            tag: tag!,
+                            description: description!,
+                            walletType: selectedWalletType,
+                          ),
+                        );
+                      } catch (e) {
+                        popup(context,
+                            title: "error".tr(),
+                            message: "invalidsecretkey".tr());
+                      }
+                    } else {
+                      // generate keypair for the new subwallet
+                      var ac = TrovoWalletSDK().createAccount();
+
+                      newSubWalletKeyPairs.add(
+                        SubwalletInfo(
+                          publicKey: ac.publicKey,
+                          secretKey: ac.secretKey,
+                          tag: tag!,
+                          description: description!,
+                          walletType: selectedWalletType,
+                        ),
+                      );
+                    }
+
+                    password = '';
+                    secretKey = '';
+
+                    if (selectedWalletType == 1) {
+                      popup(context,
+                          title: 'Important',
+                          message:
+                              'In order to continue creating your Issue/Tokenization Wallet, you need to create a distribution wallet for your asset.');
+                      tagController.clear();
+                      descriptionController.clear();
+                      selectedWalletType = 0;
+                      tagFocusNode.requestFocus();
+                      return;
+                    }
+
+                    walletView = WalletView.confirmAddSubWallet;
+                  });
+                },
+              ),
+              SizedBox(height: height / 70),
+              TextButton(
+                child: Text(
+                  "cancel".tr(),
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    fontFamily: fontbody,
+                    fontWeight: FontWeight.bold,
+                    color: notifier.getbluecolor,
+                  ),
+                ),
+                onPressed: () => Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pop(false),
+              ),
+              SizedBox(height: height / 20),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget showWalletDetailsView(setStateForDialog) {
+    return Column(children: [
+      SizedBox(
+        height: height / 50,
+      ),
+      Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Center(
+          child: Text(
+            "addsubwallet".tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: notifier.getbluewhitecolor,
+              fontSize: 20,
+              fontFamily: fontsemibold,
+            ),
+          ),
+        ),
+      ),
+      SizedBox(
+        height: height / 50,
+      ),
+      Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            for (var item in newSubWalletKeyPairs) ...[
+              walletDetailCard(item),
+            ],
+          ],
+        ),
+      ),
+
+      SizedBox(height: height / 50),
+      // Secret Key
+      CustomPasswordFormField(
+        "password".tr(),
+        notifier.getbluecolor,
+        Icons.lock,
+        notifier.getgrey,
+        notifier.getbluewhitecolor,
+        notifier.getblck,
+        70,
+        300,
+        validator: validatePassword,
+        textInputAction: TextInputAction.done,
+        onChanged: (value) {
+          setStateForDialog(() {
+            password = value!.trim().replaceAll(' ', '');
+          });
+        },
+        // onSubmitted: (value) {
+        //   print('email: $value');
+        //   secretKey = value!.trim().replaceAll(' ', '');
+        // },
+        onSaved: (value) {
+          print('email: $value');
+          secretKey = value!.trim().replaceAll(' ', '');
+        },
+      ),
+      SizedBox(height: height / 50),
+      if (appState.biometricEnabled && password.isEmpty) ...[
+        Button(
+          "authorizewithbiometrics".tr(),
+          notifier.getbluecolor,
+          wihitecolor,
+          onTap: () => {toggleSwitch(context)},
+          width: width / 1.5,
+        ),
+      ] else ...[
+        Button(
+          "authorize".tr(),
+          notifier.getbluecolor,
+          wihitecolor,
+          onTap: () => {handleAuthorization(_formKey, appState, context)},
+          width: width / 1.5,
+        ),
+      ],
+      SizedBox(height: height / 70),
+      TextButton(
+          child: Text(
+            "back".tr(),
+            style: TextStyle(
+                fontSize: 14.0,
+                fontFamily: fontbody,
+                fontWeight: FontWeight.bold,
+                color: notifier.getbluewhitecolor),
+          ),
+          onPressed: () {
+            print('clicked 0o');
+            setStateForDialog(() {
+              newSubWalletKeyPairs.clear();
+              walletView = WalletView.addSubWallet;
+            });
+          }),
+      SizedBox(height: height / 20),
+    ]);
+  }
+
   var show = showDialog(
       context: context,
       barrierDismissible: false,
@@ -4989,614 +5648,8 @@ addSubWalletPopup(context) async {
                 ),
                 child: SingleChildScrollView(
                   child: walletView == WalletView.addSubWallet
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(20.0),
-                              child: Center(
-                                child: Text(
-                                  "addsubwallet".tr(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: notifier.getbluewhitecolor,
-                                    fontSize: 20,
-                                    fontFamily: fontsemibold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: height / 50,
-                            ),
-                            Form(
-                              key: _formKey2,
-                              child: Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20.0),
-                                    child: Card(
-                                      shadowColor: Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(15.0),
-                                      ),
-                                      color: notifier.isDark
-                                          ? notifier.getbluecolor90
-                                          : notifier.getaddsubwalletgrey,
-                                      child: Center(
-                                        child: Column(
-                                          children: [
-                                            SizedBox(
-                                              height: height / 50,
-                                            ),
-                                            Container(
-                                              width: width / 1.4,
-                                              child: Text(
-                                                "abouttocreatesubwallet".tr(),
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  fontSize: 15,
-                                                  fontFamily: fontsemibold,
-                                                  color: notifier
-                                                      .getbluewhitecolor,
-                                                ),
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: height / 50,
-                                            ),
-                                            Text(
-                                              "chooseamethod".tr(),
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontFamily: fontsemibold,
-                                                color:
-                                                    notifier.getbluewhitecolor,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: height / 50,
-                                            ),
-                                            Row(
-                                              children: [
-                                                SizedBox(
-                                                  width: width / 10,
-                                                ),
-                                                Transform.scale(
-                                                  scale: 1.5,
-                                                  child: Radio<WalletAction>(
-                                                    value: WalletAction.import,
-                                                    groupValue: action,
-                                                    activeColor: notifier
-                                                        .getbluewhitecolor,
-                                                    fillColor: MaterialStateColor
-                                                        .resolveWith((states) =>
-                                                            notifier
-                                                                .getbluewhitecolor),
-                                                    onChanged: (value) => {
-                                                      setStateForDialog(
-                                                        () {
-                                                          action = value;
-                                                        },
-                                                      )
-                                                    },
-                                                  ),
-                                                ),
-                                                Text(
-                                                  "importexistingwallet".tr(),
-                                                  style: TextStyle(
-                                                    fontSize: 15,
-                                                    fontFamily: fontsemibold,
-                                                    color: notifier
-                                                        .getbluewhitecolor,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              children: [
-                                                SizedBox(
-                                                  width: width / 10,
-                                                ),
-                                                Transform.scale(
-                                                  scale: 1.5,
-                                                  child: Radio<WalletAction>(
-                                                    value:
-                                                        WalletAction.createNew,
-                                                    activeColor: notifier
-                                                        .getbluewhitecolor,
-                                                    fillColor: MaterialStateColor
-                                                        .resolveWith((states) =>
-                                                            notifier
-                                                                .getbluewhitecolor),
-                                                    groupValue: action,
-                                                    onChanged: (value) => {
-                                                      setStateForDialog(
-                                                        () {
-                                                          action = value;
-                                                        },
-                                                      )
-                                                    },
-                                                  ),
-                                                ),
-                                                Text(
-                                                  "createnewwallet".tr(),
-                                                  style: TextStyle(
-                                                    fontSize: 15,
-                                                    fontFamily: fontsemibold,
-                                                    color: notifier
-                                                        .getbluewhitecolor,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(
-                                              height: height / 50,
-                                            ),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Container(
-                                                      width: width / 1.5,
-                                                      decoration: BoxDecoration(
-                                                        border: Border.all(
-                                                          color: notifier
-                                                              .getbluecolor,
-                                                        ),
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                .all(
-                                                                Radius.circular(
-                                                                    15.0)),
-                                                      ),
-                                                      child: dropdown(
-                                                        (newValue) async {
-                                                          selectedWalletType =
-                                                              int.parse(newValue
-                                                                  .toString());
-                                                        },
-                                                        walletTypeDropdownItems,
-                                                        selectedWalletType
-                                                            .toString(),
-                                                        null,
-                                                        context,
-                                                        null,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                SizedBox(
-                                                  height: height / 50,
-                                                ),
-                                              ],
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: height / 30,
-                                  ),
-                                  // Tag name
-                                  CustomTextFormField.textField(
-                                    "tag".tr(),
-                                    notifier.getbluecolor,
-                                    Icons.tag,
-                                    notifier.getgrey,
-                                    notifier.getbluewhitecolor,
-                                    notifier.getblck,
-                                    notifier.getgrey,
-                                    70,
-                                    300,
-                                    initialValue: tag,
-                                    onChanged: (value) {
-                                      // setState(() {
-                                      //   tag = value.trim().replaceAll(' ', '');
-                                      // });
-                                    },
-                                    onSaved: (value) {
-                                      print('tag: $value');
-                                      tag = value.trim().replaceAll(' ', '');
-                                    },
-                                    keyboardtype: TextInputType.text,
-                                    maxLength: 12,
-                                    validator: validateTag,
-                                    helperText: tag == null || tag!.isEmpty
-                                        ? ''
-                                        : "${appState.userInfo!.username}_$tag",
-                                  ),
-                                  SizedBox(height: height / 50),
-                                  CustomTextFormField.textField(
-                                    "description".tr(),
-                                    notifier.getbluecolor,
-                                    Icons.description,
-                                    notifier.getgrey,
-                                    notifier.getbluewhitecolor,
-                                    notifier.getblck,
-                                    notifier.getgrey,
-                                    70,
-                                    300,
-                                    initialValue: description,
-                                    onSaved: (value) {
-                                      print('description: $value');
-                                      description = value;
-                                    },
-                                    keyboardtype: TextInputType.text,
-                                    maxLength: 100,
-                                    validator: validateDescription,
-                                  ),
-                                  if (action == WalletAction.import) ...[
-                                    SizedBox(height: height / 50),
-                                    // Secret Key
-                                    CustomPasswordFormField(
-                                      "secretkey".tr(),
-                                      notifier.getbluecolor,
-                                      Icons.lock,
-                                      notifier.getgrey,
-                                      notifier.getbluewhitecolor,
-                                      notifier.getblck,
-                                      70,
-                                      300,
-                                      validator: (value) {
-                                        var trimmedVal =
-                                            value!.trim().replaceAll(' ', '');
-                                        if (trimmedVal.isEmpty) {
-                                          return "entersecretkeyempty".tr();
-                                        }
-
-                                        if (trimmedVal.length < 56) {
-                                          return "secretkeyinvalid".tr();
-                                        }
-
-                                        try {
-                                          TrovoWalletSDK()
-                                              .parseSecretKey(value);
-                                        } catch (e) {
-                                          return 'Secret Key is invalid';
-                                        }
-
-                                        return null;
-                                      },
-                                      onSaved: (value) {
-                                        print('${"email".tr()}: $value');
-                                        secretKey =
-                                            value!.trim().replaceAll(' ', '');
-                                      },
-                                      maxLength: 56,
-                                    ),
-                                  ],
-                                  SizedBox(height: height / 30),
-                                  Button(
-                                    "continuee".tr(),
-                                    notifier.getbluecolor,
-                                    wihitecolor,
-                                    width: width / 1.5,
-                                    onTap: () {
-                                      var form = _formKey2.currentState;
-                                      if (!form!.validate()) {
-                                        return;
-                                      }
-
-                                      form.save();
-
-                                      primaryWalletKeyPair = TrovoWalletSDK()
-                                          .parseSecretKey(
-                                              appState.secretKeys[0]);
-
-                                      setStateForDialog(() {
-                                        if (action == WalletAction.import) {
-                                          try {
-                                            // parse supplied secret to get the keypair
-                                            newSubWalletKeyPair =
-                                                TrovoWalletSDK()
-                                                    .parseSecretKey(secretKey);
-                                          } catch (e) {
-                                            popup(context,
-                                                title: "error".tr(),
-                                                message:
-                                                    "invalidsecretkey".tr());
-                                          }
-                                        } else {
-                                          // generate keypair for the new subwallet
-                                          newSubWalletKeyPair =
-                                              TrovoWalletSDK().createAccount();
-                                        }
-                                        walletView =
-                                            WalletView.confirmAddSubWallet;
-                                        // appState.walletView.actionIcon =
-                                        //     Icons.arrow_circle_left_outlined;
-                                        // appState.walletView.actionText = "back".tr();
-                                        password = '';
-                                        secretKey = '';
-                                      });
-                                    },
-                                  ),
-                                  SizedBox(height: height / 70),
-                                  TextButton(
-                                    child: Text(
-                                      "cancel".tr(),
-                                      style: TextStyle(
-                                        fontSize: 14.0,
-                                        fontFamily: fontbody,
-                                        fontWeight: FontWeight.bold,
-                                        color: notifier.getbluecolor,
-                                      ),
-                                    ),
-                                    onPressed: () => Navigator.of(
-                                      context,
-                                      rootNavigator: true,
-                                    ).pop(false),
-                                  ),
-                                  SizedBox(height: height / 20),
-                                ],
-                              ),
-                            ),
-                          ],
-                        )
-                      : Column(children: [
-                          SizedBox(
-                            height: height / 50,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Center(
-                              child: Text(
-                                "addsubwallet".tr(),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: notifier.getbluewhitecolor,
-                                  fontSize: 20,
-                                  fontFamily: fontsemibold,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            height: height / 50,
-                          ),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20.0),
-                            child: Card(
-                              shadowColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15.0),
-                              ),
-                              color: notifier.isDark
-                                  ? notifier.getbluecolor90
-                                  : notifier.getaddsubwalletgrey,
-                              child: Center(
-                                child: Form(
-                                  key: _formKey,
-                                  child: Column(
-                                    children: [
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
-                                      Container(
-                                        width: width / 1.4,
-                                        child: Text(
-                                          "requesttocreatesubwallet".tr(),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontFamily: fontsemibold,
-                                            color: notifier.getbluewhitecolor,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
-                                      Text(
-                                        "tag".tr(),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontFamily: fontsemibold,
-                                          color: notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                      Text(
-                                        "${userInfo.username!}_$tag",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontFamily: fontbody,
-                                          color: notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
-                                      Text(
-                                        "description".tr(),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontFamily: fontsemibold,
-                                          color: notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                      Text(
-                                        description ?? '',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontFamily: fontbody,
-                                          color: notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
-                                      Text(
-                                        "method".tr(),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontFamily: fontsemibold,
-                                          color: notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                      Text(
-                                        action == WalletAction.import
-                                            ? "importsubwallet".tr()
-                                            : "createnewsubwallet".tr(),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontFamily: fontbody,
-                                          color: notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
-                                      Text(
-                                        "wallettype".tr(),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontFamily: fontsemibold,
-                                          color: notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                      Text(
-                                        walletTypes[selectedWalletType],
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontFamily: fontbody,
-                                          color: notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: height / 50,
-                                      ),
-                                      Text(
-                                        "publickey".tr(),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontFamily: fontsemibold,
-                                          color: notifier.getbluewhitecolor,
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 15.0),
-                                        child: Text(
-                                          newSubWalletKeyPair.publicKey,
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontFamily: fontbody,
-                                            color: notifier.getbluewhitecolor,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: height / 20,
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 15.0),
-                                        child: Text(
-                                          "willattractcharges".tr(),
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontFamily: fontbody,
-                                            color: notifier.getbluewhitecolor,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: height / 30,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: height / 50),
-                          // Secret Key
-                          CustomPasswordFormField(
-                            "password".tr(),
-                            notifier.getbluecolor,
-                            Icons.lock,
-                            notifier.getgrey,
-                            notifier.getbluewhitecolor,
-                            notifier.getblck,
-                            70,
-                            300,
-                            validator: validatePassword,
-                            textInputAction: TextInputAction.done,
-                            onChanged: (value) {
-                              setStateForDialog(() {
-                                password = value!.trim().replaceAll(' ', '');
-                              });
-                            },
-                            // onSubmitted: (value) {
-                            //   print('email: $value');
-                            //   secretKey = value!.trim().replaceAll(' ', '');
-                            // },
-                            onSaved: (value) {
-                              print('email: $value');
-                              secretKey = value!.trim().replaceAll(' ', '');
-                            },
-                          ),
-                          SizedBox(height: height / 50),
-                          if (appState.biometricEnabled &&
-                              password.isEmpty) ...[
-                            Button(
-                              "authorizewithbiometrics".tr(),
-                              notifier.getbluecolor,
-                              wihitecolor,
-                              onTap: () => {toggleSwitch(context)},
-                              width: width / 1.5,
-                            ),
-                          ] else ...[
-                            Button(
-                              "authorize".tr(),
-                              notifier.getbluecolor,
-                              wihitecolor,
-                              onTap: () => {
-                                handleAuthorization(_formKey, appState, context)
-                              },
-                              width: width / 1.5,
-                            ),
-                          ],
-                          SizedBox(height: height / 70),
-                          TextButton(
-                              child: Text(
-                                "back".tr(),
-                                style: TextStyle(
-                                    fontSize: 14.0,
-                                    fontFamily: fontbody,
-                                    fontWeight: FontWeight.bold,
-                                    color: notifier.getbluewhitecolor),
-                              ),
-                              onPressed: () {
-                                print('clicked 0o');
-                                setStateForDialog(() {
-                                  walletView = WalletView.addSubWallet;
-                                });
-                              }),
-                          SizedBox(height: height / 20),
-                        ]),
+                      ? showAddSubwalletView(setStateForDialog)
+                      : showWalletDetailsView(setStateForDialog),
                 ),
               ));
         });
@@ -5641,7 +5694,7 @@ showCreateTokenizationWalletPopup(context) async {
                           width: 250,
                         ),
                         Text(
-                          "To proceed with tokenization, kindly follow the following steps:",
+                          "toproceedwithotp".tr(),
                           textAlign: TextAlign.justify,
                           style: TextStyle(
                             fontSize: 13,
@@ -5654,8 +5707,7 @@ showCreateTokenizationWalletPopup(context) async {
                           height: height / 70,
                         ),
                         Text(
-                          // "youhavenoinitiatoraccess2".tr(),
-                          "1. Create a Tokenization Wallet ",
+                          "step1".tr(),
                           textAlign: TextAlign.justify,
                           style: TextStyle(
                             fontSize: 13,
@@ -5668,8 +5720,7 @@ showCreateTokenizationWalletPopup(context) async {
                           height: height / 70,
                         ),
                         Text(
-                          // "youhavenoinitiatoraccess3".tr(),
-                          "2. Add the relevant accounts to the Wallet with the appropriate access for each account",
+                          "step2".tr(),
                           textAlign: TextAlign.justify,
                           style: TextStyle(
                             fontSize: 13,
