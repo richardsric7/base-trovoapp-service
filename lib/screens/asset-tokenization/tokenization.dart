@@ -344,19 +344,19 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                   for (var i = 0; i < records.length; i++) ...[
                                     GestureDetector(
                                       onTap: () {
-                                        // appState.currentAction = PageAction(
-                                        //   state: PageState.addPage,
-                                        //   page: AssetDashboardViewPageConfig,
-                                        // );
-                                        appState.viewData = records[i];
-                                        appState.activeTokenizationWalletPublicKey =
-                                            appState.viewData![
-                                                'issuingWalletPublicKey'];
                                         appState.currentAction = PageAction(
                                           state: PageState.addPage,
-                                          page:
-                                              SetupAndComplianceViewPageConfig,
+                                          page: AssetDashboardViewPageConfig,
                                         );
+                                        // appState.viewData = records[i];
+                                        // appState.activeTokenizationWalletPublicKey =
+                                        //     appState.viewData![
+                                        //         'issuingWalletPublicKey'];
+                                        // appState.currentAction = PageAction(
+                                        //   state: PageState.addPage,
+                                        //   page:
+                                        //       SetupAndComplianceViewPageConfig,
+                                        // );
                                       },
                                       child: assetTile(
                                         records[i]['assetLogo'] ?? '',
