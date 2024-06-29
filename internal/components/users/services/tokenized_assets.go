@@ -62,21 +62,24 @@ func GetApprovedAssetCustodians(db *gorm.DB) (custodians []userModels.ApprovedAs
 
 func GetTokenizationFees(db *gorm.DB) (fees []userModels.TokenizationFee) {
 	fees = make([]userModels.TokenizationFee, 0)
-	db.Preload(clause.Associations).Find(&fees)
+	db.Preload(clause.Associations).Where("inactive != ?", 1).Find(&fees)
 
 	return
 }
+
 func GetTokenizationFeeByID(feeID uint64, db *gorm.DB) (fee []userModels.TokenizationFee) {
 	db.Preload(clause.Associations).Where("id = ?", feeID).First(&fee)
 
 	return
 }
+
 func GetTokenizationCurrencies(db *gorm.DB) (currencies []userModels.TokenizationCurrency) {
 	currencies = make([]userModels.TokenizationCurrency, 0)
 	db.Preload(clause.Associations).Order("asset_code").Find(&currencies)
 
 	return
 }
+
 func GetTokenizationPublicAssetAllowedCountries(db *gorm.DB) (c []userModels.TokenizationPublicAssetAllowedCountryCode) {
 	c = make([]userModels.TokenizationPublicAssetAllowedCountryCode, 0)
 	db.Preload(clause.Associations).Order("id").Find(&c)
@@ -90,12 +93,14 @@ func GetTokenizedAssetTypesBySubsectorId(subSectorID string, db *gorm.DB) (asset
 
 	return
 }
+
 func GetTokenizationDocumentById(id string, db *gorm.DB) (documents []userModels.AssetTokenizationDocument) {
 	documents = make([]userModels.AssetTokenizationDocument, 0)
 	db.Preload(clause.Associations).Where("tokenized_asset_id = ?", id).Find(&documents)
 
 	return
 }
+
 func GetTokenizedAssetByID(id string, db *gorm.DB) (tokenizedAsset userModels.TokenizedAsset, err error) {
 	// var ta userModels.TokenizedAsset
 	err = db.Preload(clause.Associations).Where("id = ?", id).First(&tokenizedAsset).Error

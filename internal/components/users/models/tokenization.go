@@ -221,6 +221,7 @@ type TokenizationFee struct {
 	FeeAssetPercentage float64 `json:"feeAssetPercentage"`
 	// FeeAssetCap        float64 `json:"feeAssetCap"`
 	FeeDescription string `json:"feeDescription"`
+	Inactive       int    `gorm:"default:0" json:"-"`
 }
 
 type TokenizedAssetType struct {
