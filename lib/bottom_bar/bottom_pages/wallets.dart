@@ -9,6 +9,7 @@ import 'package:trovo_wallet/custom_bloc_observer/constants.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/models/asset.dart';
+import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/models/user.dart';
 import 'package:trovo_wallet/models/wallet.dart';
 import 'package:trovo_wallet/functions/trovo-sdk.dart';
@@ -59,31 +60,34 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
   List<String> walletListMode = ['My wallets', 'Shared wallets', 'All wallets'];
   late List<WalletTileColor> colors;
 
-  var listOfAssets = <Map<String, String>>[
-    {
-      "imageUrl": "",
-      "assetName": "Animal Farm",
-      "assetClass": "Agriculture",
-      "balance": "2049"
-    },
-    {
-      "imageUrl": "",
-      "assetName": "Beacon Homes",
-      "assetClass": "Property",
-      "balance": "3250"
-    },
-    {
-      "imageUrl": "",
-      "assetName": "C-Vitals",
-      "assetClass": "Health",
-      "balance": "100"
-    },
-    {
-      "imageUrl": "",
-      "assetName": "Drinkfly",
-      "assetClass": "Beverage",
-      "balance": "4000"
-    }
+  var listOfAssets = <TokenizedAsset>[
+    TokenizedAsset(
+      assetCode: "AFT",
+      assetName: "Animal Farm Token",
+      assetIssuer: "www.animalfarm.com",
+      assetDescription: "",
+      assetLogo: "",
+      amount: 2049,
+      usdPrice: 1.2,
+    ),
+    TokenizedAsset(
+      assetCode: "DVT",
+      assetName: "Develop Vitals",
+      assetIssuer: "www.dvt.com",
+      assetDescription: "",
+      assetLogo: "",
+      amount: 2049,
+      usdPrice: 1.2,
+    ),
+    TokenizedAsset(
+      assetCode: "DFLY",
+      assetName: "DrinkFly",
+      assetIssuer: "www.drinkfly.com",
+      assetDescription: "",
+      assetLogo: "",
+      amount: 2049,
+      usdPrice: 1.2,
+    ),
   ];
 
   List<DropdownMenuItem<String>> get getStandardWallets {
@@ -195,7 +199,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
         tabLength = 1;
       }
     } else if (listMode == DashboardAssetListMode.TokenizedAssets) {
-      tabLength = 2;
+      tabLength = 1;
     }
 
     if (tabLength != _tabController.length) {
@@ -726,13 +730,13 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                     fontFamily: fontsemibold,
                   ),
                   tabs: [
+                    // Tab(
+                    //   height: 20,
+                    //   text: "Primary Listing".tr(),
+                    // ),
                     Tab(
                       height: 20,
-                      text: "Primary Listing".tr(),
-                    ),
-                    Tab(
-                      height: 20,
-                      text: "Secondary Listing".tr(),
+                      text: "assettokens".tr().toUpperCase(),
                     ),
                   ],
                 ),
@@ -777,6 +781,31 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
       child: TabBarView(
         controller: _tabController,
         children: [
+          // SingleChildScrollView(
+          //   child: Column(
+          //     children: [
+          //       SizedBox(
+          //         height: height / 90,
+          //       ),
+          //       for (var i = 0; i < listOfAssets.length; i++) ...[
+          //         GestureDetector(
+          //           onTap: () {
+          //             appState.currentAction = PageAction(
+          //               state: PageState.addPage,
+          //               page: TokenizedAssetDetailViewPageConfig,
+          //             );
+          //           },
+          //           child: tokenizedAssetTile(
+          //               listOfAssets[i]['imageUrl'] ?? '',
+          //               listOfAssets[i]['assetName'] ?? '',
+          //               'Property',
+          //               i % 2 == 0),
+          //         ),
+          //       ],
+          //       SizedBox(height: height / 20),
+          //     ],
+          //   ),
+          // ),
           SingleChildScrollView(
             child: Column(
               children: [
@@ -786,41 +815,19 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                 for (var i = 0; i < listOfAssets.length; i++) ...[
                   GestureDetector(
                     onTap: () {
+                      appState.viewData = {
+                        'assetCode': listOfAssets[i].assetCode,
+                        'assetIssuer': listOfAssets[i].assetIssuer,
+                        'tokenizedAsset': listOfAssets[i],
+                        'walletPublicKey': activeWallet,
+                      };
                       appState.currentAction = PageAction(
                         state: PageState.addPage,
-                        page: TokenizedAssetDetailViewPageConfig,
+                        page: AssetTokenDetailsViewPageConfig,
                       );
                     },
-                    child: tokenizedAssetTile(
-                        listOfAssets[i]['imageUrl'] ?? '',
-                        listOfAssets[i]['assetName'] ?? '',
-                        'Property',
-                        i % 2 == 0),
-                  ),
-                ],
-                SizedBox(height: height / 20),
-              ],
-            ),
-          ),
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: height / 90,
-                ),
-                for (var i = 0; i < listOfAssets.length; i++) ...[
-                  GestureDetector(
-                    onTap: () {
-                      appState.currentAction = PageAction(
-                        state: PageState.addPage,
-                        page: TokenizedAssetDetailViewPageConfig,
-                      );
-                    },
-                    child: tokenizedAssetTile(
-                        listOfAssets[i]['imageUrl'] ?? '',
-                        listOfAssets[i]['assetName'] ?? '',
-                        'Property',
-                        i % 2 == 0),
+                    child: tokenizedAssetTile(listOfAssets[i].assetLogo!,
+                        listOfAssets[i].assetName!, 'Property', i % 2 == 0),
                   ),
                 ],
                 SizedBox(height: height / 20),

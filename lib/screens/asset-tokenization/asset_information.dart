@@ -1284,7 +1284,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
-                      initialValue: insurancePolicyHolder,
+                      initialValue: insurancePolicyNumber,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();

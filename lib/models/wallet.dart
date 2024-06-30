@@ -1,3 +1,5 @@
+import 'package:trovo_wallet/models/tokenizedAsset.dart';
+
 import 'asset.dart';
 import 'permission.dart';
 
@@ -26,6 +28,7 @@ class Wallet {
   String? owner; // for shared wallet
   List<Asset>? claimedAssets;
   List<Asset>? unClaimedAssets;
+  List<TokenizedAsset>? tokenizedAssets;
 
   Wallet({
     this.createdAt,
@@ -49,6 +52,7 @@ class Wallet {
     this.owner,
     this.claimedAssets,
     this.unClaimedAssets,
+    this.tokenizedAssets,
   });
 
   toJSONEncodable() {
@@ -102,6 +106,8 @@ class Wallet {
           deserializeAssetList(assetBalances[m["publicKey"]]['claimed']),
       unClaimedAssets:
           deserializeAssetList(assetBalances[m["publicKey"]]['unclaimed']),
+      // tokenizedAssets: deserializeTokenizedAssetList(
+      //     assetBalances[m["publicKey"]]['unclaimed']),
     );
   }
 
@@ -185,6 +191,16 @@ class Wallet {
     if (assets != null) {
       for (var i = 0; i < assets.length; i++) {
         assetsList.add(Asset().deserializeJson(assets[i]));
+      }
+    }
+    return assetsList;
+  }
+
+  List<TokenizedAsset> deserializeTokenizedAssetList(assets) {
+    var assetsList = <TokenizedAsset>[];
+    if (assets != null) {
+      for (var i = 0; i < assets.length; i++) {
+        assetsList.add(TokenizedAsset().deserializeJson(assets[i]));
       }
     }
     return assetsList;

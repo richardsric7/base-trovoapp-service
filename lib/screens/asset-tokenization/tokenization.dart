@@ -1,16 +1,17 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
 import 'package:trovo_wallet/custom_bloc_observer/fonts.dart';
 import 'package:trovo_wallet/custom_bloc_observer/notifire_clor.dart';
+import 'package:trovo_wallet/models/tokenizedAsset.dart';
 import 'package:trovo_wallet/network/requests.dart';
 import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/storage/store.dart';
 import 'package:trovo_wallet/widgets/popups.dart';
 import 'package:trovo_wallet/widgets/utilities.dart';
 import '../../storage/state.dart';
@@ -31,7 +32,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   late TabController tabController;
   late Future<Map> listOfTokenizations;
   bool hasInitiatorAccess = false;
-
+  late var savedAssets;
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
     bool? previusstate = prefs.getBool("setIsDark");
@@ -88,7 +89,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     tabController = TabController(length: 2, vsync: this);
     appState = Provider.of<DataProvider>(context, listen: false);
     listOfTokenizations = fetchTokenizationList();
-    // hasInitiatorAccess = checkHasInitiatorAccess();
+    hasInitiatorAccess = checkHasInitiatorAccess();
   }
 
   @override
@@ -278,7 +279,6 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                     );
                   } else if (snapshot.hasData) {
                     var records = snapshot.data!['records'];
-                    inspect(records);
                     if (records.length > 0) {
                       return Column(
                         children: [
@@ -343,12 +343,33 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                 children: [
                                   for (var i = 0; i < records.length; i++) ...[
                                     GestureDetector(
-                                      onTap: () {
-                                        // appState.currentAction = PageAction(
-                                        //   state: PageState.addPage,
-                                        //   page: AssetDashboardViewPageConfig,
-                                        // );
-                                        appState.viewData = records[i];
+                                      onTap: () async {
+                                        if (records[i].tokenizationStatus ==
+                                            1) {
+                                          appState.tokenizedAsset = records[i];
+                                          appState.currentAction = PageAction(
+                                            state: PageState.addPage,
+                                            page: AssetDashboardViewPageConfig,
+                                          );
+                                          return;
+                                        }
+
+                                        var list = [];
+
+                                        for (var j = 0;
+                                            j < savedAssets.length;
+                                            j++) {
+                                          var data = Map.from(savedAssets[j]);
+                                          data['tokenizationStatus'] = 1;
+                                          list.add(data);
+                                        }
+
+                                        await StoreData()
+                                            .storeDeleteItem('tokenizedAsset');
+                                        await StoreData().storeInsertData(
+                                            'tokenizedAsset', list);
+
+                                        appState.viewData = savedAssets[i];
                                         appState.activeTokenizationWalletPublicKey =
                                             appState.viewData![
                                                 'issuingWalletPublicKey'];
@@ -359,13 +380,14 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         );
                                       },
                                       child: assetTile(
-                                        records[i]['assetLogo'] ?? '',
-                                        records[i]['assetName'] ?? '',
+                                        records[i].assetLogo ?? '',
+                                        records[i].assetCode ?? '',
                                         'Property',
-                                        records[i]['assetTokenizationStatus'] ==
-                                                0
+                                        records[i].tokenizationStatus == 0
                                             ? 'Pending'
-                                            : 'Approved',
+                                            : records[i].tokenizationStatus == 1
+                                                ? 'Approved'
+                                                : 'Rejected',
                                       ),
                                     ),
                                   ],
@@ -647,31 +669,40 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   }
 
   Future<Map> fetchTokenizationList() async {
-    try {
-      var uri = '/v1/tokenization/list';
-      print('fetching .... .... $uri');
-
-      fetchTokenizationData();
-      Map responseData = await makeGetRequest(
-        uri: Uri.encodeFull(uri),
-        signer: appState.primaryWallet.signer!,
-        secretKey: appState.secretKeys[0], // the primary wallet secret key
-        publicKey: appState.primaryWallet.signer!,
-      );
-      print('===============> response ${responseData}');
-      if (responseData['statusCode'] == 200) {
-        print('success');
-        await fetchTokenizationData();
-        await inspect(responseData['data']);
-        return responseData['data'];
-      } else {
-        return Future.error('Error! Something went wrong.');
+    await fetchTokenizationData();
+    savedAssets = await StoreData().storeGetData('tokenizedAsset');
+    List<TokenizedAsset> tokenizedAssets = [];
+    if (savedAssets != null) {
+      for (int i = 0; i < savedAssets.length; i++) {
+        print(savedAssets[i]);
+        tokenizedAssets.add(TokenizedAsset().deserializeJson(savedAssets[i]));
       }
-    } catch (e) {
-      print('error');
-      print(e);
-      return Future.error('Error! ${e}');
     }
+    return {"records": tokenizedAssets};
+    // try {
+    //   var uri = '/v1/tokenization/list';
+    //   print('fetching .... .... $uri');
+
+    //   Map responseData = await makeGetRequest(
+    //     uri: Uri.encodeFull(uri),
+    //     signer: appState.primaryWallet.signer!,
+    //     secretKey: appState.secretKeys[0], // the primary wallet secret key
+    //     publicKey: appState.primaryWallet.signer!,
+    //   );
+    //   print('===============> response ${responseData}');
+    //   if (responseData['statusCode'] == 200) {
+    //     print('success');
+    //     await fetchTokenizationData();
+    //     await inspect(responseData['data']);
+    //     return responseData['data'];
+    //   } else {
+    //     return Future.error('Error! Something went wrong.');
+    //   }
+    // } catch (e) {
+    //   print('error');
+    //   print(e);
+    //   return Future.error('Error! ${e}');
+    // }
   }
 
   Color getStatusColor(String status) {

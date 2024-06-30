@@ -209,6 +209,11 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       70.sp,
                       300.sp,
                       initialValue: assetCode,
+                      onChanged: (value) {
+                        setState(() {
+                          assetCode = value;
+                        });
+                      },
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -586,8 +591,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           checkBoxItem(
-                            text:
-                                "N1,000,000.00 + 1,500,000.00 ATLANTIS TOKENS",
+                            text: "N1,000,000.00 + 1,500,000.00 ${assetCode}",
                             value: tokenizationFeeId == 1,
                             onChanged: (bool? value) {
                               setState(() {
@@ -596,8 +600,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             },
                           ),
                           checkBoxItem(
-                            text:
-                                "N10,000,000.00 + 1,000,000.00 ATLANTIS TOKENS",
+                            text: "N10,000,000.00 + 1,000,000.00 ${assetCode}",
                             value: tokenizationFeeId == 2,
                             onChanged: (bool? value) {
                               setState(() {
@@ -606,7 +609,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             },
                           ),
                           checkBoxItem(
-                            text: "N20,000,000.00 + 600,000.00 ATLANTIS TOKENS",
+                            text: "N20,000,000.00 + 600,000.00 ${assetCode}",
                             value: tokenizationFeeId == 3,
                             onChanged: (bool? value) {
                               setState(() {
@@ -615,7 +618,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             },
                           ),
                           checkBoxItem(
-                            text: "N50,000,000.00 + 400,000.00 ATLANTIS TOKENS",
+                            text: "N50,000,000.00 + 400,000.00 ${assetCode}",
                             value: tokenizationFeeId == 4,
                             onChanged: (bool? value) {
                               setState(() {

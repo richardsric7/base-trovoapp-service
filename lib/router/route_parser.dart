@@ -197,6 +197,8 @@ class TrovoWalletRouteParser extends RouteInformationParser<PageConfiguration> {
         return SetupAndComplianceViewPageConfig;
       case AllWalletsViewPath:
         return AllWalletsViewPageConfig;
+      case AssetTokenDetailsViewPath:
+        return AssetTokenDetailsViewPageConfig;
       default:
         return SplashPageConfig;
     }

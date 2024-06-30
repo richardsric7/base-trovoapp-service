@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
 import 'package:trovo_wallet/custom_bloc_observer/colors.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -48,6 +49,7 @@ class _AssetDashboardState extends State<AssetDashboard>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    var tokenizedAsset = appState.tokenizedAsset!;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -57,7 +59,7 @@ class _AssetDashboardState extends State<AssetDashboard>
             CustomAppBar(
               context,
               notifier.getwihitecolor,
-              'ATLANTIS 1',
+              tokenizedAsset.assetName ?? 'Asset',
               notifier.getbluewhitecolor,
               height: height / 15,
             ).getBar(),
@@ -65,7 +67,8 @@ class _AssetDashboardState extends State<AssetDashboard>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Text(
-                'Atlantis Estate 1 tokens are fractional tokens that represent part ownership (via investment) of our real estate development project at Atlantis Estate, Lekki, Lagos, Nigeria. ',
+                // 'Atlantis Estate 1 tokens are fractional tokens that represent part ownership (via investment) of our real estate development project at Atlantis Estate, Lekki, Lagos, Nigeria. ',
+                tokenizedAsset.assetDescription!,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -459,38 +462,32 @@ class _AssetDashboardState extends State<AssetDashboard>
             infoTile(
               notifier,
               'Asset Code',
-              'ATLANTIS 1',
+              tokenizedAsset.assetCode ?? '',
             ),
             infoTile(
               notifier,
               'Asset Category',
-              'Real Estate',
+              tokenizedAsset.assetSector ?? '',
             ),
-            infoTile(
-              notifier,
-              'Asset Country',
-              'Nigeria',
-            ),
+            infoTile(notifier, 'Asset Country',
+                tokenizedAsset.assetCountryLocation ?? ''),
             infoTile(
               notifier,
               'Asset Location Address',
-              'No. 10 Maitama, Abuja',
+              tokenizedAsset.assetPhysicalAddress ?? '',
             ),
             infoTile(
               notifier,
               'Asset Issuer',
-              'Atlantis Developers',
+              tokenizedAsset.assetIssuer ?? '',
             ),
             infoTile(
               notifier,
               'Asset Issuer Website',
               'www.atlantis.com',
             ),
-            infoTile(
-              notifier,
-              'Asset Token Total Supply',
-              '1000',
-            ),
+            infoTile(notifier, 'Asset Token Total Supply',
+                tokenizedAsset.numberOfTokenToBeIssued.toString()),
             infoTile(
               notifier,
               'Asset Tokens Quantity Purchased',
@@ -509,118 +506,88 @@ class _AssetDashboardState extends State<AssetDashboard>
             infoTile(
               notifier,
               'Asset Token Purchase Method',
-              'cNGN',
+              tokenizedAsset.assetQuoteCurrency ?? '',
             ),
             infoTile(
               notifier,
               'Asset Token Sales Window',
-              '12/01/2023 - 30/03/2023',
+              '${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesStart!)} - ${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesEnd!)}',
             ),
             infoTile(
               notifier,
               'Token Sale Cap',
               '5 [ATLANTIS 1] Token',
             ),
-            infoTile(
-              notifier,
-              'Cap Duration',
-              '12/01/2023 - 20/01/2023',
-            ),
+            // infoTile(
+            //   notifier,
+            //   'Cap Duration',
+            //   '12/01/2023 - 20/01/2023',
+            // ),
             infoTile(
               notifier,
               'Proceed Payout Cycle',
-              'Monthly',
+              tokenizedAsset.proceedCycle ?? '',
             ),
             infoTile(
               notifier,
               'Payout Method',
-              'cNGN',
+              tokenizedAsset.proceedPayoutCurrency ?? '',
             ),
+            infoTile(
+              notifier,
+              'Exempted Countries',
+              '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}, ${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}, ${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
+            ),
+            infoTile(
+              notifier,
+              'Additional Requirements',
+              tokenizedAsset.additionalKYCRequirements!.replaceAll(',', ', '),
+            ),
+            // Card(
+            //   elevation: notifier.isDark ? 0 : 3,
+            //   shadowColor: Colors.black,
+            //   color: notifier.gettilewihitecolor,
+            //   margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            //   child: Padding(
+            //     padding: const EdgeInsets.symmetric(vertical: 8.0),
+            //     child: ListTile(
+            //       title: Row(
+            //         children: [
+            //           Column(
+            //             crossAxisAlignment: CrossAxisAlignment.start,
+            //             children: [
+            //               Text(
+            //                 'Additional Requirements',
+            //                 style: TextStyle(
+            //                   fontSize: 13,
+            //                   fontFamily: fontsemibold,
+            //                   color: notifier.getbluewhitecolor,
+            //                 ),
+            //               ),
+            //               Padding(
+            //                 padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+            //                 child: Text(
+            //                   'See list',
+            //                   style: TextStyle(
+            //                     decoration: TextDecoration.underline,
+            //                     fontSize: 13,
+            //                     fontFamily: fontbody,
+            //                     color: notifier.getbluewhitecolor,
+            //                   ),
+            //                 ),
+            //               ),
+            //             ],
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            // ),
             Card(
               elevation: notifier.isDark ? 0 : 3,
               shadowColor: Colors.black,
               color: notifier.gettilewihitecolor,
-              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Exempted Countries',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              'See list',
-                              style: TextStyle(
-                                decoration: TextDecoration.underline,
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Card(
-              elevation: notifier.isDark ? 0 : 3,
-              shadowColor: Colors.black,
-              color: notifier.gettilewihitecolor,
-              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Additional Requirements',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              'See list',
-                              style: TextStyle(
-                                decoration: TextDecoration.underline,
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Card(
-              elevation: notifier.isDark ? 0 : 3,
-              shadowColor: Colors.black,
-              color: notifier.gettilewihitecolor,
-              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: ListTile(

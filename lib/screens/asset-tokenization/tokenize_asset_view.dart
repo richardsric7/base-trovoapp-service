@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/button/custtom_button.dart';
@@ -9,6 +11,8 @@ import 'package:trovo_wallet/router/page_actions.dart';
 import 'package:trovo_wallet/router/ui_pages.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trovo_wallet/storage/store.dart';
+import 'package:trovo_wallet/widgets/loader.dart';
 import '../../storage/state.dart';
 import '../../utils/medeiaqury/medeiaqury.dart';
 
@@ -131,7 +135,27 @@ class _TokenizeAssetState extends State<TokenizeAsset>
               "completetokenization".tr(),
               notifier.getbluecolor,
               wihitecolor,
-              onTap: () {
+              onTap: () async {
+                appState.viewData!['tokenizationStatus'] = 0;
+                await inspect(appState.viewData);
+                var savedAssets =
+                    await StoreData().storeGetData('tokenizedAsset');
+                print(savedAssets);
+                if (savedAssets != null) {
+                  for (int i = 0; i < savedAssets.length; i++) {
+                    print(savedAssets);
+                  }
+                  savedAssets = [...savedAssets, appState.viewData];
+                  await StoreData()
+                      .storeInsertData('tokenizedAsset', savedAssets);
+                } else {
+                  savedAssets = [appState.viewData];
+                  await StoreData()
+                      .storeInsertData('tokenizedAsset', savedAssets);
+                }
+                showLoader(context);
+                await Future.delayed(Duration(seconds: 12));
+                hideLoader(context);
                 appState.viewData![SuccessViewPageConfig.key] = {
                   'title': '',
                   'message':
