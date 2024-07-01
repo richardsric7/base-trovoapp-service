@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:trovo_wallet/custom_bloc_observer/custtom_app_bar/custom_app_bar.dart';
@@ -59,6 +60,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
     appState = Provider.of<DataProvider>(context, listen: true);
+    var tokenizedAsset = appState.tokenizedAsset!;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: notifier.getwihitecolor,
@@ -76,7 +78,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               height: height / 50,
             ),
             Text(
-              'ATLANTIS 1',
+              tokenizedAsset.assetName!,
               style: TextStyle(
                 fontSize: 20,
                 fontFamily: fontsemibold,
@@ -87,7 +89,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               height: height / 70,
             ),
             Text(
-              'Atlantis Estate 1 token',
+              '${tokenizedAsset.assetName} token',
               style: TextStyle(
                 fontSize: 15,
                 fontFamily: fontbody,
@@ -105,7 +107,12 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                     TextButton(
                       onPressed: () {
                         showSubscribePopup(context,
-                            onDone: () {}, dropdownItems: getStandardWallets);
+                            assetCode: tokenizedAsset.assetCode!,
+                            onDone: (publicKey) {
+                          setState(() {
+                            tokenizedAsset.isSubscribed = true;
+                          });
+                        }, dropdownItems: getStandardWallets);
                       },
                       child: Column(
                         children: [
@@ -134,7 +141,11 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   children: [
                     TextButton(
                       onPressed: () {
-                        showBuyTokenPopup(context, onDone: () {
+                        showBuyTokenPopup(context,
+                            assetCode: tokenizedAsset.assetCode!,
+                            onDone: (publicKey) {
+                          var wallet = appState.userInfo!.getWallet(publicKey);
+                          appState.setActiveWallet = wallet;
                           appState.currentAction = PageAction(
                             state: PageState.addPage,
                             page: BuyTokensViewPageConfig,
@@ -186,7 +197,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       Padding(
                         padding: const EdgeInsets.all(10.0),
                         child: Text(
-                          'Atlantis Estate 1 tokens are fractional tokens that represent part ownership (via investment) of our real estate development project at Atlantis Estate, Lekki, Lagos, Nigeria. Subscribe to this token to earn rental income monthly pushed to your Trovo Wallet. Also earn benefit from asset appreciation with the ability to sell or buy any portion of your tokens at anytime.',
+                          tokenizedAsset.assetDescription!,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
@@ -209,7 +220,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               children: [
                 infoCard(
                   label: 'Total Supply',
-                  value: '1000',
+                  value:
+                      '${tokenizedAsset.numberOfTokenToBeSold} ${tokenizedAsset.assetCode}',
                   extraValue: '',
                 ),
                 SizedBox(
@@ -228,7 +240,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               children: [
                 infoCard(
                   label: 'Price Per Asset',
-                  value: '100 cNGN',
+                  value:
+                      '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
                   extraValue: '\$2,205',
                 ),
                 SizedBox(
@@ -236,7 +249,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ),
                 infoCard(
                   label: 'Funding Currency',
-                  value: 'cNGN',
+                  value: '${tokenizedAsset.assetQuoteCurrency}',
                   extraValue: '',
                 ),
               ],
@@ -247,7 +260,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               children: [
                 infoCard(
                   label: 'Subscription Amount',
-                  value: '0 cNGN',
+                  value: '0 ${tokenizedAsset.assetQuoteCurrency}',
                   extraValue: '\$2,205',
                 ),
                 SizedBox(
@@ -255,7 +268,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ),
                 infoCard(
                   label: 'Amount Bought',
-                  value: '0 cNGN',
+                  value: '0 ${tokenizedAsset.assetQuoteCurrency}',
                   extraValue: '',
                 ),
               ],
@@ -314,38 +327,32 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             infoTile(
               notifier,
               'Asset Code',
-              'ATLANTIS 1',
+              tokenizedAsset.assetCode ?? '',
             ),
             infoTile(
               notifier,
               'Asset Category',
-              'Real Estate',
+              tokenizedAsset.assetSector ?? '',
             ),
-            infoTile(
-              notifier,
-              'Asset Country',
-              'Nigeria',
-            ),
+            infoTile(notifier, 'Asset Country',
+                tokenizedAsset.assetCountryLocation ?? ''),
             infoTile(
               notifier,
               'Asset Location Address',
-              'No. 10 Maitama, Abuja',
+              tokenizedAsset.assetPhysicalAddress ?? '',
             ),
             infoTile(
               notifier,
               'Asset Issuer',
-              'Atlantis Developers',
+              tokenizedAsset.assetIssuer ?? '',
             ),
             infoTile(
               notifier,
               'Asset Issuer Website',
-              'www.atlantis.com',
+              'www.${tokenizedAsset.assetCode!.toLowerCase()}.com',
             ),
-            infoTile(
-              notifier,
-              'Asset Token Total Supply',
-              '1000',
-            ),
+            infoTile(notifier, 'Asset Token Total Supply',
+                '${tokenizedAsset.numberOfTokenToBeIssued.toString()} ${tokenizedAsset.assetCode}'),
             infoTile(
               notifier,
               'Asset Tokens Quantity Purchased',
@@ -359,123 +366,53 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             infoTile(
               notifier,
               'Price Per Asset Token',
-              '100 cNGN',
+              '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
             ),
             infoTile(
               notifier,
               'Asset Token Purchase Method',
-              'cNGN',
+              tokenizedAsset.assetQuoteCurrency ?? '',
             ),
             infoTile(
               notifier,
               'Asset Token Sales Window',
-              '12/01/2023 - 30/03/2023',
+              '${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesStart!)} - ${DateFormat('yyyy-MM-dd').format(tokenizedAsset.salesEnd!)}',
             ),
             infoTile(
               notifier,
               'Token Sale Cap',
-              '5 [ATLANTIS 1] Token',
+              '${tokenizedAsset.capQuantity} ${tokenizedAsset.assetCode}',
             ),
             infoTile(
               notifier,
               'Cap Duration',
-              '12/01/2023 - 20/01/2023',
+              '${tokenizedAsset.capDurationInDays} days',
             ),
             infoTile(
               notifier,
               'Proceed Payout Cycle',
-              'Monthly',
+              tokenizedAsset.proceedCycle ?? '',
             ),
             infoTile(
               notifier,
               'Payout Method',
-              'cNGN',
+              tokenizedAsset.proceedPayoutCurrency ?? '',
+            ),
+            infoTile(
+              notifier,
+              'Exempted Countries',
+              '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
+            ),
+            infoTile(
+              notifier,
+              'Additional Requirements',
+              tokenizedAsset.additionalKYCRequirements!.replaceAll(',', ', '),
             ),
             Card(
               elevation: notifier.isDark ? 0 : 3,
               shadowColor: Colors.black,
               color: notifier.gettilewihitecolor,
-              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Exempted Countries',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              'See list',
-                              style: TextStyle(
-                                decoration: TextDecoration.underline,
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Card(
-              elevation: notifier.isDark ? 0 : 3,
-              shadowColor: Colors.black,
-              color: notifier.gettilewihitecolor,
-              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: ListTile(
-                  title: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Additional Requirements',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontFamily: fontsemibold,
-                              color: notifier.getbluewhitecolor,
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              'See list',
-                              style: TextStyle(
-                                decoration: TextDecoration.underline,
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Card(
-              elevation: notifier.isDark ? 0 : 3,
-              shadowColor: Colors.black,
-              color: notifier.gettilewihitecolor,
-              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: ListTile(
@@ -492,39 +429,40 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                               color: notifier.getbluewhitecolor,
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              'C of O',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
+                          for (var item in tokenizedAsset
+                              .assetTokenizationDocuments!) ...[
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size(50, 30),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  alignment: Alignment.centerLeft),
+                              onPressed: () {
+                                var fileUrl = item.documentUrl;
+                                if (fileUrl!.isNotEmpty &&
+                                    fileUrl.endsWith('.pdf')) {
+                                  appState.viewData!['pdfUrl'] = fileUrl;
+                                  appState.currentAction = PageAction(
+                                      state: PageState.addPage,
+                                      page: PdfViewPageConfig);
+
+                                  return;
+                                }
+
+                                appState.goToWebView(fileUrl);
+                              },
+                              child: Text(
+                                item.documentTitle ?? '',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              'Survey Plan',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              'Governor\'s Consent',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                          ),
+                          ],
                         ],
                       ),
                     ],

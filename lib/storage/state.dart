@@ -199,6 +199,7 @@ class DataProvider with ChangeNotifier {
   }
 
   TokenizedAsset? tokenizedAsset = null;
+  List<TokenizedAsset> tempTokenizedAssetList = [];
 
   String tempUsername = '';
   set setTempUsername(value) {

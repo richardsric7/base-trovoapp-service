@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -201,30 +203,38 @@ class _AssetTokenDetailsState extends State<AssetTokenDetails>
               SizedBox(
                 height: height / 20,
               ),
-              if ((!wallet.isSharedWallet ||
-                      wallet.isInitiator ||
-                      wallet.isPrimaryWallet) &&
-                  wallet.walletType == 0) ...[
-                actionButtons(),
-              ] else ...[
-                Button(
-                  "receive".tr(),
-                  notifier.getbluecolor,
-                  wihitecolor,
-                  onTap: () {
-                    appState.viewData = {
-                      'walletPublicKey': wallet.publicKey,
-                      'assetCode': asset!.assetCode,
-                      'assetIssuer': asset!.assetIssuer,
-                    };
+              // if ((!wallet.isSharedWallet ||
+              //         wallet.isInitiator ||
+              //         wallet.isPrimaryWallet) &&
+              //     wallet.walletType == 0) ...[
+              //   actionButtons(),
+              // ] else ...[
+              //   Button(
+              //     "receive".tr(),
+              //     notifier.getbluecolor,
+              //     wihitecolor,
+              //     onTap: () {
+              //       appState.viewData = {
+              //         'walletPublicKey': wallet.publicKey,
+              //         'assetCode': asset!.assetCode,
+              //         'assetIssuer': asset!.assetIssuer,
+              //       };
 
-                    appState.currentAction = PageAction(
-                      state: PageState.addPage,
-                      page: ReceiveAssetViewPageConfig,
-                    );
-                  },
-                ),
-              ],
+              //       appState.currentAction = PageAction(
+              //         state: PageState.addPage,
+              //         page: ReceiveAssetViewPageConfig,
+              //       );
+              //     },
+              //   ),
+              // ],
+              Button(
+                "back".tr(),
+                notifier.getbluecolor,
+                wihitecolor,
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+              ),
               SizedBox(
                 height: height / 20,
               ),
@@ -321,221 +331,6 @@ class _AssetTokenDetailsState extends State<AssetTokenDetails>
     );
   }
 
-  // Widget curatedAssetInfo() {
-  //   return Padding(
-  //     padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
-  //     child: Container(
-  //       decoration: BoxDecoration(
-  //         borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-  //         color: notifier.isDark
-  //             ? darktilewhitecolor
-  //             : notifier.getaddsubwalletgrey,
-  //       ),
-  //       constraints: BoxConstraints(minHeight: height / 2.5),
-  //       child: Row(
-  //         mainAxisAlignment: MainAxisAlignment.center,
-  //         children: [
-  //           Padding(
-  //             padding:
-  //                 const EdgeInsets.symmetric(horizontal: 20.0, vertical: 35.0),
-  //             child: Column(
-  //               crossAxisAlignment: CrossAxisAlignment.center,
-  //               mainAxisAlignment: MainAxisAlignment.center,
-  //               children: [
-  //                 Text(
-  //                   '${getAssetCode(curatedAsset!.assetCode)} ${"token".tr()}',
-  //                   style: TextStyle(
-  //                       fontSize: 18,
-  //                       fontWeight: FontWeight.w600,
-  //                       color: notifier.getbluewhitecolor,
-  //                       fontFamily: fontsemibold),
-  //                 ),
-  //                 if (asset!.imageUrl != null) ...[
-  //                   SizedBox(
-  //                     height: height / 50.0,
-  //                   ),
-  //                   Container(
-  //                     width: width / 1.3,
-  //                     child: Image.network(
-  //                       asset!.imageUrl!,
-  //                       height: 50,
-  //                       width: 50,
-  //                       errorBuilder: (context, error, stackTrace) {
-  //                         return Image.asset(
-  //                           'assets/images/trovo.png',
-  //                           height: 50,
-  //                           width: 50,
-  //                         );
-  //                       },
-  //                     ),
-  //                   ),
-  //                 ],
-  //                 SizedBox(
-  //                   height: height / 50.0,
-  //                 ),
-  //                 Text(
-  //                   curatedAsset!.website!,
-  //                   style: TextStyle(
-  //                     fontSize: 15,
-  //                     fontWeight: FontWeight.w400,
-  //                     color: notifier.getbluewhitecolor,
-  //                     fontFamily: fontbody,
-  //                   ),
-  //                 ),
-  //                 SizedBox(
-  //                   height: height / 50,
-  //                 ),
-  //                 Container(
-  //                   width: width / 1.3,
-  //                   child: Text(
-  //                     curatedAsset!.description!,
-  //                     textAlign: TextAlign.center,
-  //                     style: TextStyle(
-  //                       fontSize: 15,
-  //                       fontWeight: FontWeight.w400,
-  //                       color: notifier.getbluewhitecolor,
-  //                       fontFamily: fontbody,
-  //                     ),
-  //                   ),
-  //                 ),
-  //                 SizedBox(
-  //                   height: height / 50.0,
-  //                 ),
-  //                 Text(
-  //                   'Price',
-  //                   style: TextStyle(
-  //                       fontSize: 18,
-  //                       fontWeight: FontWeight.w600,
-  //                       color: notifier.getbluewhitecolor,
-  //                       fontFamily: fontsemibold),
-  //                 ),
-  //                 SizedBox(
-  //                   height: height / 90.0,
-  //                 ),
-  //                 SizedBox(
-  //                   width: width / 1.3,
-  //                   child: Padding(
-  //                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
-  //                     child: Text(
-  //                       '1 ${getAssetCode(asset?.assetCode!)} = ${formatNumberShort(double.parse(getFiatRate(asset!.usdPrice.toString(), appState.defaultCurrency, appState, getUnFormatted: true)))} ${appState.defaultCurrency}',
-  //                       textAlign: TextAlign.center,
-  //                       style: TextStyle(
-  //                         fontWeight: FontWeight.w500,
-  //                         color: notifier.getbluewhitecolor,
-  //                         fontSize: 15.sp,
-  //                         fontFamily: fontbody,
-  //                       ),
-  //                     ),
-  //                   ),
-  //                 ),
-  //                 SizedBox(
-  //                   height: height / 50,
-  //                 ),
-  //                 if (asset!.assetIssuer.toString().isNotEmpty) ...[
-  //                   Text(
-  //                     "issuerpubkey".tr(),
-  //                     style: TextStyle(
-  //                         fontSize: 18,
-  //                         fontWeight: FontWeight.w600,
-  //                         color: notifier.getbluewhitecolor,
-  //                         fontFamily: fontsemibold),
-  //                   ),
-  //                   SizedBox(
-  //                     width: width / 1.3,
-  //                     child: Row(
-  //                       mainAxisAlignment: MainAxisAlignment.spaceAround,
-  //                       children: [
-  //                         SizedBox(
-  //                           width: width / 20,
-  //                         ),
-  //                         Expanded(
-  //                           flex: 3,
-  //                           child: Padding(
-  //                             padding:
-  //                                 const EdgeInsets.symmetric(horizontal: 20.0),
-  //                             child: Text(
-  //                               truncate(asset!.assetIssuer!, length: 5) +
-  //                                   asset!.assetIssuer!.toString().substring(
-  //                                       asset!.assetIssuer!.toString().length -
-  //                                           5),
-  //                               style: TextStyle(
-  //                                 fontWeight: FontWeight.w500,
-  //                                 color: notifier.getbluewhitecolor,
-  //                                 fontSize: 15.sp,
-  //                                 fontFamily: fontbody,
-  //                               ),
-  //                             ),
-  //                           ),
-  //                         ),
-  //                         Expanded(
-  //                           flex: 1,
-  //                           child: IconButton(
-  //                             padding: EdgeInsets.zero,
-  //                             onPressed: () => {
-  //                               Clipboard.setData(
-  //                                 ClipboardData(
-  //                                   text: asset!.assetIssuer!,
-  //                                 ),
-  //                               ),
-  //                               showSnackBar("issuerpubkey".tr(), context),
-  //                             },
-  //                             icon: Icon(Icons.copy),
-  //                             color: notifier.getbluewhitecolor,
-  //                           ),
-  //                         ),
-  //                         SizedBox(
-  //                           width: width / 20,
-  //                         ),
-  //                       ],
-  //                     ),
-  //                   ),
-  //                   SizedBox(
-  //                     height: height / 50,
-  //                   ),
-  //                   if (curatedAsset!.contactEmail!.toString().isNotEmpty) ...[
-  //                     Text(
-  //                       "contactemail".tr(),
-  //                       style: TextStyle(
-  //                           fontSize: 18,
-  //                           fontWeight: FontWeight.w600,
-  //                           color: notifier.getbluewhitecolor,
-  //                           fontFamily: fontsemibold),
-  //                     ),
-  //                     SizedBox(
-  //                       width: width / 1.3,
-  //                       child: Row(
-  //                         children: [
-  //                           Expanded(
-  //                             flex: 3,
-  //                             child: Padding(
-  //                               padding: const EdgeInsets.symmetric(
-  //                                   horizontal: 20.0),
-  //                               child: Text(
-  //                                 curatedAsset!.contactEmail!,
-  //                                 textAlign: TextAlign.center,
-  //                                 style: TextStyle(
-  //                                   fontWeight: FontWeight.w500,
-  //                                   color: notifier.getbluewhitecolor,
-  //                                   fontSize: 15.sp,
-  //                                   fontFamily: fontbody,
-  //                                 ),
-  //                               ),
-  //                             ),
-  //                           )
-  //                         ],
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ],
-  //               ],
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
-
   Widget assetInfo() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 3),
@@ -570,8 +365,8 @@ class _AssetTokenDetailsState extends State<AssetTokenDetails>
                   ),
                   Container(
                     width: width / 1.3,
-                    child: Image.network(
-                      asset!.assetLogo!,
+                    child: Image.memory(
+                      base64Decode(asset!.assetLogo!),
                       height: 50,
                       width: 50,
                       errorBuilder: (context, error, stackTrace) {

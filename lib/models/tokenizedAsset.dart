@@ -50,6 +50,7 @@ class TokenizedAsset {
   int? capDurationInDays;
   String? proceedCycle;
   String? assetLogo;
+  bool? isSubscribed;
   String? exemptedCountries;
   int? hasAdditionalKYCRequirements;
   String? proceedPayoutCurrency;
@@ -134,6 +135,7 @@ class TokenizedAsset {
     this.assetTokenizationDocuments,
     this.tokenizationStatus,
     this.assetQuoteCurrency,
+    this.isSubscribed,
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -212,6 +214,7 @@ class TokenizedAsset {
       assetTokenizationDocuments:
           deserializeDocuments(m["AssetTokenizationDocuments"]),
       tokenizationStatus: m["tokenizationStatus"],
+      isSubscribed: m["isSubscribed"],
     );
   }
 

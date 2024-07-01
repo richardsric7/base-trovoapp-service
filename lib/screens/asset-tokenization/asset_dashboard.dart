@@ -189,7 +189,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            '4,670 ATLANTIS 1',
+                            '4,670 ${tokenizedAsset.assetCode}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -201,7 +201,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            '\467,000 cNGN',
+                            '\467,000 ${tokenizedAsset.assetQuoteCurrency}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -272,7 +272,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            'N3,248,770',
+                            '3,248,770 ${tokenizedAsset.assetQuoteCurrency}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -346,7 +346,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            '100 cNGN',
+                            '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -484,10 +484,10 @@ class _AssetDashboardState extends State<AssetDashboard>
             infoTile(
               notifier,
               'Asset Issuer Website',
-              'www.atlantis.com',
+              'www.${tokenizedAsset.assetCode!.toLowerCase()}.com',
             ),
             infoTile(notifier, 'Asset Token Total Supply',
-                tokenizedAsset.numberOfTokenToBeIssued.toString()),
+                '${tokenizedAsset.numberOfTokenToBeIssued.toString()} ${tokenizedAsset.assetCode}'),
             infoTile(
               notifier,
               'Asset Tokens Quantity Purchased',
@@ -501,7 +501,7 @@ class _AssetDashboardState extends State<AssetDashboard>
             infoTile(
               notifier,
               'Price Per Asset Token',
-              '100 cNGN',
+              '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
             ),
             infoTile(
               notifier,
@@ -516,13 +516,13 @@ class _AssetDashboardState extends State<AssetDashboard>
             infoTile(
               notifier,
               'Token Sale Cap',
-              '5 [ATLANTIS 1] Token',
+              '${tokenizedAsset.capQuantity} ${tokenizedAsset.assetCode}',
             ),
-            // infoTile(
-            //   notifier,
-            //   'Cap Duration',
-            //   '12/01/2023 - 20/01/2023',
-            // ),
+            infoTile(
+              notifier,
+              'Cap Duration',
+              '${tokenizedAsset.capDurationInDays} days',
+            ),
             infoTile(
               notifier,
               'Proceed Payout Cycle',
@@ -536,53 +536,13 @@ class _AssetDashboardState extends State<AssetDashboard>
             infoTile(
               notifier,
               'Exempted Countries',
-              '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}, ${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}, ${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
+              '${tokenizedAsset.exemptedCountries!.replaceAll(',', ', ')}',
             ),
             infoTile(
               notifier,
               'Additional Requirements',
               tokenizedAsset.additionalKYCRequirements!.replaceAll(',', ', '),
             ),
-            // Card(
-            //   elevation: notifier.isDark ? 0 : 3,
-            //   shadowColor: Colors.black,
-            //   color: notifier.gettilewihitecolor,
-            //   margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-            //   child: Padding(
-            //     padding: const EdgeInsets.symmetric(vertical: 8.0),
-            //     child: ListTile(
-            //       title: Row(
-            //         children: [
-            //           Column(
-            //             crossAxisAlignment: CrossAxisAlignment.start,
-            //             children: [
-            //               Text(
-            //                 'Additional Requirements',
-            //                 style: TextStyle(
-            //                   fontSize: 13,
-            //                   fontFamily: fontsemibold,
-            //                   color: notifier.getbluewhitecolor,
-            //                 ),
-            //               ),
-            //               Padding(
-            //                 padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-            //                 child: Text(
-            //                   'See list',
-            //                   style: TextStyle(
-            //                     decoration: TextDecoration.underline,
-            //                     fontSize: 13,
-            //                     fontFamily: fontbody,
-            //                     color: notifier.getbluewhitecolor,
-            //                   ),
-            //                 ),
-            //               ),
-            //             ],
-            //           ),
-            //         ],
-            //       ),
-            //     ),
-            //   ),
-            // ),
             Card(
               elevation: notifier.isDark ? 0 : 3,
               shadowColor: Colors.black,
@@ -604,39 +564,40 @@ class _AssetDashboardState extends State<AssetDashboard>
                               color: notifier.getbluewhitecolor,
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              'C of O',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
+                          for (var item in tokenizedAsset
+                              .assetTokenizationDocuments!) ...[
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: Size(50, 30),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  alignment: Alignment.centerLeft),
+                              onPressed: () {
+                                var fileUrl = item.documentUrl;
+                                if (fileUrl!.isNotEmpty &&
+                                    fileUrl.endsWith('.pdf')) {
+                                  appState.viewData!['pdfUrl'] = fileUrl;
+                                  appState.currentAction = PageAction(
+                                      state: PageState.addPage,
+                                      page: PdfViewPageConfig);
+
+                                  return;
+                                }
+
+                                appState.goToWebView(fileUrl);
+                              },
+                              child: Text(
+                                item.documentTitle ?? '',
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  fontSize: 12,
+                                  fontFamily: fontbody,
+                                  color: notifier.getbluewhitecolor,
+                                ),
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              'Survey Plan',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                            child: Text(
-                              'Governor\'s Consent',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontFamily: fontbody,
-                                color: notifier.getbluewhitecolor,
-                              ),
-                            ),
-                          ),
+                          ],
                         ],
                       ),
                     ],

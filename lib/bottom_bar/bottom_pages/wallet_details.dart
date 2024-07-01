@@ -486,11 +486,14 @@ class _WalletDetailsState extends State<WalletDetails>
               isSubscribed
                   ? showUnSubscribePopup(
                       context,
-                      onDone: () {},
+                      assetCode: 'asset.assetCode!',
+                      onDone: (walletPublicKey) {},
+                      dropdownItems: getStandardWallets,
                     )
                   : showSubscribePopup(
                       context,
-                      onDone: () {},
+                      assetCode: 'tokenizedAsset.assetCode!',
+                      onDone: (walletPublicKey) {},
                       dropdownItems: getStandardWallets,
                     );
             },

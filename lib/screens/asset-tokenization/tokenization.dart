@@ -384,8 +384,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                       },
                                       child: assetTile(
                                         records[i].assetLogo ?? '',
-                                        records[i].assetCode ?? '',
-                                        'Property',
+                                        '${records[i].assetName} (${records[i].assetCode})',
+                                        '${records[i].assetSubSector}',
                                         records[i].tokenizationStatus == 0
                                             ? 'Pending'
                                             : records[i].tokenizationStatus == 1
@@ -597,7 +597,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: width / 3.4,
+                    width: width / 2.7,
                     child: Text(
                       name,
                       style: TextStyle(

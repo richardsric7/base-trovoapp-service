@@ -653,6 +653,7 @@
     "exchangenow": "Exchange Now",
     "selectcrypto": "Select Crypto",
     "selectwallet": "Select wallet",
+    "pleaseselectwallet": "Please select wallet",
     "selectsendingwallet": "Select sending wallet",
     "selectnetwork": "Select network",
     "selectwallet2": "Select the wallet where you want to add or remove assets from.",
