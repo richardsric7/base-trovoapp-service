@@ -939,6 +939,18 @@ class _AssetInformation extends State<AssetInformation>
                       70.sp,
                       width / 1.12,
                       initialValue: currentValueOfAsset.toString(),
+                      onChanged: (value) {
+                        setState(() {
+                          if (value.toString().isEmpty) {
+                            currentValueOfAsset = 0;
+                            return;
+                          }
+
+                          currentValueOfAsset = double.parse(value!.toString());
+                          valueOfTokenizedAsset =
+                              (tokenizedPercentage / 100) * currentValueOfAsset;
+                        });
+                      },
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -992,6 +1004,18 @@ class _AssetInformation extends State<AssetInformation>
                       70.sp,
                       width / 1.12,
                       initialValue: tokenizedPercentage.toString(),
+                      onChanged: (value) {
+                        setState(() {
+                          if (value.toString().isEmpty) {
+                            tokenizedPercentage = 0;
+                            return;
+                          }
+
+                          tokenizedPercentage = double.parse(value!.toString());
+                          valueOfTokenizedAsset =
+                              (tokenizedPercentage / 100) * currentValueOfAsset;
+                        });
+                      },
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -1001,6 +1025,8 @@ class _AssetInformation extends State<AssetInformation>
                       onSaved: (value) {
                         setState(() {
                           tokenizedPercentage = double.parse(value!.toString());
+                          valueOfTokenizedAsset =
+                              (tokenizedPercentage / 100) * currentValueOfAsset;
                         });
                       },
                       keyboardtype: TextInputType.numberWithOptions(
@@ -1035,36 +1061,31 @@ class _AssetInformation extends State<AssetInformation>
               Row(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: CustomTextFormField.textField(
-                      "valueoftokenizedasset".tr(),
-                      notifier.getbluecolor,
-                      null,
-                      notifier.getgrey,
-                      null,
-                      notifier.getblck,
-                      notifier.getgrey,
-                      70.sp,
-                      width / 1.12,
-                      initialValue: valueOfTokenizedAsset.toString(),
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return "fieldcannotbeempty".tr();
-                        }
-                        return null;
-                      },
-                      onSaved: (value) {
-                        setState(() {
-                          valueOfTokenizedAsset =
-                              double.parse(value!.toString());
-                        });
-                      },
-                      keyboardtype: TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: width / 1.12,
+                      height: 55.sp,
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(15.0)),
+                        color: notifier.getaddsubwalletgrey,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: Text(
+                              valueOfTokenizedAsset.toString(),
+                              style: TextStyle(fontSize: 15),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                        ],
                       ),
                     ),
-                  ),
+                  )
                 ],
               ),
               // Row(
@@ -1284,7 +1305,7 @@ class _AssetInformation extends State<AssetInformation>
                       notifier.getgrey,
                       70.sp,
                       width / 1.12,
-                      initialValue: insurancePolicyHolder,
+                      initialValue: insurancePolicyNumber,
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();

@@ -176,7 +176,7 @@ class _LoginState extends State<Login> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Container(
-                        width: width / 3,
+                        width: width / 2.8,
                         child: Row(
                           children: [
                             Expanded(

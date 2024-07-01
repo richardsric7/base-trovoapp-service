@@ -695,7 +695,7 @@ Widget infoTile(ColorNotifier notifier, String key, String value) {
     elevation: notifier.isDark ? 0 : 3,
     shadowColor: Colors.black,
     color: notifier.gettilewihitecolor,
-    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+    margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
@@ -712,14 +712,18 @@ Widget infoTile(ColorNotifier notifier, String key, String value) {
                     color: notifier.getbluewhitecolor,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: fontbody,
-                      color: notifier.getbluewhitecolor,
+                Container(
+                  width: width / 1.2,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 3.0, 0, 0),
+                    child: Text(
+                      value,
+                      overflow: TextOverflow.visible,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontFamily: fontbody,
+                        color: notifier.getbluewhitecolor,
+                      ),
                     ),
                   ),
                 ),

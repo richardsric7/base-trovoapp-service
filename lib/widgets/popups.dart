@@ -129,7 +129,8 @@ popup(context,
       });
 }
 
-Future<bool?> biometricsErrorAlert(BuildContext context) {
+Future<bool?> biometricsErrorAlert(BuildContext context,
+    {void Function()? callback}) {
   var appState = Provider.of<DataProvider>(context, listen: false);
   return showDialog<bool>(
       context: context,
@@ -161,7 +162,8 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
                       color: Colors.blue[900]),
                 ),
                 onPressed: () async {
-                  await AppSettings.openAppSettings();
+                  await AppSettings.openAppSettings(
+                      type: AppSettingsType.security);
                 }),
             TextButton(
                 child: Text(
@@ -176,6 +178,23 @@ Future<bool?> biometricsErrorAlert(BuildContext context) {
                   appState.currentAction = PageAction(
                       state: PageState.addPage, page: SettingsViewPageConfig);
                 }),
+            if (callback != null) ...[
+              TextButton(
+                  child: Text(
+                    "usepasswordinstead".tr(),
+                    style: TextStyle(
+                        fontSize: 14.0,
+                        fontFamily: fontbody,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[900]),
+                  ),
+                  onPressed: () async {
+                    showPasswordDialog(context, () {
+                      callback();
+                      Navigator.of(context).pop();
+                    });
+                  }),
+            ],
           ],
           content: Container(
             decoration: const BoxDecoration(
@@ -3990,12 +4009,17 @@ Future<PlatformFile?>? getFile() async {
   return file;
 }
 
-showSubscribePopup(context,
-    {required void Function() onDone,
-    required List<DropdownMenuItem<String>> dropdownItems}) async {
+showSubscribePopup(
+  context, {
+  required void Function(String walletPublicKey) onDone,
+  required String assetCode,
+  required List<DropdownMenuItem<String>> dropdownItems,
+}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
+  String selectedWalletPublicKey = '';
+  bool showNoSelectedWalletError = false;
   return showDialog(
       context: context,
       barrierDismissible: true,
@@ -4028,7 +4052,7 @@ showSubscribePopup(context,
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          "confirmsubscribewithwallet".tr(args: ['Atlantis 1']),
+                          "confirmsubscribewithwallet".tr(args: [assetCode]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -4040,7 +4064,9 @@ showSubscribePopup(context,
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: dropdown(
-                        (value) {},
+                        (value) {
+                          selectedWalletPublicKey = value.toString();
+                        },
                         dropdownItems,
                         null,
                         "choosewallet".tr(),
@@ -4048,24 +4074,23 @@ showSubscribePopup(context,
                         null,
                       ),
                     ),
-                    // SizedBox(
-                    //   height: height / 70,
-                    // ),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    //   child: Row(
-                    //     children: [
-                    //       Text(
-                    //         'Change wallet',
-                    //         textAlign: TextAlign.center,
-                    //         style: TextStyle(
-                    //             color: notifier.getbluewhitecolor,
-                    //             fontSize: 12,
-                    //             fontFamily: fontsemibold),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
+                    if (showNoSelectedWalletError) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: Row(
+                          children: [
+                            Text(
+                              "pleaseselectwallet".tr(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                  fontFamily: fontbody),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     SizedBox(
                       height: height / 50,
                     ),
@@ -4073,8 +4098,15 @@ showSubscribePopup(context,
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
                         onPressed: () {
+                          if (selectedWalletPublicKey.isEmpty) {
+                            setStateForDialog(() {
+                              showNoSelectedWalletError = true;
+                            });
+                            return;
+                          }
+
                           Navigator.of(context).pop(); // dismiss dialog,
-                          onDone();
+                          onDone(selectedWalletPublicKey);
                         },
                         style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(
@@ -4147,11 +4179,15 @@ showSubscribePopup(context,
 
 showUnSubscribePopup(
   context, {
-  required void Function() onDone,
+  required String assetCode,
+  required void Function(String walletPublicKey) onDone,
+  required List<DropdownMenuItem<String>> dropdownItems,
 }) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
+  String selectedWalletPublicKey = '';
+  bool showNoSelectedWalletError = false;
   return showDialog(
       context: context,
       barrierDismissible: true,
@@ -4184,8 +4220,7 @@ showUnSubscribePopup(
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          "confirmunsubscribewithwallet"
-                              .tr(args: ["Atlantis 1"]),
+                          "confirmunsubscribewithwallet".tr(args: [assetCode]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,
@@ -4194,6 +4229,36 @@ showUnSubscribePopup(
                         ),
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: dropdown(
+                        (value) {
+                          selectedWalletPublicKey = value.toString();
+                        },
+                        dropdownItems,
+                        null,
+                        "choosewallet".tr(),
+                        context,
+                        null,
+                      ),
+                    ),
+                    if (showNoSelectedWalletError) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: Row(
+                          children: [
+                            Text(
+                              "pleaseselectwallet".tr(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                  fontFamily: fontbody),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     SizedBox(
                       height: height / 50,
                     ),
@@ -4201,8 +4266,15 @@ showUnSubscribePopup(
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
                         onPressed: () {
+                          if (selectedWalletPublicKey.isEmpty) {
+                            setStateForDialog(() {
+                              showNoSelectedWalletError = true;
+                            });
+                            return;
+                          }
+
                           Navigator.of(context).pop(); // dismiss dialog,
-                          onDone();
+                          onDone(selectedWalletPublicKey);
                         },
                         style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(
@@ -4274,11 +4346,14 @@ showUnSubscribePopup(
 }
 
 showBuyTokenPopup(context,
-    {required void Function() onDone,
+    {required void Function(String walletPublicKey) onDone,
+    required String assetCode,
     required List<DropdownMenuItem<String>> dropdownItems}) async {
   var notifier = Provider.of<ColorNotifier>(context, listen: false);
   height = MediaQuery.of(context).size.height;
   width = MediaQuery.of(context).size.width;
+  String selectedWalletPublicKey = '';
+  bool showNoSelectedWalletError = false;
   return showDialog(
       context: context,
       barrierDismissible: true,
@@ -4323,7 +4398,9 @@ showBuyTokenPopup(context,
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: dropdown(
-                        (value) {},
+                        (value) {
+                          selectedWalletPublicKey = value.toString();
+                        },
                         dropdownItems,
                         null,
                         "choosewallet".tr(),
@@ -4331,24 +4408,23 @@ showBuyTokenPopup(context,
                         null,
                       ),
                     ),
-                    // SizedBox(
-                    //   height: height / 70,
-                    // ),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                    //   child: Row(
-                    //     children: [
-                    //       Text(
-                    //         'Change wallet',
-                    //         textAlign: TextAlign.center,
-                    //         style: TextStyle(
-                    //             color: notifier.getbluewhitecolor,
-                    //             fontSize: 12,
-                    //             fontFamily: fontsemibold),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
+                    if (showNoSelectedWalletError) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                        child: Row(
+                          children: [
+                            Text(
+                              "pleaseselectwallet".tr(),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                  fontFamily: fontbody),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     SizedBox(
                       height: height / 50,
                     ),
@@ -4356,8 +4432,15 @@ showBuyTokenPopup(context,
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
                         onPressed: () {
+                          if (selectedWalletPublicKey.isEmpty) {
+                            setStateForDialog(() {
+                              showNoSelectedWalletError = true;
+                            });
+                            return;
+                          }
+
                           Navigator.of(context).pop(); // dismiss dialog,
-                          onDone();
+                          onDone(selectedWalletPublicKey);
                         },
                         style: ButtonStyle(
                           fixedSize: MaterialStateProperty.all(

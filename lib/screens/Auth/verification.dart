@@ -273,6 +273,7 @@ class _VeryficationState extends State<Veryfication> {
     await StoreData()
         .storeInsertData('secretKey', <String>[state.tempSecretKey]);
     await StoreData().storeInsertData('restartedAfterSwitch', false);
+    await StoreData().storeInsertData('walletMode', state.walletMode);
     await StoreData()
         .storeInsertData('biometricsEnabled', state.biometricEnabled);
 

@@ -51,9 +51,9 @@ class _WalletPreparationState extends State<WalletPreparation>
     return wallets;
   }
 
-  List<DropdownMenuItem<String>> get getStandardWallets {
+  List<DropdownMenuItem<String>> get getStandardWalletsWithInitiatorAccess {
     List<DropdownMenuItem<String>> wallets = [];
-    appState.userInfo!.getStandardWallets.forEach((wallet) {
+    appState.userInfo!.getStandardWalletsWithInitiatorAccess.forEach((wallet) {
       wallets.add(DropdownMenuItem(
           child: Text(
             wallet.alias!,
@@ -108,6 +108,13 @@ class _WalletPreparationState extends State<WalletPreparation>
                   popup(context,
                       title: 'Error',
                       message: 'Please select your asset tokenization wallet');
+                  return;
+                }
+
+                if (appState.activeDistributionWalletPublicKey == null) {
+                  popup(context,
+                      title: 'Error',
+                      message: 'Please select your asset distribution wallet');
                   return;
                 }
 
@@ -185,7 +192,51 @@ class _WalletPreparationState extends State<WalletPreparation>
             },
             getMintingWallets,
             null,
-            getHintText(),
+            getHintTextForMintingWallet(),
+            context,
+            null,
+          ),
+        ),
+        SizedBox(
+          height: height / 30,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text(
+                "selectdistributionwallet".tr(),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+              Text(
+                "whatdoesthismean".tr(),
+                style: TextStyle(
+                  decoration: TextDecoration.underline,
+                  fontSize: 12,
+                  fontFamily: fontsemibold,
+                  color: notifier.getbluewhitecolor,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: height / 70,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          child: dropdown(
+            (value) {
+              appState.setActiveDistributionWalletPublicKey = value;
+            },
+            getStandardWalletsWithInitiatorAccess,
+            null,
+            getHintTextForDistribution(),
             context,
             null,
           ),
@@ -194,13 +245,22 @@ class _WalletPreparationState extends State<WalletPreparation>
     );
   }
 
-  String getHintText() {
+  String getHintTextForMintingWallet() {
     var wallet = appState.userInfo!.getMintingWallets.where(
         (w) => w.publicKey == appState.activeTokenizationWalletPublicKey);
 
     return wallet.length > 0
         ? wallet.first.alias!
         : 'Select tokenization wallet';
+  }
+
+  String getHintTextForDistribution() {
+    var wallet = appState.userInfo!.getStandardWalletsWithInitiatorAccess.where(
+        (w) => w.publicKey == appState.activeDistributionWalletPublicKey);
+
+    return wallet.length > 0
+        ? wallet.first.alias!
+        : 'Select distribution wallet';
   }
 
   Widget CheckItem(

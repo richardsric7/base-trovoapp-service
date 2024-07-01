@@ -37,16 +37,17 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   final _formKey = GlobalKey<FormState>();
   String? assetLogo;
   bool hasAdditionalKYCRequirements = false;
-  String proceedPayoutCurrency = 'e-Naira';
+  String proceedPayoutCurrency = 'NGN';
   late int numberOfTokenToBeSold;
   late int numberOfTokenToBeIssued;
   late int totalTokenHeldByManager;
   late double pricePerToken;
   late String assetCode;
+  late String assetName;
   late DateTime? salesStart;
   late DateTime? salesEnd;
   late int capQuantity;
-  late String AssetQuoteCurrency = 'e-Naira';
+  late String assetQuoteCurrency = 'NGN';
   late int capDurationInDays;
   late String proceedCycle;
   late List<String> exemptedCountries;
@@ -57,16 +58,8 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   late int tokenizationFeeId;
   late dynamic data = {};
 
-  List<String> fundingOptions = [
-    'e-Naira',
-    'TROV',
-    'XBN',
-  ];
-  List<String> payoutCycleOptions = [
-    'Monthly',
-    'Quarterly',
-    'Yearly',
-  ];
+  List<String> assetQuoteCurrencies = [];
+  List<String> payoutCycleOptions = [];
 
   getdarkmodepreviousstate() async {
     final prefs = await SharedPreferences.getInstance();
@@ -78,9 +71,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     }
   }
 
-  List<DropdownMenuItem<String>> get getFundingOptions {
+  List<DropdownMenuItem<String>> get getAssetQuoteCurrencies {
     List<DropdownMenuItem<String>> options = [];
-    fundingOptions.forEach((item) {
+    assetQuoteCurrencies.forEach((item) {
       options.add(DropdownMenuItem(
           child: Text(
             item,
@@ -121,7 +114,22 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
   void initState() {
     appState = Provider.of<DataProvider>(context, listen: false);
     inspect(appState.viewData);
+    inspect(appState.tokenizationData);
     data = appState.viewData;
+
+    for (var i = 0;
+        i < appState.tokenizationData["tokenizationCurrencies"].length;
+        i++) {
+      assetQuoteCurrencies
+          .add(appState.tokenizationData["tokenizationCurrencies"][i]["label"]);
+    }
+
+    for (var i = 0;
+        i < appState.tokenizationData["assetProceedCycle"].length;
+        i++) {
+      payoutCycleOptions
+          .add(appState.tokenizationData["assetProceedCycle"][i]["id"]);
+    }
 
     tokenizationFeeId =
         data["tokenizationFeeId"] == 0 ? 1 : data["tokenizationFeeId"];
@@ -134,6 +142,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
     totalTokenHeldByManager = data['totalTokenHeldByManager'];
     pricePerToken = double.parse(data['pricePerToken'].toString());
     assetCode = data['assetCode'];
+    assetName = data['assetName'];
     salesStart = DateTime.parse(data['salesStart'].toString());
     salesEnd = DateTime.parse(data['salesEnd'].toString());
     capOnPurchase = data['capOnPurchase'] == 1;
@@ -181,6 +190,59 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Text(
+                      "enterassetname".tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontFamily: fontsemibold,
+                        color: notifier.getbluewhitecolor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: height / 70,
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: CustomTextFormField.textField(
+                      "enterassetname".tr(),
+                      notifier.getbluecolor,
+                      null,
+                      notifier.getgrey,
+                      null,
+                      notifier.getblck,
+                      notifier.getgrey,
+                      70.sp,
+                      300.sp,
+                      initialValue: assetName,
+                      onChanged: (value) {
+                        setState(() {
+                          assetName = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return "fieldcannotbeempty".tr();
+                        }
+                        return null;
+                      },
+                      onSaved: (value) {
+                        setState(() {
+                          assetName = value!;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
                       "enterassetcode".tr(),
                       style: TextStyle(
                         fontSize: 12,
@@ -209,6 +271,11 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       70.sp,
                       300.sp,
                       initialValue: assetCode,
+                      onChanged: (value) {
+                        setState(() {
+                          assetCode = value;
+                        });
+                      },
                       validator: (value) {
                         if (value.isEmpty) {
                           return "fieldcannotbeempty".tr();
@@ -586,8 +653,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           checkBoxItem(
-                            text:
-                                "N1,000,000.00 + 1,500,000.00 ATLANTIS TOKENS",
+                            text: "N1,000,000.00 + 1,500,000.00 ${assetCode}",
                             value: tokenizationFeeId == 1,
                             onChanged: (bool? value) {
                               setState(() {
@@ -596,8 +662,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             },
                           ),
                           checkBoxItem(
-                            text:
-                                "N10,000,000.00 + 1,000,000.00 ATLANTIS TOKENS",
+                            text: "N10,000,000.00 + 1,000,000.00 ${assetCode}",
                             value: tokenizationFeeId == 2,
                             onChanged: (bool? value) {
                               setState(() {
@@ -606,7 +671,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             },
                           ),
                           checkBoxItem(
-                            text: "N20,000,000.00 + 600,000.00 ATLANTIS TOKENS",
+                            text: "N20,000,000.00 + 600,000.00 ${assetCode}",
                             value: tokenizationFeeId == 3,
                             onChanged: (bool? value) {
                               setState(() {
@@ -615,7 +680,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                             },
                           ),
                           checkBoxItem(
-                            text: "N50,000,000.00 + 400,000.00 ATLANTIS TOKENS",
+                            text: "N50,000,000.00 + 400,000.00 ${assetCode}",
                             value: tokenizationFeeId == 4,
                             onChanged: (bool? value) {
                               setState(() {
@@ -739,12 +804,12 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                 child: dropdown(
                   (value) {
                     setState(() {
-                      // fundingMethod = value.toString();
+                      assetQuoteCurrency = value.toString();
                     });
                   },
-                  getFundingOptions,
+                  getAssetQuoteCurrencies,
                   null,
-                  'e-Naira',
+                  assetQuoteCurrency,
                   context,
                   null,
                 ),
@@ -1187,9 +1252,9 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
                       proceedPayoutCurrency = value.toString();
                     });
                   },
-                  getFundingOptions,
+                  getAssetQuoteCurrencies,
                   null,
-                  'e-Naira',
+                  proceedPayoutCurrency,
                   context,
                   null,
                 ),
@@ -1524,6 +1589,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
           numberOfTokenToBeIssued - numberOfTokenToBeSold;
       newData['pricePerToken'] = pricePerToken;
       newData['assetCode'] = assetCode;
+      newData['assetName'] = assetName;
       newData['salesStart'] = DateFormat("yyyy-MM-ddTHH:mm:ss.SSSSSS'Z'")
           .format(salesStart!.toUtc());
       newData['salesEnd'] =
@@ -1537,6 +1603,7 @@ class _AssetTokenInformation extends State<AssetTokenInformation>
       newData['exemptedCountries'] = exemptedCountries.join(',');
       newData['hasAdditionalKYCRequirements'] =
           hasAdditionalKYCRequirements ? 1 : 0;
+      newData['assetQuoteCurrency'] = assetQuoteCurrency;
       newData['proceedPayoutCurrency'] = proceedPayoutCurrency;
       newData['additionalKYCRequirements'] = additionalKYCRequirements;
       newData['investorAccreditationRequired'] =

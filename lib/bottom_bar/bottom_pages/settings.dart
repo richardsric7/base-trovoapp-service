@@ -865,13 +865,26 @@ class _SettingsState extends State<Settings> {
           appState.biometricEnabled = !appState.biometricEnabled;
           StoreData()
               .storeInsertData('biometricsEnabled', appState.biometricEnabled);
-          changeTabPage(appState, ButtomTabPage.Dashboard.index);
         });
       }
     } on PlatformException catch (e) {
       if (e.code == auth_error.notEnrolled ||
           e.code == auth_error.notAvailable) {
-        biometricsErrorAlert(context);
+        if (!appState.biometricEnabled) {
+          popup(context,
+              title: 'Invalid Operation',
+              message:
+                  'You cannot enable bometrics unless you do biometrics enrollment on your device');
+          return;
+        }
+
+        biometricsErrorAlert(context, callback: () {
+          setState(() {
+            appState.biometricEnabled = false;
+            StoreData().storeInsertData(
+                'biometricsEnabled', appState.biometricEnabled);
+          });
+        });
       }
     }
   }
