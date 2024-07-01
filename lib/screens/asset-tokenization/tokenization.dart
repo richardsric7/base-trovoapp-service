@@ -360,7 +360,10 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                             j < savedAssets.length;
                                             j++) {
                                           var data = Map.from(savedAssets[j]);
-                                          data['tokenizationStatus'] = 1;
+                                          data['tokenizationStatus'] = 0;
+                                          if (data['id'] == records[i].id) {
+                                            data['tokenizationStatus'] = 1;
+                                          }
                                           list.add(data);
                                         }
 
@@ -376,7 +379,7 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
                                         appState.currentAction = PageAction(
                                           state: PageState.addPage,
                                           page:
-                                              SetupAndComplianceViewPageConfig,
+                                              ConfirmTokenizationDetailsViewPageConfig,
                                         );
                                       },
                                       child: assetTile(

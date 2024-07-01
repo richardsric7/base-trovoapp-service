@@ -28,21 +28,21 @@ class TokenizedAsset {
   String? assetOwnerAddress;
   String? assetManagerName;
   String? assetManagerAddress;
-  int? assetCurrentValue;
-  int? assetPercentageForTokenization;
-  int? valueOfTokenizedAsset;
+  double? assetCurrentValue;
+  double? assetPercentageForTokenization;
+  double? valueOfTokenizedAsset;
   String? protectionMethods;
   String? insuranceCompanyName;
   String? insurancePolicyNumber;
   String? insurancePolicyHolder;
-  int? percentageValueOfInsurance;
+  double? percentageValueOfInsurance;
   int? isFreeFromLiensAndEncumbrances;
   int? tokenizationFeeId;
-  int? numberOfTokenToBeSold;
-  int? numberOfTokenToBeIssued;
+  double? numberOfTokenToBeSold;
+  double? numberOfTokenToBeIssued;
   String? walletToHoldAssetsNotForSale;
-  int? totalTokenHeldByManager;
-  int? pricePerToken;
+  double? totalTokenHeldByManager;
+  double? pricePerToken;
   DateTime? salesStart;
   DateTime? salesEnd;
   int? capOnPurchase;
@@ -133,6 +133,7 @@ class TokenizedAsset {
     this.closedGroupInfo,
     this.assetTokenizationDocuments,
     this.tokenizationStatus,
+    this.assetQuoteCurrency,
   });
 
   TokenizedAsset deserializeJson(Map<String, dynamic> m) {
@@ -166,21 +167,28 @@ class TokenizedAsset {
       assetOwnerAddress: m["assetOwnerAddress"],
       assetManagerName: m["assetManagerName"],
       assetManagerAddress: m["assetManagerAddress"],
-      assetCurrentValue: m["assetCurrentValue"],
-      assetPercentageForTokenization: m["assetPercentageForTokenization"],
-      valueOfTokenizedAsset: m["valueOfTokenizedAsset"],
+      assetQuoteCurrency: m["assetQuoteCurrency"],
+      assetCurrentValue: double.parse(m["assetCurrentValue"].toString()),
+      assetPercentageForTokenization:
+          double.parse(m["assetPercentageForTokenization"].toString()),
+      valueOfTokenizedAsset:
+          double.parse(m["valueOfTokenizedAsset"].toString()),
       protectionMethods: m["protectionMethods"],
       insuranceCompanyName: m["insuranceCompanyName"],
       insurancePolicyNumber: m["insurance_policy_number"],
       insurancePolicyHolder: m["insurancePolicyHolder"],
-      percentageValueOfInsurance: m["percentageValueOfInsurance"],
+      percentageValueOfInsurance:
+          double.parse(m["percentageValueOfInsurance"].toString()),
       isFreeFromLiensAndEncumbrances: m["isFreeFromLiensAndEncumbrances"],
       tokenizationFeeId: m["tokenizationFeeId"],
-      numberOfTokenToBeSold: m["numberOfTokenToBeSold"],
-      numberOfTokenToBeIssued: m["numberOfTokenToBeIssued"],
+      numberOfTokenToBeSold:
+          double.parse(m["numberOfTokenToBeSold"].toString()),
+      numberOfTokenToBeIssued:
+          double.parse(m["numberOfTokenToBeIssued"].toString()),
       walletToHoldAssetsNotForSale: m["walletToHoldAssetsNotForSale"],
-      totalTokenHeldByManager: m["totalTokenHeldByManager"],
-      pricePerToken: m["pricePerToken"],
+      totalTokenHeldByManager:
+          double.parse(m["totalTokenHeldByManager"].toString()),
+      pricePerToken: double.parse(m["pricePerToken"].toString()),
       salesStart: DateTime.parse(m["salesStart"]),
       salesEnd: DateTime.parse(m["salesEnd"]),
       capOnPurchase: m["capOnPurchase"],

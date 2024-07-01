@@ -64,11 +64,13 @@ import 'package:trovo_wallet/screens/asset-tokenization/asset_token_information.
 import 'package:trovo_wallet/screens/asset-tokenization/asset_verification_documents.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/buy_tokens.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/confirm_buy.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/confirm_tokenization_details.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/liquidate_asset.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/my_asset_token.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/proceeds_payout.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/setup_and_compliance.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenization.dart';
+import 'package:trovo_wallet/screens/asset-tokenization/tokenization_fee_payment.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenize_asset_view.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenized_asset_details.dart';
 import 'package:trovo_wallet/screens/asset-tokenization/tokenized_assets_list.dart';
@@ -465,6 +467,14 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         case Pages.AssetTokenDetailsView:
           _addPageData(AssetTokenDetails(), AssetTokenDetailsViewPageConfig);
           break;
+        case Pages.ConfirmTokenizationDetailsView:
+          _addPageData(ConfirmTokenizationDetails(),
+              ConfirmTokenizationDetailsViewPageConfig);
+          break;
+        case Pages.TokenizationFeePaymentView:
+          _addPageData(
+              TokenizationFeePayment(), TokenizationFeePaymentViewPageConfig);
+          break;
         default:
           break;
       }
@@ -767,6 +777,12 @@ class TrovoWalletRouterDelegate extends RouterDelegate<PageConfiguration>
         break;
       case Pages.AssetTokenDetailsView:
         AssetTokenDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.ConfirmTokenizationDetailsView:
+        ConfirmTokenizationDetailsViewPageConfig.currentPageAction = action;
+        break;
+      case Pages.TokenizationFeePaymentView:
+        TokenizationFeePaymentViewPageConfig.currentPageAction = action;
         break;
       default:
         break;
