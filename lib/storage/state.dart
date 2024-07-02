@@ -669,6 +669,8 @@ class DataProvider with ChangeNotifier {
     }
   }
 
+  String? pdfUrl;
+
   // view data is where all the data that a particular view needs
   // to do its work is. So when you want to pass any data from one view to
   // another, assign it to viewData and then get it back when you get

@@ -577,7 +577,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                                 var fileUrl = item.documentUrl;
                                 if (fileUrl!.isNotEmpty &&
                                     fileUrl.endsWith('.pdf')) {
-                                  appState.viewData!['pdfUrl'] = fileUrl;
+                                  appState.pdfUrl = fileUrl;
                                   appState.currentAction = PageAction(
                                       state: PageState.addPage,
                                       page: PdfViewPageConfig);

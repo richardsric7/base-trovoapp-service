@@ -373,11 +373,11 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                                     tabs: [
                                       Tab(
                                         height: 20,
-                                        text: "Primary Listing".tr(),
+                                        text: "primaryoffers".tr(),
                                       ),
                                       Tab(
                                         height: 20,
-                                        text: "Secondary Listing".tr(),
+                                        text: "secondarylisting".tr(),
                                       ),
                                     ],
                                   ),

@@ -117,7 +117,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                       child: Column(
                         children: [
                           Icon(
-                            CupertinoIcons.add_circled_solid,
+                            tokenizedAsset.isSubscribed ?? false
+                                ? Icons.check_circle
+                                : Icons.add_circle_rounded,
                             size: 25,
                             color: notifier.getbluewhitecolor,
                           ),
@@ -125,7 +127,9 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                             width: width / 20,
                           ),
                           Text(
-                            'Subscribe',
+                            tokenizedAsset.isSubscribed ?? false
+                                ? 'Subscribed'
+                                : 'Subscribe',
                             style: TextStyle(
                               fontSize: 15,
                               fontFamily: fontbody,
@@ -442,7 +446,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                                 var fileUrl = item.documentUrl;
                                 if (fileUrl!.isNotEmpty &&
                                     fileUrl.endsWith('.pdf')) {
-                                  appState.viewData!['pdfUrl'] = fileUrl;
+                                  appState.pdfUrl = fileUrl;
                                   appState.currentAction = PageAction(
                                       state: PageState.addPage,
                                       page: PdfViewPageConfig);

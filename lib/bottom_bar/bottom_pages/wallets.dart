@@ -473,7 +473,7 @@ class _WalletsState extends State<Wallets> with TickerProviderStateMixin {
                   tabs: [
                     Tab(
                       height: 20,
-                      text: "assets".tr(),
+                      text: "othertokens".tr(),
                     ),
                     if (unclaimedAssets != null && tabLength == 2) ...[
                       Tab(

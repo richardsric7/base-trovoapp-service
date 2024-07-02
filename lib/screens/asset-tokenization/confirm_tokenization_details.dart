@@ -98,9 +98,22 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
               ),
               if (isAlreadySubmitted) ...[
                 Button(
-                  "back".tr(),
+                  "viewpaymentdetails".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
+                  onTap: () {
+                    appState.currentAction = PageAction(
+                      state: PageState.addPage,
+                      page: TokenizationFeePaymentViewPageConfig,
+                    );
+                  },
+                ),
+                SizedBox(height: height / 70),
+                ButtonOutlined(
+                  'back'.tr(),
+                  notifier.getwihitecolor,
+                  notifier.getbluewhitecolor,
+                  borderColor: notifier.getbluewhitecolor,
                   onTap: () {
                     Navigator.of(context).pop();
                   },

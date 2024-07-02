@@ -39,7 +39,7 @@ class _WalletPreparationState extends State<WalletPreparation>
   List<DropdownMenuItem<String>> get getMintingWallets {
     List<DropdownMenuItem<String>> wallets = [];
     appState.userInfo!.getMintingWallets.forEach((wallet) {
-      if (wallet.isInitiator) {
+      if (wallet.isSharedWalletAndCanInitiate) {
         wallets.add(DropdownMenuItem(
             child: Text(
               wallet.alias!,
@@ -134,8 +134,6 @@ class _WalletPreparationState extends State<WalletPreparation>
   }
 
   Widget walletPreparation() {
-    print('wlaldfjaskldkfls ${appState.activeTokenizationWalletPublicKey}');
-
     return Column(
       children: [
         SizedBox(

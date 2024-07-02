@@ -44,11 +44,12 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
   }
 
   bool checkHasInitiatorAccess() {
-    var hasAccess = false;
-    appState.userInfo!.getMintingWallets.forEach((wallet) {
-      hasAccess = wallet.isSharedWalletAndCanInitiate;
-    });
-    return hasAccess;
+    for (var wallet in appState.userInfo!.getMintingWallets) {
+      if (wallet.isSharedWalletAndCanInitiate) {
+        return true;
+      }
+    }
+    return false;
   }
 
   List<DropdownMenuItem<String>> get getItems {

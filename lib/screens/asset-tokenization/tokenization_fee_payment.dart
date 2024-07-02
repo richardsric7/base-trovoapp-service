@@ -45,6 +45,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
     notifier = Provider.of<ColorNotifier>(context, listen: true);
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    var isAlreadySubmitted = tokenizedAsset.tokenizationStatus != null;
 
     return ScreenUtilInit(
       builder: (context, child) => Scaffold(
@@ -136,7 +137,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                                   tokenizedAsset.walletToHoldAssetsNotForSale!,
                             ),
                           );
-                          showSnackBar("walletalias".tr(), context);
+                          showSnackBar("publickey".tr(), context);
                         },
                         icon: Icon(Icons.copy,
                             size: 20, color: notifier.getbluewhitecolor),
@@ -237,7 +238,7 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                                             .walletToHoldAssetsNotForSale!,
                                       ),
                                     );
-                                    showSnackBar("walletalias".tr(), context);
+                                    showSnackBar("accountnumber".tr(), context);
                                   },
                                   icon: Icon(Icons.copy,
                                       size: 20,
@@ -335,40 +336,51 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
               SizedBox(
                 height: height / 20,
               ),
-              Button(
-                "submitapplication".tr(),
-                notifier.getbluecolor,
-                wihitecolor,
-                onTap: () async {
-                  appState.viewData!['tokenizationStatus'] = 0;
-                  await inspect(appState.viewData);
-                  var savedAssets =
-                      await StoreData().storeGetData('tokenizedAsset');
-                  print(savedAssets);
-                  if (savedAssets != null) {
-                    for (int i = 0; i < savedAssets.length; i++) {
-                      print(savedAssets);
+              if (isAlreadySubmitted) ...[
+                Button(
+                  "back".tr(),
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ] else ...[
+                Button(
+                  "submitapplication".tr(),
+                  notifier.getbluecolor,
+                  wihitecolor,
+                  onTap: () async {
+                    appState.viewData!['tokenizationStatus'] = 0;
+                    await inspect(appState.viewData);
+                    var savedAssets =
+                        await StoreData().storeGetData('tokenizedAsset');
+                    print(savedAssets);
+                    if (savedAssets != null) {
+                      for (int i = 0; i < savedAssets.length; i++) {
+                        print(savedAssets);
+                      }
+                      savedAssets = [...savedAssets, appState.viewData];
+                      await StoreData()
+                          .storeInsertData('tokenizedAsset', savedAssets);
+                    } else {
+                      savedAssets = [appState.viewData];
+                      await StoreData()
+                          .storeInsertData('tokenizedAsset', savedAssets);
                     }
-                    savedAssets = [...savedAssets, appState.viewData];
-                    await StoreData()
-                        .storeInsertData('tokenizedAsset', savedAssets);
-                  } else {
-                    savedAssets = [appState.viewData];
-                    await StoreData()
-                        .storeInsertData('tokenizedAsset', savedAssets);
-                  }
-                  showLoader(context);
-                  await Future.delayed(Duration(seconds: 12));
-                  hideLoader(context);
-                  appState.viewData![SuccessViewPageConfig.key] = {
-                    'title': '',
-                    'message':
-                        'Your Asset Tokenization Request has been submitted and is awaiting approval. You’ll be notified when  it has been approved.',
-                  };
-                  appState.currentAction = PageAction(
-                      state: PageState.replace, page: SuccessViewPageConfig);
-                },
-              ),
+                    showLoader(context);
+                    await Future.delayed(Duration(seconds: 12));
+                    hideLoader(context);
+                    appState.viewData![SuccessViewPageConfig.key] = {
+                      'title': '',
+                      'message':
+                          'Your Asset Tokenization Request has been submitted and is awaiting approval. You’ll be notified when  it has been approved.',
+                    };
+                    appState.currentAction = PageAction(
+                        state: PageState.replace, page: SuccessViewPageConfig);
+                  },
+                ),
+              ],
               SizedBox(
                 height: height / 20,
               ),
