@@ -246,7 +246,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                   label: 'Price Per Asset',
                   value:
                       '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
-                  extraValue: '\$2,205',
+                  extraValue: '',
+                  // extraValue: '\$2,205',
                 ),
                 SizedBox(
                   width: width / 50,
@@ -265,7 +266,8 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 infoCard(
                   label: 'Subscription Amount',
                   value: '0 ${tokenizedAsset.assetQuoteCurrency}',
-                  extraValue: '\$2,205',
+                  extraValue: '',
+                  // extraValue: '\$2,205',
                 ),
                 SizedBox(
                   width: width / 50,

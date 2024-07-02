@@ -4386,7 +4386,7 @@ showBuyTokenPopup(context,
                       padding: const EdgeInsets.all(20.0),
                       child: Center(
                         child: Text(
-                          "addmoretokens".tr(args: ["Atlantis"]),
+                          "addmoretokens".tr(args: ['[${assetCode}]']),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                               color: notifier.getbluewhitecolor,

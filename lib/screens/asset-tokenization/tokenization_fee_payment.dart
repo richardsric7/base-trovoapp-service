@@ -337,11 +337,24 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                 height: height / 20,
               ),
               if (isAlreadySubmitted) ...[
+                ButtonOutlined(
+                  'back'.tr(),
+                  notifier.getwihitecolor,
+                  notifier.getbluewhitecolor,
+                  borderColor: notifier.getbluewhitecolor,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                SizedBox(
+                  height: height / 50,
+                ),
                 Button(
-                  "back".tr(),
+                  "ihavemadepayment".tr(),
                   notifier.getbluecolor,
                   wihitecolor,
                   onTap: () {
+                    Navigator.of(context).pop();
                     Navigator.of(context).pop();
                   },
                 ),
@@ -369,12 +382,12 @@ class _TokenizationFeePayment extends State<TokenizationFeePayment>
                           .storeInsertData('tokenizedAsset', savedAssets);
                     }
                     showLoader(context);
-                    await Future.delayed(Duration(seconds: 12));
+                    await Future.delayed(Duration(seconds: 5));
                     hideLoader(context);
                     appState.viewData![SuccessViewPageConfig.key] = {
                       'title': '',
                       'message':
-                          'Your Asset Tokenization Request has been submitted and is awaiting approval. You’ll be notified when  it has been approved.',
+                          'Your Asset Tokenization Request has been submitted and is awaiting approval. Please make the necessary payments. You’ll be notified when it has been approved.',
                     };
                     appState.currentAction = PageAction(
                         state: PageState.replace, page: SuccessViewPageConfig);

@@ -110,7 +110,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                         height: height / 70,
                       ),
                       Text(
-                        'of Atlantis Asset',
+                        'of [${tokenizedAsset.assetName}] Asset',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 14,
@@ -145,19 +145,19 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
                           color: notifier.getbluewhitecolor,
                         ),
                       ),
-                      SizedBox(
-                        height: height / 70,
-                      ),
-                      Text(
-                        '\$0.20',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.4,
-                          fontFamily: fontbody,
-                          color: notifier.getbluewhitecolor,
-                        ),
-                      ),
+                      // SizedBox(
+                      //   height: height / 70,
+                      // ),
+                      // Text(
+                      //   '\$0.20',
+                      //   textAlign: TextAlign.center,
+                      //   style: TextStyle(
+                      //     fontSize: 14,
+                      //     height: 1.4,
+                      //     fontFamily: fontbody,
+                      //     color: notifier.getbluewhitecolor,
+                      //   ),
+                      // ),
                       SizedBox(
                         height: height / 30,
                       ),
@@ -228,7 +228,7 @@ class _ConfirmBuy extends State<ConfirmBuy> with TickerProviderStateMixin {
 
                 wallet.tokenizedAssets!.add(tokenizedAsset);
                 showLoader(context);
-                await Future.delayed(Duration(seconds: 12));
+                await Future.delayed(Duration(seconds: 5));
                 hideLoader(context);
                 appState.viewData![SuccessViewPageConfig.key] = {
                   'title': 'Purchase Successful',

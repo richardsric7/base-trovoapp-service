@@ -835,15 +835,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       onDone: (walletPublicKey) {
                         setState(() {
                           asset.isSubscribed = false;
-
-                          var wallet =
-                              appState.userInfo!.getWallet(walletPublicKey);
-
-                          wallet.tokenizedAssets!.removeWhere(
-                            (a) =>
-                                a.assetCode == asset.assetCode &&
-                                a.assetName == asset.assetName,
-                          );
                         });
                       },
                       dropdownItems: getUnsubscribableWallets(asset),
@@ -854,14 +845,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                       onDone: (walletPublicKey) async {
                         setState(() {
                           asset.isSubscribed = true;
-                          var wallet =
-                              appState.userInfo!.getWallet(walletPublicKey);
-                          if (wallet.tokenizedAssets == null) {
-                            wallet.tokenizedAssets = [asset];
-                            return;
-                          }
-
-                          wallet.tokenizedAssets!.add(asset);
                         });
                       },
                       dropdownItems: getStandardWallets,
