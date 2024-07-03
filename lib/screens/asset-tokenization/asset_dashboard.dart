@@ -284,7 +284,8 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            '\$${formatHistoryNumber(tokenizedAsset.assetCurrentValue! / tokenizedAsset.usdPrice!, 1000000)}',
+                            '',
+                            // '\$${formatHistoryNumber(tokenizedAsset.assetCurrentValue! / tokenizedAsset.usdPrice!, 1000000)}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -358,7 +359,8 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            '\$${formatHistoryNumber(tokenizedAsset.pricePerToken! / tokenizedAsset.usdPrice!, 1000000)}',
+                            '',
+                            // '\$${formatHistoryNumber(tokenizedAsset.pricePerToken! / tokenizedAsset.usdPrice!, 1000000)}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,

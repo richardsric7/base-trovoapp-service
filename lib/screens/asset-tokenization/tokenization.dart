@@ -682,6 +682,8 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
         var a = TokenizedAsset().deserializeJson(savedAssets[i]);
         a.usdPrice = 1.47;
         a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
+        a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
+            a.numberOfTokenToBeIssued!);
         tokenizedAssets.add(a);
       }
     }

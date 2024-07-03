@@ -72,7 +72,7 @@ class _ConfirmTokenizationDetails extends State<ConfirmTokenizationDetails>
                 height: height / 50,
               ),
               item("pricepertoken".tr(),
-                  '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}'),
+                  '${(double.parse(tokenizedAsset.assetCurrentValue.toString()) / tokenizedAsset.numberOfTokenToBeIssued!)} ${tokenizedAsset.assetQuoteCurrency}'),
               SizedBox(
                 height: height / 50,
               ),

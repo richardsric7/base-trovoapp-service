@@ -1169,6 +1169,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           var a = TokenizedAsset().deserializeJson(savedAssets[i]);
           a.usdPrice = 1.47;
           a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
+          a.pricePerToken = (double.parse(a.assetCurrentValue.toString()) /
+              a.numberOfTokenToBeIssued!);
           tokenizedAssets.add(a);
         }
       }
