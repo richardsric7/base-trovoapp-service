@@ -233,7 +233,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ),
                 infoCard(
                   label: 'Total Subscribed',
-                  value: '800',
+                  value: '${tokenizedAsset.isSubscribed ?? false ? 1 : 0}',
                   extraValue: '',
                 ),
               ],
@@ -243,12 +243,11 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 infoCard(
-                  label: 'Price Per Asset',
-                  value:
-                      '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
-                  extraValue: '',
-                  // extraValue: '\$2,205',
-                ),
+                    label: 'Price Per Asset',
+                    value:
+                        '${tokenizedAsset.pricePerToken} ${tokenizedAsset.assetQuoteCurrency}',
+                    extraValue:
+                        '\$${formatHistoryNumber(tokenizedAsset.pricePerToken! / tokenizedAsset.usdPrice!, 1000000)}'),
                 SizedBox(
                   width: width / 50,
                 ),
@@ -274,8 +273,10 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
                 ),
                 infoCard(
                   label: 'Amount Bought',
-                  value: '0 ${tokenizedAsset.assetQuoteCurrency}',
-                  extraValue: '',
+                  value:
+                      '${tokenizedAsset.amount ?? 0} ${tokenizedAsset.assetCode}',
+                  extraValue:
+                      '${tokenizedAsset.amount ?? 0 * tokenizedAsset.pricePerToken!} ${tokenizedAsset.assetQuoteCurrency}',
                 ),
               ],
             ),
@@ -362,7 +363,7 @@ class _TokenizedAssetDetail extends State<TokenizedAssetDetail>
             infoTile(
               notifier,
               'Asset Tokens Quantity Purchased',
-              '400',
+              '${tokenizedAsset.amount ?? 0}',
             ),
             infoTile(
               notifier,

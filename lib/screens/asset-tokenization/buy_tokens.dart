@@ -26,6 +26,9 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
   late ColorNotifier notifier;
   late DataProvider appState;
   final _formKey = GlobalKey<FormState>();
+  final amountController = TextEditingController();
+  final quantityController = TextEditingController();
+
   double amount = 0;
   double quantity = 0;
   List<String> currencies = [
@@ -166,6 +169,17 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                         }
                         return null;
                       },
+                      onChanged: (value) {
+                        setState(() {
+                          var a = int.tryParse(value);
+                          if (a != null) {
+                            var pricePerToken = tokenizedAsset.pricePerToken!;
+                            amountController.text =
+                                ((a * pricePerToken)).toString();
+                          }
+                        });
+                      },
+                      controller: quantityController,
                       onSaved: (value) {
                         quantity = double.parse(value);
                       },
@@ -208,6 +222,16 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                       notifier.getgrey,
                       70.sp,
                       300.sp,
+                      onChanged: (value) {
+                        setState(() {
+                          var a = int.tryParse(value);
+                          if (a != null) {
+                            var pricePerToken = tokenizedAsset.pricePerToken!;
+                            quantityController.text =
+                                ((a / pricePerToken)).toString();
+                          }
+                        });
+                      },
                       keyboardtype: TextInputType.numberWithOptions(
                         decimal: true,
                         signed: true,
@@ -218,6 +242,7 @@ class _BuyTokens extends State<BuyTokens> with TickerProviderStateMixin {
                         }
                         return null;
                       },
+                      controller: amountController,
                       onSaved: (value) {
                         amount = double.parse(value);
                       },

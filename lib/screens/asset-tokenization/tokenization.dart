@@ -679,7 +679,10 @@ class _TokenizationWelcomeState extends State<TokenizationWelcome>
     if (savedAssets != null) {
       for (int i = 0; i < savedAssets.length; i++) {
         print(savedAssets[i]);
-        tokenizedAssets.add(TokenizedAsset().deserializeJson(savedAssets[i]));
+        var a = TokenizedAsset().deserializeJson(savedAssets[i]);
+        a.usdPrice = 1.47;
+        a.assetIssuer = a.walletToHoldAssetsNotForSale ?? '';
+        tokenizedAssets.add(a);
       }
     }
     return {"records": tokenizedAssets};

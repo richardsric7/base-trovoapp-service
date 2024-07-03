@@ -118,7 +118,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            '100',
+                            '${tokenizedAsset.isSubscribed ?? false ? 1 : 0}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -189,7 +189,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            '4,670 ${tokenizedAsset.assetCode}',
+                            '${tokenizedAsset.amount ?? 0} ${tokenizedAsset.assetCode}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -201,7 +201,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            '\467,000 ${tokenizedAsset.assetQuoteCurrency}',
+                            '${tokenizedAsset.pricePerToken! * (tokenizedAsset.amount ?? 0)} ${tokenizedAsset.assetQuoteCurrency}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -272,7 +272,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            '3,248,770 ${tokenizedAsset.assetQuoteCurrency}',
+                            '${formatHistoryNumber(tokenizedAsset.assetCurrentValue!, 10000)} ${tokenizedAsset.assetQuoteCurrency}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -284,7 +284,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            '\$4,390.23',
+                            '\$${formatHistoryNumber(tokenizedAsset.assetCurrentValue! / tokenizedAsset.usdPrice!, 1000000)}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -358,7 +358,7 @@ class _AssetDashboardState extends State<AssetDashboard>
                             height: height / 70,
                           ),
                           Text(
-                            '\$0.135',
+                            '\$${formatHistoryNumber(tokenizedAsset.pricePerToken! / tokenizedAsset.usdPrice!, 1000000)}',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -491,12 +491,12 @@ class _AssetDashboardState extends State<AssetDashboard>
             infoTile(
               notifier,
               'Asset Tokens Quantity Purchased',
-              '400',
+              '${tokenizedAsset.amount ?? 0} ${tokenizedAsset.assetCode}',
             ),
             infoTile(
               notifier,
               'Total Subscribed Users',
-              '2,000',
+              '${tokenizedAsset.isSubscribed ?? false ? 1 : 0}',
             ),
             infoTile(
               notifier,
